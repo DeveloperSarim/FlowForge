@@ -6,11 +6,13 @@ import IntegrationIcon from '@/Components/IntegrationIcon';
 import TemplateCard from '@/Components/TemplateCard';
 import { Badge, Button, Card } from '@/Components/ui';
 import { categoryMeta } from '@/lib/categories';
+import { useCan } from '@/lib/can';
 
 const AUTH_LABELS = { api_key: 'API key', bearer: 'Access token', basic: 'Username & password', oauth2: 'OAuth2', google_service_account: 'Service account', smtp: 'SMTP server', mysql: 'MySQL server' };
 
 export default function Show({ app, credentials, templates }) {
     const [creating, setCreating] = useState(null);
+    const can = useCan();
     const meta = categoryMeta(app.category);
 
     const startWith = (action) => {
@@ -40,8 +42,8 @@ export default function Show({ app, credentials, templates }) {
                     </div>
                 </div>
                 <div className="flex gap-2">
-                    {app.auth.length > 0 && <Button onClick={() => router.visit(`/credentials?new=${app.key}`)}><KeyRound className="size-4" />{credentials.length ? 'Add another credential' : 'Add credential'}</Button>}
-                    {app.actions[0] && <Button variant="primary" loading={creating === app.actions[0].key} onClick={() => startWith(app.actions[0])}><Play className="size-3.5" />Use in a workflow</Button>}
+                    {can['workflows.edit'] && app.auth.length > 0 && <Button onClick={() => router.visit(`/credentials?new=${app.key}`)}><KeyRound className="size-4" />{credentials.length ? 'Add another credential' : 'Add credential'}</Button>}
+                    {can['workflows.edit'] && app.actions[0] && <Button variant="primary" loading={creating === app.actions[0].key} onClick={() => startWith(app.actions[0])}><Play className="size-3.5" />Use in a workflow</Button>}
                 </div>
             </Card>
 
@@ -55,7 +57,7 @@ export default function Show({ app, credentials, templates }) {
                                     <p className="text-[13.5px] font-medium">{action.name}</p>
                                     {action.description && <p className="mt-0.5 text-[12.5px] text-fg-muted">{action.description}</p>}
                                 </div>
-                                <Button size="sm" variant="ghost" className="opacity-0 group-hover:opacity-100 focus:opacity-100" loading={creating === action.key} onClick={() => startWith(action)}>Use</Button>
+                                {can['workflows.edit'] && <Button size="sm" variant="ghost" className="opacity-0 group-hover:opacity-100 focus:opacity-100" loading={creating === action.key} onClick={() => startWith(action)}>Use</Button>}
                             </li>
                         ))}
                     </ul>

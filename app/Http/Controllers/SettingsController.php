@@ -11,6 +11,7 @@ use App\Domain\System\Notifier;
 use App\Domain\System\SettingsValidation;
 use App\Domain\System\SystemSettings;
 use App\Domain\System\Updater;
+use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -26,8 +27,12 @@ class SettingsController extends Controller
 {
     public function __construct(private SystemSettings $settings) {}
 
-    public function show(ManifestLoader $manifests): Response
+    public function show(Request $request, ManifestLoader $manifests): Response
     {
+        if (! $request->user()->isAdmin()) {
+            return Inertia::render('Settings', []); // members manage only their own account and appearance
+        }
+
         $mail = $this->settings->mail();
         $ai = (array) $this->settings->get('ai', []);
         $catalog = $manifests->catalogMap();
@@ -37,6 +42,7 @@ class SettingsController extends Controller
             'mail' => $mail ? Arr::except($mail, ['password']) + ['has_password' => ! empty($mail['password'])] : null,
             'notifications' => $this->settings->notifications(),
             'timezone' => $this->settings->timezone(),
+            'team' => ['members' => TeamController::members(), 'permissions' => User::PERMISSIONS],
             'cron' => app(SystemValidator::class)->cronCommand(),
             'updates' => [
                 'version' => app(Updater::class)->current(),

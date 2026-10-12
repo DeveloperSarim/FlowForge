@@ -5,6 +5,7 @@ import AppLayout from '@/Layouts/AppLayout';
 import ExecutionDebug from '@/Components/ExecutionDebug';
 import { Button, Card, EmptyState, Select, Sheet, StatusBadge, Tabs } from '@/Components/ui';
 import { cn, duration, errorMessage, timeAgo, toast } from '@/lib/utils';
+import { useCan } from '@/lib/can';
 
 const STATUSES = [['', 'All'], ['completed', 'Succeeded'], ['failed', 'Failed'], ['running', 'Running'], ['pending', 'Queued']];
 
@@ -106,6 +107,7 @@ function DebugSheet({ id, onClose }) {
         return () => { alive = false; clearInterval(timer); };
     }, [id]);
 
+    const can = useCan();
     const retry = () => router.post(`/executions/${id}/retry`, {}, { preserveScroll: true, onSuccess: onClose, onError: () => toast('Retry failed.', 'error') });
 
     return (
@@ -121,7 +123,7 @@ function DebugSheet({ id, onClose }) {
                 </div>
                 {execution && <StatusBadge status={execution.status} />}
                 {execution && <Link href={`/workflows/${execution.workflow.id}`} className="hidden rounded-md px-2 py-1.5 text-[13px] text-fg-muted hover:bg-surface-2 hover:text-fg sm:inline">Open workflow</Link>}
-                {execution && execution.status !== 'pending' && execution.status !== 'running' && (
+                {can['workflows.edit'] && execution && execution.status !== 'pending' && execution.status !== 'running' && (
                     <Button size="sm" onClick={retry}><RotateCcw className="size-3.5" />Retry</Button>
                 )}
                 <Button variant="ghost" size="icon" onClick={onClose} aria-label="Close"><X className="size-4" /></Button>

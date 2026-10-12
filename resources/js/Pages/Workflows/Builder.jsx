@@ -12,6 +12,7 @@ import ExecutionDebug from '@/Components/ExecutionDebug';
 import { Button, Dialog, Menu, StatusBadge, Switch, Tabs } from '@/Components/ui';
 import { Logo, Toaster } from '@/Layouts/AppLayout';
 import { isDark } from '@/lib/theme';
+import { useCan } from '@/lib/can';
 import { cn, duration, errorMessage, timeAgo, toast } from '@/lib/utils';
 
 const toFlowNode = (node) => ({ ...node, deletable: node.type !== 'trigger' });
@@ -60,6 +61,8 @@ export default function Builder(props) {
 
 function Editor({ workflow: initial, catalog, operators, lastExecution, ai }) {
     const { screenToFlowPosition, fitView } = useReactFlow();
+    const can = useCan();
+    const readOnly = !can['workflows.edit']; // view-only team members: look, never change or run
     const catalogMap = useMemo(() => Object.fromEntries(catalog.map((i) => [i.key, i])), [catalog]);
 
     const [nodes, setNodes, onNodesChange] = useNodesState((initial.graph?.nodes ?? []).map(toFlowNode));
@@ -89,6 +92,7 @@ function Editor({ workflow: initial, catalog, operators, lastExecution, ai }) {
     const lastSaved = useRef(JSON.stringify({ name: initial.name, graph: serialize(initial.graph?.nodes ?? [], initial.graph?.edges ?? []) }));
 
     const persist = useCallback(async () => {
+        if (readOnly) return true;
         const body = { name: name.trim() || 'Untitled workflow', graph };
         const key = JSON.stringify(body);
         if (key === lastSaved.current) return true;
@@ -103,7 +107,7 @@ function Editor({ workflow: initial, catalog, operators, lastExecution, ai }) {
             setSave({ state: 'error', message: errorMessage(error) });
             return false;
         }
-    }, [name, graph, initial.id]);
+    }, [name, graph, initial.id, readOnly]);
 
     useEffect(() => {
         const timer = setTimeout(persist, 800);
@@ -256,8 +260,8 @@ function Editor({ workflow: initial, catalog, operators, lastExecution, ai }) {
     const context = useMemo(() => ({
         catalog: catalogMap, runSteps: execution ? runSteps : {}, running, connected,
         openCreator: (opts) => setCreator({ mode: 'action', ...opts }),
-        openNode: setOpenId, executeStep, removeNode,
-    }), [catalogMap, execution, runSteps, running, connected, executeStep, removeNode]);
+        openNode: setOpenId, executeStep, removeNode, readOnly,
+    }), [catalogMap, execution, runSteps, running, connected, executeStep, removeNode, readOnly]);
 
     const onDrop = (event) => event.preventDefault();
 
@@ -269,25 +273,25 @@ function Editor({ workflow: initial, catalog, operators, lastExecution, ai }) {
                     <nav className="flex min-w-0 items-center gap-1.5 text-[14px]" aria-label="Breadcrumb">
                         <Link href="/workflows" className="hidden text-fg-muted hover:text-fg sm:inline">Workflows</Link>
                         <span className="hidden text-fg-subtle sm:inline">/</span>
-                        <input value={name} onChange={(e) => setName(e.target.value)} aria-label="Workflow name"
+                        <input value={name} onChange={(e) => setName(e.target.value)} aria-label="Workflow name" readOnly={readOnly}
                             className="min-w-0 truncate rounded-md bg-transparent px-1.5 py-1 font-semibold outline-none hover:bg-surface-2 focus:bg-surface-2 sm:w-72" />
                     </nav>
                     <span className={cn('hidden text-[12.5px] lg:inline', save.state === 'error' ? 'text-fail' : 'text-fg-subtle')} title={save.message} aria-live="polite">
-                        {save.state === 'saving' ? 'Saving…' : save.state === 'error' ? 'Not saved' : 'Saved'}
+                        {readOnly ? 'View only' : save.state === 'saving' ? 'Saving…' : save.state === 'error' ? 'Not saved' : 'Saved'}
                     </span>
                     <div className="mx-auto hidden md:block">
                         <Tabs value={tab} onChange={setTab} items={[{ value: 'editor', label: 'Editor' }, { value: 'executions', label: 'Executions' }]} />
                     </div>
                     <div className="ml-auto flex items-center gap-2.5 md:ml-0">
-                        <Button size="sm" variant={aiOpen ? 'subtle' : 'secondary'} onClick={() => setAiOpen((o) => !o)}><AiIcon className="size-4 text-primary" />Ask AI</Button>
+                        {can.ai && <Button size="sm" variant={aiOpen ? 'subtle' : 'secondary'} onClick={() => setAiOpen((o) => !o)}><AiIcon className="size-4 text-primary" />Ask AI</Button>}
                         <label className="flex items-center gap-2 text-[13px] font-medium text-fg-muted">
                             <span className="hidden sm:inline">{workflow.is_active ? 'Active' : 'Inactive'}</span>
-                            <Switch checked={workflow.is_active} onChange={toggleActive} label="Activate workflow" />
+                            {!readOnly && <Switch checked={workflow.is_active} onChange={toggleActive} label="Activate workflow" />}
                         </label>
                         <Menu trigger={<Button variant="ghost" size="icon" aria-label="Workflow menu"><MoreHorizontal className="size-4" /></Button>} items={[
-                            { label: 'Duplicate', icon: Copy, onClick: async () => { await persist(); router.post(`/workflows/${initial.id}/duplicate`); } },
+                            !readOnly && { label: 'Duplicate', icon: Copy, onClick: async () => { await persist(); router.post(`/workflows/${initial.id}/duplicate`); } },
                             { label: 'Download as JSON', icon: Download, onClick: download },
-                            { label: 'Delete workflow', icon: Trash2, danger: true, onClick: () => setDeleting(true) },
+                            can['workflows.delete'] && { label: 'Delete workflow', icon: Trash2, danger: true, onClick: () => setDeleting(true) },
                         ]} />
                     </div>
                 </header>
@@ -304,7 +308,10 @@ function Editor({ workflow: initial, catalog, operators, lastExecution, ai }) {
                                 edgeTypes={edgeTypes}
                                 onNodesChange={onNodesChange}
                                 onEdgesChange={onEdgesChange}
-                                onConnect={onConnect}
+                                onConnect={readOnly ? undefined : onConnect}
+                                nodesDraggable={!readOnly}
+                                nodesConnectable={!readOnly}
+                                edgesReconnectable={!readOnly}
                                 isValidConnection={isValidConnection}
                                 onNodeClick={(_, node) => setOpenId(node.id)}
                                 onPaneClick={() => setCreator(null)}
@@ -313,7 +320,7 @@ function Editor({ workflow: initial, catalog, operators, lastExecution, ai }) {
                                 fitViewOptions={{ padding: 0.35, maxZoom: 1.1 }}
                                 minZoom={0.2}
                                 maxZoom={1.75}
-                                deleteKeyCode={['Backspace', 'Delete']}
+                                deleteKeyCode={readOnly ? null : ['Backspace', 'Delete']}
                                 defaultEdgeOptions={{ type: 'deletable' }}
                                 proOptions={{ hideAttribution: false }}
                             >
@@ -322,18 +329,20 @@ function Editor({ workflow: initial, catalog, operators, lastExecution, ai }) {
                                 <FloatingToolbar />
                             </ReactFlow>
 
-                            <div className="absolute top-4 right-4 z-10 flex flex-col gap-2">
+                            {!readOnly && <div className="absolute top-4 right-4 z-10 flex flex-col gap-2">
                                 <button type="button" onClick={() => setCreator({ mode: 'action' })} title="Add step" aria-label="Add step"
                                     className="flex size-10 items-center justify-center rounded-xl border border-line bg-surface text-fg shadow-card hover:border-primary hover:text-primary">
                                     <Plus className="size-5" />
                                 </button>
-                            </div>
+                            </div>}
 
                             <div className="absolute bottom-5 left-1/2 z-10 flex -translate-x-1/2 items-center gap-2">
-                                <Button variant="primary" size="lg" onClick={() => executeStep(null)} disabled={!!running} className="shadow-pop">
-                                    {running === 'all' ? <Loader2 className="size-4 animate-spin" /> : <FlaskConical className="size-4" />}
-                                    {running === 'all' ? 'Executing…' : 'Execute workflow'}
-                                </Button>
+                                {!readOnly && (
+                                    <Button variant="primary" size="lg" onClick={() => executeStep(null)} disabled={!!running} className="shadow-pop">
+                                        {running === 'all' ? <Loader2 className="size-4 animate-spin" /> : <FlaskConical className="size-4" />}
+                                        {running === 'all' ? 'Executing…' : 'Execute workflow'}
+                                    </Button>
+                                )}
                                 {execution && (
                                     <Button size="lg" onClick={() => setLogsOpen((o) => !o)} className="shadow-pop">
                                         <ScrollText className="size-4" />Logs<StatusBadge status={execution.status} />
@@ -392,6 +401,7 @@ function Editor({ workflow: initial, catalog, operators, lastExecution, ai }) {
                     onExecute={executeStep}
                     onDelete={() => removeNode(openNode.id)}
                     onClose={() => setOpenId(null)}
+                    readOnly={readOnly}
                 />
             )}
 

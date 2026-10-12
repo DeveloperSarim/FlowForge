@@ -23,6 +23,16 @@ class User extends Authenticatable
         'email',
         'password',
         'theme',
+        'role',
+        'permissions',
+    ];
+
+    /** What a member can be given. Admins and the owner have all of it, plus Settings and Team. */
+    public const PERMISSIONS = [
+        'workflows.view' => 'View workflows',
+        'workflows.edit' => 'Create & edit workflows',
+        'workflows.delete' => 'Delete workflows',
+        'ai' => 'Use the AI builder',
     ];
 
     /**
@@ -33,6 +43,7 @@ class User extends Authenticatable
     protected $hidden = [
         'password',
         'remember_token',
+        'invite_token',
     ];
 
     /**
@@ -45,6 +56,45 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'permissions' => 'array',
+            'invite_expires_at' => 'datetime',
         ];
+    }
+
+    public function isAdmin(): bool
+    {
+        return in_array($this->role, ['owner', 'admin'], true);
+    }
+
+    public function isOwner(): bool
+    {
+        return $this->role === 'owner';
+    }
+
+    /**
+     * Edit and delete include view. Using and adding credentials comes with edit (secrets are never shown);
+     * deleting them comes with delete.
+     */
+    public function hasPermission(string $permission): bool
+    {
+        if ($this->isAdmin()) {
+            return true;
+        }
+        $granted = (array) $this->permissions;
+
+        return $permission === 'workflows.view'
+            ? array_intersect(['workflows.view', 'workflows.edit', 'workflows.delete'], $granted) !== []
+            : in_array($permission, $granted, true);
+    }
+
+    /** @return array<string, bool> for the UI: which modules and buttons to show */
+    public function abilities(): array
+    {
+        return ['admin' => $this->isAdmin()] + collect(self::PERMISSIONS)->mapWithKeys(fn ($label, $key) => [$key => $this->hasPermission($key)])->all();
+    }
+
+    public function isInvited(): bool
+    {
+        return $this->invite_token !== null;
     }
 }

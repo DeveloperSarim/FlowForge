@@ -21,7 +21,7 @@ class AssistantController extends Controller
     public function index(SystemSettings $settings, ManifestLoader $manifests): Response
     {
         $catalog = $manifests->catalogMap();
-        $conversations = AiConversation::query()->latest('updated_at')->limit(50)->get(['id', 'title', 'workflow_id', 'updated_at']);
+        $conversations = AiConversation::query()->where('user_id', auth()->id())->latest('updated_at')->limit(50)->get(['id', 'title', 'workflow_id', 'updated_at']);
         $workflows = Workflow::query()->whereIn('id', $conversations->pluck('workflow_id')->filter())->pluck('name', 'id');
 
         return Inertia::render('Assistant', [
@@ -50,6 +50,7 @@ class AssistantController extends Controller
     {
         $data = $request->validate(['workflow_id' => ['nullable', 'integer', 'exists:workflows,id']]);
         $conversation = AiConversation::query()->create([
+            'user_id' => $request->user()->id,
             'title' => 'New chat', 'provider' => '', 'model' => '', 'workflow_id' => $data['workflow_id'] ?? null, 'display' => [], 'history' => [],
         ]);
 

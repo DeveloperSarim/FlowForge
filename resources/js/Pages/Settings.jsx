@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { router, useForm, usePage } from '@inertiajs/react';
-import { BellRing, Check, CheckCircle2, Copy, ExternalLink, Mail, Monitor, Moon, Palette, Globe2, Sun, ArrowUpCircle, UserRound, XCircle } from 'lucide-react';
+import { BellRing, Check, CheckCircle2, Copy, ExternalLink, Mail, Monitor, Moon, Palette, Globe2, Sun, ArrowUpCircle, Users, UserRound, XCircle } from 'lucide-react';
 import AiIcon from '@/Components/AiIcon';
 import IntegrationIcon from '@/Components/IntegrationIcon';
 import AppLayout from '@/Layouts/AppLayout';
@@ -8,6 +8,7 @@ import { Button, Card, Combobox, Field, Input, Select, Switch } from '@/Componen
 import { applyTheme } from '@/lib/theme';
 import CronAutoSetup from '@/Components/CronAutoSetup';
 import UpdatePanel from '@/Components/UpdatePanel';
+import TeamPanel from '@/Components/TeamPanel';
 import { useTimezones } from '@/lib/timezones';
 import { cn, copy, errorMessage, timeAgo } from '@/lib/utils';
 
@@ -43,7 +44,7 @@ Preview.Inner = function Inner({ colors }) {
     );
 };
 
-export default function Settings({ mail, notifications, ai, providers, timezone, cron, updates }) {
+export default function Settings({ mail, notifications, ai, providers, timezone, cron, updates, team }) {
     const { auth } = usePage().props;
     const [tab, setTab] = useState(() => new URLSearchParams(window.location.search).get('tab') ?? 'account');
     const [theme, setTheme] = useState(auth.user.theme ?? 'light');
@@ -55,10 +56,10 @@ export default function Settings({ mail, notifications, ai, providers, timezone,
     };
 
     return (
-        <AppLayout title="Settings" description="Your account, timezone, email alerts, the AI builder and updates.">
+        <AppLayout title="Settings" description={auth.user.can.admin ? "Your account, the team, timezone, email alerts, the AI builder and updates." : "Your account and how FlowForge looks."}>
             <div className="grid gap-8 md:grid-cols-[200px_1fr]">
                 <nav className="flex gap-1 md:flex-col" aria-label="Settings sections">
-                    {[['account', 'Account', UserRound], ['general', 'General', Globe2], ['appearance', 'Appearance', Palette], ['email', 'Email & alerts', Mail], ['ai', 'AI builder', AiIcon], ['updates', 'Updates', ArrowUpCircle]].map(([value, label, Icon]) => (
+                    {[['account', 'Account', UserRound], ['general', 'General', Globe2, true], ['team', 'Team', Users, true], ['appearance', 'Appearance', Palette], ['email', 'Email & alerts', Mail, true], ['ai', 'AI builder', AiIcon, true], ['updates', 'Updates', ArrowUpCircle, true]].filter(([, , , adminOnly]) => !adminOnly || auth.user.can.admin).map(([value, label, Icon]) => (
                         <button key={value} type="button" onClick={() => setTab(value)} aria-current={tab === value}
                             className={cn('flex items-center gap-2.5 rounded-lg px-3 py-2 text-left text-[13.5px] font-medium', tab === value ? 'bg-primary-soft text-primary' : 'text-fg-muted hover:bg-surface-2 hover:text-fg')}>
                             <Icon className="size-4" />{label}
@@ -66,7 +67,9 @@ export default function Settings({ mail, notifications, ai, providers, timezone,
                     ))}
                 </nav>
 
-                {tab === 'updates' ? <UpdatePanel updates={updates} />
+                {!auth.user.can.admin && !['account', 'appearance'].includes(tab) ? <AccountForm user={auth.user} />
+                : tab === 'team' ? <TeamPanel team={team} />
+                : tab === 'updates' ? <UpdatePanel updates={updates} />
                 : tab === 'general' ? <div className="space-y-6"><GeneralSettings timezone={timezone} /><SchedulerSettings cron={cron} /></div>
                 : tab === 'email' ? <EmailSettings mail={mail} notifications={notifications} adminEmail={auth.user.email} />
                 : tab === 'ai' ? <AiSettings ai={ai} providers={providers} />

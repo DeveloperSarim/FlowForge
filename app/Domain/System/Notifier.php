@@ -143,11 +143,11 @@ class Notifier
         }
     }
 
-    /** Configured recipients, else every admin account. */
+    /** Configured recipients, else the owner and admins (not the whole team). */
     private function recipients(): array
     {
         $list = array_values(array_filter((array) $this->settings->notifications()['recipients'], fn ($email) => filter_var($email, FILTER_VALIDATE_EMAIL)));
 
-        return $list ?: rescue(fn () => User::query()->pluck('email')->all(), [], false);
+        return $list ?: rescue(fn () => User::query()->whereIn('role', ['owner', 'admin'])->whereNull('invite_token')->pluck('email')->all(), [], false);
     }
 }

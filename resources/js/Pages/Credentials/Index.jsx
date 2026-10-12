@@ -7,11 +7,13 @@ import { InputControl } from '@/Components/Drawer/DynamicForm';
 import { Badge, Button, Card, Dialog, EmptyState, Field, Input, Menu, SearchInput, Select } from '@/Components/ui';
 import { fetchIntegration } from '@/lib/integrations';
 import { copy, errorMessage, timeAgo } from '@/lib/utils';
+import { useCan } from '@/lib/can';
 
 const AUTH_LABELS = { api_key: 'API key', bearer: 'Access token', basic: 'Username & password', oauth2: 'OAuth2', google_service_account: 'Service account', smtp: 'SMTP server', mysql: 'MySQL server' };
 const SECRET = ['password', 'code'];
 
 export default function Index({ credentials, integrations, redirectUri }) {
+    const can = useCan();
     const preselect = new URLSearchParams(window.location.search).get('new');
     const [dialog, setDialog] = useState(() => (preselect ? { mode: 'create', integration: preselect } : null));
     const [deleting, setDeleting] = useState(null);
@@ -46,7 +48,7 @@ export default function Index({ credentials, integrations, redirectUri }) {
                                 items={[
                                     { label: 'Edit', icon: Pencil, onClick: () => setDialog({ mode: 'edit', credential }) },
                                     credential.auth_type === 'oauth2' && { label: 'Reconnect', icon: RefreshCw, onClick: () => { window.location.href = `/credentials/${credential.id}/connect`; } },
-                                    { label: 'Delete', icon: Trash2, danger: true, onClick: () => setDeleting(credential) },
+                                    can['workflows.delete'] && { label: 'Delete', icon: Trash2, danger: true, onClick: () => setDeleting(credential) },
                                 ]}
                             />
                         </Card>

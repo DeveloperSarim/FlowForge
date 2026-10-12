@@ -118,7 +118,7 @@ class InstallerController extends Controller
             'timezone' => ['nullable', 'timezone:all'],
         ]);
 
-        User::query()->create(Arr::except($data, 'timezone'));
+        User::query()->create([...Arr::except($data, 'timezone'), 'role' => 'owner']);
         if (! empty($data['timezone'])) {
             app(SystemSettings::class)->set('timezone', $data['timezone']);
         }

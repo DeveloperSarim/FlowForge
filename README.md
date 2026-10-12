@@ -50,6 +50,21 @@ Configured `.env` by hand and ran `php artisan migrate --force` yourself? Set `F
 
 **Timezone:** Settings → General. Schedules ("every day at 11:00") run in this timezone; timestamps are stored in UTC.
 
+## Team and permissions
+
+Settings → Team (owner and admins) invites people by email; they open the link and choose their own password. Without SMTP the admin copies the link and sends it themselves. Links work for 7 days and only once.
+
+| Role / access | Can do |
+| --- | --- |
+| Owner | Everything; can't be removed or demoted |
+| Admin | Everything, including Settings, Team and Updates |
+| Member: Workflows view | See workflows (read-only editor), runs and templates |
+| Member: Workflows edit | Create, edit, run and switch workflows on/off; use and add credentials (secrets are never shown) |
+| Member: Workflows delete | Also delete workflows and credentials |
+| Member: AI builder | Chat with the AI builder, which can only do what the member's workflow access allows |
+
+Access is enforced on the server (`can:` route middleware and the assistant's tools); the UI just hides what isn't allowed. AI chats are private to each person. Failure emails go to the owner and admins.
+
 ## AI builder
 
 Under **AI Builder** in the sidebar (and **Ask AI** in the editor), describe a workflow in plain words — English or Urdu — and the assistant builds it: it searches the app catalog, reads the exact inputs of the actions it needs, saves the workflow, attaches matching credentials, and tells you what's left to fill in. It can also explain and edit existing workflows, test them (only when asked, since tests perform real actions), switch them on or off, and propose deletes (you confirm on a card; nothing is deleted before that).

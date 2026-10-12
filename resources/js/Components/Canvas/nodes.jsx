@@ -10,7 +10,7 @@ import { cn, duration } from '@/lib/utils';
  */
 export const BuilderContext = createContext({
     catalog: {}, runSteps: {}, running: null, connected: new Set(),
-    openCreator: () => {}, openNode: () => {}, executeStep: () => {}, removeNode: () => {},
+    openCreator: () => {}, openNode: () => {}, executeStep: () => {}, removeNode: () => {}, readOnly: false,
 });
 
 function useNodeMeta(data) {
@@ -25,7 +25,8 @@ function useNodeMeta(data) {
 
 /** "+" stub on an output with nothing connected: click to pick the next step. */
 function AddNext({ id, handle, top }) {
-    const { openCreator } = useContext(BuilderContext);
+    const { openCreator, readOnly } = useContext(BuilderContext);
+    if (readOnly) return null;
     return (
         <div className="nodrag absolute left-full flex -translate-y-1/2 items-center" style={{ top }}>
             <span className="h-px w-7 bg-[var(--edge)]" />
@@ -38,13 +39,13 @@ function AddNext({ id, handle, top }) {
 }
 
 function Toolbar({ id, isTrigger }) {
-    const { executeStep, openNode, removeNode, running } = useContext(BuilderContext);
+    const { executeStep, openNode, removeNode, running, readOnly } = useContext(BuilderContext);
     const button = 'flex size-7 items-center justify-center rounded-md text-fg-muted hover:bg-surface-2 hover:text-fg';
     return (
         <div className="nodrag absolute -top-10 left-1/2 hidden -translate-x-1/2 items-center gap-0.5 rounded-lg border border-line bg-surface p-0.5 shadow-pop group-hover:flex">
-            <button type="button" className={button} title="Execute step" aria-label="Execute step" disabled={!!running} onClick={(e) => { e.stopPropagation(); executeStep(id); }}><Play className="size-3.5" /></button>
+            {!readOnly && <button type="button" className={button} title="Execute step" aria-label="Execute step" disabled={!!running} onClick={(e) => { e.stopPropagation(); executeStep(id); }}><Play className="size-3.5" /></button>}
             <button type="button" className={button} title="Open" aria-label="Open step" onClick={(e) => { e.stopPropagation(); openNode(id); }}><Settings2 className="size-3.5" /></button>
-            {!isTrigger && <button type="button" className={cn(button, 'hover:text-fail')} title="Delete" aria-label="Delete step" onClick={(e) => { e.stopPropagation(); removeNode(id); }}><Trash2 className="size-3.5" /></button>}
+            {!isTrigger && !readOnly && <button type="button" className={cn(button, 'hover:text-fail')} title="Delete" aria-label="Delete step" onClick={(e) => { e.stopPropagation(); removeNode(id); }}><Trash2 className="size-3.5" /></button>}
         </div>
     );
 }
@@ -140,17 +141,18 @@ export const nodeTypes = { trigger: TriggerNode, action: ActionNode, branch: Bra
 /** Bezier edge with a delete button on hover/selection. */
 export function DeletableEdge({ id, sourceX, sourceY, targetX, targetY, sourcePosition, targetPosition, markerEnd, style, selected }) {
     const { setEdges } = useReactFlow();
+    const { readOnly } = useContext(BuilderContext);
     const [path, labelX, labelY] = getBezierPath({ sourceX, sourceY, sourcePosition, targetX, targetY, targetPosition });
     return (
         <>
             <BaseEdge id={id} path={path} markerEnd={markerEnd} style={style} interactionWidth={24} />
             <EdgeLabelRenderer>
-                <button type="button" aria-label="Delete connection" onClick={() => setEdges((eds) => eds.filter((e) => e.id !== id))}
+                {!readOnly && <button type="button" aria-label="Delete connection" onClick={() => setEdges((eds) => eds.filter((e) => e.id !== id))}
                     className={cn('nodrag nopan absolute flex size-6 items-center justify-center rounded-md border border-line bg-surface text-fg-muted shadow-card hover:border-fail hover:text-fail',
                         selected ? 'opacity-100' : 'opacity-0 hover:opacity-100')}
                     style={{ transform: `translate(-50%, -50%) translate(${labelX}px, ${labelY}px)`, pointerEvents: 'all' }}>
                     <Trash2 className="size-3" />
-                </button>
+                </button>}
             </EdgeLabelRenderer>
         </>
     );

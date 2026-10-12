@@ -5,6 +5,7 @@ import AppLayout, { openCreateWorkflow } from '@/Layouts/AppLayout';
 import IntegrationIcon, { AppStack } from '@/Components/IntegrationIcon';
 import { Button, Card, Dialog, EmptyState, Menu, SearchInput, Select, StatusBadge, Switch, Tabs } from '@/Components/ui';
 import { errorMessage, timeAgo, toast } from '@/lib/utils';
+import { useCan } from '@/lib/can';
 
 const TRIGGERS = {
     webhook: { icon: Webhook, label: 'Webhook' },
@@ -14,6 +15,7 @@ const TRIGGERS = {
 };
 
 export default function Index({ workflows }) {
+    const can = useCan();
     const [query, setQuery] = useState('');
     const [status, setStatus] = useState('all');
     const [sort, setSort] = useState('updated');
@@ -31,7 +33,7 @@ export default function Index({ workflows }) {
 
     return (
         <AppLayout title="Workflows" description="Everything you've built. Switch a workflow on to let its trigger run it in the background."
-            actions={<Button variant="primary" onClick={openCreateWorkflow}><Plus className="size-4" />Create workflow</Button>}>
+            actions={can['workflows.edit'] && <Button variant="primary" onClick={openCreateWorkflow}><Plus className="size-4" />Create workflow</Button>}>
 
             {workflows.length === 0 ? (
                 <Card>
@@ -74,6 +76,7 @@ export default function Index({ workflows }) {
 }
 
 function Row({ workflow, onDelete }) {
+    const can = useCan();
     const [active, setActive] = useState(workflow.is_active);
     const trigger = TRIGGERS[workflow.trigger_type] ?? TRIGGERS.manual;
 
@@ -112,14 +115,14 @@ function Row({ workflow, onDelete }) {
             </div>
             <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
                 <span className="hidden text-[12.5px] font-medium text-fg-muted sm:inline">{active ? 'Active' : 'Inactive'}</span>
-                <Switch checked={active} onChange={toggle} label={`Activate ${workflow.name}`} size="sm" />
+                {can['workflows.edit'] && <Switch checked={active} onChange={toggle} label={`Activate ${workflow.name}`} size="sm" />}
             </div>
             <Menu
                 trigger={<Button variant="ghost" size="icon" aria-label={`More actions for ${workflow.name}`}><MoreHorizontal className="size-4" /></Button>}
                 items={[
-                    { label: 'Open editor', icon: PencilLine, onClick: () => router.visit(`/workflows/${workflow.id}`) },
-                    { label: 'Duplicate', icon: Copy, onClick: () => router.post(`/workflows/${workflow.id}/duplicate`) },
-                    { label: 'Delete', icon: Trash2, danger: true, onClick: onDelete },
+                    { label: can['workflows.edit'] ? 'Open editor' : 'Open', icon: PencilLine, onClick: () => router.visit(`/workflows/${workflow.id}`) },
+                    can['workflows.edit'] && { label: 'Duplicate', icon: Copy, onClick: () => router.post(`/workflows/${workflow.id}/duplicate`) },
+                    can['workflows.delete'] && { label: 'Delete', icon: Trash2, danger: true, onClick: onDelete },
                 ]}
             />
         </div>

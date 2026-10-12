@@ -10,6 +10,7 @@ use App\Domain\Workflows\GraphValidator;
 use App\Domain\Workflows\Models\Workflow;
 use App\Domain\Workflows\Models\WorkflowExecution;
 use App\Domain\Workflows\TemplateLibrary;
+use App\Models\User;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use InvalidArgumentException;
@@ -75,6 +76,17 @@ class WorkflowTools
      */
     public function call(string $name, array $input, AiConversation $conversation): array
     {
+        // The assistant acts with the signed-in person's access, never more.
+        $needs = match ($name) {
+            'search_apps', 'get_app' => null,
+            'save_workflow', 'use_template', 'set_workflow_active', 'test_workflow' => 'workflows.edit',
+            'delete_workflow' => 'workflows.delete',
+            default => 'workflows.view',
+        };
+        if ($needs && ($user = auth()->user()) && ! $user->hasPermission($needs)) {
+            return [['error' => 'This person\'s account doesn\'t have "'.User::PERMISSIONS[$needs].'" access. Tell them an admin can grant it under Settings → Team.'], null, true];
+        }
+
         try {
             return match ($name) {
                 'search_apps' => [$this->searchApps((string) ($input['query'] ?? ''), (int) ($input['limit'] ?? 8)), null, false],

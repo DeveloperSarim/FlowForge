@@ -7,6 +7,7 @@ import IntegrationIcon, { AppStack } from '@/Components/IntegrationIcon';
 import TemplateCard from '@/Components/TemplateCard';
 import { Button, Card, EmptyState, StatusBadge } from '@/Components/ui';
 import { cn, compact, duration, timeAgo } from '@/lib/utils';
+import { useCan } from '@/lib/can';
 
 function Delta({ current, previous, upIsGood = true, format = (v) => v }) {
     if (!previous && !current) return <span className="text-[12px] text-fg-subtle">No runs in either week</span>;
@@ -37,6 +38,7 @@ function Stat({ label, value, children }) {
 }
 
 export default function Overview({ metrics, series, recent, workflows, templates }) {
+    const can = useCan();
     const { auth } = usePage().props;
     const { current, previous } = metrics;
     const hour = new Date().getHours();
@@ -48,8 +50,8 @@ export default function Overview({ metrics, series, recent, workflows, templates
             description="Here's how your automations ran over the last 7 days. Editor test runs aren't counted."
             actions={<>
                 <Button onClick={() => router.visit('/templates')}>Browse templates</Button>
-                <Button onClick={() => router.visit('/assistant')}><AiIcon className="size-4 text-primary" />Build with AI</Button>
-                <Button variant="primary" onClick={openCreateWorkflow}><Plus className="size-4" />Create workflow</Button>
+                {can.ai && <Button onClick={() => router.visit('/assistant')}><AiIcon className="size-4 text-primary" />Build with AI</Button>}
+                {can['workflows.edit'] && <Button variant="primary" onClick={openCreateWorkflow}><Plus className="size-4" />Create workflow</Button>}
             </>}
         >
             <Card className="grid grid-cols-2 divide-line max-lg:[&>*:nth-child(n+3)]:border-t sm:grid-cols-3 lg:grid-cols-5 lg:divide-x">
@@ -100,7 +102,7 @@ export default function Overview({ metrics, series, recent, workflows, templates
                         <Link href="/workflows" className="flex items-center gap-1 text-[13px] font-medium text-fg-muted hover:text-primary">All workflows<ArrowRight className="size-3.5" /></Link>
                     </div>
                     {workflows.length === 0 ? (
-                        <EmptyState icon={WorkflowIcon} title="No workflows yet" action={<Button variant="primary" onClick={openCreateWorkflow}><Plus className="size-4" />Create workflow</Button>}>
+                        <EmptyState icon={WorkflowIcon} title="No workflows yet" action={can['workflows.edit'] && <Button variant="primary" onClick={openCreateWorkflow}><Plus className="size-4" />Create workflow</Button>}>
                             Start from scratch or pick a template.
                         </EmptyState>
                     ) : (

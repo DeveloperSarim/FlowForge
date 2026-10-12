@@ -102,15 +102,16 @@ export default function AppLayout({ title, description, actions, children, wide 
     const path = usePage().url;
     const [mobileOpen, setMobileOpen] = useState(false);
 
+    const can = auth.user?.can ?? {};
     const nav = [
         { href: '/', label: 'Overview', icon: LayoutDashboard, exact: true },
-        { href: '/workflows', label: 'Workflows', icon: Workflow },
-        { href: '/assistant', label: 'AI Builder', icon: AiIcon },
-        { href: '/templates', label: 'Templates', icon: LayoutTemplate },
-        { href: '/executions', label: 'Executions', icon: History },
-        { href: '/credentials', label: 'Credentials', icon: KeyRound },
+        can['workflows.view'] && { href: '/workflows', label: 'Workflows', icon: Workflow },
+        can.ai && { href: '/assistant', label: 'AI Builder', icon: AiIcon },
+        can['workflows.view'] && { href: '/templates', label: 'Templates', icon: LayoutTemplate },
+        can['workflows.view'] && { href: '/executions', label: 'Executions', icon: History },
+        can['workflows.edit'] && { href: '/credentials', label: 'Credentials', icon: KeyRound },
         { href: '/apps', label: 'Apps', icon: Blocks, badge: appCount ? compact(appCount) : null },
-    ];
+    ].filter(Boolean);
     const isActive = (item) => (item.exact ? path === item.href || path.startsWith('/?') : path.startsWith(item.href));
 
     const sidebar = (
@@ -122,11 +123,13 @@ export default function AppLayout({ title, description, actions, children, wide 
                 </Link>
                 <button type="button" className="rounded-lg p-1.5 text-fg-muted hover:bg-surface-2 lg:hidden" onClick={() => setMobileOpen(false)} aria-label="Close menu"><X className="size-4" /></button>
             </div>
-            <div className="px-3">
-                <Button variant="primary" className="w-full justify-center" onClick={() => { setMobileOpen(false); openCreateWorkflow(); }}>
-                    <Plus className="size-4" />Create workflow
-                </Button>
-            </div>
+            {can['workflows.edit'] && (
+                <div className="px-3">
+                    <Button variant="primary" className="w-full justify-center" onClick={() => { setMobileOpen(false); openCreateWorkflow(); }}>
+                        <Plus className="size-4" />Create workflow
+                    </Button>
+                </div>
+            )}
             <nav className="mt-5 flex-1 space-y-0.5 px-3" aria-label="Main">
                 {nav.map((item) => {
                     const active = isActive(item);
@@ -142,7 +145,7 @@ export default function AppLayout({ title, description, actions, children, wide 
                 })}
             </nav>
             <div className="space-y-2 p-3">
-                <SchedulerStatus lastRun={scheduler} />
+                {can.admin && <SchedulerStatus lastRun={scheduler} />}
                 <Link href="/settings" className={cn('flex items-center gap-3 rounded-lg px-2.5 py-2 text-[13.5px] font-medium',
                     path.startsWith('/settings') ? 'bg-primary-soft text-primary' : 'text-fg-muted hover:bg-surface-2 hover:text-fg')}>
                     <Settings className="size-[18px]" strokeWidth={1.9} />Settings

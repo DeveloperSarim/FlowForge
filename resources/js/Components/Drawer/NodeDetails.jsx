@@ -76,7 +76,7 @@ function TriggerInfo({ spec, workflow }) {
 /**
  * n8n-style node details view: INPUT (upstream data, drag or click fields to map) | PARAMETERS | OUTPUT.
  */
-export default function NodeDetails({ node, catalog, operators, workflow, upstream, runStep, executing, onChange, onExecute, onDelete, onClose }) {
+export default function NodeDetails({ node, catalog, operators, workflow, upstream, runStep, executing, onChange, onExecute, onDelete, onClose, readOnly = false }) {
     const data = node.data;
     const isTrigger = node.type === 'trigger';
     const { integration, loading, error, reload } = useIntegration(data.integration);
@@ -111,12 +111,13 @@ export default function NodeDetails({ node, catalog, operators, workflow, upstre
                         <span className="h-6 w-px bg-line" />
                         <IntegrationIcon icon={integration?.icon} name={integration?.name} size="md" />
                         <div className="min-w-0 flex-1">
-                            <input value={data.label ?? ''} onChange={(e) => onChange({ label: e.target.value })} placeholder={operation?.name ?? 'Untitled step'} aria-label="Step name"
+                            <input value={data.label ?? ''} onChange={(e) => onChange({ label: e.target.value })} readOnly={readOnly} placeholder={operation?.name ?? 'Untitled step'} aria-label="Step name"
                                 className="w-full max-w-md truncate rounded bg-transparent px-1 text-[15px] font-semibold outline-none placeholder:text-fg-subtle hover:bg-surface-2 focus:bg-surface-2" />
                             <p className="px-1 text-[12px] text-fg-subtle">{integration?.name ?? data.integration}{operation ? `: ${operation.name}` : ''} <code className="ml-1 font-mono text-[11px]">steps.{node.id}</code></p>
                         </div>
                         {integration?.docs_url && <a href={integration.docs_url} target="_blank" rel="noreferrer" className="hidden items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[13px] text-fg-muted hover:bg-surface-2 hover:text-fg md:inline-flex"><BookOpen className="size-4" />Docs</a>}
-                        <Button variant="primary" onClick={() => onExecute(node.id)} loading={executing}>{!executing && <Play className="size-3.5" fill="currentColor" />}Execute step</Button>
+                        {readOnly ? <span className="rounded-lg bg-surface-2 px-3 py-1.5 text-[12.5px] font-medium text-fg-muted">View only</span>
+                            : <Button variant="primary" onClick={() => onExecute(node.id)} loading={executing}>{!executing && <Play className="size-3.5" fill="currentColor" />}Execute step</Button>}
                     </header>
 
                     <div className="grid min-h-0 flex-1 grid-cols-1 overflow-y-auto lg:grid-cols-[minmax(0,1fr)_minmax(400px,1.15fr)_minmax(0,1fr)] lg:overflow-hidden">
@@ -152,8 +153,8 @@ export default function NodeDetails({ node, catalog, operators, workflow, upstre
                             )}
                         </Pane>
 
-                        <Pane title="PARAMETERS" className="border-line lg:border-r" aside={!isTrigger && <ConfirmButton size="xs" onConfirm={onDelete} confirmLabel="Delete?"><Trash2 className="size-3.5" />Delete</ConfirmButton>}>
-                            <div className="space-y-5">
+                        <Pane title="PARAMETERS" className="border-line lg:border-r" aside={!isTrigger && !readOnly && <ConfirmButton size="xs" onConfirm={onDelete} confirmLabel="Delete?"><Trash2 className="size-3.5" />Delete</ConfirmButton>}>
+                            <fieldset disabled={readOnly} className="min-w-0 space-y-5">
                                 {isTrigger ? (
                                     <Field label="Starts when">
                                         {(id) => (
@@ -182,28 +183,28 @@ export default function NodeDetails({ node, catalog, operators, workflow, upstre
                                 {error && <p className="text-[13px] text-fail">{error}</p>}
 
                                 {authTypes.length > 0 && (
-                                    <Field label="Credential" aside={
+                                    <Field label="Credential" aside={!readOnly && (
                                         <span className="flex items-center gap-1">
                                             <button type="button" onClick={reload} className="rounded p-1 text-fg-subtle hover:text-fg" aria-label="Refresh credentials" title="Refresh"><RefreshCw className="size-3.5" /></button>
                                             <a href={`/credentials?new=${encodeURIComponent(data.integration)}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-[12.5px] font-medium text-primary hover:underline">
                                                 Create new<ExternalLink className="size-3" />
                                             </a>
                                         </span>
-                                    }>
+                                    )}>
                                         {(id) => (
                                             <>
                                                 <Select id={id} value={data.credential_id ?? ''} onChange={(e) => onChange({ credential_id: e.target.value ? Number(e.target.value) : null })}>
                                                     <option value="">{credentialOptional ? 'No authentication' : credentials.length ? 'Select a credential' : 'No credentials yet: create one'}</option>
                                                     {credentials.map((c) => <option key={c.id} value={c.id}>{c.name} ({AUTH_LABELS[c.auth_type] ?? c.auth_type})</option>)}
                                                 </Select>
-                                                {!credentialOptional && !data.credential_id && <p className="mt-1.5 text-[12.5px] text-warn">This step needs a credential to run.</p>}
+                                                {!credentialOptional && !data.credential_id && !readOnly && <p className="mt-1.5 text-[12.5px] text-warn">This step needs a credential to run.</p>}
                                             </>
                                         )}
                                     </Field>
                                 )}
 
                                 {operation && <DynamicForm inputs={operation.inputs} config={data.config} onChange={setConfig} operators={operators} />}
-                            </div>
+                            </fieldset>
                         </Pane>
 
                         <Pane title="OUTPUT" aside={runStep && (
