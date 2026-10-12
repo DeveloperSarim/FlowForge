@@ -1,287 +1,297 @@
-# FlowForge
+<p align="center">
+  <img src=".github/readme/logo.svg" width="72" height="72" alt="FlowForge logo">
+</p>
 
-Open source under the [GNU AGPL-3.0](LICENSE). Installation, managed hosting and custom integrations: support@sarimtools.com.
+<h1 align="center">FlowForge</h1>
 
-Self-hosted workflow automation (a visual node canvas like n8n or Make) that runs on ordinary PHP shared hosting: Apache or LiteSpeed, MySQL, and **one cron line**. No Docker, Redis, Supervisor or Node process on the server.
+<p align="center">
+  <strong>Open-source workflow automation that runs on PHP shared hosting.</strong><br>
+  A self-hosted alternative to n8n, Zapier and Make: connect 1,190 apps on a visual canvas, or describe a workflow and let AI build it.<br>
+  No Docker, no Node.js, no per-task fees. One cron job runs everything.
+</p>
 
-What's included:
-- **1,190 apps** with 5,783 actions and 615 triggers, each with its real logo.
-- **50 ready-made templates.**
-- **n8n-style editor:** square app nodes, a "What happens next?" picker, and a three-pane step editor (Input, Parameters, Output) where you drag fields to map them.
-- **Execute step:** run one step plus everything before it.
-- **Overview dashboard** with 7-day metrics.
-- **Light theme by default;** dark mode is in Settings → Appearance.
+<p align="center">
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-AGPL--3.0-ee5a24?style=flat-square" alt="License: AGPL-3.0"></a>
+  <a href="https://github.com/DeveloperSarim/FlowForge/releases"><img src="https://img.shields.io/badge/version-1.0.0-15181d?style=flat-square" alt="Version 1.0.0"></a>
+  <img src="https://img.shields.io/badge/PHP-8.2%2B-777bb4?style=flat-square&logo=php&logoColor=white" alt="PHP 8.2+">
+  <img src="https://img.shields.io/badge/Laravel-12-ff2d20?style=flat-square&logo=laravel&logoColor=white" alt="Laravel 12">
+  <img src="https://img.shields.io/badge/React-18-087ea4?style=flat-square&logo=react&logoColor=white" alt="React 18">
+  <img src="https://img.shields.io/badge/MySQL-5.7%2B-4479a1?style=flat-square&logo=mysql&logoColor=white" alt="MySQL 5.7+">
+  <a href="DEVELOPMENT.md"><img src="https://img.shields.io/badge/PRs-welcome-2ea44f?style=flat-square" alt="Pull requests welcome"></a>
+</p>
 
-- **Stack:** Laravel 12, Inertia + React 18, React Flow (`@xyflow/react`), Tailwind v4.
-- **Queue and cache:** both use the database driver.
-- **Background work:** `php artisan schedule:run` once a minute drains the queue with `queue:work --stop-when-empty`.
+<p align="center">
+  <a href="https://developersarim.github.io/FlowForge/"><b>Documentation</b></a> &nbsp;|&nbsp;
+  <a href="#-quick-start"><b>Quick start</b></a> &nbsp;|&nbsp;
+  <a href="https://github.com/DeveloperSarim/FlowForge/releases"><b>Download</b></a> &nbsp;|&nbsp;
+  <a href="#-installation-and-hosting-services"><b>Hosting &amp; services</b></a> &nbsp;|&nbsp;
+  <a href="https://github.com/DeveloperSarim/FlowForge/issues"><b>Report a bug</b></a>
+</p>
 
-## Install on shared hosting
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset=".github/readme/hero-dark.png">
+    <img src=".github/readme/hero-light.png" width="880" alt="FlowForge dashboard showing workflow runs per day, failure rate and recent runs">
+  </picture>
+</p>
 
-1. **Build a release** on your machine. The server needs no Composer or Node.
-   ```bash
-   composer install && npm ci
-   bash scripts/make-release.sh 1.2.0   # version is optional (default: the VERSION file)
-   ```
-   This writes `dist/flowforge-install-<version>.zip` (fresh installs), `dist/flowforge-update-<version>.zip` (updates, see below) and `dist/extract-flowforge.php`. They contain production `vendor/` and built assets, and no `.env`, install flag, logs or sessions. PHP 8.2+.
-2. **Upload the install zip** in your host's File Manager and extract it.
-   - If extraction stops part-way (File Managers often time out on ~14,000 files: you'd see `app/`, `config/`, `resources/` but no `public/`, `vendor/` or `artisan`), also upload `dist/extract-flowforge.php` next to the zip and open `https://your-domain/extract-flowforge.php`. It unpacks in batches, then deletes the zip and itself and opens the installer.
-   - Best: point the domain's document root at `public/`.
-   - If you can only upload into `public_html`, the root `.htaccess` forwards requests into `public/`.
-3. **Make these writable:** `storage/`, `bootstrap/cache/` and the app folder itself, since the installer creates `.env` there.
-4. **Create the database:** in cPanel → MySQL Databases, create an empty database and a user with all privileges on it.
-5. **Run the wizard:** open `https://your-domain/install`. It walks through five steps:
-   1. Server checks: PHP 8.2+, `pdo_mysql`, `curl`, `mbstring`, `openssl`, `fileinfo`, `gd`, `zip`, and folder permissions.
-   2. Database: tests the connection, writes `.env`, then runs `migrate --force` and the seeder.
-   3. Administrator: creates the single admin account and picks the timezone schedules run in.
-   4. Email alerts: SMTP details for failure / scheduler-down emails and password-reset codes, with a "Send test email" button. Skippable; change it later in Settings.
-   5. Scheduler (required): a **"Set it up for me"** button adds the cron line to the account's crontab when the host allows PHP to do that (other entries are kept); otherwise step-by-step guides for **Hostinger hPanel**, **cPanel**, **DirectAdmin** and **SSH**, with this server's PHP and `artisan` paths filled in. The wizard checks every 5 seconds and only lets you finish once cron has actually run. Finishing switches to `APP_ENV=production` and locks `/install` (the `APP_KEY` generated on first boot is kept, so encrypted settings stay readable).
-6. **The cron job** you add in step 5 looks like this (every minute):
-   ```
-   * * * * * /usr/local/bin/php /home/USER/flowforge/artisan schedule:run >> /dev/null 2>&1
-   ```
-   **One cron job runs everything:** every schedule, webhook and polling workflow. You never add a cron per workflow. The sidebar shows "Scheduler running" while it is healthy.
-   - Hostinger: hPanel → Websites → Dashboard → Advanced → Cron Jobs → type **Custom**, all time fields `*`. If cron's default PHP is too old, use `/opt/alt/php82/usr/bin/php`.
-   - cPanel: Advanced → Cron Jobs → Common Settings **Once Per Minute**. Versioned PHP: `/opt/cpanel/ea-php82/root/usr/bin/php`.
+## ✨ What is FlowForge?
 
-Configured `.env` by hand and ran `php artisan migrate --force` yourself? Set `FLOWFORGE_INSTALLED=true` to skip the wizard.
+FlowForge is a **self-hosted workflow automation platform** for people who already have ordinary web hosting. Upload it to Hostinger, cPanel, DirectAdmin or any VPS, run the setup wizard, add one cron job, and you have your own automation server with no monthly per-task bill.
 
-**Updating:** Settings → Updates → drop `flowforge-update-<version>.zip`. The zip is uploaded in 1.5 MB pieces (so `upload_max_filesize` doesn't matter), unpacked in batches into `storage/app/updates/staging`, then `public/update-runner.php` (no Laravel, one-time token) swaps the new code in, moving the old code to `storage/app/updates/backup-<old version>-<time>` and restoring it if any move fails. Finally migrations run on the new code. `.env`, `storage/` and `bootstrap/cache` are never in an update package, so settings, credentials, workflows and history stay. Older versions won't install over newer ones. Installs older than 1.1.0 (no Updates tab yet) update once with the install zip + `extract-flowforge.php`, which keeps `.env` and `storage/`.
+- **Connect your apps.** Gmail, Slack, Google Sheets, HubSpot, Shopify, WooCommerce, Stripe, OpenAI, Telegram, WhatsApp and 1,180 more.
+- **Build visually or with AI.** Drag steps onto a canvas, or type *"When a Typeform is submitted, add the person to HubSpot and tell #sales on Slack"* and the AI Builder makes it.
+- **Own your data.** Workflows, credentials and run history stay in your own MySQL database. Credentials are encrypted and never sent to the browser.
 
-**Forgot your password?** "Forgot password?" on the sign-in page emails a 6-digit code (valid 15 minutes, 5 tries, single use). Without email configured, run `php artisan flowforge:reset-password you@example.com` from a terminal.
+## 🧩 Features
 
-**Timezone:** Settings → General. Schedules ("every day at 11:00") run in this timezone; timestamps are stored in UTC.
+<table>
+  <tr>
+    <td width="33%" valign="top">
+      <img src=".github/readme/icons/workflow.svg" width="28" height="28" alt=""><br>
+      <b>Visual workflow builder</b><br>
+      <sub>Triggers, actions, If/Else branches and filters on a drag-and-drop canvas, with a step editor that maps data by dragging fields.</sub>
+    </td>
+    <td width="33%" valign="top">
+      <img src=".github/readme/icons/apps.svg" width="28" height="28" alt=""><br>
+      <b>1,190 apps, 5,783 actions</b><br>
+      <sub>615 triggers and 50 ready-made templates across 24 categories, plus an HTTP request step for any other API.</sub>
+    </td>
+    <td width="33%" valign="top">
+      <img src=".github/readme/icons/ai.svg" width="28" height="28" alt=""><br>
+      <b>AI Builder</b><br>
+      <sub>Describe a workflow in plain words and it builds, links and explains it. Works with OpenAI, Claude, Gemini, DeepSeek or Qwen, using your own key.</sub>
+    </td>
+  </tr>
+  <tr>
+    <td valign="top">
+      <img src=".github/readme/icons/triggers.svg" width="28" height="28" alt=""><br>
+      <b>Every kind of trigger</b><br>
+      <sub>Webhooks, schedules in plain words ("every weekday at 9:00"), app triggers that watch for new items, manual runs and error triggers.</sub>
+    </td>
+    <td valign="top">
+      <img src=".github/readme/icons/debugger.svg" width="28" height="28" alt=""><br>
+      <b>Step-by-step debugger</b><br>
+      <sub>Every run keeps each step's input, output and HTTP request. Retry a run or execute a single step while you build.</sub>
+    </td>
+    <td valign="top">
+      <img src=".github/readme/icons/hosting.svg" width="28" height="28" alt=""><br>
+      <b>Made for shared hosting</b><br>
+      <sub>PHP and MySQL only. A setup wizard checks your server and verifies the one cron job that runs every workflow.</sub>
+    </td>
+  </tr>
+  <tr>
+    <td valign="top">
+      <img src=".github/readme/icons/team.svg" width="28" height="28" alt=""><br>
+      <b>Team and permissions</b><br>
+      <sub>Invite admins and members, and choose who can view, edit or delete workflows and use the AI Builder.</sub>
+    </td>
+    <td valign="top">
+      <img src=".github/readme/icons/mcp.svg" width="28" height="28" alt=""><br>
+      <b>MCP server for AI agents</b><br>
+      <sub>Claude Code, Cursor and VS Code agents can search apps and build, test and run workflows with a personal token.</sub>
+    </td>
+    <td valign="top">
+      <img src=".github/readme/icons/updates.svg" width="28" height="28" alt=""><br>
+      <b>One-click updates</b><br>
+      <sub>Upload the update zip in Settings. FlowForge backs up, updates itself and rolls back if anything fails.</sub>
+    </td>
+  </tr>
+  <tr>
+    <td valign="top">
+      <img src=".github/readme/icons/mobile.svg" width="28" height="28" alt=""><br>
+      <b>Works like an app on phones</b><br>
+      <sub>Bottom tab bar, bottom sheets, one-pane step editor, light and dark themes. Add it to your home screen.</sub>
+    </td>
+    <td valign="top">
+      <img src=".github/readme/icons/security.svg" width="28" height="28" alt=""><br>
+      <b>Secure by default</b><br>
+      <sub>Encrypted credentials and API keys, secrets masked in run logs, email alerts when a workflow fails or cron stops.</sub>
+    </td>
+    <td valign="top">
+      <img src=".github/readme/icons/opensource.svg" width="28" height="28" alt=""><br>
+      <b>Open source</b><br>
+      <sub>AGPL-3.0. Use it for yourself, your company or your clients, on as many servers as you like.</sub>
+    </td>
+  </tr>
+</table>
 
-## Live demo mode
+## 🔌 Integrations
 
-Set `FLOWFORGE_DEMO=true` in `.env` for a public demo copy. The sign-in page then shows a visitor login (Settings → Live demo sets it and saves the workflows the demo resets to every hour). Visitors can build and edit workflows and use the AI builder (40 messages an hour), but can't delete, run or switch on workflows, see or add credentials, or change settings: `DemoRestrictions` refuses every write that isn't on its allow-list.
+<p align="center">
+  <img src="public/integrations/icons/gmail.svg" width="36" height="36" alt="Gmail" title="Gmail">&nbsp;
+  <img src="public/integrations/icons/slack.svg" width="36" height="36" alt="Slack" title="Slack">&nbsp;
+  <img src="public/integrations/icons/google_sheets.svg" width="36" height="36" alt="Google Sheets" title="Google Sheets">&nbsp;
+  <img src="public/integrations/icons/google_drive.svg" width="36" height="36" alt="Google Drive" title="Google Drive">&nbsp;
+  <img src="public/integrations/icons/google_calendar.svg" width="36" height="36" alt="Google Calendar" title="Google Calendar">&nbsp;
+  <img src="public/integrations/icons/hubspot.svg" width="36" height="36" alt="HubSpot" title="HubSpot">&nbsp;
+  <img src="public/integrations/icons/shopify.svg" width="36" height="36" alt="Shopify" title="Shopify">&nbsp;
+  <img src="public/integrations/icons/paypal.svg" width="36" height="36" alt="PayPal" title="PayPal">&nbsp;
+  <img src="public/integrations/icons/airtable.svg" width="36" height="36" alt="Airtable" title="Airtable">&nbsp;
+  <img src="public/integrations/icons/linkedin.svg" width="36" height="36" alt="LinkedIn" title="LinkedIn">
+  <br><br>
+  <img src="public/integrations/icons/trello.svg" width="36" height="36" alt="Trello" title="Trello">&nbsp;
+  <img src="public/integrations/icons/jira.svg" width="36" height="36" alt="Jira" title="Jira">&nbsp;
+  <img src="public/integrations/icons/asana.svg" width="36" height="36" alt="Asana" title="Asana">&nbsp;
+  <img src="public/integrations/icons/microsoft_teams.svg" width="36" height="36" alt="Microsoft Teams" title="Microsoft Teams">&nbsp;
+  <img src="public/integrations/icons/telegram.svg" width="36" height="36" alt="Telegram" title="Telegram">&nbsp;
+  <img src="public/integrations/icons/whatsapp_business.svg" width="36" height="36" alt="WhatsApp Business" title="WhatsApp Business">&nbsp;
+  <img src="public/integrations/icons/discord.svg" width="36" height="36" alt="Discord" title="Discord">&nbsp;
+  <img src="public/integrations/icons/zoom.svg" width="36" height="36" alt="Zoom" title="Zoom">&nbsp;
+  <img src="public/integrations/icons/dropbox.svg" width="36" height="36" alt="Dropbox" title="Dropbox">&nbsp;
+  <img src="public/integrations/icons/mailchimp.svg" width="36" height="36" alt="Mailchimp" title="Mailchimp">
+</p>
 
-User documentation (installation on hPanel, cPanel and VPS, every feature) is a static site in `documentation/`; open `documentation/index.html` or host the folder anywhere.
+<p align="center"><sub>…and 1,170 more across AI, CRM, e-commerce, payments, marketing, communication, project management, databases, forms, social media and developer tools.<br>Any app not on the list works through the HTTP request step or its "Make an API call" action.</sub></p>
 
-## MCP for AI agents
+## 📸 Screenshots
 
-Claude Code, Cursor, VS Code and any other MCP client can search apps and build, edit, test and run workflows on your FlowForge.
+<table>
+  <tr>
+    <td width="50%"><img src="docs/assets/img/builder.png" alt="FlowForge workflow builder canvas with Typeform, HubSpot and Slack steps"><p align="center"><sub>Workflow builder</sub></p></td>
+    <td width="50%"><img src="docs/assets/img/ai-builder.png" alt="FlowForge AI Builder chat creating a workflow from a plain-language request"><p align="center"><sub>AI Builder</sub></p></td>
+  </tr>
+  <tr>
+    <td><img src="docs/assets/img/step-editor.png" alt="FlowForge step editor with input, parameters and output panes"><p align="center"><sub>Step editor with drag-to-map data</sub></p></td>
+    <td><img src="docs/assets/img/executions.png" alt="FlowForge executions list with a run's step-by-step details"><p align="center"><sub>Executions and step debugger</sub></p></td>
+  </tr>
+</table>
 
-1. Settings → **API & MCP** → *Create token* (shown once; only its hash is stored). The agent acts as you, with exactly your permissions.
-2. Connect, e.g. Claude Code:
-   ```bash
-   claude mcp add --transport http flowforge https://your-domain/api/mcp --header "Authorization: Bearer ff_…"
-   ```
-   Cursor / VS Code snippets are on the same page.
+<details>
+<summary><b>On a phone</b></summary>
+<br>
+<p align="center">
+  <img src="docs/assets/img/mobile-overview.png" width="200" alt="FlowForge overview on a phone">&nbsp;
+  <img src="docs/assets/img/mobile-workflows.png" width="200" alt="FlowForge workflows on a phone">&nbsp;
+  <img src="docs/assets/img/mobile-step-editor.png" width="200" alt="FlowForge step editor on a phone">&nbsp;
+  <img src="docs/assets/img/mobile-ai.png" width="200" alt="FlowForge AI Builder on a phone">
+</p>
+</details>
 
-The server speaks Streamable HTTP (JSON-RPC 2.0 over POST, protocol versions 2025-06-18 / 2025-03-26 / 2024-11-05) at `/api/mcp`, with the same 12 tools as the in-app AI builder and its workflow-building guide as the `instructions`. Over MCP, `delete_workflow` deletes immediately (it is marked destructive so clients ask first). Revoke a token any time on the same page.
+## 🚀 Quick start
 
-## Phones
+You need hosting with **PHP 8.2+, MySQL and cron** (every Hostinger and cPanel plan has these). No SSH, Composer or Node.js on the server.
 
-The whole app works on a phone like a native app: a bottom tab bar (Home, Workflows, AI, Runs, More), bottom-sheet dialogs, a one-pane-at-a-time step editor and 16px fields (no iOS zoom). "Add to Home Screen" opens it full screen with its own icon.
+1. **Download** `flowforge-install-x.y.z.zip` from the [latest release](https://github.com/DeveloperSarim/FlowForge/releases).
+2. **Create an empty MySQL database** and a user in your hosting panel.
+3. **Upload and extract** the zip into your domain's folder (for example `public_html`). If your File Manager times out, also upload `extract-flowforge.php` and open it in your browser.
+4. **Open** `https://your-domain.com/install`. The wizard checks your server, connects the database, creates your admin account and sets up email alerts.
+5. **Add the cron job** the wizard shows you (or click *Set it up for me*). It turns green within a minute, and you're done.
 
-## SEO and agent discovery
+Step-by-step guides with screenshots: [Hostinger hPanel](https://developersarim.github.io/FlowForge/#hpanel) | [cPanel](https://developersarim.github.io/FlowForge/#cpanel) | [VPS with Nginx](https://developersarim.github.io/FlowForge/#vps) | [Cron job](https://developersarim.github.io/FlowForge/#cron)
 
-- `/robots.txt` and `/sitemap.xml` are generated with the install's own domain. Only `/login` is indexable; every page behind sign-in sends `noindex`.
-- `/llms.txt` (summary + how to connect over MCP) and `/llms-full.txt` (building guide, every tool schema and the full app catalog) follow [llmstxt.org](https://llmstxt.org).
-- Social preview: `public/og-image.png` (1200×630), Open Graph + Twitter card tags, JSON-LD `SoftwareApplication`, favicon set and `site.webmanifest`.
+<details>
+<summary><b>Server requirements</b></summary>
+<br>
 
-## Team and permissions
-
-Settings → Team (owner and admins) invites people by email; they open the link and choose their own password. Without SMTP the admin copies the link and sends it themselves. Links work for 7 days and only once.
-
-| Role / access | Can do |
+| Requirement | Details |
 | --- | --- |
-| Owner | Everything; can't be removed or demoted |
-| Admin | Everything, including Settings, Team and Updates |
-| Member: Workflows view | See workflows (read-only editor), runs and templates |
-| Member: Workflows edit | Create, edit, run and switch workflows on/off; use and add credentials (secrets are never shown) |
-| Member: Workflows delete | Also delete workflows and credentials |
-| Member: AI builder | Chat with the AI builder, which can only do what the member's workflow access allows |
+| PHP | 8.2 or newer, with `pdo_mysql`, `curl`, `mbstring`, `openssl`, `fileinfo`, `gd`, `zip` |
+| Database | MySQL 5.7+ or MariaDB 10.3+ |
+| Web server | Apache or LiteSpeed with `mod_rewrite`, or Nginx |
+| Cron | One job every minute |
+| Disk | About 150 MB plus run history |
 
-Access is enforced on the server (`can:` route middleware and the assistant's tools); the UI just hides what isn't allowed. AI chats are private to each person. Failure emails go to the owner and admins.
+</details>
 
-## AI builder
+## 🆚 How FlowForge compares
 
-Under **AI Builder** in the sidebar (and **Ask AI** in the editor), describe a workflow in plain words — English or Urdu — and the assistant builds it: it searches the app catalog, reads the exact inputs of the actions it needs, saves the workflow, attaches matching credentials, and tells you what's left to fill in. It can also explain and edit existing workflows, test them (only when asked, since tests perform real actions), switch them on or off, and propose deletes (you confirm on a card; nothing is deleted before that).
+| | **FlowForge** | n8n | Zapier | Make |
+| --- | :---: | :---: | :---: | :---: |
+| Self-hosted on your own server | ✅ | ✅ | ❌ | ❌ |
+| Runs on cPanel / hPanel shared hosting | ✅ | ❌ needs a Node.js server | ❌ cloud only | ❌ cloud only |
+| OSI-approved open-source license | ✅ AGPL-3.0 | ❌ fair-code | ❌ | ❌ |
+| No per-task or per-operation fees | ✅ | ✅ when self-hosted | ❌ | ❌ |
 
-While it works, the chat shows each step live ("Searching apps", "Reading LinkedIn actions", "Building…", "Fixing: …"); the progress is streamed as NDJSON and kept on the answer as a collapsible "Worked through N steps" list.
+<sub>Based on each product's public information as of October 2026.</sub>
 
-Data between steps is checked when the assistant saves: every `{{ steps.X.field }}` must point at a step that runs earlier and at a field that step returns. `get_app` tells the model each action's outputs (e.g. AI chat actions return `text`), built-in nodes and triggers have closed output lists (hard errors), and for API responses the documented fields plus fields seen in earlier runs are used ("Fix:" warnings the model corrects before replying).
+## 🤖 AI Builder and MCP
 
-Providers (Settings → AI builder, your own API key, stored encrypted):
+**AI Builder.** Open *AI Builder* in the sidebar and describe what you want. It searches the app catalog, reads each action's settings, saves the workflow, links the data between steps and tells you what's left to fill in. Bring your own key from OpenAI, Anthropic Claude, Google Gemini, DeepSeek or Qwen.
 
-| Provider | How it's called | Default model |
-| --- | --- | --- |
-| DeepSeek | OpenAI-compatible API | `deepseek-chat` |
-| Qwen (Alibaba Cloud Model Studio) | OpenAI-compatible API, region selectable | `qwen-plus` |
-| OpenAI (ChatGPT) | Chat Completions API | `gpt-5-mini` |
-| Anthropic Claude | official `anthropic-ai/sdk` (prompt caching, effort, server-side refusal fallback) | `claude-opus-5-5` |
-| Google Gemini | Generative Language API | `gemini-2.5-flash` |
-
-Token use is kept low by design: the 1,000+ app catalog is never sent — the model searches it with a tool and fetches only the inputs it needs; tool results are compact; the system prompt and tool list are static so every provider's prompt cache applies; thinking effort is configurable; one request is capped at 10 tool steps. Each answer shows its token usage (input, cached, output).
-
-## Email alerts
-
-The installer (and Settings → Email & alerts) configures the system SMTP server. FlowForge emails the admin when:
-- a production run fails (failing step, error, link to the run) — at most one email per workflow per window (default 15 minutes; suppressed failures are counted in the next email),
-- a polling trigger can't reach its app,
-- the cron job was down for 10+ minutes (sent when it runs again).
-
-Editor test runs never send alerts. For alerts in Slack/Telegram/anything else, build a workflow with the **Error Trigger** ("When another workflow fails").
-
-## How a run happens
-
-| Trigger | What starts it |
-| --- | --- |
-| Webhook | `POST/GET /api/webhook/{token}`. Active workflows queue a run. Inactive ones save the request as test data for the editor. |
-| Schedule | A cron expression on the trigger node. It is checked every minute, and a minute guard stops it firing twice. |
-| Polling | A manifest's polling endpoint is called every N minutes. The first poll only records a baseline; after that, each new item id starts one run. |
-| Manual / Test | "Test workflow" in the editor runs **synchronously** and opens the step debugger. |
-
-Every scheduler tick:
-1. It records a heartbeat.
-2. It enqueues due schedules and polls.
-3. It runs `queue:work database --stop-when-empty --max-time=50`.
-
-Runs are stored in `workflow_executions`, with each step's resolved input, output, HTTP request and status. Credential secrets are masked out of these logs, and large payloads are capped. Runs older than `FLOWFORGE_EXECUTION_RETENTION_DAYS` are pruned daily.
-
-### Graph semantics
-
-- **Shape:** the workflow is a DAG stored as JSON in `workflows.graph`. Saving rejects loops and edges into the trigger.
-- **Order:** nodes run in topological order.
-- **When a node runs:** when at least one incoming edge is live. If/Else emits `true` or `false`. A failing Filter emits nothing, which stops that path.
-- **Failure:** the first failing step fails the run, and the rest are marked skipped.
-
-### Variables
-
-Any text field can reference earlier steps:
-
-```
-{{ steps.trigger.data.email }}        webhook body field
-{{ steps.step_2.items[0].id }}        array index
-{{ steps.step_2.items.*.id }}         every id (wildcard)
-{{ workflow.name }}  {{ execution.id }}  {{ now }}
-```
-
-A field that is exactly one `{{ … }}` keeps the value's type (arrays stay arrays). Mixed text interpolates the value as a string. In the editor, click a field, then pick a value under **Data from earlier steps**.
-
-## Integrations: manifests, not classes
-
-Each integration is one JSON or YAML file under `resources/integrations/` (any sub-folder). There are no PHP classes per integration. `WorkflowActionExecutor` reads the manifest and renders the HTTP request:
-- `{{ inputs.* }}` is the step's settings, after variables are resolved.
-- `{{ credentials.* }}` is the decrypted credential.
-
-```json
-{
-  "key": "acme",
-  "name": "Acme CRM",
-  "icon": "https://cdn.simpleicons.org/hubspot",
-  "category": "CRM",
-  "base_url": "https://api.acme.test/v2",
-  "headers": { "Accept": "application/json" },
-  "auth": { "type": "api_key", "in": "header", "name": "X-Api-Key" },
-  "actions": [{
-    "key": "create_contact",
-    "name": "Create contact",
-    "method": "POST",
-    "endpoint": "/contacts",
-    "body": { "email": "{{ inputs.email }}", "tags": "{{ inputs.tags }}" },
-    "inputs": [
-      { "key": "email", "type": "string", "required": true },
-      { "key": "tags", "type": "list" }
-    ]
-  }],
-  "triggers": [{
-    "key": "new_contact", "name": "New contact", "type": "polling",
-    "endpoint": "/contacts", "query": { "sort": "-created" }, "items_path": "data", "id_field": "id",
-    "inputs": [{ "key": "poll_interval", "type": "number", "default": 5 }]
-  }]
-}
-```
-
-- **Auth types:** `none`, `oauth2_client_credentials` (machine-to-machine; token fetched and cached automatically), `api_key` (`in: header|query`, or omitted to use `{{ credentials.api_key }}` in the URL), `bearer`, `basic`, `oauth2` (`authorize_url`, `token_url`, `scopes`, `authorize_params`; refresh is automatic), `google_service_account` (signed JWT), `smtp`, `mysql`. A manifest may list several types, e.g. Google Sheets accepts OAuth2 or a service account.
-- **Input types:** `string`, `text`, `password`, `number`, `boolean`, `select`, `json`, `code`, `list`, `keyvalue`, `conditions`, `cron` (friendly schedule picker that stores a cron expression).
-- **Input options:** `fallback: "credentials.<field>"` fills an empty input from the connected account (see `profile`), `escape: "little_text"` applies LinkedIn's reserved-character escaping and turns `#tags` into hashtags.
-- **Optional action keys:**
-  - `query`, `headers`, `body`
-  - `body_format` (`json` or `form`)
-  - `output_path` (return only this part of the response)
-  - `output_fields` (e.g. `{"text": "content.*.text"}`), shown to the AI builder as the action's outputs
-  - `output` (closed list of returned keys, for built-in handlers)
-  - `error_hints` (`{"403": "what to check"}`, appended to HTTP errors; also allowed at the integration level)
-  - `error_path` (fail when this field is set, as with Slack's `ok:false`)
-  - `timeout`
-  - `outputs` (makes the node a branch)
-  - `handler` (built-ins: `if`, `filter`, `json_parse`, `text_format`, `smtp`, `mysql`)
-- **Connected account:** an auth spec may declare `profile: {endpoint, store: {field: template}}`. After connecting (and lazily before first use) FlowForge reads that endpoint and saves the fields on the credential, e.g. LinkedIn's `/v2/userinfo` → `person_urn: "urn:li:person:{{ sub }}"`, so "Post as" needs no manual URN.
-- **OAuth extras:** `client_auth: "basic"` for providers that want client credentials in a Basic header (Zoom, QuickBooks, Xero…), `token_type` for non-`Bearer` schemes (`Zoho-oauthtoken`), and `{{ credentials.* }}` inside OAuth URLs and scopes for per-region hosts.
-- **OpenAPI v3:** drop a spec (`.json` or `.yaml`) into the same folder and every operation becomes an action. Add `x-flowforge: {key, name, icon, category}` to override the defaults. See `resources/integrations/openapi/jsonplaceholder.yaml`.
-- **Audit:** `php artisan flowforge:audit [app-or-category] [--warnings] [--live]` dry-runs every action through the real engine against a fake HTTP client (unresolved `{{ }}`, invalid URLs, unused inputs, undefined credential fields, template references) and, with `--live`, calls keyless GET actions for real.
-- **Validation:** `php artisan flowforge:integrations` lists everything and reports invalid manifests. Invalid files are skipped, never fatal. The compiled registry is cached in `bootstrap/cache/integrations.php` and rebuilt when any file changes.
-
-### The bundled catalog
-
-`resources/integrations/apps/<category>/` holds about 1,190 manifests across 24 categories, including:
-- **AI:** OpenAI, Gemini, Mistral, ElevenLabs, Pinecone…
-- **Communication:** Gmail, Outlook, Teams, Twilio, WhatsApp…
-- **CRM:** HubSpot, Salesforce, Pipedrive, Zoho…
-- **Marketing:** Mailchimp, SendGrid, Brevo, Klaviyo…
-- **E-commerce and payments:** Shopify, WooCommerce, PayPal, QuickBooks, Xero…
-- **Developer, database, project, file and form tools.**
-
-Run `php artisan flowforge:integrations --summary` for the counts per category.
-
-Where an app's endpoints couldn't be confirmed, its manifest ships only base URL + auth. The generated "Make an API call" action still makes it usable. Endpoints were written from the providers' documentation and checked through the engine with faked HTTP; most have **not** been run against live accounts. Test a step before relying on it.
-
-### Logos
-
-`node scripts/build-integration-icons.mjs --favicons` writes `public/integrations/icons/<key>.svg|png`. The output is committed, so the server needs no Node. Each logo comes from the first source that has it:
-1. the full-colour [SVG Logos](https://github.com/gilbarbara/logos) set (CC0)
-2. [Simple Icons](https://simpleicons.org) in the brand colour (CC0)
-3. the app's own favicon at 256px through Google's favicon service
-4. a lettered tile
-
-Near-black marks are saved as `.mono.svg` so they invert in dark mode. Logos are trademarks of their owners and are used only to identify each integration.
-
-### Templates
-
-`resources/templates/*.json` contains `{key, name, description, category, featured, graph}`. "Use template" copies the graph into a new workflow. Templates whose apps aren't installed are hidden.
-
-## Code map
-
-```
-app/Domain/
-  Installer/     EnsureInstalled (gate), SystemValidator, EnvManager, InstallerController
-  Workflows/     Models (Workflow, WorkflowExecution), Workflow/Execution/Webhook controllers
-  Integrations/  ManifestLoader, IntegrationManifestSchema, OpenApiImporter, VariableResolver,
-                 WorkflowActionExecutor, CredentialVault, Handlers/ (Logic, Mail, Database), Credential model
-  Engine/        GraphRunner, TopologicalSorter, PollerService, Jobs/ (RunWorkflow, PollWorkflow)
-resources/js/
-  Components/Canvas/  nodes (Trigger/Action/Branch + deletable edge), NodeCreator, FloatingToolbar
-  Components/Drawer/  NodeDetails (Input | Parameters | Output), DynamicForm
-  Components/         ui (shadcn-style primitives), DataView (schema/JSON, drag-to-map), ExecutionDebug, ExecutionsChart
-  Pages/              Overview, Workflows/{Index,Builder}, Templates, Apps/{Index,Show}, Executions, Credentials, Settings, Install/Wizard
-resources/integrations/  core/, apps/, openapi/
-routes/console.php       the scheduler wiring
-```
-
-## Development
+**MCP for AI agents.** Create a token in *Settings → API & MCP*, then connect your agent. For example, Claude Code:
 
 ```bash
-composer install && npm install
-npm run dev                      # Vite
-(cd public && php -S 127.0.0.1:8000 ../vendor/laravel/framework/src/Illuminate/Foundation/resources/server.php)
-php artisan schedule:run         # one tick; or: php artisan schedule:work
-php artisan test
+claude mcp add --transport http flowforge https://your-domain.com/api/mcp \
+  --header "Authorization: Bearer YOUR_TOKEN"
 ```
 
-Use the plain PHP server, not `php artisan serve --no-reload`. The latter passes its startup environment to its workers, so the `.env` that the installer writes is ignored until a restart.
+## 📚 Documentation
 
-## Known limits
+The full guide is at **[developersarim.github.io/FlowForge](https://developersarim.github.io/FlowForge/)**:
 
-- Webhook runs start on the next cron tick, so up to about a minute later.
-- **Webhook handshakes:** the endpoint answers Meta, Microsoft Graph, Slack, monday.com, Asana and Trello. Zoom's signed URL validation is not handled.
-- **OAuth:** supports the authorization-code flow only. Apps that require PKCE (X/Twitter, Etsy, Canva) or client credentials only (Personio, Snov.io) use pasted tokens or were left out.
-- **Request bodies:** multipart file uploads aren't supported. Empty JSON objects (`{}`) are sent as `[]`.
-- Steps don't retry, and there is no "continue on fail". The first failure stops the run.
-- Polling dedupes on the last 1,000 item ids per workflow.
+- [Installation](https://developersarim.github.io/FlowForge/#before-you-start) on Hostinger hPanel, cPanel and VPS, and the [setup wizard](https://developersarim.github.io/FlowForge/#setup-wizard)
+- [Your first workflow](https://developersarim.github.io/FlowForge/#first-workflow), [triggers](https://developersarim.github.io/FlowForge/#triggers) and [passing data between steps](https://developersarim.github.io/FlowForge/#data-mapping)
+- [Credentials and app connections](https://developersarim.github.io/FlowForge/#credentials), [AI Builder](https://developersarim.github.io/FlowForge/#ai-builder) and [team permissions](https://developersarim.github.io/FlowForge/#team)
+- [Updating](https://developersarim.github.io/FlowForge/#updating), [backups](https://developersarim.github.io/FlowForge/#backups) and [troubleshooting](https://developersarim.github.io/FlowForge/#troubleshooting)
 
-## License
+Developers: architecture, the integration manifest format, local setup and releases are in **[DEVELOPMENT.md](DEVELOPMENT.md)**.
 
-FlowForge is free software: you can redistribute it and/or modify it under the terms of the [GNU Affero General Public License v3.0](LICENSE). If you run a modified version for other people over a network, you must offer them its source code. Bundled third-party code keeps its own licenses (MIT, ISC, OFL, CC0; see `vendor/` and `package.json`).
+## 💼 Installation and hosting services
+
+FlowForge is free. If you'd rather not set it up or run it yourself, we can help:
+
+| | Service |
+| :---: | --- |
+| 🛠️ | **Installation** on your Hostinger hPanel, cPanel or VPS, including the database, SSL and cron job |
+| ☁️ | **Managed hosting**: we run FlowForge for you, with backups and updates |
+| 🧭 | **Setup help**: connecting your apps and building your first workflows |
+| 🔧 | **Custom integrations** for apps or APIs that aren't in the catalog yet |
+
+Email **[support@sarimtools.com](mailto:support@sarimtools.com?subject=FlowForge%20services)** with what you need and we'll send you a quote.
+
+## ❓ FAQ
+
+<details>
+<summary><b>Is FlowForge really free?</b></summary>
+<br>
+Yes. It's open source under the AGPL-3.0 license, with no limits on users, workflows, runs or sites. You only pay if you want our installation or hosting services.
+</details>
+
+<details>
+<summary><b>Do I need a cron job for every workflow?</b></summary>
+<br>
+No. One cron job, running every minute, runs every schedule, webhook and app trigger.
+</details>
+
+<details>
+<summary><b>Can I use it for my business or my clients?</b></summary>
+<br>
+Yes. If you change FlowForge's code and offer the changed version to other people over a network, the AGPL requires you to offer them your source code too.
+</details>
+
+<details>
+<summary><b>How is it different from n8n?</b></summary>
+<br>
+n8n needs a Node.js server, usually a VPS or Docker. FlowForge is PHP, so it runs on the shared hosting most websites already use, and it's licensed under an OSI-approved open-source license.
+</details>
+
+<details>
+<summary><b>How fast do webhooks run?</b></summary>
+<br>
+Within about a minute, on the next cron tick. Test runs in the editor run straight away.
+</details>
+
+## 🤝 Contributing
+
+Bug reports, ideas and pull requests are welcome.
+
+- Found a bug? [Open an issue](https://github.com/DeveloperSarim/FlowForge/issues) with your FlowForge and PHP versions and the steps to reproduce it.
+- Want to add an app? Integrations are JSON/YAML manifests, not PHP classes. See [DEVELOPMENT.md](DEVELOPMENT.md).
+
+```bash
+git clone https://github.com/DeveloperSarim/FlowForge.git && cd FlowForge
+composer install && npm install && npm run build
+cd public && php -S 127.0.0.1:8000 ../vendor/laravel/framework/src/Illuminate/Foundation/resources/server.php
+# open http://127.0.0.1:8000/install
+```
+
+## 🔒 Security
+
+Please report security issues privately to [support@sarimtools.com](mailto:support@sarimtools.com?subject=FlowForge%20security) rather than in a public issue.
+
+## 📄 License
+
+FlowForge is free software under the [GNU Affero General Public License v3.0](LICENSE). App names and logos are trademarks of their owners, used only to identify each integration.
+
+<p align="center"><sub>Built with Laravel, React, React Flow and Tailwind CSS.</sub></p>
