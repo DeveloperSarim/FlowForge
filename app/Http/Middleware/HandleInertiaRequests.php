@@ -2,8 +2,8 @@
 
 namespace App\Http\Middleware;
 
+use App\Domain\Demo\DemoMode;
 use App\Domain\Integrations\ManifestLoader;
-use App\Domain\License\DemoMode;
 use App\Domain\System\SystemSettings;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;

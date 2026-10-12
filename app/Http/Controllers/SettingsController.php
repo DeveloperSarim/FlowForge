@@ -4,11 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Domain\Assistant\LlmClient;
 use App\Domain\Assistant\Providers;
+use App\Domain\Demo\DemoMode;
 use App\Domain\Installer\CronInstaller;
 use App\Domain\Installer\SystemValidator;
 use App\Domain\Integrations\ManifestLoader;
-use App\Domain\License\DemoMode;
-use App\Domain\License\License;
 use App\Domain\System\Notifier;
 use App\Domain\System\SettingsValidation;
 use App\Domain\System\SystemSettings;
@@ -51,7 +50,6 @@ class SettingsController extends Controller
             'mail' => $mail && ! $demoUser ? Arr::except($mail, ['password']) + ['has_password' => ! empty($mail['password'])] : null,
             'notifications' => $demoUser ? ['recipients' => []] + $this->settings->notifications() : $this->settings->notifications(),
             'timezone' => $this->settings->timezone(),
-            'license' => app(License::class)->summary(),
             'demo' => app(DemoMode::class)->active() && ! $request->user()->isDemo()
                 ? ['login' => app(DemoMode::class)->credentials(), 'snapshot' => app(DemoMode::class)->snapshotInfo()] : null,
             'team' => ['members' => $demoUser ? array_map(fn ($m) => ['email' => Str::mask($m['email'], '*', 2, -6)] + $m, TeamController::members()) : TeamController::members(), 'permissions' => User::PERMISSIONS],

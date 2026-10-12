@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Domain\License;
+namespace App\Domain\Demo;
 
 use Closure;
 use Illuminate\Http\Request;

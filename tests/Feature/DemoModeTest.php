@@ -4,8 +4,7 @@ namespace Tests\Feature;
 
 use App\Domain\Assistant\Models\AiConversation;
 use App\Domain\Assistant\WorkflowTools;
-use App\Domain\License\DemoMode;
-use App\Domain\License\License;
+use App\Domain\Demo\DemoMode;
 use App\Domain\Workflows\Models\Workflow;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -18,7 +17,7 @@ class DemoModeTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->writeLicense(['domain' => License::host(), 'demo' => true, 'type' => 'Demo']);
+        config(['flowforge.demo' => true, 'app.url' => 'https://demo.example.com']);
         @unlink(storage_path('app/demo-snapshot.json'));
     }
 
@@ -30,7 +29,13 @@ class DemoModeTest extends TestCase
 
     public function test_the_sign_in_page_offers_the_demo_login(): void
     {
-        $this->get('/login')->assertInertia(fn ($page) => $page->where('demo.email', 'demo@'.License::host())->where('demo.password', 'demo12345'));
+        $this->get('/login')->assertInertia(fn ($page) => $page->where('demo.email', 'demo@demo.example.com')->where('demo.password', 'demo12345'));
+    }
+
+    public function test_demo_mode_is_off_unless_the_env_flag_is_set(): void
+    {
+        config(['flowforge.demo' => false]);
+        $this->get('/login')->assertInertia(fn ($page) => $page->where('demo', null));
     }
 
     public function test_visitors_can_build_but_not_delete_run_or_touch_credentials_and_settings(): void

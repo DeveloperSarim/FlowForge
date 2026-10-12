@@ -1,8 +1,7 @@
 <?php
 
+use App\Domain\Demo\DemoRestrictions;
 use App\Domain\Installer\EnsureInstalled;
-use App\Domain\License\DemoRestrictions;
-use App\Domain\License\EnsureLicensed;
 use App\Http\Middleware\HandleInertiaRequests;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -26,8 +25,8 @@ return Application::configure(basePath: $basePath)
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        $middleware->web(prepend: [EnsureInstalled::class, EnsureLicensed::class], append: [DemoRestrictions::class, HandleInertiaRequests::class]);
-        $middleware->api(prepend: [EnsureInstalled::class, EnsureLicensed::class]);
+        $middleware->web(prepend: [EnsureInstalled::class], append: [DemoRestrictions::class, HandleInertiaRequests::class]);
+        $middleware->api(prepend: [EnsureInstalled::class]);
         $middleware->redirectGuestsTo('/login');
         $middleware->redirectUsersTo('/');
     })

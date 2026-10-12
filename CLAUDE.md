@@ -1,6 +1,6 @@
 # FlowForge: notes for Claude
 
-Self-hosted workflow automation (n8n-style canvas) that must run on **PHP shared hosting**: Apache/LiteSpeed, MySQL, and one cron line (`* * * * * php artisan schedule:run`). No Docker, Redis, Supervisor, daemons or Node on the server. Queue and cache use the database driver; `schedule:run` starts `queue:work --stop-when-empty` every minute.
+Open-source (AGPL-3.0) self-hosted workflow automation (n8n-style canvas) that must run on **PHP shared hosting**: Apache/LiteSpeed, MySQL, and one cron line (`* * * * * php artisan schedule:run`). No Docker, Redis, Supervisor, daemons or Node on the server. Queue and cache use the database driver; `schedule:run` starts `queue:work --stop-when-empty` every minute.
 
 The owner tests in Chrome at `http://127.0.0.1:8123`, writes in Roman Urdu, and deploys to Hostinger hPanel / cPanel. Reply in Roman Urdu/English.
 
@@ -18,8 +18,6 @@ php artisan flowforge:integrations --refresh --summary   # rebuild manifest cach
 php artisan flowforge:audit [app-or-category] [--warnings] [--live]   # dry-run every action; must report 0 errors
 node scripts/build-integration-icons.mjs --favicons # logos for new apps (public/integrations/icons)
 bash scripts/make-release.sh 1.2.0                 # dist/flowforge-install-1.2.0.zip + flowforge-update-1.2.0.zip (bumps VERSION)
-bash scripts/make-codecanyon.sh 1.2.0              # release + dist/codecanyon/ (main file with Documentation/, thumbnail, preview, screenshots)
-php license-server/issue.php 127.0.0.1 > storage/app/license.json   # author license for a local copy (needs keys/private.pem)
 php artisan flowforge:reset-password you@example.com
 ```
 
@@ -54,6 +52,5 @@ macOS has no `timeout` command. Local throwaway credentials live in `storage/app
 - The chat endpoint streams NDJSON (`Accept: application/x-ndjson`) and must still work when a host buffers output (events then arrive at the end).
 - In-app updates: `App\Domain\System\Updater` (chunked upload → batch extract → `public/update-runner.php` swap with backup/rollback → `finish` migrates on the new code). Bump `VERSION` for every release; update packages must never contain `.env`, `storage/` or `bootstrap/cache`. Tests point `flowforge.update_root` at a temp folder; never run the runner against the repo.
 - Release zips must not contain `.env`, `storage/.installed`, logs, sessions or `local-dev-install.txt`; `make-release.sh` handles this. Webhook runs wait for the next cron tick (≤ 1 minute).
-- **Licensing** (`app/Domain/License`): every install needs a license file signed by the license server (`license-server/`, deployed separately at `license.sarimtools.com`). `EnsureLicensed` (web + api) sends everything to `/license` without one, the installer stops at its license step, and `Workflow::start` / `PollerService` refuse to run. The app holds only the public key (`LicenseKey`); `license-server/keys/private.pem`, `license-server/config.php` and its `data/` must never be committed or zipped. Tests sign with a throwaway key (`tests/TestCase.php`: `writeLicense`, `signLicense`). Keep license checks in those shared choke points rather than sprinkling them.
-- **Demo mode** (`DemoMode`, `DemoRestrictions`): on when the license token says `demo: true` (the server's demo key on its demo domains). The visitor account may only do what `DemoRestrictions::ALLOWED` lists (deny by default); a new write route stays blocked for the demo user unless it's added there deliberately. Hourly `flowforge:demo-reset` restores the saved snapshot.
-- **Buyer docs** live in `documentation/` (static HTML, screenshots in `assets/img`); author-only notes in `AUTHOR-GUIDE.md`. Update the docs' changelog for each release.
+- **Demo mode** (`app/Domain/Demo`): on with `FLOWFORGE_DEMO=true`. The visitor account may only do what `DemoRestrictions::ALLOWED` lists (deny by default); a new write route stays blocked for the demo user unless it's added there deliberately. Hourly `flowforge:demo-reset` restores the saved snapshot.
+- **Open source** under AGPL-3.0 (`LICENSE`); there is no license check. User docs live in `documentation/` (static HTML, screenshots in `assets/img`, excluded from release zips); update its changelog for each release.

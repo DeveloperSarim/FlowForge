@@ -27,7 +27,7 @@ npm --prefix "$root" run build --silent
 echo "→ Copying source"
 rsync -a "$root/" "$stage/" \
     --exclude .git --exclude node_modules --exclude vendor --exclude dist --exclude tests \
-    --exclude /license-server --exclude /documentation --exclude /codecanyon --exclude AUTHOR-GUIDE.md \
+    --exclude /documentation --exclude /marketing \
     --include .env.example --exclude '.env*' --exclude .phpunit.result.cache --exclude .DS_Store \
     --exclude /public/hot --exclude /public/storage --exclude /storage/.installed
 

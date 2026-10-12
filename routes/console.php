@@ -1,11 +1,10 @@
 <?php
 
+use App\Domain\Demo\DemoMode;
 use App\Domain\Engine\PollerService;
 use App\Domain\Installer\EnsureInstalled;
 use App\Domain\Integrations\IntegrationAuditor;
 use App\Domain\Integrations\ManifestLoader;
-use App\Domain\License\DemoMode;
-use App\Domain\License\License;
 use App\Domain\System\Notifier;
 use App\Domain\System\SchemaUpgrader;
 use App\Domain\Workflows\Models\WorkflowExecution;
@@ -28,9 +27,6 @@ Schedule::call(function () {
     app(Notifier::class)->heartbeat();
 })
     ->everyMinute()->name('flowforge:heartbeat');
-
-// Daily license check with the server (revocations, refreshed support dates).
-Schedule::call(fn () => app(License::class)->refresh())->daily()->name('flowforge:license');
 
 Schedule::call(fn () => app(PollerService::class)->dispatchDue())
     ->everyMinute()->name('flowforge:triggers')->withoutOverlapping(5);
@@ -106,7 +102,7 @@ Artisan::command('flowforge:reset-password {email : The account to reset}', func
     $this->info("Password changed for $email.");
 })->purpose('Set a new password when email-based reset is not available');
 
-// Live demo (only when the license is the author's demo license).
+// Live demo (only with FLOWFORGE_DEMO=true).
 Schedule::call(function () {
     $demo = app(DemoMode::class);
     if ($demo->active()) {
@@ -116,7 +112,7 @@ Schedule::call(function () {
 
 Artisan::command('flowforge:demo-reset', function (DemoMode $demo) {
     if (! $demo->active()) {
-        $this->error('This copy is not running a demo license.');
+        $this->error('Demo mode is off. Set FLOWFORGE_DEMO=true in .env first.');
 
         return 1;
     }

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Domain\License;
+namespace App\Domain\Demo;
 
 use App\Domain\Assistant\Models\AiConversation;
 use App\Domain\System\SystemSettings;
@@ -10,18 +10,17 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 /**
- * The public live demo. It is on when the license token says so (only the author's demo key on the
- * author's demo domains gets such a token). Visitors sign in with the demo account shown on the login
- * page and can explore, build and edit workflows and use the AI builder; deleting, credentials, running
+ * The public live demo, switched on with FLOWFORGE_DEMO=true in .env. Visitors sign in with the demo account shown
+ * on the login page and can explore, build and edit workflows and use the AI builder; deleting, credentials, running
  * or switching on workflows and every setting are blocked. Workflows reset to a saved starting point hourly.
  */
 class DemoMode
 {
-    public function __construct(private License $license, private SystemSettings $settings) {}
+    public function __construct(private SystemSettings $settings) {}
 
     public function active(): bool
     {
-        return $this->license->isDemo();
+        return (bool) config('flowforge.demo');
     }
 
     /** @return array{email: string, password: string} shown on the login page */
@@ -29,7 +28,7 @@ class DemoMode
     {
         $saved = (array) $this->settings->get('demo', []);
 
-        return ['email' => $saved['email'] ?? 'demo@'.License::host(), 'password' => $saved['password'] ?? 'demo12345'];
+        return ['email' => $saved['email'] ?? 'demo@'.preg_replace('/^www\./', '', (string) (parse_url((string) config('app.url'), PHP_URL_HOST) ?: 'example.com')), 'password' => $saved['password'] ?? 'demo12345'];
     }
 
     public function isDemoUser(?User $user): bool

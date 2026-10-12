@@ -1,5 +1,7 @@
 # FlowForge
 
+Open source under the [GNU AGPL-3.0](LICENSE). Installation, managed hosting and custom integrations: support@sarimtools.com.
+
 Self-hosted workflow automation (a visual node canvas like n8n or Make) that runs on ordinary PHP shared hosting: Apache or LiteSpeed, MySQL, and **one cron line**. No Docker, Redis, Supervisor or Node process on the server.
 
 What's included:
@@ -28,9 +30,8 @@ What's included:
    - If you can only upload into `public_html`, the root `.htaccess` forwards requests into `public/`.
 3. **Make these writable:** `storage/`, `bootstrap/cache/` and the app folder itself, since the installer creates `.env` there.
 4. **Create the database:** in cPanel → MySQL Databases, create an empty database and a user with all privileges on it.
-5. **Run the wizard:** open `https://your-domain/install`. It walks through six steps:
+5. **Run the wizard:** open `https://your-domain/install`. It walks through five steps:
    1. Server checks: PHP 8.2+, `pdo_mysql`, `curl`, `mbstring`, `openssl`, `fileinfo`, `gd`, `zip`, and folder permissions.
-   1. License: the CodeCanyon purchase code, activated for this domain.
    2. Database: tests the connection, writes `.env`, then runs `migrate --force` and the seeder.
    3. Administrator: creates the single admin account and picks the timezone schedules run in.
    4. Email alerts: SMTP details for failure / scheduler-down emails and password-reset codes, with a "Send test email" button. Skippable; change it later in Settings.
@@ -51,11 +52,11 @@ Configured `.env` by hand and ran `php artisan migrate --force` yourself? Set `F
 
 **Timezone:** Settings → General. Schedules ("every day at 11:00") run in this timezone; timestamps are stored in UTC.
 
-## License, live demo and CodeCanyon
+## Live demo mode
 
-- **License:** every install activates a CodeCanyon purchase code (installer step 2, or `/license` later). The license server (`license-server/`, plain PHP, deployed on its own subdomain) checks the code with Envato, binds it to one domain (local hosts are free) and returns an RSA-signed token; the app re-checks daily with 14 days of offline grace. Settings → License shows it and deactivates the domain to move it.
-- **Live demo:** activating with the server's demo key on a demo domain turns on demo mode: the login page shows the visitor login, visitors can build and edit but not delete, run, connect apps or change settings, and workflows reset hourly to a saved starting point.
-- **Packaging:** `bash scripts/make-codecanyon.sh 1.0.0` builds `dist/codecanyon/` (main zip with the install/update zips, extractor, `Documentation/`, `Licensing/`, `README.txt`, plus thumbnail, inline preview and screenshots). Buyer docs are in `documentation/`; deployment of the license server and demo is in `AUTHOR-GUIDE.md`.
+Set `FLOWFORGE_DEMO=true` in `.env` for a public demo copy. The sign-in page then shows a visitor login (Settings → Live demo sets it and saves the workflows the demo resets to every hour). Visitors can build and edit workflows and use the AI builder (40 messages an hour), but can't delete, run or switch on workflows, see or add credentials, or change settings: `DemoRestrictions` refuses every write that isn't on its allow-list.
+
+User documentation (installation on hPanel, cPanel and VPS, every feature) is a static site in `documentation/`; open `documentation/index.html` or host the folder anywhere.
 
 ## MCP for AI agents
 
@@ -280,3 +281,7 @@ Use the plain PHP server, not `php artisan serve --no-reload`. The latter passes
 - **Request bodies:** multipart file uploads aren't supported. Empty JSON objects (`{}`) are sent as `[]`.
 - Steps don't retry, and there is no "continue on fail". The first failure stops the run.
 - Polling dedupes on the last 1,000 item ids per workflow.
+
+## License
+
+FlowForge is free software: you can redistribute it and/or modify it under the terms of the [GNU Affero General Public License v3.0](LICENSE). If you run a modified version for other people over a network, you must offer them its source code. Bundled third-party code keeps its own licenses (MIT, ISC, OFL, CC0; see `vendor/` and `package.json`).
