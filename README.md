@@ -21,6 +21,7 @@
 </p>
 
 <p align="center">
+  <a href="https://developersarim.github.io/FlowForge/#video"><b>Watch the video</b></a> &nbsp;|&nbsp;
   <a href="https://developersarim.github.io/FlowForge/"><b>Documentation</b></a> &nbsp;|&nbsp;
   <a href="#-quick-start"><b>Quick start</b></a> &nbsp;|&nbsp;
   <a href="https://github.com/DeveloperSarim/FlowForge/releases"><b>Download</b></a> &nbsp;|&nbsp;
@@ -29,10 +30,9 @@
 </p>
 
 <p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset=".github/readme/hero-dark.png">
-    <img src=".github/readme/hero-light.png" width="880" alt="FlowForge dashboard showing workflow runs per day, failure rate and recent runs">
-  </picture>
+  <a href="https://developersarim.github.io/FlowForge/#video"><img src=".github/readme/preview.gif" width="880" alt="FlowForge in action: a Typeform, HubSpot and Slack workflow runs on the canvas, then the AI Builder builds the same workflow from one sentence"></a>
+  <br>
+  <a href="https://developersarim.github.io/FlowForge/#video"><b>▶ Watch the full 47-second video (with sound)</b></a>
 </p>
 
 ## ✨ What is FlowForge?
