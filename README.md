@@ -274,7 +274,7 @@ Within about a minute, on the next cron tick. Test runs in the editor run straig
 
 ## 🤝 Contributing
 
-Bug reports, ideas and pull requests are welcome.
+Bug reports, ideas and pull requests are welcome. Please read [CONTRIBUTING.md](CONTRIBUTING.md) and the [Code of Conduct](CODE_OF_CONDUCT.md).
 
 - Found a bug? [Open an issue](https://github.com/DeveloperSarim/FlowForge/issues) with your FlowForge and PHP versions and the steps to reproduce it.
 - Want to add an app? Integrations are JSON/YAML manifests, not PHP classes. See [DEVELOPMENT.md](DEVELOPMENT.md).

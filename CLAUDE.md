@@ -2,7 +2,7 @@
 
 Open-source (AGPL-3.0) self-hosted workflow automation (n8n-style canvas) that must run on **PHP shared hosting**: Apache/LiteSpeed, MySQL, and one cron line (`* * * * * php artisan schedule:run`). No Docker, Redis, Supervisor, daemons or Node on the server. Queue and cache use the database driver; `schedule:run` starts `queue:work --stop-when-empty` every minute.
 
-The owner tests in Chrome at `http://127.0.0.1:8123`, writes in Roman Urdu, and deploys to Hostinger hPanel / cPanel. Reply in Roman Urdu/English.
+Most users deploy to Hostinger hPanel or cPanel shared hosting and aren't technical, so the UI must stay simple and guided.
 
 ## Stack
 
