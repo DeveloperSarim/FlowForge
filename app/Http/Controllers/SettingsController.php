@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Domain\Assistant\LlmClient;
 use App\Domain\Assistant\Providers;
+use App\Domain\Installer\CronInstaller;
+use App\Domain\Installer\SystemValidator;
 use App\Domain\Integrations\ManifestLoader;
 use App\Domain\System\Notifier;
 use App\Domain\System\SettingsValidation;
@@ -34,6 +36,7 @@ class SettingsController extends Controller
             'mail' => $mail ? Arr::except($mail, ['password']) + ['has_password' => ! empty($mail['password'])] : null,
             'notifications' => $this->settings->notifications(),
             'timezone' => $this->settings->timezone(),
+            'cron' => app(SystemValidator::class)->cronCommand(),
             'ai' => Arr::except($ai, ['api_key']) + ['has_key' => ! empty($ai['api_key'])],
             'providers' => collect(Providers::ALL)->map(fn ($p, $key) => Arr::only($p, ['name', 'model', 'models', 'base_url', 'base_urls', 'key_url']) + [
                 'key' => $key,
@@ -73,6 +76,11 @@ class SettingsController extends Controller
         $this->settings->set('timezone', $request->validate(['timezone' => ['required', 'timezone:all']])['timezone']);
 
         return back()->with('success', 'Timezone saved. Schedules now run in '.$this->settings->timezone().'.');
+    }
+
+    public function autoCron(CronInstaller $cron): JsonResponse
+    {
+        return response()->json($cron->install());
     }
 
     public function updateMail(Request $request): RedirectResponse

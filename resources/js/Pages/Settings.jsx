@@ -1,13 +1,14 @@
 import { useState } from 'react';
 import { router, useForm, usePage } from '@inertiajs/react';
-import { BellRing, Check, CheckCircle2, ExternalLink, Mail, Monitor, Moon, Palette, Globe2, Sun, UserRound, XCircle } from 'lucide-react';
+import { BellRing, Check, CheckCircle2, Copy, ExternalLink, Mail, Monitor, Moon, Palette, Globe2, Sun, UserRound, XCircle } from 'lucide-react';
 import AiIcon from '@/Components/AiIcon';
 import IntegrationIcon from '@/Components/IntegrationIcon';
 import AppLayout from '@/Layouts/AppLayout';
 import { Button, Card, Combobox, Field, Input, Select, Switch } from '@/Components/ui';
 import { applyTheme } from '@/lib/theme';
+import CronAutoSetup from '@/Components/CronAutoSetup';
 import { useTimezones } from '@/lib/timezones';
-import { cn, errorMessage } from '@/lib/utils';
+import { cn, copy, errorMessage, timeAgo } from '@/lib/utils';
 
 const THEMES = [
     { value: 'light', label: 'Light', icon: Sun, preview: { bg: '#f6f7f9', panel: '#ffffff', line: '#e4e7ec', bar: '#ee5a24' } },
@@ -41,7 +42,7 @@ Preview.Inner = function Inner({ colors }) {
     );
 };
 
-export default function Settings({ mail, notifications, ai, providers, timezone }) {
+export default function Settings({ mail, notifications, ai, providers, timezone, cron }) {
     const { auth } = usePage().props;
     const [tab, setTab] = useState(() => new URLSearchParams(window.location.search).get('tab') ?? 'account');
     const [theme, setTheme] = useState(auth.user.theme ?? 'light');
@@ -64,7 +65,7 @@ export default function Settings({ mail, notifications, ai, providers, timezone 
                     ))}
                 </nav>
 
-                {tab === 'general' ? <GeneralSettings timezone={timezone} />
+                {tab === 'general' ? <div className="space-y-6"><GeneralSettings timezone={timezone} /><SchedulerSettings cron={cron} /></div>
                 : tab === 'email' ? <EmailSettings mail={mail} notifications={notifications} adminEmail={auth.user.email} />
                 : tab === 'ai' ? <AiSettings ai={ai} providers={providers} />
                 : tab === 'appearance' ? (
@@ -110,6 +111,28 @@ function GeneralSettings({ timezone }) {
                 )}
                 <div><Button type="submit" variant="primary" loading={form.processing} disabled={!form.isDirty}>Save timezone</Button></div>
             </form>
+        </Card>
+    );
+}
+
+/** Is cron running? If not: one-click setup, or the line to paste in the hosting panel. */
+function SchedulerSettings({ cron }) {
+    const { scheduler } = usePage().props;
+    const healthy = scheduler && (Date.now() - new Date(scheduler).getTime()) / 60000 < 3;
+    return (
+        <Card className="p-6">
+            <h2 className="text-[16px] font-semibold">Scheduler (cron job)</h2>
+            <p className="mt-0.5 max-w-xl text-[13px] text-fg-muted">One cron job runs every workflow: schedules, webhooks and app triggers. You never need one per workflow.</p>
+            <p className={cn('mt-4 flex items-center gap-2 text-[13.5px] font-medium', healthy ? 'text-ok' : 'text-warn')}>
+                {healthy ? <CheckCircle2 className="size-4" /> : <XCircle className="size-4" />}
+                {healthy ? `Running: last run ${timeAgo(scheduler)}.` : scheduler ? `Not running since ${timeAgo(scheduler)}.` : 'Not set up yet.'}
+            </p>
+            {!healthy && <CronAutoSetup endpoint="/settings/scheduler/auto" className="mt-4" />}
+            <p className="mt-4 text-[12.5px] text-fg-muted">The line to use in your hosting panel's Cron Jobs (every minute):</p>
+            <div className="mt-1.5 flex items-start gap-2 rounded-lg border border-line bg-surface-2 p-2.5">
+                <code className="flex-1 font-mono text-[12px] leading-relaxed break-all">{cron}</code>
+                <Button size="sm" variant="outline" onClick={() => copy(cron, 'Cron command copied')}><Copy className="size-3.5" />Copy</Button>
+            </div>
         </Card>
     );
 }

@@ -5,6 +5,9 @@
  * zip (~14,000 files). Upload this file next to flowforge-*.zip (e.g. both into public_html) and open
  * https://your-domain/extract-flowforge.php. It extracts in batches (each request stays short), then
  * deletes the zip and itself and opens the installer.
+ *
+ * Also updates an existing install: the zip carries no .env, storage data or install flag, so only
+ * code is replaced and settings, credentials and workflows stay as they are.
  */
 declare(strict_types=1);
 
@@ -16,9 +19,10 @@ rsort($zips); // date-stamped names: newest first
 $zipPath = $zips[0] ?? null;
 $from = max(0, (int) ($_GET['from'] ?? 0));
 
-function page(string $title, string $body, ?string $next = null, int $percent = -1): never
+function page(string $title, string $body, ?string $next = null, int $percent = -1, int $delay = 0): never
 {
-    $refresh = $next !== null ? '<meta http-equiv="refresh" content="0;url='.htmlspecialchars($next).'">' : '';
+    header('Cache-Control: no-store, max-age=0');
+    $refresh = $next !== null ? '<meta http-equiv="refresh" content="'.$delay.';url='.htmlspecialchars($next).'">' : '';
     $bar = $percent >= 0 ? '<div class="bar"><span style="width:'.$percent.'%"></span></div><p class="muted">'.$percent.'%</p>' : '';
     echo '<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'.$refresh
         .'<title>'.htmlspecialchars($title).'</title><style>body{font:15px/1.5 system-ui,sans-serif;background:#f6f7f9;color:#1b1f24;display:grid;place-items:center;min-height:100vh;margin:0}'
@@ -28,9 +32,7 @@ function page(string $title, string $body, ?string $next = null, int $percent = 
     exit;
 }
 
-if (is_file($dir.'/storage/.installed')) {
-    page('Already installed', 'FlowForge is already installed in this folder. Delete <code>extract-flowforge.php</code> from your File Manager.');
-}
+$updating = is_file($dir.'/storage/.installed');
 if (! class_exists(ZipArchive::class)) {
     page('PHP "zip" extension is off', 'Turn it on in your hosting panel (Hostinger: Advanced → PHP Configuration → PHP extensions → zip), then reload this page.');
 }
@@ -59,9 +61,18 @@ if ($names !== [] && ! $zip->extractTo($dir, $names)) {
 $zip->close();
 
 if ($to < $total) {
-    page('Unpacking FlowForge…', 'Extracted '.$to.' of '.$total.' files. Keep this tab open.', '?from='.$to, (int) floor($to / $total * 100));
+    page($updating ? 'Updating FlowForge…' : 'Unpacking FlowForge…', 'Extracted '.$to.' of '.$total.' files. Keep this tab open.', '?from='.$to, (int) floor($to / $total * 100));
 }
 
 @unlink($zipPath);
 @unlink(__FILE__);
-page('FlowForge is unpacked', 'All '.$total.' files are in place. The zip and this unpacker were deleted. <a href="install">Open the installer</a>.', 'install', 100);
+foreach (glob($dir.'/bootstrap/cache/integrations/*') ?: [] as $cached) {
+    @unlink($cached); // the app catalog is rebuilt from the new manifests on the next request
+}
+if ($updating) {
+    page('FlowForge is updated', 'All '.$total.' files were replaced. Your settings, credentials and workflows are unchanged. <a href="./?updated='.time().'">Open FlowForge</a>.', './?updated='.time(), 100, 2);
+}
+// A fresh URL so a 404 cached for /install before the files existed is never served, and a short pause
+// so the web server picks up the .htaccess that was just written.
+$install = 'install?ready='.time();
+page('FlowForge is unpacked', 'All '.$total.' files are in place. The zip and this unpacker were deleted. Opening the installer… (<a href="'.$install.'">open it now</a>)', $install, 100, 2);

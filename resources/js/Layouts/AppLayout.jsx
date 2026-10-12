@@ -87,13 +87,13 @@ export const openCreateWorkflow = () => window.dispatchEvent(new CustomEvent('ff
 function SchedulerStatus({ lastRun }) {
     const healthy = lastRun && (Date.now() - new Date(lastRun).getTime()) / 60000 < 3;
     return (
-        <div className="flex items-start gap-2.5 rounded-xl bg-surface-2 px-3 py-2.5 text-[12.5px]" title="Background runs need the cron entry: * * * * * php artisan schedule:run">
+        <Link href="/settings?tab=general" className="flex items-start gap-2.5 rounded-xl bg-surface-2 px-3 py-2.5 text-[12.5px] hover:bg-surface-3" title="Scheduler settings">
             <span className={cn('mt-1.5 size-2 shrink-0 rounded-full', healthy ? 'bg-ok shadow-[0_0_0_3px_var(--ok-soft)]' : 'bg-warn shadow-[0_0_0_3px_var(--warn-soft)]')} aria-hidden />
             <div className="min-w-0">
                 <p className="font-medium">{healthy ? 'Scheduler running' : 'Scheduler not running'}</p>
                 <p className="truncate text-fg-subtle">{lastRun ? `Last tick ${timeAgo(lastRun)}` : 'Add the cron job to run workflows'}</p>
             </div>
-        </div>
+        </Link>
     );
 }
 

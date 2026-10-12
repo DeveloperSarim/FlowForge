@@ -33,7 +33,7 @@ What's included:
    2. Database: tests the connection, writes `.env`, then runs `migrate --force` and the seeder.
    3. Administrator: creates the single admin account and picks the timezone schedules run in.
    4. Email alerts: SMTP details for failure / scheduler-down emails and password-reset codes, with a "Send test email" button. Skippable; change it later in Settings.
-   5. Scheduler (required): step-by-step guides for **Hostinger hPanel**, **cPanel**, **DirectAdmin** and **SSH**, with this server's PHP and `artisan` paths filled in. The wizard checks every 5 seconds and only lets you finish once cron has actually run. Finishing switches to `APP_ENV=production` and locks `/install` (the `APP_KEY` generated on first boot is kept, so encrypted settings stay readable).
+   5. Scheduler (required): a **"Set it up for me"** button adds the cron line to the account's crontab when the host allows PHP to do that (other entries are kept); otherwise step-by-step guides for **Hostinger hPanel**, **cPanel**, **DirectAdmin** and **SSH**, with this server's PHP and `artisan` paths filled in. The wizard checks every 5 seconds and only lets you finish once cron has actually run. Finishing switches to `APP_ENV=production` and locks `/install` (the `APP_KEY` generated on first boot is kept, so encrypted settings stay readable).
 6. **The cron job** you add in step 5 looks like this (every minute):
    ```
    * * * * * /usr/local/bin/php /home/USER/flowforge/artisan schedule:run >> /dev/null 2>&1

@@ -23,6 +23,7 @@ Route::prefix('install')->controller(InstallerController::class)->group(function
     Route::post('mail/test', 'testMail')->middleware('throttle:10,1');
     Route::post('mail/skip', 'skipMail');
     Route::get('heartbeat', 'heartbeat');
+    Route::post('cron/auto', 'autoCron')->middleware('throttle:5,1');
     Route::post('finish', 'finish');
 });
 
@@ -42,6 +43,7 @@ Route::middleware('auth')->group(function () {
     Route::put('settings/account', [SettingsController::class, 'updateAccount']);
     Route::put('settings/appearance', [SettingsController::class, 'updateAppearance']);
     Route::put('settings/general', [SettingsController::class, 'updateGeneral']);
+    Route::post('settings/scheduler/auto', [SettingsController::class, 'autoCron'])->middleware('throttle:5,1');
     Route::put('settings/mail', [SettingsController::class, 'updateMail']);
     Route::post('settings/mail/test', [SettingsController::class, 'testMail'])->middleware('throttle:10,1');
     Route::put('settings/notifications', [SettingsController::class, 'updateNotifications']);

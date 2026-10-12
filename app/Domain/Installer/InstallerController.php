@@ -155,6 +155,14 @@ class InstallerController extends Controller
         return redirect('/install');
     }
 
+    /** "Set it up for me": add the cron line to the account's crontab when the host allows it. */
+    public function autoCron(CronInstaller $cron): JsonResponse
+    {
+        abort_unless($this->databaseReady() && User::query()->exists(), 409, 'Create the administrator first.');
+
+        return response()->json($cron->install());
+    }
+
     public function heartbeat(): JsonResponse
     {
         return response()->json(['last_run' => $this->lastCronRun(), 'verified' => $this->cronVerified()]);

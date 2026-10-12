@@ -137,7 +137,7 @@ export function Combobox({ id, value, onChange, options, pinned = [], placeholde
                             role="combobox" aria-expanded aria-controls={`${id}-list`} aria-activedescendant={shown[active] ? `${id}-opt-${active}` : undefined}
                             className="h-9 w-full rounded-lg bg-surface-2 pr-3 pl-9 text-[13.5px] outline-none placeholder:text-fg-subtle focus:ring-[3px] focus:ring-primary/15" />
                     </div>
-                    <div ref={list} id={`${id}-list`} role="listbox" className="min-h-0 flex-1 overflow-y-auto p-1.5">
+                    <div ref={list} id={`${id}-list`} role="listbox" className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-1.5">
                         {shown.length === 0 && <p className="px-3 py-6 text-center text-[13px] text-fg-muted">{emptyText}</p>}
                         {shown.map((o, i) => (
                             <div key={`${o.group}-${o.value}`}>
@@ -270,6 +270,17 @@ export function Tabs({ value, onChange, items, className }) {
     );
 }
 
+/** Freezes the page behind an open dialog so the wheel never scrolls it (or the dialog with it). */
+function useScrollLock(open) {
+    useEffect(() => {
+        if (!open) return undefined;
+        const root = document.documentElement;
+        const previous = root.style.overflow;
+        root.style.overflow = 'hidden';
+        return () => { root.style.overflow = previous; };
+    }, [open]);
+}
+
 function useEscape(open, onClose) {
     useEffect(() => {
         if (!open) return;
@@ -312,18 +323,20 @@ export function Menu({ trigger, items, align = 'right' }) {
 /** Centered modal. */
 export function Dialog({ open, onClose, title, description, children, className, wide }) {
     useEscape(open, onClose);
+    useScrollLock(open);
     if (!open) return null;
+    // The overlay never scrolls; a tall dialog scrolls inside its body instead.
     return (
-        <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/40 px-4 py-[8vh] backdrop-blur-[2px]" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
-            <div role="dialog" aria-modal="true" aria-label={title} className={cn('animate-pop-in w-full rounded-2xl border border-line bg-surface shadow-pop', wide ? 'max-w-3xl' : 'max-w-lg', className)}>
-                <div className="flex items-start justify-between gap-4 px-6 pt-5 pb-3">
+        <div className="fixed inset-0 z-50 flex items-start justify-center overflow-hidden overscroll-none bg-black/40 px-4 py-[6vh] backdrop-blur-[2px]" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
+            <div role="dialog" aria-modal="true" aria-label={title} className={cn('animate-pop-in flex max-h-full w-full flex-col rounded-2xl border border-line bg-surface shadow-pop', wide ? 'max-w-3xl' : 'max-w-lg', className)}>
+                <div className="flex shrink-0 items-start justify-between gap-4 px-6 pt-5 pb-3">
                     <div>
                         <h2 className="text-[17px] font-semibold tracking-tight">{title}</h2>
                         {description && <p className="mt-0.5 text-[13px] text-fg-muted">{description}</p>}
                     </div>
                     <Button variant="ghost" size="icon" onClick={onClose} aria-label="Close"><X className="size-4" /></Button>
                 </div>
-                <div className="px-6 pb-6">{children}</div>
+                <div className="min-h-0 overflow-y-auto overscroll-contain px-6 pb-6">{children}</div>
             </div>
         </div>
     );
@@ -332,6 +345,7 @@ export function Dialog({ open, onClose, title, description, children, className,
 /** Right-hand slide-over panel (shadcn "Sheet"). */
 export function Sheet({ open, onClose, children, className, overlay = true }) {
     useEscape(open, onClose);
+    useScrollLock(open && overlay);
     if (!open) return null;
     return (
         <>

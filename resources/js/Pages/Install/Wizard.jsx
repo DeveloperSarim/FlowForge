@@ -3,6 +3,7 @@ import { Head, router, useForm } from '@inertiajs/react';
 import { Check, CheckCircle2, Circle, Copy, Info, Loader2, XCircle } from 'lucide-react';
 import { Button, Combobox, Field, Input, Tabs } from '@/Components/ui';
 import { Logo } from '@/Layouts/AppLayout';
+import CronAutoSetup from '@/Components/CronAutoSetup';
 import { useTimezones } from '@/lib/timezones';
 import { cn, copy, errorMessage, timeAgo } from '@/lib/utils';
 
@@ -309,6 +310,8 @@ function Cron({ cron }) {
                 <span>You only ever add this <strong>one</strong> cron job. It runs every workflow: schedules, webhooks and app triggers. You never add a cron per workflow.</span>
             </p>
 
+            <CronAutoSetup endpoint="/install/cron/auto" className="mb-5" />
+            <p className="mb-3 text-[13px] font-medium text-fg">Or add it yourself in your hosting panel:</p>
             <Tabs value={panel} onChange={setPanel} items={PANELS} className="mb-4 flex-wrap" />
             <ol className="space-y-3">
                 {g.steps.map((text, i) => (

@@ -75,7 +75,7 @@ function AppPicker({ integrations, onPick }) {
         <div>
             <SearchInput autoFocus value={query} onChange={(e) => setQuery(e.target.value)} placeholder={`Search ${integrations.length} apps`} aria-label="Search apps" />
             <p className="mt-4 mb-2 text-[12.5px] font-medium text-fg-muted">{q ? `${list.length} result${list.length === 1 ? '' : 's'}` : 'Popular apps'}</p>
-            <div className="grid max-h-[46vh] grid-cols-2 gap-2 overflow-y-auto pr-1 sm:grid-cols-3">
+            <div className="grid max-h-[46vh] grid-cols-2 gap-2 overflow-y-auto overscroll-contain pr-1 sm:grid-cols-3">
                 {list.slice(0, 90).map((i) => (
                     <button key={i.key} type="button" onClick={() => onPick(i.key)} className="flex items-center gap-2.5 rounded-lg border border-line p-2.5 text-left hover:border-primary hover:bg-primary-soft/40">
                         <IntegrationIcon icon={i.icon} name={i.name} size="sm" />

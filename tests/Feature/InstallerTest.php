@@ -3,12 +3,14 @@
 namespace Tests\Feature;
 
 use App\Domain\Installer\EnvManager;
+use App\Domain\Installer\SystemValidator;
 use App\Domain\System\SystemMail;
 use App\Domain\System\SystemSettings;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Process;
 use Tests\TestCase;
 
 class InstallerTest extends TestCase
@@ -63,6 +65,31 @@ class InstallerTest extends TestCase
 
         $this->assertFileExists(config('flowforge.installed_flag'));
         $this->assertSame('smtp-secret', (new SystemSettings)->mail()['password']); // still decryptable: no key rotation
+    }
+
+    public function test_set_it_up_for_me_adds_the_cron_line_and_keeps_other_entries(): void
+    {
+        User::factory()->create();
+        $other = "0 3 * * * /usr/bin/php /home/u1/backup.php\n";
+        $line = app(SystemValidator::class)->cronCommand();
+        Process::fake([
+            'crontab -l' => Process::sequence()->push(Process::result($other))->push(Process::result($other.$line."\n")),
+            'crontab -' => Process::result(),
+        ]);
+
+        $this->postJson('/install/cron/auto')->assertOk()->assertJsonPath('ok', true);
+
+        Process::assertRan(fn ($process) => $process->command === 'crontab -' && $process->input === $other.$line."\n");
+    }
+
+    public function test_set_it_up_for_me_explains_when_the_host_blocks_crontab(): void
+    {
+        User::factory()->create();
+        Process::fake(['crontab -l' => Process::result('', 'crontab: you are not allowed to use this program', 1)]);
+
+        $this->postJson('/install/cron/auto')->assertOk()->assertJsonPath('ok', false)
+            ->assertJsonFragment(['message' => "This host doesn't let FlowForge add cron jobs itself (crontab: you are not allowed to use this program). Add it in your hosting panel with the steps below; it takes a minute."]);
+        Process::assertDidntRun('crontab -');
     }
 
     public function test_mail_password_is_never_sent_back_to_the_browser(): void
