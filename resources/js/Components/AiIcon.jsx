@@ -1,15 +1,18 @@
 import { cn } from '@/lib/utils';
 
-/** FlowForge's AI mark: bold "AI" letters with three sparkles. Sized like a Lucide icon via className. */
+/**
+ * FlowForge's AI mark: bold "AI" letters with three sparkles. The letters fill y 6–19 of the 24px box
+ * (centred like text cap height) and the sparkles sit in the free space above and to the right.
+ */
 export default function AiIcon({ className, ...props }) {
     return (
         <svg viewBox="0 0 24 24" fill="currentColor" className={cn('size-4 shrink-0', className)} aria-hidden {...props}>
             <path fillRule="evenodd" stroke="currentColor" strokeWidth="0.5" strokeLinejoin="round"
-                d="M1.6 21 6 9h2.6L13 21h-2.6l-.9-2.6H5.1L4.2 21Zm4.3-4.8h2.8L7.3 12.1Z" />
-            <rect x="14.4" y="9" width="2.6" height="12" rx="0.45" />
-            <path d="M11.4 1.2c.4 2.3 1.1 3 3.4 3.4-2.3.4-3 1.1-3.4 3.4-.4-2.3-1.1-3-3.4-3.4 2.3-.4 3-1.1 3.4-3.4Z" />
-            <path d="M18.6.7c.2 1.1.6 1.5 1.7 1.7-1.1.2-1.5.6-1.7 1.7-.2-1.1-.6-1.5-1.7-1.7 1.1-.2 1.5-.6 1.7-1.7Z" />
-            <path d="M20.6 6.4c.3 1.6.8 2.1 2.4 2.4-1.6.3-2.1.8-2.4 2.4-.3-1.6-.8-2.1-2.4-2.4 1.6-.3 2.1-.8 2.4-2.4Z" />
+                d="M1 19 5.77 6h2.81l4.77 13h-2.82l-.97-2.82H4.79L3.82 19Zm4.66-5.2h3.03L7.17 9.36Z" />
+            <rect x="14.6" y="6" width="2.8" height="13" rx="0.5" />
+            <path d="M12.2 0.3c0.31 1.76 0.84 2.29 2.6 2.6c-1.76 0.31-2.29 0.84-2.6 2.6c-0.31-1.76-0.84-2.29-2.6-2.6c1.76-0.31 2.29-0.84 2.6-2.6Z" />
+            <path d="M19.4 1.2c0.17 0.95 0.45 1.23 1.4 1.4c-0.95 0.17-1.23 0.45-1.4 1.4c-0.17-0.95-0.45-1.23-1.4-1.4c0.95-0.17 1.23-0.45 1.4-1.4Z" />
+            <path d="M21 5.8c0.28 1.62 0.78 2.12 2.4 2.4c-1.62 0.28-2.12 0.78-2.4 2.4c-0.28-1.62-0.78-2.12-2.4-2.4c1.62-0.28 2.12-0.78 2.4-2.4Z" />
         </svg>
     );
 }
