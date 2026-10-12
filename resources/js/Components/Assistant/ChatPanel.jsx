@@ -202,7 +202,10 @@ export default function ChatPanel({ conversationId, workflowId = null, onConvers
         window.axios.get(`/assistant/conversations/${conversationId}`).then(({ data }) => setConversation(data.conversation)).catch(() => setConversation(null));
     }, [conversationId]);
 
-    useEffect(() => { scroller.current?.scrollTo({ top: scroller.current.scrollHeight, behavior: 'smooth' }); }, [conversation?.messages?.length, sending, live]);
+    useEffect(() => {
+        if (!conversation?.messages?.length && !sending) return; // the empty state reads from the top
+        scroller.current?.scrollTo({ top: scroller.current.scrollHeight, behavior: 'smooth' });
+    }, [conversation?.messages?.length, sending, live]);
 
     useEffect(() => {
         if (!sending) return undefined;
@@ -292,7 +295,7 @@ export default function ChatPanel({ conversationId, workflowId = null, onConvers
         <div className="flex min-h-0 flex-1 flex-col">
             <div ref={scroller} className={cn('min-h-0 flex-1 overflow-y-auto', isCompact ? 'px-4 py-4' : 'px-6 py-8')}>
                 {messages.length === 0 && !sending && (
-                    <div className={cn('animate-msg-in mx-auto', isCompact ? '' : 'flex min-h-full max-w-2xl flex-col justify-center pb-10')}>
+                    <div className={cn('animate-msg-in mx-auto', isCompact ? '' : 'flex min-h-full max-w-2xl flex-col pb-10 [&>:first-child]:mt-auto [&>:last-child]:mb-auto')}>
                         <AiAvatar size={isCompact ? 'md' : 'lg'} />
                         <p className={cn('mt-4 font-semibold tracking-tight', isCompact ? 'text-[16px]' : 'text-[24px]')}>{workflowId ? 'What should change in this workflow?' : 'What should we automate?'}</p>
                         <p className="mt-1.5 max-w-xl text-[14px] text-fg-muted">Describe it in your own words, in English or Roman Urdu. I'll pick the apps, connect the steps, check the data between them and tell you what's left to fill in.</p>
@@ -339,7 +342,7 @@ export default function ChatPanel({ conversationId, workflowId = null, onConvers
                     <textarea ref={field} value={input} onChange={(e) => setInput(e.target.value)} rows={isCompact ? 1 : 2} disabled={sending}
                         onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } }}
                         placeholder={workflowId ? 'Ask for a change…' : 'Describe a workflow, or ask me to edit, test or delete one…'} aria-label="Message the AI builder"
-                        className="block w-full resize-none bg-transparent px-4 pt-3 pb-1 text-[14px] outline-none placeholder:text-fg-subtle disabled:opacity-60" />
+                        className="block w-full resize-none bg-transparent px-4 pt-3 pb-1 text-base outline-none sm:text-[14px] placeholder:text-fg-subtle disabled:opacity-60" />
                     <div className="flex items-center gap-2 px-2.5 pb-2.5">
                         {provider && !isCompact ? (
                             <Link href="/settings?tab=ai" className="inline-flex min-w-0 items-center gap-1.5 rounded-lg px-2 py-1 text-[12px] text-fg-subtle hover:bg-surface-2 hover:text-fg" title="Change the AI model">

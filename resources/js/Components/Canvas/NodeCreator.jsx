@@ -63,7 +63,7 @@ export default function NodeCreator({ catalog, mode = 'action', onPick, onClose 
                     <button type="button" onClick={onClose} className="rounded-md p-1 text-fg-muted hover:bg-surface-2 hover:text-fg" aria-label="Close"><X className="size-4" /></button>
                 </div>
                 <input ref={input} value={query} onChange={(e) => setQuery(e.target.value)} placeholder={`Search ${usable.length} apps and ${mode === 'trigger' ? 'triggers' : 'actions'}…`}
-                    className="h-10 w-full rounded-lg border border-line bg-surface-2 px-3 text-sm outline-none placeholder:text-fg-subtle focus:border-primary focus:bg-surface focus:ring-[3px] focus:ring-primary/15" aria-label="Search" />
+                    className="h-10 w-full rounded-lg border border-line bg-surface-2 px-3 text-base outline-none sm:text-sm placeholder:text-fg-subtle focus:border-primary focus:bg-surface focus:ring-[3px] focus:ring-primary/15" aria-label="Search" />
             </div>
 
             <div className="flex-1 overflow-y-auto p-2">

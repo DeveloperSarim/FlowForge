@@ -50,6 +50,29 @@ Configured `.env` by hand and ran `php artisan migrate --force` yourself? Set `F
 
 **Timezone:** Settings → General. Schedules ("every day at 11:00") run in this timezone; timestamps are stored in UTC.
 
+## MCP for AI agents
+
+Claude Code, Cursor, VS Code and any other MCP client can search apps and build, edit, test and run workflows on your FlowForge.
+
+1. Settings → **API & MCP** → *Create token* (shown once; only its hash is stored). The agent acts as you, with exactly your permissions.
+2. Connect, e.g. Claude Code:
+   ```bash
+   claude mcp add --transport http flowforge https://your-domain/api/mcp --header "Authorization: Bearer ff_…"
+   ```
+   Cursor / VS Code snippets are on the same page.
+
+The server speaks Streamable HTTP (JSON-RPC 2.0 over POST, protocol versions 2025-06-18 / 2025-03-26 / 2024-11-05) at `/api/mcp`, with the same 12 tools as the in-app AI builder and its workflow-building guide as the `instructions`. Over MCP, `delete_workflow` deletes immediately (it is marked destructive so clients ask first). Revoke a token any time on the same page.
+
+## Phones
+
+The whole app works on a phone like a native app: a bottom tab bar (Home, Workflows, AI, Runs, More), bottom-sheet dialogs, a one-pane-at-a-time step editor and 16px fields (no iOS zoom). "Add to Home Screen" opens it full screen with its own icon.
+
+## SEO and agent discovery
+
+- `/robots.txt` and `/sitemap.xml` are generated with the install's own domain. Only `/login` is indexable; every page behind sign-in sends `noindex`.
+- `/llms.txt` (summary + how to connect over MCP) and `/llms-full.txt` (building guide, every tool schema and the full app catalog) follow [llmstxt.org](https://llmstxt.org).
+- Social preview: `public/og-image.png` (1200×630), Open Graph + Twitter card tags, JSON-LD `SoftwareApplication`, favicon set and `site.webmanifest`.
+
 ## Team and permissions
 
 Settings → Team (owner and admins) invites people by email; they open the link and choose their own password. Without SMTP the admin copies the link and sends it themselves. Links work for 7 days and only once.

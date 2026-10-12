@@ -41,7 +41,7 @@ export default function Show({ app, credentials, templates }) {
                         {app.base_url && <code className="font-mono text-[12px] text-fg-subtle">{app.base_url}</code>}
                     </div>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
                     {can['workflows.edit'] && app.auth.length > 0 && <Button onClick={() => router.visit(`/credentials?new=${app.key}`)}><KeyRound className="size-4" />{credentials.length ? 'Add another credential' : 'Add credential'}</Button>}
                     {can['workflows.edit'] && app.actions[0] && <Button variant="primary" loading={creating === app.actions[0].key} onClick={() => startWith(app.actions[0])}><Play className="size-3.5" />Use in a workflow</Button>}
                 </div>
@@ -57,7 +57,7 @@ export default function Show({ app, credentials, templates }) {
                                     <p className="text-[13.5px] font-medium">{action.name}</p>
                                     {action.description && <p className="mt-0.5 text-[12.5px] text-fg-muted">{action.description}</p>}
                                 </div>
-                                {can['workflows.edit'] && <Button size="sm" variant="ghost" className="opacity-0 group-hover:opacity-100 focus:opacity-100" loading={creating === action.key} onClick={() => startWith(action)}>Use</Button>}
+                                {can['workflows.edit'] && <Button size="sm" variant="ghost" className="opacity-0 group-hover:opacity-100 focus:opacity-100 pointer-coarse:opacity-100" loading={creating === action.key} onClick={() => startWith(action)}>Use</Button>}
                             </li>
                         ))}
                     </ul>

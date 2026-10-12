@@ -40,7 +40,7 @@ export function Toaster() {
     }, []);
 
     return (
-        <div className="pointer-events-none fixed right-5 bottom-5 z-[70] flex w-[min(380px,calc(100vw-2.5rem))] flex-col gap-2" aria-live="polite">
+        <div className="pointer-events-none fixed right-4 bottom-[calc(5rem+env(safe-area-inset-bottom))] z-[70] flex w-[min(380px,calc(100vw-2rem))] flex-col gap-2 lg:right-5 lg:bottom-5" aria-live="polite">
             {toasts.map((t) => (
                 <div key={t.id} className="animate-pop-in pointer-events-auto flex items-start gap-2.5 rounded-xl border border-line bg-surface px-4 py-3 text-[13px] shadow-pop">
                     {t.tone === 'error' ? <XCircle className="mt-px size-4 shrink-0 text-fail" /> : <CheckCircle2 className="mt-px size-4 shrink-0 text-ok" />}
@@ -94,6 +94,34 @@ function SchedulerStatus({ lastRun }) {
                 <p className="truncate text-fg-subtle">{lastRun ? `Last tick ${timeAgo(lastRun)}` : 'Add the cron job to run workflows'}</p>
             </div>
         </Link>
+    );
+}
+
+/** Bottom tab bar on phones: the main destinations one thumb away, "More" opens the full menu. */
+function MobileTabBar({ can, isActive, onMore }) {
+    const tabs = [
+        { href: '/', label: 'Home', icon: LayoutDashboard, exact: true },
+        can['workflows.view'] && { href: '/workflows', label: 'Workflows', icon: Workflow },
+        can.ai && { href: '/assistant', label: 'AI', icon: AiIcon },
+        can['workflows.view'] && { href: '/executions', label: 'Runs', icon: History },
+    ].filter(Boolean);
+    return (
+        <nav className="fixed inset-x-0 bottom-0 z-30 flex border-t border-line bg-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden" aria-label="Main">
+            {tabs.map((tab) => {
+                const active = isActive(tab);
+                return (
+                    <Link key={tab.href} href={tab.href} aria-current={active ? 'page' : undefined}
+                        className={cn('flex min-h-14 flex-1 flex-col items-center justify-center gap-1 text-[11px] font-medium transition-colors', active ? 'text-primary' : 'text-fg-muted')}>
+                        <span className={cn('flex h-7 w-12 items-center justify-center rounded-full transition-colors', active && 'bg-primary-soft')}><tab.icon className="size-[19px]" strokeWidth={1.9} /></span>
+                        {tab.label}
+                    </Link>
+                );
+            })}
+            <button type="button" onClick={onMore} className="flex min-h-14 flex-1 flex-col items-center justify-center gap-1 text-[11px] font-medium text-fg-muted">
+                <span className="flex h-7 w-12 items-center justify-center rounded-full"><MenuIcon className="size-[19px]" strokeWidth={1.9} /></span>
+                More
+            </button>
+        </nav>
     );
 }
 
@@ -174,19 +202,23 @@ export default function AppLayout({ title, description, actions, children, wide 
                     <aside className="animate-slide-in fixed inset-y-0 left-0 z-50 w-72 border-r border-line bg-surface lg:hidden">{sidebar}</aside>
                 </>
             )}
-            <div className="sticky top-0 z-20 flex items-center gap-3 border-b border-line bg-surface/90 px-4 py-2.5 backdrop-blur lg:hidden">
-                <button type="button" onClick={() => setMobileOpen(true)} className="rounded-lg p-1.5 text-fg-muted hover:bg-surface-2" aria-label="Open menu"><MenuIcon className="size-5" /></button>
-                <Logo className="size-7" />
-                <span className="font-semibold">FlowForge</span>
+            {/* Phones: an app-style top bar and bottom tab bar instead of the sidebar. */}
+            <div className="sticky top-0 z-20 flex items-center gap-3 border-b border-line bg-surface/90 px-4 pt-[max(0.625rem,env(safe-area-inset-top))] pb-2.5 backdrop-blur lg:hidden">
+                <Link href="/" aria-label="FlowForge home"><Logo className="size-7" /></Link>
+                <span className="min-w-0 flex-1 truncate font-semibold">FlowForge</span>
+                {can['workflows.edit'] && (
+                    <button type="button" onClick={openCreateWorkflow} className="flex size-9 items-center justify-center rounded-xl bg-primary text-primary-fg" aria-label="Create workflow"><Plus className="size-5" /></button>
+                )}
             </div>
-            <main className={cn('mx-auto px-4 py-8 sm:px-8', wide ? 'max-w-[1400px]' : 'max-w-6xl', title === null && wide && 'max-w-none')}>
+            <MobileTabBar can={can} isActive={isActive} onMore={() => setMobileOpen(true)} />
+            <main className={cn('mx-auto px-4 pt-6 pb-[calc(6rem+env(safe-area-inset-bottom))] sm:px-8 lg:py-8', wide ? 'max-w-[1400px]' : 'max-w-6xl', title === null && wide && 'max-w-none')}>
                 {(title || actions) && (
-                    <header className="mb-7 flex flex-wrap items-end justify-between gap-4">
-                        <div>
-                            <h1 className="text-[26px] font-semibold tracking-tight">{title}</h1>
+                    <header className="mb-6 flex flex-wrap items-end justify-between gap-4 lg:mb-7">
+                        <div className="min-w-0">
+                            <h1 className="text-[22px] font-semibold tracking-tight sm:text-[26px]">{title}</h1>
                             {description && <p className="mt-1 max-w-2xl text-[14px] text-fg-muted">{description}</p>}
                         </div>
-                        {actions && <div className="flex items-center gap-2">{actions}</div>}
+                        {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
                     </header>
                 )}
                 {children}

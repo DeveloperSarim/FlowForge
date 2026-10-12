@@ -36,14 +36,14 @@ export const Button = forwardRef(function Button({ variant = 'secondary', size =
     );
 });
 
-const fieldBase = 'w-full rounded-lg border border-line bg-surface px-3 text-sm text-fg placeholder:text-fg-subtle transition-[border-color,box-shadow] hover:border-line-strong focus:border-primary focus:outline-none focus:ring-[3px] focus:ring-primary/15 disabled:opacity-60 aria-[invalid=true]:border-fail';
+const fieldBase = 'w-full rounded-lg border border-line bg-surface px-3 text-base sm:text-sm text-fg placeholder:text-fg-subtle transition-[border-color,box-shadow] hover:border-line-strong focus:border-primary focus:outline-none focus:ring-[3px] focus:ring-primary/15 disabled:opacity-60 aria-[invalid=true]:border-fail';
 
 export const Input = forwardRef(function Input({ className, ...props }, ref) {
     return <input ref={ref} className={cn(fieldBase, 'h-9', className)} {...props} />;
 });
 
 export const Textarea = forwardRef(function Textarea({ className, mono, ...props }, ref) {
-    return <textarea ref={ref} className={cn(fieldBase, 'min-h-20 py-2 leading-relaxed', mono && 'font-mono text-[12.5px]', className)} {...props} />;
+    return <textarea ref={ref} className={cn(fieldBase, 'min-h-20 py-2 leading-relaxed', mono && 'font-mono text-base sm:text-[12.5px]', className)} {...props} />;
 });
 
 export const Select = forwardRef(function Select({ className, children, ...props }, ref) {
@@ -135,7 +135,7 @@ export function Combobox({ id, value, onChange, options, pinned = [], placeholde
                         <Search className="pointer-events-none absolute top-1/2 left-4.5 size-4 -translate-y-1/2 text-fg-subtle" />
                         <input autoFocus value={query} onChange={(e) => setQuery(e.target.value)} onKeyDown={onKeyDown} placeholder={searchPlaceholder}
                             role="combobox" aria-expanded aria-controls={`${id}-list`} aria-activedescendant={shown[active] ? `${id}-opt-${active}` : undefined}
-                            className="h-9 w-full rounded-lg bg-surface-2 pr-3 pl-9 text-[13.5px] outline-none placeholder:text-fg-subtle focus:ring-[3px] focus:ring-primary/15" />
+                            className="h-9 w-full rounded-lg bg-surface-2 pr-3 pl-9 text-base outline-none sm:text-[13.5px] placeholder:text-fg-subtle focus:ring-[3px] focus:ring-primary/15" />
                     </div>
                     <div ref={list} id={`${id}-list`} role="listbox" className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-1.5">
                         {shown.length === 0 && <p className="px-3 py-6 text-center text-[13px] text-fg-muted">{emptyText}</p>}
@@ -327,8 +327,9 @@ export function Dialog({ open, onClose, title, description, children, className,
     if (!open) return null;
     // The overlay never scrolls; a tall dialog scrolls inside its body instead.
     return (
-        <div className="fixed inset-0 z-50 flex items-start justify-center overflow-hidden overscroll-none bg-black/40 px-4 py-[6vh] backdrop-blur-[2px]" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
-            <div role="dialog" aria-modal="true" aria-label={title} className={cn('animate-pop-in flex max-h-full w-full flex-col rounded-2xl border border-line bg-surface shadow-pop', wide ? 'max-w-3xl' : 'max-w-lg', className)}>
+        // Phones: a sheet rising from the bottom edge; larger screens: a centred card.
+        <div className="fixed inset-0 z-50 flex items-end justify-center overflow-hidden overscroll-none bg-black/40 pt-[8vh] backdrop-blur-[2px] sm:items-start sm:px-4 sm:py-[6vh]" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
+            <div role="dialog" aria-modal="true" aria-label={title} className={cn('animate-sheet-up flex max-h-full w-full flex-col rounded-t-2xl border border-line bg-surface pb-[env(safe-area-inset-bottom)] shadow-pop sm:rounded-2xl sm:pb-0', wide ? 'sm:max-w-3xl' : 'sm:max-w-lg', className)}>
                 <div className="flex shrink-0 items-start justify-between gap-4 px-6 pt-5 pb-3">
                     <div>
                         <h2 className="text-[17px] font-semibold tracking-tight">{title}</h2>

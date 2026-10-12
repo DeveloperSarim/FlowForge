@@ -11,6 +11,7 @@ use App\Domain\System\Notifier;
 use App\Domain\System\SettingsValidation;
 use App\Domain\System\SystemSettings;
 use App\Domain\System\Updater;
+use App\Models\ApiToken;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -29,8 +30,10 @@ class SettingsController extends Controller
 
     public function show(Request $request, ManifestLoader $manifests): Response
     {
+        // Everyone: their own MCP tokens. Members see nothing else beyond account and appearance.
+        $mcp = ['url' => url('/api/mcp'), 'tokens' => $this->tokens($request->user())];
         if (! $request->user()->isAdmin()) {
-            return Inertia::render('Settings', []); // members manage only their own account and appearance
+            return Inertia::render('Settings', ['mcp' => $mcp]);
         }
 
         $mail = $this->settings->mail();
@@ -38,6 +41,7 @@ class SettingsController extends Controller
         $catalog = $manifests->catalogMap();
 
         return Inertia::render('Settings', [
+            'mcp' => $mcp,
             // Secrets never leave the server: only whether one is stored.
             'mail' => $mail ? Arr::except($mail, ['password']) + ['has_password' => ! empty($mail['password'])] : null,
             'notifications' => $this->settings->notifications(),
@@ -55,6 +59,29 @@ class SettingsController extends Controller
                 'icon' => $catalog[$p['icon_key']]['icon'] ?? 'plug',
             ])->values(),
         ]);
+    }
+
+    private function tokens(User $user): array
+    {
+        return ApiToken::query()->where('user_id', $user->id)->latest()->get()
+            ->map(fn (ApiToken $t) => ['id' => $t->id, 'name' => $t->name, 'created_at' => $t->created_at?->toIso8601String(), 'last_used_at' => $t->last_used_at?->toIso8601String()])
+            ->all();
+    }
+
+    /** The plain token is returned once; only its hash is stored. */
+    public function createToken(Request $request): JsonResponse
+    {
+        $name = $request->validate(['name' => ['required', 'string', 'max:100']])['name'];
+        [, $plain] = ApiToken::issue($request->user(), $name);
+
+        return response()->json(['token' => $plain, 'tokens' => $this->tokens($request->user())]);
+    }
+
+    public function revokeToken(Request $request, int $token): JsonResponse
+    {
+        ApiToken::query()->where('user_id', $request->user()->id)->whereKey($token)->delete();
+
+        return response()->json(['tokens' => $this->tokens($request->user())]);
     }
 
     public function updateAccount(Request $request): RedirectResponse

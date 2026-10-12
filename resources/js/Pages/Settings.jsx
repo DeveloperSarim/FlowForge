@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { router, useForm, usePage } from '@inertiajs/react';
-import { BellRing, Check, CheckCircle2, Copy, ExternalLink, Mail, Monitor, Moon, Palette, Globe2, Sun, ArrowUpCircle, Users, UserRound, XCircle } from 'lucide-react';
+import { BellRing, Check, CheckCircle2, Copy, ExternalLink, Mail, Monitor, Moon, Palette, Globe2, Sun, ArrowUpCircle, Users, Plug, UserRound, XCircle } from 'lucide-react';
 import AiIcon from '@/Components/AiIcon';
 import IntegrationIcon from '@/Components/IntegrationIcon';
 import AppLayout from '@/Layouts/AppLayout';
@@ -9,6 +9,7 @@ import { applyTheme } from '@/lib/theme';
 import CronAutoSetup from '@/Components/CronAutoSetup';
 import UpdatePanel from '@/Components/UpdatePanel';
 import TeamPanel from '@/Components/TeamPanel';
+import McpPanel from '@/Components/McpPanel';
 import { useTimezones } from '@/lib/timezones';
 import { cn, copy, errorMessage, timeAgo } from '@/lib/utils';
 
@@ -44,7 +45,7 @@ Preview.Inner = function Inner({ colors }) {
     );
 };
 
-export default function Settings({ mail, notifications, ai, providers, timezone, cron, updates, team }) {
+export default function Settings({ mail, notifications, ai, providers, timezone, cron, updates, team, mcp }) {
     const { auth } = usePage().props;
     const [tab, setTab] = useState(() => new URLSearchParams(window.location.search).get('tab') ?? 'account');
     const [theme, setTheme] = useState(auth.user.theme ?? 'light');
@@ -57,17 +58,20 @@ export default function Settings({ mail, notifications, ai, providers, timezone,
 
     return (
         <AppLayout title="Settings" description={auth.user.can.admin ? "Your account, the team, timezone, email alerts, the AI builder and updates." : "Your account and how FlowForge looks."}>
-            <div className="grid gap-8 md:grid-cols-[200px_1fr]">
-                <nav className="flex gap-1 md:flex-col" aria-label="Settings sections">
-                    {[['account', 'Account', UserRound], ['general', 'General', Globe2, true], ['team', 'Team', Users, true], ['appearance', 'Appearance', Palette], ['email', 'Email & alerts', Mail, true], ['ai', 'AI builder', AiIcon, true], ['updates', 'Updates', ArrowUpCircle, true]].filter(([, , , adminOnly]) => !adminOnly || auth.user.can.admin).map(([value, label, Icon]) => (
+            <div className="grid grid-cols-[minmax(0,1fr)] gap-5 md:grid-cols-[200px_minmax(0,1fr)] md:gap-8">
+                {/* Phones: a swipeable row of chips; desktop: a side list. */}
+                <nav className="no-scrollbar -mx-4 flex gap-1.5 overflow-x-auto px-4 sm:mx-0 sm:px-0 md:flex-col md:overflow-visible" aria-label="Settings sections">
+                    {[['account', 'Account', UserRound], ['general', 'General', Globe2, true], ['team', 'Team', Users, true], ['appearance', 'Appearance', Palette], ['email', 'Email & alerts', Mail, true], ['ai', 'AI builder', AiIcon, true], ['api', 'API & MCP', Plug], ['updates', 'Updates', ArrowUpCircle, true]].filter(([, , , adminOnly]) => !adminOnly || auth.user.can.admin).map(([value, label, Icon]) => (
                         <button key={value} type="button" onClick={() => setTab(value)} aria-current={tab === value}
-                            className={cn('flex items-center gap-2.5 rounded-lg px-3 py-2 text-left text-[13.5px] font-medium', tab === value ? 'bg-primary-soft text-primary' : 'text-fg-muted hover:bg-surface-2 hover:text-fg')}>
+                            className={cn('flex shrink-0 items-center gap-2 rounded-full border px-3.5 py-2 text-left text-[13.5px] font-medium whitespace-nowrap md:gap-2.5 md:rounded-lg md:border-0 md:px-3',
+                                tab === value ? 'border-primary/30 bg-primary-soft text-primary' : 'border-line bg-surface text-fg-muted hover:bg-surface-2 hover:text-fg md:bg-transparent')}>
                             <Icon className="size-4" />{label}
                         </button>
                     ))}
                 </nav>
 
-                {!auth.user.can.admin && !['account', 'appearance'].includes(tab) ? <AccountForm user={auth.user} />
+                {!auth.user.can.admin && !['account', 'appearance', 'api'].includes(tab) ? <AccountForm user={auth.user} />
+                : tab === 'api' ? <McpPanel mcp={mcp} />
                 : tab === 'team' ? <TeamPanel team={team} />
                 : tab === 'updates' ? <UpdatePanel updates={updates} />
                 : tab === 'general' ? <div className="space-y-6"><GeneralSettings timezone={timezone} /><SchedulerSettings cron={cron} /></div>

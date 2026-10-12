@@ -11,10 +11,17 @@ use App\Domain\Workflows\Controllers\TemplateController;
 use App\Domain\Workflows\Controllers\WorkflowController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\PasswordResetController;
+use App\Http\Controllers\SeoController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\TeamController;
 use App\Http\Controllers\UpdateController;
 use Illuminate\Support\Facades\Route;
+
+// Public files for crawlers and AI agents (dynamic so they carry this install's domain).
+Route::get('robots.txt', [SeoController::class, 'robots']);
+Route::get('sitemap.xml', [SeoController::class, 'sitemap']);
+Route::get('llms.txt', [SeoController::class, 'llms']);
+Route::get('llms-full.txt', [SeoController::class, 'llmsFull']);
 
 Route::prefix('install')->controller(InstallerController::class)->group(function () {
     Route::get('/', 'show');
@@ -50,6 +57,8 @@ Route::middleware('auth')->group(function () {
     Route::get('settings', [SettingsController::class, 'show']);
     Route::put('settings/account', [SettingsController::class, 'updateAccount']);
     Route::put('settings/appearance', [SettingsController::class, 'updateAppearance']);
+    Route::post('settings/tokens', [SettingsController::class, 'createToken'])->middleware('throttle:20,1');
+    Route::delete('settings/tokens/{token}', [SettingsController::class, 'revokeToken']);
     Route::redirect('account', '/settings');
     Route::get('apps', [AppDirectoryController::class, 'index']);
     Route::get('apps/{key}', [AppDirectoryController::class, 'show']);

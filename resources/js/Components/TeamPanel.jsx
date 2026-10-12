@@ -162,6 +162,7 @@ export default function TeamPanel({ team }) {
                                     {m.invited && <Badge tone={m.invite_expired ? 'fail' : 'warn'}>{m.invite_expired ? 'Invite expired' : 'Invited'}</Badge>}
                                 </p>
                                 <p className="truncate text-[12.5px] text-fg-muted">{m.email}</p>
+                                <p className="truncate text-[12px] text-fg-subtle sm:hidden">{ROLE_LABEL[m.role]}: {summary(m, team.permissions)}</p>
                             </div>
                             <div className="hidden min-w-0 text-right sm:block">
                                 <p className="flex items-center justify-end gap-1.5 text-[13px] font-medium">

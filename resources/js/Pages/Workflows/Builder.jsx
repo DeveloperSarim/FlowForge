@@ -267,14 +267,14 @@ function Editor({ workflow: initial, catalog, operators, lastExecution, ai }) {
 
     return (
         <BuilderContext.Provider value={context}>
-            <div className="flex h-screen flex-col bg-bg">
+            <div className="flex h-dvh flex-col bg-bg">
                 <header className="flex h-14 shrink-0 items-center gap-3 border-b border-line bg-surface px-3 sm:px-4">
                     <Link href="/" aria-label="FlowForge home"><Logo className="size-7" /></Link>
                     <nav className="flex min-w-0 items-center gap-1.5 text-[14px]" aria-label="Breadcrumb">
                         <Link href="/workflows" className="hidden text-fg-muted hover:text-fg sm:inline">Workflows</Link>
                         <span className="hidden text-fg-subtle sm:inline">/</span>
                         <input value={name} onChange={(e) => setName(e.target.value)} aria-label="Workflow name" readOnly={readOnly}
-                            className="min-w-0 truncate rounded-md bg-transparent px-1.5 py-1 font-semibold outline-none hover:bg-surface-2 focus:bg-surface-2 sm:w-72" />
+                            className="min-w-0 truncate rounded-md bg-transparent px-1.5 py-1 text-base font-semibold sm:text-[14px] outline-none hover:bg-surface-2 focus:bg-surface-2 sm:w-72" />
                     </nav>
                     <span className={cn('hidden text-[12.5px] lg:inline', save.state === 'error' ? 'text-fail' : 'text-fg-subtle')} title={save.message} aria-live="polite">
                         {readOnly ? 'View only' : save.state === 'saving' ? 'Saving…' : save.state === 'error' ? 'Not saved' : 'Saved'}

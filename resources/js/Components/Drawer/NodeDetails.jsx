@@ -1,9 +1,9 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { AlertCircle, ArrowLeft, BookOpen, Copy, ExternalLink, Loader2, MousePointerClick, Play, RefreshCw, Trash2, Zap } from 'lucide-react';
 import DataView from '@/Components/DataView';
 import IntegrationIcon from '@/Components/IntegrationIcon';
 import DynamicForm, { InsertTargetContext } from '@/Components/Drawer/DynamicForm';
-import { Badge, Button, Combobox, ConfirmButton, Field, Select, StatusBadge } from '@/Components/ui';
+import { Badge, Button, Combobox, ConfirmButton, Field, Select, StatusBadge, Tabs } from '@/Components/ui';
 import { useIntegration } from '@/lib/integrations';
 import { copy, duration, timeAgo, toast } from '@/lib/utils';
 
@@ -83,6 +83,14 @@ export default function NodeDetails({ node, catalog, operators, workflow, upstre
     const [triggerOptions, pinnedTriggers] = useTriggerOptions(catalog);
     const [target, setTarget] = useState(null);
     const [inputFrom, setInputFrom] = useState(upstream[upstream.length - 1]?.id ?? null);
+    // Phones show one pane at a time; after a run, jump to its output.
+    const [pane, setPane] = useState('params');
+    const wasExecuting = useRef(executing);
+    useEffect(() => {
+        if (wasExecuting.current && !executing) setPane('output');
+        wasExecuting.current = executing;
+    }, [executing]);
+    const hide = (name) => (pane === name ? '' : 'max-lg:hidden');
 
     useEffect(() => {
         const handler = (e) => e.key === 'Escape' && !e.defaultPrevented && onClose();
@@ -104,24 +112,28 @@ export default function NodeDetails({ node, catalog, operators, workflow, upstre
 
     return (
         <InsertTargetContext.Provider value={{ target, setTarget }}>
-            <div className="fixed inset-0 z-50 flex bg-black/40 p-3 backdrop-blur-[2px] sm:p-6" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
-                <div role="dialog" aria-modal="true" aria-label={`${data.label ?? 'Step'} settings`} className="animate-pop-in flex min-h-0 w-full flex-col overflow-hidden rounded-2xl border border-line bg-surface shadow-pop">
-                    <header className="flex items-center gap-3 border-b border-line px-4 py-3">
+            <div className="fixed inset-0 z-50 flex bg-black/40 backdrop-blur-[2px] sm:p-3 lg:p-6" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
+                <div role="dialog" aria-modal="true" aria-label={`${data.label ?? 'Step'} settings`} className="animate-pop-in flex min-h-0 w-full flex-col overflow-hidden border-line bg-surface shadow-pop sm:rounded-2xl sm:border">
+                    <header className="flex items-center gap-2 border-b border-line px-2 pt-[max(0.75rem,env(safe-area-inset-top))] pb-3 sm:gap-3 sm:px-4 sm:pt-3">
                         <Button variant="ghost" size="sm" onClick={onClose}><ArrowLeft className="size-4" /><span className="hidden sm:inline">Back to canvas</span></Button>
                         <span className="h-6 w-px bg-line" />
                         <IntegrationIcon icon={integration?.icon} name={integration?.name} size="md" />
                         <div className="min-w-0 flex-1">
                             <input value={data.label ?? ''} onChange={(e) => onChange({ label: e.target.value })} readOnly={readOnly} placeholder={operation?.name ?? 'Untitled step'} aria-label="Step name"
-                                className="w-full max-w-md truncate rounded bg-transparent px-1 text-[15px] font-semibold outline-none placeholder:text-fg-subtle hover:bg-surface-2 focus:bg-surface-2" />
+                                className="w-full max-w-md truncate rounded bg-transparent px-1 text-base font-semibold sm:text-[15px] outline-none placeholder:text-fg-subtle hover:bg-surface-2 focus:bg-surface-2" />
                             <p className="px-1 text-[12px] text-fg-subtle">{integration?.name ?? data.integration}{operation ? `: ${operation.name}` : ''} <code className="ml-1 font-mono text-[11px]">steps.{node.id}</code></p>
                         </div>
                         {integration?.docs_url && <a href={integration.docs_url} target="_blank" rel="noreferrer" className="hidden items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[13px] text-fg-muted hover:bg-surface-2 hover:text-fg md:inline-flex"><BookOpen className="size-4" />Docs</a>}
                         {readOnly ? <span className="rounded-lg bg-surface-2 px-3 py-1.5 text-[12.5px] font-medium text-fg-muted">View only</span>
-                            : <Button variant="primary" onClick={() => onExecute(node.id)} loading={executing}>{!executing && <Play className="size-3.5" fill="currentColor" />}Execute step</Button>}
+                            : <Button variant="primary" onClick={() => onExecute(node.id)} loading={executing}>{!executing && <Play className="size-3.5" fill="currentColor" />}<span className="sm:hidden">Run</span><span className="hidden sm:inline">Execute step</span></Button>}
                     </header>
+                    <div className="border-b border-line p-2 lg:hidden">
+                        <Tabs value={pane} onChange={setPane} className="grid w-full grid-cols-3"
+                            items={[{ value: 'input', label: isTrigger ? 'Trigger' : 'Input' }, { value: 'params', label: 'Settings' }, { value: 'output', label: 'Output' }]} />
+                    </div>
 
-                    <div className="grid min-h-0 flex-1 grid-cols-1 overflow-y-auto lg:grid-cols-[minmax(0,1fr)_minmax(400px,1.15fr)_minmax(0,1fr)] lg:overflow-hidden">
-                        <Pane title={isTrigger ? 'TRIGGER' : 'INPUT'} className="border-line bg-surface-2/40 lg:border-r"
+                    <div className="grid min-h-0 flex-1 grid-cols-1 grid-rows-[minmax(0,1fr)] overflow-hidden lg:grid-cols-[minmax(0,1fr)_minmax(400px,1.15fr)_minmax(0,1fr)]">
+                        <Pane title={isTrigger ? 'TRIGGER' : 'INPUT'} className={`border-line bg-surface-2/40 lg:border-r ${hide('input')}`}
                             aside={!isTrigger && upstream.length > 1 && (
                                 <Select value={source?.id ?? ''} onChange={(e) => setInputFrom(e.target.value)} className="h-8 w-44 text-[12.5px]" aria-label="Input from step">
                                     {upstream.map((u) => <option key={u.id} value={u.id}>{u.label}</option>)}
@@ -153,7 +165,7 @@ export default function NodeDetails({ node, catalog, operators, workflow, upstre
                             )}
                         </Pane>
 
-                        <Pane title="PARAMETERS" className="border-line lg:border-r" aside={!isTrigger && !readOnly && <ConfirmButton size="xs" onConfirm={onDelete} confirmLabel="Delete?"><Trash2 className="size-3.5" />Delete</ConfirmButton>}>
+                        <Pane title="PARAMETERS" className={`border-line lg:border-r ${hide('params')}`} aside={!isTrigger && !readOnly && <ConfirmButton size="xs" onConfirm={onDelete} confirmLabel="Delete?"><Trash2 className="size-3.5" />Delete</ConfirmButton>}>
                             <fieldset disabled={readOnly} className="min-w-0 space-y-5">
                                 {isTrigger ? (
                                     <Field label="Starts when">
@@ -207,7 +219,7 @@ export default function NodeDetails({ node, catalog, operators, workflow, upstre
                             </fieldset>
                         </Pane>
 
-                        <Pane title="OUTPUT" aside={runStep && (
+                        <Pane title="OUTPUT" className={hide('output')} aside={runStep && (
                             <span className="flex items-center gap-2">
                                 {runStep.http_status && <Badge tone={runStep.http_status < 300 ? 'ok' : 'fail'}>HTTP {runStep.http_status}</Badge>}
                                 <StatusBadge status={runStep.status} />

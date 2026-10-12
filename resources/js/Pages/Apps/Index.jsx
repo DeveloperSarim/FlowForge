@@ -42,9 +42,9 @@ export default function Index({ apps, connected }) {
 
     return (
         <AppLayout wide title="Apps" description={`${apps.length} integrations with their own credentials, actions and triggers. Every app also has a "Make an API call" action for anything not listed.`}>
-            <div className="grid gap-8 lg:grid-cols-[220px_1fr]">
+            <div className="grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-[220px_minmax(0,1fr)] lg:gap-8">
                 <nav aria-label="Categories" className="lg:sticky lg:top-6 lg:self-start">
-                    <ul className="flex gap-1 overflow-x-auto pb-2 lg:flex-col lg:overflow-visible lg:pb-0">
+                    <ul className="no-scrollbar -mx-4 flex gap-1 overflow-x-auto px-4 pb-1 lg:mx-0 lg:flex-col lg:overflow-visible lg:px-0 lg:pb-0">
                         {[['All', apps.length], ...categories].map(([name, count]) => {
                             const meta = categoryMeta(name);
                             const Icon = name === 'All' ? Blocks : meta.icon;
