@@ -31,6 +31,9 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('ai_conversations', fn (Blueprint $table) => $table->dropConstrainedForeignId('user_id'));
-        Schema::table('users', fn (Blueprint $table) => $table->dropColumn(['role', 'permissions', 'invite_token', 'invite_expires_at']));
+        Schema::table('users', function (Blueprint $table) {
+            $table->dropUnique(['invite_token']);
+            $table->dropColumn(['role', 'permissions', 'invite_token', 'invite_expires_at']);
+        });
     }
 };

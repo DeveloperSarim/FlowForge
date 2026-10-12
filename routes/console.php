@@ -1,9 +1,11 @@
 <?php
 
 use App\Domain\Engine\PollerService;
+use App\Domain\Installer\EnsureInstalled;
 use App\Domain\Integrations\IntegrationAuditor;
 use App\Domain\Integrations\ManifestLoader;
 use App\Domain\System\Notifier;
+use App\Domain\System\SchemaUpgrader;
 use App\Domain\Workflows\Models\WorkflowExecution;
 use App\Domain\Workflows\TemplateLibrary;
 use App\Models\User;
@@ -17,7 +19,12 @@ use Illuminate\Support\Str;
 */
 
 // Heartbeat + "cron was down for N minutes" alert email.
-Schedule::call(fn () => app(Notifier::class)->heartbeat())
+Schedule::call(function () {
+    if (EnsureInstalled::isInstalled()) {
+        SchemaUpgrader::ensureCurrent(); // cron completes updates even with no visitors
+    }
+    app(Notifier::class)->heartbeat();
+})
     ->everyMinute()->name('flowforge:heartbeat');
 
 Schedule::call(fn () => app(PollerService::class)->dispatchDue())

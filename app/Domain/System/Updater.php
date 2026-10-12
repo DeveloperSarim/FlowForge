@@ -25,9 +25,6 @@ class Updater
 
     private const MAX_BYTES = 250 * 1024 * 1024;
 
-    /** Files earlier versions shipped that would now shadow a route (deleted after an update). */
-    private const OBSOLETE = ['public/robots.txt'];
-
     public function root(): string
     {
         return rtrim(config('flowforge.update_root') ?: base_path(), '/');
@@ -189,7 +186,7 @@ class Updater
         File::deleteDirectory($this->dir('staging'));
         File::deleteDirectory($this->dir('incoming'));
         File::deleteDirectory($this->dir('uploads'));
-        foreach (self::OBSOLETE as $path) {
+        foreach (SchemaUpgrader::OBSOLETE as $path) {
             File::delete($this->root().'/'.$path);
         }
         File::delete($this->dir('last.json'));

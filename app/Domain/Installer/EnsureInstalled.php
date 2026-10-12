@@ -2,6 +2,7 @@
 
 namespace App\Domain\Installer;
 
+use App\Domain\System\SchemaUpgrader;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -27,6 +28,9 @@ class EnsureInstalled
 
         if (self::isInstalled()) {
             abort_if($installing, 404);
+            if (! app()->runningUnitTests()) {
+                SchemaUpgrader::ensureCurrent(); // finish any update whose migrations haven't run yet
+            }
 
             return $next($request);
         }
