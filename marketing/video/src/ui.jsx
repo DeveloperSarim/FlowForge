@@ -1,4 +1,4 @@
-import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } from 'remotion';
+import { AbsoluteFill, Easing, interpolate, spring, useCurrentFrame, useVideoConfig } from 'remotion';
 import { loadFont } from '@remotion/google-fonts/Geist';
 import { loadFont as loadMono } from '@remotion/google-fonts/GeistMono';
 
@@ -23,14 +23,21 @@ export const clamp = { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' };
 export const springAt = (frame, fps, delay = 0, pop = false) =>
     spring({ frame: frame - delay, fps, config: pop ? { damping: 13, stiffness: 170, mass: 0.7 } : { damping: 200 } });
 
-/** The brand's dotted canvas. */
-export const DotBg = ({ dark = false, children, zoom = true }) => {
+/** A camera move: keys are [frame, scale, x, y], zooming around `origin` (px in the 1920x1080 frame). */
+export const Camera = ({ keys, origin = [960, 540], children }) => {
+    const frame = useCurrentFrame();
+    const at = (i) => interpolate(frame, keys.map((k) => k[0]), keys.map((k) => k[i] ?? 0), { ...clamp, easing: Easing.inOut(Easing.cubic) });
+    return <AbsoluteFill style={{ transform: `translate(${at(2)}px, ${at(3)}px) scale(${at(1)})`, transformOrigin: `${origin[0]}px ${origin[1]}px` }}>{children}</AbsoluteFill>;
+};
+
+/** The brand's dotted canvas, with an optional camera move over the content. */
+export const DotBg = ({ dark = false, children, zoom = true, camera }) => {
     const frame = useCurrentFrame();
     const scale = zoom ? interpolate(frame, [0, 200], [1.06, 1], clamp) : 1;
     return (
         <AbsoluteFill style={{ backgroundColor: dark ? C.dark : C.bg, fontFamily: SANS, color: dark ? '#fff' : C.ink, overflow: 'hidden' }}>
             <AbsoluteFill style={{ transform: `scale(${scale})`, backgroundImage: `radial-gradient(${dark ? '#262b33' : '#d3d8df'} 1.6px, transparent 1.6px)`, backgroundSize: '28px 28px' }} />
-            {children}
+            {camera ? <Camera {...camera}>{children}</Camera> : children}
         </AbsoluteFill>
     );
 };

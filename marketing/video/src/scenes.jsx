@@ -7,7 +7,7 @@ export const Intro = () => {
     const frame = useCurrentFrame();
     const word = 'FlowForge';
     return (
-        <DotBg>
+        <DotBg camera={{ keys: [[0, 1], [90, 1.08]] }}>
             <AbsoluteFill style={{ alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 44 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 36 }}>
                     <LogoMark size={150} />
@@ -38,7 +38,7 @@ const Struck = ({ text, delay }) => {
 };
 
 export const Problem = () => (
-    <DotBg>
+    <DotBg camera={{ keys: [[0, 1], [120, 1.06]], origin: [700, 540] }}>
         <AbsoluteFill style={{ justifyContent: 'center', padding: '0 190px', gap: 40, display: 'flex', flexDirection: 'column' }}>
             <Struck text="Automation tools bill you per task." delay={4} />
             <Struck text="Self-hosting them needs Docker and a VPS." delay={50} />
@@ -48,7 +48,7 @@ export const Problem = () => (
 
 /* 3. The question */
 export const Hook = () => (
-    <DotBg dark>
+    <DotBg dark camera={{ keys: [[0, 1], [90, 1.14]] }}>
         <AbsoluteFill style={{ alignItems: 'center', justifyContent: 'center', textAlign: 'center' }}>
             <Words text="What if it ran on the hosting" delay={2} size={96} weight={600} />
             <Words text="you already have?" delay={14} size={96} weight={600} color={C.brand} />
@@ -60,7 +60,7 @@ export const Hook = () => (
 export const Meet = () => {
     const p = useIn(10);
     return (
-        <DotBg>
+        <DotBg camera={{ keys: [[0, 1], [50, 1], [115, 1.45]], origin: [870, 740] }}>
             <AbsoluteFill style={{ alignItems: 'center', paddingTop: 90 }}>
                 <Words text="Meet FlowForge." delay={0} size={84} />
                 <div style={{ perspective: 2200, marginTop: 56 }}>
@@ -92,9 +92,9 @@ export const Builder = () => {
     const press = interpolate(frame, [86, 90, 96], [1, 0.93, 1], clamp);
     const button = useIn(70, true);
     return (
-        <DotBg zoom={false}>
+        <DotBg zoom={false} camera={{ keys: [[0, 1.4], [60, 1], [100, 1], [180, 1.12]], origin: [520, 600] }}>
             <div style={{ position: 'absolute', left: 150, top: 120 }}>
-                <Words text="Build workflows visually." size={80} />
+                <Words text="Build workflows visually." delay={26} size={80} />
             </div>
             <svg width="1920" height="1080" style={{ position: 'absolute', inset: 0 }}>
                 {[0, 1].map((i) => {
@@ -137,7 +137,7 @@ export const Apps = () => {
     const { fps } = useVideoConfig();
     const n = Math.round(interpolate(frame, [6, 62], [0, 1190], { ...clamp, easing: Easing.out(Easing.cubic) }));
     return (
-        <DotBg>
+        <DotBg camera={{ keys: [[0, 1.1], [150, 1]], origin: [1380, 540] }}>
             <div style={{ position: 'absolute', left: 150, top: 300 }}>
                 <div style={{ fontSize: 200, fontWeight: 700, letterSpacing: '-0.05em', lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>{n.toLocaleString('en-US')}</div>
                 <Words text="apps ready to connect." delay={12} size={64} weight={600} style={{ marginTop: 18 }} />
@@ -172,7 +172,7 @@ export const AiBuilder = () => {
     const card = useIn(0);
     const bubble = useIn(84, true);
     return (
-        <DotBg>
+        <DotBg camera={{ keys: [[0, 1], [85, 1], [195, 1.14]], origin: [960, 600] }}>
             <div style={{ position: 'absolute', left: 150, top: 120 }}>
                 <Words text="Or just describe it." size={80} />
             </div>
@@ -219,7 +219,7 @@ export const Cron = () => {
     const typed = CRON.slice(0, Math.floor(interpolate(frame, [18, 58], [0, CRON.length], clamp)));
     const card = useIn(4);
     return (
-        <DotBg dark>
+        <DotBg dark camera={{ keys: [[0, 1], [15, 1], [60, 1.22], [100, 1], [150, 1.04]], origin: [960, 470] }}>
             <AbsoluteFill style={{ alignItems: 'center', paddingTop: 140 }}>
                 <Words text="One cron job runs everything." size={84} />
                 <div style={{ marginTop: 70, width: 1260, borderRadius: 22, background: C.darkCard, border: `1.5px solid ${C.darkLine}`, overflow: 'hidden', transform: `translateY(${(1 - card) * 60}px)`, opacity: card }}>
@@ -256,7 +256,7 @@ export const Features = () => {
     const frame = useCurrentFrame();
     const { fps } = useVideoConfig();
     return (
-    <DotBg>
+    <DotBg camera={{ keys: [[0, 1.06], [150, 1]] }}>
         <div style={{ position: 'absolute', left: 150, top: 120 }}>
             <Words text="Everything a team needs." size={80} />
         </div>
@@ -265,7 +265,7 @@ export const Features = () => {
                 const p = springAt(frame, fps, 10 + i * 7, true);
                 return (
                     <div key={title} style={{ background: C.paper, border: `1.5px solid ${C.line}`, borderRadius: 26, padding: '36px 36px', boxShadow: '0 12px 30px rgba(16,24,40,.07)',
-                        transform: `translateY(${(1 - p) * 50}px) scale(${0.94 + p * 0.06})`, opacity: Math.min(1, p * 1.4) }}>
+                        transform: `scale(${1.45 - p * 0.45})`, opacity: Math.min(1, p * 1.6) }}>
                         <div style={{ width: 70, height: 70, borderRadius: 18, background: C.brandSoft, display: 'grid', placeItems: 'center' }}><Icon size={36} color={C.brand} strokeWidth={1.9} /></div>
                         <div style={{ marginTop: 26, fontSize: 36, fontWeight: 600, letterSpacing: '-0.02em' }}>{title}</div>
                         <div style={{ marginTop: 10, fontSize: 26, color: C.ink2, lineHeight: 1.35 }}>{sub}</div>
@@ -283,14 +283,14 @@ const Phone = ({ src, delay, x, rotate }) => {
     const frame = useCurrentFrame();
     return (
         <div style={{ position: 'absolute', left: x, top: 160 + (1 - p) * 700 + Math.sin((frame + delay * 3) / 26) * 8, width: 340, borderRadius: 54, background: '#15181d', padding: 13,
-            boxShadow: '0 40px 80px rgba(16,24,40,.25)', transform: `rotate(${rotate * p}deg)` }}>
+            boxShadow: '0 40px 80px rgba(16,24,40,.25)', transform: `rotate(${rotate * p}deg) scale(${0.7 + p * 0.3})` }}>
             <Img src={staticFile(`shots/${src}.png`)} style={{ width: '100%', display: 'block', borderRadius: 42 }} />
         </div>
     );
 };
 
 export const Mobile = () => (
-    <DotBg>
+    <DotBg camera={{ keys: [[0, 1], [120, 1.1]], origin: [1300, 560] }}>
         <div style={{ position: 'absolute', left: 150, top: 380, width: 640 }}>
             <Words text="Works like an app on your phone." size={84} />
         </div>
@@ -302,11 +302,13 @@ export const Mobile = () => (
 
 /* 11. Call to action */
 export const Outro = () => {
+    const frame = useCurrentFrame();
     const url = useIn(64);
+    const slam = interpolate(frame, [0, 12], [2.4, 1], { ...clamp, easing: Easing.out(Easing.back(1.6)) });
     return (
-        <DotBg>
+        <DotBg camera={{ keys: [[20, 1], [180, 1.05]] }}>
             <AbsoluteFill style={{ alignItems: 'center', justifyContent: 'center', flexDirection: 'column' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 30 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 30, transform: `scale(${slam})` }}>
                     <LogoMark size={120} />
                     <Words text="FlowForge" delay={10} size={120} weight={600} stagger={0} />
                 </div>
