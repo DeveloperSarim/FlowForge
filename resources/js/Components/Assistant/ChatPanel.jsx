@@ -1,8 +1,8 @@
 import { Fragment, useEffect, useRef, useState } from 'react';
 import { Link } from '@inertiajs/react';
 import { AlertTriangle, ArrowUp, Check, ChevronRight, FlaskConical, Loader2, Pencil, Plus, Power, Trash2, Wrench, X } from 'lucide-react';
-import AiIcon from '@/Components/AiIcon';
 import IntegrationIcon from '@/Components/IntegrationIcon';
+import { Logo } from '@/Layouts/AppLayout';
 import { Button } from '@/Components/ui';
 import { cn, compact, errorMessage, toast } from '@/lib/utils';
 
@@ -13,12 +13,11 @@ const SUGGESTIONS = [
     { text: 'Explain why my last run failed and fix it', apps: [] },
 ];
 
-/** The assistant's avatar; the ring turns while it is working. */
+/** The assistant's avatar is the FlowForge mark; the ring turns while it is working. */
 export function AiAvatar({ working = false, size = 'md' }) {
     return (
-        <span className={cn('flex shrink-0 items-center justify-center text-white shadow-sm', size === 'lg' ? 'size-12 rounded-2xl' : 'size-8 rounded-xl', working && 'ai-ring')}
-            style={{ background: 'linear-gradient(135deg, var(--primary), #f59e0b)' }} aria-hidden>
-            <AiIcon className={size === 'lg' ? 'size-7' : 'size-[18px]'} />
+        <span className={cn('relative inline-flex shrink-0', size === 'lg' ? 'size-12 rounded-[14px]' : 'size-8 rounded-[9px]', working && 'ai-ring')} aria-hidden>
+            <Logo className="size-full" />
         </span>
     );
 }
