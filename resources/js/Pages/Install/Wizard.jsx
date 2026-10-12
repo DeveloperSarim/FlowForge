@@ -5,10 +5,12 @@ import { Button, Combobox, Field, Input, Tabs } from '@/Components/ui';
 import { Logo } from '@/Layouts/AppLayout';
 import CronAutoSetup from '@/Components/CronAutoSetup';
 import { useTimezones } from '@/lib/timezones';
+import { LicenseForm } from '@/Pages/License/Activate';
 import { cn, copy, errorMessage, timeAgo } from '@/lib/utils';
 
 const STEPS = [
     { key: 'requirements', title: 'Check the server', hint: 'PHP version, extensions, folder permissions' },
+    { key: 'license', title: 'Activate license', hint: 'Your CodeCanyon purchase code' },
     { key: 'database', title: 'Connect MySQL', hint: 'Creates the tables FlowForge needs' },
     { key: 'admin', title: 'Create your account', hint: 'The single administrator login' },
     { key: 'mail', title: 'Email alerts', hint: 'Get told when a workflow fails' },
@@ -16,11 +18,11 @@ const STEPS = [
 ];
 
 export default function Wizard({ checks, state, defaults, cron, adminEmail }) {
-    const initial = state.mail ? 'cron' : state.admin ? 'mail' : state.database ? 'admin' : 'requirements';
+    const initial = state.mail ? 'cron' : state.admin ? 'mail' : state.database ? 'admin' : state.license ? 'database' : 'requirements';
     const [step, setStep] = useState(initial);
     useEffect(() => setStep(initial), [initial]);
 
-    const done = { requirements: state.database || step !== 'requirements', database: state.database, admin: state.admin, mail: state.mail, cron: false };
+    const done = { requirements: state.license || step !== 'requirements', license: state.license, database: state.database, admin: state.admin, mail: state.mail, cron: false };
     const current = STEPS.findIndex((s) => s.key === step);
 
     return (
@@ -49,7 +51,15 @@ export default function Wizard({ checks, state, defaults, cron, adminEmail }) {
                 </div>
 
                 <section className="rounded-xl border border-line bg-surface p-6 sm:p-8">
-                    {step === 'requirements' && <Requirements checks={checks} onNext={() => setStep('database')} />}
+                    {step === 'requirements' && <Requirements checks={checks} onNext={() => setStep(state.license ? 'database' : 'license')} />}
+                    {step === 'license' && (
+                        <>
+                            <Heading title="Activate your license">
+                                Enter the purchase code from CodeCanyon. One license activates FlowForge on one domain; this one is {window.location.hostname}. Development hosts (localhost, *.test) don't use it up.
+                            </Heading>
+                            <div className="max-w-md"><LicenseForm action="/install/license" submitLabel="Activate and continue" /></div>
+                        </>
+                    )}
                     {step === 'database' && <Database defaults={defaults} />}
                     {step === 'admin' && <Admin />}
                     {step === 'mail' && <MailStep adminEmail={adminEmail} />}

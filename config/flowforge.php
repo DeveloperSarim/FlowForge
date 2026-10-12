@@ -10,6 +10,12 @@ return [
 
     'http_timeout' => (int) env('FLOWFORGE_HTTP_TIMEOUT', 30),
 
+    // CodeCanyon licensing (see app/Domain/License). The server holds the Envato token and the signing key.
+    'license' => [
+        'server' => 'https://license.sarimtools.com',
+        'path' => null, // default storage/app/license.json
+    ],
+
     // Folder the in-app updater replaces code in (tests point it at a temp copy). Null = the app itself.
     'update_root' => null,
 

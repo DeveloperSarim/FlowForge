@@ -3,6 +3,7 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Domain\License\DemoMode;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -91,6 +92,12 @@ class User extends Authenticatable
     public function abilities(): array
     {
         return ['admin' => $this->isAdmin()] + collect(self::PERMISSIONS)->mapWithKeys(fn ($label, $key) => [$key => $this->hasPermission($key)])->all();
+    }
+
+    /** The shared visitors' account of the live demo (see DemoMode). */
+    public function isDemo(): bool
+    {
+        return app(DemoMode::class)->isDemoUser($this);
     }
 
     public function isInvited(): bool

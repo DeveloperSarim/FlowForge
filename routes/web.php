@@ -5,6 +5,7 @@ use App\Domain\Installer\InstallerController;
 use App\Domain\Integrations\Controllers\AppDirectoryController;
 use App\Domain\Integrations\Controllers\CredentialController;
 use App\Domain\Integrations\Controllers\IntegrationController;
+use App\Domain\License\LicenseController;
 use App\Domain\Workflows\Controllers\ExecutionController;
 use App\Domain\Workflows\Controllers\OverviewController;
 use App\Domain\Workflows\Controllers\TemplateController;
@@ -23,8 +24,12 @@ Route::get('sitemap.xml', [SeoController::class, 'sitemap']);
 Route::get('llms.txt', [SeoController::class, 'llms']);
 Route::get('llms-full.txt', [SeoController::class, 'llmsFull']);
 
+Route::get('license', [LicenseController::class, 'show']);
+Route::post('license', [LicenseController::class, 'activate'])->middleware('throttle:10,1');
+
 Route::prefix('install')->controller(InstallerController::class)->group(function () {
     Route::get('/', 'show');
+    Route::post('license', 'license')->middleware('throttle:10,1');
     Route::post('database/test', 'testDatabase')->middleware('throttle:20,1');
     Route::post('database', 'database');
     Route::post('admin', 'admin');
@@ -68,6 +73,10 @@ Route::middleware('auth')->group(function () {
 
     // Admins (and the owner): system settings, updates and the team.
     Route::middleware('can:admin')->group(function () {
+        Route::post('settings/license/deactivate', [LicenseController::class, 'deactivate']);
+        Route::post('settings/license/refresh', [LicenseController::class, 'refresh'])->middleware('throttle:10,1');
+        Route::put('settings/demo', [LicenseController::class, 'saveDemo']);
+        Route::post('settings/demo/snapshot', [LicenseController::class, 'snapshotDemo']);
         Route::put('settings/general', [SettingsController::class, 'updateGeneral']);
         Route::post('settings/scheduler/auto', [SettingsController::class, 'autoCron'])->middleware('throttle:5,1');
         Route::post('settings/updates/upload', [UpdateController::class, 'upload'])->middleware('throttle:300,1');

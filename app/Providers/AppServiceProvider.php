@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Domain\Integrations\ManifestLoader;
+use App\Domain\License\License;
 use App\Domain\System\SystemSettings;
 use App\Models\User;
 use Illuminate\Support\Facades\Gate;
@@ -14,6 +15,7 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->app->singleton(ManifestLoader::class);
         $this->app->singleton(SystemSettings::class);
+        $this->app->singleton(License::class);
     }
 
     public function boot(): void

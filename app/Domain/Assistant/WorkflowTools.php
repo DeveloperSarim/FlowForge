@@ -83,6 +83,9 @@ class WorkflowTools
             'delete_workflow' => 'workflows.delete',
             default => 'workflows.view',
         };
+        if (in_array($name, ['test_workflow', 'set_workflow_active', 'delete_workflow'], true) && auth()->user()?->isDemo()) {
+            return [['error' => 'Running, switching on and deleting workflows are turned off in the live demo. Tell the user to build and inspect; the full version does the rest.'], null, true];
+        }
         if ($needs && ($user = auth()->user()) && ! $user->hasPermission($needs)) {
             return [['error' => 'This person\'s account doesn\'t have "'.User::PERMISSIONS[$needs].'" access. Tell them an admin can grant it under Settings → Team.'], null, true];
         }

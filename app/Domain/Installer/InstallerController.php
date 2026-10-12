@@ -2,6 +2,9 @@
 
 namespace App\Domain\Installer;
 
+use App\Domain\License\DemoMode;
+use App\Domain\License\License;
+use App\Domain\License\LicenseController;
 use App\Domain\System\Notifier;
 use App\Domain\System\SettingsValidation;
 use App\Domain\System\SystemSettings;
@@ -38,6 +41,7 @@ class InstallerController extends Controller
         return Inertia::render('Install/Wizard', [
             'checks' => $this->validator->checks(),
             'state' => [
+                'license' => app(License::class)->valid(),
                 'database' => $database,
                 'admin' => $database && User::query()->exists(),
                 'mail' => $database && rescue(fn () => app(SystemSettings::class)->mail() !== null || app(SystemSettings::class)->get('mail_skipped'), false, false),
@@ -60,6 +64,7 @@ class InstallerController extends Controller
 
     public function testDatabase(Request $request): JsonResponse
     {
+        $this->requireLicense();
         try {
             $version = $this->connect($this->validateDatabase($request))->getPdo()->getAttribute(PDO::ATTR_SERVER_VERSION);
 
@@ -71,6 +76,7 @@ class InstallerController extends Controller
 
     public function database(Request $request): RedirectResponse
     {
+        $this->requireLicense();
         abort_unless($this->validator->passes(), 409, 'Resolve the system requirements first.');
         $data = $this->validateDatabase($request);
 
@@ -108,6 +114,7 @@ class InstallerController extends Controller
 
     public function admin(Request $request): RedirectResponse
     {
+        $this->requireLicense();
         abort_unless($this->databaseReady(), 409, 'Configure the database first.');
         abort_if(User::query()->exists(), 403, 'An administrator already exists.');
 
@@ -128,6 +135,7 @@ class InstallerController extends Controller
 
     public function mail(Request $request, SystemSettings $settings): RedirectResponse
     {
+        $this->requireLicense();
         abort_unless($this->databaseReady() && User::query()->exists(), 409, 'Create the administrator first.');
 
         [$mail, $notify] = SettingsValidation::mail($request);
@@ -139,6 +147,7 @@ class InstallerController extends Controller
 
     public function testMail(Request $request, Notifier $notifier): JsonResponse
     {
+        $this->requireLicense();
         abort_unless($this->databaseReady(), 409);
         [$mail, $notify] = SettingsValidation::mail($request, requirePassword: false);
         $to = $notify ?: User::query()->value('email');
@@ -149,6 +158,7 @@ class InstallerController extends Controller
 
     public function skipMail(SystemSettings $settings): RedirectResponse
     {
+        $this->requireLicense();
         abort_unless($this->databaseReady() && User::query()->exists(), 409);
         $settings->set('mail_skipped', true);
 
@@ -158,9 +168,24 @@ class InstallerController extends Controller
     /** "Set it up for me": add the cron line to the account's crontab when the host allows it. */
     public function autoCron(CronInstaller $cron): JsonResponse
     {
+        $this->requireLicense();
         abort_unless($this->databaseReady() && User::query()->exists(), 409, 'Create the administrator first.');
 
         return response()->json($cron->install());
+    }
+
+    /** Step 2: activate the CodeCanyon purchase code for this domain. */
+    public function license(Request $request): RedirectResponse
+    {
+        abort_unless($this->validator->passes(), 409, 'Resolve the system requirements first.');
+        app(LicenseController::class)->activateFrom($request);
+
+        return redirect('/install');
+    }
+
+    private function requireLicense(): void
+    {
+        abort_unless(app(License::class)->valid(), 403, 'Activate your license first.');
     }
 
     public function heartbeat(): JsonResponse
@@ -183,12 +208,17 @@ class InstallerController extends Controller
 
     public function finish(): \Symfony\Component\HttpFoundation\Response
     {
+        $this->requireLicense();
         abort_unless($this->databaseReady() && User::query()->exists(), 409, 'Create the administrator first.');
         abort_unless($this->cronVerified(), 409, 'The cron job has not run yet. Add it in your hosting panel and wait for the green check.');
 
         // The APP_KEY is already unique (bootstrap/app.php generates it on first boot). It is not rotated
         // here: SMTP settings saved in the previous step are encrypted with it.
         $this->env->set(['APP_ENV' => 'production', 'APP_DEBUG' => false]);
+
+        if (app(DemoMode::class)->active()) {
+            app(DemoMode::class)->ensureUser(); // the live demo's visitor account
+        }
 
         if (! touch(EnsureInstalled::flagPath())) {
             abort(500, 'Could not write '.EnsureInstalled::flagPath());

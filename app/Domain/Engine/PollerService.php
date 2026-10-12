@@ -4,6 +4,7 @@ namespace App\Domain\Engine;
 
 use App\Domain\Engine\Jobs\PollWorkflow;
 use App\Domain\Integrations\WorkflowActionExecutor;
+use App\Domain\License\License;
 use App\Domain\System\SystemSettings;
 use App\Domain\Workflows\Models\Workflow;
 use Carbon\CarbonInterface;
@@ -24,6 +25,9 @@ class PollerService
 
     public function dispatchDue(?CarbonInterface $now = null): array
     {
+        if (! app(License::class)->valid()) {
+            return ['scheduled' => 0, 'polls' => 0]; // unlicensed: nothing runs
+        }
         $now ??= now();
 
         return [

@@ -9,8 +9,9 @@ const NODES = { webhook: [0, 140], slack: [170, 40], openai: [170, 240], hubspot
 const LINKS = [['webhook', 'slack'], ['webhook', 'openai'], ['slack', 'hubspot'], ['openai', 'hubspot'], ['hubspot', 'google_sheets'], ['hubspot', 'gmail']];
 
 export default function Login({ icons = {}, appCount = 0 }) {
-    const { flash } = usePage().props;
+    const { flash, demo } = usePage().props;
     const form = useForm({ email: '', password: '', remember: true });
+    const demoLogin = () => form.transform(() => ({ email: demo.email, password: demo.password, remember: false })).post('/login');
 
     const submit = (event) => {
         event.preventDefault();
@@ -25,6 +26,16 @@ export default function Login({ icons = {}, appCount = 0 }) {
                     <Logo className="size-10" />
                     <h1 className="mt-6 text-[26px] font-semibold tracking-tight">Welcome back</h1>
                     <p className="mt-1 text-[14px] text-fg-muted">Sign in to your FlowForge workspace.</p>
+                    {demo && (
+                        <div className="mt-6 rounded-xl border border-primary/30 bg-primary-soft/50 p-4">
+                            <p className="text-[13.5px] font-semibold">Try the live demo</p>
+                            <dl className="mt-2 grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-[13px]">
+                                <dt className="text-fg-muted">Email</dt><dd className="font-mono">{demo.email}</dd>
+                                <dt className="text-fg-muted">Password</dt><dd className="font-mono">{demo.password}</dd>
+                            </dl>
+                            <Button variant="primary" className="mt-3 w-full justify-center" loading={form.processing} onClick={demoLogin}>Sign in to the demo</Button>
+                        </div>
+                    )}
                     {flash?.success && <p className="mt-5 flex items-start gap-2 rounded-lg bg-ok-soft px-3 py-2.5 text-[13px] text-ok"><CheckCircle2 className="mt-px size-4 shrink-0" />{flash.success}</p>}
                     <form onSubmit={submit} className="mt-8 space-y-4">
                         <Field label="Email" error={form.errors.email}>

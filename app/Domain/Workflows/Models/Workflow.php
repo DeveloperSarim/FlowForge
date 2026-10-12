@@ -4,6 +4,7 @@ namespace App\Domain\Workflows\Models;
 
 use App\Domain\Engine\Jobs\RunWorkflow;
 use App\Domain\Integrations\ManifestLoader;
+use App\Domain\License\License;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -138,6 +139,9 @@ class Workflow extends Model
      */
     public function start(string $mode, array $triggerOutput, bool $sync = false, ?array $only = null): WorkflowExecution
     {
+        if ($problem = app(License::class)->problem()) {
+            throw new \RuntimeException($problem); // no runs (editor, webhooks, schedules) without a license
+        }
         $execution = $this->executions()->create([
             'status' => WorkflowExecution::PENDING,
             'mode' => $mode,

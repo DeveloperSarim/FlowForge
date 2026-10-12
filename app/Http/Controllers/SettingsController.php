@@ -7,6 +7,8 @@ use App\Domain\Assistant\Providers;
 use App\Domain\Installer\CronInstaller;
 use App\Domain\Installer\SystemValidator;
 use App\Domain\Integrations\ManifestLoader;
+use App\Domain\License\DemoMode;
+use App\Domain\License\License;
 use App\Domain\System\Notifier;
 use App\Domain\System\SettingsValidation;
 use App\Domain\System\SystemSettings;
@@ -17,6 +19,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\Validation\ValidationException;
@@ -37,16 +40,21 @@ class SettingsController extends Controller
         }
 
         $mail = $this->settings->mail();
+        $demoUser = $request->user()->isDemo();
         $ai = (array) $this->settings->get('ai', []);
         $catalog = $manifests->catalogMap();
 
         return Inertia::render('Settings', [
             'mcp' => $mcp,
             // Secrets never leave the server: only whether one is stored.
-            'mail' => $mail ? Arr::except($mail, ['password']) + ['has_password' => ! empty($mail['password'])] : null,
-            'notifications' => $this->settings->notifications(),
+            // The demo's visitors see the pages, not the author's mail server or addresses.
+            'mail' => $mail && ! $demoUser ? Arr::except($mail, ['password']) + ['has_password' => ! empty($mail['password'])] : null,
+            'notifications' => $demoUser ? ['recipients' => []] + $this->settings->notifications() : $this->settings->notifications(),
             'timezone' => $this->settings->timezone(),
-            'team' => ['members' => TeamController::members(), 'permissions' => User::PERMISSIONS],
+            'license' => app(License::class)->summary(),
+            'demo' => app(DemoMode::class)->active() && ! $request->user()->isDemo()
+                ? ['login' => app(DemoMode::class)->credentials(), 'snapshot' => app(DemoMode::class)->snapshotInfo()] : null,
+            'team' => ['members' => $demoUser ? array_map(fn ($m) => ['email' => Str::mask($m['email'], '*', 2, -6)] + $m, TeamController::members()) : TeamController::members(), 'permissions' => User::PERMISSIONS],
             'cron' => app(SystemValidator::class)->cronCommand(),
             'updates' => [
                 'version' => app(Updater::class)->current(),
