@@ -19,10 +19,10 @@ What's included:
 1. **Build a release** on your machine. The server needs no Composer or Node.
    ```bash
    composer install && npm ci
-   bash scripts/make-release.sh      # → dist/flowforge-<date>.zip (PHP 8.2+, ~19 MB)
+   bash scripts/make-release.sh 1.2.0   # version is optional (default: the VERSION file)
    ```
-   The zip has production `vendor/` and built assets, and no `.env`, install flag, logs or sessions.
-2. **Upload the zip** in your host's File Manager and extract it.
+   This writes `dist/flowforge-install-<version>.zip` (fresh installs), `dist/flowforge-update-<version>.zip` (updates, see below) and `dist/extract-flowforge.php`. They contain production `vendor/` and built assets, and no `.env`, install flag, logs or sessions. PHP 8.2+.
+2. **Upload the install zip** in your host's File Manager and extract it.
    - If extraction stops part-way (File Managers often time out on ~14,000 files: you'd see `app/`, `config/`, `resources/` but no `public/`, `vendor/` or `artisan`), also upload `dist/extract-flowforge.php` next to the zip and open `https://your-domain/extract-flowforge.php`. It unpacks in batches, then deletes the zip and itself and opens the installer.
    - Best: point the domain's document root at `public/`.
    - If you can only upload into `public_html`, the root `.htaccess` forwards requests into `public/`.
@@ -43,6 +43,8 @@ What's included:
    - cPanel: Advanced → Cron Jobs → Common Settings **Once Per Minute**. Versioned PHP: `/opt/cpanel/ea-php82/root/usr/bin/php`.
 
 Configured `.env` by hand and ran `php artisan migrate --force` yourself? Set `FLOWFORGE_INSTALLED=true` to skip the wizard.
+
+**Updating:** Settings → Updates → drop `flowforge-update-<version>.zip`. The zip is uploaded in 1.5 MB pieces (so `upload_max_filesize` doesn't matter), unpacked in batches into `storage/app/updates/staging`, then `public/update-runner.php` (no Laravel, one-time token) swaps the new code in, moving the old code to `storage/app/updates/backup-<old version>-<time>` and restoring it if any move fails. Finally migrations run on the new code. `.env`, `storage/` and `bootstrap/cache` are never in an update package, so settings, credentials, workflows and history stay. Older versions won't install over newer ones. Installs older than 1.1.0 (no Updates tab yet) update once with the install zip + `extract-flowforge.php`, which keeps `.env` and `storage/`.
 
 **Forgot your password?** "Forgot password?" on the sign-in page emails a 6-digit code (valid 15 minutes, 5 tries, single use). Without email configured, run `php artisan flowforge:reset-password you@example.com` from a terminal.
 

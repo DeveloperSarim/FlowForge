@@ -10,6 +10,9 @@ return [
 
     'http_timeout' => (int) env('FLOWFORGE_HTTP_TIMEOUT', 30),
 
+    // Folder the in-app updater replaces code in (tests point it at a temp copy). Null = the app itself.
+    'update_root' => null,
+
     // Step inputs/outputs larger than this (bytes of JSON) are truncated in execution logs.
     'max_log_bytes' => 64 * 1024,
 ];

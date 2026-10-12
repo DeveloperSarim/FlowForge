@@ -17,7 +17,7 @@ npm run build                                      # frontend (also run before r
 php artisan flowforge:integrations --refresh --summary   # rebuild manifest cache, counts per category
 php artisan flowforge:audit [app-or-category] [--warnings] [--live]   # dry-run every action; must report 0 errors
 node scripts/build-integration-icons.mjs --favicons # logos for new apps (public/integrations/icons)
-bash scripts/make-release.sh                       # dist/flowforge-<date>.zip for shared hosting
+bash scripts/make-release.sh 1.2.0                 # dist/flowforge-install-1.2.0.zip + flowforge-update-1.2.0.zip (bumps VERSION)
 php artisan flowforge:reset-password you@example.com
 ```
 
@@ -46,4 +46,5 @@ macOS has no `timeout` command. Local throwaway credentials live in `storage/app
 - Timestamps are stored in UTC; only schedules and display use the configured timezone.
 - AI token budget: tool outputs stay compact, the system prompt is static per install (prompt caching), max 10 tool steps. Deletes by the assistant need the user's confirmation card.
 - The chat endpoint streams NDJSON (`Accept: application/x-ndjson`) and must still work when a host buffers output (events then arrive at the end).
+- In-app updates: `App\Domain\System\Updater` (chunked upload → batch extract → `public/update-runner.php` swap with backup/rollback → `finish` migrates on the new code). Bump `VERSION` for every release; update packages must never contain `.env`, `storage/` or `bootstrap/cache`. Tests point `flowforge.update_root` at a temp folder; never run the runner against the repo.
 - Release zips must not contain `.env`, `storage/.installed`, logs, sessions or `local-dev-install.txt`; `make-release.sh` handles this. Webhook runs wait for the next cron tick (≤ 1 minute).

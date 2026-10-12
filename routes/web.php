@@ -12,6 +12,7 @@ use App\Domain\Workflows\Controllers\WorkflowController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\PasswordResetController;
 use App\Http\Controllers\SettingsController;
+use App\Http\Controllers\UpdateController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('install')->controller(InstallerController::class)->group(function () {
@@ -44,6 +45,9 @@ Route::middleware('auth')->group(function () {
     Route::put('settings/appearance', [SettingsController::class, 'updateAppearance']);
     Route::put('settings/general', [SettingsController::class, 'updateGeneral']);
     Route::post('settings/scheduler/auto', [SettingsController::class, 'autoCron'])->middleware('throttle:5,1');
+    Route::post('settings/updates/upload', [UpdateController::class, 'upload'])->middleware('throttle:300,1');
+    Route::post('settings/updates/extract', [UpdateController::class, 'extract']);
+    Route::post('settings/updates/finish', [UpdateController::class, 'finish']);
     Route::put('settings/mail', [SettingsController::class, 'updateMail']);
     Route::post('settings/mail/test', [SettingsController::class, 'testMail'])->middleware('throttle:10,1');
     Route::put('settings/notifications', [SettingsController::class, 'updateNotifications']);

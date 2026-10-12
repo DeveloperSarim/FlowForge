@@ -10,6 +10,7 @@ use App\Domain\Integrations\ManifestLoader;
 use App\Domain\System\Notifier;
 use App\Domain\System\SettingsValidation;
 use App\Domain\System\SystemSettings;
+use App\Domain\System\Updater;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -37,6 +38,11 @@ class SettingsController extends Controller
             'notifications' => $this->settings->notifications(),
             'timezone' => $this->settings->timezone(),
             'cron' => app(SystemValidator::class)->cronCommand(),
+            'updates' => [
+                'version' => app(Updater::class)->current(),
+                'history' => (array) $this->settings->get('update_history', []),
+                'runner' => url('update-runner.php'),
+            ],
             'ai' => Arr::except($ai, ['api_key']) + ['has_key' => ! empty($ai['api_key'])],
             'providers' => collect(Providers::ALL)->map(fn ($p, $key) => Arr::only($p, ['name', 'model', 'models', 'base_url', 'base_urls', 'key_url']) + [
                 'key' => $key,

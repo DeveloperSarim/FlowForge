@@ -1,13 +1,25 @@
 #!/usr/bin/env bash
-# Builds dist/flowforge-<date>.zip for shared hosting: production vendor/, built assets,
-# and no secrets or local state (.env, install flag, logs, sessions, caches, test credentials).
-# Upload the zip, extract it (into public_html or a folder above it) and open /install.
+# Builds the two release zips for shared hosting:
+#   dist/flowforge-install-<version>.zip  fresh install: extract on the server, open /install
+#   dist/flowforge-update-<version>.zip   existing install: Settings → Updates → upload
+# plus dist/extract-flowforge.php for hosts whose File Manager can't extract the install zip.
+# Neither zip contains secrets or local state (.env, install flag, logs, sessions, caches, test credentials).
+#
+# Usage: bash scripts/make-release.sh [version]   (e.g. 1.2.0; writes VERSION. Omit to reuse VERSION.)
 set -euo pipefail
 
 root="$(cd "$(dirname "$0")/.." && pwd)"
+if [ -n "${1:-}" ]; then
+    [[ "$1" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "Version must look like 1.2.0" >&2; exit 1; }
+    echo "$1" > "$root/VERSION"
+fi
+version="$(tr -d '[:space:]' < "$root/VERSION")"
 stage="$(mktemp -d)"
-out="$root/dist/flowforge-$(date +%Y%m%d-%H%M).zip"
 trap 'rm -rf "$stage"' EXIT
+mkdir -p "$root/dist"
+install_zip="$root/dist/flowforge-install-$version.zip"
+update_zip="$root/dist/flowforge-update-$version.zip"
+rm -f "$install_zip" "$update_zip"
 
 echo "→ Building frontend assets"
 npm --prefix "$root" run build --silent
@@ -26,12 +38,19 @@ echo "→ Installing production dependencies"
 composer install --working-dir="$stage" --no-dev --optimize-autoloader --no-interaction --quiet
 # package:discover booted the app, and first boot writes a .env with a fresh APP_KEY: every install must make its own.
 rm -f "$stage/.env"
+find "$stage/storage" -type f ! -name .gitignore -delete
 
-min_php=$(grep -o 'PHP_VERSION_ID >= [0-9]*' "$stage/vendor/composer/platform_check.php" | head -1 | grep -o '[0-9]*$' || true)
-mkdir -p "$root/dist"
-(cd "$stage" && zip -qr "$out" . -x '*.DS_Store')
+php_min="8.2.0"
+echo "→ Zipping"
+(cd "$stage" && zip -qr "$install_zip" . -x '*.DS_Store')
+
+# The update package: code only. storage/ and bootstrap/cache belong to the running install.
+printf '{"product":"flowforge","version":"%s","php":"%s","built_at":"%s"}\n' "$version" "$php_min" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > "$stage/flowforge-update.json"
+(cd "$stage" && zip -qr "$update_zip" . -x 'storage/*' 'bootstrap/cache/*' '.env*' '*.DS_Store')
 
 cp "$root/scripts/extract-flowforge.php" "$root/dist/extract-flowforge.php"
 
-echo "✓ $out ($(du -h "$out" | cut -f1)), needs PHP ${min_php:-80200}+"
-echo "  + dist/extract-flowforge.php: upload it next to the zip if the File Manager can't extract it"
+echo "✓ v$version (PHP $php_min+)"
+echo "  fresh install: $install_zip ($(du -h "$install_zip" | cut -f1))"
+echo "  update:        $update_zip ($(du -h "$update_zip" | cut -f1))"
+echo "  + dist/extract-flowforge.php: upload it next to the install zip if the File Manager can't extract it"

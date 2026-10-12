@@ -14,8 +14,10 @@ declare(strict_types=1);
 const BATCH = 1500;
 
 $dir = __DIR__;
-$zips = glob($dir.'/flowforge-*.zip') ?: [];
-rsort($zips); // date-stamped names: newest first
+// The install zip (flowforge-install-x.y.z.zip, or an older date-stamped flowforge-*.zip); update zips
+// are applied from Settings → Updates instead.
+$zips = array_values(array_filter(glob($dir.'/flowforge-*.zip') ?: [], fn ($zip) => ! str_contains(basename($zip), '-update-')));
+usort($zips, fn ($a, $b) => filemtime($b) <=> filemtime($a)); // newest upload first
 $zipPath = $zips[0] ?? null;
 $from = max(0, (int) ($_GET['from'] ?? 0));
 
@@ -37,7 +39,7 @@ if (! class_exists(ZipArchive::class)) {
     page('PHP "zip" extension is off', 'Turn it on in your hosting panel (Hostinger: Advanced → PHP Configuration → PHP extensions → zip), then reload this page.');
 }
 if ($zipPath === null) {
-    page('Zip not found', 'Upload <code>flowforge-….zip</code> into the same folder as this file, then reload this page.');
+    page('Zip not found', 'Upload <code>flowforge-install-….zip</code> into the same folder as this file, then reload this page.');
 }
 
 $zip = new ZipArchive;
