@@ -23,6 +23,7 @@ What's included:
    ```
    The zip has production `vendor/` and built assets, and no `.env`, install flag, logs or sessions.
 2. **Upload the zip** in your host's File Manager and extract it.
+   - If extraction stops part-way (File Managers often time out on ~14,000 files: you'd see `app/`, `config/`, `resources/` but no `public/`, `vendor/` or `artisan`), also upload `dist/extract-flowforge.php` next to the zip and open `https://your-domain/extract-flowforge.php`. It unpacks in batches, then deletes the zip and itself and opens the installer.
    - Best: point the domain's document root at `public/`.
    - If you can only upload into `public_html`, the root `.htaccess` forwards requests into `public/`.
 3. **Make these writable:** `storage/`, `bootstrap/cache/` and the app folder itself, since the installer creates `.env` there.

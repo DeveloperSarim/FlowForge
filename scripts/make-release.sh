@@ -31,4 +31,7 @@ min_php=$(grep -o 'PHP_VERSION_ID >= [0-9]*' "$stage/vendor/composer/platform_ch
 mkdir -p "$root/dist"
 (cd "$stage" && zip -qr "$out" . -x '*.DS_Store')
 
+cp "$root/scripts/extract-flowforge.php" "$root/dist/extract-flowforge.php"
+
 echo "✓ $out ($(du -h "$out" | cut -f1)), needs PHP ${min_php:-80200}+"
+echo "  + dist/extract-flowforge.php: upload it next to the zip if the File Manager can't extract it"
