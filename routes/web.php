@@ -36,6 +36,10 @@ Route::prefix('install')->controller(InstallerController::class)->group(function
     Route::post('finish', 'finish');
 });
 
+// "/" for guests is the sign-in page itself (200, not a redirect): link previews (WhatsApp, LinkedIn,
+// Slack) read its title and image instead of an empty redirect.
+Route::get('/', fn () => auth()->check() ? app()->call(OverviewController::class) : app(AuthController::class)->showLogin());
+
 Route::middleware('guest')->group(function () {
     Route::get('login', [AuthController::class, 'showLogin'])->name('login');
     Route::post('login', [AuthController::class, 'login'])->middleware('throttle:10,1');
@@ -50,7 +54,6 @@ Route::middleware('guest')->group(function () {
 });
 
 Route::middleware('auth')->group(function () {
-    Route::get('/', OverviewController::class);
     Route::post('logout', [AuthController::class, 'logout']);
 
     // Everyone: their own account and look.

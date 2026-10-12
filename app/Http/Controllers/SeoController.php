@@ -26,7 +26,7 @@ class SeoController extends Controller
 
     public function sitemap(): Response
     {
-        $urls = collect([['/login', '1.0'], ['/llms.txt', '0.5'], ['/llms-full.txt', '0.5']])
+        $urls = collect([['/', '1.0'], ['/llms.txt', '0.5'], ['/llms-full.txt', '0.5']])
             ->map(fn ($u) => '  <url><loc>'.e(url($u[0])).'</loc><changefreq>weekly</changefreq><priority>'.$u[1].'</priority></url>')
             ->implode("\n");
 
