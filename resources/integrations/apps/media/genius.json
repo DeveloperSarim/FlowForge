@@ -1,0 +1,59 @@
+{
+  "key": "genius",
+  "name": "Genius",
+  "category": "Video & Media",
+  "description": "Search songs and look up song and artist details on Genius.",
+  "brand": "genius",
+  "website": "https://genius.com",
+  "docs_url": "https://docs.genius.com",
+  "base_url": "https://api.genius.com",
+  "auth": [
+    { "type": "bearer", "fields": [{ "key": "token", "label": "Client access token", "type": "password", "required": true, "help": "genius.com/api-clients > Generate access token." }] },
+    { "type": "oauth2", "authorize_url": "https://api.genius.com/oauth/authorize", "token_url": "https://api.genius.com/oauth/token", "scopes": ["me"] }
+  ],
+  "actions": [
+    {
+      "key": "search",
+      "name": "Search",
+      "method": "GET",
+      "endpoint": "/search",
+      "output_path": "response.hits",
+      "query": { "q": "{{ inputs.q }}" },
+      "inputs": [{ "key": "q", "label": "Query", "type": "string", "required": true, "placeholder": "Kendrick Lamar HUMBLE" }]
+    },
+    {
+      "key": "get_song",
+      "name": "Get song",
+      "method": "GET",
+      "endpoint": "/songs/{{ inputs.song_id }}",
+      "output_path": "response.song",
+      "query": { "text_format": "plain" },
+      "inputs": [{ "key": "song_id", "label": "Song ID", "type": "string", "required": true }]
+    },
+    {
+      "key": "get_artist",
+      "name": "Get artist",
+      "method": "GET",
+      "endpoint": "/artists/{{ inputs.artist_id }}",
+      "output_path": "response.artist",
+      "query": { "text_format": "plain" },
+      "inputs": [{ "key": "artist_id", "label": "Artist ID", "type": "string", "required": true }]
+    },
+    {
+      "key": "get_artist_songs",
+      "name": "Get artist songs",
+      "method": "GET",
+      "endpoint": "/artists/{{ inputs.artist_id }}/songs",
+      "output_path": "response.songs",
+      "query": { "sort": "{{ inputs.sort }}", "per_page": "{{ inputs.per_page }}", "page": "{{ inputs.page }}" },
+      "inputs": [
+        { "key": "artist_id", "label": "Artist ID", "type": "string", "required": true },
+        { "key": "sort", "label": "Sort", "type": "select", "default": "popularity", "options": [
+          { "value": "popularity", "label": "Popularity" }, { "value": "title", "label": "Title" }
+        ] },
+        { "key": "per_page", "label": "Per page (max 50)", "type": "number", "default": 20 },
+        { "key": "page", "label": "Page", "type": "number" }
+      ]
+    }
+  ]
+}

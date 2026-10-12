@@ -1,0 +1,262 @@
+{
+  "key": "sumup",
+  "name": "SumUp",
+  "category": "E-commerce",
+  "description": "Create online checkouts, list and refund transactions in SumUp.",
+  "brand": "sumup",
+  "website": "https://www.sumup.com",
+  "docs_url": "https://developer.sumup.com/api",
+  "base_url": "https://api.sumup.com",
+  "auth": [
+    {
+      "type": "bearer",
+      "fields": [
+        {
+          "key": "token",
+          "label": "API key (sup_sk_…)",
+          "type": "password",
+          "required": true,
+          "help": "Dashboard > Settings > For developers > API keys."
+        },
+        {
+          "key": "merchant_code",
+          "label": "Merchant code",
+          "type": "string",
+          "required": true,
+          "help": "Shown in the SumUp dashboard under Profile, e.g. MH4H92C7."
+        }
+      ]
+    },
+    {
+      "type": "oauth2",
+      "authorize_url": "https://api.sumup.com/authorize",
+      "token_url": "https://api.sumup.com/token",
+      "scopes": [
+        "payments",
+        "transactions.history",
+        "user.profile_readonly"
+      ],
+      "fields": [
+        {
+          "key": "merchant_code",
+          "label": "Merchant code",
+          "type": "string",
+          "required": true,
+          "help": "Shown in the SumUp dashboard under Profile, e.g. MH4H92C7."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "create_checkout",
+      "name": "Create checkout",
+      "method": "POST",
+      "endpoint": "/v0.1/checkouts",
+      "body": {
+        "checkout_reference": "{{ inputs.reference }}",
+        "amount": "{{ inputs.amount }}",
+        "currency": "{{ inputs.currency }}",
+        "merchant_code": "{{ credentials.merchant_code }}",
+        "description": "{{ inputs.description }}",
+        "return_url": "{{ inputs.return_url }}",
+        "redirect_url": "{{ inputs.redirect_url }}",
+        "hosted_checkout": {
+          "enabled": "{{ inputs.hosted_checkout }}"
+        }
+      },
+      "output_fields": {
+        "url": "hosted_checkout_url"
+      },
+      "inputs": [
+        {
+          "key": "reference",
+          "label": "Checkout reference",
+          "type": "string",
+          "required": true,
+          "help": "Your unique ID for this payment."
+        },
+        {
+          "key": "amount",
+          "label": "Amount",
+          "type": "number",
+          "required": true,
+          "placeholder": "10.50"
+        },
+        {
+          "key": "currency",
+          "label": "Currency",
+          "type": "string",
+          "required": true,
+          "default": "EUR"
+        },
+        {
+          "key": "description",
+          "label": "Description",
+          "type": "string"
+        },
+        {
+          "key": "hosted_checkout",
+          "label": "Hosted checkout page",
+          "type": "boolean",
+          "help": "Return a SumUp-hosted payment page URL."
+        },
+        {
+          "key": "redirect_url",
+          "label": "Redirect URL",
+          "type": "string",
+          "help": "Where the payer lands after paying on the hosted page."
+        },
+        {
+          "key": "return_url",
+          "label": "Status callback URL",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "get_checkout",
+      "name": "Get checkout",
+      "method": "GET",
+      "endpoint": "/v0.1/checkouts/{{ inputs.checkout_id }}",
+      "inputs": [
+        {
+          "key": "checkout_id",
+          "label": "Checkout ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_transactions",
+      "name": "List transactions",
+      "method": "GET",
+      "endpoint": "/v2.1/merchants/{{ credentials.merchant_code }}/transactions/history",
+      "query": {
+        "order": "descending",
+        "limit": "{{ inputs.limit }}",
+        "statuses[]": "{{ inputs.status }}",
+        "oldest_time": "{{ inputs.oldest_time }}"
+      },
+      "output_path": "items",
+      "inputs": [
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 50
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "options": [
+            {
+              "value": "SUCCESSFUL",
+              "label": "Successful"
+            },
+            {
+              "value": "CANCELLED",
+              "label": "Cancelled"
+            },
+            {
+              "value": "FAILED",
+              "label": "Failed"
+            },
+            {
+              "value": "REFUNDED",
+              "label": "Refunded"
+            },
+            {
+              "value": "CHARGE_BACK",
+              "label": "Charge back"
+            }
+          ]
+        },
+        {
+          "key": "oldest_time",
+          "label": "From (ISO time)",
+          "type": "string",
+          "placeholder": "2026-01-31T00:00:00Z"
+        }
+      ]
+    },
+    {
+      "key": "get_transaction",
+      "name": "Get transaction",
+      "method": "GET",
+      "endpoint": "/v2.1/merchants/{{ credentials.merchant_code }}/transactions",
+      "query": {
+        "id": "{{ inputs.transaction_id }}",
+        "transaction_code": "{{ inputs.transaction_code }}"
+      },
+      "inputs": [
+        {
+          "key": "transaction_id",
+          "label": "Transaction ID",
+          "type": "string"
+        },
+        {
+          "key": "transaction_code",
+          "label": "Transaction code",
+          "type": "string",
+          "placeholder": "TEENSK4W2K"
+        }
+      ]
+    },
+    {
+      "key": "refund_transaction",
+      "name": "Refund transaction",
+      "method": "POST",
+      "endpoint": "/v1.0/merchants/{{ credentials.merchant_code }}/payments/{{ inputs.transaction_id }}/refunds",
+      "body": {
+        "amount": "{{ inputs.amount }}"
+      },
+      "inputs": [
+        {
+          "key": "transaction_id",
+          "label": "Transaction ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "amount",
+          "label": "Amount",
+          "type": "number",
+          "help": "Leave blank for a full refund."
+        }
+      ]
+    },
+    {
+      "key": "get_merchant",
+      "name": "Get merchant profile",
+      "method": "GET",
+      "endpoint": "/v1/merchants/{{ credentials.merchant_code }}",
+      "inputs": []
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_transaction",
+      "name": "New transaction",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/v2.1/merchants/{{ credentials.merchant_code }}/transactions/history",
+      "query": {
+        "order": "descending",
+        "limit": 50
+      },
+      "items_path": "items",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

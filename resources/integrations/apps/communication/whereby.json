@@ -1,0 +1,60 @@
+{
+  "key": "whereby",
+  "name": "Whereby",
+  "category": "Communication",
+  "description": "Create, look up and delete Whereby video meeting rooms.",
+  "brand": "whereby",
+  "website": "https://whereby.com",
+  "docs_url": "https://docs.whereby.com/reference/whereby-rest-api-reference",
+  "base_url": "https://api.whereby.dev/v1",
+  "auth": [
+    { "type": "bearer", "fields": [{ "key": "token", "label": "API key", "type": "password", "required": true }] }
+  ],
+  "actions": [
+    {
+      "key": "create_meeting",
+      "name": "Create meeting",
+      "method": "POST",
+      "endpoint": "/meetings",
+      "body": {
+        "endDate": "{{ inputs.end_date }}",
+        "roomNamePrefix": "{{ inputs.room_name_prefix }}",
+        "roomMode": "{{ inputs.room_mode }}",
+        "isLocked": "{{ inputs.is_locked }}",
+        "fields": ["hostRoomUrl"]
+      },
+      "inputs": [
+        { "key": "end_date", "label": "Room expires at", "type": "string", "required": true, "placeholder": "2026-05-01T16:00:00Z" },
+        { "key": "room_name_prefix", "label": "Room name prefix", "type": "string", "placeholder": "team-sync" },
+        { "key": "room_mode", "label": "Room mode", "type": "select", "default": "normal", "options": [
+          { "value": "normal", "label": "Normal (small meetings)" }, { "value": "group", "label": "Group (large meetings)" }
+        ] },
+        { "key": "is_locked", "label": "Locked (knock to enter)", "type": "boolean", "default": false }
+      ]
+    },
+    {
+      "key": "get_meeting",
+      "name": "Get meeting",
+      "method": "GET",
+      "endpoint": "/meetings/{{ inputs.meeting_id }}",
+      "inputs": [{ "key": "meeting_id", "label": "Meeting ID", "type": "string", "required": true }]
+    },
+    {
+      "key": "delete_meeting",
+      "name": "Delete meeting",
+      "method": "DELETE",
+      "endpoint": "/meetings/{{ inputs.meeting_id }}",
+      "inputs": [{ "key": "meeting_id", "label": "Meeting ID", "type": "string", "required": true }]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "description": "Add this URL under Configure > Webhooks in the Whereby dashboard.",
+      "type": "webhook",
+      "data_path": "data",
+      "inputs": [{ "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }]
+    }
+  ]
+}

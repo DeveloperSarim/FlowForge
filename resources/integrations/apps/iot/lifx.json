@@ -1,0 +1,78 @@
+{
+  "key": "lifx",
+  "name": "LIFX",
+  "category": "IoT & Smart Home",
+  "description": "Turn LIFX lights on or off, change colour and brightness, and activate scenes.",
+  "brand": "lifx",
+  "website": "https://www.lifx.com",
+  "docs_url": "https://api.developer.lifx.com/reference/introduction",
+  "base_url": "https://api.lifx.com/v1",
+  "auth": [
+    {
+      "type": "bearer",
+      "fields": [
+        { "key": "token", "label": "Personal access token", "type": "password", "required": true, "help": "Create one at cloud.lifx.com > Settings > Personal access tokens." }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_lights",
+      "name": "List lights",
+      "method": "GET",
+      "endpoint": "/lights/{{ inputs.selector }}",
+      "inputs": [
+        { "key": "selector", "label": "Selector", "type": "string", "required": true, "default": "all", "help": "all, label:Desk, group:Kitchen, location:Home or id:d073d5..." }
+      ]
+    },
+    {
+      "key": "set_state",
+      "name": "Set light state",
+      "description": "Sets power, colour and brightness of the selected lights.",
+      "method": "PUT",
+      "endpoint": "/lights/{{ inputs.selector }}/state",
+      "body": {
+        "power": "{{ inputs.power }}",
+        "color": "{{ inputs.color }}",
+        "brightness": "{{ inputs.brightness }}",
+        "duration": "{{ inputs.duration }}"
+      },
+      "inputs": [
+        { "key": "selector", "label": "Selector", "type": "string", "required": true, "default": "all", "help": "all, label:Desk, group:Kitchen, location:Home or id:d073d5..." },
+        { "key": "power", "label": "Power", "type": "select", "options": [{ "value": "on", "label": "On" }, { "value": "off", "label": "Off" }] },
+        { "key": "color", "label": "Colour", "type": "string", "placeholder": "blue saturation:0.5 or #ff8800 or kelvin:2700" },
+        { "key": "brightness", "label": "Brightness (0-1)", "type": "number", "placeholder": "0.75" },
+        { "key": "duration", "label": "Fade duration (seconds)", "type": "number" }
+      ]
+    },
+    {
+      "key": "toggle_power",
+      "name": "Toggle power",
+      "method": "POST",
+      "endpoint": "/lights/{{ inputs.selector }}/toggle",
+      "body": { "duration": "{{ inputs.duration }}" },
+      "inputs": [
+        { "key": "selector", "label": "Selector", "type": "string", "required": true, "default": "all" },
+        { "key": "duration", "label": "Fade duration (seconds)", "type": "number" }
+      ]
+    },
+    {
+      "key": "list_scenes",
+      "name": "List scenes",
+      "method": "GET",
+      "endpoint": "/scenes",
+      "inputs": []
+    },
+    {
+      "key": "activate_scene",
+      "name": "Activate scene",
+      "method": "PUT",
+      "endpoint": "/scenes/scene_id:{{ inputs.scene_uuid }}/activate",
+      "body": { "duration": "{{ inputs.duration }}" },
+      "inputs": [
+        { "key": "scene_uuid", "label": "Scene UUID", "type": "string", "required": true, "help": "From List scenes (uuid)." },
+        { "key": "duration", "label": "Fade duration (seconds)", "type": "number" }
+      ]
+    }
+  ]
+}

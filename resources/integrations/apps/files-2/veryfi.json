@@ -1,0 +1,161 @@
+{
+  "key": "veryfi",
+  "name": "Veryfi",
+  "category": "Files & Documents",
+  "description": "Extract receipt and invoice data and manage processed documents.",
+  "brand": "veryfi",
+  "website": "https://www.veryfi.com",
+  "docs_url": "https://docs.veryfi.com/api/getting-started/reference",
+  "base_url": "https://api.veryfi.com/api/v8/partner",
+  "headers": {
+    "CLIENT-ID": "{{ credentials.client_id }}",
+    "AUTHORIZATION": "apikey {{ credentials.username }}:{{ credentials.api_key }}"
+  },
+  "auth": [
+    {
+      "type": "api_key",
+      "fields": [
+        {
+          "key": "client_id",
+          "label": "Client ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "username",
+          "label": "Username",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "api_key",
+          "label": "API key",
+          "type": "password",
+          "required": true,
+          "help": "Settings > Keys in the Veryfi hub."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "process_document_url",
+      "name": "Process document from URL",
+      "method": "POST",
+      "endpoint": "/documents",
+      "timeout": 120,
+      "body": {
+        "file_url": "{{ inputs.file_url }}",
+        "categories": "{{ inputs.categories }}",
+        "tags": "{{ inputs.tags }}",
+        "external_id": "{{ inputs.external_id }}",
+        "boost_mode": "{{ inputs.boost_mode }}"
+      },
+      "inputs": [
+        {
+          "key": "file_url",
+          "label": "File URL",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "categories",
+          "label": "Categories",
+          "type": "list"
+        },
+        {
+          "key": "tags",
+          "label": "Tags",
+          "type": "list"
+        },
+        {
+          "key": "external_id",
+          "label": "External ID",
+          "type": "string"
+        },
+        {
+          "key": "boost_mode",
+          "label": "Boost mode (faster, less enrichment)",
+          "type": "boolean"
+        }
+      ]
+    },
+    {
+      "key": "get_document",
+      "name": "Get document",
+      "method": "GET",
+      "endpoint": "/documents/{{ inputs.document_id }}",
+      "inputs": [
+        {
+          "key": "document_id",
+          "label": "Document ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_documents",
+      "name": "Search documents",
+      "method": "GET",
+      "endpoint": "/documents",
+      "query": {
+        "q": "{{ inputs.q }}",
+        "external_id": "{{ inputs.external_id }}",
+        "tag": "{{ inputs.tag }}",
+        "created_date__gt": "{{ inputs.created_gt }}"
+      },
+      "inputs": [
+        {
+          "key": "q",
+          "label": "Search text",
+          "type": "string"
+        },
+        {
+          "key": "external_id",
+          "label": "External ID",
+          "type": "string"
+        },
+        {
+          "key": "tag",
+          "label": "Tag",
+          "type": "string"
+        },
+        {
+          "key": "created_gt",
+          "label": "Created after",
+          "type": "string",
+          "placeholder": "2026-01-01+00:00:00"
+        }
+      ]
+    },
+    {
+      "key": "delete_document",
+      "name": "Delete document",
+      "method": "DELETE",
+      "endpoint": "/documents/{{ inputs.document_id }}",
+      "inputs": [
+        {
+          "key": "document_id",
+          "label": "Document ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

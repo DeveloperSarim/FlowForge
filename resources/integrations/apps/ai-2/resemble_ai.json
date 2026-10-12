@@ -1,0 +1,126 @@
+{
+  "key": "resemble_ai",
+  "name": "Resemble AI",
+  "category": "AI",
+  "description": "Synthesize speech with Resemble voices and list voices and projects.",
+  "brand": "resembleai",
+  "website": "https://www.resemble.ai",
+  "docs_url": "https://docs.resemble.ai",
+  "base_url": "https://app.resemble.ai/api/v2",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "app.resemble.ai → Hub → API."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "synthesize",
+      "name": "Text to speech",
+      "description": "Audio comes back base64-encoded as {{ steps.<id>.audio_base64 }}.",
+      "method": "POST",
+      "endpoint": "https://f.cluster.resemble.ai/synthesize",
+      "timeout": 120,
+      "body": {
+        "voice_uuid": "{{ inputs.voice_uuid }}",
+        "data": "{{ inputs.data }}",
+        "project_uuid": "{{ inputs.project_uuid }}",
+        "title": "{{ inputs.title }}",
+        "output_format": "{{ inputs.output_format }}"
+      },
+      "output_fields": {
+        "audio_base64": "audio_content"
+      },
+      "inputs": [
+        {
+          "key": "voice_uuid",
+          "label": "Voice UUID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "data",
+          "label": "Text or SSML",
+          "type": "text",
+          "required": true,
+          "help": "Up to 3,000 characters."
+        },
+        {
+          "key": "output_format",
+          "label": "Format",
+          "type": "select",
+          "options": [
+            {
+              "value": "mp3",
+              "label": "MP3"
+            },
+            {
+              "value": "wav",
+              "label": "WAV"
+            }
+          ]
+        },
+        {
+          "key": "project_uuid",
+          "label": "Project UUID",
+          "type": "string",
+          "help": "Save the clip to this project."
+        },
+        {
+          "key": "title",
+          "label": "Clip title",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "list_voices",
+      "name": "List voices",
+      "method": "GET",
+      "endpoint": "/voices",
+      "query": {
+        "page": "{{ inputs.page }}",
+        "page_size": "{{ inputs.page_size }}"
+      },
+      "output_path": "items",
+      "inputs": [
+        {
+          "key": "page",
+          "label": "Page",
+          "type": "number",
+          "default": 1
+        },
+        {
+          "key": "page_size",
+          "label": "Page size",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    },
+    {
+      "key": "list_projects",
+      "name": "List projects",
+      "method": "GET",
+      "endpoint": "/projects",
+      "query": {
+        "page": "{{ inputs.page }}"
+      },
+      "output_path": "items",
+      "inputs": [
+        {
+          "key": "page",
+          "label": "Page",
+          "type": "number",
+          "default": 1
+        }
+      ]
+    }
+  ]
+}

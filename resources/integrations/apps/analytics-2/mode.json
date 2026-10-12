@@ -1,0 +1,67 @@
+{
+  "key": "mode",
+  "name": "Mode",
+  "category": "Analytics",
+  "description": "Run Mode reports with parameters and check run results.",
+  "brand": "mode",
+  "website": "https://mode.com",
+  "docs_url": "https://mode.com/developer/api-reference/introduction/",
+  "base_url": "https://app.mode.com/api/{{ credentials.workspace }}",
+  "headers": { "Accept": "application/hal+json" },
+  "auth": { "type": "basic", "fields": [
+    { "key": "workspace", "label": "Workspace username", "type": "string", "required": true, "help": "The workspace name in app.mode.com/<workspace>." },
+    { "key": "username", "label": "API token", "type": "string", "required": true, "help": "Workspace Settings → API Keys." },
+    { "key": "password", "label": "API secret", "type": "password", "required": true }
+  ] },
+  "actions": [
+    {
+      "key": "list_spaces",
+      "name": "List collections (spaces)",
+      "method": "GET",
+      "endpoint": "/spaces",
+      "inputs": []
+    },
+    {
+      "key": "list_space_reports",
+      "name": "List reports in collection",
+      "method": "GET",
+      "endpoint": "/spaces/{{ inputs.space_token }}/reports",
+      "inputs": [{ "key": "space_token", "label": "Collection token", "type": "string", "required": true }]
+    },
+    {
+      "key": "get_report",
+      "name": "Get report",
+      "method": "GET",
+      "endpoint": "/reports/{{ inputs.report_token }}",
+      "inputs": [{ "key": "report_token", "label": "Report token", "type": "string", "required": true, "help": "From the report URL: app.mode.com/<workspace>/reports/<token>." }]
+    },
+    {
+      "key": "run_report",
+      "name": "Run report",
+      "method": "POST",
+      "endpoint": "/reports/{{ inputs.report_token }}/runs",
+      "body": { "parameters": "{{ inputs.parameters }}" },
+      "inputs": [
+        { "key": "report_token", "label": "Report token", "type": "string", "required": true },
+        { "key": "parameters", "label": "Parameters", "type": "keyvalue" }
+      ]
+    },
+    {
+      "key": "get_report_run",
+      "name": "Get report run",
+      "method": "GET",
+      "endpoint": "/reports/{{ inputs.report_token }}/runs/{{ inputs.run_token }}",
+      "inputs": [
+        { "key": "report_token", "label": "Report token", "type": "string", "required": true },
+        { "key": "run_token", "label": "Run token", "type": "string", "required": true }
+      ]
+    },
+    {
+      "key": "list_report_runs",
+      "name": "List report runs",
+      "method": "GET",
+      "endpoint": "/reports/{{ inputs.report_token }}/runs",
+      "inputs": [{ "key": "report_token", "label": "Report token", "type": "string", "required": true }]
+    }
+  ]
+}

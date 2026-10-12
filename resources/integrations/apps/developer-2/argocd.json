@@ -1,0 +1,75 @@
+{
+  "key": "argocd",
+  "name": "Argo CD",
+  "category": "Developer Tools",
+  "description": "List, inspect and sync Argo CD applications.",
+  "brand": "argo",
+  "website": "https://argoproj.github.io/cd/",
+  "docs_url": "https://argo-cd.readthedocs.io/en/stable/developer-guide/api-docs/",
+  "base_url": "{{ credentials.base_url }}/api/v1",
+  "auth": { "type": "bearer", "fields": [
+    { "key": "base_url", "label": "Argo CD URL", "type": "string", "required": true, "placeholder": "https://argocd.example.com", "help": "Without a trailing slash." },
+    { "key": "token", "label": "API token", "type": "password", "required": true, "help": "Generate one for an account with the apiKey capability: argocd account generate-token." }
+  ] },
+  "actions": [
+    {
+      "key": "list_applications",
+      "name": "List applications",
+      "method": "GET",
+      "endpoint": "/applications",
+      "query": { "project": "{{ inputs.project }}", "selector": "{{ inputs.selector }}" },
+      "output_path": "items",
+      "inputs": [
+        { "key": "project", "label": "Project", "type": "string" },
+        { "key": "selector", "label": "Label selector", "type": "string", "placeholder": "team=payments" }
+      ]
+    },
+    {
+      "key": "get_application",
+      "name": "Get application",
+      "method": "GET",
+      "endpoint": "/applications/{{ inputs.name }}",
+      "query": { "appNamespace": "{{ inputs.app_namespace }}" },
+      "inputs": [
+        { "key": "name", "label": "Application name", "type": "string", "required": true },
+        { "key": "app_namespace", "label": "Application namespace", "type": "string", "help": "Only when apps live outside the argocd namespace." }
+      ]
+    },
+    {
+      "key": "sync_application",
+      "name": "Sync application",
+      "method": "POST",
+      "endpoint": "/applications/{{ inputs.name }}/sync",
+      "body": { "revision": "{{ inputs.revision }}", "prune": "{{ inputs.prune }}", "dryRun": "{{ inputs.dry_run }}", "appNamespace": "{{ inputs.app_namespace }}" },
+      "inputs": [
+        { "key": "name", "label": "Application name", "type": "string", "required": true },
+        { "key": "revision", "label": "Revision", "type": "string", "help": "Defaults to the app's target revision." },
+        { "key": "prune", "label": "Prune", "type": "boolean" },
+        { "key": "dry_run", "label": "Dry run", "type": "boolean" },
+        { "key": "app_namespace", "label": "Application namespace", "type": "string" }
+      ]
+    },
+    {
+      "key": "refresh_application",
+      "name": "Refresh application",
+      "description": "Re-reads the Git source and recomputes sync status.",
+      "method": "GET",
+      "endpoint": "/applications/{{ inputs.name }}",
+      "query": { "refresh": "{{ inputs.mode }}" },
+      "inputs": [
+        { "key": "name", "label": "Application name", "type": "string", "required": true },
+        { "key": "mode", "label": "Refresh type", "type": "select", "required": true, "default": "normal", "options": [
+          { "value": "normal", "label": "Normal" }, { "value": "hard", "label": "Hard (also invalidates manifest cache)" }
+        ] }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "notification",
+      "name": "Notification (webhook)",
+      "type": "webhook",
+      "inputs": [{ "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }]
+    }
+  ]
+}

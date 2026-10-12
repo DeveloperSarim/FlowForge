@@ -1,0 +1,81 @@
+{
+  "key": "adafruit_io",
+  "name": "Adafruit IO",
+  "category": "IoT & Smart Home",
+  "description": "Send values to Adafruit IO feeds and read the latest data.",
+  "brand": "adafruit",
+  "website": "https://io.adafruit.com",
+  "docs_url": "https://io.adafruit.com/api/docs/",
+  "base_url": "https://io.adafruit.com/api/v2/{{ credentials.username }}",
+  "auth": [
+    {
+      "type": "api_key",
+      "in": "header",
+      "name": "X-AIO-Key",
+      "fields": [
+        { "key": "username", "label": "Username", "type": "string", "required": true },
+        { "key": "api_key", "label": "AIO key", "type": "password", "required": true, "help": "io.adafruit.com > the key icon (My Key)." }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_feeds",
+      "name": "List feeds",
+      "method": "GET",
+      "endpoint": "/feeds",
+      "inputs": []
+    },
+    {
+      "key": "create_data",
+      "name": "Send value",
+      "method": "POST",
+      "endpoint": "/feeds/{{ inputs.feed_key }}/data",
+      "body": { "value": "{{ inputs.value }}", "lat": "{{ inputs.lat }}", "lon": "{{ inputs.lon }}", "created_at": "{{ inputs.created_at }}" },
+      "inputs": [
+        { "key": "feed_key", "label": "Feed key", "type": "string", "required": true, "placeholder": "temperature" },
+        { "key": "value", "label": "Value", "type": "string", "required": true },
+        { "key": "lat", "label": "Latitude", "type": "number" },
+        { "key": "lon", "label": "Longitude", "type": "number" },
+        { "key": "created_at", "label": "Timestamp", "type": "string", "placeholder": "2026-10-11T12:00:00Z" }
+      ]
+    },
+    {
+      "key": "get_last_data",
+      "name": "Get last value",
+      "method": "GET",
+      "endpoint": "/feeds/{{ inputs.feed_key }}/data/last",
+      "inputs": [
+        { "key": "feed_key", "label": "Feed key", "type": "string", "required": true }
+      ]
+    },
+    {
+      "key": "list_data",
+      "name": "List feed data",
+      "method": "GET",
+      "endpoint": "/feeds/{{ inputs.feed_key }}/data",
+      "query": { "limit": "{{ inputs.limit }}", "start_time": "{{ inputs.start_time }}", "end_time": "{{ inputs.end_time }}" },
+      "inputs": [
+        { "key": "feed_key", "label": "Feed key", "type": "string", "required": true },
+        { "key": "limit", "label": "Max results", "type": "number", "default": 100 },
+        { "key": "start_time", "label": "From", "type": "string", "placeholder": "2026-10-01T00:00:00Z" },
+        { "key": "end_time", "label": "To", "type": "string" }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_data",
+      "name": "New feed value",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/feeds/{{ inputs.feed_key }}/data",
+      "query": { "limit": 20 },
+      "id_field": "id",
+      "inputs": [
+        { "key": "feed_key", "label": "Feed key", "type": "string", "required": true },
+        { "key": "poll_interval", "label": "Check every (minutes)", "type": "number", "default": 5 }
+      ]
+    }
+  ]
+}

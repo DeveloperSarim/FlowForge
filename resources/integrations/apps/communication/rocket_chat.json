@@ -1,0 +1,65 @@
+{
+  "key": "rocket_chat",
+  "name": "Rocket.Chat",
+  "category": "Communication",
+  "description": "Post messages, list channels and look up users on a Rocket.Chat server.",
+  "brand": "rocketdotchat",
+  "website": "https://www.rocket.chat",
+  "docs_url": "https://developer.rocket.chat/apidocs",
+  "base_url": "{{ credentials.server_url }}/api/v1",
+  "headers": { "X-User-Id": "{{ credentials.user_id }}" },
+  "auth": [
+    {
+      "type": "api_key",
+      "in": "header",
+      "name": "X-Auth-Token",
+      "fields": [
+        { "key": "server_url", "label": "Server URL", "type": "string", "required": true, "placeholder": "https://chat.example.com", "help": "No trailing slash." },
+        { "key": "user_id", "label": "User ID", "type": "string", "required": true, "help": "Shown when you create a personal access token (My Account > Personal Access Tokens)." },
+        { "key": "api_key", "label": "Personal access token", "type": "password", "required": true }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "post_message",
+      "name": "Post message",
+      "method": "POST",
+      "endpoint": "/chat.postMessage",
+      "body": { "channel": "{{ inputs.channel }}", "text": "{{ inputs.text }}", "alias": "{{ inputs.alias }}", "emoji": "{{ inputs.emoji }}" },
+      "inputs": [
+        { "key": "channel", "label": "Channel or user", "type": "string", "required": true, "placeholder": "#general or @username" },
+        { "key": "text", "label": "Message", "type": "text", "required": true },
+        { "key": "alias", "label": "Display name override", "type": "string" },
+        { "key": "emoji", "label": "Avatar emoji", "type": "string", "placeholder": ":robot:" }
+      ]
+    },
+    {
+      "key": "list_channels",
+      "name": "List channels",
+      "method": "GET",
+      "endpoint": "/channels.list",
+      "query": { "count": "{{ inputs.count }}" },
+      "output_path": "channels",
+      "inputs": [{ "key": "count", "label": "Max results", "type": "number", "default": 50 }]
+    },
+    {
+      "key": "get_user_info",
+      "name": "Get user by username",
+      "method": "GET",
+      "endpoint": "/users.info",
+      "query": { "username": "{{ inputs.username }}" },
+      "output_path": "user",
+      "inputs": [{ "key": "username", "label": "Username", "type": "string", "required": true }]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "outgoing_webhook",
+      "name": "Outgoing webhook",
+      "description": "Paste this URL into an Outgoing WebHook integration (Administration > Integrations).",
+      "type": "webhook",
+      "inputs": [{ "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }]
+    }
+  ]
+}

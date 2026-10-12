@@ -1,0 +1,128 @@
+{
+  "key": "people_data_labs",
+  "name": "People Data Labs",
+  "category": "CRM & Sales",
+  "description": "Enrich and search person and company records.",
+  "brand": "peopledatalabs",
+  "website": "https://www.peopledatalabs.com",
+  "docs_url": "https://docs.peopledatalabs.com/",
+  "base_url": "https://api.peopledatalabs.com/v5",
+  "auth": [
+    {
+      "type": "api_key",
+      "in": "header",
+      "name": "X-Api-Key",
+      "fields": [
+        {
+          "key": "api_key",
+          "label": "API key",
+          "type": "password",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "enrich_person",
+      "name": "Enrich person",
+      "method": "GET",
+      "endpoint": "/person/enrich",
+      "query": {
+        "email": "{{ inputs.email }}",
+        "profile": "{{ inputs.profile }}",
+        "name": "{{ inputs.name }}",
+        "company": "{{ inputs.company }}",
+        "phone": "{{ inputs.phone }}",
+        "min_likelihood": "{{ inputs.min_likelihood }}"
+      },
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string"
+        },
+        {
+          "key": "profile",
+          "label": "Social profile URL",
+          "type": "string"
+        },
+        {
+          "key": "name",
+          "label": "Full name",
+          "type": "string"
+        },
+        {
+          "key": "company",
+          "label": "Company",
+          "type": "string"
+        },
+        {
+          "key": "phone",
+          "label": "Phone",
+          "type": "string"
+        },
+        {
+          "key": "min_likelihood",
+          "label": "Min likelihood (1-10)",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "enrich_company",
+      "name": "Enrich company",
+      "method": "GET",
+      "endpoint": "/company/enrich",
+      "query": {
+        "website": "{{ inputs.website }}",
+        "name": "{{ inputs.name }}",
+        "profile": "{{ inputs.profile }}"
+      },
+      "inputs": [
+        {
+          "key": "website",
+          "label": "Website",
+          "type": "string"
+        },
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string"
+        },
+        {
+          "key": "profile",
+          "label": "LinkedIn URL",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "search_people",
+      "name": "Search people (SQL)",
+      "method": "POST",
+      "endpoint": "/person/search",
+      "body": {
+        "sql": "{{ inputs.sql }}",
+        "size": "{{ inputs.size }}"
+      },
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "sql",
+          "label": "SQL",
+          "type": "code",
+          "required": true,
+          "placeholder": "SELECT * FROM person WHERE job_company_website='stripe.com'"
+        },
+        {
+          "key": "size",
+          "label": "Results",
+          "type": "number",
+          "default": 10
+        }
+      ]
+    }
+  ]
+}

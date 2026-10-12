@@ -1,0 +1,45 @@
+{
+  "key": "messente",
+  "name": "Messente",
+  "category": "Communication",
+  "description": "Send SMS or Viber messages with the Messente Omnichannel API and check their status.",
+  "brand": "messente",
+  "website": "https://messente.com",
+  "docs_url": "https://messente.com/documentation/omnichannel-api",
+  "base_url": "https://api.messente.com/v1",
+  "auth": [
+    { "type": "basic", "fields": [
+      { "key": "username", "label": "API username", "type": "string", "required": true, "help": "Dashboard → API Setup." },
+      { "key": "password", "label": "API password", "type": "password", "required": true }
+    ] }
+  ],
+  "actions": [
+    {
+      "key": "send_message",
+      "name": "Send message",
+      "method": "POST",
+      "endpoint": "/omnimessage",
+      "body": {
+        "to": "{{ inputs.to }}",
+        "messages": [{ "channel": "{{ inputs.channel }}", "sender": "{{ inputs.sender }}", "text": "{{ inputs.text }}" }]
+      },
+      "inputs": [
+        { "key": "to", "label": "To (E.164)", "type": "string", "required": true, "placeholder": "+37251234567" },
+        { "key": "text", "label": "Message", "type": "text", "required": true },
+        { "key": "sender", "label": "Sender ID", "type": "string", "help": "Must be registered in Messente; required for Viber." },
+        { "key": "channel", "label": "Channel", "type": "select", "default": "sms", "options": [
+          { "value": "sms", "label": "SMS" }, { "value": "viber", "label": "Viber" }
+        ] }
+      ]
+    },
+    {
+      "key": "get_status",
+      "name": "Get delivery status",
+      "method": "GET",
+      "endpoint": "/omnimessage/{{ inputs.omnimessage_id }}/status",
+      "inputs": [
+        { "key": "omnimessage_id", "label": "Omnimessage ID", "type": "string", "required": true }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,74 @@
+{
+  "key": "tumblr",
+  "name": "Tumblr",
+  "category": "Social Media",
+  "description": "Create text posts and read blog posts and account info.",
+  "brand": "tumblr",
+  "website": "https://www.tumblr.com",
+  "docs_url": "https://www.tumblr.com/docs/en/api/v2",
+  "base_url": "https://api.tumblr.com/v2",
+  "auth": [
+    {
+      "type": "oauth2",
+      "authorize_url": "https://www.tumblr.com/oauth2/authorize",
+      "token_url": "https://api.tumblr.com/v2/oauth2/token",
+      "scopes": ["basic", "write", "offline_access"]
+    },
+    { "type": "api_key", "in": "query", "name": "api_key", "fields": [{ "key": "api_key", "label": "OAuth consumer key (read-only)", "type": "password", "required": true }] }
+  ],
+  "actions": [
+    {
+      "key": "create_text_post",
+      "name": "Create text post",
+      "method": "POST",
+      "endpoint": "/blog/{{ inputs.blog }}/posts",
+      "body": { "content": [{ "type": "text", "text": "{{ inputs.text }}" }], "state": "{{ inputs.state }}", "tags": "{{ inputs.tags }}" },
+      "output_path": "response",
+      "inputs": [
+        { "key": "blog", "label": "Blog name", "type": "string", "required": true, "placeholder": "myblog" },
+        { "key": "text", "label": "Text", "type": "text", "required": true },
+        { "key": "state", "label": "State", "type": "select", "default": "published", "options": [
+          { "value": "published", "label": "Published" }, { "value": "draft", "label": "Draft" }, { "value": "queue", "label": "Queue" }, { "value": "private", "label": "Private" }
+        ] },
+        { "key": "tags", "label": "Tags (comma-separated)", "type": "string" }
+      ]
+    },
+    {
+      "key": "get_blog_posts",
+      "name": "Get blog posts",
+      "method": "GET",
+      "endpoint": "/blog/{{ inputs.blog }}/posts",
+      "query": { "limit": "{{ inputs.limit }}", "tag": "{{ inputs.tag }}", "npf": "true" },
+      "output_path": "response.posts",
+      "inputs": [
+        { "key": "blog", "label": "Blog name", "type": "string", "required": true },
+        { "key": "tag", "label": "Only with tag", "type": "string" },
+        { "key": "limit", "label": "Limit (1-20)", "type": "number", "default": 20 }
+      ]
+    },
+    {
+      "key": "get_user_info",
+      "name": "Get my account",
+      "method": "GET",
+      "endpoint": "/user/info",
+      "output_path": "response.user",
+      "inputs": []
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_post",
+      "name": "New blog post",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/blog/{{ inputs.blog }}/posts",
+      "query": { "limit": 20, "npf": "true" },
+      "items_path": "response.posts",
+      "id_field": "id_string",
+      "inputs": [
+        { "key": "blog", "label": "Blog name", "type": "string", "required": true },
+        { "key": "poll_interval", "label": "Check every (minutes)", "type": "number", "default": 5 }
+      ]
+    }
+  ]
+}

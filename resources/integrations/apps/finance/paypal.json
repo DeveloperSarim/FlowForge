@@ -1,0 +1,315 @@
+{
+  "key": "paypal",
+  "name": "PayPal",
+  "category": "Payments & Finance",
+  "description": "Create and capture orders, send invoices and refund payments with PayPal.",
+  "brand": "paypal",
+  "website": "https://www.paypal.com",
+  "docs_url": "https://developer.paypal.com/api/rest/",
+  "popular": true,
+  "base_url": "https://{{ credentials.environment }}",
+  "auth": [
+    {
+      "type": "oauth2_client_credentials",
+      "token_url": "https://{{ credentials.environment }}/v1/oauth2/token",
+      "client_auth": "basic",
+      "fields": [
+        {
+          "key": "environment",
+          "label": "Environment",
+          "type": "select",
+          "required": true,
+          "default": "api-m.paypal.com",
+          "options": [
+            {
+              "value": "api-m.paypal.com",
+              "label": "Live"
+            },
+            {
+              "value": "api-m.sandbox.paypal.com",
+              "label": "Sandbox"
+            }
+          ]
+        },
+        {
+          "key": "client_id",
+          "label": "Client ID",
+          "type": "string",
+          "required": true,
+          "help": "developer.paypal.com → Apps & Credentials → your REST app."
+        },
+        {
+          "key": "client_secret",
+          "label": "Secret",
+          "type": "password",
+          "required": true
+        }
+      ]
+    },
+    {
+      "type": "bearer",
+      "fields": [
+        {
+          "key": "environment",
+          "label": "Environment",
+          "type": "select",
+          "required": true,
+          "default": "api-m.paypal.com",
+          "options": [
+            {
+              "value": "api-m.paypal.com",
+              "label": "Live"
+            },
+            {
+              "value": "api-m.sandbox.paypal.com",
+              "label": "Sandbox"
+            }
+          ]
+        },
+        {
+          "key": "token",
+          "label": "Access token",
+          "type": "password",
+          "required": true,
+          "help": "A short-lived token (about 9 hours). Prefer the Client ID & Secret option, which renews automatically."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "create_order",
+      "name": "Create order",
+      "description": "Creates a checkout order; send the buyer to its approve link.",
+      "method": "POST",
+      "endpoint": "/v2/checkout/orders",
+      "body": {
+        "intent": "{{ inputs.intent }}",
+        "purchase_units": [
+          {
+            "reference_id": "{{ inputs.reference_id }}",
+            "description": "{{ inputs.description }}",
+            "amount": {
+              "currency_code": "{{ inputs.currency }}",
+              "value": "{{ inputs.amount }}"
+            }
+          }
+        ]
+      },
+      "inputs": [
+        {
+          "key": "intent",
+          "label": "Intent",
+          "type": "select",
+          "options": [
+            {
+              "value": "CAPTURE",
+              "label": "Capture"
+            },
+            {
+              "value": "AUTHORIZE",
+              "label": "Authorize"
+            }
+          ],
+          "default": "CAPTURE",
+          "required": true
+        },
+        {
+          "key": "amount",
+          "label": "Amount",
+          "type": "string",
+          "required": true,
+          "placeholder": "10.00"
+        },
+        {
+          "key": "currency",
+          "label": "Currency",
+          "type": "string",
+          "required": true,
+          "default": "USD"
+        },
+        {
+          "key": "description",
+          "label": "Description",
+          "type": "string"
+        },
+        {
+          "key": "reference_id",
+          "label": "Reference ID",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "get_order",
+      "name": "Get order",
+      "method": "GET",
+      "endpoint": "/v2/checkout/orders/{{ inputs.order_id }}",
+      "inputs": [
+        {
+          "key": "order_id",
+          "label": "Order ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "capture_order",
+      "name": "Capture order",
+      "method": "POST",
+      "endpoint": "/v2/checkout/orders/{{ inputs.order_id }}/capture",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "inputs": [
+        {
+          "key": "order_id",
+          "label": "Order ID",
+          "type": "string",
+          "required": true,
+          "help": "Order must be approved by the buyer."
+        }
+      ]
+    },
+    {
+      "key": "refund_capture",
+      "name": "Refund captured payment",
+      "method": "POST",
+      "endpoint": "/v2/payments/captures/{{ inputs.capture_id }}/refund",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "amount": {
+          "value": "{{ inputs.amount }}",
+          "currency_code": "{{ inputs.currency }}"
+        },
+        "note_to_payer": "{{ inputs.note }}"
+      },
+      "inputs": [
+        {
+          "key": "capture_id",
+          "label": "Capture ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "amount",
+          "label": "Amount",
+          "type": "string",
+          "placeholder": "Leave blank for a full refund"
+        },
+        {
+          "key": "currency",
+          "label": "Currency",
+          "type": "string",
+          "placeholder": "USD"
+        },
+        {
+          "key": "note",
+          "label": "Note to payer",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "create_invoice",
+      "name": "Create draft invoice",
+      "method": "POST",
+      "endpoint": "/v2/invoicing/invoices",
+      "body": {
+        "detail": {
+          "currency_code": "{{ inputs.currency }}",
+          "note": "{{ inputs.note }}",
+          "invoice_number": "{{ inputs.invoice_number }}"
+        },
+        "primary_recipients": [
+          {
+            "billing_info": {
+              "email_address": "{{ inputs.email }}"
+            }
+          }
+        ],
+        "items": "{{ inputs.items }}"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Recipient email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "currency",
+          "label": "Currency",
+          "type": "string",
+          "required": true,
+          "default": "USD"
+        },
+        {
+          "key": "items",
+          "label": "Items",
+          "type": "json",
+          "required": true,
+          "placeholder": "[{\"name\": \"Consulting\", \"quantity\": \"1\", \"unit_amount\": {\"currency_code\": \"USD\", \"value\": \"100.00\"}}]"
+        },
+        {
+          "key": "invoice_number",
+          "label": "Invoice number",
+          "type": "string"
+        },
+        {
+          "key": "note",
+          "label": "Note",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "send_invoice",
+      "name": "Send invoice",
+      "method": "POST",
+      "endpoint": "/v2/invoicing/invoices/{{ inputs.invoice_id }}/send",
+      "body": {
+        "send_to_recipient": true,
+        "subject": "{{ inputs.subject }}",
+        "note": "{{ inputs.note }}"
+      },
+      "inputs": [
+        {
+          "key": "invoice_id",
+          "label": "Invoice ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "subject",
+          "label": "Email subject",
+          "type": "string"
+        },
+        {
+          "key": "note",
+          "label": "Note",
+          "type": "string"
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Developer Dashboard > your app > Webhooks: add this URL and choose event types.",
+      "data_path": "resource",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

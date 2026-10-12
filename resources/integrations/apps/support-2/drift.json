@@ -1,0 +1,109 @@
+{
+  "key": "drift",
+  "name": "Drift",
+  "category": "Customer Support",
+  "description": "Create and update contacts, start conversations and post chat messages in Drift.",
+  "brand": "drift",
+  "website": "https://www.salesloft.com/platform/drift",
+  "docs_url": "https://devdocs.drift.com/docs/quick-start",
+  "base_url": "https://driftapi.com",
+  "auth": [
+    {
+      "type": "bearer",
+      "fields": [{ "key": "token", "label": "OAuth access token", "type": "password", "required": true, "help": "dev.drift.com > your app > Auth & Scopes, after installing the app to your org." }]
+    },
+    {
+      "type": "oauth2",
+      "authorize_url": "https://dev.drift.com/authorize",
+      "token_url": "https://driftapi.com/oauth2/token",
+      "scopes": ["contact_read", "contact_write", "conversation_read", "conversation_write", "user_read"]
+    }
+  ],
+  "actions": [
+    {
+      "key": "create_contact",
+      "name": "Create contact",
+      "method": "POST",
+      "endpoint": "/contacts",
+      "output_path": "data",
+      "body": { "attributes": { "email": "{{ inputs.email }}", "externalId": "{{ inputs.external_id }}", "...": "{{ inputs.attributes }}" } },
+      "inputs": [
+        { "key": "email", "label": "Email", "type": "string", "required": true },
+        { "key": "external_id", "label": "External ID", "type": "string", "help": "Your app's user ID" },
+        { "key": "attributes", "label": "Other attributes", "type": "keyvalue", "help": "e.g. name, phone, or custom attribute names" }
+      ]
+    },
+    {
+      "key": "update_contact",
+      "name": "Update contact",
+      "method": "PATCH",
+      "endpoint": "/contacts/{{ inputs.contact_id }}",
+      "output_path": "data",
+      "body": { "attributes": "{{ inputs.attributes }}" },
+      "inputs": [
+        { "key": "contact_id", "label": "Contact ID", "type": "string", "required": true },
+        { "key": "attributes", "label": "Attributes", "type": "keyvalue", "required": true }
+      ]
+    },
+    {
+      "key": "get_contact",
+      "name": "Get contact",
+      "method": "GET",
+      "endpoint": "/contacts/{{ inputs.contact_id }}",
+      "output_path": "data",
+      "inputs": [{ "key": "contact_id", "label": "Contact ID", "type": "string", "required": true }]
+    },
+    {
+      "key": "find_contacts_by_email",
+      "name": "Find contacts by email",
+      "method": "GET",
+      "endpoint": "/contacts",
+      "output_path": "data",
+      "query": { "email": "{{ inputs.email }}", "limit": "{{ inputs.limit }}" },
+      "inputs": [
+        { "key": "email", "label": "Email", "type": "string", "required": true },
+        { "key": "limit", "label": "Limit", "type": "number" }
+      ]
+    },
+    {
+      "key": "create_conversation",
+      "name": "Start conversation",
+      "method": "POST",
+      "endpoint": "/conversations/new",
+      "output_path": "data",
+      "body": {
+        "email": "{{ inputs.email }}",
+        "message": { "body": "{{ inputs.body }}", "attributes": { "integrationSource": "{{ inputs.source }}" } }
+      },
+      "inputs": [
+        { "key": "email", "label": "Contact email", "type": "string", "required": true },
+        { "key": "body", "label": "Message", "type": "text", "required": true },
+        { "key": "source", "label": "Source label", "type": "string", "default": "FlowForge" }
+      ]
+    },
+    {
+      "key": "send_message",
+      "name": "Send message",
+      "description": "Posts a chat message or private note in a conversation.",
+      "method": "POST",
+      "endpoint": "/conversations/{{ inputs.conversation_id }}/messages",
+      "output_path": "data",
+      "body": { "type": "{{ inputs.type }}", "body": "{{ inputs.body }}", "userId": "{{ inputs.user_id }}" },
+      "inputs": [
+        { "key": "conversation_id", "label": "Conversation ID", "type": "string", "required": true },
+        { "key": "type", "label": "Type", "type": "select", "required": true, "default": "chat", "options": [{ "value": "chat", "label": "Chat message" }, { "value": "private_note", "label": "Private note" }] },
+        { "key": "body", "label": "Message (HTML)", "type": "text", "required": true },
+        { "key": "user_id", "label": "Author user ID", "type": "number", "help": "Defaults to the bot user" }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Add this URL as the webhook URL of your Drift app and subscribe to events.",
+      "inputs": [{ "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }]
+    }
+  ]
+}

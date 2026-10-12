@@ -1,0 +1,163 @@
+{
+  "key": "seafile",
+  "name": "Seafile",
+  "category": "Files & Documents",
+  "description": "Browse libraries, create folders and share links on a Seafile server.",
+  "brand": "seafile",
+  "website": "https://www.seafile.com",
+  "docs_url": "https://manual.seafile.com/latest/develop/web_api_v2.1/",
+  "base_url": "{{ credentials.server_url }}",
+  "auth": [
+    {
+      "type": "api_key",
+      "in": "header",
+      "name": "Authorization",
+      "prefix": "Token ",
+      "fields": [
+        {
+          "key": "server_url",
+          "label": "Server URL",
+          "type": "string",
+          "required": true,
+          "placeholder": "https://seafile.example.com",
+          "help": "No trailing slash."
+        },
+        {
+          "key": "api_key",
+          "label": "API token",
+          "type": "password",
+          "required": true,
+          "help": "Get it with POST /api2/auth-token/ (username + password)."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_libraries",
+      "name": "List libraries",
+      "method": "GET",
+      "endpoint": "/api2/repos/",
+      "inputs": []
+    },
+    {
+      "key": "list_directory",
+      "name": "List folder",
+      "method": "GET",
+      "endpoint": "/api2/repos/{{ inputs.repo_id }}/dir/",
+      "query": {
+        "p": "{{ inputs.path }}"
+      },
+      "inputs": [
+        {
+          "key": "repo_id",
+          "label": "Library ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "path",
+          "label": "Folder path",
+          "type": "string",
+          "default": "/"
+        }
+      ]
+    },
+    {
+      "key": "create_directory",
+      "name": "Create folder",
+      "method": "POST",
+      "endpoint": "/api2/repos/{{ inputs.repo_id }}/dir/",
+      "query": {
+        "p": "{{ inputs.path }}"
+      },
+      "body_format": "form",
+      "body": {
+        "operation": "mkdir"
+      },
+      "inputs": [
+        {
+          "key": "repo_id",
+          "label": "Library ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "path",
+          "label": "New folder path",
+          "type": "string",
+          "required": true,
+          "placeholder": "/Reports/2026"
+        }
+      ]
+    },
+    {
+      "key": "get_download_link",
+      "name": "Get download link",
+      "method": "GET",
+      "endpoint": "/api2/repos/{{ inputs.repo_id }}/file/",
+      "query": {
+        "p": "{{ inputs.path }}",
+        "reuse": 1
+      },
+      "inputs": [
+        {
+          "key": "repo_id",
+          "label": "Library ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "path",
+          "label": "File path",
+          "type": "string",
+          "required": true,
+          "placeholder": "/Reports/q1.pdf"
+        }
+      ]
+    },
+    {
+      "key": "create_share_link",
+      "name": "Create share link",
+      "method": "POST",
+      "endpoint": "/api/v2.1/share-links/",
+      "body": {
+        "repo_id": "{{ inputs.repo_id }}",
+        "path": "{{ inputs.path }}",
+        "password": "{{ inputs.password }}",
+        "expire_days": "{{ inputs.expire_days }}"
+      },
+      "inputs": [
+        {
+          "key": "repo_id",
+          "label": "Library ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "path",
+          "label": "File or folder path",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "password",
+          "label": "Password",
+          "type": "password"
+        },
+        {
+          "key": "expire_days",
+          "label": "Expires after (days)",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "get_account_info",
+      "name": "Get account info",
+      "method": "GET",
+      "endpoint": "/api2/account/info/",
+      "inputs": []
+    }
+  ]
+}

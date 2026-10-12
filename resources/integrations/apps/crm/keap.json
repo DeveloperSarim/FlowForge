@@ -1,0 +1,185 @@
+{
+  "key": "keap",
+  "name": "Keap",
+  "category": "CRM & Sales",
+  "description": "Create, upsert and tag contacts in Keap.",
+  "brand": "keap",
+  "website": "https://keap.com",
+  "docs_url": "https://developer.keap.com/docs/rest/",
+  "base_url": "https://api.infusionsoft.com/crm/rest/v1",
+  "auth": [
+    {
+      "type": "api_key",
+      "in": "header",
+      "name": "X-Keap-API-Key",
+      "fields": [
+        {
+          "key": "api_key",
+          "label": "Personal access token / service account key",
+          "type": "password",
+          "required": true
+        }
+      ]
+    },
+    {
+      "type": "oauth2",
+      "authorize_url": "https://accounts.infusionsoft.com/app/oauth/authorize",
+      "token_url": "https://api.infusionsoft.com/token",
+      "scopes": [
+        "full"
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "create_contact",
+      "name": "Create contact",
+      "method": "POST",
+      "endpoint": "/contacts",
+      "body": {
+        "email_addresses": [
+          {
+            "email": "{{ inputs.email }}",
+            "field": "EMAIL1"
+          }
+        ],
+        "given_name": "{{ inputs.given_name }}",
+        "family_name": "{{ inputs.family_name }}"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "given_name",
+          "label": "First name",
+          "type": "string"
+        },
+        {
+          "key": "family_name",
+          "label": "Last name",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "upsert_contact",
+      "name": "Create or update contact",
+      "description": "Matches on email.",
+      "method": "PUT",
+      "endpoint": "/contacts",
+      "body": {
+        "duplicate_option": "Email",
+        "email_addresses": [
+          {
+            "email": "{{ inputs.email }}",
+            "field": "EMAIL1"
+          }
+        ],
+        "given_name": "{{ inputs.given_name }}",
+        "family_name": "{{ inputs.family_name }}"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "given_name",
+          "label": "First name",
+          "type": "string"
+        },
+        {
+          "key": "family_name",
+          "label": "Last name",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "get_contact",
+      "name": "Get contact",
+      "method": "GET",
+      "endpoint": "/contacts/{{ inputs.contact_id }}",
+      "inputs": [
+        {
+          "key": "contact_id",
+          "label": "Contact ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "find_contacts",
+      "name": "Find contacts by email",
+      "method": "GET",
+      "endpoint": "/contacts",
+      "query": {
+        "email": "{{ inputs.email }}"
+      },
+      "output_path": "contacts",
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "apply_tags",
+      "name": "Apply tags",
+      "method": "POST",
+      "endpoint": "/contacts/{{ inputs.contact_id }}/tags",
+      "body": {
+        "tagIds": "{{ inputs.tag_ids }}"
+      },
+      "inputs": [
+        {
+          "key": "contact_id",
+          "label": "Contact ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "tag_ids",
+          "label": "Tag IDs",
+          "type": "json",
+          "required": true,
+          "placeholder": "[101, 102]"
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_contact",
+      "name": "New contact",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/contacts",
+      "query": {
+        "order": "date_created",
+        "order_direction": "DESCENDING",
+        "limit": 50
+      },
+      "items_path": "contacts",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

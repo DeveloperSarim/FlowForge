@@ -1,0 +1,187 @@
+{
+  "key": "surveymonkey",
+  "name": "SurveyMonkey",
+  "category": "Forms & Surveys",
+  "description": "Get new SurveyMonkey responses and read surveys and answers.",
+  "brand": "surveymonkey",
+  "website": "https://www.surveymonkey.com",
+  "docs_url": "https://api.surveymonkey.com/v3/docs",
+  "popular": true,
+  "base_url": "https://api.surveymonkey.com/v3",
+  "auth": [
+    {
+      "type": "bearer",
+      "fields": [
+        {
+          "key": "token",
+          "label": "Access token",
+          "type": "password",
+          "required": true,
+          "help": "developer.surveymonkey.com > My Apps > Settings"
+        }
+      ]
+    },
+    {
+      "type": "oauth2",
+      "authorize_url": "https://api.surveymonkey.com/oauth/authorize",
+      "token_url": "https://api.surveymonkey.com/oauth/token",
+      "scopes": []
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_surveys",
+      "name": "List surveys",
+      "method": "GET",
+      "endpoint": "/surveys",
+      "output_path": "data",
+      "query": {
+        "title": "{{ inputs.title }}",
+        "per_page": "{{ inputs.per_page }}"
+      },
+      "inputs": [
+        {
+          "key": "title",
+          "label": "Title contains",
+          "type": "string"
+        },
+        {
+          "key": "per_page",
+          "label": "Per page",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    },
+    {
+      "key": "get_survey_details",
+      "name": "Get survey details",
+      "description": "Pages, questions and answer choices.",
+      "method": "GET",
+      "endpoint": "/surveys/{{ inputs.survey_id }}/details",
+      "inputs": [
+        {
+          "key": "survey_id",
+          "label": "Survey ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_responses",
+      "name": "List responses",
+      "description": "Newest first, with answers.",
+      "method": "GET",
+      "endpoint": "/surveys/{{ inputs.survey_id }}/responses/bulk",
+      "output_path": "data",
+      "query": {
+        "per_page": "{{ inputs.per_page }}",
+        "status": "{{ inputs.status }}",
+        "sort_by": "date_modified",
+        "sort_order": "DESC"
+      },
+      "inputs": [
+        {
+          "key": "survey_id",
+          "label": "Survey ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "per_page",
+          "label": "Per page",
+          "type": "number",
+          "default": 50
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "options": [
+            {
+              "value": "completed",
+              "label": "Completed"
+            },
+            {
+              "value": "partial",
+              "label": "Partial"
+            },
+            {
+              "value": "overquota",
+              "label": "Over quota"
+            },
+            {
+              "value": "disqualified",
+              "label": "Disqualified"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "get_response",
+      "name": "Get response",
+      "method": "GET",
+      "endpoint": "/surveys/{{ inputs.survey_id }}/responses/{{ inputs.response_id }}/details",
+      "inputs": [
+        {
+          "key": "survey_id",
+          "label": "Survey ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "response_id",
+          "label": "Response ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_response",
+      "name": "New completed response (polling)",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/surveys/{{ inputs.survey_id }}/responses/bulk",
+      "query": {
+        "per_page": 50,
+        "status": "completed",
+        "sort_by": "date_modified",
+        "sort_order": "DESC"
+      },
+      "items_path": "data",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "survey_id",
+          "label": "Survey ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    },
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Create a webhook via the API (POST /webhooks) with this URL as subscription_url.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

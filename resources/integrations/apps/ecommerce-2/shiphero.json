@@ -1,0 +1,95 @@
+{
+  "key": "shiphero",
+  "name": "ShipHero",
+  "category": "E-commerce",
+  "description": "Run GraphQL queries and look up orders and products in ShipHero.",
+  "brand": "shiphero",
+  "website": "https://shiphero.com",
+  "docs_url": "https://developer.shiphero.com",
+  "base_url": "https://public-api.shiphero.com",
+  "auth": [
+    {
+      "type": "bearer",
+      "fields": [
+        {
+          "key": "token",
+          "label": "Access token",
+          "type": "password",
+          "required": true,
+          "help": "POST your ShipHero username and password to https://public-api.shiphero.com/auth/token; tokens last 28 days."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "graphql",
+      "name": "Run GraphQL query",
+      "method": "POST",
+      "endpoint": "/graphql",
+      "body": {
+        "query": "{{ inputs.query }}",
+        "variables": "{{ inputs.variables }}"
+      },
+      "error_path": "errors",
+      "inputs": [
+        {
+          "key": "query",
+          "label": "Query",
+          "type": "code",
+          "required": true,
+          "placeholder": "query { account { data { id email } } }"
+        },
+        {
+          "key": "variables",
+          "label": "Variables",
+          "type": "json"
+        }
+      ]
+    },
+    {
+      "key": "get_order",
+      "name": "Get order by number",
+      "method": "POST",
+      "endpoint": "/graphql",
+      "body": {
+        "query": "query($order_number: String) { orders(order_number: $order_number) { request_id complexity data(first: 1) { edges { node { id legacy_id order_number shop_name fulfillment_status order_date total_price email line_items(first: 100) { edges { node { sku quantity quantity_shipped } } } } } } } }",
+        "variables": {
+          "order_number": "{{ inputs.order_number }}"
+        }
+      },
+      "output_path": "data.orders.data.edges",
+      "error_path": "errors",
+      "inputs": [
+        {
+          "key": "order_number",
+          "label": "Order number",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "get_product",
+      "name": "Get product by SKU",
+      "method": "POST",
+      "endpoint": "/graphql",
+      "body": {
+        "query": "query($sku: String) { product(sku: $sku) { request_id complexity data { id legacy_id sku name barcode warehouse_products { warehouse_id on_hand available } } } }",
+        "variables": {
+          "sku": "{{ inputs.sku }}"
+        }
+      },
+      "output_path": "data.product.data",
+      "error_path": "errors",
+      "inputs": [
+        {
+          "key": "sku",
+          "label": "SKU",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ]
+}

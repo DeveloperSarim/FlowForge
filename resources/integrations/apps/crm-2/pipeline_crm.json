@@ -1,0 +1,196 @@
+{
+  "key": "pipeline_crm",
+  "name": "Pipeline CRM",
+  "category": "CRM & Sales",
+  "description": "Create people, deals and notes in Pipeline CRM.",
+  "brand": "pipelinecrm",
+  "website": "https://pipelinecrm.com",
+  "docs_url": "https://app.pipelinecrm.com/api/docs",
+  "base_url": "https://api.pipelinecrm.com/api/v3",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "API token",
+        "type": "password",
+        "required": true,
+        "help": "Starts with pcrm_live_"
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "create_person",
+      "name": "Create person",
+      "method": "POST",
+      "endpoint": "/people",
+      "body": {
+        "person": {
+          "first_name": "{{ inputs.first_name }}",
+          "last_name": "{{ inputs.last_name }}",
+          "email": "{{ inputs.email }}",
+          "phone": "{{ inputs.phone }}",
+          "company_name": "{{ inputs.company_name }}",
+          "user_id": "{{ inputs.owner_id }}",
+          "custom_fields": "{{ inputs.custom_fields }}"
+        }
+      },
+      "inputs": [
+        {
+          "key": "first_name",
+          "label": "First name",
+          "type": "string"
+        },
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string"
+        },
+        {
+          "key": "phone",
+          "label": "Phone",
+          "type": "string"
+        },
+        {
+          "key": "company_name",
+          "label": "Company",
+          "type": "string"
+        },
+        {
+          "key": "owner_id",
+          "label": "Owner user ID",
+          "type": "number"
+        },
+        {
+          "key": "custom_fields",
+          "label": "Custom fields",
+          "type": "keyvalue",
+          "help": "Keys like custom_label_123"
+        }
+      ]
+    },
+    {
+      "key": "get_person",
+      "name": "Get person",
+      "method": "GET",
+      "endpoint": "/people/{{ inputs.person_id }}",
+      "inputs": [
+        {
+          "key": "person_id",
+          "label": "Person ID",
+          "type": "number",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "create_deal",
+      "name": "Create deal",
+      "method": "POST",
+      "endpoint": "/deals",
+      "body": {
+        "deal": {
+          "name": "{{ inputs.name }}",
+          "value": "{{ inputs.value }}",
+          "primary_contact_id": "{{ inputs.primary_contact_id }}",
+          "deal_stage_id": "{{ inputs.deal_stage_id }}",
+          "expected_close_date": "{{ inputs.expected_close_date }}",
+          "user_id": "{{ inputs.owner_id }}"
+        }
+      },
+      "inputs": [
+        {
+          "key": "name",
+          "label": "Deal name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "value",
+          "label": "Value",
+          "type": "number"
+        },
+        {
+          "key": "primary_contact_id",
+          "label": "Primary contact (person) ID",
+          "type": "number"
+        },
+        {
+          "key": "deal_stage_id",
+          "label": "Stage ID",
+          "type": "number"
+        },
+        {
+          "key": "expected_close_date",
+          "label": "Expected close date",
+          "type": "string",
+          "placeholder": "2026-12-31"
+        },
+        {
+          "key": "owner_id",
+          "label": "Owner user ID",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "create_note",
+      "name": "Add note",
+      "method": "POST",
+      "endpoint": "/notes",
+      "body": {
+        "note": {
+          "content": "{{ inputs.content }}",
+          "title": "{{ inputs.title }}",
+          "person_id": "{{ inputs.person_id }}",
+          "deal_id": "{{ inputs.deal_id }}"
+        }
+      },
+      "inputs": [
+        {
+          "key": "content",
+          "label": "Note",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "string"
+        },
+        {
+          "key": "person_id",
+          "label": "Person ID",
+          "type": "number"
+        },
+        {
+          "key": "deal_id",
+          "label": "Deal ID",
+          "type": "number"
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Add this URL as a webhook (Account settings > Webhooks) for person, deal or company events.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

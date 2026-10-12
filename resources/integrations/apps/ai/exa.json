@@ -1,0 +1,124 @@
+{
+  "key": "exa",
+  "name": "Exa",
+  "category": "AI",
+  "description": "Neural web search, page contents and cited answers.",
+  "brand": "exa",
+  "website": "https://exa.ai",
+  "docs_url": "https://docs.exa.ai/reference/search",
+  "base_url": "https://api.exa.ai",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "x-api-key",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "search",
+      "name": "Search",
+      "method": "POST",
+      "endpoint": "/search",
+      "timeout": 120,
+      "body": {
+        "query": "{{ inputs.query }}",
+        "type": "{{ inputs.type }}",
+        "numResults": "{{ inputs.num_results }}",
+        "contents": {
+          "text": "{{ inputs.include_text }}"
+        }
+      },
+      "inputs": [
+        {
+          "key": "query",
+          "label": "Query",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "type",
+          "label": "Search type",
+          "type": "select",
+          "options": [
+            {
+              "value": "auto",
+              "label": "Auto"
+            },
+            {
+              "value": "neural",
+              "label": "Neural"
+            },
+            {
+              "value": "keyword",
+              "label": "Keyword"
+            },
+            {
+              "value": "fast",
+              "label": "Fast"
+            }
+          ],
+          "default": "auto"
+        },
+        {
+          "key": "num_results",
+          "label": "Results",
+          "type": "number",
+          "default": 10
+        },
+        {
+          "key": "include_text",
+          "label": "Include page text",
+          "type": "boolean"
+        }
+      ]
+    },
+    {
+      "key": "get_contents",
+      "name": "Get page contents",
+      "method": "POST",
+      "endpoint": "/contents",
+      "timeout": 120,
+      "body": {
+        "urls": "{{ inputs.urls }}",
+        "text": true
+      },
+      "inputs": [
+        {
+          "key": "urls",
+          "label": "URLs",
+          "type": "list",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "answer",
+      "name": "Answer question",
+      "description": "An LLM answer grounded in Exa search, with citations.",
+      "method": "POST",
+      "endpoint": "/answer",
+      "timeout": 120,
+      "body": {
+        "query": "{{ inputs.query }}"
+      },
+      "output_fields": {
+        "text": "answer"
+      },
+      "inputs": [
+        {
+          "key": "query",
+          "label": "Question",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,329 @@
+{
+  "key": "holded",
+  "name": "Holded",
+  "category": "Payments & Finance",
+  "description": "Create contacts and sales documents, send invoices and list products in Holded.",
+  "brand": "holded",
+  "website": "https://www.holded.com",
+  "docs_url": "https://developers.holded.com/reference",
+  "base_url": "https://api.holded.com/api",
+  "auth": [
+    {
+      "type": "api_key",
+      "in": "header",
+      "name": "key",
+      "fields": [
+        {
+          "key": "api_key",
+          "label": "API key",
+          "type": "password",
+          "required": true,
+          "help": "Holded > Settings > Developers."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_contacts",
+      "name": "List contacts",
+      "method": "GET",
+      "endpoint": "/invoicing/v1/contacts",
+      "query": {
+        "phone": "{{ inputs.phone }}",
+        "mobile": "{{ inputs.mobile }}"
+      },
+      "inputs": [
+        {
+          "key": "phone",
+          "label": "Phone",
+          "type": "string"
+        },
+        {
+          "key": "mobile",
+          "label": "Mobile",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "create_contact",
+      "name": "Create contact",
+      "method": "POST",
+      "endpoint": "/invoicing/v1/contacts",
+      "body": {
+        "name": "{{ inputs.name }}",
+        "email": "{{ inputs.email }}",
+        "phone": "{{ inputs.phone }}",
+        "mobile": "{{ inputs.mobile }}",
+        "code": "{{ inputs.code }}",
+        "type": "{{ inputs.type }}",
+        "isperson": "{{ inputs.is_person }}"
+      },
+      "inputs": [
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string"
+        },
+        {
+          "key": "phone",
+          "label": "Phone",
+          "type": "string"
+        },
+        {
+          "key": "mobile",
+          "label": "Mobile",
+          "type": "string"
+        },
+        {
+          "key": "code",
+          "label": "Tax ID (NIF/CIF)",
+          "type": "string"
+        },
+        {
+          "key": "type",
+          "label": "Type",
+          "type": "select",
+          "options": [
+            {
+              "value": "client",
+              "label": "Client"
+            },
+            {
+              "value": "supplier",
+              "label": "Supplier"
+            },
+            {
+              "value": "lead",
+              "label": "Lead"
+            },
+            {
+              "value": "debtor",
+              "label": "Debtor"
+            },
+            {
+              "value": "creditor",
+              "label": "Creditor"
+            }
+          ]
+        },
+        {
+          "key": "is_person",
+          "label": "Is a person",
+          "type": "boolean"
+        }
+      ]
+    },
+    {
+      "key": "create_document",
+      "name": "Create document",
+      "method": "POST",
+      "endpoint": "/invoicing/v1/documents/{{ inputs.doc_type }}",
+      "body": {
+        "contactId": "{{ inputs.contact_id }}",
+        "date": "{{ inputs.date }}",
+        "items": "{{ inputs.items }}",
+        "notes": "{{ inputs.notes }}",
+        "currency": "{{ inputs.currency }}",
+        "numSerieId": "{{ inputs.num_serie_id }}"
+      },
+      "inputs": [
+        {
+          "key": "doc_type",
+          "label": "Document type",
+          "type": "select",
+          "options": [
+            {
+              "value": "invoice",
+              "label": "Invoice"
+            },
+            {
+              "value": "salesreceipt",
+              "label": "Sales receipt"
+            },
+            {
+              "value": "estimate",
+              "label": "Estimate"
+            },
+            {
+              "value": "salesorder",
+              "label": "Sales order"
+            },
+            {
+              "value": "proform",
+              "label": "Proforma"
+            },
+            {
+              "value": "creditnote",
+              "label": "Credit note"
+            },
+            {
+              "value": "purchase",
+              "label": "Purchase"
+            }
+          ],
+          "default": "invoice",
+          "required": true
+        },
+        {
+          "key": "contact_id",
+          "label": "Contact ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "date",
+          "label": "Date (Unix timestamp)",
+          "type": "number",
+          "required": true,
+          "placeholder": "1767225600"
+        },
+        {
+          "key": "items",
+          "label": "Items",
+          "type": "json",
+          "required": true,
+          "placeholder": "[{\"name\": \"Consulting\", \"units\": 1, \"subtotal\": 100, \"tax\": 21}]"
+        },
+        {
+          "key": "notes",
+          "label": "Notes",
+          "type": "text"
+        },
+        {
+          "key": "currency",
+          "label": "Currency",
+          "type": "string",
+          "placeholder": "eur"
+        },
+        {
+          "key": "num_serie_id",
+          "label": "Numbering series ID",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "get_document",
+      "name": "Get document",
+      "method": "GET",
+      "endpoint": "/invoicing/v1/documents/{{ inputs.doc_type }}/{{ inputs.document_id }}",
+      "inputs": [
+        {
+          "key": "doc_type",
+          "label": "Document type",
+          "type": "select",
+          "options": [
+            {
+              "value": "invoice",
+              "label": "Invoice"
+            },
+            {
+              "value": "salesreceipt",
+              "label": "Sales receipt"
+            },
+            {
+              "value": "estimate",
+              "label": "Estimate"
+            },
+            {
+              "value": "salesorder",
+              "label": "Sales order"
+            },
+            {
+              "value": "creditnote",
+              "label": "Credit note"
+            },
+            {
+              "value": "purchase",
+              "label": "Purchase"
+            }
+          ],
+          "default": "invoice",
+          "required": true
+        },
+        {
+          "key": "document_id",
+          "label": "Document ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "send_document",
+      "name": "Send document by email",
+      "method": "POST",
+      "endpoint": "/invoicing/v1/documents/{{ inputs.doc_type }}/{{ inputs.document_id }}/send",
+      "body": {
+        "emails": "{{ inputs.emails }}",
+        "subject": "{{ inputs.subject }}",
+        "message": "{{ inputs.message }}"
+      },
+      "inputs": [
+        {
+          "key": "doc_type",
+          "label": "Document type",
+          "type": "select",
+          "options": [
+            {
+              "value": "invoice",
+              "label": "Invoice"
+            },
+            {
+              "value": "estimate",
+              "label": "Estimate"
+            },
+            {
+              "value": "salesorder",
+              "label": "Sales order"
+            },
+            {
+              "value": "proform",
+              "label": "Proforma"
+            }
+          ],
+          "default": "invoice",
+          "required": true
+        },
+        {
+          "key": "document_id",
+          "label": "Document ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "emails",
+          "label": "Recipients",
+          "type": "string",
+          "required": true,
+          "placeholder": "ana@example.com,billing@example.com"
+        },
+        {
+          "key": "subject",
+          "label": "Subject",
+          "type": "string"
+        },
+        {
+          "key": "message",
+          "label": "Message",
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "key": "list_products",
+      "name": "List products",
+      "method": "GET",
+      "endpoint": "/invoicing/v1/products",
+      "inputs": []
+    }
+  ]
+}

@@ -1,0 +1,297 @@
+{
+  "key": "zoho_desk",
+  "name": "Zoho Desk",
+  "category": "Customer Support",
+  "description": "Create, update and comment on Zoho Desk tickets; add contacts.",
+  "brand": "zoho",
+  "website": "https://www.zoho.com/desk/",
+  "docs_url": "https://desk.zoho.com/DeskAPIDocument",
+  "base_url": "https://{{ credentials.desk_domain }}/api/v1",
+  "headers": {
+    "orgId": "{{ credentials.org_id }}"
+  },
+  "auth": {
+    "type": "oauth2",
+    "authorize_url": "https://accounts.zoho.com/oauth/v2/auth",
+    "token_url": "https://accounts.zoho.com/oauth/v2/token",
+    "scopes": [
+      "Desk.tickets.ALL",
+      "Desk.contacts.ALL",
+      "Desk.basic.READ",
+      "Desk.search.READ"
+    ],
+    "scope_separator": ",",
+    "authorize_params": {
+      "access_type": "offline",
+      "prompt": "consent"
+    },
+    "fields": [
+      {
+        "key": "org_id",
+        "label": "Organization ID",
+        "type": "string",
+        "required": true,
+        "help": "Setup > Developer Space > API shows your orgId"
+      },
+      {
+        "key": "desk_domain",
+        "label": "Desk API domain",
+        "type": "select",
+        "required": true,
+        "default": "desk.zoho.com",
+        "options": [
+          {
+            "value": "desk.zoho.com",
+            "label": "desk.zoho.com (US)"
+          },
+          {
+            "value": "desk.zoho.eu",
+            "label": "desk.zoho.eu (EU)"
+          },
+          {
+            "value": "desk.zoho.in",
+            "label": "desk.zoho.in (India)"
+          },
+          {
+            "value": "desk.zoho.com.au",
+            "label": "desk.zoho.com.au (Australia)"
+          },
+          {
+            "value": "desk.zoho.jp",
+            "label": "desk.zoho.jp (Japan)"
+          }
+        ],
+        "help": "OAuth connect uses accounts.zoho.com, so register the client in the US data center."
+      }
+    ],
+    "token_type": "Zoho-oauthtoken"
+  },
+  "actions": [
+    {
+      "key": "create_ticket",
+      "name": "Create ticket",
+      "method": "POST",
+      "endpoint": "/tickets",
+      "body": {
+        "subject": "{{ inputs.subject }}",
+        "departmentId": "{{ inputs.department_id }}",
+        "contact": {
+          "email": "{{ inputs.email }}",
+          "lastName": "{{ inputs.last_name }}"
+        },
+        "email": "{{ inputs.email }}",
+        "description": "{{ inputs.description }}",
+        "priority": "{{ inputs.priority }}",
+        "status": "{{ inputs.status }}"
+      },
+      "inputs": [
+        {
+          "key": "department_id",
+          "label": "Department ID",
+          "type": "string",
+          "required": true,
+          "help": "Use List departments to find it."
+        },
+        {
+          "key": "subject",
+          "label": "Subject",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "email",
+          "label": "Contact email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "last_name",
+          "label": "Contact last name",
+          "type": "string"
+        },
+        {
+          "key": "description",
+          "label": "Description",
+          "type": "text"
+        },
+        {
+          "key": "priority",
+          "label": "Priority",
+          "type": "string",
+          "placeholder": "High"
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "string",
+          "placeholder": "Open"
+        }
+      ]
+    },
+    {
+      "key": "update_ticket",
+      "name": "Update ticket",
+      "method": "PATCH",
+      "endpoint": "/tickets/{{ inputs.ticket_id }}",
+      "body": {
+        "status": "{{ inputs.status }}",
+        "priority": "{{ inputs.priority }}",
+        "assigneeId": "{{ inputs.assignee_id }}",
+        "subject": "{{ inputs.subject }}"
+      },
+      "inputs": [
+        {
+          "key": "ticket_id",
+          "label": "Ticket ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "string",
+          "placeholder": "Closed"
+        },
+        {
+          "key": "priority",
+          "label": "Priority",
+          "type": "string"
+        },
+        {
+          "key": "assignee_id",
+          "label": "Assignee (agent) ID",
+          "type": "string"
+        },
+        {
+          "key": "subject",
+          "label": "Subject",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "add_comment",
+      "name": "Add comment",
+      "method": "POST",
+      "endpoint": "/tickets/{{ inputs.ticket_id }}/comments",
+      "body": {
+        "content": "{{ inputs.content }}",
+        "isPublic": "{{ inputs.is_public }}",
+        "contentType": "html"
+      },
+      "inputs": [
+        {
+          "key": "ticket_id",
+          "label": "Ticket ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "content",
+          "label": "Comment (HTML)",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "is_public",
+          "label": "Public",
+          "type": "boolean",
+          "default": false
+        }
+      ]
+    },
+    {
+      "key": "get_ticket",
+      "name": "Get ticket",
+      "method": "GET",
+      "endpoint": "/tickets/{{ inputs.ticket_id }}",
+      "inputs": [
+        {
+          "key": "ticket_id",
+          "label": "Ticket ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "create_contact",
+      "name": "Create contact",
+      "method": "POST",
+      "endpoint": "/contacts",
+      "body": {
+        "lastName": "{{ inputs.last_name }}",
+        "firstName": "{{ inputs.first_name }}",
+        "email": "{{ inputs.email }}",
+        "phone": "{{ inputs.phone }}"
+      },
+      "inputs": [
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "first_name",
+          "label": "First name",
+          "type": "string"
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string"
+        },
+        {
+          "key": "phone",
+          "label": "Phone",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "list_departments",
+      "name": "List departments",
+      "method": "GET",
+      "endpoint": "/departments",
+      "output_path": "data",
+      "inputs": []
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_ticket",
+      "name": "New ticket (polling)",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/tickets",
+      "query": {
+        "sortBy": "-createdTime",
+        "limit": 50
+      },
+      "items_path": "data",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    },
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Add this URL under Setup > Developer Space > Webhooks.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

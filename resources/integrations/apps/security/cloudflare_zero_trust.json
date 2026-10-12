@@ -1,0 +1,81 @@
+{
+  "key": "cloudflare_zero_trust",
+  "name": "Cloudflare Zero Trust",
+  "category": "Security & IT",
+  "description": "Add or remove Gateway list entries and list Access apps, devices and policies.",
+  "brand": "cloudflare",
+  "website": "https://www.cloudflare.com/zero-trust/",
+  "docs_url": "https://developers.cloudflare.com/api/resources/zero_trust/",
+  "base_url": "https://api.cloudflare.com/client/v4/accounts/{{ credentials.account_id }}",
+  "auth": { "type": "bearer", "fields": [
+    { "key": "account_id", "label": "Account ID", "type": "string", "required": true, "help": "Dashboard → account home → Account ID." },
+    { "key": "token", "label": "API token", "type": "password", "required": true, "help": "My Profile → API Tokens, with Zero Trust read/edit (and Access: Apps and Policies) permissions." }
+  ] },
+  "actions": [
+    {
+      "key": "add_list_item",
+      "name": "Add entry to Gateway list",
+      "method": "PATCH",
+      "endpoint": "/gateway/lists/{{ inputs.list_id }}",
+      "body": { "append": [{ "value": "{{ inputs.value }}", "description": "{{ inputs.description }}" }] },
+      "output_path": "result",
+      "inputs": [
+        { "key": "list_id", "label": "List ID", "type": "string", "required": true },
+        { "key": "value", "label": "Value", "type": "string", "required": true, "placeholder": "malicious.example.com" },
+        { "key": "description", "label": "Description", "type": "string" }
+      ]
+    },
+    {
+      "key": "remove_list_item",
+      "name": "Remove entry from Gateway list",
+      "method": "PATCH",
+      "endpoint": "/gateway/lists/{{ inputs.list_id }}",
+      "body": { "remove": ["{{ inputs.value }}"] },
+      "output_path": "result",
+      "inputs": [
+        { "key": "list_id", "label": "List ID", "type": "string", "required": true },
+        { "key": "value", "label": "Value", "type": "string", "required": true }
+      ]
+    },
+    {
+      "key": "list_gateway_lists",
+      "name": "List Gateway lists",
+      "method": "GET",
+      "endpoint": "/gateway/lists",
+      "output_path": "result",
+      "inputs": []
+    },
+    {
+      "key": "get_list_items",
+      "name": "Get Gateway list entries",
+      "method": "GET",
+      "endpoint": "/gateway/lists/{{ inputs.list_id }}/items",
+      "output_path": "result",
+      "inputs": [{ "key": "list_id", "label": "List ID", "type": "string", "required": true }]
+    },
+    {
+      "key": "list_access_apps",
+      "name": "List Access applications",
+      "method": "GET",
+      "endpoint": "/access/apps",
+      "output_path": "result",
+      "inputs": []
+    },
+    {
+      "key": "list_devices",
+      "name": "List devices",
+      "method": "GET",
+      "endpoint": "/devices",
+      "output_path": "result",
+      "inputs": []
+    },
+    {
+      "key": "list_gateway_rules",
+      "name": "List Gateway policies",
+      "method": "GET",
+      "endpoint": "/gateway/rules",
+      "output_path": "result",
+      "inputs": []
+    }
+  ]
+}

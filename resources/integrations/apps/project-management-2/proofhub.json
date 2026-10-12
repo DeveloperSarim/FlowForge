@@ -1,0 +1,149 @@
+{
+  "key": "proofhub",
+  "name": "ProofHub",
+  "category": "Project Management",
+  "description": "Create ProofHub tasks and list projects, task lists and people.",
+  "brand": "proofhub",
+  "website": "https://www.proofhub.com",
+  "docs_url": "https://github.com/ProofHub/api_v3",
+  "base_url": "https://{{ credentials.company }}.proofhub.com/api/v3",
+  "headers": {
+    "User-Agent": "FlowForge ({{ credentials.email }})"
+  },
+  "auth": [
+    {
+      "type": "api_key",
+      "in": "header",
+      "name": "X-API-KEY",
+      "fields": [
+        {
+          "key": "company",
+          "label": "Company subdomain",
+          "type": "string",
+          "required": true,
+          "placeholder": "yourcompany",
+          "help": "From https://yourcompany.proofhub.com."
+        },
+        {
+          "key": "api_key",
+          "label": "API key",
+          "type": "password",
+          "required": true,
+          "help": "Profile menu > API access."
+        },
+        {
+          "key": "email",
+          "label": "Contact email",
+          "type": "string",
+          "required": true,
+          "help": "ProofHub requires it in the User-Agent header."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_projects",
+      "name": "List projects",
+      "method": "GET",
+      "endpoint": "/projects",
+      "inputs": []
+    },
+    {
+      "key": "list_task_lists",
+      "name": "List task lists",
+      "method": "GET",
+      "endpoint": "/projects/{{ inputs.project_id }}/todolists",
+      "inputs": [
+        {
+          "key": "project_id",
+          "label": "Project ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_tasks",
+      "name": "List tasks",
+      "method": "GET",
+      "endpoint": "/projects/{{ inputs.project_id }}/todolists/{{ inputs.list_id }}/tasks",
+      "inputs": [
+        {
+          "key": "project_id",
+          "label": "Project ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "list_id",
+          "label": "Task list ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "create_task",
+      "name": "Create task",
+      "method": "POST",
+      "endpoint": "/projects/{{ inputs.project_id }}/todolists/{{ inputs.list_id }}/tasks",
+      "body": {
+        "title": "{{ inputs.title }}",
+        "description": "{{ inputs.description }}",
+        "start_date": "{{ inputs.start_date }}",
+        "due_date": "{{ inputs.due_date }}",
+        "assigned": "{{ inputs.assigned }}"
+      },
+      "inputs": [
+        {
+          "key": "project_id",
+          "label": "Project ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "list_id",
+          "label": "Task list ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "description",
+          "label": "Description",
+          "type": "text"
+        },
+        {
+          "key": "start_date",
+          "label": "Start date",
+          "type": "string",
+          "placeholder": "2026-10-12"
+        },
+        {
+          "key": "due_date",
+          "label": "Due date",
+          "type": "string",
+          "placeholder": "2026-10-20"
+        },
+        {
+          "key": "assigned",
+          "label": "Assignee people IDs",
+          "type": "list"
+        }
+      ]
+    },
+    {
+      "key": "list_people",
+      "name": "List people",
+      "method": "GET",
+      "endpoint": "/people",
+      "inputs": []
+    }
+  ]
+}

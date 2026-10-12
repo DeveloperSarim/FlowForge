@@ -1,0 +1,101 @@
+{
+  "key": "rewardful",
+  "name": "Rewardful",
+  "category": "Marketing & Email",
+  "description": "Manage affiliates and list referrals and commissions for your affiliate program.",
+  "brand": "rewardful",
+  "website": "https://www.rewardful.com",
+  "docs_url": "https://developers.rewardful.com/rest-api-reference",
+  "popular": true,
+  "base_url": "https://api.getrewardful.com/v1",
+  "auth": { "type": "basic", "fields": [
+    { "key": "username", "label": "API secret", "type": "password", "required": true, "help": "Company settings > API. Sent as the Basic auth username." },
+    { "key": "password", "label": "Password (leave empty)", "type": "password", "required": false }
+  ] },
+  "actions": [
+    {
+      "key": "create_affiliate",
+      "name": "Create affiliate",
+      "method": "POST",
+      "endpoint": "/affiliates",
+      "body_format": "form",
+      "body": {
+        "first_name": "{{ inputs.first_name }}",
+        "last_name": "{{ inputs.last_name }}",
+        "email": "{{ inputs.email }}",
+        "campaign_id": "{{ inputs.campaign_id }}",
+        "paypal_email": "{{ inputs.paypal_email }}"
+      },
+      "inputs": [
+        { "key": "first_name", "label": "First name", "type": "string", "required": true },
+        { "key": "last_name", "label": "Last name", "type": "string", "required": true },
+        { "key": "email", "label": "Email", "type": "string", "required": true },
+        { "key": "campaign_id", "label": "Campaign ID", "type": "string", "help": "Empty = your default campaign." },
+        { "key": "paypal_email", "label": "PayPal email", "type": "string" }
+      ]
+    },
+    {
+      "key": "get_affiliate",
+      "name": "Get affiliate",
+      "method": "GET",
+      "endpoint": "/affiliates/{{ inputs.affiliate_id }}",
+      "inputs": [{ "key": "affiliate_id", "label": "Affiliate ID", "type": "string", "required": true }]
+    },
+    {
+      "key": "list_affiliates",
+      "name": "List affiliates",
+      "method": "GET",
+      "endpoint": "/affiliates",
+      "query": { "email": "{{ inputs.email }}", "campaign_id": "{{ inputs.campaign_id }}", "page": "{{ inputs.page }}", "limit": "{{ inputs.limit }}" },
+      "output_path": "data",
+      "inputs": [
+        { "key": "email", "label": "Email", "type": "string" },
+        { "key": "campaign_id", "label": "Campaign ID", "type": "string" },
+        { "key": "page", "label": "Page", "type": "number", "default": 1 },
+        { "key": "limit", "label": "Limit (max 100)", "type": "number", "default": 25 }
+      ]
+    },
+    {
+      "key": "list_referrals",
+      "name": "List referrals",
+      "method": "GET",
+      "endpoint": "/referrals",
+      "query": { "affiliate_id": "{{ inputs.affiliate_id }}", "conversion_state": "{{ inputs.conversion_state }}", "page": "{{ inputs.page }}", "limit": "{{ inputs.limit }}" },
+      "output_path": "data",
+      "inputs": [
+        { "key": "affiliate_id", "label": "Affiliate ID", "type": "string" },
+        { "key": "conversion_state", "label": "State", "type": "select", "options": [
+          { "value": "visitor", "label": "Visitor" }, { "value": "lead", "label": "Lead" },
+          { "value": "conversion", "label": "Conversion" }
+        ] },
+        { "key": "page", "label": "Page", "type": "number", "default": 1 },
+        { "key": "limit", "label": "Limit (max 100)", "type": "number", "default": 25 }
+      ]
+    },
+    {
+      "key": "list_commissions",
+      "name": "List commissions",
+      "method": "GET",
+      "endpoint": "/commissions",
+      "query": { "affiliate_id": "{{ inputs.affiliate_id }}", "state": "{{ inputs.state }}", "page": "{{ inputs.page }}", "limit": "{{ inputs.limit }}" },
+      "output_path": "data",
+      "inputs": [
+        { "key": "affiliate_id", "label": "Affiliate ID", "type": "string" },
+        { "key": "state", "label": "State", "type": "select", "options": [
+          { "value": "pending", "label": "Pending" }, { "value": "due", "label": "Due" },
+          { "value": "paid", "label": "Paid" }, { "value": "voided", "label": "Voided" }
+        ] },
+        { "key": "page", "label": "Page", "type": "number", "default": 1 },
+        { "key": "limit", "label": "Limit (max 100)", "type": "number", "default": 25 }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "inputs": [{ "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }]
+    }
+  ]
+}

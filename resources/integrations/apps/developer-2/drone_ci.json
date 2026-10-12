@@ -1,0 +1,103 @@
+{
+  "key": "drone_ci",
+  "name": "Drone CI",
+  "category": "Developer Tools",
+  "description": "Trigger, restart, stop and promote builds on your Drone server.",
+  "brand": "drone",
+  "website": "https://www.drone.io",
+  "docs_url": "https://docs.drone.io/api/overview/",
+  "base_url": "{{ credentials.base_url }}/api",
+  "auth": { "type": "bearer", "fields": [
+    { "key": "base_url", "label": "Drone server URL", "type": "string", "required": true, "placeholder": "https://drone.example.com", "help": "Without a trailing slash." },
+    { "key": "token", "label": "Personal token", "type": "password", "required": true, "help": "Shown on your Drone user settings page." }
+  ] },
+  "actions": [
+    {
+      "key": "create_build",
+      "name": "Trigger build",
+      "description": "Starts a build for a branch or commit.",
+      "method": "POST",
+      "endpoint": "/repos/{{ inputs.owner }}/{{ inputs.repo }}/builds",
+      "query": { "branch": "{{ inputs.branch }}", "commit": "{{ inputs.commit }}" },
+      "inputs": [
+        { "key": "owner", "label": "Repository owner", "type": "string", "required": true },
+        { "key": "repo", "label": "Repository name", "type": "string", "required": true },
+        { "key": "branch", "label": "Branch", "type": "string", "placeholder": "main" },
+        { "key": "commit", "label": "Commit SHA", "type": "string" }
+      ]
+    },
+    {
+      "key": "list_builds",
+      "name": "List builds",
+      "method": "GET",
+      "endpoint": "/repos/{{ inputs.owner }}/{{ inputs.repo }}/builds",
+      "query": { "page": "{{ inputs.page }}" },
+      "inputs": [
+        { "key": "owner", "label": "Repository owner", "type": "string", "required": true },
+        { "key": "repo", "label": "Repository name", "type": "string", "required": true },
+        { "key": "page", "label": "Page", "type": "number" }
+      ]
+    },
+    {
+      "key": "get_build",
+      "name": "Get build",
+      "method": "GET",
+      "endpoint": "/repos/{{ inputs.owner }}/{{ inputs.repo }}/builds/{{ inputs.number }}",
+      "inputs": [
+        { "key": "owner", "label": "Repository owner", "type": "string", "required": true },
+        { "key": "repo", "label": "Repository name", "type": "string", "required": true },
+        { "key": "number", "label": "Build number", "type": "number", "required": true }
+      ]
+    },
+    {
+      "key": "restart_build",
+      "name": "Restart build",
+      "method": "POST",
+      "endpoint": "/repos/{{ inputs.owner }}/{{ inputs.repo }}/builds/{{ inputs.number }}",
+      "inputs": [
+        { "key": "owner", "label": "Repository owner", "type": "string", "required": true },
+        { "key": "repo", "label": "Repository name", "type": "string", "required": true },
+        { "key": "number", "label": "Build number", "type": "number", "required": true }
+      ]
+    },
+    {
+      "key": "stop_build",
+      "name": "Stop build",
+      "method": "DELETE",
+      "endpoint": "/repos/{{ inputs.owner }}/{{ inputs.repo }}/builds/{{ inputs.number }}",
+      "inputs": [
+        { "key": "owner", "label": "Repository owner", "type": "string", "required": true },
+        { "key": "repo", "label": "Repository name", "type": "string", "required": true },
+        { "key": "number", "label": "Build number", "type": "number", "required": true }
+      ]
+    },
+    {
+      "key": "promote_build",
+      "name": "Promote build",
+      "method": "POST",
+      "endpoint": "/repos/{{ inputs.owner }}/{{ inputs.repo }}/builds/{{ inputs.number }}/promote",
+      "query": { "target": "{{ inputs.target }}" },
+      "inputs": [
+        { "key": "owner", "label": "Repository owner", "type": "string", "required": true },
+        { "key": "repo", "label": "Repository name", "type": "string", "required": true },
+        { "key": "number", "label": "Build number", "type": "number", "required": true },
+        { "key": "target", "label": "Target environment", "type": "string", "required": true, "placeholder": "production" }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_build",
+      "name": "New build (polling)",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/repos/{{ inputs.owner }}/{{ inputs.repo }}/builds",
+      "id_field": "id",
+      "inputs": [
+        { "key": "owner", "label": "Repository owner", "type": "string", "required": true },
+        { "key": "repo", "label": "Repository name", "type": "string", "required": true },
+        { "key": "poll_interval", "label": "Check every (minutes)", "type": "number", "default": 5 }
+      ]
+    }
+  ]
+}

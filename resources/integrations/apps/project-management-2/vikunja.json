@@ -1,0 +1,134 @@
+{
+  "key": "vikunja",
+  "name": "Vikunja",
+  "category": "Project Management",
+  "description": "Create tasks, comment and list projects in Vikunja.",
+  "brand": "vikunja",
+  "website": "https://vikunja.io",
+  "docs_url": "https://vikunja.io/docs/api-documentation/",
+  "base_url": "{{ credentials.url }}/api/v1",
+  "auth": [
+    {
+      "type": "bearer",
+      "fields": [
+        {
+          "key": "url",
+          "label": "Vikunja URL",
+          "type": "string",
+          "required": true,
+          "placeholder": "https://vikunja.example.com",
+          "help": "Base URL without a trailing slash."
+        },
+        {
+          "key": "token",
+          "label": "API token",
+          "type": "password",
+          "required": true,
+          "help": "Settings > API tokens."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_projects",
+      "name": "List projects",
+      "method": "GET",
+      "endpoint": "/projects",
+      "inputs": []
+    },
+    {
+      "key": "create_task",
+      "name": "Create task",
+      "method": "PUT",
+      "endpoint": "/projects/{{ inputs.project_id }}/tasks",
+      "body": {
+        "title": "{{ inputs.title }}",
+        "description": "{{ inputs.description }}",
+        "due_date": "{{ inputs.due_date }}",
+        "priority": "{{ inputs.priority }}"
+      },
+      "inputs": [
+        {
+          "key": "project_id",
+          "label": "Project ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "description",
+          "label": "Description",
+          "type": "text"
+        },
+        {
+          "key": "due_date",
+          "label": "Due",
+          "type": "string",
+          "placeholder": "2026-10-20T17:00:00Z"
+        },
+        {
+          "key": "priority",
+          "label": "Priority (1-5)",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "get_task",
+      "name": "Get task",
+      "method": "GET",
+      "endpoint": "/tasks/{{ inputs.task_id }}",
+      "inputs": [
+        {
+          "key": "task_id",
+          "label": "Task ID",
+          "type": "number",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "add_comment",
+      "name": "Add comment",
+      "method": "PUT",
+      "endpoint": "/tasks/{{ inputs.task_id }}/comments",
+      "body": {
+        "comment": "{{ inputs.comment }}"
+      },
+      "inputs": [
+        {
+          "key": "task_id",
+          "label": "Task ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "comment",
+          "label": "Comment",
+          "type": "text",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Project webhook",
+      "type": "webhook",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

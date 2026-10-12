@@ -1,0 +1,84 @@
+{
+  "key": "reddit",
+  "name": "Reddit",
+  "category": "Social Media",
+  "description": "Submit posts and comments and watch subreddits for new posts.",
+  "brand": "reddit",
+  "website": "https://www.reddit.com",
+  "docs_url": "https://www.reddit.com/dev/api/",
+  "base_url": "https://oauth.reddit.com",
+  "headers": { "User-Agent": "web:flowforge:1.0 (self-hosted workflow automation)" },
+  "auth": { "type": "bearer", "fields": [{ "key": "token", "label": "OAuth access token", "type": "password", "required": true,
+    "help": "Scopes: identity, submit, read. Reddit tokens last 1 hour and its token endpoint needs Basic auth, so in-app OAuth isn't offered." }] },
+  "actions": [
+    {
+      "key": "submit_post",
+      "name": "Submit post",
+      "method": "POST",
+      "endpoint": "/api/submit",
+      "body_format": "form",
+      "body": { "api_type": "json", "sr": "{{ inputs.subreddit }}", "kind": "{{ inputs.kind }}", "title": "{{ inputs.title }}", "text": "{{ inputs.text }}", "url": "{{ inputs.url }}" },
+      "error_path": "json.errors.0",
+      "output_path": "json.data",
+      "inputs": [
+        { "key": "subreddit", "label": "Subreddit (without r/)", "type": "string", "required": true },
+        { "key": "kind", "label": "Type", "type": "select", "required": true, "default": "self", "options": [
+          { "value": "self", "label": "Text post" }, { "value": "link", "label": "Link post" }
+        ] },
+        { "key": "title", "label": "Title", "type": "string", "required": true },
+        { "key": "text", "label": "Text (Markdown)", "type": "text", "help": "For text posts." },
+        { "key": "url", "label": "URL", "type": "string", "help": "For link posts." }
+      ]
+    },
+    {
+      "key": "add_comment",
+      "name": "Comment",
+      "description": "Replies to a post (t3_…) or comment (t1_…).",
+      "method": "POST",
+      "endpoint": "/api/comment",
+      "body_format": "form",
+      "body": { "api_type": "json", "thing_id": "{{ inputs.thing_id }}", "text": "{{ inputs.text }}" },
+      "error_path": "json.errors.0",
+      "output_path": "json.data",
+      "inputs": [
+        { "key": "thing_id", "label": "Parent fullname", "type": "string", "required": true, "placeholder": "t3_abc123" },
+        { "key": "text", "label": "Comment (Markdown)", "type": "text", "required": true }
+      ]
+    },
+    {
+      "key": "get_new_posts",
+      "name": "Get new posts in subreddit",
+      "method": "GET",
+      "endpoint": "/r/{{ inputs.subreddit }}/new",
+      "query": { "limit": "{{ inputs.limit }}" },
+      "output_path": "data.children",
+      "inputs": [
+        { "key": "subreddit", "label": "Subreddit (without r/)", "type": "string", "required": true },
+        { "key": "limit", "label": "Limit (max 100)", "type": "number", "default": 25 }
+      ]
+    },
+    {
+      "key": "get_me",
+      "name": "Get my account",
+      "method": "GET",
+      "endpoint": "/api/v1/me",
+      "inputs": []
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_post",
+      "name": "New post in subreddit",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/r/{{ inputs.subreddit }}/new",
+      "query": { "limit": 25 },
+      "items_path": "data.children",
+      "id_field": "data.name",
+      "inputs": [
+        { "key": "subreddit", "label": "Subreddit (without r/)", "type": "string", "required": true },
+        { "key": "poll_interval", "label": "Check every (minutes)", "type": "number", "default": 5 }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,67 @@
+{
+  "key": "census",
+  "name": "Census",
+  "category": "Analytics",
+  "description": "Trigger reverse-ETL syncs and check sync run status (now Fivetran Activations).",
+  "brand": "census",
+  "website": "https://www.getcensus.com",
+  "docs_url": "https://fivetran.com/docs/activations/rest-api",
+  "base_url": "https://app.getcensus.com/api/v1",
+  "auth": { "type": "bearer", "fields": [
+    { "key": "token", "label": "Workspace access token", "type": "password", "required": true, "help": "Workspace Settings → API Access." }
+  ] },
+  "actions": [
+    {
+      "key": "list_syncs",
+      "name": "List syncs",
+      "method": "GET",
+      "endpoint": "/syncs",
+      "query": { "per_page": "{{ inputs.per_page }}", "page": "{{ inputs.page }}" },
+      "output_path": "data",
+      "inputs": [
+        { "key": "per_page", "label": "Per page", "type": "number" },
+        { "key": "page", "label": "Page", "type": "number" }
+      ]
+    },
+    {
+      "key": "get_sync",
+      "name": "Get sync",
+      "method": "GET",
+      "endpoint": "/syncs/{{ inputs.sync_id }}",
+      "output_path": "data",
+      "inputs": [{ "key": "sync_id", "label": "Sync ID", "type": "number", "required": true }]
+    },
+    {
+      "key": "trigger_sync",
+      "name": "Trigger sync",
+      "method": "POST",
+      "endpoint": "/syncs/{{ inputs.sync_id }}/trigger",
+      "query": { "force_full_sync": "{{ inputs.force_full_sync }}" },
+      "output_path": "data",
+      "inputs": [
+        { "key": "sync_id", "label": "Sync ID", "type": "number", "required": true },
+        { "key": "force_full_sync", "label": "Force full sync", "type": "select", "options": [{ "value": "true", "label": "Yes" }, { "value": "false", "label": "No" }] }
+      ]
+    },
+    {
+      "key": "get_sync_run",
+      "name": "Get sync run",
+      "method": "GET",
+      "endpoint": "/sync_runs/{{ inputs.sync_run_id }}",
+      "output_path": "data",
+      "inputs": [{ "key": "sync_run_id", "label": "Sync run ID", "type": "number", "required": true }]
+    },
+    {
+      "key": "list_sync_runs",
+      "name": "List runs of a sync",
+      "method": "GET",
+      "endpoint": "/syncs/{{ inputs.sync_id }}/sync_runs",
+      "query": { "per_page": "{{ inputs.per_page }}" },
+      "output_path": "data",
+      "inputs": [
+        { "key": "sync_id", "label": "Sync ID", "type": "number", "required": true },
+        { "key": "per_page", "label": "Per page", "type": "number" }
+      ]
+    }
+  ]
+}

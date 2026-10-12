@@ -1,0 +1,198 @@
+{
+  "key": "directus",
+  "name": "Directus",
+  "category": "CMS & Websites",
+  "description": "Read, create, update and delete items in any Directus collection.",
+  "brand": "directus",
+  "website": "https://directus.io",
+  "docs_url": "https://directus.io/docs/api",
+  "base_url": "{{ credentials.base_url }}",
+  "auth": [
+    {
+      "type": "bearer",
+      "fields": [
+        {
+          "key": "base_url",
+          "label": "Directus URL",
+          "type": "string",
+          "required": true,
+          "placeholder": "https://cms.example.com",
+          "help": "No trailing slash."
+        },
+        {
+          "key": "token",
+          "label": "Static token",
+          "type": "password",
+          "required": true,
+          "help": "User profile > Token."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_items",
+      "name": "List items",
+      "method": "GET",
+      "endpoint": "/items/{{ inputs.collection }}",
+      "output_path": "data",
+      "query": {
+        "filter": "{{ inputs.filter }}",
+        "search": "{{ inputs.search }}",
+        "sort": "{{ inputs.sort }}",
+        "limit": "{{ inputs.limit }}",
+        "fields": "{{ inputs.fields }}"
+      },
+      "inputs": [
+        {
+          "key": "collection",
+          "label": "Collection",
+          "type": "string",
+          "required": true,
+          "placeholder": "articles"
+        },
+        {
+          "key": "filter",
+          "label": "Filter (JSON)",
+          "type": "json",
+          "placeholder": "{ \"status\": { \"_eq\": \"published\" } }"
+        },
+        {
+          "key": "search",
+          "label": "Search",
+          "type": "string"
+        },
+        {
+          "key": "sort",
+          "label": "Sort",
+          "type": "string",
+          "placeholder": "-date_created"
+        },
+        {
+          "key": "fields",
+          "label": "Fields",
+          "type": "string",
+          "placeholder": "*"
+        },
+        {
+          "key": "limit",
+          "label": "Max items",
+          "type": "number",
+          "default": 100
+        }
+      ]
+    },
+    {
+      "key": "get_item",
+      "name": "Get item",
+      "method": "GET",
+      "endpoint": "/items/{{ inputs.collection }}/{{ inputs.id }}",
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "collection",
+          "label": "Collection",
+          "type": "string",
+          "required": true,
+          "placeholder": "articles"
+        },
+        {
+          "key": "id",
+          "label": "Item ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "create_item",
+      "name": "Create item",
+      "method": "POST",
+      "endpoint": "/items/{{ inputs.collection }}",
+      "body": "{{ inputs.data }}",
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "collection",
+          "label": "Collection",
+          "type": "string",
+          "required": true,
+          "placeholder": "articles"
+        },
+        {
+          "key": "data",
+          "label": "Fields (JSON)",
+          "type": "json",
+          "required": true,
+          "placeholder": "{ \"title\": \"Hello\" }"
+        }
+      ]
+    },
+    {
+      "key": "update_item",
+      "name": "Update item",
+      "method": "PATCH",
+      "endpoint": "/items/{{ inputs.collection }}/{{ inputs.id }}",
+      "body": "{{ inputs.data }}",
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "collection",
+          "label": "Collection",
+          "type": "string",
+          "required": true,
+          "placeholder": "articles"
+        },
+        {
+          "key": "id",
+          "label": "Item ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "data",
+          "label": "Fields (JSON)",
+          "type": "json",
+          "required": true,
+          "placeholder": "{ \"title\": \"Hello\" }"
+        }
+      ]
+    },
+    {
+      "key": "delete_item",
+      "name": "Delete item",
+      "method": "DELETE",
+      "endpoint": "/items/{{ inputs.collection }}/{{ inputs.id }}",
+      "inputs": [
+        {
+          "key": "collection",
+          "label": "Collection",
+          "type": "string",
+          "required": true,
+          "placeholder": "articles"
+        },
+        {
+          "key": "id",
+          "label": "Item ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Events from a Directus Flow with a webhook / request operation.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

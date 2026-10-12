@@ -1,0 +1,102 @@
+{
+  "key": "kubernetes",
+  "name": "Kubernetes",
+  "category": "Developer Tools",
+  "description": "Scale and restart deployments, list pods, read logs and create jobs.",
+  "brand": "kubernetes",
+  "website": "https://kubernetes.io",
+  "docs_url": "https://kubernetes.io/docs/reference/kubernetes-api/",
+  "popular": true,
+  "base_url": "{{ credentials.base_url }}",
+  "auth": { "type": "bearer", "fields": [
+    { "key": "base_url", "label": "Cluster API URL", "type": "string", "required": true, "placeholder": "https://k8s.example.com:6443", "help": "The server: value from your kubeconfig, without a trailing slash. Its TLS certificate must be trusted by this server." },
+    { "key": "token", "label": "Service account token", "type": "password", "required": true, "help": "kubectl create token <service-account> --duration=8760h, or a service-account-token Secret. Grant it a Role/ClusterRole for the resources you automate." }
+  ] },
+  "actions": [
+    {
+      "key": "list_pods",
+      "name": "List pods",
+      "method": "GET",
+      "endpoint": "/api/v1/namespaces/{{ inputs.namespace }}/pods",
+      "query": { "labelSelector": "{{ inputs.label_selector }}", "fieldSelector": "{{ inputs.field_selector }}" },
+      "output_path": "items",
+      "inputs": [
+        { "key": "namespace", "label": "Namespace", "type": "string", "required": true, "default": "default" },
+        { "key": "label_selector", "label": "Label selector", "type": "string", "placeholder": "app=web" },
+        { "key": "field_selector", "label": "Field selector", "type": "string", "placeholder": "status.phase=Running" }
+      ]
+    },
+    {
+      "key": "get_deployment",
+      "name": "Get deployment",
+      "method": "GET",
+      "endpoint": "/apis/apps/v1/namespaces/{{ inputs.namespace }}/deployments/{{ inputs.name }}",
+      "inputs": [
+        { "key": "namespace", "label": "Namespace", "type": "string", "required": true, "default": "default" },
+        { "key": "name", "label": "Deployment name", "type": "string", "required": true }
+      ]
+    },
+    {
+      "key": "scale_deployment",
+      "name": "Scale deployment",
+      "method": "PATCH",
+      "endpoint": "/apis/apps/v1/namespaces/{{ inputs.namespace }}/deployments/{{ inputs.name }}/scale",
+      "headers": { "Content-Type": "application/merge-patch+json" },
+      "body": { "spec": { "replicas": "{{ inputs.replicas }}" } },
+      "inputs": [
+        { "key": "namespace", "label": "Namespace", "type": "string", "required": true, "default": "default" },
+        { "key": "name", "label": "Deployment name", "type": "string", "required": true },
+        { "key": "replicas", "label": "Replicas", "type": "number", "required": true }
+      ]
+    },
+    {
+      "key": "restart_deployment",
+      "name": "Restart deployment",
+      "description": "Rolling restart, like kubectl rollout restart.",
+      "method": "PATCH",
+      "endpoint": "/apis/apps/v1/namespaces/{{ inputs.namespace }}/deployments/{{ inputs.name }}",
+      "headers": { "Content-Type": "application/strategic-merge-patch+json" },
+      "body": { "spec": { "template": { "metadata": { "annotations": { "kubectl.kubernetes.io/restartedAt": "{{ inputs.restarted_at }}" } } } } },
+      "inputs": [
+        { "key": "namespace", "label": "Namespace", "type": "string", "required": true, "default": "default" },
+        { "key": "name", "label": "Deployment name", "type": "string", "required": true },
+        { "key": "restarted_at", "label": "Restart marker", "type": "string", "required": true, "placeholder": "2026-01-31T12:00:00Z", "help": "Must differ from the previous restart; map the current timestamp here." }
+      ]
+    },
+    {
+      "key": "get_pod_logs",
+      "name": "Get pod logs",
+      "method": "GET",
+      "endpoint": "/api/v1/namespaces/{{ inputs.namespace }}/pods/{{ inputs.pod }}/log",
+      "query": { "container": "{{ inputs.container }}", "tailLines": "{{ inputs.tail_lines }}", "sinceSeconds": "{{ inputs.since_seconds }}" },
+      "inputs": [
+        { "key": "namespace", "label": "Namespace", "type": "string", "required": true, "default": "default" },
+        { "key": "pod", "label": "Pod name", "type": "string", "required": true },
+        { "key": "container", "label": "Container", "type": "string", "help": "Required when the pod has several containers." },
+        { "key": "tail_lines", "label": "Last N lines", "type": "number", "default": 100 },
+        { "key": "since_seconds", "label": "Since (seconds ago)", "type": "number" }
+      ]
+    },
+    {
+      "key": "delete_pod",
+      "name": "Delete pod",
+      "method": "DELETE",
+      "endpoint": "/api/v1/namespaces/{{ inputs.namespace }}/pods/{{ inputs.pod }}",
+      "inputs": [
+        { "key": "namespace", "label": "Namespace", "type": "string", "required": true, "default": "default" },
+        { "key": "pod", "label": "Pod name", "type": "string", "required": true }
+      ]
+    },
+    {
+      "key": "create_job",
+      "name": "Create job",
+      "method": "POST",
+      "endpoint": "/apis/batch/v1/namespaces/{{ inputs.namespace }}/jobs",
+      "body": "{{ inputs.manifest }}",
+      "inputs": [
+        { "key": "namespace", "label": "Namespace", "type": "string", "required": true, "default": "default" },
+        { "key": "manifest", "label": "Job manifest (JSON)", "type": "json", "required": true, "help": "{\"apiVersion\":\"batch/v1\",\"kind\":\"Job\",\"metadata\":{\"generateName\":\"task-\"},\"spec\":{...}}" }
+      ]
+    }
+  ]
+}

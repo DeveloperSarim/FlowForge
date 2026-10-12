@@ -1,0 +1,221 @@
+{
+  "key": "nextcloud",
+  "name": "Nextcloud",
+  "category": "Files & Documents",
+  "description": "Share files and folders and manage public links on your Nextcloud.",
+  "brand": "nextcloud",
+  "website": "https://nextcloud.com",
+  "docs_url": "https://docs.nextcloud.com/server/latest/developer_manual/client_apis/OCS/ocs-share-api.html",
+  "popular": true,
+  "base_url": "{{ credentials.server_url }}",
+  "headers": {
+    "OCS-APIRequest": "true"
+  },
+  "auth": [
+    {
+      "type": "basic",
+      "fields": [
+        {
+          "key": "server_url",
+          "label": "Nextcloud URL",
+          "type": "string",
+          "required": true,
+          "placeholder": "https://cloud.example.com",
+          "help": "No trailing slash."
+        },
+        {
+          "key": "username",
+          "label": "Username",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "password",
+          "label": "App password",
+          "type": "password",
+          "required": true,
+          "help": "Settings > Security > create an app password."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "create_share",
+      "name": "Create share",
+      "method": "POST",
+      "endpoint": "/ocs/v2.php/apps/files_sharing/api/v1/shares",
+      "body_format": "form",
+      "query": {
+        "format": "json"
+      },
+      "body": {
+        "path": "{{ inputs.path }}",
+        "shareType": "{{ inputs.share_type }}",
+        "shareWith": "{{ inputs.share_with }}",
+        "permissions": "{{ inputs.permissions }}",
+        "password": "{{ inputs.password }}",
+        "expireDate": "{{ inputs.expire_date }}",
+        "publicUpload": "{{ inputs.public_upload }}"
+      },
+      "output_path": "ocs.data",
+      "inputs": [
+        {
+          "key": "path",
+          "label": "Path",
+          "type": "string",
+          "required": true,
+          "placeholder": "/Documents/report.pdf"
+        },
+        {
+          "key": "share_type",
+          "label": "Share type",
+          "type": "select",
+          "options": [
+            {
+              "value": "0",
+              "label": "User"
+            },
+            {
+              "value": "1",
+              "label": "Group"
+            },
+            {
+              "value": "3",
+              "label": "Public link"
+            },
+            {
+              "value": "4",
+              "label": "Email"
+            },
+            {
+              "value": "6",
+              "label": "Federated cloud"
+            },
+            {
+              "value": "10",
+              "label": "Talk conversation"
+            }
+          ],
+          "required": true,
+          "default": "3"
+        },
+        {
+          "key": "share_with",
+          "label": "Share with",
+          "type": "string",
+          "help": "User, group, email or remote ID. Not used for public links."
+        },
+        {
+          "key": "permissions",
+          "label": "Permissions",
+          "type": "number",
+          "help": "1 read, 2 update, 4 create, 8 delete, 16 share; add them up (31 = all)."
+        },
+        {
+          "key": "password",
+          "label": "Link password",
+          "type": "password"
+        },
+        {
+          "key": "expire_date",
+          "label": "Expiry date",
+          "type": "string",
+          "placeholder": "2026-12-31"
+        },
+        {
+          "key": "public_upload",
+          "label": "Allow public upload",
+          "type": "select",
+          "options": [
+            {
+              "value": "true",
+              "label": "Yes"
+            },
+            {
+              "value": "false",
+              "label": "No"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "list_shares",
+      "name": "List shares",
+      "method": "GET",
+      "endpoint": "/ocs/v2.php/apps/files_sharing/api/v1/shares",
+      "query": {
+        "format": "json",
+        "path": "{{ inputs.path }}",
+        "subfiles": "{{ inputs.subfiles }}"
+      },
+      "output_path": "ocs.data",
+      "inputs": [
+        {
+          "key": "path",
+          "label": "Path",
+          "type": "string",
+          "help": "Only shares of this file or folder. Leave empty for all your shares."
+        },
+        {
+          "key": "subfiles",
+          "label": "Shares inside the folder",
+          "type": "select",
+          "options": [
+            {
+              "value": "true",
+              "label": "Yes"
+            },
+            {
+              "value": "false",
+              "label": "No"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "delete_share",
+      "name": "Delete share",
+      "method": "DELETE",
+      "endpoint": "/ocs/v2.php/apps/files_sharing/api/v1/shares/{{ inputs.share_id }}",
+      "query": {
+        "format": "json"
+      },
+      "inputs": [
+        {
+          "key": "share_id",
+          "label": "Share ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "get_current_user",
+      "name": "Get current user",
+      "method": "GET",
+      "endpoint": "/ocs/v2.php/cloud/user",
+      "query": {
+        "format": "json"
+      },
+      "output_path": "ocs.data",
+      "inputs": []
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

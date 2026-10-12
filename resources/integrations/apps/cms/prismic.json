@@ -1,0 +1,106 @@
+{
+  "key": "prismic",
+  "name": "Prismic",
+  "category": "CMS & Websites",
+  "description": "Search published documents in a Prismic repository.",
+  "brand": "prismic",
+  "website": "https://prismic.io",
+  "docs_url": "https://prismic.io/docs/api",
+  "base_url": "https://{{ credentials.repository }}.cdn.prismic.io/api/v2",
+  "auth": [
+    {
+      "type": "api_key",
+      "in": "query",
+      "name": "access_token",
+      "fields": [
+        {
+          "key": "repository",
+          "label": "Repository name",
+          "type": "string",
+          "required": true,
+          "help": "The <name> in <name>.prismic.io."
+        },
+        {
+          "key": "api_key",
+          "label": "Access token",
+          "type": "password",
+          "required": false,
+          "help": "Only for private repositories."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "get_refs",
+      "name": "Get repository refs",
+      "description": "Returns refs; the master ref is needed by Search documents.",
+      "method": "GET",
+      "endpoint": "https://{{ credentials.repository }}.cdn.prismic.io/api/v2",
+      "output_path": "refs",
+      "inputs": []
+    },
+    {
+      "key": "search_documents",
+      "name": "Search documents",
+      "method": "GET",
+      "endpoint": "/documents/search",
+      "query": {
+        "ref": "{{ inputs.ref }}",
+        "q": "{{ inputs.q }}",
+        "orderings": "{{ inputs.orderings }}",
+        "lang": "{{ inputs.lang }}",
+        "pageSize": "{{ inputs.page_size }}"
+      },
+      "output_path": "results",
+      "inputs": [
+        {
+          "key": "ref",
+          "label": "Ref",
+          "type": "string",
+          "required": true,
+          "help": "Master ref from Get repository refs."
+        },
+        {
+          "key": "q",
+          "label": "Predicates",
+          "type": "string",
+          "placeholder": "[[at(document.type,\"blog_post\")]]"
+        },
+        {
+          "key": "orderings",
+          "label": "Order",
+          "type": "string",
+          "placeholder": "[document.first_publication_date desc]"
+        },
+        {
+          "key": "lang",
+          "label": "Locale",
+          "type": "string",
+          "placeholder": "en-us"
+        },
+        {
+          "key": "page_size",
+          "label": "Max results",
+          "type": "number",
+          "default": 20
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Prismic webhooks (documents published or unpublished).",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

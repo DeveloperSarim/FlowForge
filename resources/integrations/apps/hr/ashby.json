@@ -1,0 +1,190 @@
+{
+  "key": "ashby",
+  "name": "Ashby",
+  "category": "HR & Recruiting",
+  "description": "Create and search candidates, add notes and applications in Ashby.",
+  "brand": "ashby",
+  "website": "https://www.ashbyhq.com",
+  "docs_url": "https://developers.ashbyhq.com/reference/introduction",
+  "base_url": "https://api.ashbyhq.com",
+  "auth": [
+    {
+      "type": "basic",
+      "fields": [
+        {
+          "key": "username",
+          "label": "API key",
+          "type": "password",
+          "required": true,
+          "help": "Admin > Integrations > API Keys."
+        },
+        {
+          "key": "password",
+          "label": "Password",
+          "type": "password",
+          "required": false,
+          "default": "",
+          "help": "Leave empty."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "create_candidate",
+      "name": "Create candidate",
+      "method": "POST",
+      "endpoint": "/candidate.create",
+      "body": {
+        "name": "{{ inputs.name }}",
+        "email": "{{ inputs.email }}",
+        "phoneNumber": "{{ inputs.phone_number }}",
+        "linkedInUrl": "{{ inputs.linkedin_url }}"
+      },
+      "error_path": "errors",
+      "output_path": "results",
+      "inputs": [
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string"
+        },
+        {
+          "key": "phone_number",
+          "label": "Phone",
+          "type": "string"
+        },
+        {
+          "key": "linkedin_url",
+          "label": "LinkedIn URL",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "search_candidates",
+      "name": "Search candidates",
+      "method": "POST",
+      "endpoint": "/candidate.search",
+      "body": {
+        "email": "{{ inputs.email }}",
+        "name": "{{ inputs.name }}"
+      },
+      "error_path": "errors",
+      "output_path": "results",
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string"
+        },
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "get_candidate",
+      "name": "Get candidate",
+      "method": "POST",
+      "endpoint": "/candidate.info",
+      "body": {
+        "id": "{{ inputs.id }}"
+      },
+      "error_path": "errors",
+      "output_path": "results",
+      "inputs": [
+        {
+          "key": "id",
+          "label": "Candidate ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "create_note",
+      "name": "Add note",
+      "method": "POST",
+      "endpoint": "/candidate.createNote",
+      "body": {
+        "candidateId": "{{ inputs.candidate_id }}",
+        "note": "{{ inputs.note }}"
+      },
+      "error_path": "errors",
+      "output_path": "results",
+      "inputs": [
+        {
+          "key": "candidate_id",
+          "label": "Candidate ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "note",
+          "label": "Note",
+          "type": "text",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_jobs",
+      "name": "List jobs",
+      "method": "POST",
+      "endpoint": "/job.list",
+      "error_path": "errors",
+      "output_path": "results",
+      "inputs": []
+    },
+    {
+      "key": "create_application",
+      "name": "Create application",
+      "method": "POST",
+      "endpoint": "/application.create",
+      "body": {
+        "candidateId": "{{ inputs.candidate_id }}",
+        "jobId": "{{ inputs.job_id }}"
+      },
+      "error_path": "errors",
+      "output_path": "results",
+      "inputs": [
+        {
+          "key": "candidate_id",
+          "label": "Candidate ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "job_id",
+          "label": "Job ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "data_path": "data",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

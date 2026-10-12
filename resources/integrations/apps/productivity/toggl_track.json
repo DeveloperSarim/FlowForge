@@ -1,0 +1,191 @@
+{
+  "key": "toggl_track",
+  "name": "Toggl Track",
+  "category": "Productivity",
+  "description": "Start, stop and log Toggl Track time entries.",
+  "brand": "toggltrack",
+  "website": "https://toggl.com/track",
+  "docs_url": "https://engineering.toggl.com/docs/",
+  "base_url": "https://api.track.toggl.com/api/v9",
+  "auth": {
+    "type": "basic",
+    "fields": [
+      {
+        "key": "username",
+        "label": "API token",
+        "type": "password",
+        "required": true,
+        "help": "Profile settings > API Token."
+      },
+      {
+        "key": "password",
+        "label": "Password",
+        "type": "string",
+        "required": true,
+        "default": "api_token",
+        "help": "Leave as the literal text api_token."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "get_me",
+      "name": "Get current user",
+      "method": "GET",
+      "endpoint": "/me",
+      "inputs": []
+    },
+    {
+      "key": "create_time_entry",
+      "name": "Create time entry",
+      "method": "POST",
+      "endpoint": "/workspaces/{{ inputs.workspace_id }}/time_entries",
+      "body": {
+        "created_with": "FlowForge",
+        "workspace_id": "{{ inputs.workspace_id }}",
+        "description": "{{ inputs.description }}",
+        "start": "{{ inputs.start }}",
+        "duration": "{{ inputs.duration }}",
+        "stop": "{{ inputs.stop }}",
+        "project_id": "{{ inputs.project_id }}",
+        "tags": "{{ inputs.tags }}",
+        "billable": "{{ inputs.billable }}"
+      },
+      "inputs": [
+        {
+          "key": "workspace_id",
+          "label": "Workspace ID",
+          "type": "number",
+          "required": true,
+          "help": "From Get current user (default_workspace_id)."
+        },
+        {
+          "key": "description",
+          "label": "Description",
+          "type": "string"
+        },
+        {
+          "key": "start",
+          "label": "Start",
+          "type": "string",
+          "required": true,
+          "placeholder": "2026-10-12T09:00:00Z"
+        },
+        {
+          "key": "duration",
+          "label": "Duration (seconds)",
+          "type": "number",
+          "required": true,
+          "default": -1,
+          "help": "-1 starts a running timer."
+        },
+        {
+          "key": "stop",
+          "label": "Stop",
+          "type": "string",
+          "placeholder": "2026-10-12T10:00:00Z"
+        },
+        {
+          "key": "project_id",
+          "label": "Project ID",
+          "type": "number"
+        },
+        {
+          "key": "tags",
+          "label": "Tags",
+          "type": "list"
+        },
+        {
+          "key": "billable",
+          "label": "Billable",
+          "type": "boolean"
+        }
+      ]
+    },
+    {
+      "key": "stop_time_entry",
+      "name": "Stop time entry",
+      "method": "PATCH",
+      "endpoint": "/workspaces/{{ inputs.workspace_id }}/time_entries/{{ inputs.time_entry_id }}/stop",
+      "inputs": [
+        {
+          "key": "workspace_id",
+          "label": "Workspace ID",
+          "type": "number",
+          "required": true,
+          "help": "From Get current user (default_workspace_id)."
+        },
+        {
+          "key": "time_entry_id",
+          "label": "Time entry ID",
+          "type": "number",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "current_time_entry",
+      "name": "Get running time entry",
+      "method": "GET",
+      "endpoint": "/me/time_entries/current",
+      "inputs": []
+    },
+    {
+      "key": "list_time_entries",
+      "name": "List time entries",
+      "method": "GET",
+      "endpoint": "/me/time_entries",
+      "query": {
+        "start_date": "{{ inputs.start_date }}",
+        "end_date": "{{ inputs.end_date }}"
+      },
+      "inputs": [
+        {
+          "key": "start_date",
+          "label": "From",
+          "type": "string",
+          "placeholder": "2026-10-01"
+        },
+        {
+          "key": "end_date",
+          "label": "To",
+          "type": "string",
+          "placeholder": "2026-10-12"
+        }
+      ]
+    },
+    {
+      "key": "list_projects",
+      "name": "List projects",
+      "method": "GET",
+      "endpoint": "/workspaces/{{ inputs.workspace_id }}/projects",
+      "inputs": [
+        {
+          "key": "workspace_id",
+          "label": "Workspace ID",
+          "type": "number",
+          "required": true,
+          "help": "From Get current user (default_workspace_id)."
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_time_entry",
+      "name": "New time entry",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/me/time_entries",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

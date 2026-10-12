@@ -1,0 +1,227 @@
+{
+  "key": "basecamp",
+  "name": "Basecamp",
+  "category": "Project Management",
+  "description": "Create to-dos, post messages, chat lines and comments in Basecamp.",
+  "brand": "basecamp",
+  "website": "https://basecamp.com",
+  "docs_url": "https://github.com/basecamp/bc3-api",
+  "base_url": "https://3.basecampapi.com/{{ credentials.account_id }}",
+  "auth": {
+    "type": "oauth2",
+    "authorize_url": "https://launchpad.37signals.com/authorization/new",
+    "token_url": "https://launchpad.37signals.com/authorization/token?type=web_server",
+    "authorize_params": {
+      "type": "web_server"
+    },
+    "fields": [
+      {
+        "key": "account_id",
+        "label": "Account ID",
+        "type": "string",
+        "required": true,
+        "help": "The number after 3.basecamp.com/ in your Basecamp URL."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_projects",
+      "name": "List projects",
+      "method": "GET",
+      "endpoint": "/projects.json",
+      "inputs": []
+    },
+    {
+      "key": "list_todolists",
+      "name": "List to-do lists",
+      "method": "GET",
+      "endpoint": "/buckets/{{ inputs.project_id }}/todosets/{{ inputs.todoset_id }}/todolists.json",
+      "inputs": [
+        {
+          "key": "project_id",
+          "label": "Project ID",
+          "type": "string",
+          "required": true,
+          "help": "From the project URL: /buckets/<ID>/… or /projects/<ID>"
+        },
+        {
+          "key": "todoset_id",
+          "label": "To-do set ID",
+          "type": "string",
+          "required": true,
+          "help": "Get Project > dock > todoset id."
+        }
+      ]
+    },
+    {
+      "key": "create_todo",
+      "name": "Create to-do",
+      "method": "POST",
+      "endpoint": "/buckets/{{ inputs.project_id }}/todolists/{{ inputs.todolist_id }}/todos.json",
+      "body": {
+        "content": "{{ inputs.content }}",
+        "description": "{{ inputs.description }}",
+        "assignee_ids": "{{ inputs.assignee_ids }}",
+        "due_on": "{{ inputs.due_on }}",
+        "notify": "{{ inputs.notify }}"
+      },
+      "inputs": [
+        {
+          "key": "project_id",
+          "label": "Project ID",
+          "type": "string",
+          "required": true,
+          "help": "From the project URL: /buckets/<ID>/… or /projects/<ID>"
+        },
+        {
+          "key": "todolist_id",
+          "label": "To-do list ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "content",
+          "label": "To-do",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "description",
+          "label": "Notes (HTML)",
+          "type": "text"
+        },
+        {
+          "key": "assignee_ids",
+          "label": "Assignee person IDs",
+          "type": "json",
+          "placeholder": "[1049715913]"
+        },
+        {
+          "key": "due_on",
+          "label": "Due date",
+          "type": "string",
+          "placeholder": "2026-10-12"
+        },
+        {
+          "key": "notify",
+          "label": "Notify assignees",
+          "type": "boolean"
+        }
+      ]
+    },
+    {
+      "key": "post_message",
+      "name": "Post message",
+      "method": "POST",
+      "endpoint": "/buckets/{{ inputs.project_id }}/message_boards/{{ inputs.message_board_id }}/messages.json",
+      "body": {
+        "subject": "{{ inputs.subject }}",
+        "content": "{{ inputs.content }}",
+        "status": "active"
+      },
+      "inputs": [
+        {
+          "key": "project_id",
+          "label": "Project ID",
+          "type": "string",
+          "required": true,
+          "help": "From the project URL: /buckets/<ID>/… or /projects/<ID>"
+        },
+        {
+          "key": "message_board_id",
+          "label": "Message board ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "subject",
+          "label": "Subject",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "content",
+          "label": "Content (HTML)",
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "key": "post_chat_line",
+      "name": "Post Campfire line",
+      "method": "POST",
+      "endpoint": "/buckets/{{ inputs.project_id }}/chats/{{ inputs.chat_id }}/lines.json",
+      "body": {
+        "content": "{{ inputs.content }}"
+      },
+      "inputs": [
+        {
+          "key": "project_id",
+          "label": "Project ID",
+          "type": "string",
+          "required": true,
+          "help": "From the project URL: /buckets/<ID>/… or /projects/<ID>"
+        },
+        {
+          "key": "chat_id",
+          "label": "Campfire ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "content",
+          "label": "Message",
+          "type": "text",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "add_comment",
+      "name": "Add comment",
+      "method": "POST",
+      "endpoint": "/buckets/{{ inputs.project_id }}/recordings/{{ inputs.recording_id }}/comments.json",
+      "body": {
+        "content": "{{ inputs.content }}"
+      },
+      "inputs": [
+        {
+          "key": "project_id",
+          "label": "Project ID",
+          "type": "string",
+          "required": true,
+          "help": "From the project URL: /buckets/<ID>/… or /projects/<ID>"
+        },
+        {
+          "key": "recording_id",
+          "label": "Recording ID",
+          "type": "string",
+          "required": true,
+          "help": "Id of the to-do, message, document…"
+        },
+        {
+          "key": "content",
+          "label": "Comment (HTML)",
+          "type": "text",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Add this URL in the project's Webhooks settings.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

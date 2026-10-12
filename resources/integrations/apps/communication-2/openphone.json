@@ -1,0 +1,163 @@
+{
+  "key": "openphone",
+  "name": "Quo (OpenPhone)",
+  "category": "Communication",
+  "description": "Send texts, manage contacts and react to calls and messages in Quo (formerly OpenPhone).",
+  "brand": "openphone",
+  "website": "https://www.openphone.com",
+  "docs_url": "https://www.openphone.com/docs/api-reference/introduction",
+  "popular": true,
+  "base_url": "https://api.openphone.com/v1",
+  "auth": [
+    {
+      "type": "api_key",
+      "in": "header",
+      "name": "Authorization",
+      "fields": [
+        {
+          "key": "api_key",
+          "label": "API key",
+          "type": "password",
+          "required": true,
+          "help": "Workspace settings → API → Generate API key (owners/admins)."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "send_message",
+      "name": "Send text message",
+      "method": "POST",
+      "endpoint": "/messages",
+      "body": {
+        "from": "{{ inputs.from }}",
+        "to": [
+          "{{ inputs.to }}"
+        ],
+        "content": "{{ inputs.content }}",
+        "userId": "{{ inputs.user_id }}"
+      },
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "from",
+          "label": "From",
+          "type": "string",
+          "required": true,
+          "placeholder": "PN123abc or +15555555555",
+          "help": "Phone number ID or your number in E.164."
+        },
+        {
+          "key": "to",
+          "label": "To (E.164)",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "content",
+          "label": "Message",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "user_id",
+          "label": "Send as user ID",
+          "type": "string",
+          "help": "Defaults to the phone number owner."
+        }
+      ]
+    },
+    {
+      "key": "create_contact",
+      "name": "Create contact",
+      "method": "POST",
+      "endpoint": "/contacts",
+      "body": {
+        "defaultFields": {
+          "firstName": "{{ inputs.first_name }}",
+          "lastName": "{{ inputs.last_name }}",
+          "company": "{{ inputs.company }}",
+          "role": "{{ inputs.role }}",
+          "emails": "{{ inputs.emails }}",
+          "phoneNumbers": "{{ inputs.phone_numbers }}"
+        }
+      },
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "first_name",
+          "label": "First name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string"
+        },
+        {
+          "key": "company",
+          "label": "Company",
+          "type": "string"
+        },
+        {
+          "key": "role",
+          "label": "Role",
+          "type": "string"
+        },
+        {
+          "key": "phone_numbers",
+          "label": "Phone numbers (JSON)",
+          "type": "json",
+          "placeholder": "[{\"name\":\"Mobile\",\"value\":\"+15555555555\"}]"
+        },
+        {
+          "key": "emails",
+          "label": "Emails (JSON)",
+          "type": "json",
+          "placeholder": "[{\"name\":\"Work\",\"value\":\"ada@example.com\"}]"
+        }
+      ]
+    },
+    {
+      "key": "get_contact",
+      "name": "Get contact",
+      "method": "GET",
+      "endpoint": "/contacts/{{ inputs.contact_id }}",
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "contact_id",
+          "label": "Contact ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_phone_numbers",
+      "name": "List phone numbers",
+      "method": "GET",
+      "endpoint": "/phone-numbers",
+      "output_path": "data",
+      "inputs": []
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "description": "Add this URL in Settings → Webhooks and choose events (message.received, call.completed…).",
+      "type": "webhook",
+      "data_path": "data.object",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

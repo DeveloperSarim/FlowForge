@@ -1,0 +1,36 @@
+{
+  "key": "anthropic",
+  "name": "Claude (Anthropic)",
+  "category": "AI",
+  "description": "Generate, summarize, classify or extract text with Claude.",
+  "base_url": "https://api.anthropic.com/v1",
+  "headers": { "anthropic-version": "2023-06-01" },
+  "auth": { "type": "api_key", "in": "header", "name": "x-api-key" },
+  "actions": [
+    {
+      "key": "create_message",
+      "name": "Send a prompt",
+      "description": "Single-turn Messages API call. The reply text is available as {{ steps.<id>.text }}.",
+      "method": "POST",
+      "endpoint": "/messages",
+      "timeout": 300,
+      "body": {
+        "model": "{{ inputs.model }}",
+        "max_tokens": "{{ inputs.max_tokens }}",
+        "system": "{{ inputs.system }}",
+        "messages": [{ "role": "user", "content": "{{ inputs.prompt }}" }],
+        "output_config": { "effort": "{{ inputs.effort }}" }
+      },
+      "output_fields": { "text": "content.*.text" },
+      "inputs": [
+        { "key": "model", "label": "Model", "type": "string", "required": true, "default": "claude-opus-5-5" },
+        { "key": "prompt", "label": "Prompt", "type": "text", "required": true },
+        { "key": "system", "label": "System prompt", "type": "text" },
+        { "key": "effort", "label": "Effort", "type": "select", "default": "medium", "options": [
+          { "value": "low", "label": "Low" }, { "value": "medium", "label": "Medium" }, { "value": "high", "label": "High" }, { "value": "xhigh", "label": "Extra high" }
+        ] },
+        { "key": "max_tokens", "label": "Max output tokens", "type": "number", "default": 16000 }
+      ]
+    }
+  ]
+}

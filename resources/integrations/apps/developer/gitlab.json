@@ -1,0 +1,132 @@
+{
+  "key": "gitlab",
+  "name": "GitLab",
+  "category": "Developer Tools",
+  "description": "Create issues, comments and merge requests, and run CI/CD pipelines.",
+  "brand": "gitlab",
+  "website": "https://about.gitlab.com",
+  "docs_url": "https://docs.gitlab.com/api/rest/",
+  "popular": true,
+  "base_url": "{{ credentials.base_url }}/api/v4",
+  "auth": [
+    { "type": "api_key", "in": "header", "name": "PRIVATE-TOKEN", "fields": [
+      { "key": "base_url", "label": "GitLab URL", "type": "string", "required": true, "default": "https://gitlab.com", "help": "https://gitlab.com or your self-managed instance, without a trailing slash." },
+      { "key": "api_key", "label": "Personal, project or group access token", "type": "password", "required": true, "help": "Needs the api scope." }
+    ] },
+    { "type": "oauth2", "authorize_url": "https://gitlab.com/oauth/authorize", "token_url": "https://gitlab.com/oauth/token", "scopes": ["api"], "fields": [
+      { "key": "base_url", "label": "GitLab URL", "type": "string", "required": true, "default": "https://gitlab.com", "help": "OAuth sign-in is for gitlab.com. Use an access token for self-managed instances." }
+    ] }
+  ],
+  "actions": [
+    {
+      "key": "create_issue",
+      "name": "Create issue",
+      "method": "POST",
+      "endpoint": "/projects/{{ inputs.project }}/issues",
+      "body": { "title": "{{ inputs.title }}", "description": "{{ inputs.description }}", "labels": "{{ inputs.labels }}", "due_date": "{{ inputs.due_date }}", "confidential": "{{ inputs.confidential }}" },
+      "inputs": [
+        { "key": "project", "label": "Project", "type": "string", "required": true, "placeholder": "my-group/my-project", "help": "Numeric project ID or full path." },
+        { "key": "title", "label": "Title", "type": "string", "required": true },
+        { "key": "description", "label": "Description (Markdown)", "type": "text" },
+        { "key": "labels", "label": "Labels", "type": "string", "placeholder": "bug,backend", "help": "Comma-separated." },
+        { "key": "due_date", "label": "Due date", "type": "string", "placeholder": "2026-12-31" },
+        { "key": "confidential", "label": "Confidential", "type": "boolean", "default": false }
+      ]
+    },
+    {
+      "key": "comment_issue",
+      "name": "Comment on issue",
+      "method": "POST",
+      "endpoint": "/projects/{{ inputs.project }}/issues/{{ inputs.issue_iid }}/notes",
+      "body": { "body": "{{ inputs.body }}" },
+      "inputs": [
+        { "key": "project", "label": "Project", "type": "string", "required": true, "placeholder": "my-group/my-project" },
+        { "key": "issue_iid", "label": "Issue number (IID)", "type": "number", "required": true },
+        { "key": "body", "label": "Comment (Markdown)", "type": "text", "required": true }
+      ]
+    },
+    {
+      "key": "create_merge_request",
+      "name": "Create merge request",
+      "method": "POST",
+      "endpoint": "/projects/{{ inputs.project }}/merge_requests",
+      "body": { "source_branch": "{{ inputs.source_branch }}", "target_branch": "{{ inputs.target_branch }}", "title": "{{ inputs.title }}", "description": "{{ inputs.description }}", "remove_source_branch": "{{ inputs.remove_source_branch }}" },
+      "inputs": [
+        { "key": "project", "label": "Project", "type": "string", "required": true, "placeholder": "my-group/my-project" },
+        { "key": "source_branch", "label": "Source branch", "type": "string", "required": true },
+        { "key": "target_branch", "label": "Target branch", "type": "string", "required": true, "default": "main" },
+        { "key": "title", "label": "Title", "type": "string", "required": true },
+        { "key": "description", "label": "Description (Markdown)", "type": "text" },
+        { "key": "remove_source_branch", "label": "Delete source branch after merge", "type": "boolean", "default": false }
+      ]
+    },
+    {
+      "key": "comment_merge_request",
+      "name": "Comment on merge request",
+      "method": "POST",
+      "endpoint": "/projects/{{ inputs.project }}/merge_requests/{{ inputs.mr_iid }}/notes",
+      "body": { "body": "{{ inputs.body }}" },
+      "inputs": [
+        { "key": "project", "label": "Project", "type": "string", "required": true, "placeholder": "my-group/my-project" },
+        { "key": "mr_iid", "label": "Merge request number (IID)", "type": "number", "required": true },
+        { "key": "body", "label": "Comment (Markdown)", "type": "text", "required": true }
+      ]
+    },
+    {
+      "key": "run_pipeline",
+      "name": "Run pipeline",
+      "method": "POST",
+      "endpoint": "/projects/{{ inputs.project }}/pipeline",
+      "body": { "ref": "{{ inputs.ref }}", "variables": "{{ inputs.variables }}" },
+      "inputs": [
+        { "key": "project", "label": "Project", "type": "string", "required": true, "placeholder": "my-group/my-project" },
+        { "key": "ref", "label": "Branch or tag", "type": "string", "required": true, "default": "main" },
+        { "key": "variables", "label": "Variables (JSON)", "type": "json", "placeholder": "[{ \"key\": \"DEPLOY_ENV\", \"value\": \"staging\" }]" }
+      ]
+    },
+    {
+      "key": "get_pipeline",
+      "name": "Get pipeline",
+      "method": "GET",
+      "endpoint": "/projects/{{ inputs.project }}/pipelines/{{ inputs.pipeline_id }}",
+      "inputs": [
+        { "key": "project", "label": "Project", "type": "string", "required": true, "placeholder": "my-group/my-project" },
+        { "key": "pipeline_id", "label": "Pipeline ID", "type": "number", "required": true }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_issue",
+      "name": "New issue (polling)",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/projects/{{ inputs.project }}/issues",
+      "query": { "order_by": "created_at", "sort": "desc", "per_page": 30 },
+      "id_field": "id",
+      "inputs": [
+        { "key": "project", "label": "Project", "type": "string", "required": true, "placeholder": "my-group/my-project" },
+        { "key": "poll_interval", "label": "Check every (minutes)", "type": "number", "default": 5 }
+      ]
+    },
+    {
+      "key": "new_merge_request",
+      "name": "New merge request (polling)",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/projects/{{ inputs.project }}/merge_requests",
+      "query": { "order_by": "created_at", "sort": "desc", "per_page": 30 },
+      "id_field": "id",
+      "inputs": [
+        { "key": "project", "label": "Project", "type": "string", "required": true, "placeholder": "my-group/my-project" },
+        { "key": "poll_interval", "label": "Check every (minutes)", "type": "number", "default": 5 }
+      ]
+    },
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "inputs": [{ "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }]
+    }
+  ]
+}

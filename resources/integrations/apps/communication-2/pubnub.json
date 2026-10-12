@@ -1,0 +1,59 @@
+{
+  "key": "pubnub",
+  "name": "PubNub",
+  "category": "Communication",
+  "description": "Publish real-time messages to PubNub channels and read channel history and presence.",
+  "brand": "pubnub",
+  "website": "https://www.pubnub.com",
+  "docs_url": "https://www.pubnub.com/docs/sdks/rest-api/publish-message-to-channel",
+  "base_url": "https://ps.pndsn.com",
+  "auth": [
+    { "type": "api_key", "fields": [
+      { "key": "publish_key", "label": "Publish key", "type": "password", "required": true },
+      { "key": "api_key", "label": "Subscribe key", "type": "password", "required": true },
+      { "key": "auth_token", "label": "Access Manager token", "type": "password", "help": "Only if Access Manager is enabled on the keyset." }
+    ] }
+  ],
+  "actions": [
+    {
+      "key": "publish",
+      "name": "Publish message",
+      "method": "POST",
+      "endpoint": "/publish/{{ credentials.publish_key }}/{{ credentials.api_key }}/0/{{ inputs.channel }}/0",
+      "query": { "uuid": "{{ inputs.user_id }}", "store": "{{ inputs.store }}", "auth": "{{ credentials.auth_token }}" },
+      "body": "{{ inputs.message }}",
+      "inputs": [
+        { "key": "channel", "label": "Channel", "type": "string", "required": true },
+        { "key": "message", "label": "Message (JSON)", "type": "json", "required": true, "placeholder": "{\"text\":\"Order 1042 shipped\"}" },
+        { "key": "user_id", "label": "Publisher user ID", "type": "string", "required": true, "default": "flowforge", "help": "The uuid recorded as the message publisher." },
+        { "key": "store", "label": "Store in history", "type": "select", "options": [
+          { "value": "", "label": "Keyset default" }, { "value": "1", "label": "Yes" }, { "value": "0", "label": "No" }
+        ] }
+      ]
+    },
+    {
+      "key": "get_history",
+      "name": "Get channel history",
+      "method": "GET",
+      "endpoint": "/v3/history/sub-key/{{ credentials.api_key }}/channel/{{ inputs.channel }}",
+      "query": { "max": "{{ inputs.max }}", "uuid": "{{ inputs.user_id }}", "auth": "{{ credentials.auth_token }}" },
+      "output_path": "channels",
+      "inputs": [
+        { "key": "channel", "label": "Channel", "type": "string", "required": true },
+        { "key": "max", "label": "Max messages", "type": "number", "default": 25 },
+        { "key": "user_id", "label": "Requesting user ID", "type": "string", "required": true, "default": "flowforge" }
+      ]
+    },
+    {
+      "key": "here_now",
+      "name": "Get channel presence",
+      "method": "GET",
+      "endpoint": "/v2/presence/sub-key/{{ credentials.api_key }}/channel/{{ inputs.channel }}",
+      "query": { "uuid": "{{ inputs.user_id }}", "auth": "{{ credentials.auth_token }}" },
+      "inputs": [
+        { "key": "channel", "label": "Channel", "type": "string", "required": true },
+        { "key": "user_id", "label": "Requesting user ID", "type": "string", "required": true, "default": "flowforge" }
+      ]
+    }
+  ]
+}

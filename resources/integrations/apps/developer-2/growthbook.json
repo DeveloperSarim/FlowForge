@@ -1,0 +1,70 @@
+{
+  "key": "growthbook",
+  "name": "GrowthBook",
+  "category": "Developer Tools",
+  "description": "Toggle feature flags per environment and read features and experiment results.",
+  "brand": "growthbook",
+  "website": "https://www.growthbook.io",
+  "docs_url": "https://docs.growthbook.io/api",
+  "base_url": "{{ credentials.base_url }}/api/v1",
+  "auth": { "type": "bearer", "fields": [
+    { "key": "base_url", "label": "API host", "type": "string", "required": true, "default": "https://api.growthbook.io", "help": "Self-hosted: your API host (port 3100 by default), without a trailing slash." },
+    { "key": "token", "label": "Secret API key", "type": "password", "required": true, "help": "Settings → API keys → Secret key (admin or read-only)." }
+  ] },
+  "actions": [
+    {
+      "key": "toggle_feature",
+      "name": "Toggle feature",
+      "description": "Turns a feature on or off in one or more environments.",
+      "method": "POST",
+      "endpoint": "/features/{{ inputs.feature_id }}/toggle",
+      "body": { "reason": "{{ inputs.reason }}", "environments": "{{ inputs.environments }}" },
+      "output_path": "feature",
+      "inputs": [
+        { "key": "feature_id", "label": "Feature key", "type": "string", "required": true },
+        { "key": "environments", "label": "Environments", "type": "json", "required": true, "placeholder": "{\"production\": true, \"staging\": false}" },
+        { "key": "reason", "label": "Reason", "type": "string" }
+      ]
+    },
+    {
+      "key": "get_feature",
+      "name": "Get feature",
+      "method": "GET",
+      "endpoint": "/features/{{ inputs.feature_id }}",
+      "output_path": "feature",
+      "inputs": [{ "key": "feature_id", "label": "Feature key", "type": "string", "required": true }]
+    },
+    {
+      "key": "list_features",
+      "name": "List features",
+      "method": "GET",
+      "endpoint": "/features",
+      "query": { "projectId": "{{ inputs.project_id }}", "limit": "{{ inputs.limit }}", "offset": "{{ inputs.offset }}" },
+      "output_path": "features",
+      "inputs": [
+        { "key": "project_id", "label": "Project ID", "type": "string" },
+        { "key": "limit", "label": "Limit", "type": "number" },
+        { "key": "offset", "label": "Offset", "type": "number" }
+      ]
+    },
+    {
+      "key": "list_experiments",
+      "name": "List experiments",
+      "method": "GET",
+      "endpoint": "/experiments",
+      "query": { "projectId": "{{ inputs.project_id }}", "limit": "{{ inputs.limit }}" },
+      "output_path": "experiments",
+      "inputs": [
+        { "key": "project_id", "label": "Project ID", "type": "string" },
+        { "key": "limit", "label": "Limit", "type": "number" }
+      ]
+    },
+    {
+      "key": "get_experiment_results",
+      "name": "Get experiment results",
+      "method": "GET",
+      "endpoint": "/experiments/{{ inputs.experiment_id }}/results",
+      "inputs": [{ "key": "experiment_id", "label": "Experiment ID", "type": "string", "required": true }]
+    }
+  ]
+}

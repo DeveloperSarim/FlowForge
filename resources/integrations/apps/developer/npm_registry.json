@@ -1,0 +1,59 @@
+{
+  "key": "npm_registry",
+  "name": "npm",
+  "category": "Developer Tools",
+  "description": "Look up packages, versions, search the registry and get download counts.",
+  "brand": "npm",
+  "website": "https://www.npmjs.com",
+  "docs_url": "https://github.com/npm/registry/blob/main/docs/REGISTRY-API.md",
+  "base_url": "https://registry.npmjs.org",
+  "auth": [
+    { "type": "none" },
+    { "type": "bearer", "fields": [{ "key": "token", "label": "Access token", "type": "password", "required": true, "help": "Only needed for private packages." }] }
+  ],
+  "actions": [
+    {
+      "key": "get_package",
+      "name": "Get package",
+      "description": "Full metadata with all versions and dist-tags.",
+      "method": "GET",
+      "endpoint": "/{{ inputs.package }}",
+      "output_fields": { "latest_version": "dist-tags.latest" },
+      "inputs": [{ "key": "package", "label": "Package name", "type": "string", "required": true, "placeholder": "react or @scope/name" }]
+    },
+    {
+      "key": "get_version",
+      "name": "Get package version",
+      "method": "GET",
+      "endpoint": "/{{ inputs.package }}/{{ inputs.version }}",
+      "inputs": [
+        { "key": "package", "label": "Package name", "type": "string", "required": true, "help": "Unscoped packages; for scoped ones use Get package." },
+        { "key": "version", "label": "Version or dist-tag", "type": "string", "required": true, "default": "latest" }
+      ]
+    },
+    {
+      "key": "search",
+      "name": "Search packages",
+      "method": "GET",
+      "endpoint": "/-/v1/search",
+      "query": { "text": "{{ inputs.text }}", "size": "{{ inputs.size }}" },
+      "output_path": "objects",
+      "inputs": [
+        { "key": "text", "label": "Search text", "type": "string", "required": true, "placeholder": "keywords:http author:sindresorhus" },
+        { "key": "size", "label": "Limit", "type": "number", "default": 20 }
+      ]
+    },
+    {
+      "key": "get_downloads",
+      "name": "Get download count",
+      "method": "GET",
+      "endpoint": "https://api.npmjs.org/downloads/point/{{ inputs.period }}/{{ inputs.package }}",
+      "inputs": [
+        { "key": "package", "label": "Package name", "type": "string", "required": true },
+        { "key": "period", "label": "Period", "type": "select", "required": true, "default": "last-week", "options": [
+          { "value": "last-day", "label": "Last day" }, { "value": "last-week", "label": "Last week" }, { "value": "last-month", "label": "Last month" }, { "value": "last-year", "label": "Last year" }
+        ] }
+      ]
+    }
+  ]
+}

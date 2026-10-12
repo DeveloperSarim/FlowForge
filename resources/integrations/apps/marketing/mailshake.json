@@ -1,0 +1,107 @@
+{
+  "key": "mailshake",
+  "name": "Mailshake",
+  "category": "Marketing & Email",
+  "description": "Add recipients to campaigns and unsubscribe addresses.",
+  "brand": "mailshake",
+  "website": "https://mailshake.com",
+  "docs_url": "https://api-docs.mailshake.com/",
+  "base_url": "https://api.mailshake.com/2017-04-01",
+  "auth": {
+    "type": "api_key",
+    "in": "query",
+    "name": "apiKey",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "add_recipient",
+      "name": "Add recipient to campaign",
+      "method": "POST",
+      "endpoint": "/recipients/add",
+      "body": {
+        "campaignID": "{{ inputs.campaign_id }}",
+        "addAsNewList": false,
+        "addresses": [
+          {
+            "emailAddress": "{{ inputs.email }}",
+            "fullName": "{{ inputs.full_name }}",
+            "fields": "{{ inputs.fields }}"
+          }
+        ]
+      },
+      "inputs": [
+        {
+          "key": "campaign_id",
+          "label": "Campaign ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "full_name",
+          "label": "Full name",
+          "type": "string"
+        },
+        {
+          "key": "fields",
+          "label": "Fields",
+          "type": "keyvalue"
+        }
+      ]
+    },
+    {
+      "key": "unsubscribe",
+      "name": "Unsubscribe addresses",
+      "method": "POST",
+      "endpoint": "/recipients/unsubscribe",
+      "body": {
+        "emailAddresses": "{{ inputs.emails }}"
+      },
+      "inputs": [
+        {
+          "key": "emails",
+          "label": "Emails",
+          "type": "string",
+          "required": true,
+          "help": "Comma-separated."
+        }
+      ]
+    },
+    {
+      "key": "list_campaigns",
+      "name": "List campaigns",
+      "method": "GET",
+      "endpoint": "/campaigns/list",
+      "output_path": "results",
+      "inputs": []
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Push event",
+      "type": "webhook",
+      "description": "Mailshake Push API (reply, open, click, lead…).",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

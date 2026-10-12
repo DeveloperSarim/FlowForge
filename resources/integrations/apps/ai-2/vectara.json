@@ -1,0 +1,172 @@
+{
+  "key": "vectara",
+  "name": "Vectara",
+  "category": "AI",
+  "description": "Index documents and run RAG queries on Vectara corpora.",
+  "brand": "vectara",
+  "website": "https://www.vectara.com",
+  "docs_url": "https://docs.vectara.com/docs/rest-api/vectara-rest-api-v-2",
+  "base_url": "https://api.vectara.io/v2",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "x-api-key",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "ask",
+      "name": "Ask (RAG)",
+      "description": "Searches a corpus and returns a grounded answer as {{ steps.<id>.text }}.",
+      "method": "POST",
+      "endpoint": "/query",
+      "timeout": 120,
+      "body": {
+        "query": "{{ inputs.query }}",
+        "search": {
+          "corpora": [
+            {
+              "corpus_key": "{{ inputs.corpus_key }}",
+              "metadata_filter": "{{ inputs.metadata_filter }}"
+            }
+          ],
+          "limit": "{{ inputs.limit }}"
+        },
+        "generation": {
+          "max_used_search_results": "{{ inputs.max_used_search_results }}"
+        }
+      },
+      "output_fields": {
+        "text": "summary"
+      },
+      "inputs": [
+        {
+          "key": "corpus_key",
+          "label": "Corpus key",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "query",
+          "label": "Question",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "metadata_filter",
+          "label": "Metadata filter",
+          "type": "string",
+          "placeholder": "doc.lang = 'en'"
+        },
+        {
+          "key": "limit",
+          "label": "Search results",
+          "type": "number",
+          "default": 10
+        },
+        {
+          "key": "max_used_search_results",
+          "label": "Results used for the answer",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    },
+    {
+      "key": "search_corpus",
+      "name": "Search corpus",
+      "method": "GET",
+      "endpoint": "/corpora/{{ inputs.corpus_key }}/query",
+      "query": {
+        "query": "{{ inputs.query }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "inputs": [
+        {
+          "key": "corpus_key",
+          "label": "Corpus key",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "query",
+          "label": "Query",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 10
+        }
+      ]
+    },
+    {
+      "key": "add_document",
+      "name": "Add document",
+      "method": "POST",
+      "endpoint": "/corpora/{{ inputs.corpus_key }}/documents",
+      "body": {
+        "id": "{{ inputs.document_id }}",
+        "type": "core",
+        "metadata": "{{ inputs.metadata }}",
+        "document_parts": [
+          {
+            "text": "{{ inputs.text }}"
+          }
+        ]
+      },
+      "inputs": [
+        {
+          "key": "corpus_key",
+          "label": "Corpus key",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "document_id",
+          "label": "Document ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "text",
+          "label": "Text",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "metadata",
+          "label": "Metadata",
+          "type": "keyvalue"
+        }
+      ]
+    },
+    {
+      "key": "list_corpora",
+      "name": "List corpora",
+      "method": "GET",
+      "endpoint": "/corpora",
+      "query": {
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_path": "corpora",
+      "inputs": [
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 100
+        }
+      ]
+    }
+  ]
+}

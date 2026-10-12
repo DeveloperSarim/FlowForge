@@ -1,0 +1,202 @@
+{
+  "key": "invoice_ninja",
+  "name": "Invoice Ninja",
+  "category": "Payments & Finance",
+  "description": "Create clients and invoices and email invoices with Invoice Ninja v5.",
+  "brand": "invoiceninja",
+  "website": "https://invoiceninja.com",
+  "docs_url": "https://api-docs.invoicing.co/",
+  "base_url": "{{ credentials.url }}/api/v1",
+  "headers": {
+    "X-Requested-With": "XMLHttpRequest"
+  },
+  "auth": [
+    {
+      "type": "api_key",
+      "in": "header",
+      "name": "X-API-TOKEN",
+      "fields": [
+        {
+          "key": "url",
+          "label": "Instance URL",
+          "type": "string",
+          "required": true,
+          "default": "https://invoicing.co",
+          "help": "https://invoicing.co for the hosted version, or your self-hosted URL."
+        },
+        {
+          "key": "api_key",
+          "label": "API token",
+          "type": "password",
+          "required": true,
+          "help": "Settings > Account Management > Integrations > API tokens."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "create_client",
+      "name": "Create client",
+      "method": "POST",
+      "endpoint": "/clients",
+      "output_path": "data",
+      "body": {
+        "name": "{{ inputs.name }}",
+        "contacts": [
+          {
+            "first_name": "{{ inputs.first_name }}",
+            "last_name": "{{ inputs.last_name }}",
+            "email": "{{ inputs.email }}",
+            "phone": "{{ inputs.phone }}"
+          }
+        ]
+      },
+      "inputs": [
+        {
+          "key": "name",
+          "label": "Company / client name",
+          "type": "string"
+        },
+        {
+          "key": "first_name",
+          "label": "Contact first name",
+          "type": "string"
+        },
+        {
+          "key": "last_name",
+          "label": "Contact last name",
+          "type": "string"
+        },
+        {
+          "key": "email",
+          "label": "Contact email",
+          "type": "string"
+        },
+        {
+          "key": "phone",
+          "label": "Contact phone",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "find_clients",
+      "name": "Find clients",
+      "method": "GET",
+      "endpoint": "/clients",
+      "output_path": "data",
+      "query": {
+        "email": "{{ inputs.email }}",
+        "name": "{{ inputs.name }}"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string"
+        },
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "create_invoice",
+      "name": "Create invoice",
+      "method": "POST",
+      "endpoint": "/invoices",
+      "output_path": "data",
+      "body": {
+        "client_id": "{{ inputs.client_id }}",
+        "line_items": "{{ inputs.line_items }}",
+        "due_date": "{{ inputs.due_date }}",
+        "po_number": "{{ inputs.po_number }}",
+        "public_notes": "{{ inputs.notes }}"
+      },
+      "inputs": [
+        {
+          "key": "client_id",
+          "label": "Client ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "line_items",
+          "label": "Line items",
+          "type": "json",
+          "required": true,
+          "placeholder": "[{\"product_key\": \"Consulting\", \"notes\": \"June\", \"cost\": 100, \"quantity\": 1}]"
+        },
+        {
+          "key": "due_date",
+          "label": "Due date",
+          "type": "string",
+          "placeholder": "2025-06-30"
+        },
+        {
+          "key": "po_number",
+          "label": "PO number",
+          "type": "string"
+        },
+        {
+          "key": "notes",
+          "label": "Public notes",
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "key": "get_invoice",
+      "name": "Get invoice",
+      "method": "GET",
+      "endpoint": "/invoices/{{ inputs.invoice_id }}",
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "invoice_id",
+          "label": "Invoice ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "email_invoice",
+      "name": "Email invoice",
+      "method": "POST",
+      "endpoint": "/invoices/bulk",
+      "body": {
+        "action": "email",
+        "ids": [
+          "{{ inputs.invoice_id }}"
+        ]
+      },
+      "inputs": [
+        {
+          "key": "invoice_id",
+          "label": "Invoice ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Settings > Account Management > Integrations > API Webhooks: add this URL.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

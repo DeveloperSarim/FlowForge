@@ -1,0 +1,207 @@
+{
+  "key": "etsy",
+  "name": "Etsy",
+  "category": "E-commerce",
+  "description": "Read shops, listings and receipts (orders) with the Etsy Open API v3.",
+  "brand": "etsy",
+  "website": "https://www.etsy.com",
+  "docs_url": "https://developer.etsy.com/documentation/",
+  "popular": true,
+  "base_url": "https://openapi.etsy.com/v3/application",
+  "headers": {
+    "x-api-key": "{{ credentials.api_key }}"
+  },
+  "auth": [
+    {
+      "type": "oauth2",
+      "authorize_url": "https://www.etsy.com/oauth/connect",
+      "token_url": "https://api.etsy.com/v3/public/oauth/token",
+      "scopes": [
+        "shops_r",
+        "listings_r",
+        "transactions_r"
+      ],
+      "fields": [
+        {
+          "key": "client_id",
+          "label": "Keystring",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "client_secret",
+          "label": "Shared secret",
+          "type": "password",
+          "required": true
+        },
+        {
+          "key": "api_key",
+          "label": "x-api-key value",
+          "type": "password",
+          "required": true,
+          "help": "Your keystring and shared secret joined by a colon: keystring:shared_secret."
+        }
+      ],
+      "pkce": true
+    },
+    {
+      "type": "api_key",
+      "fields": [
+        {
+          "key": "api_key",
+          "label": "x-api-key value",
+          "type": "password",
+          "required": true,
+          "help": "keystring:shared_secret from Your Apps. Public endpoints only (listings, shops)."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "get_shop",
+      "name": "Get shop",
+      "method": "GET",
+      "endpoint": "/shops/{{ inputs.shop_id }}",
+      "inputs": [
+        {
+          "key": "shop_id",
+          "label": "Shop ID",
+          "type": "number",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "get_listing",
+      "name": "Get listing",
+      "method": "GET",
+      "endpoint": "/listings/{{ inputs.listing_id }}",
+      "inputs": [
+        {
+          "key": "listing_id",
+          "label": "Listing ID",
+          "type": "number",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_active_listings",
+      "name": "List active shop listings",
+      "method": "GET",
+      "endpoint": "/shops/{{ inputs.shop_id }}/listings/active",
+      "output_path": "results",
+      "query": {
+        "limit": "{{ inputs.limit }}",
+        "sort_on": "created",
+        "sort_order": "desc"
+      },
+      "inputs": [
+        {
+          "key": "shop_id",
+          "label": "Shop ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 25,
+          "help": "Max 100."
+        }
+      ]
+    },
+    {
+      "key": "list_receipts",
+      "name": "List shop receipts (orders)",
+      "description": "Needs an OAuth credential with transactions_r.",
+      "method": "GET",
+      "endpoint": "/shops/{{ inputs.shop_id }}/receipts",
+      "output_path": "results",
+      "query": {
+        "was_paid": "{{ inputs.was_paid }}",
+        "was_shipped": "{{ inputs.was_shipped }}",
+        "limit": "{{ inputs.limit }}",
+        "sort_on": "created",
+        "sort_order": "desc"
+      },
+      "inputs": [
+        {
+          "key": "shop_id",
+          "label": "Shop ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "was_paid",
+          "label": "Paid",
+          "type": "select",
+          "options": [
+            {
+              "value": "true",
+              "label": "Paid"
+            },
+            {
+              "value": "false",
+              "label": "Unpaid"
+            }
+          ]
+        },
+        {
+          "key": "was_shipped",
+          "label": "Shipped",
+          "type": "select",
+          "options": [
+            {
+              "value": "true",
+              "label": "Shipped"
+            },
+            {
+              "value": "false",
+              "label": "Not shipped"
+            }
+          ]
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 25
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_receipt",
+      "name": "New order (receipt)",
+      "description": "Needs an OAuth credential with transactions_r.",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/shops/{{ inputs.shop_id }}/receipts",
+      "query": {
+        "limit": 50,
+        "sort_on": "created",
+        "sort_order": "desc"
+      },
+      "items_path": "results",
+      "id_field": "receipt_id",
+      "inputs": [
+        {
+          "key": "shop_id",
+          "label": "Shop ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

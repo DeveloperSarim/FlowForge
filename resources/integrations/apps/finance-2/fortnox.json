@@ -1,0 +1,262 @@
+{
+  "key": "fortnox",
+  "name": "Fortnox",
+  "category": "Payments & Finance",
+  "description": "Create customers and invoices and list invoices and articles in Fortnox.",
+  "brand": "fortnox",
+  "website": "https://www.fortnox.se",
+  "docs_url": "https://www.fortnox.se/developer",
+  "base_url": "https://api.fortnox.se/3",
+  "auth": [
+    {
+      "type": "oauth2",
+      "authorize_url": "https://apps.fortnox.se/oauth-v1/auth",
+      "token_url": "https://apps.fortnox.se/oauth-v1/token",
+      "client_auth": "basic",
+      "scopes": [
+        "customer",
+        "invoice",
+        "article",
+        "companyinformation"
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_customers",
+      "name": "List customers",
+      "method": "GET",
+      "endpoint": "/customers",
+      "query": {
+        "name": "{{ inputs.name }}",
+        "email": "{{ inputs.email }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_path": "Customers",
+      "inputs": [
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string"
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string"
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 100
+        }
+      ]
+    },
+    {
+      "key": "create_customer",
+      "name": "Create customer",
+      "method": "POST",
+      "endpoint": "/customers",
+      "body": {
+        "Customer": {
+          "Name": "{{ inputs.name }}",
+          "Email": "{{ inputs.email }}",
+          "OrganisationNumber": "{{ inputs.org_number }}",
+          "Phone1": "{{ inputs.phone }}",
+          "Address1": "{{ inputs.address }}",
+          "ZipCode": "{{ inputs.zip }}",
+          "City": "{{ inputs.city }}",
+          "Type": "{{ inputs.type }}"
+        }
+      },
+      "output_path": "Customer",
+      "inputs": [
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string"
+        },
+        {
+          "key": "org_number",
+          "label": "Organisation number",
+          "type": "string"
+        },
+        {
+          "key": "phone",
+          "label": "Phone",
+          "type": "string"
+        },
+        {
+          "key": "address",
+          "label": "Address",
+          "type": "string"
+        },
+        {
+          "key": "zip",
+          "label": "Postcode",
+          "type": "string"
+        },
+        {
+          "key": "city",
+          "label": "City",
+          "type": "string"
+        },
+        {
+          "key": "type",
+          "label": "Type",
+          "type": "select",
+          "options": [
+            {
+              "value": "COMPANY",
+              "label": "Company"
+            },
+            {
+              "value": "PRIVATE",
+              "label": "Private"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "list_invoices",
+      "name": "List invoices",
+      "method": "GET",
+      "endpoint": "/invoices",
+      "query": {
+        "filter": "{{ inputs.filter }}",
+        "customernumber": "{{ inputs.customer_number }}",
+        "sortby": "documentnumber",
+        "sortorder": "descending",
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_path": "Invoices",
+      "inputs": [
+        {
+          "key": "filter",
+          "label": "Filter",
+          "type": "select",
+          "options": [
+            {
+              "value": "unpaid",
+              "label": "Unpaid"
+            },
+            {
+              "value": "unpaidoverdue",
+              "label": "Unpaid and overdue"
+            },
+            {
+              "value": "fullypaid",
+              "label": "Fully paid"
+            },
+            {
+              "value": "unbooked",
+              "label": "Unbooked"
+            },
+            {
+              "value": "cancelled",
+              "label": "Cancelled"
+            }
+          ]
+        },
+        {
+          "key": "customer_number",
+          "label": "Customer number",
+          "type": "string"
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 100
+        }
+      ]
+    },
+    {
+      "key": "get_invoice",
+      "name": "Get invoice",
+      "method": "GET",
+      "endpoint": "/invoices/{{ inputs.document_number }}",
+      "output_path": "Invoice",
+      "inputs": [
+        {
+          "key": "document_number",
+          "label": "Invoice number",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "create_invoice",
+      "name": "Create invoice",
+      "method": "POST",
+      "endpoint": "/invoices",
+      "body": {
+        "Invoice": {
+          "CustomerNumber": "{{ inputs.customer_number }}",
+          "InvoiceDate": "{{ inputs.invoice_date }}",
+          "YourReference": "{{ inputs.your_reference }}",
+          "InvoiceRows": "{{ inputs.rows }}"
+        }
+      },
+      "output_path": "Invoice",
+      "inputs": [
+        {
+          "key": "customer_number",
+          "label": "Customer number",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "invoice_date",
+          "label": "Invoice date",
+          "type": "string",
+          "placeholder": "2026-01-31"
+        },
+        {
+          "key": "your_reference",
+          "label": "Your reference",
+          "type": "string"
+        },
+        {
+          "key": "rows",
+          "label": "Rows",
+          "type": "json",
+          "required": true,
+          "placeholder": "[{\"ArticleNumber\": \"1\", \"DeliveredQuantity\": 2, \"Price\": 100}]"
+        }
+      ]
+    },
+    {
+      "key": "list_articles",
+      "name": "List articles",
+      "method": "GET",
+      "endpoint": "/articles",
+      "query": {
+        "description": "{{ inputs.description }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_path": "Articles",
+      "inputs": [
+        {
+          "key": "description",
+          "label": "Description",
+          "type": "string"
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 100
+        }
+      ]
+    }
+  ]
+}

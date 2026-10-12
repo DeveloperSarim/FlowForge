@@ -1,0 +1,76 @@
+{
+  "key": "zulip",
+  "name": "Zulip",
+  "category": "Communication",
+  "description": "Send channel and direct messages, and read messages from Zulip.",
+  "brand": "zulip",
+  "website": "https://zulip.com",
+  "docs_url": "https://zulip.com/api/rest",
+  "base_url": "{{ credentials.site }}/api/v1",
+  "auth": [
+    {
+      "type": "basic",
+      "fields": [
+        { "key": "site", "label": "Zulip URL", "type": "string", "required": true, "placeholder": "https://yourorg.zulipchat.com", "help": "No trailing slash." },
+        { "key": "username", "label": "Bot email", "type": "string", "required": true, "placeholder": "my-bot@yourorg.zulipchat.com" },
+        { "key": "password", "label": "API key", "type": "password", "required": true }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "send_stream_message",
+      "name": "Send channel message",
+      "method": "POST",
+      "endpoint": "/messages",
+      "body_format": "form",
+      "body": { "type": "stream", "to": "{{ inputs.stream }}", "topic": "{{ inputs.topic }}", "content": "{{ inputs.content }}" },
+      "inputs": [
+        { "key": "stream", "label": "Channel (stream)", "type": "string", "required": true, "placeholder": "general" },
+        { "key": "topic", "label": "Topic", "type": "string", "required": true },
+        { "key": "content", "label": "Message (Markdown)", "type": "text", "required": true }
+      ]
+    },
+    {
+      "key": "send_direct_message",
+      "name": "Send direct message",
+      "method": "POST",
+      "endpoint": "/messages",
+      "body_format": "form",
+      "body": { "type": "direct", "to": "{{ inputs.to }}", "content": "{{ inputs.content }}" },
+      "inputs": [
+        { "key": "to", "label": "Recipients", "type": "string", "required": true, "placeholder": "[\"alice@example.com\"] or [9]", "help": "JSON list of user emails or user IDs." },
+        { "key": "content", "label": "Message (Markdown)", "type": "text", "required": true }
+      ]
+    },
+    {
+      "key": "get_messages",
+      "name": "Get recent messages",
+      "method": "GET",
+      "endpoint": "/messages",
+      "query": { "anchor": "newest", "num_before": "{{ inputs.count }}", "num_after": 0, "narrow": "{{ inputs.narrow }}" },
+      "output_path": "messages",
+      "inputs": [
+        { "key": "count", "label": "Number of messages", "type": "number", "default": 20 },
+        { "key": "narrow", "label": "Narrow (JSON)", "type": "string", "placeholder": "[{\"operator\":\"stream\",\"operand\":\"general\"}]" }
+      ]
+    },
+    {
+      "key": "list_streams",
+      "name": "List channels",
+      "method": "GET",
+      "endpoint": "/streams",
+      "output_path": "streams",
+      "inputs": []
+    }
+  ],
+  "triggers": [
+    {
+      "key": "outgoing_webhook",
+      "name": "Outgoing webhook bot",
+      "description": "Create an Outgoing webhook bot with this URL; it fires when the bot is mentioned or DMed.",
+      "type": "webhook",
+      "inputs": [{ "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }]
+    }
+  ]
+}

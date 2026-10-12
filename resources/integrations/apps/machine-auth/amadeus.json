@@ -1,0 +1,127 @@
+{
+  "key": "amadeus",
+  "name": "Amadeus (travel)",
+  "category": "Utilities",
+  "brand": "amadeus",
+  "description": "Search flight offers, airports and cities with the Amadeus Self-Service APIs.",
+  "website": "https://developers.amadeus.com",
+  "docs_url": "https://developers.amadeus.com/self-service",
+  "base_url": "https://{{ credentials.host }}",
+  "auth": {
+    "type": "oauth2_client_credentials",
+    "token_url": "https://{{ credentials.host }}/v1/security/oauth2/token",
+    "fields": [
+      {
+        "key": "host",
+        "label": "Environment",
+        "type": "select",
+        "required": true,
+        "default": "test.api.amadeus.com",
+        "options": [
+          {
+            "value": "test.api.amadeus.com",
+            "label": "Test"
+          },
+          {
+            "value": "api.amadeus.com",
+            "label": "Production"
+          }
+        ]
+      },
+      {
+        "key": "client_id",
+        "label": "API key",
+        "type": "string",
+        "required": true
+      },
+      {
+        "key": "client_secret",
+        "label": "API secret",
+        "type": "password",
+        "required": true
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "search_flights",
+      "name": "Search flight offers",
+      "method": "GET",
+      "endpoint": "/v2/shopping/flight-offers",
+      "query": {
+        "originLocationCode": "{{ inputs.origin }}",
+        "destinationLocationCode": "{{ inputs.destination }}",
+        "departureDate": "{{ inputs.date }}",
+        "returnDate": "{{ inputs.return_date }}",
+        "adults": "{{ inputs.adults }}",
+        "currencyCode": "{{ inputs.currency }}",
+        "max": "{{ inputs.max }}"
+      },
+      "inputs": [
+        {
+          "key": "origin",
+          "label": "From (IATA)",
+          "type": "string",
+          "required": true,
+          "placeholder": "LHE"
+        },
+        {
+          "key": "destination",
+          "label": "To (IATA)",
+          "type": "string",
+          "required": true,
+          "placeholder": "DXB"
+        },
+        {
+          "key": "date",
+          "label": "Departure date",
+          "type": "string",
+          "required": true,
+          "placeholder": "2026-12-20"
+        },
+        {
+          "key": "return_date",
+          "label": "Return date",
+          "type": "string"
+        },
+        {
+          "key": "adults",
+          "label": "Adults",
+          "type": "number",
+          "default": 1
+        },
+        {
+          "key": "currency",
+          "label": "Currency",
+          "type": "string",
+          "placeholder": "USD"
+        },
+        {
+          "key": "max",
+          "label": "Max offers",
+          "type": "number",
+          "default": 10
+        }
+      ]
+    },
+    {
+      "key": "search_locations",
+      "name": "Search airports & cities",
+      "method": "GET",
+      "endpoint": "/v1/reference-data/locations",
+      "query": {
+        "subType": "CITY,AIRPORT",
+        "keyword": "{{ inputs.keyword }}"
+      },
+      "inputs": [
+        {
+          "key": "keyword",
+          "label": "Keyword",
+          "type": "string",
+          "required": true,
+          "placeholder": "Lahore"
+        }
+      ]
+    }
+  ]
+}

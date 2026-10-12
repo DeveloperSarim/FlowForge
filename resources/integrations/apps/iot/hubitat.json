@@ -1,0 +1,79 @@
+{
+  "key": "hubitat",
+  "name": "Hubitat Elevation",
+  "category": "IoT & Smart Home",
+  "description": "List devices and send commands through the Hubitat Maker API.",
+  "brand": "hubitat",
+  "website": "https://hubitat.com",
+  "docs_url": "https://docs2.hubitat.com/en/apps/maker-api",
+  "base_url": "{{ credentials.maker_api_url }}",
+  "auth": [
+    {
+      "type": "api_key",
+      "in": "query",
+      "name": "access_token",
+      "fields": [
+        { "key": "maker_api_url", "label": "Maker API base URL", "type": "string", "required": true, "placeholder": "http://192.168.1.20/apps/api/12", "help": "Apps > Maker API: the URL up to the app number. For cloud access copy the cloud URL shown in the app, up to the app number." },
+        { "key": "api_key", "label": "Access token", "type": "password", "required": true, "help": "Shown in the Maker API app's example URLs." }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_devices",
+      "name": "List devices",
+      "method": "GET",
+      "endpoint": "/devices",
+      "inputs": []
+    },
+    {
+      "key": "list_devices_full",
+      "name": "List devices with details",
+      "description": "Includes current attributes and supported commands.",
+      "method": "GET",
+      "endpoint": "/devices/all",
+      "inputs": []
+    },
+    {
+      "key": "get_device",
+      "name": "Get device",
+      "method": "GET",
+      "endpoint": "/devices/{{ inputs.device_id }}",
+      "inputs": [
+        { "key": "device_id", "label": "Device ID", "type": "string", "required": true }
+      ]
+    },
+    {
+      "key": "send_command",
+      "name": "Send command",
+      "method": "GET",
+      "endpoint": "/devices/{{ inputs.device_id }}/{{ inputs.command }}",
+      "inputs": [
+        { "key": "device_id", "label": "Device ID", "type": "string", "required": true },
+        { "key": "command", "label": "Command", "type": "string", "required": true, "placeholder": "on" }
+      ]
+    },
+    {
+      "key": "send_command_with_value",
+      "name": "Send command with value",
+      "method": "GET",
+      "endpoint": "/devices/{{ inputs.device_id }}/{{ inputs.command }}/{{ inputs.value }}",
+      "inputs": [
+        { "key": "device_id", "label": "Device ID", "type": "string", "required": true },
+        { "key": "command", "label": "Command", "type": "string", "required": true, "placeholder": "setLevel" },
+        { "key": "value", "label": "Value", "type": "string", "required": true, "placeholder": "50" }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "device_event",
+      "name": "Device event",
+      "type": "webhook",
+      "description": "Paste this URL into the Maker API's \"URL to send device events to by POST\" setting.",
+      "inputs": [
+        { "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }
+      ]
+    }
+  ]
+}

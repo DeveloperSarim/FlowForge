@@ -1,0 +1,103 @@
+{
+  "key": "microsoft_outlook",
+  "name": "Microsoft Outlook",
+  "category": "Communication",
+  "description": "Send, read, reply to and file Outlook / Microsoft 365 emails.",
+  "brand": "microsoftoutlook",
+  "website": "https://outlook.live.com",
+  "docs_url": "https://learn.microsoft.com/en-us/graph/api/resources/mail-api-overview",
+  "popular": true,
+  "base_url": "https://graph.microsoft.com/v1.0",
+  "auth": [
+    {
+      "type": "oauth2",
+      "authorize_url": "https://login.microsoftonline.com/common/oauth2/v2.0/authorize",
+      "token_url": "https://login.microsoftonline.com/common/oauth2/v2.0/token",
+      "scopes": ["offline_access", "User.Read", "Mail.ReadWrite", "Mail.Send"]
+    }
+  ],
+  "actions": [
+    {
+      "key": "send_email",
+      "name": "Send email",
+      "method": "POST",
+      "endpoint": "/me/sendMail",
+      "body": {
+        "message": {
+          "subject": "{{ inputs.subject }}",
+          "body": { "contentType": "{{ inputs.content_type }}", "content": "{{ inputs.body }}" },
+          "toRecipients": [{ "emailAddress": { "address": "{{ inputs.to }}" } }]
+        },
+        "saveToSentItems": "{{ inputs.save_to_sent }}"
+      },
+      "inputs": [
+        { "key": "to", "label": "To", "type": "string", "required": true, "placeholder": "someone@example.com", "help": "One address. For several recipients use Make an API call." },
+        { "key": "subject", "label": "Subject", "type": "string", "required": true },
+        { "key": "body", "label": "Body", "type": "text", "required": true },
+        { "key": "content_type", "label": "Body format", "type": "select", "default": "Text", "options": [
+          { "value": "Text", "label": "Plain text" }, { "value": "HTML", "label": "HTML" }
+        ] },
+        { "key": "save_to_sent", "label": "Save to Sent Items", "type": "boolean", "default": true }
+      ]
+    },
+    {
+      "key": "list_messages",
+      "name": "List messages",
+      "method": "GET",
+      "endpoint": "/me/mailFolders/{{ inputs.folder }}/messages",
+      "query": { "$top": "{{ inputs.top }}", "$filter": "{{ inputs.filter }}", "$select": "{{ inputs.select }}" },
+      "output_path": "value",
+      "inputs": [
+        { "key": "folder", "label": "Folder", "type": "string", "required": true, "default": "inbox", "help": "Well-known name (inbox, sentitems, drafts, archive, junkemail) or a folder ID." },
+        { "key": "top", "label": "Max results", "type": "number", "default": 25 },
+        { "key": "filter", "label": "OData filter", "type": "string", "placeholder": "isRead eq false" },
+        { "key": "select", "label": "Fields", "type": "string", "placeholder": "subject,from,receivedDateTime,bodyPreview" }
+      ]
+    },
+    {
+      "key": "get_message",
+      "name": "Get message",
+      "method": "GET",
+      "endpoint": "/me/messages/{{ inputs.message_id }}",
+      "inputs": [{ "key": "message_id", "label": "Message ID", "type": "string", "required": true }]
+    },
+    {
+      "key": "reply",
+      "name": "Reply to message",
+      "method": "POST",
+      "endpoint": "/me/messages/{{ inputs.message_id }}/reply",
+      "body": { "comment": "{{ inputs.comment }}" },
+      "inputs": [
+        { "key": "message_id", "label": "Message ID", "type": "string", "required": true },
+        { "key": "comment", "label": "Reply text", "type": "text", "required": true }
+      ]
+    },
+    {
+      "key": "move_message",
+      "name": "Move message",
+      "method": "POST",
+      "endpoint": "/me/messages/{{ inputs.message_id }}/move",
+      "body": { "destinationId": "{{ inputs.destination }}" },
+      "inputs": [
+        { "key": "message_id", "label": "Message ID", "type": "string", "required": true },
+        { "key": "destination", "label": "Destination folder", "type": "string", "required": true, "placeholder": "archive", "help": "Well-known name or folder ID." }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_email",
+      "name": "New email",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/me/mailFolders/{{ inputs.folder }}/messages",
+      "query": { "$orderby": "receivedDateTime desc", "$top": 25 },
+      "items_path": "value",
+      "id_field": "id",
+      "inputs": [
+        { "key": "folder", "label": "Folder", "type": "string", "required": true, "default": "inbox" },
+        { "key": "poll_interval", "label": "Check every (minutes)", "type": "number", "default": 5 }
+      ]
+    }
+  ]
+}

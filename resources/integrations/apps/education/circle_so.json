@@ -1,0 +1,251 @@
+{
+  "key": "circle_so",
+  "name": "Circle",
+  "category": "Education",
+  "description": "Invite members, add them to spaces and tags, and create posts in Circle.",
+  "brand": "circle",
+  "website": "https://circle.so",
+  "docs_url": "https://api.circle.so",
+  "base_url": "https://app.circle.so/api/admin/v2",
+  "auth": [
+    {
+      "type": "bearer",
+      "fields": [
+        {
+          "key": "token",
+          "label": "Admin API token",
+          "type": "password",
+          "required": true,
+          "help": "Community > Developers > Tokens > Admin API v2 (Business plan or higher)."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "create_member",
+      "name": "Invite member",
+      "method": "POST",
+      "endpoint": "/community_members",
+      "body": {
+        "email": "{{ inputs.email }}",
+        "name": "{{ inputs.name }}",
+        "space_ids": "{{ inputs.space_ids }}",
+        "member_tag_ids": "{{ inputs.member_tag_ids }}",
+        "skip_invitation": "{{ inputs.skip_invitation }}"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string"
+        },
+        {
+          "key": "space_ids",
+          "label": "Space IDs",
+          "type": "list"
+        },
+        {
+          "key": "member_tag_ids",
+          "label": "Member tag IDs",
+          "type": "list"
+        },
+        {
+          "key": "skip_invitation",
+          "label": "Skip invitation email",
+          "type": "boolean"
+        }
+      ]
+    },
+    {
+      "key": "list_members",
+      "name": "List members",
+      "method": "GET",
+      "endpoint": "/community_members",
+      "query": {
+        "status": "{{ inputs.status }}",
+        "per_page": "{{ inputs.per_page }}",
+        "page": "{{ inputs.page }}"
+      },
+      "output_path": "records",
+      "inputs": [
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "options": [
+            {
+              "value": "active",
+              "label": "Active"
+            },
+            {
+              "value": "inactive",
+              "label": "Inactive"
+            },
+            {
+              "value": "all",
+              "label": "All"
+            }
+          ]
+        },
+        {
+          "key": "per_page",
+          "label": "Per page",
+          "type": "number",
+          "default": 60
+        },
+        {
+          "key": "page",
+          "label": "Page",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "find_member",
+      "name": "Find member by email",
+      "method": "GET",
+      "endpoint": "/community_members/search",
+      "query": {
+        "email": "{{ inputs.email }}"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "add_to_space",
+      "name": "Add member to space",
+      "method": "POST",
+      "endpoint": "/space_members",
+      "body": {
+        "email": "{{ inputs.email }}",
+        "space_id": "{{ inputs.space_id }}"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "space_id",
+          "label": "Space ID",
+          "type": "number",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "tag_member",
+      "name": "Tag member",
+      "method": "POST",
+      "endpoint": "/tagged_members",
+      "body": {
+        "user_email": "{{ inputs.user_email }}",
+        "member_tag_id": "{{ inputs.member_tag_id }}"
+      },
+      "inputs": [
+        {
+          "key": "user_email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "member_tag_id",
+          "label": "Member tag ID",
+          "type": "number",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "create_post",
+      "name": "Create post",
+      "method": "POST",
+      "endpoint": "/posts",
+      "body": {
+        "space_id": "{{ inputs.space_id }}",
+        "name": "{{ inputs.name }}",
+        "status": "{{ inputs.status }}",
+        "user_email": "{{ inputs.user_email }}",
+        "skip_notifications": "{{ inputs.skip_notifications }}",
+        "tiptap_body": {
+          "body": {
+            "type": "doc",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "{{ inputs.text }}"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      },
+      "inputs": [
+        {
+          "key": "space_id",
+          "label": "Space ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "name",
+          "label": "Title",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "text",
+          "label": "Body text",
+          "type": "text"
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "default": "published",
+          "options": [
+            {
+              "value": "published",
+              "label": "Published"
+            },
+            {
+              "value": "draft",
+              "label": "Draft"
+            }
+          ]
+        },
+        {
+          "key": "user_email",
+          "label": "Author email",
+          "type": "string",
+          "help": "Post as this member (defaults to the token owner)."
+        },
+        {
+          "key": "skip_notifications",
+          "label": "Skip notifications",
+          "type": "boolean"
+        }
+      ]
+    }
+  ]
+}

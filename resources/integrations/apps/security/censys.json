@@ -1,0 +1,38 @@
+{
+  "key": "censys",
+  "name": "Censys",
+  "category": "Security & IT",
+  "description": "Look up hosts and search internet-wide scan data on the Censys Platform.",
+  "brand": "censys",
+  "website": "https://censys.com",
+  "docs_url": "https://docs.censys.com/reference/get-started",
+  "base_url": "https://api.platform.censys.io/v3",
+  "headers": { "X-Organization-ID": "{{ credentials.organization_id }}" },
+  "auth": { "type": "bearer", "fields": [
+    { "key": "token", "label": "Personal access token", "type": "password", "required": true, "help": "Censys Platform → Account → Personal access tokens." },
+    { "key": "organization_id", "label": "Organization ID", "type": "string", "help": "Required for paid organization access; leave empty on the free tier." }
+  ] },
+  "actions": [
+    {
+      "key": "get_host",
+      "name": "Get host",
+      "method": "GET",
+      "endpoint": "/global/asset/host/{{ inputs.ip }}",
+      "output_path": "result",
+      "inputs": [{ "key": "ip", "label": "IP address", "type": "string", "required": true }]
+    },
+    {
+      "key": "search",
+      "name": "Search",
+      "method": "POST",
+      "endpoint": "/global/search/query",
+      "body": { "query": "{{ inputs.query }}", "page_size": "{{ inputs.page_size }}", "fields": "{{ inputs.fields }}" },
+      "output_path": "result",
+      "inputs": [
+        { "key": "query", "label": "CenQL query", "type": "string", "required": true, "placeholder": "host.services.port = 3389" },
+        { "key": "page_size", "label": "Page size", "type": "number" },
+        { "key": "fields", "label": "Fields to return", "type": "list" }
+      ]
+    }
+  ]
+}

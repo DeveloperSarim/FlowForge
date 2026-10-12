@@ -1,0 +1,70 @@
+{
+  "key": "raygun",
+  "name": "Raygun",
+  "category": "Developer Tools",
+  "description": "List and resolve error groups and record deployments.",
+  "brand": "raygun",
+  "website": "https://raygun.com",
+  "docs_url": "https://raygun.com/documentation/product-guides/raygun-api/",
+  "base_url": "https://api.raygun.com/v3",
+  "auth": { "type": "bearer", "fields": [{ "key": "token", "label": "Personal access token", "type": "password", "required": true, "help": "User settings → Personal Access Tokens, with the scopes you need." }] },
+  "actions": [
+    {
+      "key": "list_applications",
+      "name": "List applications",
+      "method": "GET",
+      "endpoint": "/applications",
+      "inputs": []
+    },
+    {
+      "key": "list_error_groups",
+      "name": "List error groups",
+      "method": "GET",
+      "endpoint": "/applications/{{ inputs.application_id }}/error-groups",
+      "query": { "count": "{{ inputs.count }}" },
+      "inputs": [
+        { "key": "application_id", "label": "Application identifier", "type": "string", "required": true },
+        { "key": "count", "label": "Count", "type": "number" }
+      ]
+    },
+    {
+      "key": "get_error_group",
+      "name": "Get error group",
+      "method": "GET",
+      "endpoint": "/applications/{{ inputs.application_id }}/error-groups/{{ inputs.error_group_id }}",
+      "inputs": [
+        { "key": "application_id", "label": "Application identifier", "type": "string", "required": true },
+        { "key": "error_group_id", "label": "Error group identifier", "type": "string", "required": true }
+      ]
+    },
+    {
+      "key": "resolve_error_group",
+      "name": "Resolve error group",
+      "method": "POST",
+      "endpoint": "/applications/{{ inputs.application_id }}/error-groups/{{ inputs.error_group_id }}/resolve",
+      "body": { "version": "{{ inputs.version }}", "discardFromPreviousVersions": "{{ inputs.discard_previous }}" },
+      "inputs": [
+        { "key": "application_id", "label": "Application identifier", "type": "string", "required": true },
+        { "key": "error_group_id", "label": "Error group identifier", "type": "string", "required": true },
+        { "key": "version", "label": "Resolved in version", "type": "string", "required": true },
+        { "key": "discard_previous", "label": "Discard occurrences from older versions", "type": "boolean" }
+      ]
+    },
+    {
+      "key": "create_deployment",
+      "name": "Record deployment",
+      "method": "POST",
+      "endpoint": "/applications/{{ inputs.application_id }}/deployments",
+      "body": { "version": "{{ inputs.version }}", "ownerName": "{{ inputs.owner_name }}", "emailAddress": "{{ inputs.email }}", "comment": "{{ inputs.comment }}", "scmIdentifier": "{{ inputs.scm_identifier }}", "deployedAt": "{{ inputs.deployed_at }}" },
+      "inputs": [
+        { "key": "application_id", "label": "Application identifier", "type": "string", "required": true },
+        { "key": "version", "label": "Version", "type": "string", "required": true },
+        { "key": "owner_name", "label": "Deployed by", "type": "string" },
+        { "key": "email", "label": "Email", "type": "string" },
+        { "key": "comment", "label": "Comment", "type": "text" },
+        { "key": "scm_identifier", "label": "Commit SHA", "type": "string" },
+        { "key": "deployed_at", "label": "Deployed at (ISO 8601)", "type": "string", "help": "Defaults to now." }
+      ]
+    }
+  ]
+}

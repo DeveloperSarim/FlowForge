@@ -1,0 +1,78 @@
+{
+  "key": "d7_networks",
+  "name": "D7 Networks",
+  "category": "Communication",
+  "description": "Send SMS, send and verify OTPs, and check your balance with D7 Networks.",
+  "brand": "d7networks",
+  "website": "https://d7networks.com",
+  "docs_url": "https://d7networks.com/docs/",
+  "base_url": "https://api.d7networks.com",
+  "auth": [
+    { "type": "bearer", "fields": [{ "key": "token", "label": "API token", "type": "password", "required": true, "help": "D7 dashboard → Developer → Applications." }] }
+  ],
+  "actions": [
+    {
+      "key": "send_sms",
+      "name": "Send SMS",
+      "method": "POST",
+      "endpoint": "/messages/v1/send",
+      "body": {
+        "messages": [{
+          "channel": "sms",
+          "recipients": "{{ inputs.recipients }}",
+          "content": "{{ inputs.content }}",
+          "msg_type": "text",
+          "data_coding": "{{ inputs.data_coding }}"
+        }],
+        "message_globals": { "originator": "{{ inputs.originator }}", "report_url": "{{ inputs.report_url }}" }
+      },
+      "inputs": [
+        { "key": "recipients", "label": "Recipients", "type": "list", "required": true, "placeholder": "+971501234567" },
+        { "key": "content", "label": "Message", "type": "text", "required": true },
+        { "key": "originator", "label": "Sender ID", "type": "string", "required": true },
+        { "key": "data_coding", "label": "Encoding", "type": "select", "default": "auto", "options": [
+          { "value": "auto", "label": "Auto" }, { "value": "text", "label": "GSM text" }, { "value": "unicode", "label": "Unicode" }
+        ] },
+        { "key": "report_url", "label": "Delivery report URL", "type": "string" }
+      ]
+    },
+    {
+      "key": "send_otp",
+      "name": "Send OTP",
+      "description": "Returns an otp_id to pass to Verify OTP.",
+      "method": "POST",
+      "endpoint": "/verify/v1/otp/send-otp",
+      "body": {
+        "originator": "{{ inputs.originator }}",
+        "recipient": "{{ inputs.recipient }}",
+        "content": "{{ inputs.content }}",
+        "expiry": "{{ inputs.expiry }}",
+        "data_coding": "text"
+      },
+      "inputs": [
+        { "key": "originator", "label": "Sender ID", "type": "string", "required": true },
+        { "key": "recipient", "label": "Recipient", "type": "string", "required": true, "placeholder": "+971501234567" },
+        { "key": "content", "label": "Message", "type": "text", "required": true, "placeholder": "Your verification code is {}", "help": "{} is replaced by the generated code." },
+        { "key": "expiry", "label": "Expires after (seconds)", "type": "number", "default": 600 }
+      ]
+    },
+    {
+      "key": "verify_otp",
+      "name": "Verify OTP",
+      "method": "POST",
+      "endpoint": "/verify/v1/otp/verify-otp",
+      "body": { "otp_id": "{{ inputs.otp_id }}", "otp_code": "{{ inputs.otp_code }}" },
+      "inputs": [
+        { "key": "otp_id", "label": "OTP ID", "type": "string", "required": true },
+        { "key": "otp_code", "label": "Code entered by the user", "type": "string", "required": true }
+      ]
+    },
+    {
+      "key": "get_balance",
+      "name": "Get balance",
+      "method": "GET",
+      "endpoint": "/messages/v1/balance",
+      "inputs": []
+    }
+  ]
+}

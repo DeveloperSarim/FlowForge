@@ -1,0 +1,165 @@
+{
+  "key": "shipengine",
+  "name": "ShipEngine",
+  "category": "E-commerce",
+  "description": "Compare rates, create labels, validate addresses and track packages.",
+  "brand": "shipengine",
+  "website": "https://www.shipengine.com",
+  "docs_url": "https://www.shipengine.com/docs/",
+  "base_url": "https://api.shipengine.com",
+  "auth": [
+    {
+      "type": "api_key",
+      "in": "header",
+      "name": "API-Key",
+      "fields": [
+        {
+          "key": "api_key",
+          "label": "API key",
+          "type": "password",
+          "required": true,
+          "help": "Dashboard > API Management."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "get_rates",
+      "name": "Get rates",
+      "method": "POST",
+      "endpoint": "/v1/rates",
+      "body": {
+        "rate_options": {
+          "carrier_ids": "{{ inputs.carrier_ids }}"
+        },
+        "shipment": "{{ inputs.shipment }}"
+      },
+      "inputs": [
+        {
+          "key": "carrier_ids",
+          "label": "Carrier IDs",
+          "type": "list",
+          "required": true,
+          "placeholder": "se-123890"
+        },
+        {
+          "key": "shipment",
+          "label": "Shipment",
+          "type": "json",
+          "required": true,
+          "placeholder": "{\"ship_to\": {…}, \"ship_from\": {…}, \"packages\": [{\"weight\": {\"value\": 1, \"unit\": \"pound\"}}]}"
+        }
+      ]
+    },
+    {
+      "key": "create_label",
+      "name": "Create label",
+      "method": "POST",
+      "endpoint": "/v1/labels",
+      "body": {
+        "shipment": "{{ inputs.shipment }}",
+        "label_format": "{{ inputs.label_format }}",
+        "test_label": "{{ inputs.test_label }}"
+      },
+      "inputs": [
+        {
+          "key": "shipment",
+          "label": "Shipment",
+          "type": "json",
+          "required": true,
+          "help": "Include service_code (and carrier_id), ship_to, ship_from and packages."
+        },
+        {
+          "key": "label_format",
+          "label": "Label format",
+          "type": "select",
+          "options": [
+            {
+              "value": "pdf",
+              "label": "PDF"
+            },
+            {
+              "value": "png",
+              "label": "PNG"
+            },
+            {
+              "value": "zpl",
+              "label": "ZPL"
+            }
+          ],
+          "default": "pdf"
+        },
+        {
+          "key": "test_label",
+          "label": "Test label",
+          "type": "boolean"
+        }
+      ]
+    },
+    {
+      "key": "validate_addresses",
+      "name": "Validate addresses",
+      "method": "POST",
+      "endpoint": "/v1/addresses/validate",
+      "body": "{{ inputs.addresses }}",
+      "inputs": [
+        {
+          "key": "addresses",
+          "label": "Addresses",
+          "type": "json",
+          "required": true,
+          "placeholder": "[{\"address_line1\": \"525 S Winchester Blvd\", \"city_locality\": \"San Jose\", \"state_province\": \"CA\", \"postal_code\": \"95128\", \"country_code\": \"US\"}]"
+        }
+      ]
+    },
+    {
+      "key": "track_package",
+      "name": "Track package",
+      "method": "GET",
+      "endpoint": "/v1/tracking",
+      "query": {
+        "carrier_code": "{{ inputs.carrier_code }}",
+        "tracking_number": "{{ inputs.tracking_number }}"
+      },
+      "inputs": [
+        {
+          "key": "carrier_code",
+          "label": "Carrier code",
+          "type": "string",
+          "required": true,
+          "placeholder": "usps"
+        },
+        {
+          "key": "tracking_number",
+          "label": "Tracking number",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_carriers",
+      "name": "List carriers",
+      "method": "GET",
+      "endpoint": "/v1/carriers",
+      "output_path": "carriers",
+      "inputs": []
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Dashboard > API Management > Webhooks: add this URL (e.g. for tracking updates).",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

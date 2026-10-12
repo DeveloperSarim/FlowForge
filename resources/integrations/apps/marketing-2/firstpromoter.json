@@ -1,0 +1,105 @@
+{
+  "key": "firstpromoter",
+  "name": "FirstPromoter",
+  "category": "Marketing & Email",
+  "description": "Track referral sign-ups and sales and manage promoters.",
+  "brand": "firstpromoter",
+  "website": "https://firstpromoter.com",
+  "docs_url": "https://docs.firstpromoter.com/",
+  "base_url": "https://firstpromoter.com/api/v1",
+  "auth": { "type": "api_key", "in": "header", "name": "x-api-key", "fields": [{ "key": "api_key", "label": "API key", "type": "password", "required": true, "help": "Settings > Integrations > API key." }] },
+  "actions": [
+    {
+      "key": "track_signup",
+      "name": "Track sign-up",
+      "description": "Records a referred lead/sign-up.",
+      "method": "POST",
+      "endpoint": "/track/signup",
+      "body_format": "form",
+      "body": { "email": "{{ inputs.email }}", "uid": "{{ inputs.uid }}", "tid": "{{ inputs.tid }}", "ref_id": "{{ inputs.ref_id }}" },
+      "inputs": [
+        { "key": "email", "label": "Email", "type": "string" },
+        { "key": "uid", "label": "Customer ID (your system)", "type": "string" },
+        { "key": "tid", "label": "Tracking ID (_fprom_tid cookie)", "type": "string" },
+        { "key": "ref_id", "label": "Referral ID", "type": "string", "help": "Use when you have no tracking ID." }
+      ]
+    },
+    {
+      "key": "track_sale",
+      "name": "Track sale",
+      "description": "Records a payment from a referred customer and creates the commission.",
+      "method": "POST",
+      "endpoint": "/track/sale",
+      "body_format": "form",
+      "body": {
+        "email": "{{ inputs.email }}",
+        "uid": "{{ inputs.uid }}",
+        "event_id": "{{ inputs.event_id }}",
+        "amount": "{{ inputs.amount }}",
+        "quantity": "{{ inputs.quantity }}",
+        "plan": "{{ inputs.plan }}",
+        "currency": "{{ inputs.currency }}"
+      },
+      "inputs": [
+        { "key": "email", "label": "Email", "type": "string" },
+        { "key": "uid", "label": "Customer ID (your system)", "type": "string" },
+        { "key": "event_id", "label": "Sale/invoice ID (dedupe)", "type": "string", "required": true },
+        { "key": "amount", "label": "Amount (cents)", "type": "number", "required": true },
+        { "key": "quantity", "label": "Quantity", "type": "number" },
+        { "key": "plan", "label": "Plan ID", "type": "string" },
+        { "key": "currency", "label": "Currency", "type": "string", "placeholder": "USD" }
+      ]
+    },
+    {
+      "key": "create_promoter",
+      "name": "Create promoter",
+      "method": "POST",
+      "endpoint": "/promoters/create",
+      "body_format": "form",
+      "body": {
+        "email": "{{ inputs.email }}",
+        "first_name": "{{ inputs.first_name }}",
+        "last_name": "{{ inputs.last_name }}",
+        "cust_id": "{{ inputs.cust_id }}",
+        "campaign_id": "{{ inputs.campaign_id }}"
+      },
+      "inputs": [
+        { "key": "email", "label": "Email", "type": "string", "required": true },
+        { "key": "first_name", "label": "First name", "type": "string" },
+        { "key": "last_name", "label": "Last name", "type": "string" },
+        { "key": "cust_id", "label": "Customer ID (your system)", "type": "string" },
+        { "key": "campaign_id", "label": "Campaign ID", "type": "string" }
+      ]
+    },
+    {
+      "key": "get_promoter",
+      "name": "Get promoter",
+      "method": "GET",
+      "endpoint": "/promoters/show",
+      "query": { "id": "{{ inputs.id }}", "promoter_email": "{{ inputs.email }}" },
+      "inputs": [
+        { "key": "id", "label": "Promoter ID", "type": "string" },
+        { "key": "email", "label": "Promoter email", "type": "string" }
+      ]
+    },
+    {
+      "key": "list_promoters",
+      "name": "List promoters",
+      "method": "GET",
+      "endpoint": "/promoters/list",
+      "query": { "campaign_id": "{{ inputs.campaign_id }}", "page": "{{ inputs.page }}" },
+      "inputs": [
+        { "key": "campaign_id", "label": "Campaign ID", "type": "string" },
+        { "key": "page", "label": "Page", "type": "number", "default": 1 }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "inputs": [{ "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }]
+    }
+  ]
+}

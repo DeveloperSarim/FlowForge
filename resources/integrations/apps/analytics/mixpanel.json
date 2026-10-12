@@ -1,0 +1,84 @@
+{
+  "key": "mixpanel",
+  "name": "Mixpanel",
+  "category": "Analytics",
+  "description": "Import events, update user profiles and query segmentation, funnels and reports.",
+  "brand": "mixpanel",
+  "website": "https://mixpanel.com",
+  "docs_url": "https://developer.mixpanel.com/reference/overview",
+  "popular": true,
+  "base_url": "https://mixpanel.com/api",
+  "auth": { "type": "basic", "fields": [
+    { "key": "username", "label": "Service account username", "type": "string", "required": true, "help": "Organization settings > Service accounts (US data residency)." },
+    { "key": "password", "label": "Service account secret", "type": "password", "required": true },
+    { "key": "project_id", "label": "Project ID", "type": "string", "required": true },
+    { "key": "project_token", "label": "Project token", "type": "password", "help": "Needed only for \"Set user profile\"." }
+  ] },
+  "actions": [
+    {
+      "key": "import_event",
+      "name": "Import event",
+      "method": "POST",
+      "endpoint": "https://api.mixpanel.com/import",
+      "query": { "strict": "1", "project_id": "{{ credentials.project_id }}" },
+      "body": [{ "event": "{{ inputs.event }}", "properties": "{{ inputs.properties }}" }],
+      "inputs": [
+        { "key": "event", "label": "Event name", "type": "string", "required": true },
+        { "key": "properties", "label": "Properties", "type": "json", "required": true,
+          "placeholder": "{ \"distinct_id\": \"user-1\", \"time\": 1700000000, \"$insert_id\": \"unique-id-1\", \"plan\": \"pro\" }",
+          "help": "distinct_id, time (unix seconds or ms) and $insert_id are required." }
+      ]
+    },
+    {
+      "key": "set_user_profile",
+      "name": "Set user profile",
+      "method": "POST",
+      "endpoint": "https://api.mixpanel.com/engage",
+      "body": [{ "$token": "{{ credentials.project_token }}", "$distinct_id": "{{ inputs.distinct_id }}", "$set": "{{ inputs.properties }}" }],
+      "inputs": [
+        { "key": "distinct_id", "label": "Distinct ID", "type": "string", "required": true },
+        { "key": "properties", "label": "Properties to set", "type": "json", "required": true, "placeholder": "{ \"$email\": \"ada@example.com\", \"plan\": \"pro\" }" }
+      ]
+    },
+    {
+      "key": "query_segmentation",
+      "name": "Query segmentation",
+      "description": "Event counts over time, optionally split by a property.",
+      "method": "GET",
+      "endpoint": "/query/segmentation",
+      "query": { "project_id": "{{ credentials.project_id }}", "event": "{{ inputs.event }}", "from_date": "{{ inputs.from_date }}", "to_date": "{{ inputs.to_date }}", "unit": "{{ inputs.unit }}", "type": "{{ inputs.type }}", "on": "{{ inputs.on }}" },
+      "inputs": [
+        { "key": "event", "label": "Event name", "type": "string", "required": true },
+        { "key": "from_date", "label": "From (YYYY-MM-DD)", "type": "string", "required": true },
+        { "key": "to_date", "label": "To (YYYY-MM-DD)", "type": "string", "required": true },
+        { "key": "unit", "label": "Unit", "type": "select", "default": "day", "options": [
+          { "value": "minute", "label": "Minute" }, { "value": "hour", "label": "Hour" }, { "value": "day", "label": "Day" }, { "value": "month", "label": "Month" }
+        ] },
+        { "key": "type", "label": "Count", "type": "select", "default": "general", "options": [
+          { "value": "general", "label": "Total" }, { "value": "unique", "label": "Unique users" }, { "value": "average", "label": "Average" }
+        ] },
+        { "key": "on", "label": "Segment by (expression)", "type": "string", "placeholder": "properties[\"$browser\"]" }
+      ]
+    },
+    {
+      "key": "query_insights",
+      "name": "Query saved Insights report",
+      "method": "GET",
+      "endpoint": "/query/insights",
+      "query": { "project_id": "{{ credentials.project_id }}", "bookmark_id": "{{ inputs.bookmark_id }}" },
+      "inputs": [{ "key": "bookmark_id", "label": "Report (bookmark) ID", "type": "string", "required": true, "help": "The number after report- in the report URL." }]
+    },
+    {
+      "key": "query_funnel",
+      "name": "Query funnel",
+      "method": "GET",
+      "endpoint": "/query/funnels",
+      "query": { "project_id": "{{ credentials.project_id }}", "funnel_id": "{{ inputs.funnel_id }}", "from_date": "{{ inputs.from_date }}", "to_date": "{{ inputs.to_date }}" },
+      "inputs": [
+        { "key": "funnel_id", "label": "Funnel ID", "type": "string", "required": true },
+        { "key": "from_date", "label": "From (YYYY-MM-DD)", "type": "string", "required": true },
+        { "key": "to_date", "label": "To (YYYY-MM-DD)", "type": "string", "required": true }
+      ]
+    }
+  ]
+}

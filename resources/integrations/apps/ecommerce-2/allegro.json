@@ -1,0 +1,284 @@
+{
+  "key": "allegro",
+  "name": "Allegro",
+  "category": "E-commerce",
+  "description": "Read and fulfil orders, add tracking numbers and list offers on Allegro.",
+  "brand": "allegro",
+  "website": "https://allegro.pl",
+  "docs_url": "https://developer.allegro.pl/documentation",
+  "base_url": "https://api.allegro.pl",
+  "headers": {
+    "Accept": "application/vnd.allegro.public.v1+json",
+    "Content-Type": "application/vnd.allegro.public.v1+json"
+  },
+  "auth": [
+    {
+      "type": "oauth2",
+      "authorize_url": "https://allegro.pl/auth/oauth/authorize",
+      "token_url": "https://allegro.pl/auth/oauth/token",
+      "client_auth": "basic",
+      "scopes": [
+        "allegro:api:orders:read",
+        "allegro:api:orders:write",
+        "allegro:api:sale:offers:read",
+        "allegro:api:profile:read"
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "get_me",
+      "name": "Get account",
+      "method": "GET",
+      "endpoint": "/me",
+      "inputs": []
+    },
+    {
+      "key": "list_orders",
+      "name": "List orders",
+      "method": "GET",
+      "endpoint": "/order/checkout-forms",
+      "query": {
+        "status": "{{ inputs.status }}",
+        "fulfillment.status": "{{ inputs.fulfillment_status }}",
+        "limit": "{{ inputs.limit }}",
+        "sort": "-lineItems.boughtAt"
+      },
+      "output_path": "checkoutForms",
+      "inputs": [
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "options": [
+            {
+              "value": "READY_FOR_PROCESSING",
+              "label": "Ready for processing (paid)"
+            },
+            {
+              "value": "BOUGHT",
+              "label": "Bought"
+            },
+            {
+              "value": "FILLED_IN",
+              "label": "Filled in"
+            },
+            {
+              "value": "CANCELLED",
+              "label": "Cancelled"
+            }
+          ]
+        },
+        {
+          "key": "fulfillment_status",
+          "label": "Fulfillment status",
+          "type": "select",
+          "options": [
+            {
+              "value": "NEW",
+              "label": "New"
+            },
+            {
+              "value": "PROCESSING",
+              "label": "Processing"
+            },
+            {
+              "value": "READY_FOR_SHIPMENT",
+              "label": "Ready for shipment"
+            },
+            {
+              "value": "SENT",
+              "label": "Sent"
+            }
+          ]
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    },
+    {
+      "key": "get_order",
+      "name": "Get order",
+      "method": "GET",
+      "endpoint": "/order/checkout-forms/{{ inputs.order_id }}",
+      "inputs": [
+        {
+          "key": "order_id",
+          "label": "Checkout form ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "set_fulfillment_status",
+      "name": "Set fulfillment status",
+      "method": "PUT",
+      "endpoint": "/order/checkout-forms/{{ inputs.order_id }}/fulfillment",
+      "body": {
+        "status": "{{ inputs.status }}"
+      },
+      "inputs": [
+        {
+          "key": "order_id",
+          "label": "Checkout form ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "options": [
+            {
+              "value": "NEW",
+              "label": "New"
+            },
+            {
+              "value": "PROCESSING",
+              "label": "Processing"
+            },
+            {
+              "value": "READY_FOR_SHIPMENT",
+              "label": "Ready for shipment"
+            },
+            {
+              "value": "READY_FOR_PICKUP",
+              "label": "Ready for pickup"
+            },
+            {
+              "value": "SENT",
+              "label": "Sent"
+            },
+            {
+              "value": "PICKED_UP",
+              "label": "Picked up"
+            },
+            {
+              "value": "CANCELLED",
+              "label": "Cancelled"
+            },
+            {
+              "value": "SUSPENDED",
+              "label": "Suspended"
+            },
+            {
+              "value": "RETURNED",
+              "label": "Returned"
+            }
+          ],
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "add_tracking",
+      "name": "Add tracking number",
+      "method": "POST",
+      "endpoint": "/order/checkout-forms/{{ inputs.order_id }}/shipments",
+      "body": {
+        "carrierId": "{{ inputs.carrier_id }}",
+        "waybill": "{{ inputs.waybill }}",
+        "carrierName": "{{ inputs.carrier_name }}"
+      },
+      "inputs": [
+        {
+          "key": "order_id",
+          "label": "Checkout form ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "carrier_id",
+          "label": "Carrier ID",
+          "type": "string",
+          "required": true,
+          "placeholder": "INPOST",
+          "help": "OTHER requires a carrier name."
+        },
+        {
+          "key": "waybill",
+          "label": "Tracking number",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "carrier_name",
+          "label": "Carrier name",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "list_offers",
+      "name": "List offers",
+      "method": "GET",
+      "endpoint": "/sale/offers",
+      "query": {
+        "name": "{{ inputs.name }}",
+        "publication.status": "{{ inputs.status }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_path": "offers",
+      "inputs": [
+        {
+          "key": "name",
+          "label": "Name contains",
+          "type": "string"
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "options": [
+            {
+              "value": "ACTIVE",
+              "label": "Active"
+            },
+            {
+              "value": "INACTIVE",
+              "label": "Inactive"
+            },
+            {
+              "value": "ENDED",
+              "label": "Ended"
+            }
+          ]
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_order",
+      "name": "New order",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/order/checkout-forms",
+      "query": {
+        "sort": "-lineItems.boughtAt",
+        "limit": 50
+      },
+      "items_path": "checkoutForms",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

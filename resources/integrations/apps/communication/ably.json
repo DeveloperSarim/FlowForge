@@ -1,0 +1,67 @@
+{
+  "key": "ably",
+  "name": "Ably",
+  "category": "Communication",
+  "description": "Publish realtime messages to Ably channels and read channel history.",
+  "brand": "ably",
+  "website": "https://ably.com",
+  "docs_url": "https://ably.com/docs/api/rest-api",
+  "base_url": "https://rest.ably.io",
+  "auth": [
+    {
+      "type": "basic",
+      "fields": [
+        { "key": "username", "label": "API key name", "type": "string", "required": true, "placeholder": "appId.keyId", "help": "An Ably key looks like appId.keyId:secret. Put the part before the colon here." },
+        { "key": "password", "label": "API key secret", "type": "password", "required": true, "help": "The part after the colon." }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "publish",
+      "name": "Publish message",
+      "method": "POST",
+      "endpoint": "/channels/{{ inputs.channel }}/messages",
+      "body": { "name": "{{ inputs.name }}", "data": "{{ inputs.data }}" },
+      "inputs": [
+        { "key": "channel", "label": "Channel", "type": "string", "required": true },
+        { "key": "name", "label": "Event name", "type": "string" },
+        { "key": "data", "label": "Data", "type": "text", "required": true }
+      ]
+    },
+    {
+      "key": "get_history",
+      "name": "Get channel history",
+      "method": "GET",
+      "endpoint": "/channels/{{ inputs.channel }}/messages",
+      "query": { "limit": "{{ inputs.limit }}", "direction": "backwards" },
+      "inputs": [
+        { "key": "channel", "label": "Channel", "type": "string", "required": true },
+        { "key": "limit", "label": "Max results", "type": "number", "default": 100 }
+      ]
+    },
+    {
+      "key": "get_presence",
+      "name": "Get channel presence",
+      "method": "GET",
+      "endpoint": "/channels/{{ inputs.channel }}/presence",
+      "inputs": [{ "key": "channel", "label": "Channel", "type": "string", "required": true }]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_message",
+      "name": "New message on channel",
+      "description": "Needs message persistence enabled for the channel.",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/channels/{{ inputs.channel }}/messages",
+      "query": { "limit": 50, "direction": "backwards" },
+      "id_field": "id",
+      "inputs": [
+        { "key": "channel", "label": "Channel", "type": "string", "required": true },
+        { "key": "poll_interval", "label": "Check every (minutes)", "type": "number", "default": 5 }
+      ]
+    }
+  ]
+}

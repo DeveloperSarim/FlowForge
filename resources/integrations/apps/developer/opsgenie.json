@@ -1,0 +1,110 @@
+{
+  "key": "opsgenie",
+  "name": "Opsgenie",
+  "category": "Developer Tools",
+  "description": "Create, acknowledge, close and annotate alerts.",
+  "brand": "opsgenie",
+  "website": "https://www.atlassian.com/software/opsgenie",
+  "docs_url": "https://docs.opsgenie.com/docs/alert-api",
+  "base_url": "https://{{ credentials.api_host }}",
+  "auth": { "type": "api_key", "in": "header", "name": "Authorization", "prefix": "GenieKey ", "fields": [
+    { "key": "api_host", "label": "Region", "type": "select", "required": true, "default": "api.opsgenie.com", "options": [
+      { "value": "api.opsgenie.com", "label": "US" }, { "value": "api.eu.opsgenie.com", "label": "EU" }
+    ] },
+    { "key": "api_key", "label": "API key", "type": "password", "required": true, "help": "From an API integration (Settings → Integrations → API)." }
+  ] },
+  "actions": [
+    {
+      "key": "create_alert",
+      "name": "Create alert",
+      "method": "POST",
+      "endpoint": "/v2/alerts",
+      "body": { "message": "{{ inputs.message }}", "alias": "{{ inputs.alias }}", "description": "{{ inputs.description }}", "priority": "{{ inputs.priority }}", "tags": "{{ inputs.tags }}", "entity": "{{ inputs.entity }}", "source": "{{ inputs.source }}" },
+      "inputs": [
+        { "key": "message", "label": "Message", "type": "string", "required": true, "help": "Up to 130 characters." },
+        { "key": "alias", "label": "Alias (dedup key)", "type": "string" },
+        { "key": "description", "label": "Description", "type": "text" },
+        { "key": "priority", "label": "Priority", "type": "select", "default": "P3", "options": [
+          { "value": "P1", "label": "P1 – Critical" }, { "value": "P2", "label": "P2 – High" }, { "value": "P3", "label": "P3 – Moderate" }, { "value": "P4", "label": "P4 – Low" }, { "value": "P5", "label": "P5 – Informational" }
+        ] },
+        { "key": "tags", "label": "Tags", "type": "list" },
+        { "key": "entity", "label": "Entity", "type": "string" },
+        { "key": "source", "label": "Source", "type": "string", "default": "FlowForge" }
+      ]
+    },
+    {
+      "key": "acknowledge_alert",
+      "name": "Acknowledge alert",
+      "method": "POST",
+      "endpoint": "/v2/alerts/{{ inputs.identifier }}/acknowledge",
+      "query": { "identifierType": "{{ inputs.identifier_type }}" },
+      "body": { "note": "{{ inputs.note }}", "source": "FlowForge" },
+      "inputs": [
+        { "key": "identifier", "label": "Alert ID or alias", "type": "string", "required": true },
+        { "key": "identifier_type", "label": "Identifier type", "type": "select", "default": "id", "options": [{ "value": "id", "label": "ID" }, { "value": "alias", "label": "Alias" }, { "value": "tiny", "label": "Tiny ID" }] },
+        { "key": "note", "label": "Note", "type": "string" }
+      ]
+    },
+    {
+      "key": "close_alert",
+      "name": "Close alert",
+      "method": "POST",
+      "endpoint": "/v2/alerts/{{ inputs.identifier }}/close",
+      "query": { "identifierType": "{{ inputs.identifier_type }}" },
+      "body": { "note": "{{ inputs.note }}", "source": "FlowForge" },
+      "inputs": [
+        { "key": "identifier", "label": "Alert ID or alias", "type": "string", "required": true },
+        { "key": "identifier_type", "label": "Identifier type", "type": "select", "default": "id", "options": [{ "value": "id", "label": "ID" }, { "value": "alias", "label": "Alias" }, { "value": "tiny", "label": "Tiny ID" }] },
+        { "key": "note", "label": "Note", "type": "string" }
+      ]
+    },
+    {
+      "key": "add_note",
+      "name": "Add note to alert",
+      "method": "POST",
+      "endpoint": "/v2/alerts/{{ inputs.identifier }}/notes",
+      "query": { "identifierType": "{{ inputs.identifier_type }}" },
+      "body": { "note": "{{ inputs.note }}", "source": "FlowForge" },
+      "inputs": [
+        { "key": "identifier", "label": "Alert ID or alias", "type": "string", "required": true },
+        { "key": "identifier_type", "label": "Identifier type", "type": "select", "default": "id", "options": [{ "value": "id", "label": "ID" }, { "value": "alias", "label": "Alias" }, { "value": "tiny", "label": "Tiny ID" }] },
+        { "key": "note", "label": "Note", "type": "text", "required": true }
+      ]
+    },
+    {
+      "key": "get_alert",
+      "name": "Get alert",
+      "method": "GET",
+      "endpoint": "/v2/alerts/{{ inputs.identifier }}",
+      "query": { "identifierType": "{{ inputs.identifier_type }}" },
+      "output_path": "data",
+      "inputs": [
+        { "key": "identifier", "label": "Alert ID or alias", "type": "string", "required": true },
+        { "key": "identifier_type", "label": "Identifier type", "type": "select", "default": "id", "options": [{ "value": "id", "label": "ID" }, { "value": "alias", "label": "Alias" }, { "value": "tiny", "label": "Tiny ID" }] }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_alert",
+      "name": "New alert (polling)",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/v2/alerts",
+      "query": { "query": "{{ inputs.query }}", "sort": "createdAt", "order": "desc", "limit": 20 },
+      "items_path": "data",
+      "id_field": "id",
+      "inputs": [
+        { "key": "query", "label": "Search query", "type": "string", "placeholder": "status:open" },
+        { "key": "poll_interval", "label": "Check every (minutes)", "type": "number", "default": 5 }
+      ]
+    },
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "data_path": "alert",
+      "inputs": [{ "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }]
+    }
+  ]
+}

@@ -1,0 +1,123 @@
+{
+  "key": "mixedbread",
+  "name": "Mixedbread",
+  "category": "AI",
+  "description": "Embed and rerank text and search Mixedbread stores.",
+  "brand": "mixedbread",
+  "website": "https://www.mixedbread.com",
+  "docs_url": "https://www.mixedbread.com/docs",
+  "base_url": "https://api.mixedbread.com/v1",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "API key",
+        "type": "password",
+        "required": true
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "create_embedding",
+      "name": "Create embedding",
+      "description": "Turn text into a vector, available as {{ steps.<id>.embedding }}.",
+      "method": "POST",
+      "endpoint": "/embeddings",
+      "body": {
+        "model": "{{ inputs.model }}",
+        "input": [
+          "{{ inputs.input }}"
+        ]
+      },
+      "output_fields": {
+        "embedding": "data.0.embedding"
+      },
+      "inputs": [
+        {
+          "key": "model",
+          "label": "Model",
+          "type": "string",
+          "required": true,
+          "default": "mixedbread-ai/mxbai-embed-large-v1"
+        },
+        {
+          "key": "input",
+          "label": "Text",
+          "type": "text",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "rerank",
+      "name": "Rerank",
+      "method": "POST",
+      "endpoint": "/reranking",
+      "body": {
+        "model": "{{ inputs.model }}",
+        "query": "{{ inputs.query }}",
+        "input": "{{ inputs.documents }}",
+        "top_k": "{{ inputs.top_k }}"
+      },
+      "inputs": [
+        {
+          "key": "query",
+          "label": "Query",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "documents",
+          "label": "Documents",
+          "type": "list",
+          "required": true
+        },
+        {
+          "key": "model",
+          "label": "Model",
+          "type": "string",
+          "placeholder": "mixedbread-ai/mxbai-rerank-v3.1-listwise"
+        },
+        {
+          "key": "top_k",
+          "label": "Top K",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "search_stores",
+      "name": "Search stores",
+      "method": "POST",
+      "endpoint": "/stores/search",
+      "body": {
+        "query": "{{ inputs.query }}",
+        "store_identifiers": "{{ inputs.stores }}",
+        "top_k": "{{ inputs.top_k }}"
+      },
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "stores",
+          "label": "Store names or IDs",
+          "type": "list",
+          "required": true
+        },
+        {
+          "key": "query",
+          "label": "Query",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "top_k",
+          "label": "Top K",
+          "type": "number",
+          "default": 10
+        }
+      ]
+    }
+  ]
+}

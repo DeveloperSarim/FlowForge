@@ -1,0 +1,259 @@
+{
+  "key": "joomla",
+  "name": "Joomla",
+  "category": "CMS & Websites",
+  "description": "Create, update, list and delete Joomla articles via the Web Services API.",
+  "brand": "joomla",
+  "website": "https://www.joomla.org",
+  "docs_url": "https://manual.joomla.org/docs/general-concepts/webservices/",
+  "base_url": "{{ credentials.site_url }}/api/index.php/v1",
+  "headers": {
+    "Accept": "application/vnd.api+json"
+  },
+  "auth": [
+    {
+      "type": "api_key",
+      "in": "header",
+      "name": "X-Joomla-Token",
+      "fields": [
+        {
+          "key": "site_url",
+          "label": "Site URL",
+          "type": "string",
+          "required": true,
+          "placeholder": "https://www.example.com",
+          "help": "No trailing slash."
+        },
+        {
+          "key": "api_key",
+          "label": "API token",
+          "type": "password",
+          "required": true,
+          "help": "Users > Edit profile > Joomla API Token (Super User)."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_articles",
+      "name": "List articles",
+      "method": "GET",
+      "endpoint": "/content/articles",
+      "query": {
+        "filter[search]": "{{ inputs.search }}",
+        "filter[category]": "{{ inputs.category }}",
+        "filter[state]": "{{ inputs.state }}",
+        "page[limit]": "{{ inputs.limit }}",
+        "page[offset]": "{{ inputs.offset }}"
+      },
+      "inputs": [
+        {
+          "key": "search",
+          "label": "Search",
+          "type": "string"
+        },
+        {
+          "key": "category",
+          "label": "Category ID",
+          "type": "number"
+        },
+        {
+          "key": "state",
+          "label": "State",
+          "type": "select",
+          "options": [
+            {
+              "value": "1",
+              "label": "Published"
+            },
+            {
+              "value": "0",
+              "label": "Unpublished"
+            },
+            {
+              "value": "2",
+              "label": "Archived"
+            },
+            {
+              "value": "-2",
+              "label": "Trashed"
+            }
+          ]
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number"
+        },
+        {
+          "key": "offset",
+          "label": "Offset",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "get_article",
+      "name": "Get article",
+      "method": "GET",
+      "endpoint": "/content/articles/{{ inputs.id }}",
+      "inputs": [
+        {
+          "key": "id",
+          "label": "Article ID",
+          "type": "number",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "create_article",
+      "name": "Create article",
+      "method": "POST",
+      "endpoint": "/content/articles",
+      "body": {
+        "title": "{{ inputs.title }}",
+        "articletext": "{{ inputs.articletext }}",
+        "catid": "{{ inputs.catid }}",
+        "alias": "{{ inputs.alias }}",
+        "language": "{{ inputs.language }}",
+        "state": "{{ inputs.state }}",
+        "...": "{{ inputs.extra }}"
+      },
+      "inputs": [
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "articletext",
+          "label": "Article text (HTML)",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "catid",
+          "label": "Category ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "alias",
+          "label": "Alias",
+          "type": "string"
+        },
+        {
+          "key": "language",
+          "label": "Language",
+          "type": "string",
+          "required": true,
+          "default": "*"
+        },
+        {
+          "key": "state",
+          "label": "State",
+          "type": "select",
+          "options": [
+            {
+              "value": "1",
+              "label": "Published"
+            },
+            {
+              "value": "0",
+              "label": "Unpublished"
+            }
+          ]
+        },
+        {
+          "key": "extra",
+          "label": "Other fields (JSON)",
+          "type": "json",
+          "placeholder": "{\"metadesc\": \"...\", \"featured\": 1}"
+        }
+      ]
+    },
+    {
+      "key": "update_article",
+      "name": "Update article",
+      "method": "PATCH",
+      "endpoint": "/content/articles/{{ inputs.id }}",
+      "body": {
+        "title": "{{ inputs.title }}",
+        "articletext": "{{ inputs.articletext }}",
+        "state": "{{ inputs.state }}",
+        "...": "{{ inputs.extra }}"
+      },
+      "inputs": [
+        {
+          "key": "id",
+          "label": "Article ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "string"
+        },
+        {
+          "key": "articletext",
+          "label": "Article text (HTML)",
+          "type": "text"
+        },
+        {
+          "key": "state",
+          "label": "State",
+          "type": "select",
+          "options": [
+            {
+              "value": "1",
+              "label": "Published"
+            },
+            {
+              "value": "0",
+              "label": "Unpublished"
+            },
+            {
+              "value": "2",
+              "label": "Archived"
+            },
+            {
+              "value": "-2",
+              "label": "Trashed"
+            }
+          ]
+        },
+        {
+          "key": "extra",
+          "label": "Other fields (JSON)",
+          "type": "json"
+        }
+      ]
+    },
+    {
+      "key": "delete_article",
+      "name": "Delete article",
+      "description": "Only trashed articles can be deleted.",
+      "method": "DELETE",
+      "endpoint": "/content/articles/{{ inputs.id }}",
+      "inputs": [
+        {
+          "key": "id",
+          "label": "Article ID",
+          "type": "number",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_categories",
+      "name": "List categories",
+      "method": "GET",
+      "endpoint": "/content/categories",
+      "inputs": []
+    }
+  ]
+}

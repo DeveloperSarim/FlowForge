@@ -1,0 +1,56 @@
+{
+  "key": "messagemedia",
+  "name": "Sinch MessageMedia",
+  "category": "Communication",
+  "description": "Send SMS, check message status and fetch replies with MessageMedia.",
+  "brand": "messagemedia",
+  "website": "https://messagemedia.com",
+  "docs_url": "https://messagemedia.github.io/documentation/",
+  "base_url": "https://api.messagemedia.com/v1",
+  "auth": [
+    { "type": "basic", "fields": [
+      { "key": "username", "label": "API key", "type": "string", "required": true },
+      { "key": "password", "label": "API secret", "type": "password", "required": true }
+    ] }
+  ],
+  "actions": [
+    {
+      "key": "send_sms",
+      "name": "Send SMS",
+      "method": "POST",
+      "endpoint": "/messages",
+      "body": {
+        "messages": [{
+          "content": "{{ inputs.content }}",
+          "destination_number": "{{ inputs.to }}",
+          "source_number": "{{ inputs.from }}",
+          "format": "SMS",
+          "delivery_report": "{{ inputs.delivery_report }}"
+        }]
+      },
+      "inputs": [
+        { "key": "to", "label": "To (E.164)", "type": "string", "required": true, "placeholder": "+61491570156" },
+        { "key": "content", "label": "Message", "type": "text", "required": true },
+        { "key": "from", "label": "Sender number or ID", "type": "string", "help": "Leave empty to use the shared number pool." },
+        { "key": "delivery_report", "label": "Request delivery report", "type": "boolean" }
+      ]
+    },
+    {
+      "key": "get_message",
+      "name": "Get message status",
+      "method": "GET",
+      "endpoint": "/messages/{{ inputs.message_id }}",
+      "inputs": [
+        { "key": "message_id", "label": "Message ID", "type": "string", "required": true }
+      ]
+    },
+    {
+      "key": "get_replies",
+      "name": "Get unconfirmed replies",
+      "method": "GET",
+      "endpoint": "/replies",
+      "output_path": "replies",
+      "inputs": []
+    }
+  ]
+}

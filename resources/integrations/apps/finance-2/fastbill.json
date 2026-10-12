@@ -1,0 +1,210 @@
+{
+  "key": "fastbill",
+  "name": "FastBill",
+  "category": "Payments & Finance",
+  "description": "Find and create customers and list invoices in FastBill.",
+  "brand": "fastbill",
+  "website": "https://www.fastbill.com",
+  "docs_url": "https://apidocs.fastbill.com/fastbill/de/",
+  "base_url": "https://my.fastbill.com/api/1.0",
+  "auth": [
+    {
+      "type": "basic",
+      "fields": [
+        {
+          "key": "username",
+          "label": "Account email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "password",
+          "label": "API key",
+          "type": "password",
+          "required": true,
+          "help": "FastBill > Settings > Account > API key."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "get_customers",
+      "name": "Find customers",
+      "method": "POST",
+      "endpoint": "/api.php",
+      "body": {
+        "SERVICE": "customer.get",
+        "FILTER": {
+          "CUSTOMER_ID": "{{ inputs.customer_id }}",
+          "CUSTOMER_NUMBER": "{{ inputs.customer_number }}",
+          "TERM": "{{ inputs.term }}"
+        },
+        "LIMIT": "{{ inputs.limit }}"
+      },
+      "output_path": "RESPONSE.CUSTOMERS",
+      "error_path": "RESPONSE.ERRORS",
+      "inputs": [
+        {
+          "key": "customer_id",
+          "label": "Customer ID",
+          "type": "string"
+        },
+        {
+          "key": "customer_number",
+          "label": "Customer number",
+          "type": "string"
+        },
+        {
+          "key": "term",
+          "label": "Search term",
+          "type": "string"
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 100
+        }
+      ]
+    },
+    {
+      "key": "create_customer",
+      "name": "Create customer",
+      "method": "POST",
+      "endpoint": "/api.php",
+      "body": {
+        "SERVICE": "customer.create",
+        "DATA": {
+          "CUSTOMER_TYPE": "{{ inputs.customer_type }}",
+          "ORGANIZATION": "{{ inputs.organization }}",
+          "FIRST_NAME": "{{ inputs.first_name }}",
+          "LAST_NAME": "{{ inputs.last_name }}",
+          "EMAIL": "{{ inputs.email }}",
+          "ADDRESS": "{{ inputs.address }}",
+          "ZIPCODE": "{{ inputs.zipcode }}",
+          "CITY": "{{ inputs.city }}",
+          "COUNTRY_CODE": "{{ inputs.country_code }}"
+        }
+      },
+      "output_path": "RESPONSE",
+      "error_path": "RESPONSE.ERRORS",
+      "inputs": [
+        {
+          "key": "customer_type",
+          "label": "Type",
+          "type": "select",
+          "options": [
+            {
+              "value": "business",
+              "label": "Business"
+            },
+            {
+              "value": "consumer",
+              "label": "Consumer"
+            }
+          ],
+          "default": "business",
+          "required": true
+        },
+        {
+          "key": "organization",
+          "label": "Organization",
+          "type": "string",
+          "help": "Required for business customers."
+        },
+        {
+          "key": "first_name",
+          "label": "First name",
+          "type": "string"
+        },
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string"
+        },
+        {
+          "key": "address",
+          "label": "Address",
+          "type": "string"
+        },
+        {
+          "key": "zipcode",
+          "label": "Postcode",
+          "type": "string"
+        },
+        {
+          "key": "city",
+          "label": "City",
+          "type": "string"
+        },
+        {
+          "key": "country_code",
+          "label": "Country code",
+          "type": "string",
+          "placeholder": "DE"
+        }
+      ]
+    },
+    {
+      "key": "get_invoices",
+      "name": "List invoices",
+      "method": "POST",
+      "endpoint": "/api.php",
+      "body": {
+        "SERVICE": "invoice.get",
+        "FILTER": {
+          "CUSTOMER_ID": "{{ inputs.customer_id }}",
+          "INVOICE_NUMBER": "{{ inputs.invoice_number }}",
+          "TYPE": "{{ inputs.type }}"
+        },
+        "LIMIT": "{{ inputs.limit }}"
+      },
+      "output_path": "RESPONSE.INVOICES",
+      "error_path": "RESPONSE.ERRORS",
+      "inputs": [
+        {
+          "key": "customer_id",
+          "label": "Customer ID",
+          "type": "string"
+        },
+        {
+          "key": "invoice_number",
+          "label": "Invoice number",
+          "type": "string"
+        },
+        {
+          "key": "type",
+          "label": "Type",
+          "type": "select",
+          "options": [
+            {
+              "value": "outgoing",
+              "label": "Outgoing"
+            },
+            {
+              "value": "draft",
+              "label": "Draft"
+            },
+            {
+              "value": "credit",
+              "label": "Credit note"
+            }
+          ]
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 100
+        }
+      ]
+    }
+  ]
+}

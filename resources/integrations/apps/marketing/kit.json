@@ -1,0 +1,163 @@
+{
+  "key": "kit",
+  "name": "Kit",
+  "category": "Marketing & Email",
+  "description": "Add subscribers, tag them, add to forms and unsubscribe (Kit API v4).",
+  "brand": "kit",
+  "website": "https://kit.com",
+  "docs_url": "https://developers.kit.com/v4",
+  "base_url": "https://api.kit.com/v4",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "X-Kit-Api-Key",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "V4 API key",
+        "type": "password",
+        "required": true
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "upsert_subscriber",
+      "name": "Create or update subscriber",
+      "method": "POST",
+      "endpoint": "/subscribers",
+      "body": {
+        "email_address": "{{ inputs.email }}",
+        "first_name": "{{ inputs.first_name }}",
+        "fields": "{{ inputs.fields }}"
+      },
+      "output_path": "subscriber",
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "first_name",
+          "label": "First name",
+          "type": "string"
+        },
+        {
+          "key": "fields",
+          "label": "Custom fields",
+          "type": "keyvalue",
+          "help": "Field key → value"
+        }
+      ]
+    },
+    {
+      "key": "tag_subscriber",
+      "name": "Tag subscriber",
+      "method": "POST",
+      "endpoint": "/tags/{{ inputs.tag_id }}/subscribers",
+      "body": {
+        "email_address": "{{ inputs.email }}"
+      },
+      "inputs": [
+        {
+          "key": "tag_id",
+          "label": "Tag ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "add_to_form",
+      "name": "Add subscriber to form",
+      "method": "POST",
+      "endpoint": "/forms/{{ inputs.form_id }}/subscribers",
+      "body": {
+        "email_address": "{{ inputs.email }}",
+        "referrer": "{{ inputs.referrer }}"
+      },
+      "inputs": [
+        {
+          "key": "form_id",
+          "label": "Form ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "referrer",
+          "label": "Referrer URL",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "find_subscriber",
+      "name": "Find subscriber by email",
+      "method": "GET",
+      "endpoint": "/subscribers",
+      "query": {
+        "email_address": "{{ inputs.email }}"
+      },
+      "output_path": "subscribers",
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "unsubscribe",
+      "name": "Unsubscribe",
+      "method": "POST",
+      "endpoint": "/subscribers/{{ inputs.subscriber_id }}/unsubscribe",
+      "inputs": [
+        {
+          "key": "subscriber_id",
+          "label": "Subscriber ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_tags",
+      "name": "List tags",
+      "method": "GET",
+      "endpoint": "/tags",
+      "output_path": "tags",
+      "inputs": []
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Create via Automations or the API (subscriber activated, tag added, purchase…).",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,154 @@
+{
+  "key": "wufoo",
+  "name": "Wufoo",
+  "category": "Forms & Surveys",
+  "description": "Get new Wufoo entries, read forms and fields, and submit entries.",
+  "brand": "wufoo",
+  "website": "https://www.wufoo.com",
+  "docs_url": "https://wufoo.github.io/docs/",
+  "base_url": "https://{{ credentials.subdomain }}.wufoo.com/api/v3",
+  "auth": {
+    "type": "basic",
+    "fields": [
+      {
+        "key": "subdomain",
+        "label": "Subdomain",
+        "type": "string",
+        "required": true,
+        "placeholder": "yourname",
+        "help": "The part before .wufoo.com"
+      },
+      {
+        "key": "username",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "Form Manager > More > API Information"
+      },
+      {
+        "key": "password",
+        "label": "Password",
+        "type": "password",
+        "default": "footastic",
+        "help": "Not used by Wufoo; leave as is."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_forms",
+      "name": "List forms",
+      "method": "GET",
+      "endpoint": "/forms.json",
+      "output_path": "Forms",
+      "inputs": []
+    },
+    {
+      "key": "get_form_fields",
+      "name": "Get form fields",
+      "method": "GET",
+      "endpoint": "/forms/{{ inputs.form }}/fields.json",
+      "output_path": "Fields",
+      "inputs": [
+        {
+          "key": "form",
+          "label": "Form hash or title slug",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_entries",
+      "name": "List entries",
+      "method": "GET",
+      "endpoint": "/forms/{{ inputs.form }}/entries.json",
+      "output_path": "Entries",
+      "query": {
+        "sort": "EntryId",
+        "sortDirection": "DESC",
+        "pageSize": "{{ inputs.page_size }}"
+      },
+      "inputs": [
+        {
+          "key": "form",
+          "label": "Form hash or title slug",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "page_size",
+          "label": "Page size",
+          "type": "number",
+          "default": 25
+        }
+      ]
+    },
+    {
+      "key": "submit_entry",
+      "name": "Submit entry",
+      "method": "POST",
+      "endpoint": "/forms/{{ inputs.form }}/entries.json",
+      "body_format": "form",
+      "body": "{{ inputs.fields }}",
+      "inputs": [
+        {
+          "key": "form",
+          "label": "Form hash or title slug",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "fields",
+          "label": "Fields",
+          "type": "keyvalue",
+          "required": true,
+          "help": "Use field IDs as names, e.g. Field1, Field2 (see Get form fields)."
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_entry",
+      "name": "New entry (polling)",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/forms/{{ inputs.form }}/entries.json",
+      "query": {
+        "sort": "EntryId",
+        "sortDirection": "DESC",
+        "pageSize": 25
+      },
+      "items_path": "Entries",
+      "id_field": "EntryId",
+      "inputs": [
+        {
+          "key": "form",
+          "label": "Form hash or title slug",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    },
+    {
+      "key": "new_entry_webhook",
+      "name": "New entry (webhook)",
+      "type": "webhook",
+      "description": "Form Manager > Integrations > WebHook, paste this URL.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

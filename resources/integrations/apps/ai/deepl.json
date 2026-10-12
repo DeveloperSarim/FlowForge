@@ -1,0 +1,144 @@
+{
+  "key": "deepl",
+  "name": "DeepL",
+  "category": "AI",
+  "description": "Translate text with DeepL and check your character usage.",
+  "brand": "deepl",
+  "website": "https://www.deepl.com",
+  "docs_url": "https://developers.deepl.com/docs",
+  "popular": true,
+  "base_url": "https://{{ credentials.host }}/v2",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "Authorization",
+    "prefix": "DeepL-Auth-Key ",
+    "fields": [
+      {
+        "key": "host",
+        "label": "Plan",
+        "type": "select",
+        "required": true,
+        "default": "api.deepl.com",
+        "options": [
+          {
+            "value": "api.deepl.com",
+            "label": "DeepL API Pro"
+          },
+          {
+            "value": "api-free.deepl.com",
+            "label": "DeepL API Free (key ends in :fx)"
+          }
+        ]
+      },
+      {
+        "key": "api_key",
+        "label": "Authentication key",
+        "type": "password",
+        "required": true
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "translate",
+      "name": "Translate text",
+      "method": "POST",
+      "endpoint": "/translate",
+      "body": {
+        "text": [
+          "{{ inputs.text }}"
+        ],
+        "target_lang": "{{ inputs.target_lang }}",
+        "source_lang": "{{ inputs.source_lang }}",
+        "formality": "{{ inputs.formality }}",
+        "context": "{{ inputs.context }}"
+      },
+      "output_fields": {
+        "text": "translations.0.text",
+        "detected_source_language": "translations.0.detected_source_language"
+      },
+      "inputs": [
+        {
+          "key": "text",
+          "label": "Text",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "target_lang",
+          "label": "Target language",
+          "type": "string",
+          "required": true,
+          "placeholder": "DE",
+          "help": "e.g. DE, FR, EN-US, PT-BR."
+        },
+        {
+          "key": "source_lang",
+          "label": "Source language",
+          "type": "string",
+          "placeholder": "auto-detect"
+        },
+        {
+          "key": "formality",
+          "label": "Formality",
+          "type": "select",
+          "options": [
+            {
+              "value": "default",
+              "label": "Default"
+            },
+            {
+              "value": "prefer_more",
+              "label": "More formal"
+            },
+            {
+              "value": "prefer_less",
+              "label": "Less formal"
+            }
+          ]
+        },
+        {
+          "key": "context",
+          "label": "Context",
+          "type": "text",
+          "help": "Extra context that guides the translation; not translated."
+        }
+      ]
+    },
+    {
+      "key": "get_usage",
+      "name": "Get usage",
+      "method": "GET",
+      "endpoint": "/usage",
+      "inputs": []
+    },
+    {
+      "key": "list_languages",
+      "name": "List languages",
+      "method": "GET",
+      "endpoint": "/languages",
+      "query": {
+        "type": "{{ inputs.type }}"
+      },
+      "inputs": [
+        {
+          "key": "type",
+          "label": "Type",
+          "type": "select",
+          "options": [
+            {
+              "value": "source",
+              "label": "Source"
+            },
+            {
+              "value": "target",
+              "label": "Target"
+            }
+          ],
+          "default": "target"
+        }
+      ]
+    }
+  ]
+}

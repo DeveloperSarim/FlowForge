@@ -1,0 +1,49 @@
+{
+  "key": "podium",
+  "name": "Podium",
+  "category": "Marketing & Email",
+  "description": "Send text messages to customers from your Podium locations.",
+  "brand": "podium",
+  "website": "https://www.podium.com",
+  "docs_url": "https://docs.podium.com/",
+  "base_url": "https://api.podium.com/v4",
+  "auth": {
+    "type": "oauth2",
+    "authorize_url": "https://api.podium.com/oauth/authorize",
+    "token_url": "https://api.podium.com/oauth/token",
+    "scopes": ["read_locations", "read_messages", "write_messages", "read_contacts", "write_contacts"]
+  },
+  "actions": [
+    {
+      "key": "list_locations",
+      "name": "List locations",
+      "method": "GET",
+      "endpoint": "/locations",
+      "output_path": "data",
+      "inputs": []
+    },
+    {
+      "key": "send_message",
+      "name": "Send message",
+      "description": "Texts (or emails) a customer from a location; creates the conversation if needed.",
+      "method": "POST",
+      "endpoint": "/messages",
+      "body": {
+        "locationUid": "{{ inputs.location_uid }}",
+        "body": "{{ inputs.body }}",
+        "channel": { "type": "{{ inputs.channel_type }}", "identifier": "{{ inputs.identifier }}" },
+        "contactName": "{{ inputs.contact_name }}"
+      },
+      "output_path": "data",
+      "inputs": [
+        { "key": "location_uid", "label": "Location UID", "type": "string", "required": true },
+        { "key": "channel_type", "label": "Channel", "type": "select", "required": true, "default": "phone", "options": [
+          { "value": "phone", "label": "SMS" }, { "value": "email", "label": "Email" }
+        ] },
+        { "key": "identifier", "label": "Phone or email", "type": "string", "required": true },
+        { "key": "body", "label": "Message", "type": "text", "required": true },
+        { "key": "contact_name", "label": "Contact name", "type": "string" }
+      ]
+    }
+  ]
+}

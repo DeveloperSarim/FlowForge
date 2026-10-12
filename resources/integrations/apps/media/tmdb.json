@@ -1,0 +1,85 @@
+{
+  "key": "tmdb",
+  "name": "TMDB",
+  "category": "Video & Media",
+  "description": "Search movies and TV shows, get details and trending titles from The Movie Database.",
+  "brand": "themoviedatabase",
+  "website": "https://www.themoviedb.org",
+  "docs_url": "https://developer.themoviedb.org/reference/intro/getting-started",
+  "base_url": "https://api.themoviedb.org/3",
+  "auth": [
+    { "type": "bearer", "fields": [{ "key": "token", "label": "API Read Access Token", "type": "password", "required": true, "help": "Settings > API in your TMDB account." }] },
+    { "type": "api_key", "in": "query", "name": "api_key", "fields": [{ "key": "api_key", "label": "API key (v3)", "type": "password", "required": true }] }
+  ],
+  "actions": [
+    {
+      "key": "search_movies",
+      "name": "Search movies",
+      "method": "GET",
+      "endpoint": "/search/movie",
+      "output_path": "results",
+      "query": { "query": "{{ inputs.query }}", "year": "{{ inputs.year }}", "language": "{{ inputs.language }}", "page": "{{ inputs.page }}" },
+      "inputs": [
+        { "key": "query", "label": "Title", "type": "string", "required": true },
+        { "key": "year", "label": "Year", "type": "string" },
+        { "key": "language", "label": "Language", "type": "string", "placeholder": "en-US" },
+        { "key": "page", "label": "Page", "type": "number" }
+      ]
+    },
+    {
+      "key": "search_tv",
+      "name": "Search TV shows",
+      "method": "GET",
+      "endpoint": "/search/tv",
+      "output_path": "results",
+      "query": { "query": "{{ inputs.query }}", "first_air_date_year": "{{ inputs.year }}", "language": "{{ inputs.language }}", "page": "{{ inputs.page }}" },
+      "inputs": [
+        { "key": "query", "label": "Title", "type": "string", "required": true },
+        { "key": "year", "label": "First air year", "type": "string" },
+        { "key": "language", "label": "Language", "type": "string", "placeholder": "en-US" },
+        { "key": "page", "label": "Page", "type": "number" }
+      ]
+    },
+    {
+      "key": "get_movie",
+      "name": "Get movie",
+      "method": "GET",
+      "endpoint": "/movie/{{ inputs.movie_id }}",
+      "query": { "language": "{{ inputs.language }}", "append_to_response": "{{ inputs.append }}" },
+      "inputs": [
+        { "key": "movie_id", "label": "Movie ID", "type": "string", "required": true },
+        { "key": "language", "label": "Language", "type": "string", "placeholder": "en-US" },
+        { "key": "append", "label": "Also include", "type": "string", "placeholder": "credits,videos,images" }
+      ]
+    },
+    {
+      "key": "get_tv_show",
+      "name": "Get TV show",
+      "method": "GET",
+      "endpoint": "/tv/{{ inputs.series_id }}",
+      "query": { "language": "{{ inputs.language }}", "append_to_response": "{{ inputs.append }}" },
+      "inputs": [
+        { "key": "series_id", "label": "Series ID", "type": "string", "required": true },
+        { "key": "language", "label": "Language", "type": "string", "placeholder": "en-US" },
+        { "key": "append", "label": "Also include", "type": "string", "placeholder": "credits,videos" }
+      ]
+    },
+    {
+      "key": "get_trending",
+      "name": "Get trending",
+      "method": "GET",
+      "endpoint": "/trending/{{ inputs.media_type }}/{{ inputs.time_window }}",
+      "output_path": "results",
+      "query": { "language": "{{ inputs.language }}" },
+      "inputs": [
+        { "key": "media_type", "label": "Type", "type": "select", "default": "all", "options": [
+          { "value": "all", "label": "All" }, { "value": "movie", "label": "Movies" }, { "value": "tv", "label": "TV" }, { "value": "person", "label": "People" }
+        ] },
+        { "key": "time_window", "label": "Window", "type": "select", "default": "day", "options": [
+          { "value": "day", "label": "Today" }, { "value": "week", "label": "This week" }
+        ] },
+        { "key": "language", "label": "Language", "type": "string", "placeholder": "en-US" }
+      ]
+    }
+  ]
+}

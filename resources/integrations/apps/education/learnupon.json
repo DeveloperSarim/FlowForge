@@ -1,0 +1,162 @@
+{
+  "key": "learnupon",
+  "name": "LearnUpon",
+  "category": "Education",
+  "description": "Create users, enroll them in courses and look up users in LearnUpon.",
+  "brand": "learnupon",
+  "website": "https://www.learnupon.com",
+  "docs_url": "https://support.learnupon.com",
+  "base_url": "https://{{ credentials.subdomain }}.learnupon.com/api/v1",
+  "auth": [
+    {
+      "type": "basic",
+      "fields": [
+        {
+          "key": "subdomain",
+          "label": "Portal subdomain",
+          "type": "string",
+          "required": true,
+          "placeholder": "acme",
+          "help": "The part before .learnupon.com."
+        },
+        {
+          "key": "username",
+          "label": "API username",
+          "type": "string",
+          "required": true,
+          "help": "Settings > Integrations > API keys (not your login)."
+        },
+        {
+          "key": "password",
+          "label": "API password",
+          "type": "password",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_users",
+      "name": "List users",
+      "method": "GET",
+      "endpoint": "/users",
+      "query": {
+        "page": "{{ inputs.page }}"
+      },
+      "output_path": "user",
+      "inputs": [
+        {
+          "key": "page",
+          "label": "Page",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "find_user",
+      "name": "Find user by email",
+      "method": "GET",
+      "endpoint": "/users/search",
+      "query": {
+        "email": "{{ inputs.email }}"
+      },
+      "output_path": "user",
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "create_user",
+      "name": "Create user",
+      "method": "POST",
+      "endpoint": "/users",
+      "body": {
+        "User": {
+          "email": "{{ inputs.email }}",
+          "password": "{{ inputs.password }}",
+          "first_name": "{{ inputs.first_name }}",
+          "last_name": "{{ inputs.last_name }}"
+        }
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "password",
+          "label": "Password",
+          "type": "password",
+          "required": true,
+          "help": "At least 6 characters."
+        },
+        {
+          "key": "first_name",
+          "label": "First name",
+          "type": "string"
+        },
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "enroll_user",
+      "name": "Enroll user",
+      "method": "POST",
+      "endpoint": "/enrollments",
+      "body": {
+        "Enrollment": {
+          "email": "{{ inputs.email }}",
+          "course_id": "{{ inputs.course_id }}"
+        }
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "User email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "course_id",
+          "label": "Course ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_courses",
+      "name": "List courses",
+      "method": "GET",
+      "endpoint": "/courses",
+      "inputs": []
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Settings > Integrations > Webhooks (ask LearnUpon support to enable it if missing).",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

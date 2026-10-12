@@ -1,0 +1,129 @@
+{
+  "key": "google_classroom",
+  "name": "Google Classroom",
+  "category": "Education",
+  "description": "List courses and students, post announcements, create assignments and invite users.",
+  "brand": "googleclassroom",
+  "website": "https://classroom.google.com",
+  "docs_url": "https://developers.google.com/classroom/reference/rest",
+  "base_url": "https://classroom.googleapis.com/v1",
+  "auth": [
+    {
+      "type": "oauth2",
+      "authorize_url": "https://accounts.google.com/o/oauth2/v2/auth",
+      "token_url": "https://oauth2.googleapis.com/token",
+      "scopes": [
+        "https://www.googleapis.com/auth/classroom.courses",
+        "https://www.googleapis.com/auth/classroom.rosters",
+        "https://www.googleapis.com/auth/classroom.profile.emails",
+        "https://www.googleapis.com/auth/classroom.coursework.students",
+        "https://www.googleapis.com/auth/classroom.announcements"
+      ],
+      "authorize_params": { "access_type": "offline", "prompt": "consent" }
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_courses",
+      "name": "List courses",
+      "method": "GET",
+      "endpoint": "/courses",
+      "query": { "courseStates": "{{ inputs.course_state }}", "teacherId": "{{ inputs.teacher_id }}", "studentId": "{{ inputs.student_id }}", "pageSize": "{{ inputs.page_size }}" },
+      "output_path": "courses",
+      "inputs": [
+        { "key": "course_state", "label": "State", "type": "select", "options": [
+          { "value": "ACTIVE", "label": "Active" }, { "value": "ARCHIVED", "label": "Archived" }, { "value": "PROVISIONED", "label": "Provisioned" }, { "value": "DECLINED", "label": "Declined" }
+        ] },
+        { "key": "teacher_id", "label": "Teacher", "type": "string", "placeholder": "me", "help": "User ID, email or \"me\"." },
+        { "key": "student_id", "label": "Student", "type": "string", "help": "User ID, email or \"me\"." },
+        { "key": "page_size", "label": "Max results", "type": "number", "default": 50 }
+      ]
+    },
+    {
+      "key": "get_course",
+      "name": "Get course",
+      "method": "GET",
+      "endpoint": "/courses/{{ inputs.course_id }}",
+      "inputs": [
+        { "key": "course_id", "label": "Course ID", "type": "string", "required": true }
+      ]
+    },
+    {
+      "key": "list_students",
+      "name": "List students",
+      "method": "GET",
+      "endpoint": "/courses/{{ inputs.course_id }}/students",
+      "query": { "pageSize": "{{ inputs.page_size }}" },
+      "output_path": "students",
+      "inputs": [
+        { "key": "course_id", "label": "Course ID", "type": "string", "required": true },
+        { "key": "page_size", "label": "Max results", "type": "number", "default": 100 }
+      ]
+    },
+    {
+      "key": "invite_user",
+      "name": "Invite user to course",
+      "method": "POST",
+      "endpoint": "/invitations",
+      "body": { "courseId": "{{ inputs.course_id }}", "userId": "{{ inputs.user_id }}", "role": "{{ inputs.role }}" },
+      "inputs": [
+        { "key": "course_id", "label": "Course ID", "type": "string", "required": true },
+        { "key": "user_id", "label": "User", "type": "string", "required": true, "help": "Email address or Google user ID." },
+        { "key": "role", "label": "Role", "type": "select", "required": true, "default": "STUDENT", "options": [
+          { "value": "STUDENT", "label": "Student" }, { "value": "TEACHER", "label": "Teacher" }, { "value": "OWNER", "label": "Owner" }
+        ] }
+      ]
+    },
+    {
+      "key": "create_announcement",
+      "name": "Post announcement",
+      "method": "POST",
+      "endpoint": "/courses/{{ inputs.course_id }}/announcements",
+      "body": { "text": "{{ inputs.text }}", "state": "{{ inputs.state }}" },
+      "inputs": [
+        { "key": "course_id", "label": "Course ID", "type": "string", "required": true },
+        { "key": "text", "label": "Text", "type": "text", "required": true },
+        { "key": "state", "label": "State", "type": "select", "default": "PUBLISHED", "options": [
+          { "value": "PUBLISHED", "label": "Published" }, { "value": "DRAFT", "label": "Draft" }
+        ] }
+      ]
+    },
+    {
+      "key": "create_coursework",
+      "name": "Create assignment",
+      "method": "POST",
+      "endpoint": "/courses/{{ inputs.course_id }}/courseWork",
+      "body": {
+        "title": "{{ inputs.title }}",
+        "description": "{{ inputs.description }}",
+        "workType": "{{ inputs.work_type }}",
+        "state": "{{ inputs.state }}",
+        "maxPoints": "{{ inputs.max_points }}"
+      },
+      "inputs": [
+        { "key": "course_id", "label": "Course ID", "type": "string", "required": true },
+        { "key": "title", "label": "Title", "type": "string", "required": true },
+        { "key": "description", "label": "Instructions", "type": "text" },
+        { "key": "work_type", "label": "Type", "type": "select", "required": true, "default": "ASSIGNMENT", "options": [
+          { "value": "ASSIGNMENT", "label": "Assignment" }, { "value": "SHORT_ANSWER_QUESTION", "label": "Short answer question" }
+        ] },
+        { "key": "state", "label": "State", "type": "select", "default": "PUBLISHED", "options": [
+          { "value": "PUBLISHED", "label": "Published" }, { "value": "DRAFT", "label": "Draft" }
+        ] },
+        { "key": "max_points", "label": "Max points", "type": "number" }
+      ]
+    },
+    {
+      "key": "list_coursework",
+      "name": "List assignments",
+      "method": "GET",
+      "endpoint": "/courses/{{ inputs.course_id }}/courseWork",
+      "query": { "orderBy": "updateTime desc", "pageSize": "{{ inputs.page_size }}" },
+      "output_path": "courseWork",
+      "inputs": [
+        { "key": "course_id", "label": "Course ID", "type": "string", "required": true },
+        { "key": "page_size", "label": "Max results", "type": "number", "default": 50 }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,82 @@
+{
+  "key": "circleci",
+  "name": "CircleCI",
+  "category": "Developer Tools",
+  "description": "Trigger pipelines, check their workflows, and rerun or cancel workflows.",
+  "brand": "circleci",
+  "website": "https://circleci.com",
+  "docs_url": "https://circleci.com/docs/api/v2/",
+  "base_url": "https://circleci.com/api/v2",
+  "auth": { "type": "api_key", "in": "header", "name": "Circle-Token", "fields": [
+    { "key": "api_key", "label": "Personal API token", "type": "password", "required": true, "help": "User settings → Personal API Tokens." }
+  ] },
+  "actions": [
+    {
+      "key": "trigger_pipeline",
+      "name": "Trigger pipeline",
+      "method": "POST",
+      "endpoint": "/project/{{ inputs.project_slug }}/pipeline",
+      "body": { "branch": "{{ inputs.branch }}", "tag": "{{ inputs.tag }}", "parameters": "{{ inputs.parameters }}" },
+      "inputs": [
+        { "key": "project_slug", "label": "Project slug", "type": "string", "required": true, "placeholder": "gh/my-org/my-repo", "help": "vcs/org/repo for GitHub OAuth and Bitbucket projects." },
+        { "key": "branch", "label": "Branch", "type": "string", "help": "Leave empty to use the default branch. Don't combine with tag." },
+        { "key": "tag", "label": "Tag", "type": "string" },
+        { "key": "parameters", "label": "Pipeline parameters", "type": "json", "placeholder": "{ \"deploy\": true }" }
+      ]
+    },
+    {
+      "key": "get_pipeline",
+      "name": "Get pipeline",
+      "method": "GET",
+      "endpoint": "/pipeline/{{ inputs.pipeline_id }}",
+      "inputs": [{ "key": "pipeline_id", "label": "Pipeline ID", "type": "string", "required": true }]
+    },
+    {
+      "key": "list_pipeline_workflows",
+      "name": "List pipeline workflows",
+      "method": "GET",
+      "endpoint": "/pipeline/{{ inputs.pipeline_id }}/workflow",
+      "output_path": "items",
+      "inputs": [{ "key": "pipeline_id", "label": "Pipeline ID", "type": "string", "required": true }]
+    },
+    {
+      "key": "rerun_workflow",
+      "name": "Rerun workflow",
+      "method": "POST",
+      "endpoint": "/workflow/{{ inputs.workflow_id }}/rerun",
+      "body": { "from_failed": "{{ inputs.from_failed }}" },
+      "inputs": [
+        { "key": "workflow_id", "label": "Workflow ID", "type": "string", "required": true },
+        { "key": "from_failed", "label": "Only failed jobs", "type": "boolean", "default": false }
+      ]
+    },
+    {
+      "key": "cancel_workflow",
+      "name": "Cancel workflow",
+      "method": "POST",
+      "endpoint": "/workflow/{{ inputs.workflow_id }}/cancel",
+      "inputs": [{ "key": "workflow_id", "label": "Workflow ID", "type": "string", "required": true }]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_pipeline",
+      "name": "New pipeline (polling)",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/project/{{ inputs.project_slug }}/pipeline",
+      "items_path": "items",
+      "id_field": "id",
+      "inputs": [
+        { "key": "project_slug", "label": "Project slug", "type": "string", "required": true, "placeholder": "gh/my-org/my-repo" },
+        { "key": "poll_interval", "label": "Check every (minutes)", "type": "number", "default": 5 }
+      ]
+    },
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "inputs": [{ "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }]
+    }
+  ]
+}

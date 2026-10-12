@@ -1,0 +1,78 @@
+{
+  "key": "ultramsg",
+  "name": "UltraMsg",
+  "category": "Communication",
+  "description": "Send WhatsApp text, image and document messages through an UltraMsg instance.",
+  "brand": "ultramsg",
+  "website": "https://ultramsg.com",
+  "docs_url": "https://docs.ultramsg.com",
+  "base_url": "https://api.ultramsg.com/{{ credentials.instance_id }}",
+  "auth": [
+    { "type": "api_key", "in": "query", "name": "token", "fields": [
+      { "key": "instance_id", "label": "Instance ID", "type": "string", "required": true, "placeholder": "instance12345" },
+      { "key": "api_key", "label": "Token", "type": "password", "required": true }
+    ] }
+  ],
+  "actions": [
+    {
+      "key": "send_text",
+      "name": "Send text message",
+      "method": "POST",
+      "endpoint": "/messages/chat",
+      "body_format": "form",
+      "body": { "to": "{{ inputs.to }}", "body": "{{ inputs.body }}", "referenceId": "{{ inputs.reference_id }}" },
+      "error_path": "error",
+      "inputs": [
+        { "key": "to", "label": "To", "type": "string", "required": true, "placeholder": "+14155552671", "help": "Phone number with country code, or a chat ID such as 123456789@g.us for groups." },
+        { "key": "body", "label": "Message", "type": "text", "required": true },
+        { "key": "reference_id", "label": "Your reference", "type": "string" }
+      ]
+    },
+    {
+      "key": "send_image",
+      "name": "Send image",
+      "method": "POST",
+      "endpoint": "/messages/image",
+      "body_format": "form",
+      "body": { "to": "{{ inputs.to }}", "image": "{{ inputs.image }}", "caption": "{{ inputs.caption }}" },
+      "error_path": "error",
+      "inputs": [
+        { "key": "to", "label": "To", "type": "string", "required": true },
+        { "key": "image", "label": "Image URL", "type": "string", "required": true },
+        { "key": "caption", "label": "Caption", "type": "text" }
+      ]
+    },
+    {
+      "key": "send_document",
+      "name": "Send document",
+      "method": "POST",
+      "endpoint": "/messages/document",
+      "body_format": "form",
+      "body": { "to": "{{ inputs.to }}", "filename": "{{ inputs.filename }}", "document": "{{ inputs.document }}", "caption": "{{ inputs.caption }}" },
+      "error_path": "error",
+      "inputs": [
+        { "key": "to", "label": "To", "type": "string", "required": true },
+        { "key": "document", "label": "Document URL", "type": "string", "required": true },
+        { "key": "filename", "label": "File name", "type": "string", "required": true, "placeholder": "invoice.pdf" },
+        { "key": "caption", "label": "Caption", "type": "text" }
+      ]
+    },
+    {
+      "key": "get_status",
+      "name": "Get instance status",
+      "method": "GET",
+      "endpoint": "/instance/status",
+      "inputs": []
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "description": "Paste this URL as the Webhook URL in your UltraMsg instance settings.",
+      "type": "webhook",
+      "data_path": "data",
+      "inputs": [{ "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }]
+    }
+  ]
+}

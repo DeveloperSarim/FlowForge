@@ -1,0 +1,51 @@
+{
+  "key": "sendbird",
+  "name": "Sendbird",
+  "category": "Communication",
+  "description": "Send in-app chat messages and look up channels and users in Sendbird.",
+  "brand": "sendbird",
+  "website": "https://sendbird.com",
+  "docs_url": "https://sendbird.com/docs/chat/platform-api/v3/overview",
+  "base_url": "https://api-{{ credentials.app_id }}.sendbird.com/v3",
+  "auth": [
+    {
+      "type": "api_key",
+      "in": "header",
+      "name": "Api-Token",
+      "fields": [
+        { "key": "app_id", "label": "Application ID", "type": "string", "required": true },
+        { "key": "api_key", "label": "API token", "type": "password", "required": true, "help": "Dashboard > Settings > Application > General." }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "send_message",
+      "name": "Send message to group channel",
+      "method": "POST",
+      "endpoint": "/group_channels/{{ inputs.channel_url }}/messages",
+      "body": { "message_type": "MESG", "user_id": "{{ inputs.user_id }}", "message": "{{ inputs.message }}" },
+      "inputs": [
+        { "key": "channel_url", "label": "Channel URL", "type": "string", "required": true },
+        { "key": "user_id", "label": "Sender user ID", "type": "string", "required": true },
+        { "key": "message", "label": "Message", "type": "text", "required": true }
+      ]
+    },
+    {
+      "key": "list_group_channels",
+      "name": "List group channels",
+      "method": "GET",
+      "endpoint": "/group_channels",
+      "query": { "limit": "{{ inputs.limit }}" },
+      "output_path": "channels",
+      "inputs": [{ "key": "limit", "label": "Max results", "type": "number", "default": 20 }]
+    },
+    {
+      "key": "get_user",
+      "name": "Get user",
+      "method": "GET",
+      "endpoint": "/users/{{ inputs.user_id }}",
+      "inputs": [{ "key": "user_id", "label": "User ID", "type": "string", "required": true }]
+    }
+  ]
+}

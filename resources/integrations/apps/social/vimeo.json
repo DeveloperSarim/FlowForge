@@ -1,0 +1,83 @@
+{
+  "key": "vimeo",
+  "name": "Vimeo",
+  "category": "Social Media",
+  "description": "Upload videos from a URL, edit details and list your videos.",
+  "brand": "vimeo",
+  "website": "https://vimeo.com",
+  "docs_url": "https://developer.vimeo.com/api/reference",
+  "base_url": "https://api.vimeo.com",
+  "headers": { "Accept": "application/vnd.vimeo.*+json;version=3.4" },
+  "auth": { "type": "bearer", "fields": [{ "key": "token", "label": "Personal access token", "type": "password", "required": true,
+    "help": "developer.vimeo.com/apps > your app > Generate token (scopes: public private edit upload delete)." }] },
+  "actions": [
+    {
+      "key": "upload_from_url",
+      "name": "Upload video from URL",
+      "description": "Vimeo pulls the file from a public link.",
+      "method": "POST",
+      "endpoint": "/me/videos",
+      "body": { "upload": { "approach": "pull", "link": "{{ inputs.link }}" }, "name": "{{ inputs.name }}", "description": "{{ inputs.description }}" },
+      "inputs": [
+        { "key": "link", "label": "Video file URL", "type": "string", "required": true },
+        { "key": "name", "label": "Title", "type": "string" },
+        { "key": "description", "label": "Description", "type": "text" }
+      ]
+    },
+    {
+      "key": "get_video",
+      "name": "Get video",
+      "method": "GET",
+      "endpoint": "/videos/{{ inputs.video_id }}",
+      "inputs": [{ "key": "video_id", "label": "Video ID", "type": "string", "required": true }]
+    },
+    {
+      "key": "update_video",
+      "name": "Update video",
+      "method": "PATCH",
+      "endpoint": "/videos/{{ inputs.video_id }}",
+      "body": { "name": "{{ inputs.name }}", "description": "{{ inputs.description }}", "privacy": { "view": "{{ inputs.privacy_view }}" } },
+      "inputs": [
+        { "key": "video_id", "label": "Video ID", "type": "string", "required": true },
+        { "key": "name", "label": "Title", "type": "string" },
+        { "key": "description", "label": "Description", "type": "text" },
+        { "key": "privacy_view", "label": "Who can watch", "type": "select", "options": [
+          { "value": "anybody", "label": "Anyone" }, { "value": "unlisted", "label": "Unlisted" }, { "value": "nobody", "label": "Only me" },
+          { "value": "password", "label": "Password" }, { "value": "disable", "label": "Hide from Vimeo" }
+        ] }
+      ]
+    },
+    {
+      "key": "list_my_videos",
+      "name": "List my videos",
+      "method": "GET",
+      "endpoint": "/me/videos",
+      "query": { "sort": "date", "direction": "desc", "per_page": "{{ inputs.per_page }}", "query": "{{ inputs.query }}" },
+      "output_path": "data",
+      "inputs": [
+        { "key": "query", "label": "Search", "type": "string" },
+        { "key": "per_page", "label": "Per page (max 100)", "type": "number", "default": 25 }
+      ]
+    },
+    {
+      "key": "delete_video",
+      "name": "Delete video",
+      "method": "DELETE",
+      "endpoint": "/videos/{{ inputs.video_id }}",
+      "inputs": [{ "key": "video_id", "label": "Video ID", "type": "string", "required": true }]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_video",
+      "name": "New video",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/me/videos",
+      "query": { "sort": "date", "direction": "desc", "per_page": 25 },
+      "items_path": "data",
+      "id_field": "uri",
+      "inputs": [{ "key": "poll_interval", "label": "Check every (minutes)", "type": "number", "default": 5 }]
+    }
+  ]
+}

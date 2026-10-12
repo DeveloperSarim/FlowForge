@@ -1,0 +1,251 @@
+{
+  "key": "pennylane",
+  "name": "Pennylane",
+  "category": "Payments & Finance",
+  "description": "Create customers and list customer invoices, customers and bank transactions.",
+  "brand": "pennylane",
+  "website": "https://www.pennylane.com",
+  "docs_url": "https://pennylane.readme.io/reference",
+  "base_url": "https://app.pennylane.com/api/external/v2",
+  "auth": [
+    {
+      "type": "bearer",
+      "fields": [
+        {
+          "key": "token",
+          "label": "API token",
+          "type": "password",
+          "required": true,
+          "help": "Pennylane > Settings > Connectivity > Developers."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "get_me",
+      "name": "Get user and company",
+      "method": "GET",
+      "endpoint": "/me",
+      "inputs": []
+    },
+    {
+      "key": "list_customers",
+      "name": "List customers",
+      "method": "GET",
+      "endpoint": "/customers",
+      "query": {
+        "filter": "{{ inputs.filter }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_path": "items",
+      "inputs": [
+        {
+          "key": "filter",
+          "label": "Filter (JSON)",
+          "type": "string",
+          "placeholder": "[{\"field\": \"name\", \"operator\": \"eq\", \"value\": \"Acme\"}]"
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    },
+    {
+      "key": "create_company_customer",
+      "name": "Create company customer",
+      "method": "POST",
+      "endpoint": "/company_customers",
+      "body": {
+        "name": "{{ inputs.name }}",
+        "emails": "{{ inputs.emails }}",
+        "phone": "{{ inputs.phone }}",
+        "vat_number": "{{ inputs.vat_number }}",
+        "reg_no": "{{ inputs.reg_no }}",
+        "reference": "{{ inputs.reference }}",
+        "external_reference": "{{ inputs.external_reference }}",
+        "billing_address": {
+          "address": "{{ inputs.address }}",
+          "postal_code": "{{ inputs.postal_code }}",
+          "city": "{{ inputs.city }}",
+          "country_alpha2": "{{ inputs.country }}"
+        }
+      },
+      "inputs": [
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "emails",
+          "label": "Emails",
+          "type": "list"
+        },
+        {
+          "key": "phone",
+          "label": "Phone",
+          "type": "string"
+        },
+        {
+          "key": "vat_number",
+          "label": "VAT number",
+          "type": "string"
+        },
+        {
+          "key": "reg_no",
+          "label": "SIREN / registration no.",
+          "type": "string"
+        },
+        {
+          "key": "reference",
+          "label": "Reference",
+          "type": "string"
+        },
+        {
+          "key": "external_reference",
+          "label": "External reference",
+          "type": "string"
+        },
+        {
+          "key": "address",
+          "label": "Billing street",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "postal_code",
+          "label": "Postcode",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "city",
+          "label": "City",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "country",
+          "label": "Country code",
+          "type": "string",
+          "required": true,
+          "default": "FR"
+        }
+      ]
+    },
+    {
+      "key": "list_customer_invoices",
+      "name": "List customer invoices",
+      "method": "GET",
+      "endpoint": "/customer_invoices",
+      "query": {
+        "filter": "{{ inputs.filter }}",
+        "sort": "-id",
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_path": "items",
+      "inputs": [
+        {
+          "key": "filter",
+          "label": "Filter (JSON)",
+          "type": "string",
+          "placeholder": "[{\"field\": \"status\", \"operator\": \"eq\", \"value\": \"upcoming\"}]"
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    },
+    {
+      "key": "get_customer_invoice",
+      "name": "Get customer invoice",
+      "method": "GET",
+      "endpoint": "/customer_invoices/{{ inputs.invoice_id }}",
+      "inputs": [
+        {
+          "key": "invoice_id",
+          "label": "Invoice ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_transactions",
+      "name": "List bank transactions",
+      "method": "GET",
+      "endpoint": "/transactions",
+      "query": {
+        "filter": "{{ inputs.filter }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_path": "items",
+      "inputs": [
+        {
+          "key": "filter",
+          "label": "Filter (JSON)",
+          "type": "string",
+          "placeholder": "[{\"field\": \"date\", \"operator\": \"gteq\", \"value\": \"2026-01-01\"}]"
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_customer_invoice",
+      "name": "New customer invoice",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/customer_invoices",
+      "query": {
+        "sort": "-id",
+        "limit": 50
+      },
+      "items_path": "items",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    },
+    {
+      "key": "new_transaction",
+      "name": "New bank transaction",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/transactions",
+      "query": {
+        "sort": "-id",
+        "limit": 50
+      },
+      "items_path": "items",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

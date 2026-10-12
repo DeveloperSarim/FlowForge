@@ -1,0 +1,104 @@
+{
+  "key": "crypto-price-alert",
+  "name": "Crypto price alert",
+  "description": "Checks Bitcoin every 15 minutes and messages you on Telegram when it crosses your threshold.",
+  "category": "Personal",
+  "featured": false,
+  "graph": {
+    "nodes": [
+      {
+        "id": "trigger",
+        "type": "trigger",
+        "position": {
+          "x": 0,
+          "y": 200
+        },
+        "data": {
+          "integration": "schedule",
+          "trigger": "cron",
+          "label": "Every 15 minutes",
+          "config": {
+            "cron": "*/15 * * * *"
+          }
+        }
+      },
+      {
+        "id": "step_1",
+        "type": "action",
+        "position": {
+          "x": 240,
+          "y": 200
+        },
+        "data": {
+          "integration": "coingecko",
+          "action": "get_price",
+          "label": "Get BTC price",
+          "config": {
+            "ids": "bitcoin",
+            "vs_currencies": "usd"
+          }
+        }
+      },
+      {
+        "id": "step_2",
+        "type": "branch",
+        "position": {
+          "x": 480,
+          "y": 200
+        },
+        "data": {
+          "integration": "logic",
+          "action": "if",
+          "label": "Above $100k?",
+          "config": {
+            "combinator": "all",
+            "conditions": [
+              {
+                "left": "{{ steps.step_1.bitcoin.usd }}",
+                "operator": "greater_than",
+                "right": "100000"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "id": "step_3",
+        "type": "action",
+        "position": {
+          "x": 720,
+          "y": 120
+        },
+        "data": {
+          "integration": "telegram",
+          "action": "send_message",
+          "label": "Alert me",
+          "config": {
+            "chat_id": "",
+            "text": "Bitcoin is at ${{ steps.step_1.bitcoin.usd }}"
+          }
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "e-trigger-step_1-out",
+        "source": "trigger",
+        "target": "step_1",
+        "sourceHandle": null
+      },
+      {
+        "id": "e-step_1-step_2-out",
+        "source": "step_1",
+        "target": "step_2",
+        "sourceHandle": null
+      },
+      {
+        "id": "e-step_2-step_3-true",
+        "source": "step_2",
+        "target": "step_3",
+        "sourceHandle": "true"
+      }
+    ]
+  }
+}

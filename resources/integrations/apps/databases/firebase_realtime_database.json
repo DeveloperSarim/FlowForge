@@ -1,0 +1,82 @@
+{
+  "key": "firebase_realtime_database",
+  "name": "Firebase Realtime Database",
+  "category": "Databases",
+  "description": "Read, set, push, update and delete data at any database path.",
+  "brand": "firebase",
+  "website": "https://firebase.google.com/products/realtime-database",
+  "docs_url": "https://firebase.google.com/docs/reference/rest/database",
+  "base_url": "{{ credentials.database_url }}",
+  "auth": [
+    {
+      "type": "google_service_account",
+      "scopes": ["https://www.googleapis.com/auth/firebase.database", "https://www.googleapis.com/auth/userinfo.email"],
+      "fields": [
+        { "key": "database_url", "label": "Database URL", "type": "string", "required": true, "placeholder": "https://my-project-default-rtdb.firebaseio.com", "help": "Shown at the top of the Realtime Database data tab. No trailing slash." },
+        { "key": "service_account_json", "label": "Service Account JSON key", "type": "code", "required": true, "help": "Project settings → Service accounts → Generate new private key." }
+      ]
+    },
+    {
+      "type": "api_key", "in": "query", "name": "auth",
+      "fields": [
+        { "key": "database_url", "label": "Database URL", "type": "string", "required": true, "placeholder": "https://my-project-default-rtdb.firebaseio.com" },
+        { "key": "api_key", "label": "Database secret (legacy)", "type": "password", "required": true, "help": "Project settings → Service accounts → Database secrets." }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "get_data",
+      "name": "Read data",
+      "method": "GET",
+      "endpoint": "{{ inputs.path }}",
+      "query": { "shallow": "{{ inputs.shallow }}" },
+      "inputs": [
+        { "key": "path", "label": "Path (ending in .json)", "type": "string", "required": true, "default": ".json", "placeholder": "users/ada.json", "help": "Use .json for the root." },
+        { "key": "shallow", "label": "Keys only", "type": "select", "options": [{ "value": "true", "label": "Yes" }] }
+      ]
+    },
+    {
+      "key": "set_data",
+      "name": "Set data (overwrite)",
+      "method": "PUT",
+      "endpoint": "{{ inputs.path }}",
+      "body": "{{ inputs.data }}",
+      "inputs": [
+        { "key": "path", "label": "Path (ending in .json)", "type": "string", "required": true, "placeholder": "users/ada.json" },
+        { "key": "data", "label": "Data (JSON)", "type": "json", "required": true }
+      ]
+    },
+    {
+      "key": "push_data",
+      "name": "Push to list",
+      "description": "Adds a child with a generated key; returns { name }.",
+      "method": "POST",
+      "endpoint": "{{ inputs.path }}",
+      "body": "{{ inputs.data }}",
+      "inputs": [
+        { "key": "path", "label": "List path (ending in .json)", "type": "string", "required": true, "placeholder": "messages.json" },
+        { "key": "data", "label": "Data (JSON)", "type": "json", "required": true }
+      ]
+    },
+    {
+      "key": "update_data",
+      "name": "Update data",
+      "description": "Changes only the given children.",
+      "method": "PATCH",
+      "endpoint": "{{ inputs.path }}",
+      "body": "{{ inputs.data }}",
+      "inputs": [
+        { "key": "path", "label": "Path (ending in .json)", "type": "string", "required": true, "placeholder": "users/ada.json" },
+        { "key": "data", "label": "Children to change (JSON)", "type": "json", "required": true }
+      ]
+    },
+    {
+      "key": "delete_data",
+      "name": "Delete data",
+      "method": "DELETE",
+      "endpoint": "{{ inputs.path }}",
+      "inputs": [{ "key": "path", "label": "Path (ending in .json)", "type": "string", "required": true, "placeholder": "users/ada.json" }]
+    }
+  ]
+}

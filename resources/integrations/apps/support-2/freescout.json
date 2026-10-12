@@ -1,0 +1,89 @@
+{
+  "key": "freescout",
+  "name": "FreeScout",
+  "category": "Customer Support",
+  "description": "Create conversations, add replies and notes in a self-hosted FreeScout help desk.",
+  "brand": "freescout",
+  "website": "https://freescout.net",
+  "docs_url": "https://api-docs.freescout.net/",
+  "base_url": "{{ credentials.base_url }}/api",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "X-FreeScout-API-Key",
+    "fields": [
+      { "key": "base_url", "label": "FreeScout URL", "type": "string", "required": true, "placeholder": "https://help.example.com", "help": "Without a trailing slash. Needs the API & Webhooks module." },
+      { "key": "api_key", "label": "API key", "type": "password", "required": true, "help": "Manage > API & Webhooks" }
+    ]
+  },
+  "actions": [
+    {
+      "key": "create_conversation",
+      "name": "Create conversation",
+      "description": "The new conversation ID is returned in the Resource-ID header.",
+      "method": "POST",
+      "endpoint": "/conversations",
+      "body": {
+        "type": "{{ inputs.type }}",
+        "mailboxId": "{{ inputs.mailbox_id }}",
+        "subject": "{{ inputs.subject }}",
+        "customer": { "email": "{{ inputs.customer_email }}", "firstName": "{{ inputs.first_name }}", "lastName": "{{ inputs.last_name }}" },
+        "threads": [{ "type": "customer", "text": "{{ inputs.text }}", "customer": { "email": "{{ inputs.customer_email }}" } }],
+        "status": "{{ inputs.status }}",
+        "assignTo": "{{ inputs.assign_to }}"
+      },
+      "inputs": [
+        { "key": "mailbox_id", "label": "Mailbox ID", "type": "number", "required": true },
+        { "key": "type", "label": "Type", "type": "select", "required": true, "default": "email", "options": [{ "value": "email", "label": "Email" }, { "value": "phone", "label": "Phone" }, { "value": "chat", "label": "Chat" }] },
+        { "key": "subject", "label": "Subject", "type": "string", "required": true },
+        { "key": "customer_email", "label": "Customer email", "type": "string", "required": true },
+        { "key": "first_name", "label": "Customer first name", "type": "string" },
+        { "key": "last_name", "label": "Customer last name", "type": "string" },
+        { "key": "text", "label": "Message", "type": "text", "required": true },
+        { "key": "status", "label": "Status", "type": "select", "options": [{ "value": "active", "label": "Active" }, { "value": "pending", "label": "Pending" }, { "value": "closed", "label": "Closed" }] },
+        { "key": "assign_to", "label": "Assign to user ID", "type": "number" }
+      ]
+    },
+    {
+      "key": "add_thread",
+      "name": "Reply or add note",
+      "method": "POST",
+      "endpoint": "/conversations/{{ inputs.conversation_id }}/threads",
+      "body": { "type": "{{ inputs.type }}", "text": "{{ inputs.text }}", "user": "{{ inputs.user_id }}" },
+      "inputs": [
+        { "key": "conversation_id", "label": "Conversation ID", "type": "number", "required": true },
+        { "key": "type", "label": "Type", "type": "select", "required": true, "default": "message", "options": [{ "value": "message", "label": "Reply from agent" }, { "value": "note", "label": "Internal note" }, { "value": "customer", "label": "Message from customer" }] },
+        { "key": "text", "label": "Text", "type": "text", "required": true },
+        { "key": "user_id", "label": "Agent user ID", "type": "number", "help": "Required for replies and notes" }
+      ]
+    },
+    {
+      "key": "get_conversation",
+      "name": "Get conversation",
+      "method": "GET",
+      "endpoint": "/conversations/{{ inputs.conversation_id }}",
+      "query": { "embed": "threads" },
+      "inputs": [{ "key": "conversation_id", "label": "Conversation ID", "type": "number", "required": true }]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_conversation",
+      "name": "New conversation",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/conversations",
+      "query": { "sortField": "createdAt", "sortOrder": "desc", "pageSize": 50 },
+      "items_path": "_embedded.conversations",
+      "id_field": "id",
+      "inputs": [{ "key": "poll_interval", "label": "Check every (minutes)", "type": "number", "default": 5 }]
+    },
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Add this URL under Manage > API & Webhooks (e.g. convo.created).",
+      "inputs": [{ "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }]
+    }
+  ]
+}

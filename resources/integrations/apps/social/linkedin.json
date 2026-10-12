@@ -1,0 +1,212 @@
+{
+  "key": "linkedin",
+  "name": "LinkedIn",
+  "category": "Social Media",
+  "description": "Share text and article posts as a member or organization.",
+  "brand": "linkedin",
+  "website": "https://www.linkedin.com",
+  "docs_url": "https://learn.microsoft.com/en-us/linkedin/marketing/community-management/shares/posts-api",
+  "popular": true,
+  "base_url": "https://api.linkedin.com",
+  "headers": {
+    "LinkedIn-Version": "{{ credentials.api_version }}",
+    "X-Restli-Protocol-Version": "2.0.0"
+  },
+  "auth": [
+    {
+      "type": "oauth2",
+      "authorize_url": "https://www.linkedin.com/oauth/v2/authorization",
+      "token_url": "https://www.linkedin.com/oauth/v2/accessToken",
+      "scopes": [
+        "openid",
+        "profile",
+        "email",
+        "w_member_social"
+      ],
+      "fields": [
+        {
+          "key": "api_version",
+          "label": "LinkedIn API version (YYYYMM)",
+          "type": "string",
+          "required": true,
+          "default": "202609",
+          "help": "Each version is supported for about a year. Bump it if LinkedIn answers NONEXISTENT_VERSION."
+        }
+      ],
+      "profile": {
+        "endpoint": "/v2/userinfo",
+        "store": {
+          "person_urn": "urn:li:person:{{ sub }}",
+          "account_name": "{{ name }}"
+        }
+      }
+    },
+    {
+      "type": "bearer",
+      "fields": [
+        {
+          "key": "token",
+          "label": "Access token",
+          "type": "password",
+          "required": true,
+          "help": "From the LinkedIn developer portal token generator (scopes: openid profile w_member_social)."
+        },
+        {
+          "key": "api_version",
+          "label": "LinkedIn API version (YYYYMM)",
+          "type": "string",
+          "required": true,
+          "default": "202609"
+        }
+      ],
+      "profile": {
+        "endpoint": "/v2/userinfo",
+        "store": {
+          "person_urn": "urn:li:person:{{ sub }}",
+          "account_name": "{{ name }}"
+        }
+      }
+    }
+  ],
+  "actions": [
+    {
+      "key": "get_profile",
+      "name": "Get my profile",
+      "description": "Returns the connected member: name, email, picture and \"sub\" (person ID).",
+      "method": "GET",
+      "endpoint": "/v2/userinfo",
+      "inputs": []
+    },
+    {
+      "key": "create_post",
+      "name": "Create text post",
+      "method": "POST",
+      "endpoint": "/rest/posts",
+      "body": {
+        "author": "{{ inputs.author }}",
+        "commentary": "{{ inputs.commentary }}",
+        "visibility": "{{ inputs.visibility }}",
+        "distribution": {
+          "feedDistribution": "MAIN_FEED",
+          "targetEntities": [],
+          "thirdPartyDistributionChannels": []
+        },
+        "lifecycleState": "PUBLISHED",
+        "isReshareDisabledByAuthor": false
+      },
+      "inputs": [
+        {
+          "key": "author",
+          "label": "Post as",
+          "type": "string",
+          "fallback": "credentials.person_urn",
+          "placeholder": "Your connected LinkedIn account",
+          "help": "Leave empty to post as the account you connected. For a company page you admin, enter urn:li:organization:<page id>."
+        },
+        {
+          "key": "commentary",
+          "label": "Text",
+          "type": "text",
+          "required": true,
+          "help": "Write normally: special characters and #hashtags are formatted for LinkedIn automatically.",
+          "escape": "little_text"
+        },
+        {
+          "key": "visibility",
+          "label": "Visibility",
+          "type": "select",
+          "required": true,
+          "default": "PUBLIC",
+          "options": [
+            {
+              "value": "PUBLIC",
+              "label": "Public"
+            },
+            {
+              "value": "CONNECTIONS",
+              "label": "Connections only"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "create_article_post",
+      "name": "Create article (link) post",
+      "method": "POST",
+      "endpoint": "/rest/posts",
+      "body": {
+        "author": "{{ inputs.author }}",
+        "commentary": "{{ inputs.commentary }}",
+        "visibility": "PUBLIC",
+        "distribution": {
+          "feedDistribution": "MAIN_FEED",
+          "targetEntities": [],
+          "thirdPartyDistributionChannels": []
+        },
+        "content": {
+          "article": {
+            "source": "{{ inputs.url }}",
+            "title": "{{ inputs.title }}",
+            "description": "{{ inputs.description }}"
+          }
+        },
+        "lifecycleState": "PUBLISHED",
+        "isReshareDisabledByAuthor": false
+      },
+      "inputs": [
+        {
+          "key": "author",
+          "label": "Post as",
+          "type": "string",
+          "fallback": "credentials.person_urn",
+          "placeholder": "Your connected LinkedIn account",
+          "help": "Leave empty to post as the account you connected. For a company page you admin, enter urn:li:organization:<page id>."
+        },
+        {
+          "key": "commentary",
+          "label": "Text",
+          "type": "text",
+          "escape": "little_text",
+          "help": "Write normally: special characters and #hashtags are formatted for LinkedIn automatically."
+        },
+        {
+          "key": "url",
+          "label": "Article URL",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "title",
+          "label": "Article title",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "description",
+          "label": "Article description",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "delete_post",
+      "name": "Delete post",
+      "method": "DELETE",
+      "endpoint": "/rest/posts/{{ inputs.post_urn }}",
+      "inputs": [
+        {
+          "key": "post_urn",
+          "label": "Post URN",
+          "type": "string",
+          "required": true,
+          "placeholder": "urn:li:share:123 or urn:li:ugcPost:123"
+        }
+      ]
+    }
+  ],
+  "error_hints": {
+    "401": "The LinkedIn connection expired or was revoked. Reconnect the credential under Credentials.",
+    "403": "LinkedIn refused the request. Leave \"Post as\" empty to post as the connected account (or use a company page you admin), and check your LinkedIn app has the \"Share on LinkedIn\" product (w_member_social scope)."
+  }
+}

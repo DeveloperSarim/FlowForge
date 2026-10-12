@@ -1,0 +1,75 @@
+{
+  "key": "gmail-to-slack",
+  "name": "Forward important emails to Slack",
+  "description": "Unread important emails are posted to a private channel so you never miss them.",
+  "category": "Communication",
+  "featured": false,
+  "graph": {
+    "nodes": [
+      {
+        "id": "trigger",
+        "type": "trigger",
+        "position": {
+          "x": 0,
+          "y": 200
+        },
+        "data": {
+          "integration": "gmail",
+          "trigger": "new_email",
+          "label": "New important email",
+          "config": {
+            "q": "is:important is:unread",
+            "poll_interval": 5
+          }
+        }
+      },
+      {
+        "id": "step_1",
+        "type": "action",
+        "position": {
+          "x": 240,
+          "y": 200
+        },
+        "data": {
+          "integration": "gmail",
+          "action": "get_message",
+          "label": "Read email",
+          "config": {
+            "message_id": "{{ steps.trigger.data.id }}"
+          }
+        }
+      },
+      {
+        "id": "step_2",
+        "type": "action",
+        "position": {
+          "x": 480,
+          "y": 200
+        },
+        "data": {
+          "integration": "slack",
+          "action": "post_message",
+          "label": "Post to Slack",
+          "config": {
+            "channel": "#inbox",
+            "text": "📧 {{ steps.step_1.snippet }}"
+          }
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "e-trigger-step_1",
+        "source": "trigger",
+        "target": "step_1",
+        "sourceHandle": null
+      },
+      {
+        "id": "e-step_1-step_2",
+        "source": "step_1",
+        "target": "step_2",
+        "sourceHandle": null
+      }
+    ]
+  }
+}

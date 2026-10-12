@@ -1,0 +1,85 @@
+{
+  "key": "whatsapp_business",
+  "name": "WhatsApp Business",
+  "category": "Communication",
+  "description": "Send WhatsApp text, template and image messages via the Cloud API.",
+  "brand": "whatsapp",
+  "website": "https://business.whatsapp.com",
+  "docs_url": "https://developers.facebook.com/docs/whatsapp/cloud-api",
+  "popular": true,
+  "base_url": "https://graph.facebook.com/v23.0",
+  "auth": [
+    { "type": "bearer", "fields": [{ "key": "token", "label": "Access token", "type": "password", "required": true, "help": "A System User access token with whatsapp_business_messaging permission." }] }
+  ],
+  "actions": [
+    {
+      "key": "send_text",
+      "name": "Send text message",
+      "description": "Free-form text only works within 24 hours of the user's last message; otherwise send a template.",
+      "method": "POST",
+      "endpoint": "/{{ inputs.phone_number_id }}/messages",
+      "body": {
+        "messaging_product": "whatsapp",
+        "recipient_type": "individual",
+        "to": "{{ inputs.to }}",
+        "type": "text",
+        "text": { "body": "{{ inputs.body }}", "preview_url": "{{ inputs.preview_url }}" }
+      },
+      "inputs": [
+        { "key": "phone_number_id", "label": "Phone number ID", "type": "string", "required": true, "help": "WhatsApp Manager > API Setup (not the phone number itself)." },
+        { "key": "to", "label": "To (phone number)", "type": "string", "required": true, "placeholder": "15551234567" },
+        { "key": "body", "label": "Message", "type": "text", "required": true },
+        { "key": "preview_url", "label": "Show link preview", "type": "boolean", "default": false }
+      ]
+    },
+    {
+      "key": "send_template",
+      "name": "Send template message",
+      "method": "POST",
+      "endpoint": "/{{ inputs.phone_number_id }}/messages",
+      "body": {
+        "messaging_product": "whatsapp",
+        "to": "{{ inputs.to }}",
+        "type": "template",
+        "template": { "name": "{{ inputs.template_name }}", "language": { "code": "{{ inputs.language }}" }, "components": "{{ inputs.components }}" }
+      },
+      "inputs": [
+        { "key": "phone_number_id", "label": "Phone number ID", "type": "string", "required": true },
+        { "key": "to", "label": "To (phone number)", "type": "string", "required": true },
+        { "key": "template_name", "label": "Template name", "type": "string", "required": true, "placeholder": "hello_world" },
+        { "key": "language", "label": "Language code", "type": "string", "required": true, "default": "en_US" },
+        { "key": "components", "label": "Components (JSON)", "type": "json", "placeholder": "[{\"type\":\"body\",\"parameters\":[{\"type\":\"text\",\"text\":\"Ada\"}]}]", "help": "Values for the template's numbered variables, in order." }
+      ]
+    },
+    {
+      "key": "send_image",
+      "name": "Send image",
+      "method": "POST",
+      "endpoint": "/{{ inputs.phone_number_id }}/messages",
+      "body": {
+        "messaging_product": "whatsapp",
+        "recipient_type": "individual",
+        "to": "{{ inputs.to }}",
+        "type": "image",
+        "image": { "link": "{{ inputs.link }}", "caption": "{{ inputs.caption }}" }
+      },
+      "inputs": [
+        { "key": "phone_number_id", "label": "Phone number ID", "type": "string", "required": true },
+        { "key": "to", "label": "To (phone number)", "type": "string", "required": true },
+        { "key": "link", "label": "Image URL (https)", "type": "string", "required": true },
+        { "key": "caption", "label": "Caption", "type": "string" }
+      ]
+    },
+    {
+      "key": "mark_as_read",
+      "name": "Mark message as read",
+      "method": "POST",
+      "endpoint": "/{{ inputs.phone_number_id }}/messages",
+      "body": { "messaging_product": "whatsapp", "status": "read", "message_id": "{{ inputs.message_id }}" },
+      "inputs": [
+        { "key": "phone_number_id", "label": "Phone number ID", "type": "string", "required": true },
+        { "key": "message_id", "label": "Incoming message ID (wamid…)", "type": "string", "required": true }
+      ]
+    }
+  ]
+}

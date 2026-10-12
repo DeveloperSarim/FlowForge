@@ -1,0 +1,45 @@
+{
+  "key": "clickhouse_cloud",
+  "name": "ClickHouse Cloud",
+  "category": "Databases",
+  "description": "Run SQL queries and insert rows over the ClickHouse HTTP interface.",
+  "brand": "clickhouse",
+  "website": "https://clickhouse.com/cloud",
+  "docs_url": "https://clickhouse.com/docs/interfaces/http",
+  "base_url": "{{ credentials.base_url }}",
+  "auth": { "type": "basic", "fields": [
+    { "key": "base_url", "label": "Service HTTPS endpoint", "type": "string", "required": true, "placeholder": "https://abc123xyz.us-east-1.aws.clickhouse.cloud:8443", "help": "Service → Connect → HTTPS. Self-hosted ClickHouse works too (port 8443 or 8123)." },
+    { "key": "username", "label": "Username", "type": "string", "required": true, "default": "default" },
+    { "key": "password", "label": "Password", "type": "password", "required": true }
+  ] },
+  "actions": [
+    {
+      "key": "run_query",
+      "name": "Run SQL",
+      "description": "SELECTs return { meta, data, rows }. DDL and other statements return nothing.",
+      "method": "POST",
+      "endpoint": "/",
+      "timeout": 120,
+      "query": { "database": "{{ inputs.database }}", "default_format": "JSON" },
+      "body": "{{ inputs.sql }}",
+      "inputs": [
+        { "key": "sql", "label": "SQL", "type": "code", "required": true, "placeholder": "SELECT count() FROM events WHERE date = today()" },
+        { "key": "database", "label": "Database", "type": "string", "default": "default" }
+      ]
+    },
+    {
+      "key": "insert_rows",
+      "name": "Insert rows",
+      "method": "POST",
+      "endpoint": "/",
+      "timeout": 120,
+      "query": { "database": "{{ inputs.database }}", "query": "INSERT INTO {{ inputs.table }} FORMAT JSONEachRow" },
+      "body": "{{ inputs.rows }}",
+      "inputs": [
+        { "key": "table", "label": "Table", "type": "string", "required": true },
+        { "key": "rows", "label": "Rows (one JSON object per line)", "type": "code", "required": true, "placeholder": "{\"id\": 1, \"name\": \"Ada\"}\n{\"id\": 2, \"name\": \"Grace\"}" },
+        { "key": "database", "label": "Database", "type": "string", "default": "default" }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,106 @@
+{
+  "key": "jira_service_management",
+  "name": "Jira Service Management",
+  "category": "Customer Support",
+  "description": "Raise customer requests, add comments and create customers in your service desk.",
+  "brand": "jira",
+  "website": "https://www.atlassian.com/software/jira/service-management",
+  "docs_url": "https://developer.atlassian.com/cloud/jira/service-desk/rest/intro/",
+  "popular": true,
+  "base_url": "https://{{ credentials.subdomain }}.atlassian.net/rest/servicedeskapi",
+  "headers": { "Accept": "application/json" },
+  "auth": {
+    "type": "basic",
+    "fields": [
+      { "key": "subdomain", "label": "Site", "type": "string", "required": true, "placeholder": "yourcompany", "help": "The part before .atlassian.net" },
+      { "key": "username", "label": "Email", "type": "string", "required": true },
+      { "key": "password", "label": "API token", "type": "password", "required": true, "help": "Create one at id.atlassian.com > Security > API tokens" }
+    ]
+  },
+  "actions": [
+    {
+      "key": "create_request",
+      "name": "Create request",
+      "description": "Raises a customer request in a service desk.",
+      "method": "POST",
+      "endpoint": "/request",
+      "body": {
+        "serviceDeskId": "{{ inputs.service_desk_id }}",
+        "requestTypeId": "{{ inputs.request_type_id }}",
+        "requestFieldValues": {
+          "summary": "{{ inputs.summary }}",
+          "description": "{{ inputs.description }}",
+          "...": "{{ inputs.extra_fields }}"
+        },
+        "raiseOnBehalfOf": "{{ inputs.raise_on_behalf_of }}"
+      },
+      "inputs": [
+        { "key": "service_desk_id", "label": "Service desk ID", "type": "string", "required": true, "help": "Use List service desks to find it." },
+        { "key": "request_type_id", "label": "Request type ID", "type": "string", "required": true, "help": "Use List request types to find it." },
+        { "key": "summary", "label": "Summary", "type": "string", "required": true },
+        { "key": "description", "label": "Description", "type": "text" },
+        { "key": "raise_on_behalf_of", "label": "Raise on behalf of", "type": "string", "help": "Customer email or account ID" },
+        { "key": "extra_fields", "label": "Other request fields", "type": "json", "placeholder": "{\"priority\": {\"name\": \"High\"}}" }
+      ]
+    },
+    {
+      "key": "get_request",
+      "name": "Get request",
+      "method": "GET",
+      "endpoint": "/request/{{ inputs.issue_key }}",
+      "inputs": [
+        { "key": "issue_key", "label": "Request key or ID", "type": "string", "required": true, "placeholder": "HELP-12" }
+      ]
+    },
+    {
+      "key": "add_comment",
+      "name": "Add comment",
+      "method": "POST",
+      "endpoint": "/request/{{ inputs.issue_key }}/comment",
+      "body": { "body": "{{ inputs.body }}", "public": "{{ inputs.public }}" },
+      "inputs": [
+        { "key": "issue_key", "label": "Request key or ID", "type": "string", "required": true, "placeholder": "HELP-12" },
+        { "key": "body", "label": "Comment", "type": "text", "required": true },
+        { "key": "public", "label": "Visible to customer", "type": "boolean", "default": true }
+      ]
+    },
+    {
+      "key": "create_customer",
+      "name": "Create customer",
+      "method": "POST",
+      "endpoint": "/customer",
+      "body": { "email": "{{ inputs.email }}", "displayName": "{{ inputs.display_name }}" },
+      "inputs": [
+        { "key": "email", "label": "Email", "type": "string", "required": true },
+        { "key": "display_name", "label": "Display name", "type": "string", "required": true }
+      ]
+    },
+    {
+      "key": "list_service_desks",
+      "name": "List service desks",
+      "method": "GET",
+      "endpoint": "/servicedesk",
+      "output_path": "values",
+      "inputs": []
+    },
+    {
+      "key": "list_request_types",
+      "name": "List request types",
+      "method": "GET",
+      "endpoint": "/servicedesk/{{ inputs.service_desk_id }}/requesttype",
+      "output_path": "values",
+      "inputs": [
+        { "key": "service_desk_id", "label": "Service desk ID", "type": "string", "required": true }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Add a 'Send web request' automation action (or a Jira webhook) pointing at this URL.",
+      "inputs": [{ "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }]
+    }
+  ]
+}

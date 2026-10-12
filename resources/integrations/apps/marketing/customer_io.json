@@ -1,0 +1,171 @@
+{
+  "key": "customer_io",
+  "name": "Customer.io",
+  "category": "Marketing & Email",
+  "description": "Identify people, track events, unsubscribe and add to manual segments.",
+  "brand": "customerio",
+  "website": "https://customer.io",
+  "docs_url": "https://docs.customer.io/api/track/",
+  "base_url": "https://{{ credentials.region }}/api/v1",
+  "auth": {
+    "type": "basic",
+    "fields": [
+      {
+        "key": "region",
+        "label": "Region",
+        "type": "select",
+        "required": true,
+        "default": "track.customer.io",
+        "options": [
+          {
+            "value": "track.customer.io",
+            "label": "US"
+          },
+          {
+            "value": "track-eu.customer.io",
+            "label": "EU"
+          }
+        ]
+      },
+      {
+        "key": "username",
+        "label": "Site ID",
+        "type": "string",
+        "required": true
+      },
+      {
+        "key": "password",
+        "label": "Track API key",
+        "type": "password",
+        "required": true
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "identify",
+      "name": "Create or update person",
+      "method": "PUT",
+      "endpoint": "/customers/{{ inputs.customer_id }}",
+      "body": "{{ inputs.attributes }}",
+      "inputs": [
+        {
+          "key": "customer_id",
+          "label": "Customer ID",
+          "type": "string",
+          "required": true,
+          "help": "Your identifier for the person (or their email if your workspace allows it)."
+        },
+        {
+          "key": "attributes",
+          "label": "Attributes",
+          "type": "json",
+          "required": true,
+          "placeholder": "{\"email\": \"ada@example.com\", \"plan\": \"pro\"}"
+        }
+      ]
+    },
+    {
+      "key": "track_event",
+      "name": "Track event",
+      "method": "POST",
+      "endpoint": "/customers/{{ inputs.customer_id }}/events",
+      "body": {
+        "name": "{{ inputs.name }}",
+        "data": "{{ inputs.data }}"
+      },
+      "inputs": [
+        {
+          "key": "customer_id",
+          "label": "Customer ID",
+          "type": "string",
+          "required": true,
+          "help": "Your identifier for the person (or their email if your workspace allows it)."
+        },
+        {
+          "key": "name",
+          "label": "Event name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "data",
+          "label": "Event data",
+          "type": "json"
+        }
+      ]
+    },
+    {
+      "key": "unsubscribe",
+      "name": "Unsubscribe person",
+      "method": "PUT",
+      "endpoint": "/customers/{{ inputs.customer_id }}",
+      "body": {
+        "unsubscribed": true
+      },
+      "inputs": [
+        {
+          "key": "customer_id",
+          "label": "Customer ID",
+          "type": "string",
+          "required": true,
+          "help": "Your identifier for the person (or their email if your workspace allows it)."
+        }
+      ]
+    },
+    {
+      "key": "add_to_segment",
+      "name": "Add people to manual segment",
+      "method": "POST",
+      "endpoint": "/segments/{{ inputs.segment_id }}/add_customers",
+      "body": {
+        "ids": "{{ inputs.ids }}"
+      },
+      "inputs": [
+        {
+          "key": "segment_id",
+          "label": "Segment ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "ids",
+          "label": "Customer IDs",
+          "type": "list",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "delete_person",
+      "name": "Delete person",
+      "method": "DELETE",
+      "endpoint": "/customers/{{ inputs.customer_id }}",
+      "inputs": [
+        {
+          "key": "customer_id",
+          "label": "Customer ID",
+          "type": "string",
+          "required": true,
+          "help": "Your identifier for the person (or their email if your workspace allows it)."
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Reporting webhook",
+      "type": "webhook",
+      "description": "Data & Integrations → Reporting webhooks (sent, opened, clicked…).",
+      "data_path": "data",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

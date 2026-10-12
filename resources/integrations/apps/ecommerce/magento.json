@@ -1,0 +1,259 @@
+{
+  "key": "magento",
+  "name": "Adobe Commerce (Magento)",
+  "category": "E-commerce",
+  "description": "Search orders, add order comments and manage products in Magento 2.",
+  "brand": "magento",
+  "website": "https://business.adobe.com/products/magento/magento-commerce.html",
+  "docs_url": "https://developer.adobe.com/commerce/webapi/rest/",
+  "base_url": "{{ credentials.store_url }}/rest/V1",
+  "auth": [
+    {
+      "type": "bearer",
+      "fields": [
+        {
+          "key": "store_url",
+          "label": "Store URL",
+          "type": "string",
+          "required": true,
+          "placeholder": "https://shop.example.com",
+          "help": "No trailing slash."
+        },
+        {
+          "key": "token",
+          "label": "Integration access token",
+          "type": "password",
+          "required": true,
+          "help": "System > Extensions > Integrations > your integration > Access Token."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_orders",
+      "name": "List orders",
+      "description": "Most recent orders first.",
+      "method": "GET",
+      "endpoint": "/orders",
+      "output_path": "items",
+      "query": {
+        "searchCriteria[pageSize]": "{{ inputs.page_size }}",
+        "searchCriteria[currentPage]": 1,
+        "searchCriteria[sortOrders][0][field]": "created_at",
+        "searchCriteria[sortOrders][0][direction]": "DESC"
+      },
+      "inputs": [
+        {
+          "key": "page_size",
+          "label": "Page size",
+          "type": "number",
+          "default": 20
+        }
+      ]
+    },
+    {
+      "key": "get_order",
+      "name": "Get order",
+      "method": "GET",
+      "endpoint": "/orders/{{ inputs.order_id }}",
+      "inputs": [
+        {
+          "key": "order_id",
+          "label": "Order entity ID",
+          "type": "string",
+          "required": true,
+          "help": "The numeric entity_id, not the increment ID shown to customers."
+        }
+      ]
+    },
+    {
+      "key": "add_order_comment",
+      "name": "Add order comment",
+      "method": "POST",
+      "endpoint": "/orders/{{ inputs.order_id }}/comments",
+      "body": {
+        "statusHistory": {
+          "comment": "{{ inputs.comment }}",
+          "is_customer_notified": "{{ inputs.notify }}",
+          "is_visible_on_front": "{{ inputs.visible }}",
+          "status": "{{ inputs.status }}"
+        }
+      },
+      "inputs": [
+        {
+          "key": "order_id",
+          "label": "Order entity ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "comment",
+          "label": "Comment",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "notify",
+          "label": "Notify customer (1/0)",
+          "type": "number",
+          "default": 0
+        },
+        {
+          "key": "visible",
+          "label": "Visible on storefront (1/0)",
+          "type": "number",
+          "default": 0
+        },
+        {
+          "key": "status",
+          "label": "New order status",
+          "type": "string",
+          "placeholder": "processing"
+        }
+      ]
+    },
+    {
+      "key": "get_product",
+      "name": "Get product by SKU",
+      "method": "GET",
+      "endpoint": "/products/{{ inputs.sku }}",
+      "inputs": [
+        {
+          "key": "sku",
+          "label": "SKU",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "create_product",
+      "name": "Create product",
+      "method": "POST",
+      "endpoint": "/products",
+      "body": {
+        "product": {
+          "sku": "{{ inputs.sku }}",
+          "name": "{{ inputs.name }}",
+          "price": "{{ inputs.price }}",
+          "status": "{{ inputs.status }}",
+          "visibility": "{{ inputs.visibility }}",
+          "type_id": "simple",
+          "attribute_set_id": "{{ inputs.attribute_set_id }}",
+          "weight": "{{ inputs.weight }}"
+        }
+      },
+      "inputs": [
+        {
+          "key": "sku",
+          "label": "SKU",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "price",
+          "label": "Price",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "options": [
+            {
+              "value": "1",
+              "label": "Enabled"
+            },
+            {
+              "value": "2",
+              "label": "Disabled"
+            }
+          ],
+          "default": "1"
+        },
+        {
+          "key": "visibility",
+          "label": "Visibility",
+          "type": "select",
+          "options": [
+            {
+              "value": "4",
+              "label": "Catalog, Search"
+            },
+            {
+              "value": "2",
+              "label": "Catalog"
+            },
+            {
+              "value": "3",
+              "label": "Search"
+            },
+            {
+              "value": "1",
+              "label": "Not visible individually"
+            }
+          ],
+          "default": "4"
+        },
+        {
+          "key": "attribute_set_id",
+          "label": "Attribute set ID",
+          "type": "number",
+          "default": 4
+        },
+        {
+          "key": "weight",
+          "label": "Weight",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "get_customer",
+      "name": "Get customer",
+      "method": "GET",
+      "endpoint": "/customers/{{ inputs.customer_id }}",
+      "inputs": [
+        {
+          "key": "customer_id",
+          "label": "Customer ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_order",
+      "name": "New order",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/orders",
+      "query": {
+        "searchCriteria[pageSize]": 50,
+        "searchCriteria[currentPage]": 1,
+        "searchCriteria[sortOrders][0][field]": "created_at",
+        "searchCriteria[sortOrders][0][direction]": "DESC"
+      },
+      "items_path": "items",
+      "id_field": "entity_id",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

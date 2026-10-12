@@ -1,0 +1,227 @@
+{
+  "key": "drip",
+  "name": "Drip",
+  "category": "Marketing & Email",
+  "description": "Create subscribers, apply tags, record events and unsubscribe.",
+  "brand": "drip",
+  "website": "https://www.drip.com",
+  "docs_url": "https://developer.drip.com/",
+  "base_url": "https://api.getdrip.com/v2/{{ credentials.account_id }}",
+  "auth": [
+    {
+      "type": "basic",
+      "fields": [
+        {
+          "key": "account_id",
+          "label": "Account ID",
+          "type": "string",
+          "required": true,
+          "help": "The number in your Drip URL: getdrip.com/<account_id>/…"
+        },
+        {
+          "key": "username",
+          "label": "API token",
+          "type": "password",
+          "required": true
+        },
+        {
+          "key": "password",
+          "label": "Password",
+          "type": "password",
+          "required": false,
+          "default": "",
+          "help": "Leave blank."
+        }
+      ]
+    },
+    {
+      "type": "oauth2",
+      "authorize_url": "https://www.getdrip.com/oauth/authorize",
+      "token_url": "https://www.getdrip.com/oauth/token",
+      "scopes": [],
+      "fields": [
+        {
+          "key": "account_id",
+          "label": "Account ID",
+          "type": "string",
+          "required": true,
+          "help": "The number in your Drip URL: getdrip.com/<account_id>/…"
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "upsert_subscriber",
+      "name": "Create or update subscriber",
+      "method": "POST",
+      "endpoint": "/subscribers",
+      "body": {
+        "subscribers": [
+          {
+            "email": "{{ inputs.email }}",
+            "first_name": "{{ inputs.first_name }}",
+            "last_name": "{{ inputs.last_name }}",
+            "tags": "{{ inputs.tags }}",
+            "custom_fields": "{{ inputs.custom_fields }}"
+          }
+        ]
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "first_name",
+          "label": "First name",
+          "type": "string"
+        },
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string"
+        },
+        {
+          "key": "tags",
+          "label": "Tags",
+          "type": "list"
+        },
+        {
+          "key": "custom_fields",
+          "label": "Custom fields",
+          "type": "keyvalue"
+        }
+      ]
+    },
+    {
+      "key": "get_subscriber",
+      "name": "Get subscriber",
+      "method": "GET",
+      "endpoint": "/subscribers/{{ inputs.email }}",
+      "output_path": "subscribers",
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email or subscriber ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "apply_tag",
+      "name": "Apply tag",
+      "method": "POST",
+      "endpoint": "/tags",
+      "body": {
+        "tags": [
+          {
+            "email": "{{ inputs.email }}",
+            "tag": "{{ inputs.tag }}"
+          }
+        ]
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "tag",
+          "label": "Tag",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "remove_tag",
+      "name": "Remove tag",
+      "method": "DELETE",
+      "endpoint": "/subscribers/{{ inputs.email }}/tags/{{ inputs.tag }}",
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "tag",
+          "label": "Tag",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "record_event",
+      "name": "Record event",
+      "method": "POST",
+      "endpoint": "/events",
+      "body": {
+        "events": [
+          {
+            "email": "{{ inputs.email }}",
+            "action": "{{ inputs.action }}",
+            "properties": "{{ inputs.properties }}"
+          }
+        ]
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "action",
+          "label": "Event name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "properties",
+          "label": "Properties",
+          "type": "keyvalue"
+        }
+      ]
+    },
+    {
+      "key": "unsubscribe_all",
+      "name": "Unsubscribe from all mailings",
+      "method": "POST",
+      "endpoint": "/subscribers/{{ inputs.email }}/unsubscribe_all",
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email or subscriber ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Settings → Webhooks (subscriber.created, applied_tag…).",
+      "data_path": "data",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

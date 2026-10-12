@@ -1,0 +1,219 @@
+{
+  "key": "beehiiv",
+  "name": "beehiiv",
+  "category": "Marketing & Email",
+  "description": "Add, tag and unsubscribe newsletter subscribers; list posts.",
+  "brand": "beehiiv",
+  "website": "https://www.beehiiv.com",
+  "docs_url": "https://developers.beehiiv.com/",
+  "base_url": "https://api.beehiiv.com/v2",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "API key",
+        "type": "password",
+        "required": true
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "create_subscription",
+      "name": "Add subscriber",
+      "method": "POST",
+      "endpoint": "/publications/{{ inputs.publication_id }}/subscriptions",
+      "output_path": "data",
+      "body": {
+        "email": "{{ inputs.email }}",
+        "reactivate_existing": "{{ inputs.reactivate_existing }}",
+        "send_welcome_email": "{{ inputs.send_welcome_email }}",
+        "utm_source": "{{ inputs.utm_source }}",
+        "referring_site": "{{ inputs.referring_site }}"
+      },
+      "inputs": [
+        {
+          "key": "publication_id",
+          "label": "Publication ID",
+          "type": "string",
+          "required": true,
+          "placeholder": "pub_…"
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "reactivate_existing",
+          "label": "Reactivate if unsubscribed",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "key": "send_welcome_email",
+          "label": "Send welcome email",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "key": "utm_source",
+          "label": "UTM source",
+          "type": "string"
+        },
+        {
+          "key": "referring_site",
+          "label": "Referring site",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "get_subscription",
+      "name": "Find subscriber by email",
+      "method": "GET",
+      "endpoint": "/publications/{{ inputs.publication_id }}/subscriptions/by_email/{{ inputs.email }}",
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "publication_id",
+          "label": "Publication ID",
+          "type": "string",
+          "required": true,
+          "placeholder": "pub_…"
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "add_tags",
+      "name": "Add tags to subscriber",
+      "method": "POST",
+      "endpoint": "/publications/{{ inputs.publication_id }}/subscriptions/{{ inputs.subscription_id }}/tags",
+      "output_path": "data",
+      "body": {
+        "tags": "{{ inputs.tags }}"
+      },
+      "inputs": [
+        {
+          "key": "publication_id",
+          "label": "Publication ID",
+          "type": "string",
+          "required": true,
+          "placeholder": "pub_…"
+        },
+        {
+          "key": "subscription_id",
+          "label": "Subscription ID",
+          "type": "string",
+          "required": true,
+          "placeholder": "sub_…"
+        },
+        {
+          "key": "tags",
+          "label": "Tags",
+          "type": "list",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "unsubscribe",
+      "name": "Unsubscribe",
+      "method": "PUT",
+      "endpoint": "/publications/{{ inputs.publication_id }}/subscriptions/{{ inputs.subscription_id }}",
+      "output_path": "data",
+      "body": {
+        "unsubscribe": true
+      },
+      "inputs": [
+        {
+          "key": "publication_id",
+          "label": "Publication ID",
+          "type": "string",
+          "required": true,
+          "placeholder": "pub_…"
+        },
+        {
+          "key": "subscription_id",
+          "label": "Subscription ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_posts",
+      "name": "List posts",
+      "method": "GET",
+      "endpoint": "/publications/{{ inputs.publication_id }}/posts",
+      "output_path": "data",
+      "query": {
+        "limit": 10,
+        "order_by": "publish_date",
+        "direction": "desc"
+      },
+      "inputs": [
+        {
+          "key": "publication_id",
+          "label": "Publication ID",
+          "type": "string",
+          "required": true,
+          "placeholder": "pub_…"
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_subscriber",
+      "name": "New subscriber",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/publications/{{ inputs.publication_id }}/subscriptions",
+      "query": {
+        "limit": 50,
+        "order_by": "created",
+        "direction": "desc"
+      },
+      "items_path": "data",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "publication_id",
+          "label": "Publication ID",
+          "type": "string",
+          "required": true,
+          "placeholder": "pub_…"
+        },
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    },
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Settings → Webhooks (subscription.created, post.sent…).",
+      "data_path": "data",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

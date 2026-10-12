@@ -1,0 +1,98 @@
+{
+  "key": "spotify",
+  "name": "Spotify",
+  "category": "Utilities",
+  "description": "Search the catalog, see what's playing and queue tracks.",
+  "brand": "spotify",
+  "website": "https://www.spotify.com",
+  "docs_url": "https://developer.spotify.com/documentation/web-api",
+  "popular": true,
+  "base_url": "https://api.spotify.com/v1",
+  "auth": {
+    "type": "oauth2",
+    "authorize_url": "https://accounts.spotify.com/authorize",
+    "token_url": "https://accounts.spotify.com/api/token",
+    "scopes": [
+      "user-read-private", "user-read-email", "user-read-currently-playing", "user-read-recently-played",
+      "user-read-playback-state", "user-modify-playback-state", "playlist-read-private", "playlist-modify-public", "playlist-modify-private"
+    ]
+  },
+  "actions": [
+    {
+      "key": "search",
+      "name": "Search catalog",
+      "method": "GET",
+      "endpoint": "/search",
+      "query": { "q": "{{ inputs.q }}", "type": "{{ inputs.type }}", "limit": "{{ inputs.limit }}", "market": "{{ inputs.market }}" },
+      "inputs": [
+        { "key": "q", "label": "Search", "type": "string", "required": true, "placeholder": "artist:Radiohead track:Creep" },
+        { "key": "type", "label": "Type", "type": "select", "required": true, "default": "track", "options": [
+          { "value": "track", "label": "Track" }, { "value": "artist", "label": "Artist" }, { "value": "album", "label": "Album" },
+          { "value": "playlist", "label": "Playlist" }, { "value": "show", "label": "Show" }, { "value": "episode", "label": "Episode" }
+        ] },
+        { "key": "limit", "label": "Max results", "type": "number", "default": 10 },
+        { "key": "market", "label": "Market", "type": "string", "placeholder": "US" }
+      ]
+    },
+    {
+      "key": "get_track",
+      "name": "Get track",
+      "method": "GET",
+      "endpoint": "/tracks/{{ inputs.track_id }}",
+      "query": { "market": "{{ inputs.market }}" },
+      "inputs": [
+        { "key": "track_id", "label": "Track ID", "type": "string", "required": true, "placeholder": "11dFghVXANMlKmJXsNCbNl" },
+        { "key": "market", "label": "Market", "type": "string", "placeholder": "US" }
+      ]
+    },
+    {
+      "key": "currently_playing",
+      "name": "Get currently playing",
+      "description": "The track the user is listening to right now (empty when nothing plays).",
+      "method": "GET",
+      "endpoint": "/me/player/currently-playing",
+      "inputs": []
+    },
+    {
+      "key": "recently_played",
+      "name": "Get recently played",
+      "method": "GET",
+      "endpoint": "/me/player/recently-played",
+      "query": { "limit": "{{ inputs.limit }}" },
+      "output_path": "items",
+      "inputs": [{ "key": "limit", "label": "Max results", "type": "number", "default": 20, "help": "Max 50." }]
+    },
+    {
+      "key": "add_to_queue",
+      "name": "Add to queue",
+      "description": "Queues a track or episode on the active device (Premium only).",
+      "method": "POST",
+      "endpoint": "/me/player/queue",
+      "query": { "uri": "{{ inputs.uri }}", "device_id": "{{ inputs.device_id }}" },
+      "inputs": [
+        { "key": "uri", "label": "Spotify URI", "type": "string", "required": true, "placeholder": "spotify:track:4iV5W9uYEdYUVa79Axb7Rh" },
+        { "key": "device_id", "label": "Device ID", "type": "string", "help": "Defaults to the active device." }
+      ]
+    },
+    {
+      "key": "get_current_user",
+      "name": "Get current user",
+      "method": "GET",
+      "endpoint": "/me",
+      "inputs": []
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_played_track",
+      "name": "New recently played track",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/me/player/recently-played",
+      "query": { "limit": 20 },
+      "items_path": "items",
+      "id_field": "played_at",
+      "inputs": [{ "key": "poll_interval", "label": "Check every (minutes)", "type": "number", "default": 5 }]
+    }
+  ]
+}

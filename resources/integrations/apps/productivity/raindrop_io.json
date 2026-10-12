@@ -1,0 +1,225 @@
+{
+  "key": "raindrop_io",
+  "name": "Raindrop.io",
+  "category": "Productivity",
+  "description": "Save, search and update bookmarks in Raindrop.io.",
+  "brand": "raindrop",
+  "website": "https://raindrop.io",
+  "docs_url": "https://developer.raindrop.io",
+  "base_url": "https://api.raindrop.io/rest/v1",
+  "auth": [
+    {
+      "type": "bearer",
+      "fields": [
+        {
+          "key": "token",
+          "label": "Test token",
+          "type": "password",
+          "required": true,
+          "help": "Settings > Integrations > create an app > Create test token."
+        }
+      ]
+    },
+    {
+      "type": "oauth2",
+      "authorize_url": "https://raindrop.io/oauth/authorize",
+      "token_url": "https://raindrop.io/oauth/access_token"
+    }
+  ],
+  "actions": [
+    {
+      "key": "create_bookmark",
+      "name": "Create bookmark",
+      "method": "POST",
+      "endpoint": "/raindrop",
+      "body": {
+        "link": "{{ inputs.link }}",
+        "title": "{{ inputs.title }}",
+        "excerpt": "{{ inputs.excerpt }}",
+        "note": "{{ inputs.note }}",
+        "tags": "{{ inputs.tags }}",
+        "collection": {
+          "$id": "{{ inputs.collection_id }}"
+        }
+      },
+      "output_path": "item",
+      "inputs": [
+        {
+          "key": "link",
+          "label": "URL",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "string"
+        },
+        {
+          "key": "excerpt",
+          "label": "Description",
+          "type": "text"
+        },
+        {
+          "key": "note",
+          "label": "Note",
+          "type": "text"
+        },
+        {
+          "key": "tags",
+          "label": "Tags",
+          "type": "list"
+        },
+        {
+          "key": "collection_id",
+          "label": "Collection ID",
+          "type": "number",
+          "help": "Empty = Unsorted."
+        }
+      ]
+    },
+    {
+      "key": "search_bookmarks",
+      "name": "Search bookmarks",
+      "method": "GET",
+      "endpoint": "/raindrops/{{ inputs.collection_id }}",
+      "query": {
+        "search": "{{ inputs.search }}",
+        "sort": "-created",
+        "perpage": "{{ inputs.perpage }}"
+      },
+      "output_path": "items",
+      "inputs": [
+        {
+          "key": "collection_id",
+          "label": "Collection ID",
+          "type": "string",
+          "required": true,
+          "default": "0",
+          "help": "0 = all, -1 = Unsorted."
+        },
+        {
+          "key": "search",
+          "label": "Search",
+          "type": "string",
+          "placeholder": "#tag or text"
+        },
+        {
+          "key": "perpage",
+          "label": "Max results",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    },
+    {
+      "key": "get_bookmark",
+      "name": "Get bookmark",
+      "method": "GET",
+      "endpoint": "/raindrop/{{ inputs.raindrop_id }}",
+      "output_path": "item",
+      "inputs": [
+        {
+          "key": "raindrop_id",
+          "label": "Bookmark ID",
+          "type": "number",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "update_bookmark",
+      "name": "Update bookmark",
+      "method": "PUT",
+      "endpoint": "/raindrop/{{ inputs.raindrop_id }}",
+      "body": {
+        "title": "{{ inputs.title }}",
+        "excerpt": "{{ inputs.excerpt }}",
+        "note": "{{ inputs.note }}",
+        "tags": "{{ inputs.tags }}",
+        "collection": {
+          "$id": "{{ inputs.collection_id }}"
+        }
+      },
+      "output_path": "item",
+      "inputs": [
+        {
+          "key": "raindrop_id",
+          "label": "Bookmark ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "string"
+        },
+        {
+          "key": "excerpt",
+          "label": "Description",
+          "type": "text"
+        },
+        {
+          "key": "note",
+          "label": "Note",
+          "type": "text"
+        },
+        {
+          "key": "tags",
+          "label": "Tags",
+          "type": "list"
+        },
+        {
+          "key": "collection_id",
+          "label": "Move to collection ID",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "delete_bookmark",
+      "name": "Delete bookmark",
+      "method": "DELETE",
+      "endpoint": "/raindrop/{{ inputs.raindrop_id }}",
+      "inputs": [
+        {
+          "key": "raindrop_id",
+          "label": "Bookmark ID",
+          "type": "number",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_collections",
+      "name": "List collections",
+      "method": "GET",
+      "endpoint": "/collections",
+      "output_path": "items",
+      "inputs": []
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_bookmark",
+      "name": "New bookmark",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/raindrops/0",
+      "query": {
+        "sort": "-created",
+        "perpage": 50
+      },
+      "items_path": "items",
+      "id_field": "_id",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

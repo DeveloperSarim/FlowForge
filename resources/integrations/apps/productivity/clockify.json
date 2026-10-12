@@ -1,0 +1,238 @@
+{
+  "key": "clockify",
+  "name": "Clockify",
+  "category": "Productivity",
+  "description": "Log time, stop timers and list Clockify time entries.",
+  "brand": "clockify",
+  "website": "https://clockify.me",
+  "docs_url": "https://docs.clockify.me",
+  "base_url": "https://api.clockify.me/api/v1",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "X-Api-Key",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "Profile settings > API."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "get_current_user",
+      "name": "Get current user",
+      "method": "GET",
+      "endpoint": "/user",
+      "inputs": []
+    },
+    {
+      "key": "create_time_entry",
+      "name": "Create time entry",
+      "method": "POST",
+      "endpoint": "/workspaces/{{ inputs.workspace_id }}/time-entries",
+      "body": {
+        "start": "{{ inputs.start }}",
+        "end": "{{ inputs.end }}",
+        "description": "{{ inputs.description }}",
+        "projectId": "{{ inputs.project_id }}",
+        "taskId": "{{ inputs.task_id }}",
+        "tagIds": "{{ inputs.tag_ids }}",
+        "billable": "{{ inputs.billable }}"
+      },
+      "inputs": [
+        {
+          "key": "workspace_id",
+          "label": "Workspace ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "start",
+          "label": "Start",
+          "type": "string",
+          "required": true,
+          "placeholder": "2026-10-12T09:00:00Z"
+        },
+        {
+          "key": "end",
+          "label": "End",
+          "type": "string",
+          "placeholder": "2026-10-12T10:00:00Z",
+          "help": "Leave empty to start a running timer."
+        },
+        {
+          "key": "description",
+          "label": "Description",
+          "type": "string"
+        },
+        {
+          "key": "project_id",
+          "label": "Project ID",
+          "type": "string"
+        },
+        {
+          "key": "task_id",
+          "label": "Task ID",
+          "type": "string"
+        },
+        {
+          "key": "tag_ids",
+          "label": "Tag IDs",
+          "type": "list"
+        },
+        {
+          "key": "billable",
+          "label": "Billable",
+          "type": "boolean"
+        }
+      ]
+    },
+    {
+      "key": "stop_timer",
+      "name": "Stop running timer",
+      "method": "PATCH",
+      "endpoint": "/workspaces/{{ inputs.workspace_id }}/user/{{ inputs.user_id }}/time-entries",
+      "body": {
+        "end": "{{ inputs.end }}"
+      },
+      "inputs": [
+        {
+          "key": "workspace_id",
+          "label": "Workspace ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "user_id",
+          "label": "User ID",
+          "type": "string",
+          "required": true,
+          "help": "From Get current user."
+        },
+        {
+          "key": "end",
+          "label": "End time",
+          "type": "string",
+          "required": true,
+          "placeholder": "2026-10-12T10:00:00Z"
+        }
+      ]
+    },
+    {
+      "key": "list_time_entries",
+      "name": "List time entries",
+      "method": "GET",
+      "endpoint": "/workspaces/{{ inputs.workspace_id }}/user/{{ inputs.user_id }}/time-entries",
+      "query": {
+        "start": "{{ inputs.start }}",
+        "end": "{{ inputs.end }}",
+        "page-size": "{{ inputs.page_size }}"
+      },
+      "inputs": [
+        {
+          "key": "workspace_id",
+          "label": "Workspace ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "user_id",
+          "label": "User ID",
+          "type": "string",
+          "required": true,
+          "help": "From Get current user."
+        },
+        {
+          "key": "start",
+          "label": "From",
+          "type": "string",
+          "placeholder": "2026-10-01T00:00:00Z"
+        },
+        {
+          "key": "end",
+          "label": "To",
+          "type": "string"
+        },
+        {
+          "key": "page_size",
+          "label": "Max results",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    },
+    {
+      "key": "list_projects",
+      "name": "List projects",
+      "method": "GET",
+      "endpoint": "/workspaces/{{ inputs.workspace_id }}/projects",
+      "query": {
+        "name": "{{ inputs.name }}"
+      },
+      "inputs": [
+        {
+          "key": "workspace_id",
+          "label": "Workspace ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "name",
+          "label": "Name contains",
+          "type": "string"
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_time_entry",
+      "name": "New time entry",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/workspaces/{{ inputs.workspace_id }}/user/{{ inputs.user_id }}/time-entries",
+      "query": {
+        "page-size": 50
+      },
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "workspace_id",
+          "label": "Workspace ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "user_id",
+          "label": "User ID",
+          "type": "string",
+          "required": true,
+          "help": "From Get current user."
+        },
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    },
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Add this URL under Workspace settings > Webhooks.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

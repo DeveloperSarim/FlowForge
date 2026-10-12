@@ -1,0 +1,182 @@
+{
+  "key": "nmi",
+  "name": "NMI",
+  "category": "Payments & Finance",
+  "description": "Capture, void and refund transactions and charge Customer Vault records via NMI.",
+  "brand": "nmi",
+  "website": "https://www.nmi.com",
+  "docs_url": "https://secure.nmi.com/merchants/resources/integration/integration_portal.php",
+  "base_url": "https://secure.nmi.com/api",
+  "auth": [
+    {
+      "type": "api_key",
+      "fields": [
+        {
+          "key": "api_key",
+          "label": "Private security key",
+          "type": "password",
+          "required": true,
+          "help": "Merchant portal > Settings > Security keys."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "charge_customer_vault",
+      "name": "Charge Customer Vault record",
+      "description": "Response is NMI's query-string format (response=1 means approved).",
+      "method": "POST",
+      "endpoint": "/transact.php",
+      "body": {
+        "security_key": "{{ credentials.api_key }}",
+        "type": "sale",
+        "customer_vault_id": "{{ inputs.customer_vault_id }}",
+        "amount": "{{ inputs.amount }}",
+        "orderid": "{{ inputs.order_id }}",
+        "order_description": "{{ inputs.description }}"
+      },
+      "body_format": "form",
+      "inputs": [
+        {
+          "key": "customer_vault_id",
+          "label": "Customer Vault ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "amount",
+          "label": "Amount",
+          "type": "string",
+          "required": true,
+          "placeholder": "25.00"
+        },
+        {
+          "key": "order_id",
+          "label": "Order ID",
+          "type": "string"
+        },
+        {
+          "key": "description",
+          "label": "Order description",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "capture",
+      "name": "Capture authorization",
+      "method": "POST",
+      "endpoint": "/transact.php",
+      "body": {
+        "security_key": "{{ credentials.api_key }}",
+        "type": "capture",
+        "transactionid": "{{ inputs.transaction_id }}",
+        "amount": "{{ inputs.amount }}"
+      },
+      "body_format": "form",
+      "inputs": [
+        {
+          "key": "transaction_id",
+          "label": "Transaction ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "amount",
+          "label": "Amount",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "void",
+      "name": "Void transaction",
+      "method": "POST",
+      "endpoint": "/transact.php",
+      "body": {
+        "security_key": "{{ credentials.api_key }}",
+        "type": "void",
+        "transactionid": "{{ inputs.transaction_id }}"
+      },
+      "body_format": "form",
+      "inputs": [
+        {
+          "key": "transaction_id",
+          "label": "Transaction ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "refund",
+      "name": "Refund transaction",
+      "method": "POST",
+      "endpoint": "/transact.php",
+      "body": {
+        "security_key": "{{ credentials.api_key }}",
+        "type": "refund",
+        "transactionid": "{{ inputs.transaction_id }}",
+        "amount": "{{ inputs.amount }}"
+      },
+      "body_format": "form",
+      "inputs": [
+        {
+          "key": "transaction_id",
+          "label": "Transaction ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "amount",
+          "label": "Amount",
+          "type": "string",
+          "help": "Blank = full refund."
+        }
+      ]
+    },
+    {
+      "key": "query_transaction",
+      "name": "Look up transaction",
+      "description": "Returns XML.",
+      "method": "POST",
+      "endpoint": "/query.php",
+      "body": {
+        "security_key": "{{ credentials.api_key }}",
+        "transaction_id": "{{ inputs.transaction_id }}",
+        "order_id": "{{ inputs.order_id }}"
+      },
+      "body_format": "form",
+      "inputs": [
+        {
+          "key": "transaction_id",
+          "label": "Transaction ID",
+          "type": "string"
+        },
+        {
+          "key": "order_id",
+          "label": "Order ID",
+          "type": "string"
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Merchant portal > Settings > Webhooks: add this URL and choose events.",
+      "data_path": "event_body",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

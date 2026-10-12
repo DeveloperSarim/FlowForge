@@ -1,0 +1,75 @@
+{
+  "key": "listen_notes",
+  "name": "Listen Notes",
+  "category": "Video & Media",
+  "description": "Search podcasts and episodes, and fetch podcast details and charts.",
+  "brand": "listennotes",
+  "website": "https://www.listennotes.com/api/",
+  "docs_url": "https://www.listennotes.com/api/docs/",
+  "base_url": "https://listen-api.listennotes.com/api/v2",
+  "auth": { "type": "api_key", "in": "header", "name": "X-ListenAPI-Key" },
+  "actions": [
+    {
+      "key": "search",
+      "name": "Search",
+      "method": "GET",
+      "endpoint": "/search",
+      "query": { "q": "{{ inputs.q }}", "type": "{{ inputs.type }}", "sort_by_date": "{{ inputs.sort_by_date }}", "language": "{{ inputs.language }}", "offset": "{{ inputs.offset }}" },
+      "inputs": [
+        { "key": "q", "label": "Query", "type": "string", "required": true },
+        { "key": "type", "label": "Type", "type": "select", "default": "episode", "options": [
+          { "value": "episode", "label": "Episodes" }, { "value": "podcast", "label": "Podcasts" }, { "value": "curated", "label": "Curated lists" }
+        ] },
+        { "key": "sort_by_date", "label": "Sort", "type": "select", "default": "0", "options": [
+          { "value": "0", "label": "Relevance" }, { "value": "1", "label": "Newest first" }
+        ] },
+        { "key": "language", "label": "Language", "type": "string", "placeholder": "English" },
+        { "key": "offset", "label": "Offset", "type": "number" }
+      ]
+    },
+    {
+      "key": "get_podcast",
+      "name": "Get podcast",
+      "description": "Podcast details with its latest episodes.",
+      "method": "GET",
+      "endpoint": "/podcasts/{{ inputs.podcast_id }}",
+      "query": { "sort": "recent_first" },
+      "inputs": [{ "key": "podcast_id", "label": "Podcast ID", "type": "string", "required": true }]
+    },
+    {
+      "key": "get_episode",
+      "name": "Get episode",
+      "method": "GET",
+      "endpoint": "/episodes/{{ inputs.episode_id }}",
+      "inputs": [{ "key": "episode_id", "label": "Episode ID", "type": "string", "required": true }]
+    },
+    {
+      "key": "best_podcasts",
+      "name": "Best podcasts",
+      "method": "GET",
+      "endpoint": "/best_podcasts",
+      "query": { "genre_id": "{{ inputs.genre_id }}", "region": "{{ inputs.region }}", "page": "{{ inputs.page }}" },
+      "inputs": [
+        { "key": "genre_id", "label": "Genre ID", "type": "string" },
+        { "key": "region", "label": "Region", "type": "string", "placeholder": "us" },
+        { "key": "page", "label": "Page", "type": "number" }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_episode",
+      "name": "New episode of a podcast",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/podcasts/{{ inputs.podcast_id }}",
+      "query": { "sort": "recent_first" },
+      "items_path": "episodes",
+      "id_field": "id",
+      "inputs": [
+        { "key": "podcast_id", "label": "Podcast ID", "type": "string", "required": true },
+        { "key": "poll_interval", "label": "Check every (minutes)", "type": "number", "default": 30 }
+      ]
+    }
+  ]
+}

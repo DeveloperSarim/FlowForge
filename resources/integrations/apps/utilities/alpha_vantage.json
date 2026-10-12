@@ -1,0 +1,80 @@
+{
+  "key": "alpha_vantage",
+  "name": "Alpha Vantage",
+  "category": "Utilities",
+  "description": "Stock quotes, daily price history, FX rates and market news sentiment.",
+  "brand": "alphavantage",
+  "website": "https://www.alphavantage.co",
+  "docs_url": "https://www.alphavantage.co/documentation/",
+  "base_url": "https://www.alphavantage.co",
+  "auth": { "type": "api_key", "in": "query", "name": "apikey", "fields": [
+    { "key": "api_key", "label": "API key", "type": "password", "required": true }
+  ] },
+  "actions": [
+    {
+      "key": "get_quote",
+      "name": "Get stock quote",
+      "method": "GET",
+      "endpoint": "/query",
+      "query": { "function": "GLOBAL_QUOTE", "symbol": "{{ inputs.symbol }}" },
+      "error_path": "Error Message",
+      "output_path": "Global Quote",
+      "inputs": [{ "key": "symbol", "label": "Symbol", "type": "string", "required": true, "placeholder": "IBM" }]
+    },
+    {
+      "key": "daily_prices",
+      "name": "Get daily prices",
+      "method": "GET",
+      "endpoint": "/query",
+      "query": { "function": "TIME_SERIES_DAILY", "symbol": "{{ inputs.symbol }}", "outputsize": "{{ inputs.outputsize }}" },
+      "error_path": "Error Message",
+      "inputs": [
+        { "key": "symbol", "label": "Symbol", "type": "string", "required": true, "placeholder": "IBM" },
+        { "key": "outputsize", "label": "History", "type": "select", "default": "compact", "options": [
+          { "value": "compact", "label": "Last 100 days" }, { "value": "full", "label": "Full history (premium)" }
+        ] }
+      ]
+    },
+    {
+      "key": "symbol_search",
+      "name": "Search symbols",
+      "method": "GET",
+      "endpoint": "/query",
+      "query": { "function": "SYMBOL_SEARCH", "keywords": "{{ inputs.keywords }}" },
+      "error_path": "Error Message",
+      "output_path": "bestMatches",
+      "inputs": [{ "key": "keywords", "label": "Company or symbol", "type": "string", "required": true, "placeholder": "tesla" }]
+    },
+    {
+      "key": "exchange_rate",
+      "name": "Get exchange rate",
+      "description": "Realtime rate between two currencies, physical or crypto.",
+      "method": "GET",
+      "endpoint": "/query",
+      "query": { "function": "CURRENCY_EXCHANGE_RATE", "from_currency": "{{ inputs.from_currency }}", "to_currency": "{{ inputs.to_currency }}" },
+      "error_path": "Error Message",
+      "output_path": "Realtime Currency Exchange Rate",
+      "inputs": [
+        { "key": "from_currency", "label": "From", "type": "string", "required": true, "placeholder": "USD" },
+        { "key": "to_currency", "label": "To", "type": "string", "required": true, "placeholder": "JPY" }
+      ]
+    },
+    {
+      "key": "news_sentiment",
+      "name": "Get news sentiment",
+      "method": "GET",
+      "endpoint": "/query",
+      "query": { "function": "NEWS_SENTIMENT", "tickers": "{{ inputs.tickers }}", "topics": "{{ inputs.topics }}", "sort": "{{ inputs.sort }}", "limit": "{{ inputs.limit }}" },
+      "error_path": "Error Message",
+      "output_path": "feed",
+      "inputs": [
+        { "key": "tickers", "label": "Tickers", "type": "string", "placeholder": "AAPL,CRYPTO:BTC,FOREX:USD" },
+        { "key": "topics", "label": "Topics", "type": "string", "placeholder": "technology,earnings" },
+        { "key": "sort", "label": "Sort", "type": "select", "default": "LATEST", "options": [
+          { "value": "LATEST", "label": "Latest" }, { "value": "EARLIEST", "label": "Earliest" }, { "value": "RELEVANCE", "label": "Relevance" }
+        ] },
+        { "key": "limit", "label": "Max results", "type": "number", "default": 50 }
+      ]
+    }
+  ]
+}

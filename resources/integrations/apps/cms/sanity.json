@@ -1,0 +1,183 @@
+{
+  "key": "sanity",
+  "name": "Sanity",
+  "category": "CMS & Websites",
+  "description": "Run GROQ queries and create, patch or delete documents.",
+  "brand": "sanity",
+  "website": "https://www.sanity.io",
+  "docs_url": "https://www.sanity.io/docs/http-api",
+  "popular": true,
+  "base_url": "https://{{ credentials.project_id }}.api.sanity.io/v2021-10-21",
+  "auth": [
+    {
+      "type": "bearer",
+      "fields": [
+        {
+          "key": "token",
+          "label": "API token",
+          "type": "password",
+          "required": true,
+          "help": "manage.sanity.io > API > Tokens (Editor for writes)."
+        },
+        {
+          "key": "project_id",
+          "label": "Project ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "dataset",
+          "label": "Dataset",
+          "type": "string",
+          "required": true,
+          "default": "production"
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "query",
+      "name": "Run GROQ query",
+      "method": "GET",
+      "endpoint": "/data/query/{{ credentials.dataset }}",
+      "query": {
+        "query": "{{ inputs.query }}"
+      },
+      "output_path": "result",
+      "inputs": [
+        {
+          "key": "query",
+          "label": "GROQ query",
+          "type": "code",
+          "required": true,
+          "placeholder": "*[_type == \"post\"] | order(_createdAt desc)[0...10]"
+        }
+      ]
+    },
+    {
+      "key": "create_document",
+      "name": "Create document",
+      "method": "POST",
+      "endpoint": "/data/mutate/{{ credentials.dataset }}",
+      "query": {
+        "returnIds": "true",
+        "returnDocuments": "true"
+      },
+      "body": {
+        "mutations": [
+          {
+            "create": "{{ inputs.document }}"
+          }
+        ]
+      },
+      "inputs": [
+        {
+          "key": "document",
+          "label": "Document (JSON)",
+          "type": "json",
+          "required": true,
+          "placeholder": "{ \"_type\": \"post\", \"title\": \"Hello\" }"
+        }
+      ]
+    },
+    {
+      "key": "patch_document",
+      "name": "Update document fields",
+      "method": "POST",
+      "endpoint": "/data/mutate/{{ credentials.dataset }}",
+      "query": {
+        "returnIds": "true",
+        "returnDocuments": "true"
+      },
+      "body": {
+        "mutations": [
+          {
+            "patch": {
+              "id": "{{ inputs.document_id }}",
+              "set": "{{ inputs.set }}"
+            }
+          }
+        ]
+      },
+      "inputs": [
+        {
+          "key": "document_id",
+          "label": "Document ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "set",
+          "label": "Fields to set (JSON)",
+          "type": "json",
+          "required": true,
+          "placeholder": "{ \"title\": \"New title\" }"
+        }
+      ]
+    },
+    {
+      "key": "delete_document",
+      "name": "Delete document",
+      "method": "POST",
+      "endpoint": "/data/mutate/{{ credentials.dataset }}",
+      "query": {
+        "returnIds": "true"
+      },
+      "body": {
+        "mutations": [
+          {
+            "delete": {
+              "id": "{{ inputs.document_id }}"
+            }
+          }
+        ]
+      },
+      "inputs": [
+        {
+          "key": "document_id",
+          "label": "Document ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "mutate",
+      "name": "Run mutations",
+      "method": "POST",
+      "endpoint": "/data/mutate/{{ credentials.dataset }}",
+      "query": {
+        "returnIds": "true",
+        "returnDocuments": "true"
+      },
+      "body": {
+        "mutations": "{{ inputs.mutations }}"
+      },
+      "inputs": [
+        {
+          "key": "mutations",
+          "label": "Mutations (JSON array)",
+          "type": "json",
+          "required": true,
+          "placeholder": "[{ \"createOrReplace\": { \"_id\": \"x\", \"_type\": \"post\" } }]"
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Sanity GROQ-powered webhooks.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

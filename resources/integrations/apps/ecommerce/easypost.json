@@ -1,0 +1,163 @@
+{
+  "key": "easypost",
+  "name": "EasyPost",
+  "category": "E-commerce",
+  "description": "Create shipments, buy labels and track packages across carriers.",
+  "brand": "easypost",
+  "website": "https://www.easypost.com",
+  "docs_url": "https://docs.easypost.com/docs",
+  "base_url": "https://api.easypost.com/v2",
+  "auth": [
+    {
+      "type": "basic",
+      "fields": [
+        {
+          "key": "username",
+          "label": "API key",
+          "type": "password",
+          "required": true,
+          "help": "Production or test API key from Account Settings > API Keys."
+        },
+        {
+          "key": "password",
+          "label": "Password",
+          "type": "password",
+          "required": false,
+          "default": "",
+          "help": "Leave blank: EasyPost uses the API key as the username only."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "create_shipment",
+      "name": "Create shipment (get rates)",
+      "method": "POST",
+      "endpoint": "/shipments",
+      "output_fields": {
+        "rates": "rates"
+      },
+      "body": {
+        "shipment": {
+          "to_address": "{{ inputs.to_address }}",
+          "from_address": "{{ inputs.from_address }}",
+          "parcel": "{{ inputs.parcel }}",
+          "reference": "{{ inputs.reference }}"
+        }
+      },
+      "inputs": [
+        {
+          "key": "to_address",
+          "label": "To address",
+          "type": "json",
+          "required": true,
+          "placeholder": "{\"name\": \"Jane Doe\", \"street1\": \"417 Montgomery St\", \"city\": \"San Francisco\", \"state\": \"CA\", \"zip\": \"94104\", \"country\": \"US\"}"
+        },
+        {
+          "key": "from_address",
+          "label": "From address",
+          "type": "json",
+          "required": true
+        },
+        {
+          "key": "parcel",
+          "label": "Parcel",
+          "type": "json",
+          "required": true,
+          "placeholder": "{\"length\": 10, \"width\": 8, \"height\": 4, \"weight\": 15.4}",
+          "help": "Weight in ounces, dimensions in inches."
+        },
+        {
+          "key": "reference",
+          "label": "Reference",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "buy_shipment",
+      "name": "Buy label",
+      "method": "POST",
+      "endpoint": "/shipments/{{ inputs.shipment_id }}/buy",
+      "body": {
+        "rate": {
+          "id": "{{ inputs.rate_id }}"
+        }
+      },
+      "inputs": [
+        {
+          "key": "shipment_id",
+          "label": "Shipment ID",
+          "type": "string",
+          "required": true,
+          "placeholder": "shp_…"
+        },
+        {
+          "key": "rate_id",
+          "label": "Rate ID",
+          "type": "string",
+          "required": true,
+          "placeholder": "rate_…"
+        }
+      ]
+    },
+    {
+      "key": "create_tracker",
+      "name": "Create tracker",
+      "method": "POST",
+      "endpoint": "/trackers",
+      "body": {
+        "tracker": {
+          "tracking_code": "{{ inputs.tracking_code }}",
+          "carrier": "{{ inputs.carrier }}"
+        }
+      },
+      "inputs": [
+        {
+          "key": "tracking_code",
+          "label": "Tracking code",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "carrier",
+          "label": "Carrier",
+          "type": "string",
+          "placeholder": "USPS"
+        }
+      ]
+    },
+    {
+      "key": "get_tracker",
+      "name": "Get tracker",
+      "method": "GET",
+      "endpoint": "/trackers/{{ inputs.tracker_id }}",
+      "inputs": [
+        {
+          "key": "tracker_id",
+          "label": "Tracker ID",
+          "type": "string",
+          "required": true,
+          "placeholder": "trk_…"
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Account Settings > Webhooks: add this URL. The event result (tracker, shipment…) is passed on.",
+      "data_path": "result",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

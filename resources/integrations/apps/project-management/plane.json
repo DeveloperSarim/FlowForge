@@ -1,0 +1,243 @@
+{
+  "key": "plane",
+  "name": "Plane",
+  "category": "Project Management",
+  "description": "Create, list and comment on Plane work items (cloud or self-hosted).",
+  "brand": "plane",
+  "website": "https://plane.so",
+  "docs_url": "https://developers.plane.so/api-reference/introduction",
+  "base_url": "{{ credentials.base_url }}/api/v1",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "X-API-Key",
+    "fields": [
+      {
+        "key": "base_url",
+        "label": "Plane URL",
+        "type": "string",
+        "required": true,
+        "default": "https://api.plane.so",
+        "help": "https://api.plane.so for Plane Cloud, or your self-hosted URL."
+      },
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "Profile settings > Personal access tokens."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_projects",
+      "name": "List projects",
+      "method": "GET",
+      "endpoint": "/workspaces/{{ inputs.workspace_slug }}/projects/",
+      "inputs": [
+        {
+          "key": "workspace_slug",
+          "label": "Workspace slug",
+          "type": "string",
+          "required": true,
+          "help": "From the URL: app.plane.so/<slug>/"
+        }
+      ]
+    },
+    {
+      "key": "create_work_item",
+      "name": "Create work item",
+      "method": "POST",
+      "endpoint": "/workspaces/{{ inputs.workspace_slug }}/projects/{{ inputs.project_id }}/work-items/",
+      "body": {
+        "name": "{{ inputs.name }}",
+        "description_html": "{{ inputs.description_html }}",
+        "priority": "{{ inputs.priority }}",
+        "state": "{{ inputs.state }}",
+        "assignees": "{{ inputs.assignees }}",
+        "labels": "{{ inputs.labels }}",
+        "start_date": "{{ inputs.start_date }}",
+        "target_date": "{{ inputs.target_date }}"
+      },
+      "inputs": [
+        {
+          "key": "workspace_slug",
+          "label": "Workspace slug",
+          "type": "string",
+          "required": true,
+          "help": "From the URL: app.plane.so/<slug>/"
+        },
+        {
+          "key": "project_id",
+          "label": "Project ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "description_html",
+          "label": "Description (HTML)",
+          "type": "text"
+        },
+        {
+          "key": "priority",
+          "label": "Priority",
+          "type": "select",
+          "options": [
+            {
+              "value": "urgent",
+              "label": "urgent"
+            },
+            {
+              "value": "high",
+              "label": "high"
+            },
+            {
+              "value": "medium",
+              "label": "medium"
+            },
+            {
+              "value": "low",
+              "label": "low"
+            },
+            {
+              "value": "none",
+              "label": "none"
+            }
+          ]
+        },
+        {
+          "key": "state",
+          "label": "State ID",
+          "type": "string"
+        },
+        {
+          "key": "assignees",
+          "label": "Assignee IDs",
+          "type": "list"
+        },
+        {
+          "key": "labels",
+          "label": "Label IDs",
+          "type": "list"
+        },
+        {
+          "key": "start_date",
+          "label": "Start date",
+          "type": "string",
+          "placeholder": "2026-10-12"
+        },
+        {
+          "key": "target_date",
+          "label": "Due date",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "list_work_items",
+      "name": "List work items",
+      "method": "GET",
+      "endpoint": "/workspaces/{{ inputs.workspace_slug }}/projects/{{ inputs.project_id }}/work-items/",
+      "inputs": [
+        {
+          "key": "workspace_slug",
+          "label": "Workspace slug",
+          "type": "string",
+          "required": true,
+          "help": "From the URL: app.plane.so/<slug>/"
+        },
+        {
+          "key": "project_id",
+          "label": "Project ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "get_work_item",
+      "name": "Get work item",
+      "method": "GET",
+      "endpoint": "/workspaces/{{ inputs.workspace_slug }}/projects/{{ inputs.project_id }}/work-items/{{ inputs.work_item_id }}/",
+      "inputs": [
+        {
+          "key": "workspace_slug",
+          "label": "Workspace slug",
+          "type": "string",
+          "required": true,
+          "help": "From the URL: app.plane.so/<slug>/"
+        },
+        {
+          "key": "project_id",
+          "label": "Project ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "work_item_id",
+          "label": "Work item ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "add_comment",
+      "name": "Add comment",
+      "method": "POST",
+      "endpoint": "/workspaces/{{ inputs.workspace_slug }}/projects/{{ inputs.project_id }}/work-items/{{ inputs.work_item_id }}/comments/",
+      "body": {
+        "comment_html": "{{ inputs.comment_html }}"
+      },
+      "inputs": [
+        {
+          "key": "workspace_slug",
+          "label": "Workspace slug",
+          "type": "string",
+          "required": true,
+          "help": "From the URL: app.plane.so/<slug>/"
+        },
+        {
+          "key": "project_id",
+          "label": "Project ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "work_item_id",
+          "label": "Work item ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "comment_html",
+          "label": "Comment (HTML)",
+          "type": "text",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Add this URL under Workspace settings > Webhooks.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

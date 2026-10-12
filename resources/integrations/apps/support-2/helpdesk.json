@@ -1,0 +1,98 @@
+{
+  "key": "helpdesk",
+  "name": "HelpDesk",
+  "category": "Customer Support",
+  "description": "Create, update and reply to tickets in HelpDesk by LiveChat.",
+  "brand": "helpdesk",
+  "website": "https://www.helpdesk.com",
+  "docs_url": "https://api.helpdesk.com/docs",
+  "base_url": "https://api.helpdesk.com/v1",
+  "auth": [
+    {
+      "type": "basic",
+      "fields": [
+        { "key": "username", "label": "Account ID", "type": "string", "required": true },
+        { "key": "password", "label": "Personal access token", "type": "password", "required": true, "help": "Create one in the LiveChat/HelpDesk Developer Console > Tools > Personal Access Tokens" }
+      ]
+    },
+    {
+      "type": "bearer",
+      "fields": [{ "key": "token", "label": "OAuth access token", "type": "password", "required": true }]
+    }
+  ],
+  "actions": [
+    {
+      "key": "create_ticket",
+      "name": "Create ticket",
+      "method": "POST",
+      "endpoint": "/tickets",
+      "body": {
+        "subject": "{{ inputs.subject }}",
+        "requester": { "email": "{{ inputs.requester_email }}", "name": "{{ inputs.requester_name }}" },
+        "message": { "text": "{{ inputs.message }}" },
+        "status": "{{ inputs.status }}",
+        "priority": "{{ inputs.priority }}",
+        "teamIDs": "{{ inputs.team_ids }}"
+      },
+      "inputs": [
+        { "key": "requester_email", "label": "Requester email", "type": "string", "required": true },
+        { "key": "requester_name", "label": "Requester name", "type": "string", "required": true },
+        { "key": "subject", "label": "Subject", "type": "string" },
+        { "key": "message", "label": "Message", "type": "text", "required": true },
+        { "key": "status", "label": "Status", "type": "select", "options": [{ "value": "open", "label": "Open" }, { "value": "pending", "label": "Pending" }, { "value": "onhold", "label": "On hold" }, { "value": "solved", "label": "Solved" }, { "value": "closed", "label": "Closed" }] },
+        { "key": "priority", "label": "Priority", "type": "number", "help": "-10 Low, 0 Medium, 10 High, 20 Urgent" },
+        { "key": "team_ids", "label": "Team IDs", "type": "list" }
+      ]
+    },
+    {
+      "key": "update_ticket",
+      "name": "Update ticket",
+      "method": "PATCH",
+      "endpoint": "/tickets/{{ inputs.ticket_id }}",
+      "body": { "status": "{{ inputs.status }}", "priority": "{{ inputs.priority }}", "subject": "{{ inputs.subject }}" },
+      "inputs": [
+        { "key": "ticket_id", "label": "Ticket ID", "type": "string", "required": true },
+        { "key": "status", "label": "Status", "type": "select", "options": [{ "value": "open", "label": "Open" }, { "value": "pending", "label": "Pending" }, { "value": "onhold", "label": "On hold" }, { "value": "solved", "label": "Solved" }, { "value": "closed", "label": "Closed" }] },
+        { "key": "priority", "label": "Priority", "type": "number", "help": "-10 Low, 0 Medium, 10 High, 20 Urgent" },
+        { "key": "subject", "label": "Subject", "type": "string" }
+      ]
+    },
+    {
+      "key": "reply_ticket",
+      "name": "Reply to ticket",
+      "method": "PATCH",
+      "endpoint": "/tickets/{{ inputs.ticket_id }}",
+      "body": { "message": { "text": "{{ inputs.message }}" } },
+      "inputs": [
+        { "key": "ticket_id", "label": "Ticket ID", "type": "string", "required": true },
+        { "key": "message", "label": "Reply", "type": "text", "required": true }
+      ]
+    },
+    {
+      "key": "get_ticket",
+      "name": "Get ticket",
+      "method": "GET",
+      "endpoint": "/tickets/{{ inputs.ticket_id }}",
+      "inputs": [{ "key": "ticket_id", "label": "Ticket ID", "type": "string", "required": true }]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_ticket",
+      "name": "New ticket",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/tickets",
+      "query": { "sortBy": "createdAt", "order": "desc", "pageSize": 50 },
+      "id_field": "ID",
+      "inputs": [{ "key": "poll_interval", "label": "Check every (minutes)", "type": "number", "default": 5 }]
+    },
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Register this URL with POST /webhooks (eventType e.g. tickets.create) via Make an API call.",
+      "inputs": [{ "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }]
+    }
+  ]
+}

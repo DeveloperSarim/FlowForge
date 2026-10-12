@@ -1,0 +1,159 @@
+{
+  "key": "imagekit",
+  "name": "ImageKit",
+  "category": "Files & Documents",
+  "description": "Search and manage media library files and purge CDN cache.",
+  "brand": "imagekit",
+  "website": "https://imagekit.io",
+  "docs_url": "https://imagekit.io/docs/api-reference/api-introduction",
+  "base_url": "https://api.imagekit.io/v1",
+  "auth": [
+    {
+      "type": "basic",
+      "fields": [
+        {
+          "key": "username",
+          "label": "Private API key",
+          "type": "password",
+          "required": true
+        },
+        {
+          "key": "password",
+          "label": "Password",
+          "type": "password",
+          "required": false,
+          "default": "",
+          "help": "Leave empty."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_files",
+      "name": "List / search files",
+      "method": "GET",
+      "endpoint": "/files",
+      "query": {
+        "searchQuery": "{{ inputs.search_query }}",
+        "path": "{{ inputs.path }}",
+        "sort": "{{ inputs.sort }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "inputs": [
+        {
+          "key": "search_query",
+          "label": "Search query",
+          "type": "string",
+          "placeholder": "name : \"logo\" AND size > 10kb"
+        },
+        {
+          "key": "path",
+          "label": "Folder",
+          "type": "string",
+          "placeholder": "/products"
+        },
+        {
+          "key": "sort",
+          "label": "Sort",
+          "type": "select",
+          "options": [
+            {
+              "value": "DESC_CREATED",
+              "label": "Newest first"
+            },
+            {
+              "value": "ASC_CREATED",
+              "label": "Oldest first"
+            },
+            {
+              "value": "ASC_NAME",
+              "label": "Name"
+            }
+          ],
+          "default": "DESC_CREATED"
+        },
+        {
+          "key": "limit",
+          "label": "Max files",
+          "type": "number",
+          "default": 100
+        }
+      ]
+    },
+    {
+      "key": "get_file_details",
+      "name": "Get file details",
+      "method": "GET",
+      "endpoint": "/files/{{ inputs.file_id }}/details",
+      "inputs": [
+        {
+          "key": "file_id",
+          "label": "File ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "delete_file",
+      "name": "Delete file",
+      "method": "DELETE",
+      "endpoint": "/files/{{ inputs.file_id }}",
+      "inputs": [
+        {
+          "key": "file_id",
+          "label": "File ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "purge_cache",
+      "name": "Purge CDN cache",
+      "method": "POST",
+      "endpoint": "/files/purge",
+      "body": {
+        "url": "{{ inputs.url }}"
+      },
+      "inputs": [
+        {
+          "key": "url",
+          "label": "File URL",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_file",
+      "name": "New file",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/files",
+      "query": {
+        "sort": "DESC_CREATED",
+        "limit": 50,
+        "path": "{{ inputs.path }}"
+      },
+      "id_field": "fileId",
+      "inputs": [
+        {
+          "key": "path",
+          "label": "Folder",
+          "type": "string",
+          "placeholder": "/uploads"
+        },
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

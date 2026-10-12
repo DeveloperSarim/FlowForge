@@ -1,0 +1,60 @@
+{
+  "key": "umami",
+  "name": "Umami",
+  "category": "Analytics",
+  "description": "Read website stats, metrics and active visitors (Umami Cloud or self-hosted).",
+  "brand": "umami",
+  "website": "https://umami.is",
+  "docs_url": "https://umami.is/docs/api",
+  "base_url": "{{ credentials.api_url }}",
+  "auth": { "type": "bearer", "fields": [
+    { "key": "api_url", "label": "API base URL", "type": "string", "required": true, "default": "https://api.umami.is/v1", "help": "Self-hosted: https://<your-host>/api" },
+    { "key": "token", "label": "API key or token", "type": "password", "required": true, "help": "Cloud: Settings > API keys. Self-hosted: the token from POST /api/auth/login." }
+  ] },
+  "actions": [
+    {
+      "key": "list_websites",
+      "name": "List websites",
+      "method": "GET",
+      "endpoint": "/websites",
+      "output_path": "data",
+      "inputs": []
+    },
+    {
+      "key": "get_stats",
+      "name": "Get website stats",
+      "description": "Pageviews, visitors, visits, bounces and total time for a period.",
+      "method": "GET",
+      "endpoint": "/websites/{{ inputs.website_id }}/stats",
+      "query": { "startAt": "{{ inputs.start_at }}", "endAt": "{{ inputs.end_at }}" },
+      "inputs": [
+        { "key": "website_id", "label": "Website ID", "type": "string", "required": true },
+        { "key": "start_at", "label": "Start (ms timestamp)", "type": "number", "required": true },
+        { "key": "end_at", "label": "End (ms timestamp)", "type": "number", "required": true }
+      ]
+    },
+    {
+      "key": "get_metrics",
+      "name": "Get metrics",
+      "description": "Top values for a dimension such as pages, referrers or countries.",
+      "method": "GET",
+      "endpoint": "/websites/{{ inputs.website_id }}/metrics",
+      "query": { "startAt": "{{ inputs.start_at }}", "endAt": "{{ inputs.end_at }}", "type": "{{ inputs.type }}", "limit": "{{ inputs.limit }}" },
+      "inputs": [
+        { "key": "website_id", "label": "Website ID", "type": "string", "required": true },
+        { "key": "start_at", "label": "Start (ms timestamp)", "type": "number", "required": true },
+        { "key": "end_at", "label": "End (ms timestamp)", "type": "number", "required": true },
+        { "key": "type", "label": "Metric type", "type": "string", "required": true, "default": "referrer", "help": "e.g. url (path on newer versions), referrer, browser, os, device, country, event" },
+        { "key": "limit", "label": "Limit", "type": "number" }
+      ]
+    },
+    {
+      "key": "get_active",
+      "name": "Get active visitors",
+      "description": "Visitors in the last 5 minutes.",
+      "method": "GET",
+      "endpoint": "/websites/{{ inputs.website_id }}/active",
+      "inputs": [{ "key": "website_id", "label": "Website ID", "type": "string", "required": true }]
+    }
+  ]
+}

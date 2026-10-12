@@ -1,0 +1,170 @@
+{
+  "key": "lifterlms",
+  "name": "LifterLMS",
+  "category": "Education",
+  "description": "Create students and enroll them in LifterLMS courses and memberships.",
+  "brand": "lifterlms",
+  "website": "https://lifterlms.com",
+  "docs_url": "https://developer.lifterlms.com/rest-api/",
+  "base_url": "{{ credentials.site_url }}/wp-json/llms/v1",
+  "auth": [
+    {
+      "type": "basic",
+      "fields": [
+        {
+          "key": "site_url",
+          "label": "WordPress site URL",
+          "type": "string",
+          "required": true,
+          "placeholder": "https://academy.example.com",
+          "help": "No trailing slash."
+        },
+        {
+          "key": "username",
+          "label": "Consumer key",
+          "type": "password",
+          "required": true,
+          "help": "LifterLMS > Settings > REST API > Add key."
+        },
+        {
+          "key": "password",
+          "label": "Consumer secret",
+          "type": "password",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_courses",
+      "name": "List courses",
+      "method": "GET",
+      "endpoint": "/courses",
+      "query": {
+        "per_page": "{{ inputs.per_page }}"
+      },
+      "inputs": [
+        {
+          "key": "per_page",
+          "label": "Per page",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    },
+    {
+      "key": "list_students",
+      "name": "List students",
+      "method": "GET",
+      "endpoint": "/students",
+      "query": {
+        "search": "{{ inputs.search }}",
+        "per_page": "{{ inputs.per_page }}"
+      },
+      "inputs": [
+        {
+          "key": "search",
+          "label": "Search",
+          "type": "string"
+        },
+        {
+          "key": "per_page",
+          "label": "Per page",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    },
+    {
+      "key": "create_student",
+      "name": "Create student",
+      "method": "POST",
+      "endpoint": "/students",
+      "body": {
+        "email": "{{ inputs.email }}",
+        "first_name": "{{ inputs.first_name }}",
+        "last_name": "{{ inputs.last_name }}",
+        "username": "{{ inputs.username }}",
+        "password": "{{ inputs.password }}"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "first_name",
+          "label": "First name",
+          "type": "string"
+        },
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string"
+        },
+        {
+          "key": "username",
+          "label": "Username",
+          "type": "string"
+        },
+        {
+          "key": "password",
+          "label": "Password",
+          "type": "password"
+        }
+      ]
+    },
+    {
+      "key": "enroll_student",
+      "name": "Enroll student",
+      "method": "POST",
+      "endpoint": "/students/{{ inputs.student_id }}/enrollments/{{ inputs.post_id }}",
+      "inputs": [
+        {
+          "key": "student_id",
+          "label": "Student ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "post_id",
+          "label": "Course or membership ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_enrollments",
+      "name": "List student enrollments",
+      "method": "GET",
+      "endpoint": "/students/{{ inputs.student_id }}/enrollments",
+      "inputs": [
+        {
+          "key": "student_id",
+          "label": "Student ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "LifterLMS > Settings > REST API > Webhooks: add this URL as the delivery URL.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

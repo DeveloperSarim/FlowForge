@@ -1,0 +1,82 @@
+{
+  "key": "stytch",
+  "name": "Stytch",
+  "category": "Security & IT",
+  "description": "Create, find, update and delete users and send email magic links.",
+  "brand": "stytch",
+  "website": "https://stytch.com",
+  "docs_url": "https://stytch.com/docs/api",
+  "base_url": "https://{{ credentials.host }}/v1",
+  "auth": { "type": "basic", "fields": [
+    { "key": "host", "label": "Environment", "type": "string", "required": true, "default": "api.stytch.com", "help": "api.stytch.com for live, test.stytch.com for test projects." },
+    { "key": "username", "label": "Project ID", "type": "string", "required": true },
+    { "key": "password", "label": "Secret", "type": "password", "required": true }
+  ] },
+  "actions": [
+    {
+      "key": "create_user",
+      "name": "Create user",
+      "method": "POST",
+      "endpoint": "/users",
+      "body": { "email": "{{ inputs.email }}", "phone_number": "{{ inputs.phone_number }}", "name": { "first_name": "{{ inputs.first_name }}", "last_name": "{{ inputs.last_name }}" }, "trusted_metadata": "{{ inputs.trusted_metadata }}", "untrusted_metadata": "{{ inputs.untrusted_metadata }}" },
+      "inputs": [
+        { "key": "email", "label": "Email", "type": "string" },
+        { "key": "phone_number", "label": "Phone (E.164)", "type": "string", "placeholder": "+12025550123" },
+        { "key": "first_name", "label": "First name", "type": "string" },
+        { "key": "last_name", "label": "Last name", "type": "string" },
+        { "key": "trusted_metadata", "label": "Trusted metadata", "type": "keyvalue" },
+        { "key": "untrusted_metadata", "label": "Untrusted metadata", "type": "keyvalue" }
+      ]
+    },
+    {
+      "key": "get_user",
+      "name": "Get user",
+      "method": "GET",
+      "endpoint": "/users/{{ inputs.user_id }}",
+      "inputs": [{ "key": "user_id", "label": "User ID", "type": "string", "required": true, "placeholder": "user-test-..." }]
+    },
+    {
+      "key": "find_user_by_email",
+      "name": "Find user by email",
+      "method": "POST",
+      "endpoint": "/users/search",
+      "body": { "limit": 10, "query": { "operator": "AND", "operands": [{ "filter_name": "email_address", "filter_value": ["{{ inputs.email }}"] }] } },
+      "output_path": "results",
+      "inputs": [{ "key": "email", "label": "Email", "type": "string", "required": true }]
+    },
+    {
+      "key": "update_user",
+      "name": "Update user",
+      "method": "PUT",
+      "endpoint": "/users/{{ inputs.user_id }}",
+      "body": { "name": { "first_name": "{{ inputs.first_name }}", "last_name": "{{ inputs.last_name }}" }, "trusted_metadata": "{{ inputs.trusted_metadata }}", "untrusted_metadata": "{{ inputs.untrusted_metadata }}" },
+      "inputs": [
+        { "key": "user_id", "label": "User ID", "type": "string", "required": true },
+        { "key": "first_name", "label": "First name", "type": "string" },
+        { "key": "last_name", "label": "Last name", "type": "string" },
+        { "key": "trusted_metadata", "label": "Trusted metadata", "type": "keyvalue" },
+        { "key": "untrusted_metadata", "label": "Untrusted metadata", "type": "keyvalue" }
+      ]
+    },
+    {
+      "key": "delete_user",
+      "name": "Delete user",
+      "method": "DELETE",
+      "endpoint": "/users/{{ inputs.user_id }}",
+      "inputs": [{ "key": "user_id", "label": "User ID", "type": "string", "required": true }]
+    },
+    {
+      "key": "send_magic_link",
+      "name": "Send email magic link",
+      "description": "Logs in an existing user or signs up a new one.",
+      "method": "POST",
+      "endpoint": "/magic_links/email/login_or_create",
+      "body": { "email": "{{ inputs.email }}", "login_magic_link_url": "{{ inputs.login_url }}", "signup_magic_link_url": "{{ inputs.signup_url }}" },
+      "inputs": [
+        { "key": "email", "label": "Email", "type": "string", "required": true },
+        { "key": "login_url", "label": "Login redirect URL", "type": "string" },
+        { "key": "signup_url", "label": "Sign-up redirect URL", "type": "string" }
+      ]
+    }
+  ]
+}

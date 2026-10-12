@@ -1,0 +1,136 @@
+{
+  "key": "azure_openai",
+  "name": "Azure OpenAI",
+  "category": "AI",
+  "description": "Chat and embeddings with your Azure OpenAI deployments.",
+  "brand": "microsoftazure",
+  "website": "https://azure.microsoft.com/products/ai-services/openai-service",
+  "docs_url": "https://learn.microsoft.com/azure/ai-services/openai/reference",
+  "base_url": "https://{{ credentials.resource }}.openai.azure.com/openai",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "api-key",
+    "fields": [
+      {
+        "key": "resource",
+        "label": "Resource name",
+        "type": "string",
+        "required": true,
+        "help": "The part before .openai.azure.com in your endpoint."
+      },
+      {
+        "key": "deployment",
+        "label": "Chat deployment name",
+        "type": "string",
+        "required": true
+      },
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "chat_completion",
+      "name": "Chat completion",
+      "description": "Send a prompt and get the reply as {{ steps.<id>.text }}.",
+      "method": "POST",
+      "endpoint": "/deployments/{{ credentials.deployment }}/chat/completions",
+      "timeout": 300,
+      "query": {
+        "api-version": "{{ inputs.api_version }}"
+      },
+      "body": {
+        "messages": [
+          {
+            "role": "system",
+            "content": "{{ inputs.system }}"
+          },
+          {
+            "role": "user",
+            "content": "{{ inputs.prompt }}"
+          }
+        ],
+        "temperature": "{{ inputs.temperature }}",
+        "max_tokens": "{{ inputs.max_tokens }}"
+      },
+      "output_fields": {
+        "text": "choices.0.message.content"
+      },
+      "inputs": [
+        {
+          "key": "prompt",
+          "label": "Prompt",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "system",
+          "label": "System prompt",
+          "type": "text",
+          "required": true,
+          "default": "You are a helpful assistant.",
+          "help": "Sent as the system message."
+        },
+        {
+          "key": "temperature",
+          "label": "Temperature",
+          "type": "number",
+          "placeholder": "0.7"
+        },
+        {
+          "key": "max_tokens",
+          "label": "Max output tokens",
+          "type": "number"
+        },
+        {
+          "key": "api_version",
+          "label": "API version",
+          "type": "string",
+          "required": true,
+          "default": "2024-10-21"
+        }
+      ]
+    },
+    {
+      "key": "create_embedding",
+      "name": "Create embedding",
+      "method": "POST",
+      "endpoint": "/deployments/{{ inputs.deployment }}/embeddings",
+      "query": {
+        "api-version": "{{ inputs.api_version }}"
+      },
+      "body": {
+        "input": "{{ inputs.input }}"
+      },
+      "output_fields": {
+        "embedding": "data.0.embedding"
+      },
+      "inputs": [
+        {
+          "key": "deployment",
+          "label": "Embedding deployment name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "input",
+          "label": "Text",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "api_version",
+          "label": "API version",
+          "type": "string",
+          "required": true,
+          "default": "2024-10-21"
+        }
+      ]
+    }
+  ]
+}

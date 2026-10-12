@@ -1,0 +1,83 @@
+{
+  "key": "jitbit",
+  "name": "Jitbit Helpdesk",
+  "category": "Customer Support",
+  "description": "Create tickets, add comments and look up tickets in Jitbit Helpdesk.",
+  "brand": "jitbit",
+  "website": "https://www.jitbit.com/helpdesk/",
+  "docs_url": "https://www.jitbit.com/docs/api/",
+  "base_url": "{{ credentials.base_url }}/api",
+  "auth": [
+    {
+      "type": "basic",
+      "fields": [
+        { "key": "base_url", "label": "Helpdesk URL", "type": "string", "required": true, "placeholder": "https://yourcompany.jitbit.com/helpdesk", "help": "Without a trailing slash" },
+        { "key": "username", "label": "Username", "type": "string", "required": true },
+        { "key": "password", "label": "Password", "type": "password", "required": true }
+      ]
+    },
+    {
+      "type": "bearer",
+      "fields": [
+        { "key": "base_url", "label": "Helpdesk URL", "type": "string", "required": true, "placeholder": "https://yourcompany.jitbit.com/helpdesk", "help": "Without a trailing slash" },
+        { "key": "token", "label": "API token", "type": "password", "required": true, "help": "From your user profile" }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "create_ticket",
+      "name": "Create ticket",
+      "description": "Returns the new ticket ID.",
+      "method": "POST",
+      "endpoint": "/ticket",
+      "body_format": "form",
+      "body": {
+        "categoryId": "{{ inputs.category_id }}",
+        "subject": "{{ inputs.subject }}",
+        "body": "{{ inputs.body }}",
+        "priorityId": "{{ inputs.priority }}",
+        "userId": "{{ inputs.user_id }}",
+        "tags": "{{ inputs.tags }}"
+      },
+      "inputs": [
+        { "key": "category_id", "label": "Category ID", "type": "number", "required": true },
+        { "key": "subject", "label": "Subject", "type": "string", "required": true },
+        { "key": "body", "label": "Body", "type": "text", "required": true },
+        { "key": "priority", "label": "Priority", "type": "select", "required": true, "default": "0", "options": [{ "value": "-1", "label": "Low" }, { "value": "0", "label": "Normal" }, { "value": "1", "label": "High" }, { "value": "2", "label": "Critical" }] },
+        { "key": "user_id", "label": "On behalf of user ID", "type": "number" },
+        { "key": "tags", "label": "Tags", "type": "string", "placeholder": "billing,urgent" }
+      ]
+    },
+    {
+      "key": "add_comment",
+      "name": "Add comment",
+      "method": "POST",
+      "endpoint": "/comment",
+      "body_format": "form",
+      "body": { "id": "{{ inputs.ticket_id }}", "body": "{{ inputs.body }}", "forTechsOnly": "{{ inputs.for_techs_only }}" },
+      "inputs": [
+        { "key": "ticket_id", "label": "Ticket ID", "type": "number", "required": true },
+        { "key": "body", "label": "Comment", "type": "text", "required": true },
+        { "key": "for_techs_only", "label": "Visible to techs only", "type": "select", "options": [{ "value": "true", "label": "Yes" }, { "value": "false", "label": "No" }] }
+      ]
+    },
+    {
+      "key": "get_ticket",
+      "name": "Get ticket",
+      "method": "GET",
+      "endpoint": "/ticket",
+      "query": { "id": "{{ inputs.ticket_id }}" },
+      "inputs": [{ "key": "ticket_id", "label": "Ticket ID", "type": "number", "required": true }]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Add an automation rule with a 'Send an HTTP request' action pointing at this URL.",
+      "inputs": [{ "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }]
+    }
+  ]
+}

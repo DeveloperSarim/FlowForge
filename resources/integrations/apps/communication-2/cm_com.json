@@ -1,0 +1,42 @@
+{
+  "key": "cm_com",
+  "name": "CM.com",
+  "category": "Communication",
+  "description": "Send SMS, WhatsApp, Viber or RCS messages through the CM.com Business Messaging API.",
+  "brand": "cmdotcom",
+  "website": "https://www.cm.com",
+  "docs_url": "https://developers.cm.com/messaging/docs/sms",
+  "base_url": "https://gw.messaging.cm.com",
+  "auth": [
+    { "type": "api_key", "fields": [{ "key": "api_key", "label": "Product token", "type": "password", "required": true, "help": "CM.com app → Messaging → Gateway → Product token." }] }
+  ],
+  "actions": [
+    {
+      "key": "send_message",
+      "name": "Send message",
+      "method": "POST",
+      "endpoint": "/v1.0/message",
+      "body": {
+        "messages": {
+          "authentication": { "producttoken": "{{ credentials.api_key }}" },
+          "msg": [{
+            "from": "{{ inputs.from }}",
+            "to": [{ "number": "{{ inputs.to }}" }],
+            "body": { "type": "auto", "content": "{{ inputs.content }}" },
+            "allowedChannels": ["{{ inputs.channel }}"],
+            "reference": "{{ inputs.reference }}"
+          }]
+        }
+      },
+      "inputs": [
+        { "key": "from", "label": "Sender", "type": "string", "required": true, "help": "Sender name (max 11 chars) or number; for WhatsApp/Viber your registered sender." },
+        { "key": "to", "label": "To", "type": "string", "required": true, "placeholder": "0031612345678", "help": "International format with 00 prefix." },
+        { "key": "content", "label": "Message", "type": "text", "required": true },
+        { "key": "channel", "label": "Channel", "type": "select", "default": "SMS", "options": [
+          { "value": "SMS", "label": "SMS" }, { "value": "WhatsApp", "label": "WhatsApp" }, { "value": "Viber", "label": "Viber" }, { "value": "RCS", "label": "RCS" }
+        ] },
+        { "key": "reference", "label": "Your reference", "type": "string" }
+      ]
+    }
+  ]
+}

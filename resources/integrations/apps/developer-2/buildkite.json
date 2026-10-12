@@ -1,0 +1,109 @@
+{
+  "key": "buildkite",
+  "name": "Buildkite",
+  "category": "Developer Tools",
+  "description": "Trigger, cancel and rebuild pipeline builds and list recent builds.",
+  "brand": "buildkite",
+  "website": "https://buildkite.com",
+  "docs_url": "https://buildkite.com/docs/apis/rest-api",
+  "base_url": "https://api.buildkite.com/v2",
+  "auth": { "type": "bearer", "fields": [{ "key": "token", "label": "API access token", "type": "password", "required": true, "help": "Personal settings → API Access Tokens, with read_builds / write_builds / read_pipelines scopes." }] },
+  "actions": [
+    {
+      "key": "create_build",
+      "name": "Create build",
+      "method": "POST",
+      "endpoint": "/organizations/{{ inputs.organization }}/pipelines/{{ inputs.pipeline }}/builds",
+      "body": { "commit": "{{ inputs.commit }}", "branch": "{{ inputs.branch }}", "message": "{{ inputs.message }}", "env": "{{ inputs.env }}", "meta_data": "{{ inputs.meta_data }}" },
+      "inputs": [
+        { "key": "organization", "label": "Organization slug", "type": "string", "required": true },
+        { "key": "pipeline", "label": "Pipeline slug", "type": "string", "required": true },
+        { "key": "commit", "label": "Commit", "type": "string", "required": true, "default": "HEAD", "help": "A SHA or HEAD." },
+        { "key": "branch", "label": "Branch", "type": "string", "required": true, "placeholder": "main" },
+        { "key": "message", "label": "Message", "type": "string" },
+        { "key": "env", "label": "Environment variables", "type": "keyvalue" },
+        { "key": "meta_data", "label": "Meta-data", "type": "keyvalue" }
+      ]
+    },
+    {
+      "key": "get_build",
+      "name": "Get build",
+      "method": "GET",
+      "endpoint": "/organizations/{{ inputs.organization }}/pipelines/{{ inputs.pipeline }}/builds/{{ inputs.number }}",
+      "inputs": [
+        { "key": "organization", "label": "Organization slug", "type": "string", "required": true },
+        { "key": "pipeline", "label": "Pipeline slug", "type": "string", "required": true },
+        { "key": "number", "label": "Build number", "type": "number", "required": true }
+      ]
+    },
+    {
+      "key": "list_builds",
+      "name": "List builds",
+      "method": "GET",
+      "endpoint": "/organizations/{{ inputs.organization }}/pipelines/{{ inputs.pipeline }}/builds",
+      "query": { "branch": "{{ inputs.branch }}", "state": "{{ inputs.state }}", "per_page": "{{ inputs.per_page }}" },
+      "inputs": [
+        { "key": "organization", "label": "Organization slug", "type": "string", "required": true },
+        { "key": "pipeline", "label": "Pipeline slug", "type": "string", "required": true },
+        { "key": "branch", "label": "Branch", "type": "string" },
+        { "key": "state", "label": "State", "type": "select", "options": [
+          { "value": "running", "label": "Running" }, { "value": "scheduled", "label": "Scheduled" }, { "value": "passed", "label": "Passed" },
+          { "value": "failed", "label": "Failed" }, { "value": "canceled", "label": "Canceled" }, { "value": "finished", "label": "Finished" }
+        ] },
+        { "key": "per_page", "label": "Per page", "type": "number", "default": 30 }
+      ]
+    },
+    {
+      "key": "cancel_build",
+      "name": "Cancel build",
+      "method": "PUT",
+      "endpoint": "/organizations/{{ inputs.organization }}/pipelines/{{ inputs.pipeline }}/builds/{{ inputs.number }}/cancel",
+      "inputs": [
+        { "key": "organization", "label": "Organization slug", "type": "string", "required": true },
+        { "key": "pipeline", "label": "Pipeline slug", "type": "string", "required": true },
+        { "key": "number", "label": "Build number", "type": "number", "required": true }
+      ]
+    },
+    {
+      "key": "rebuild_build",
+      "name": "Rebuild build",
+      "method": "PUT",
+      "endpoint": "/organizations/{{ inputs.organization }}/pipelines/{{ inputs.pipeline }}/builds/{{ inputs.number }}/rebuild",
+      "inputs": [
+        { "key": "organization", "label": "Organization slug", "type": "string", "required": true },
+        { "key": "pipeline", "label": "Pipeline slug", "type": "string", "required": true },
+        { "key": "number", "label": "Build number", "type": "number", "required": true }
+      ]
+    },
+    {
+      "key": "list_pipelines",
+      "name": "List pipelines",
+      "method": "GET",
+      "endpoint": "/organizations/{{ inputs.organization }}/pipelines",
+      "inputs": [{ "key": "organization", "label": "Organization slug", "type": "string", "required": true }]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_build",
+      "name": "New build (polling)",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/organizations/{{ inputs.organization }}/pipelines/{{ inputs.pipeline }}/builds",
+      "query": { "branch": "{{ inputs.branch }}", "per_page": 30 },
+      "id_field": "id",
+      "inputs": [
+        { "key": "organization", "label": "Organization slug", "type": "string", "required": true },
+        { "key": "pipeline", "label": "Pipeline slug", "type": "string", "required": true },
+        { "key": "branch", "label": "Branch", "type": "string" },
+        { "key": "poll_interval", "label": "Check every (minutes)", "type": "number", "default": 5 }
+      ]
+    },
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "inputs": [{ "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }]
+    }
+  ]
+}

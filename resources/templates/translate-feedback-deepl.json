@@ -1,0 +1,76 @@
+{
+  "key": "translate-feedback-deepl",
+  "name": "Translate customer feedback with DeepL",
+  "description": "Feedback posted to a webhook is translated to English and shared with the team.",
+  "category": "AI",
+  "featured": false,
+  "graph": {
+    "nodes": [
+      {
+        "id": "trigger",
+        "type": "trigger",
+        "position": {
+          "x": 0,
+          "y": 200
+        },
+        "data": {
+          "integration": "webhook",
+          "trigger": "catch",
+          "label": "Feedback received",
+          "config": {
+            "method": "POST",
+            "sample_payload": "{\n  \"author\": \"Lucía\",\n  \"text\": \"Me encanta el producto, pero la app móvil es lenta.\"\n}"
+          }
+        }
+      },
+      {
+        "id": "step_1",
+        "type": "action",
+        "position": {
+          "x": 240,
+          "y": 200
+        },
+        "data": {
+          "integration": "deepl",
+          "action": "translate",
+          "label": "Translate to English",
+          "config": {
+            "text": "{{ steps.trigger.data.text }}",
+            "target_lang": "EN-US"
+          }
+        }
+      },
+      {
+        "id": "step_2",
+        "type": "action",
+        "position": {
+          "x": 480,
+          "y": 200
+        },
+        "data": {
+          "integration": "slack",
+          "action": "post_message",
+          "label": "Share in #feedback",
+          "config": {
+            "channel": "#feedback",
+            "text": "{{ steps.trigger.data.author }}: {{ steps.step_1.text }}"
+          }
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "e-trigger-step_1",
+        "source": "trigger",
+        "target": "step_1",
+        "sourceHandle": null
+      },
+      {
+        "id": "e-step_1-step_2",
+        "source": "step_1",
+        "target": "step_2",
+        "sourceHandle": null
+      }
+    ]
+  }
+}

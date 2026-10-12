@@ -1,0 +1,66 @@
+{
+  "key": "google_analytics",
+  "name": "Google Analytics",
+  "category": "Analytics",
+  "description": "Run GA4 reports and realtime reports on a property.",
+  "brand": "googleanalytics",
+  "website": "https://analytics.google.com",
+  "docs_url": "https://developers.google.com/analytics/devguides/reporting/data/v1/rest",
+  "popular": true,
+  "base_url": "https://analyticsdata.googleapis.com/v1beta",
+  "auth": [
+    {
+      "type": "oauth2",
+      "authorize_url": "https://accounts.google.com/o/oauth2/v2/auth",
+      "token_url": "https://oauth2.googleapis.com/token",
+      "scopes": ["https://www.googleapis.com/auth/analytics.readonly"],
+      "authorize_params": { "access_type": "offline", "prompt": "consent" }
+    },
+    { "type": "google_service_account", "scopes": ["https://www.googleapis.com/auth/analytics.readonly"] }
+  ],
+  "actions": [
+    {
+      "key": "run_report",
+      "name": "Run report",
+      "method": "POST",
+      "endpoint": "/properties/{{ inputs.property_id }}:runReport",
+      "body": {
+        "dateRanges": [{ "startDate": "{{ inputs.start_date }}", "endDate": "{{ inputs.end_date }}" }],
+        "dimensions": "{{ inputs.dimensions }}",
+        "metrics": "{{ inputs.metrics }}",
+        "dimensionFilter": "{{ inputs.dimension_filter }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "inputs": [
+        { "key": "property_id", "label": "Property ID", "type": "string", "required": true, "placeholder": "123456789", "help": "Numeric GA4 property ID (Admin > Property details)." },
+        { "key": "start_date", "label": "Start date", "type": "string", "required": true, "default": "7daysAgo", "help": "YYYY-MM-DD, today, yesterday or NdaysAgo." },
+        { "key": "end_date", "label": "End date", "type": "string", "required": true, "default": "today" },
+        { "key": "metrics", "label": "Metrics", "type": "json", "required": true, "default": [{ "name": "activeUsers" }, { "name": "sessions" }], "placeholder": "[{ \"name\": \"activeUsers\" }]" },
+        { "key": "dimensions", "label": "Dimensions", "type": "json", "placeholder": "[{ \"name\": \"date\" }, { \"name\": \"country\" }]" },
+        { "key": "dimension_filter", "label": "Dimension filter", "type": "json", "placeholder": "{ \"filter\": { \"fieldName\": \"country\", \"stringFilter\": { \"value\": \"Germany\" } } }" },
+        { "key": "limit", "label": "Row limit", "type": "number" }
+      ]
+    },
+    {
+      "key": "run_realtime_report",
+      "name": "Run realtime report",
+      "description": "Activity from the last 30 minutes.",
+      "method": "POST",
+      "endpoint": "/properties/{{ inputs.property_id }}:runRealtimeReport",
+      "body": { "dimensions": "{{ inputs.dimensions }}", "metrics": "{{ inputs.metrics }}", "limit": "{{ inputs.limit }}" },
+      "inputs": [
+        { "key": "property_id", "label": "Property ID", "type": "string", "required": true },
+        { "key": "metrics", "label": "Metrics", "type": "json", "required": true, "default": [{ "name": "activeUsers" }] },
+        { "key": "dimensions", "label": "Dimensions", "type": "json", "placeholder": "[{ \"name\": \"country\" }]" },
+        { "key": "limit", "label": "Row limit", "type": "number" }
+      ]
+    },
+    {
+      "key": "get_metadata",
+      "name": "List dimensions and metrics",
+      "method": "GET",
+      "endpoint": "/properties/{{ inputs.property_id }}/metadata",
+      "inputs": [{ "key": "property_id", "label": "Property ID", "type": "string", "required": true, "default": "0", "help": "0 returns only the common (non-custom) fields." }]
+    }
+  ]
+}

@@ -1,0 +1,104 @@
+{
+  "key": "netatmo",
+  "name": "Netatmo",
+  "category": "IoT & Smart Home",
+  "description": "Read weather station and home data and set thermostat temperatures.",
+  "brand": "netatmo",
+  "website": "https://www.netatmo.com",
+  "docs_url": "https://dev.netatmo.com/apidocumentation",
+  "base_url": "https://api.netatmo.com/api",
+  "auth": [
+    {
+      "type": "oauth2",
+      "authorize_url": "https://api.netatmo.com/oauth2/authorize",
+      "token_url": "https://api.netatmo.com/oauth2/token",
+      "scopes": ["read_station", "read_thermostat", "write_thermostat", "read_homecoach"]
+    }
+  ],
+  "actions": [
+    {
+      "key": "get_stations_data",
+      "name": "Get weather station data",
+      "method": "GET",
+      "endpoint": "/getstationsdata",
+      "query": { "device_id": "{{ inputs.device_id }}" },
+      "output_path": "body.devices",
+      "inputs": [
+        { "key": "device_id", "label": "Station MAC address", "type": "string", "help": "Leave empty for all your stations." }
+      ]
+    },
+    {
+      "key": "get_homes_data",
+      "name": "Get homes",
+      "description": "Homes, rooms and modules (needed for thermostat actions).",
+      "method": "GET",
+      "endpoint": "/homesdata",
+      "query": { "home_id": "{{ inputs.home_id }}" },
+      "output_path": "body.homes",
+      "inputs": [
+        { "key": "home_id", "label": "Home ID", "type": "string" }
+      ]
+    },
+    {
+      "key": "get_home_status",
+      "name": "Get home status",
+      "description": "Current room temperatures, setpoints and module states.",
+      "method": "GET",
+      "endpoint": "/homestatus",
+      "query": { "home_id": "{{ inputs.home_id }}" },
+      "output_path": "body.home",
+      "inputs": [
+        { "key": "home_id", "label": "Home ID", "type": "string", "required": true }
+      ]
+    },
+    {
+      "key": "set_room_temperature",
+      "name": "Set room temperature",
+      "method": "POST",
+      "endpoint": "/setroomthermpoint",
+      "body_format": "form",
+      "body": {
+        "home_id": "{{ inputs.home_id }}",
+        "room_id": "{{ inputs.room_id }}",
+        "mode": "{{ inputs.mode }}",
+        "temp": "{{ inputs.temp }}",
+        "endtime": "{{ inputs.endtime }}"
+      },
+      "inputs": [
+        { "key": "home_id", "label": "Home ID", "type": "string", "required": true },
+        { "key": "room_id", "label": "Room ID", "type": "string", "required": true },
+        { "key": "mode", "label": "Mode", "type": "select", "required": true, "default": "manual", "options": [
+          { "value": "manual", "label": "Manual temperature" }, { "value": "max", "label": "Max heating" }, { "value": "home", "label": "Back to schedule" }
+        ] },
+        { "key": "temp", "label": "Temperature (°C)", "type": "number", "help": "Required for manual mode." },
+        { "key": "endtime", "label": "Until (Unix time)", "type": "number" }
+      ]
+    },
+    {
+      "key": "set_therm_mode",
+      "name": "Set heating mode",
+      "method": "POST",
+      "endpoint": "/setthermmode",
+      "body_format": "form",
+      "body": { "home_id": "{{ inputs.home_id }}", "mode": "{{ inputs.mode }}", "endtime": "{{ inputs.endtime }}" },
+      "inputs": [
+        { "key": "home_id", "label": "Home ID", "type": "string", "required": true },
+        { "key": "mode", "label": "Mode", "type": "select", "required": true, "default": "schedule", "options": [
+          { "value": "schedule", "label": "Schedule" }, { "value": "away", "label": "Away" }, { "value": "hg", "label": "Frost guard" }
+        ] },
+        { "key": "endtime", "label": "Until (Unix time)", "type": "number" }
+      ]
+    },
+    {
+      "key": "get_homecoach_data",
+      "name": "Get Healthy Home Coach data",
+      "method": "GET",
+      "endpoint": "/gethomecoachsdata",
+      "query": { "device_id": "{{ inputs.device_id }}" },
+      "output_path": "body.devices",
+      "inputs": [
+        { "key": "device_id", "label": "Device MAC address", "type": "string" }
+      ]
+    }
+  ]
+}

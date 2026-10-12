@@ -1,0 +1,138 @@
+{
+  "key": "manatal",
+  "name": "Manatal",
+  "category": "HR & Recruiting",
+  "description": "Create candidates, list jobs and match candidates to jobs in Manatal.",
+  "brand": "manatal",
+  "website": "https://www.manatal.com",
+  "docs_url": "https://developers.manatal.com",
+  "base_url": "https://api.manatal.com/open/v3",
+  "auth": [
+    {
+      "type": "api_key",
+      "in": "header",
+      "name": "Authorization",
+      "prefix": "Token ",
+      "fields": [
+        {
+          "key": "api_key",
+          "label": "Open API token",
+          "type": "password",
+          "required": true,
+          "help": "Administration > Integrations > Open API."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_candidates",
+      "name": "List candidates",
+      "method": "GET",
+      "endpoint": "/candidates/",
+      "query": {
+        "created_at__gte": "{{ inputs.created_at__gte }}",
+        "page": "{{ inputs.page }}",
+        "page_size": "{{ inputs.page_size }}"
+      },
+      "output_path": "results",
+      "inputs": [
+        {
+          "key": "created_at__gte",
+          "label": "Created after",
+          "type": "string",
+          "placeholder": "2026-10-01T00:00:00Z"
+        },
+        {
+          "key": "page",
+          "label": "Page",
+          "type": "number"
+        },
+        {
+          "key": "page_size",
+          "label": "Per page",
+          "type": "number",
+          "default": 100
+        }
+      ]
+    },
+    {
+      "key": "create_candidate",
+      "name": "Create candidate",
+      "method": "POST",
+      "endpoint": "/candidates/",
+      "body": {
+        "full_name": "{{ inputs.full_name }}",
+        "email": "{{ inputs.email }}",
+        "...": "{{ inputs.extra }}"
+      },
+      "inputs": [
+        {
+          "key": "full_name",
+          "label": "Full name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string"
+        },
+        {
+          "key": "extra",
+          "label": "Other fields",
+          "type": "keyvalue",
+          "help": "e.g. current_company = Acme."
+        }
+      ]
+    },
+    {
+      "key": "list_jobs",
+      "name": "List jobs",
+      "method": "GET",
+      "endpoint": "/jobs/",
+      "query": {
+        "page": "{{ inputs.page }}",
+        "page_size": "{{ inputs.page_size }}"
+      },
+      "output_path": "results",
+      "inputs": [
+        {
+          "key": "page",
+          "label": "Page",
+          "type": "number"
+        },
+        {
+          "key": "page_size",
+          "label": "Per page",
+          "type": "number",
+          "default": 100
+        }
+      ]
+    },
+    {
+      "key": "create_match",
+      "name": "Add candidate to job",
+      "method": "POST",
+      "endpoint": "/matches/",
+      "body": {
+        "job": "{{ inputs.job }}",
+        "candidate": "{{ inputs.candidate }}"
+      },
+      "inputs": [
+        {
+          "key": "job",
+          "label": "Job ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "candidate",
+          "label": "Candidate ID",
+          "type": "number",
+          "required": true
+        }
+      ]
+    }
+  ]
+}

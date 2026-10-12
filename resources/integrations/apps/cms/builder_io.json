@@ -1,0 +1,180 @@
+{
+  "key": "builder_io",
+  "name": "Builder.io",
+  "category": "CMS & Websites",
+  "description": "Fetch content entries and create or update them with the Write API.",
+  "brand": "builderdotio",
+  "website": "https://www.builder.io",
+  "docs_url": "https://www.builder.io/c/docs/content-api",
+  "base_url": "https://cdn.builder.io/api/v3",
+  "auth": [
+    {
+      "type": "api_key",
+      "in": "query",
+      "name": "apiKey",
+      "fields": [
+        {
+          "key": "api_key",
+          "label": "Public API key",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "private_key",
+          "label": "Private key",
+          "type": "password",
+          "required": false,
+          "help": "Needed for Create / Update entry."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "get_content",
+      "name": "Get content",
+      "method": "GET",
+      "endpoint": "/content/{{ inputs.model }}",
+      "output_path": "results",
+      "query": {
+        "limit": "{{ inputs.limit }}",
+        "offset": "{{ inputs.offset }}",
+        "cachebust": "true"
+      },
+      "inputs": [
+        {
+          "key": "model",
+          "label": "Model",
+          "type": "string",
+          "required": true,
+          "placeholder": "page"
+        },
+        {
+          "key": "limit",
+          "label": "Max entries",
+          "type": "number",
+          "default": 20
+        },
+        {
+          "key": "offset",
+          "label": "Offset",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "create_entry",
+      "name": "Create entry",
+      "method": "POST",
+      "endpoint": "https://builder.io/api/v1/write/{{ inputs.model }}",
+      "headers": {
+        "Authorization": "Bearer {{ credentials.private_key }}"
+      },
+      "body": {
+        "name": "{{ inputs.name }}",
+        "data": "{{ inputs.data }}",
+        "published": "{{ inputs.published }}"
+      },
+      "inputs": [
+        {
+          "key": "model",
+          "label": "Model",
+          "type": "string",
+          "required": true,
+          "placeholder": "page"
+        },
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "data",
+          "label": "Data (JSON)",
+          "type": "json",
+          "required": true
+        },
+        {
+          "key": "published",
+          "label": "Status",
+          "type": "select",
+          "options": [
+            {
+              "value": "published",
+              "label": "Published"
+            },
+            {
+              "value": "draft",
+              "label": "Draft"
+            }
+          ],
+          "default": "draft"
+        }
+      ]
+    },
+    {
+      "key": "update_entry",
+      "name": "Update entry",
+      "method": "PATCH",
+      "endpoint": "https://builder.io/api/v1/write/{{ inputs.model }}/{{ inputs.entry_id }}",
+      "headers": {
+        "Authorization": "Bearer {{ credentials.private_key }}"
+      },
+      "body": {
+        "data": "{{ inputs.data }}",
+        "published": "{{ inputs.published }}"
+      },
+      "inputs": [
+        {
+          "key": "model",
+          "label": "Model",
+          "type": "string",
+          "required": true,
+          "placeholder": "page"
+        },
+        {
+          "key": "entry_id",
+          "label": "Entry ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "data",
+          "label": "Data to change (JSON)",
+          "type": "json"
+        },
+        {
+          "key": "published",
+          "label": "Status",
+          "type": "select",
+          "options": [
+            {
+              "value": "published",
+              "label": "Published"
+            },
+            {
+              "value": "draft",
+              "label": "Draft"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Builder.io model webhooks (entry published, updated, ...).",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

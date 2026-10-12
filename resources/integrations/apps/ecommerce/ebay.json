@@ -1,0 +1,98 @@
+{
+  "key": "ebay",
+  "name": "eBay",
+  "category": "E-commerce",
+  "description": "Read seller orders and inventory items through the eBay Sell APIs.",
+  "brand": "ebay",
+  "website": "https://www.ebay.com",
+  "docs_url": "https://developer.ebay.com/develop/apis",
+  "base_url": "https://api.ebay.com",
+  "auth": [
+    {
+      "type": "oauth2",
+      "authorize_url": "https://auth.ebay.com/oauth2/authorize",
+      "token_url": "https://api.ebay.com/identity/v1/oauth2/token",
+      "client_auth": "basic",
+      "scopes": [
+        "https://api.ebay.com/oauth/api_scope",
+        "https://api.ebay.com/oauth/api_scope/sell.fulfillment",
+        "https://api.ebay.com/oauth/api_scope/sell.inventory"
+      ]
+    },
+    {
+      "type": "bearer",
+      "fields": [
+        {
+          "key": "token",
+          "label": "User access token",
+          "type": "password",
+          "required": true,
+          "help": "OAuth user token from the eBay developer portal (expires after 2 hours)."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "get_orders",
+      "name": "Get orders",
+      "method": "GET",
+      "endpoint": "/sell/fulfillment/v1/order",
+      "output_path": "orders",
+      "query": {
+        "filter": "{{ inputs.filter }}",
+        "limit": "{{ inputs.limit }}",
+        "offset": "{{ inputs.offset }}"
+      },
+      "inputs": [
+        {
+          "key": "filter",
+          "label": "Filter",
+          "type": "string",
+          "placeholder": "orderfulfillmentstatus:{NOT_STARTED|IN_PROGRESS}"
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 50,
+          "help": "Max 200."
+        },
+        {
+          "key": "offset",
+          "label": "Offset",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "get_order",
+      "name": "Get order",
+      "method": "GET",
+      "endpoint": "/sell/fulfillment/v1/order/{{ inputs.order_id }}",
+      "inputs": [
+        {
+          "key": "order_id",
+          "label": "Order ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "get_inventory_item",
+      "name": "Get inventory item",
+      "method": "GET",
+      "endpoint": "/sell/inventory/v1/inventory_item/{{ inputs.sku }}",
+      "inputs": [
+        {
+          "key": "sku",
+          "label": "SKU",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": []
+}

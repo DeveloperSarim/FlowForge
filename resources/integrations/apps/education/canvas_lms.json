@@ -1,0 +1,155 @@
+{
+  "key": "canvas_lms",
+  "name": "Canvas LMS",
+  "category": "Education",
+  "description": "Create users, enroll them in courses, post announcements and list assignments.",
+  "brand": "canvas",
+  "website": "https://www.instructure.com/canvas",
+  "docs_url": "https://canvas.instructure.com/doc/api/",
+  "popular": true,
+  "base_url": "https://{{ credentials.domain }}/api/v1",
+  "auth": [
+    {
+      "type": "bearer",
+      "fields": [
+        { "key": "domain", "label": "Canvas domain", "type": "string", "required": true, "placeholder": "school.instructure.com", "help": "Host name only, no https://." },
+        { "key": "token", "label": "Access token", "type": "password", "required": true, "help": "Account > Settings > Approved integrations > New access token." }
+      ]
+    },
+    {
+      "type": "oauth2",
+      "authorize_url": "https://{{ credentials.domain }}/login/oauth2/auth",
+      "token_url": "https://{{ credentials.domain }}/login/oauth2/token",
+      "fields": [
+        { "key": "domain", "label": "Canvas domain", "type": "string", "required": true, "placeholder": "school.instructure.com" },
+        { "key": "client_id", "label": "Developer key ID", "type": "string", "required": true },
+        { "key": "client_secret", "label": "Developer key secret", "type": "password", "required": true }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_courses",
+      "name": "List my courses",
+      "method": "GET",
+      "endpoint": "/courses",
+      "query": { "enrollment_state": "{{ inputs.enrollment_state }}", "per_page": "{{ inputs.per_page }}" },
+      "inputs": [
+        { "key": "enrollment_state", "label": "Enrollment state", "type": "select", "options": [
+          { "value": "active", "label": "Active" }, { "value": "invited_or_pending", "label": "Invited or pending" }, { "value": "completed", "label": "Completed" }
+        ] },
+        { "key": "per_page", "label": "Max results", "type": "number", "default": 50 }
+      ]
+    },
+    {
+      "key": "get_course",
+      "name": "Get course",
+      "method": "GET",
+      "endpoint": "/courses/{{ inputs.course_id }}",
+      "inputs": [
+        { "key": "course_id", "label": "Course ID", "type": "string", "required": true }
+      ]
+    },
+    {
+      "key": "list_course_users",
+      "name": "List course users",
+      "method": "GET",
+      "endpoint": "/courses/{{ inputs.course_id }}/users",
+      "query": { "enrollment_type[]": "{{ inputs.enrollment_type }}", "search_term": "{{ inputs.search_term }}", "per_page": "{{ inputs.per_page }}" },
+      "inputs": [
+        { "key": "course_id", "label": "Course ID", "type": "string", "required": true },
+        { "key": "enrollment_type", "label": "Enrollment type", "type": "select", "options": [
+          { "value": "student", "label": "Student" }, { "value": "teacher", "label": "Teacher" }, { "value": "ta", "label": "TA" },
+          { "value": "observer", "label": "Observer" }, { "value": "designer", "label": "Designer" }
+        ] },
+        { "key": "search_term", "label": "Search", "type": "string", "help": "Name, login or email (at least 2 characters)." },
+        { "key": "per_page", "label": "Max results", "type": "number", "default": 50 }
+      ]
+    },
+    {
+      "key": "create_user",
+      "name": "Create user",
+      "description": "Creates a user with a login in an account (needs account admin rights).",
+      "method": "POST",
+      "endpoint": "/accounts/{{ inputs.account_id }}/users",
+      "body": {
+        "user": { "name": "{{ inputs.name }}", "skip_registration": "{{ inputs.skip_registration }}" },
+        "pseudonym": { "unique_id": "{{ inputs.login }}", "sis_user_id": "{{ inputs.sis_user_id }}", "send_confirmation": "{{ inputs.send_confirmation }}" }
+      },
+      "inputs": [
+        { "key": "account_id", "label": "Account ID", "type": "string", "required": true, "default": "self", "help": "self = your root account, or a sub-account ID." },
+        { "key": "name", "label": "Full name", "type": "string", "required": true },
+        { "key": "login", "label": "Login (usually email)", "type": "string", "required": true },
+        { "key": "sis_user_id", "label": "SIS user ID", "type": "string" },
+        { "key": "skip_registration", "label": "Skip registration email", "type": "boolean" },
+        { "key": "send_confirmation", "label": "Send confirmation email", "type": "boolean" }
+      ]
+    },
+    {
+      "key": "enroll_user",
+      "name": "Enroll user in course",
+      "method": "POST",
+      "endpoint": "/courses/{{ inputs.course_id }}/enrollments",
+      "body": {
+        "enrollment": {
+          "user_id": "{{ inputs.user_id }}",
+          "type": "{{ inputs.type }}",
+          "enrollment_state": "{{ inputs.enrollment_state }}",
+          "notify": "{{ inputs.notify }}"
+        }
+      },
+      "inputs": [
+        { "key": "course_id", "label": "Course ID", "type": "string", "required": true },
+        { "key": "user_id", "label": "User ID", "type": "string", "required": true },
+        { "key": "type", "label": "Role", "type": "select", "required": true, "default": "StudentEnrollment", "options": [
+          { "value": "StudentEnrollment", "label": "Student" }, { "value": "TeacherEnrollment", "label": "Teacher" }, { "value": "TaEnrollment", "label": "TA" },
+          { "value": "ObserverEnrollment", "label": "Observer" }, { "value": "DesignerEnrollment", "label": "Designer" }
+        ] },
+        { "key": "enrollment_state", "label": "State", "type": "select", "options": [
+          { "value": "active", "label": "Active (skip invitation)" }, { "value": "invited", "label": "Invited" }, { "value": "inactive", "label": "Inactive" }
+        ] },
+        { "key": "notify", "label": "Notify user", "type": "boolean" }
+      ]
+    },
+    {
+      "key": "create_announcement",
+      "name": "Post announcement",
+      "method": "POST",
+      "endpoint": "/courses/{{ inputs.course_id }}/discussion_topics",
+      "body": { "title": "{{ inputs.title }}", "message": "{{ inputs.message }}", "is_announcement": true, "delayed_post_at": "{{ inputs.delayed_post_at }}" },
+      "inputs": [
+        { "key": "course_id", "label": "Course ID", "type": "string", "required": true },
+        { "key": "title", "label": "Title", "type": "string", "required": true },
+        { "key": "message", "label": "Message (HTML)", "type": "text", "required": true },
+        { "key": "delayed_post_at", "label": "Post at", "type": "string", "placeholder": "2026-11-01T09:00:00Z" }
+      ]
+    },
+    {
+      "key": "list_assignments",
+      "name": "List assignments",
+      "method": "GET",
+      "endpoint": "/courses/{{ inputs.course_id }}/assignments",
+      "query": { "bucket": "{{ inputs.bucket }}", "per_page": "{{ inputs.per_page }}" },
+      "inputs": [
+        { "key": "course_id", "label": "Course ID", "type": "string", "required": true },
+        { "key": "bucket", "label": "Filter", "type": "select", "options": [
+          { "value": "upcoming", "label": "Upcoming" }, { "value": "overdue", "label": "Overdue" }, { "value": "past", "label": "Past" },
+          { "value": "undated", "label": "Undated" }, { "value": "ungraded", "label": "Ungraded" }, { "value": "unsubmitted", "label": "Unsubmitted" }
+        ] },
+        { "key": "per_page", "label": "Max results", "type": "number", "default": 50 }
+      ]
+    },
+    {
+      "key": "list_submissions",
+      "name": "List assignment submissions",
+      "method": "GET",
+      "endpoint": "/courses/{{ inputs.course_id }}/assignments/{{ inputs.assignment_id }}/submissions",
+      "query": { "per_page": "{{ inputs.per_page }}" },
+      "inputs": [
+        { "key": "course_id", "label": "Course ID", "type": "string", "required": true },
+        { "key": "assignment_id", "label": "Assignment ID", "type": "string", "required": true },
+        { "key": "per_page", "label": "Max results", "type": "number", "default": 50 }
+      ]
+    }
+  ]
+}

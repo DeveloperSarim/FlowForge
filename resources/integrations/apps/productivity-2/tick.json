@@ -1,0 +1,149 @@
+{
+  "key": "tick",
+  "name": "Tick",
+  "category": "Productivity",
+  "description": "Log time entries and list projects, tasks and entries in Tick.",
+  "brand": "tick",
+  "website": "https://www.tickspot.com",
+  "docs_url": "https://github.com/tick/tick-api",
+  "base_url": "https://www.tickspot.com/{{ credentials.subscription_id }}/api/v2",
+  "headers": {
+    "User-Agent": "FlowForge ({{ credentials.email }})"
+  },
+  "auth": [
+    {
+      "type": "api_key",
+      "in": "header",
+      "name": "Authorization",
+      "prefix": "Token token=",
+      "fields": [
+        {
+          "key": "subscription_id",
+          "label": "Subscription ID",
+          "type": "string",
+          "required": true,
+          "help": "Shown with your API token under Users > your profile."
+        },
+        {
+          "key": "api_key",
+          "label": "API token",
+          "type": "password",
+          "required": true
+        },
+        {
+          "key": "email",
+          "label": "Contact email",
+          "type": "string",
+          "required": true,
+          "help": "Tick requires it in the User-Agent header."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_projects",
+      "name": "List projects",
+      "method": "GET",
+      "endpoint": "/projects.json",
+      "inputs": []
+    },
+    {
+      "key": "list_tasks",
+      "name": "List project tasks",
+      "method": "GET",
+      "endpoint": "/projects/{{ inputs.project_id }}/tasks.json",
+      "inputs": [
+        {
+          "key": "project_id",
+          "label": "Project ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_entries",
+      "name": "List entries",
+      "method": "GET",
+      "endpoint": "/entries.json",
+      "query": {
+        "start_date": "{{ inputs.start_date }}",
+        "end_date": "{{ inputs.end_date }}",
+        "project_id": "{{ inputs.project_id }}",
+        "user_id": "{{ inputs.user_id }}"
+      },
+      "inputs": [
+        {
+          "key": "start_date",
+          "label": "Start date",
+          "type": "string",
+          "required": true,
+          "placeholder": "2026-10-01"
+        },
+        {
+          "key": "end_date",
+          "label": "End date",
+          "type": "string",
+          "required": true,
+          "placeholder": "2026-10-31"
+        },
+        {
+          "key": "project_id",
+          "label": "Project ID",
+          "type": "string"
+        },
+        {
+          "key": "user_id",
+          "label": "User ID",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "create_entry",
+      "name": "Create time entry",
+      "method": "POST",
+      "endpoint": "/entries.json",
+      "body": {
+        "task_id": "{{ inputs.task_id }}",
+        "hours": "{{ inputs.hours }}",
+        "date": "{{ inputs.date }}",
+        "notes": "{{ inputs.notes }}",
+        "user_id": "{{ inputs.user_id }}"
+      },
+      "inputs": [
+        {
+          "key": "task_id",
+          "label": "Task ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "hours",
+          "label": "Hours",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "date",
+          "label": "Date",
+          "type": "string",
+          "required": true,
+          "placeholder": "2026-10-12"
+        },
+        {
+          "key": "notes",
+          "label": "Notes",
+          "type": "text"
+        },
+        {
+          "key": "user_id",
+          "label": "User ID",
+          "type": "string",
+          "help": "Defaults to the token owner."
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,163 @@
+{
+  "key": "kommo",
+  "name": "Kommo",
+  "category": "CRM & Sales",
+  "description": "Create and find leads and contacts in Kommo (amoCRM).",
+  "brand": "kommo",
+  "website": "https://www.kommo.com",
+  "docs_url": "https://developers.kommo.com/reference/kommo-api-reference",
+  "base_url": "https://{{ credentials.subdomain }}.kommo.com/api/v4",
+  "auth": [
+    {
+      "type": "bearer",
+      "fields": [
+        {
+          "key": "subdomain",
+          "label": "Subdomain",
+          "type": "string",
+          "required": true,
+          "placeholder": "yourcompany"
+        },
+        {
+          "key": "token",
+          "label": "Long-lived token",
+          "type": "password",
+          "required": true,
+          "help": "Settings > Integrations > your private integration > Keys and scopes."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "create_lead",
+      "name": "Create lead",
+      "method": "POST",
+      "endpoint": "/leads",
+      "body": [
+        {
+          "name": "{{ inputs.name }}",
+          "price": "{{ inputs.price }}",
+          "pipeline_id": "{{ inputs.pipeline_id }}",
+          "status_id": "{{ inputs.status_id }}",
+          "responsible_user_id": "{{ inputs.responsible_user_id }}"
+        }
+      ],
+      "output_path": "_embedded.leads.0",
+      "inputs": [
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "price",
+          "label": "Sale value",
+          "type": "number"
+        },
+        {
+          "key": "pipeline_id",
+          "label": "Pipeline ID",
+          "type": "number"
+        },
+        {
+          "key": "status_id",
+          "label": "Status ID",
+          "type": "number"
+        },
+        {
+          "key": "responsible_user_id",
+          "label": "Responsible user ID",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "get_lead",
+      "name": "Get lead",
+      "method": "GET",
+      "endpoint": "/leads/{{ inputs.lead_id }}",
+      "query": {
+        "with": "contacts"
+      },
+      "inputs": [
+        {
+          "key": "lead_id",
+          "label": "Lead ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "create_contact",
+      "name": "Create contact",
+      "method": "POST",
+      "endpoint": "/contacts",
+      "body": [
+        {
+          "first_name": "{{ inputs.first_name }}",
+          "last_name": "{{ inputs.last_name }}"
+        }
+      ],
+      "output_path": "_embedded.contacts.0",
+      "inputs": [
+        {
+          "key": "first_name",
+          "label": "First name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "search_contacts",
+      "name": "Search contacts",
+      "method": "GET",
+      "endpoint": "/contacts",
+      "query": {
+        "query": "{{ inputs.query }}"
+      },
+      "output_path": "_embedded.contacts",
+      "inputs": [
+        {
+          "key": "query",
+          "label": "Name, phone or email",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_lead",
+      "name": "New lead",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/leads",
+      "query": {
+        "order": {
+          "created_at": "desc"
+        },
+        "limit": 50
+      },
+      "items_path": "_embedded.leads",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

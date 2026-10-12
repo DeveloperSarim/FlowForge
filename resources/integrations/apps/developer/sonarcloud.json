@@ -1,0 +1,61 @@
+{
+  "key": "sonarcloud",
+  "name": "SonarQube Cloud",
+  "category": "Developer Tools",
+  "description": "Check quality gates, search issues and list projects (formerly SonarCloud).",
+  "brand": "sonarcloud",
+  "website": "https://www.sonarsource.com/products/sonarcloud/",
+  "docs_url": "https://docs.sonarsource.com/sonarqube-cloud/advanced-setup/web-api/",
+  "base_url": "https://sonarcloud.io/api",
+  "auth": { "type": "bearer", "fields": [{ "key": "token", "label": "User token", "type": "password", "required": true, "help": "My Account → Security → Generate token." }] },
+  "actions": [
+    {
+      "key": "quality_gate_status",
+      "name": "Get quality gate status",
+      "method": "GET",
+      "endpoint": "/qualitygates/project_status",
+      "query": { "projectKey": "{{ inputs.project_key }}", "branch": "{{ inputs.branch }}", "pullRequest": "{{ inputs.pull_request }}" },
+      "output_path": "projectStatus",
+      "inputs": [
+        { "key": "project_key", "label": "Project key", "type": "string", "required": true },
+        { "key": "branch", "label": "Branch", "type": "string" },
+        { "key": "pull_request", "label": "Pull request ID", "type": "string" }
+      ]
+    },
+    {
+      "key": "search_issues",
+      "name": "Search issues",
+      "method": "GET",
+      "endpoint": "/issues/search",
+      "query": { "organization": "{{ inputs.organization }}", "componentKeys": "{{ inputs.project_key }}", "resolved": "{{ inputs.resolved }}", "branch": "{{ inputs.branch }}", "ps": "{{ inputs.page_size }}" },
+      "output_path": "issues",
+      "inputs": [
+        { "key": "organization", "label": "Organization key", "type": "string", "required": true },
+        { "key": "project_key", "label": "Project key", "type": "string" },
+        { "key": "resolved", "label": "Resolved", "type": "select", "default": "false", "options": [{ "value": "false", "label": "Open issues" }, { "value": "true", "label": "Resolved issues" }] },
+        { "key": "branch", "label": "Branch", "type": "string" },
+        { "key": "page_size", "label": "Limit", "type": "number", "default": 100 }
+      ]
+    },
+    {
+      "key": "list_projects",
+      "name": "List projects",
+      "method": "GET",
+      "endpoint": "/components/search",
+      "query": { "organization": "{{ inputs.organization }}", "qualifiers": "TRK", "q": "{{ inputs.query }}", "ps": 100 },
+      "output_path": "components",
+      "inputs": [
+        { "key": "organization", "label": "Organization key", "type": "string", "required": true },
+        { "key": "query", "label": "Name contains", "type": "string" }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "analysis_webhook",
+      "name": "Analysis finished (webhook)",
+      "type": "webhook",
+      "inputs": [{ "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }]
+    }
+  ]
+}

@@ -1,0 +1,97 @@
+{
+  "key": "azure_devops",
+  "name": "Azure DevOps",
+  "category": "Developer Tools",
+  "description": "Create, update and query work items, and run Azure Pipelines.",
+  "brand": "azuredevops",
+  "website": "https://azure.microsoft.com/products/devops",
+  "docs_url": "https://learn.microsoft.com/rest/api/azure/devops/",
+  "base_url": "https://dev.azure.com/{{ credentials.organization }}",
+  "auth": { "type": "basic", "fields": [
+    { "key": "organization", "label": "Organization", "type": "string", "required": true, "help": "The name in dev.azure.com/<organization>." },
+    { "key": "username", "label": "Username", "type": "string", "required": true, "default": "pat", "help": "Any non-empty text; Azure DevOps ignores it for personal access tokens." },
+    { "key": "password", "label": "Personal access token", "type": "password", "required": true }
+  ] },
+  "actions": [
+    {
+      "key": "create_work_item",
+      "name": "Create work item",
+      "method": "POST",
+      "endpoint": "/{{ inputs.project }}/_apis/wit/workitems/${{ inputs.type }}",
+      "query": { "api-version": "7.1" },
+      "headers": { "Content-Type": "application/json-patch+json" },
+      "body": "{{ inputs.operations }}",
+      "inputs": [
+        { "key": "project", "label": "Project", "type": "string", "required": true },
+        { "key": "type", "label": "Work item type", "type": "string", "required": true, "default": "Task", "placeholder": "Bug, Task, User Story, Issue" },
+        { "key": "operations", "label": "Fields (JSON Patch)", "type": "code", "required": true,
+          "placeholder": "[\n  { \"op\": \"add\", \"path\": \"/fields/System.Title\", \"value\": \"Fix login bug\" },\n  { \"op\": \"add\", \"path\": \"/fields/System.Description\", \"value\": \"Steps to reproduce…\" }\n]",
+          "help": "A JSON Patch array. Use /fields/<Reference name> paths, e.g. System.Title, System.AssignedTo, System.Tags." }
+      ]
+    },
+    {
+      "key": "update_work_item",
+      "name": "Update work item",
+      "method": "PATCH",
+      "endpoint": "/{{ inputs.project }}/_apis/wit/workitems/{{ inputs.id }}",
+      "query": { "api-version": "7.1" },
+      "headers": { "Content-Type": "application/json-patch+json" },
+      "body": "{{ inputs.operations }}",
+      "inputs": [
+        { "key": "project", "label": "Project", "type": "string", "required": true },
+        { "key": "id", "label": "Work item ID", "type": "number", "required": true },
+        { "key": "operations", "label": "Changes (JSON Patch)", "type": "code", "required": true,
+          "placeholder": "[\n  { \"op\": \"add\", \"path\": \"/fields/System.State\", \"value\": \"Done\" }\n]" }
+      ]
+    },
+    {
+      "key": "get_work_item",
+      "name": "Get work item",
+      "method": "GET",
+      "endpoint": "/{{ inputs.project }}/_apis/wit/workitems/{{ inputs.id }}",
+      "query": { "api-version": "7.1" },
+      "inputs": [
+        { "key": "project", "label": "Project", "type": "string", "required": true },
+        { "key": "id", "label": "Work item ID", "type": "number", "required": true }
+      ]
+    },
+    {
+      "key": "query_work_items",
+      "name": "Query work items (WIQL)",
+      "description": "Returns matching work item IDs.",
+      "method": "POST",
+      "endpoint": "/{{ inputs.project }}/_apis/wit/wiql",
+      "query": { "api-version": "7.1", "$top": "{{ inputs.top }}" },
+      "body": { "query": "{{ inputs.query }}" },
+      "inputs": [
+        { "key": "project", "label": "Project", "type": "string", "required": true },
+        { "key": "query", "label": "WIQL query", "type": "text", "required": true,
+          "placeholder": "SELECT [System.Id] FROM WorkItems WHERE [System.State] = 'Active' ORDER BY [System.ChangedDate] DESC" },
+        { "key": "top", "label": "Max results", "type": "number", "default": 50 }
+      ]
+    },
+    {
+      "key": "run_pipeline",
+      "name": "Run pipeline",
+      "method": "POST",
+      "endpoint": "/{{ inputs.project }}/_apis/pipelines/{{ inputs.pipeline_id }}/runs",
+      "query": { "api-version": "7.1" },
+      "body": { "resources": { "repositories": { "self": { "refName": "{{ inputs.ref }}" } } }, "templateParameters": "{{ inputs.parameters }}" },
+      "inputs": [
+        { "key": "project", "label": "Project", "type": "string", "required": true },
+        { "key": "pipeline_id", "label": "Pipeline ID", "type": "number", "required": true },
+        { "key": "ref", "label": "Branch ref", "type": "string", "required": true, "default": "refs/heads/main" },
+        { "key": "parameters", "label": "Template parameters", "type": "keyvalue" }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "service_hook",
+      "name": "Service hook (Web Hooks)",
+      "type": "webhook",
+      "data_path": "resource",
+      "inputs": [{ "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }]
+    }
+  ]
+}

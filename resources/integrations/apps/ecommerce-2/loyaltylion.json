@@ -1,0 +1,176 @@
+{
+  "key": "loyaltylion",
+  "name": "LoyaltyLion",
+  "category": "E-commerce",
+  "description": "Find loyalty customers, add or remove points and track activities in LoyaltyLion.",
+  "brand": "loyaltylion",
+  "website": "https://loyaltylion.com",
+  "docs_url": "https://developers.loyaltylion.com/api-reference/introduction",
+  "base_url": "https://api.loyaltylion.com/v2",
+  "auth": [
+    {
+      "type": "bearer",
+      "fields": [
+        {
+          "key": "token",
+          "label": "API key (pat_…)",
+          "type": "password",
+          "required": true,
+          "help": "LoyaltyLion admin > Settings > API keys."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "find_customers",
+      "name": "Find customers",
+      "method": "GET",
+      "endpoint": "/customers",
+      "query": {
+        "email": "{{ inputs.email }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_path": "customers",
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email contains",
+          "type": "string"
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    },
+    {
+      "key": "add_points",
+      "name": "Add points",
+      "method": "POST",
+      "endpoint": "/customers/{{ inputs.merchant_id }}/points",
+      "body": {
+        "points": "{{ inputs.points }}",
+        "reason": "{{ inputs.reason }}"
+      },
+      "inputs": [
+        {
+          "key": "merchant_id",
+          "label": "Customer ID (your store ID)",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "points",
+          "label": "Points",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "reason",
+          "label": "Reason (shown to shopper)",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "remove_points",
+      "name": "Remove points",
+      "method": "POST",
+      "endpoint": "/customers/{{ inputs.merchant_id }}/remove_points",
+      "body": {
+        "points": "{{ inputs.points }}",
+        "reason": "{{ inputs.reason }}"
+      },
+      "inputs": [
+        {
+          "key": "merchant_id",
+          "label": "Customer ID (your store ID)",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "points",
+          "label": "Points",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "reason",
+          "label": "Reason (shown to shopper)",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "track_activity",
+      "name": "Track activity",
+      "method": "POST",
+      "endpoint": "/activities",
+      "body": {
+        "name": "{{ inputs.name }}",
+        "customer_id": "{{ inputs.customer_id }}",
+        "customer_email": "{{ inputs.email }}",
+        "merchant_id": "{{ inputs.merchant_id }}",
+        "properties": "{{ inputs.properties }}"
+      },
+      "inputs": [
+        {
+          "key": "name",
+          "label": "Rule name",
+          "type": "string",
+          "required": true,
+          "help": "Custom rule identifier, or a built-in rule prefixed with $ (e.g. $signup)."
+        },
+        {
+          "key": "customer_id",
+          "label": "Customer ID (your store ID)",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "email",
+          "label": "Customer email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "merchant_id",
+          "label": "Activity reference ID",
+          "type": "string"
+        },
+        {
+          "key": "properties",
+          "label": "Properties",
+          "type": "keyvalue"
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_customer",
+      "name": "New customer",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/customers",
+      "query": {
+        "sort_field": "id",
+        "sort_direction": "desc",
+        "limit": 50
+      },
+      "items_path": "customers",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

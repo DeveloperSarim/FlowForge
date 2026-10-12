@@ -1,0 +1,200 @@
+{
+  "key": "freshteam",
+  "name": "Freshteam",
+  "category": "HR & Recruiting",
+  "description": "Add employees, list job postings and add applicants in Freshteam.",
+  "brand": "freshworks",
+  "website": "https://www.freshworks.com/hrms/",
+  "docs_url": "https://developers.freshteam.com/api/",
+  "base_url": "https://{{ credentials.domain }}.freshteam.com/api",
+  "auth": [
+    {
+      "type": "bearer",
+      "fields": [
+        {
+          "key": "domain",
+          "label": "Domain",
+          "type": "string",
+          "required": true,
+          "placeholder": "acme",
+          "help": "The part before .freshteam.com."
+        },
+        {
+          "key": "token",
+          "label": "API key",
+          "type": "password",
+          "required": true,
+          "help": "Profile picture > API settings."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_employees",
+      "name": "List employees",
+      "method": "GET",
+      "endpoint": "/employees",
+      "query": {
+        "page": "{{ inputs.page }}"
+      },
+      "inputs": [
+        {
+          "key": "page",
+          "label": "Page",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "get_employee",
+      "name": "Get employee",
+      "method": "GET",
+      "endpoint": "/employees/{{ inputs.employee_id }}",
+      "inputs": [
+        {
+          "key": "employee_id",
+          "label": "Employee ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "create_employee",
+      "name": "Create employee",
+      "method": "POST",
+      "endpoint": "/employees",
+      "body": {
+        "first_name": "{{ inputs.first_name }}",
+        "last_name": "{{ inputs.last_name }}",
+        "official_email": "{{ inputs.official_email }}",
+        "role_ids": "{{ inputs.role_ids }}",
+        "...": "{{ inputs.extra }}"
+      },
+      "inputs": [
+        {
+          "key": "first_name",
+          "label": "First name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "official_email",
+          "label": "Work email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "role_ids",
+          "label": "Role IDs",
+          "type": "list",
+          "required": true,
+          "help": "IDs of the Freshteam roles to give the employee."
+        },
+        {
+          "key": "extra",
+          "label": "Other fields",
+          "type": "keyvalue"
+        }
+      ]
+    },
+    {
+      "key": "list_job_postings",
+      "name": "List job postings",
+      "method": "GET",
+      "endpoint": "/job_postings",
+      "query": {
+        "status": "{{ inputs.status }}"
+      },
+      "inputs": [
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "options": [
+            {
+              "value": "published",
+              "label": "Published"
+            },
+            {
+              "value": "draft",
+              "label": "Draft"
+            },
+            {
+              "value": "internal",
+              "label": "Internal"
+            },
+            {
+              "value": "on_hold",
+              "label": "On hold"
+            },
+            {
+              "value": "closed",
+              "label": "Closed"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "create_applicant",
+      "name": "Add applicant to job",
+      "method": "POST",
+      "endpoint": "/job_postings/{{ inputs.job_posting_id }}/applicants",
+      "body": {
+        "candidate": {
+          "first_name": "{{ inputs.first_name }}",
+          "last_name": "{{ inputs.last_name }}",
+          "email": "{{ inputs.email }}",
+          "source_id": "{{ inputs.source_id }}",
+          "source_category_id": "{{ inputs.source_category_id }}"
+        }
+      },
+      "inputs": [
+        {
+          "key": "job_posting_id",
+          "label": "Job posting ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "first_name",
+          "label": "First name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "source_id",
+          "label": "Source ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "source_category_id",
+          "label": "Source category ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ]
+}

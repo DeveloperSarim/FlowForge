@@ -1,0 +1,168 @@
+{
+  "key": "sage_hr",
+  "name": "Sage HR",
+  "category": "HR & Recruiting",
+  "description": "Add employees and look up employees, leave requests and policies in Sage HR.",
+  "brand": "sage",
+  "website": "https://sage.hr",
+  "docs_url": "https://sagehr.docs.apiary.io",
+  "base_url": "https://{{ credentials.subdomain }}.sage.hr/api",
+  "auth": [
+    {
+      "type": "api_key",
+      "in": "header",
+      "name": "X-Auth-Token",
+      "fields": [
+        {
+          "key": "subdomain",
+          "label": "Subdomain",
+          "type": "string",
+          "required": true,
+          "placeholder": "acme",
+          "help": "The part before .sage.hr."
+        },
+        {
+          "key": "api_key",
+          "label": "API key",
+          "type": "password",
+          "required": true,
+          "help": "Settings > Integrations > API (enable the API to see the key)."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_employees",
+      "name": "List employees",
+      "description": "Active employees, one page at a time.",
+      "method": "GET",
+      "endpoint": "/employees",
+      "query": {
+        "page": "{{ inputs.page }}"
+      },
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "page",
+          "label": "Page",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "get_employee",
+      "name": "Get employee",
+      "method": "GET",
+      "endpoint": "/employees/{{ inputs.employee_id }}",
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "employee_id",
+          "label": "Employee ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "create_employee",
+      "name": "Create employee",
+      "method": "POST",
+      "endpoint": "/employees",
+      "body_format": "form",
+      "body": {
+        "email": "{{ inputs.email }}",
+        "first_name": "{{ inputs.first_name }}",
+        "last_name": "{{ inputs.last_name }}",
+        "work_start_date": "{{ inputs.work_start_date }}",
+        "send_email": "{{ inputs.send_email }}"
+      },
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "first_name",
+          "label": "First name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "work_start_date",
+          "label": "Start date",
+          "type": "string",
+          "placeholder": "2026-11-01"
+        },
+        {
+          "key": "send_email",
+          "label": "Send invitation email",
+          "type": "boolean"
+        }
+      ]
+    },
+    {
+      "key": "list_terminated_employees",
+      "name": "List terminated employees",
+      "method": "GET",
+      "endpoint": "/terminated-employees",
+      "query": {
+        "page": "{{ inputs.page }}"
+      },
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "page",
+          "label": "Page",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "list_leave_requests",
+      "name": "List leave requests",
+      "method": "GET",
+      "endpoint": "/leave-management/requests",
+      "query": {
+        "from": "{{ inputs.from }}",
+        "to": "{{ inputs.to }}"
+      },
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "from",
+          "label": "From",
+          "type": "string",
+          "required": true,
+          "placeholder": "2026-10-01"
+        },
+        {
+          "key": "to",
+          "label": "To",
+          "type": "string",
+          "required": true,
+          "placeholder": "2026-11-30",
+          "help": "Range must be under 65 days."
+        }
+      ]
+    },
+    {
+      "key": "list_leave_policies",
+      "name": "List leave policies",
+      "method": "GET",
+      "endpoint": "/leave-management/policies",
+      "output_path": "data",
+      "inputs": []
+    }
+  ]
+}

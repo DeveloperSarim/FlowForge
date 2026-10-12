@@ -1,0 +1,203 @@
+{
+  "key": "datocms",
+  "name": "DatoCMS",
+  "category": "CMS & Websites",
+  "description": "Create, update, publish and query records in DatoCMS.",
+  "brand": "datocms",
+  "website": "https://www.datocms.com",
+  "docs_url": "https://www.datocms.com/docs/content-management-api",
+  "base_url": "https://site-api.datocms.com",
+  "headers": {
+    "X-Api-Version": "3"
+  },
+  "auth": [
+    {
+      "type": "bearer",
+      "fields": [
+        {
+          "key": "token",
+          "label": "API token",
+          "type": "password",
+          "required": true,
+          "help": "Project settings > API tokens (Full-access for writes)."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_records",
+      "name": "List records",
+      "method": "GET",
+      "endpoint": "/items",
+      "output_path": "data",
+      "query": {
+        "filter[type]": "{{ inputs.model }}",
+        "filter[query]": "{{ inputs.search }}",
+        "page[limit]": "{{ inputs.limit }}"
+      },
+      "inputs": [
+        {
+          "key": "model",
+          "label": "Model API key",
+          "type": "string",
+          "placeholder": "blog_post"
+        },
+        {
+          "key": "search",
+          "label": "Search text",
+          "type": "string"
+        },
+        {
+          "key": "limit",
+          "label": "Max records",
+          "type": "number",
+          "default": 30
+        }
+      ]
+    },
+    {
+      "key": "get_record",
+      "name": "Get record",
+      "method": "GET",
+      "endpoint": "/items/{{ inputs.record_id }}",
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "record_id",
+          "label": "Record ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "create_record",
+      "name": "Create record",
+      "method": "POST",
+      "endpoint": "/items",
+      "headers": {
+        "Content-Type": "application/vnd.api+json"
+      },
+      "output_path": "data",
+      "body": {
+        "data": {
+          "type": "item",
+          "attributes": "{{ inputs.attributes }}",
+          "relationships": {
+            "item_type": {
+              "data": {
+                "type": "item_type",
+                "id": "{{ inputs.model_id }}"
+              }
+            }
+          }
+        }
+      },
+      "inputs": [
+        {
+          "key": "model_id",
+          "label": "Model ID",
+          "type": "string",
+          "required": true,
+          "help": "The model's numeric id, not its API key."
+        },
+        {
+          "key": "attributes",
+          "label": "Fields (JSON)",
+          "type": "json",
+          "required": true,
+          "placeholder": "{ \"title\": \"Hello\" }"
+        }
+      ]
+    },
+    {
+      "key": "update_record",
+      "name": "Update record",
+      "method": "PUT",
+      "endpoint": "/items/{{ inputs.record_id }}",
+      "headers": {
+        "Content-Type": "application/vnd.api+json"
+      },
+      "output_path": "data",
+      "body": {
+        "data": {
+          "type": "item",
+          "id": "{{ inputs.record_id }}",
+          "attributes": "{{ inputs.attributes }}"
+        }
+      },
+      "inputs": [
+        {
+          "key": "record_id",
+          "label": "Record ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "attributes",
+          "label": "Fields to change (JSON)",
+          "type": "json",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "publish_record",
+      "name": "Publish record",
+      "method": "PUT",
+      "endpoint": "/items/{{ inputs.record_id }}/publish",
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "record_id",
+          "label": "Record ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "graphql",
+      "name": "GraphQL query",
+      "description": "Queries published content with the Content Delivery API.",
+      "method": "POST",
+      "endpoint": "https://graphql.datocms.com/",
+      "error_path": "errors",
+      "output_path": "data",
+      "body": {
+        "query": "{{ inputs.query }}",
+        "variables": "{{ inputs.variables }}"
+      },
+      "inputs": [
+        {
+          "key": "query",
+          "label": "Query",
+          "type": "code",
+          "required": true
+        },
+        {
+          "key": "variables",
+          "label": "Variables (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "DatoCMS webhooks (record create, update, publish...).",
+      "data_path": "entity",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

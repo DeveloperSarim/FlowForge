@@ -1,0 +1,326 @@
+{
+  "key": "miro",
+  "name": "Miro",
+  "category": "Productivity",
+  "description": "Create boards, sticky notes and cards on Miro whiteboards.",
+  "brand": "miro",
+  "website": "https://miro.com",
+  "docs_url": "https://developers.miro.com/reference/api-reference",
+  "popular": true,
+  "base_url": "https://api.miro.com/v2",
+  "auth": [
+    {
+      "type": "oauth2",
+      "authorize_url": "https://miro.com/oauth/authorize",
+      "token_url": "https://api.miro.com/v1/oauth/token",
+      "scopes": [
+        "boards:read",
+        "boards:write"
+      ]
+    },
+    {
+      "type": "bearer",
+      "fields": [
+        {
+          "key": "token",
+          "label": "Access token",
+          "type": "password",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_boards",
+      "name": "List boards",
+      "method": "GET",
+      "endpoint": "/boards",
+      "query": {
+        "query": "{{ inputs.query }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "query",
+          "label": "Search",
+          "type": "string"
+        },
+        {
+          "key": "limit",
+          "label": "Max results",
+          "type": "number",
+          "default": 20
+        }
+      ]
+    },
+    {
+      "key": "create_board",
+      "name": "Create board",
+      "method": "POST",
+      "endpoint": "/boards",
+      "body": {
+        "name": "{{ inputs.name }}",
+        "description": "{{ inputs.description }}"
+      },
+      "inputs": [
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "description",
+          "label": "Description",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "create_sticky_note",
+      "name": "Create sticky note",
+      "method": "POST",
+      "endpoint": "/boards/{{ inputs.board_id }}/sticky_notes",
+      "body": {
+        "data": {
+          "content": "{{ inputs.content }}",
+          "shape": "{{ inputs.shape }}"
+        },
+        "style": {
+          "fillColor": "{{ inputs.fill_color }}"
+        },
+        "position": {
+          "x": "{{ inputs.x }}",
+          "y": "{{ inputs.y }}"
+        }
+      },
+      "inputs": [
+        {
+          "key": "board_id",
+          "label": "Board ID",
+          "type": "string",
+          "required": true,
+          "help": "From the board URL: miro.com/app/board/<ID>/"
+        },
+        {
+          "key": "content",
+          "label": "Text",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "shape",
+          "label": "Shape",
+          "type": "select",
+          "options": [
+            {
+              "value": "square",
+              "label": "Square"
+            },
+            {
+              "value": "rectangle",
+              "label": "Rectangle"
+            }
+          ]
+        },
+        {
+          "key": "fill_color",
+          "label": "Color",
+          "type": "select",
+          "options": [
+            {
+              "value": "light_yellow",
+              "label": "Light yellow"
+            },
+            {
+              "value": "yellow",
+              "label": "Yellow"
+            },
+            {
+              "value": "orange",
+              "label": "Orange"
+            },
+            {
+              "value": "light_green",
+              "label": "Light green"
+            },
+            {
+              "value": "green",
+              "label": "Green"
+            },
+            {
+              "value": "cyan",
+              "label": "Cyan"
+            },
+            {
+              "value": "light_pink",
+              "label": "Light pink"
+            },
+            {
+              "value": "pink",
+              "label": "Pink"
+            },
+            {
+              "value": "violet",
+              "label": "Violet"
+            },
+            {
+              "value": "red",
+              "label": "Red"
+            },
+            {
+              "value": "light_blue",
+              "label": "Light blue"
+            },
+            {
+              "value": "blue",
+              "label": "Blue"
+            },
+            {
+              "value": "gray",
+              "label": "Gray"
+            },
+            {
+              "value": "black",
+              "label": "Black"
+            }
+          ]
+        },
+        {
+          "key": "x",
+          "label": "X position",
+          "type": "number"
+        },
+        {
+          "key": "y",
+          "label": "Y position",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "create_card",
+      "name": "Create card",
+      "method": "POST",
+      "endpoint": "/boards/{{ inputs.board_id }}/cards",
+      "body": {
+        "data": {
+          "title": "{{ inputs.title }}",
+          "description": "{{ inputs.description }}",
+          "dueDate": "{{ inputs.due_date }}"
+        },
+        "position": {
+          "x": "{{ inputs.x }}",
+          "y": "{{ inputs.y }}"
+        }
+      },
+      "inputs": [
+        {
+          "key": "board_id",
+          "label": "Board ID",
+          "type": "string",
+          "required": true,
+          "help": "From the board URL: miro.com/app/board/<ID>/"
+        },
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "description",
+          "label": "Description",
+          "type": "text"
+        },
+        {
+          "key": "due_date",
+          "label": "Due date",
+          "type": "string",
+          "placeholder": "2026-10-12T17:00:00Z"
+        },
+        {
+          "key": "x",
+          "label": "X position",
+          "type": "number"
+        },
+        {
+          "key": "y",
+          "label": "Y position",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "list_items",
+      "name": "List board items",
+      "method": "GET",
+      "endpoint": "/boards/{{ inputs.board_id }}/items",
+      "query": {
+        "type": "{{ inputs.type }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "board_id",
+          "label": "Board ID",
+          "type": "string",
+          "required": true,
+          "help": "From the board URL: miro.com/app/board/<ID>/"
+        },
+        {
+          "key": "type",
+          "label": "Item type",
+          "type": "select",
+          "options": [
+            {
+              "value": "sticky_note",
+              "label": "sticky_note"
+            },
+            {
+              "value": "card",
+              "label": "card"
+            },
+            {
+              "value": "text",
+              "label": "text"
+            },
+            {
+              "value": "shape",
+              "label": "shape"
+            },
+            {
+              "value": "frame",
+              "label": "frame"
+            },
+            {
+              "value": "image",
+              "label": "image"
+            },
+            {
+              "value": "document",
+              "label": "document"
+            },
+            {
+              "value": "embed",
+              "label": "embed"
+            },
+            {
+              "value": "app_card",
+              "label": "app_card"
+            }
+          ]
+        },
+        {
+          "key": "limit",
+          "label": "Max results",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    }
+  ]
+}

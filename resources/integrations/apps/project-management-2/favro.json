@@ -1,0 +1,173 @@
+{
+  "key": "favro",
+  "name": "Favro",
+  "category": "Project Management",
+  "description": "Create Favro cards, comment, and list collections, boards and cards.",
+  "brand": "favro",
+  "website": "https://www.favro.com",
+  "docs_url": "https://favro.com/developer/",
+  "base_url": "https://favro.com/api/v1",
+  "headers": {
+    "organizationId": "{{ credentials.organization_id }}"
+  },
+  "auth": [
+    {
+      "type": "basic",
+      "fields": [
+        {
+          "key": "username",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "password",
+          "label": "API token",
+          "type": "password",
+          "required": true,
+          "help": "Profile > API tokens."
+        },
+        {
+          "key": "organization_id",
+          "label": "Organization ID",
+          "type": "string",
+          "required": true,
+          "help": "From the List organizations action or your Favro URL."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_organizations",
+      "name": "List organizations",
+      "method": "GET",
+      "endpoint": "/organizations",
+      "output_path": "entities",
+      "inputs": []
+    },
+    {
+      "key": "list_collections",
+      "name": "List collections",
+      "method": "GET",
+      "endpoint": "/collections",
+      "output_path": "entities",
+      "inputs": []
+    },
+    {
+      "key": "list_widgets",
+      "name": "List boards (widgets)",
+      "method": "GET",
+      "endpoint": "/widgets",
+      "query": {
+        "collectionId": "{{ inputs.collection_id }}"
+      },
+      "output_path": "entities",
+      "inputs": [
+        {
+          "key": "collection_id",
+          "label": "Collection ID",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "list_cards",
+      "name": "List cards",
+      "method": "GET",
+      "endpoint": "/cards",
+      "description": "Set a board or a collection.",
+      "query": {
+        "widgetCommonId": "{{ inputs.widget_common_id }}",
+        "collectionId": "{{ inputs.collection_id }}"
+      },
+      "output_path": "entities",
+      "inputs": [
+        {
+          "key": "widget_common_id",
+          "label": "Board (widget) ID",
+          "type": "string"
+        },
+        {
+          "key": "collection_id",
+          "label": "Collection ID",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "create_card",
+      "name": "Create card",
+      "method": "POST",
+      "endpoint": "/cards",
+      "body": {
+        "name": "{{ inputs.name }}",
+        "widgetCommonId": "{{ inputs.widget_common_id }}",
+        "columnId": "{{ inputs.column_id }}",
+        "detailedDescription": "{{ inputs.detailed_description }}"
+      },
+      "inputs": [
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "widget_common_id",
+          "label": "Board (widget) ID",
+          "type": "string",
+          "help": "Leave empty to add to your to-do list."
+        },
+        {
+          "key": "column_id",
+          "label": "Column ID",
+          "type": "string"
+        },
+        {
+          "key": "detailed_description",
+          "label": "Description (Markdown)",
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "key": "add_comment",
+      "name": "Add comment",
+      "method": "POST",
+      "endpoint": "/comments",
+      "body": {
+        "cardCommonId": "{{ inputs.card_common_id }}",
+        "comment": "{{ inputs.comment }}"
+      },
+      "inputs": [
+        {
+          "key": "card_common_id",
+          "label": "Card common ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "comment",
+          "label": "Comment",
+          "type": "text",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

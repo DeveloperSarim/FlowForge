@@ -1,0 +1,154 @@
+{
+  "key": "freshchat",
+  "name": "Freshchat",
+  "category": "Customer Support",
+  "description": "Create users, send agent messages and read conversations in Freshchat.",
+  "brand": "freshchat",
+  "website": "https://www.freshworks.com/live-chat-software/",
+  "docs_url": "https://developers.freshchat.com/api/",
+  "base_url": "{{ credentials.api_url }}",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "api_url",
+        "label": "API URL",
+        "type": "string",
+        "required": true,
+        "default": "https://api.freshchat.com/v2",
+        "help": "Copy it from Admin > Configure > API Tokens, e.g. https://yourcompany.freshchat.com/v2"
+      },
+      {
+        "key": "token",
+        "label": "API key",
+        "type": "password",
+        "required": true
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "create_user",
+      "name": "Create user",
+      "method": "POST",
+      "endpoint": "/users",
+      "body": {
+        "email": "{{ inputs.email }}",
+        "first_name": "{{ inputs.first_name }}",
+        "last_name": "{{ inputs.last_name }}",
+        "phone": "{{ inputs.phone }}",
+        "reference_id": "{{ inputs.reference_id }}"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string"
+        },
+        {
+          "key": "first_name",
+          "label": "First name",
+          "type": "string"
+        },
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string"
+        },
+        {
+          "key": "phone",
+          "label": "Phone",
+          "type": "string"
+        },
+        {
+          "key": "reference_id",
+          "label": "Reference ID",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "get_user",
+      "name": "Get user",
+      "method": "GET",
+      "endpoint": "/users/{{ inputs.user_id }}",
+      "inputs": [
+        {
+          "key": "user_id",
+          "label": "User ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "send_message",
+      "name": "Send message",
+      "description": "Posts an agent message to a conversation.",
+      "method": "POST",
+      "endpoint": "/conversations/{{ inputs.conversation_id }}/messages",
+      "body": {
+        "message_parts": [
+          {
+            "text": {
+              "content": "{{ inputs.text }}"
+            }
+          }
+        ],
+        "message_type": "normal",
+        "actor_type": "agent",
+        "actor_id": "{{ inputs.agent_id }}"
+      },
+      "inputs": [
+        {
+          "key": "conversation_id",
+          "label": "Conversation ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "agent_id",
+          "label": "Agent ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "text",
+          "label": "Message",
+          "type": "text",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "get_conversation",
+      "name": "Get conversation",
+      "method": "GET",
+      "endpoint": "/conversations/{{ inputs.conversation_id }}",
+      "inputs": [
+        {
+          "key": "conversation_id",
+          "label": "Conversation ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Add this URL in Admin > Webhooks.",
+      "data_path": "data",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,100 @@
+{
+  "key": "power_bi",
+  "name": "Power BI",
+  "category": "Analytics",
+  "description": "Refresh datasets, push rows, run DAX queries and list workspaces and reports.",
+  "brand": "powerbi",
+  "website": "https://www.microsoft.com/power-platform/products/power-bi",
+  "docs_url": "https://learn.microsoft.com/rest/api/power-bi/",
+  "base_url": "https://api.powerbi.com/v1.0/myorg",
+  "auth": {
+    "type": "oauth2",
+    "authorize_url": "https://login.microsoftonline.com/common/oauth2/v2.0/authorize",
+    "token_url": "https://login.microsoftonline.com/common/oauth2/v2.0/token",
+    "scopes": [
+      "offline_access",
+      "https://analysis.windows.net/powerbi/api/Workspace.Read.All",
+      "https://analysis.windows.net/powerbi/api/Dataset.ReadWrite.All",
+      "https://analysis.windows.net/powerbi/api/Report.Read.All"
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_workspaces",
+      "name": "List workspaces",
+      "method": "GET",
+      "endpoint": "/groups",
+      "output_path": "value",
+      "inputs": []
+    },
+    {
+      "key": "list_datasets",
+      "name": "List datasets",
+      "method": "GET",
+      "endpoint": "/groups/{{ inputs.workspace_id }}/datasets",
+      "output_path": "value",
+      "inputs": [{ "key": "workspace_id", "label": "Workspace ID", "type": "string", "required": true }]
+    },
+    {
+      "key": "refresh_dataset",
+      "name": "Refresh dataset",
+      "method": "POST",
+      "endpoint": "/groups/{{ inputs.workspace_id }}/datasets/{{ inputs.dataset_id }}/refreshes",
+      "body": { "notifyOption": "{{ inputs.notify_option }}" },
+      "inputs": [
+        { "key": "workspace_id", "label": "Workspace ID", "type": "string", "required": true },
+        { "key": "dataset_id", "label": "Dataset ID", "type": "string", "required": true },
+        { "key": "notify_option", "label": "Email notification", "type": "select", "default": "NoNotification", "options": [
+          { "value": "NoNotification", "label": "None" }, { "value": "MailOnFailure", "label": "On failure" }, { "value": "MailOnCompletion", "label": "On completion" }
+        ] }
+      ]
+    },
+    {
+      "key": "refresh_history",
+      "name": "Get refresh history",
+      "method": "GET",
+      "endpoint": "/groups/{{ inputs.workspace_id }}/datasets/{{ inputs.dataset_id }}/refreshes",
+      "query": { "$top": "{{ inputs.top }}" },
+      "output_path": "value",
+      "inputs": [
+        { "key": "workspace_id", "label": "Workspace ID", "type": "string", "required": true },
+        { "key": "dataset_id", "label": "Dataset ID", "type": "string", "required": true },
+        { "key": "top", "label": "Latest N refreshes", "type": "number", "default": 5 }
+      ]
+    },
+    {
+      "key": "add_rows",
+      "name": "Add rows to push dataset",
+      "method": "POST",
+      "endpoint": "/groups/{{ inputs.workspace_id }}/datasets/{{ inputs.dataset_id }}/tables/{{ inputs.table }}/rows",
+      "body": { "rows": "{{ inputs.rows }}" },
+      "inputs": [
+        { "key": "workspace_id", "label": "Workspace ID", "type": "string", "required": true },
+        { "key": "dataset_id", "label": "Dataset ID", "type": "string", "required": true },
+        { "key": "table", "label": "Table name", "type": "string", "required": true },
+        { "key": "rows", "label": "Rows (JSON array)", "type": "json", "required": true, "placeholder": "[{ \"Date\": \"2025-06-01\", \"Revenue\": 1200 }]" }
+      ]
+    },
+    {
+      "key": "execute_dax",
+      "name": "Run DAX query",
+      "method": "POST",
+      "endpoint": "/groups/{{ inputs.workspace_id }}/datasets/{{ inputs.dataset_id }}/executeQueries",
+      "body": { "queries": [{ "query": "{{ inputs.query }}" }], "serializerSettings": { "includeNulls": true } },
+      "output_fields": { "rows": "results.0.tables.0.rows" },
+      "inputs": [
+        { "key": "workspace_id", "label": "Workspace ID", "type": "string", "required": true },
+        { "key": "dataset_id", "label": "Dataset ID", "type": "string", "required": true },
+        { "key": "query", "label": "DAX query", "type": "code", "required": true, "placeholder": "EVALUATE TOPN(10, 'Sales')" }
+      ]
+    },
+    {
+      "key": "list_reports",
+      "name": "List reports",
+      "method": "GET",
+      "endpoint": "/groups/{{ inputs.workspace_id }}/reports",
+      "output_path": "value",
+      "inputs": [{ "key": "workspace_id", "label": "Workspace ID", "type": "string", "required": true }]
+    }
+  ]
+}

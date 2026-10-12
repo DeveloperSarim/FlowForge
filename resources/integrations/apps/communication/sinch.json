@@ -1,0 +1,60 @@
+{
+  "key": "sinch",
+  "name": "Sinch",
+  "category": "Communication",
+  "description": "Send SMS batches, check delivery reports and read inbound SMS.",
+  "brand": "sinch",
+  "website": "https://sinch.com",
+  "docs_url": "https://developers.sinch.com/docs/sms/api-reference/",
+  "base_url": "https://{{ credentials.region }}.sms.api.sinch.com/xms/v1/{{ credentials.service_plan_id }}",
+  "auth": [
+    {
+      "type": "bearer",
+      "fields": [
+        { "key": "region", "label": "Region", "type": "select", "required": true, "default": "us", "options": [
+          { "value": "us", "label": "US" }, { "value": "eu", "label": "EU" }, { "value": "au", "label": "Australia" },
+          { "value": "br", "label": "Brazil" }, { "value": "ca", "label": "Canada" }
+        ] },
+        { "key": "service_plan_id", "label": "Service plan ID", "type": "string", "required": true },
+        { "key": "token", "label": "API token", "type": "password", "required": true }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "send_sms",
+      "name": "Send SMS",
+      "method": "POST",
+      "endpoint": "/batches",
+      "body": { "from": "{{ inputs.from }}", "to": "{{ inputs.to }}", "body": "{{ inputs.body }}" },
+      "inputs": [
+        { "key": "from", "label": "From", "type": "string", "required": true, "help": "Your Sinch number or alphanumeric sender." },
+        { "key": "to", "label": "To", "type": "list", "required": true, "placeholder": "+15551234567" },
+        { "key": "body", "label": "Message", "type": "text", "required": true }
+      ]
+    },
+    {
+      "key": "get_batch",
+      "name": "Get batch",
+      "method": "GET",
+      "endpoint": "/batches/{{ inputs.batch_id }}",
+      "inputs": [{ "key": "batch_id", "label": "Batch ID", "type": "string", "required": true }]
+    },
+    {
+      "key": "get_delivery_report",
+      "name": "Get delivery report",
+      "method": "GET",
+      "endpoint": "/batches/{{ inputs.batch_id }}/delivery_report",
+      "inputs": [{ "key": "batch_id", "label": "Batch ID", "type": "string", "required": true }]
+    },
+    {
+      "key": "list_inbounds",
+      "name": "List inbound messages",
+      "method": "GET",
+      "endpoint": "/inbounds",
+      "query": { "page_size": "{{ inputs.page_size }}" },
+      "output_path": "inbounds",
+      "inputs": [{ "key": "page_size", "label": "Max results", "type": "number", "default": 30 }]
+    }
+  ]
+}

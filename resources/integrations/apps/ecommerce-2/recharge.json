@@ -1,0 +1,242 @@
+{
+  "key": "recharge",
+  "name": "Recharge",
+  "category": "E-commerce",
+  "description": "Manage subscriptions, customers and charges in Recharge.",
+  "brand": "recharge",
+  "website": "https://rechargepayments.com",
+  "docs_url": "https://developer.rechargepayments.com/2021-11",
+  "popular": true,
+  "base_url": "https://api.rechargeapps.com",
+  "headers": {
+    "X-Recharge-Version": "2021-11"
+  },
+  "auth": [
+    {
+      "type": "api_key",
+      "in": "header",
+      "name": "X-Recharge-Access-Token",
+      "fields": [
+        {
+          "key": "api_key",
+          "label": "API token",
+          "type": "password",
+          "required": true,
+          "help": "Recharge admin > Apps & integrations > API tokens."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_subscriptions",
+      "name": "List subscriptions",
+      "method": "GET",
+      "endpoint": "/subscriptions",
+      "query": {
+        "customer_id": "{{ inputs.customer_id }}",
+        "status": "{{ inputs.status }}",
+        "limit": "{{ inputs.limit }}",
+        "sort_by": "created_at-desc"
+      },
+      "output_path": "subscriptions",
+      "inputs": [
+        {
+          "key": "customer_id",
+          "label": "Customer ID",
+          "type": "string"
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "options": [
+            {
+              "value": "active",
+              "label": "Active"
+            },
+            {
+              "value": "cancelled",
+              "label": "Cancelled"
+            },
+            {
+              "value": "expired",
+              "label": "Expired"
+            }
+          ]
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    },
+    {
+      "key": "get_subscription",
+      "name": "Get subscription",
+      "method": "GET",
+      "endpoint": "/subscriptions/{{ inputs.subscription_id }}",
+      "output_path": "subscription",
+      "inputs": [
+        {
+          "key": "subscription_id",
+          "label": "Subscription ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "cancel_subscription",
+      "name": "Cancel subscription",
+      "method": "POST",
+      "endpoint": "/subscriptions/{{ inputs.subscription_id }}/cancel",
+      "body": {
+        "cancellation_reason": "{{ inputs.reason }}",
+        "cancellation_reason_comments": "{{ inputs.comments }}",
+        "send_email": "{{ inputs.send_email }}"
+      },
+      "output_path": "subscription",
+      "inputs": [
+        {
+          "key": "subscription_id",
+          "label": "Subscription ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "reason",
+          "label": "Cancellation reason",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "comments",
+          "label": "Comments",
+          "type": "text"
+        },
+        {
+          "key": "send_email",
+          "label": "Email the customer",
+          "type": "boolean"
+        }
+      ]
+    },
+    {
+      "key": "activate_subscription",
+      "name": "Reactivate subscription",
+      "method": "POST",
+      "endpoint": "/subscriptions/{{ inputs.subscription_id }}/activate",
+      "output_path": "subscription",
+      "inputs": [
+        {
+          "key": "subscription_id",
+          "label": "Subscription ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "find_customers",
+      "name": "Find customers",
+      "method": "GET",
+      "endpoint": "/customers",
+      "query": {
+        "email": "{{ inputs.email }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_path": "customers",
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string"
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    },
+    {
+      "key": "list_charges",
+      "name": "List charges",
+      "method": "GET",
+      "endpoint": "/charges",
+      "query": {
+        "status": "{{ inputs.status }}",
+        "customer_id": "{{ inputs.customer_id }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_path": "charges",
+      "inputs": [
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "options": [
+            {
+              "value": "queued",
+              "label": "Queued"
+            },
+            {
+              "value": "success",
+              "label": "Success"
+            },
+            {
+              "value": "error",
+              "label": "Error"
+            },
+            {
+              "value": "skipped",
+              "label": "Skipped"
+            },
+            {
+              "value": "refunded",
+              "label": "Refunded"
+            }
+          ]
+        },
+        {
+          "key": "customer_id",
+          "label": "Customer ID",
+          "type": "string"
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_subscription",
+      "name": "New subscription",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/subscriptions",
+      "query": {
+        "sort_by": "created_at-desc",
+        "limit": 50
+      },
+      "items_path": "subscriptions",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

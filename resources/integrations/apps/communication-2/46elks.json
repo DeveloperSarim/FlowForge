@@ -1,0 +1,67 @@
+{
+  "key": "46elks",
+  "name": "46elks",
+  "category": "Communication",
+  "description": "Send SMS, place phone calls and list messages with 46elks.",
+  "brand": "46elks",
+  "website": "https://46elks.com",
+  "docs_url": "https://46elks.com/docs",
+  "base_url": "https://api.46elks.com/a1",
+  "auth": [
+    { "type": "basic", "fields": [
+      { "key": "username", "label": "API username", "type": "string", "required": true, "help": "Shown on your 46elks dashboard." },
+      { "key": "password", "label": "API password", "type": "password", "required": true }
+    ] }
+  ],
+  "actions": [
+    {
+      "key": "send_sms",
+      "name": "Send SMS",
+      "method": "POST",
+      "endpoint": "/sms",
+      "body_format": "form",
+      "body": {
+        "from": "{{ inputs.from }}",
+        "to": "{{ inputs.to }}",
+        "message": "{{ inputs.message }}",
+        "whendelivered": "{{ inputs.whendelivered }}"
+      },
+      "inputs": [
+        { "key": "from", "label": "From", "type": "string", "required": true, "help": "Text sender (3-11 letters) or one of your 46elks numbers." },
+        { "key": "to", "label": "To (E.164)", "type": "string", "required": true, "placeholder": "+46700000000" },
+        { "key": "message", "label": "Message", "type": "text", "required": true },
+        { "key": "whendelivered", "label": "Delivery report URL", "type": "string" }
+      ]
+    },
+    {
+      "key": "make_call",
+      "name": "Make phone call",
+      "method": "POST",
+      "endpoint": "/calls",
+      "body_format": "form",
+      "body": { "from": "{{ inputs.from }}", "to": "{{ inputs.to }}", "voice_start": "{{ inputs.voice_start }}" },
+      "inputs": [
+        { "key": "from", "label": "From (your 46elks number)", "type": "string", "required": true },
+        { "key": "to", "label": "To (E.164)", "type": "string", "required": true },
+        { "key": "voice_start", "label": "Call action (JSON) or URL", "type": "text", "required": true, "placeholder": "{\"play\":\"https://example.com/message.mp3\"}", "help": "What happens when answered, e.g. {\"connect\":\"+46700000000\"}, or a URL returning that JSON." }
+      ]
+    },
+    {
+      "key": "list_sms",
+      "name": "List SMS",
+      "method": "GET",
+      "endpoint": "/sms",
+      "output_path": "data",
+      "inputs": []
+    }
+  ],
+  "triggers": [
+    {
+      "key": "incoming_sms",
+      "name": "Incoming SMS",
+      "description": "Set this URL as sms_url on your 46elks number.",
+      "type": "webhook",
+      "inputs": [{ "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }]
+    }
+  ]
+}

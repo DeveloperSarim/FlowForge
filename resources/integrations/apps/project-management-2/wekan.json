@@ -1,0 +1,140 @@
+{
+  "key": "wekan",
+  "name": "WeKan",
+  "category": "Project Management",
+  "description": "Create cards and list boards, lists and swimlanes in self-hosted WeKan.",
+  "brand": "wekan",
+  "website": "https://wekan.fi",
+  "docs_url": "https://github.com/wekan/wekan/blob/main/docs/API/REST-API.md",
+  "base_url": "{{ credentials.url }}/api",
+  "auth": [
+    {
+      "type": "bearer",
+      "fields": [
+        {
+          "key": "url",
+          "label": "WeKan URL",
+          "type": "string",
+          "required": true,
+          "placeholder": "https://wekan.example.com",
+          "help": "Base URL without a trailing slash."
+        },
+        {
+          "key": "token",
+          "label": "Login token",
+          "type": "password",
+          "required": true,
+          "help": "The token returned by POST /users/login (it expires; log in again to renew)."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_user_boards",
+      "name": "List user boards",
+      "method": "GET",
+      "endpoint": "/users/{{ inputs.user_id }}/boards",
+      "inputs": [
+        {
+          "key": "user_id",
+          "label": "User ID",
+          "type": "string",
+          "required": true,
+          "help": "The id returned by /users/login."
+        }
+      ]
+    },
+    {
+      "key": "list_lists",
+      "name": "List lists",
+      "method": "GET",
+      "endpoint": "/boards/{{ inputs.board_id }}/lists",
+      "inputs": [
+        {
+          "key": "board_id",
+          "label": "Board ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_swimlanes",
+      "name": "List swimlanes",
+      "method": "GET",
+      "endpoint": "/boards/{{ inputs.board_id }}/swimlanes",
+      "inputs": [
+        {
+          "key": "board_id",
+          "label": "Board ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "create_card",
+      "name": "Create card",
+      "method": "POST",
+      "endpoint": "/boards/{{ inputs.board_id }}/lists/{{ inputs.list_id }}/cards",
+      "body": {
+        "authorId": "{{ inputs.author_id }}",
+        "swimlaneId": "{{ inputs.swimlane_id }}",
+        "title": "{{ inputs.title }}",
+        "description": "{{ inputs.description }}"
+      },
+      "inputs": [
+        {
+          "key": "board_id",
+          "label": "Board ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "list_id",
+          "label": "List ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "swimlane_id",
+          "label": "Swimlane ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "author_id",
+          "label": "Author user ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "description",
+          "label": "Description",
+          "type": "text"
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Outgoing webhook",
+      "type": "webhook",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

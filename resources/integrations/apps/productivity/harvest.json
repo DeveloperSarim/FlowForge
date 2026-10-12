@@ -1,0 +1,206 @@
+{
+  "key": "harvest",
+  "name": "Harvest",
+  "category": "Productivity",
+  "description": "Log time, stop timers and list projects in Harvest.",
+  "brand": "harvest",
+  "website": "https://www.getharvest.com",
+  "docs_url": "https://help.getharvest.com/api-v2/",
+  "base_url": "https://api.harvestapp.com/v2",
+  "headers": {
+    "Harvest-Account-Id": "{{ credentials.account_id }}"
+  },
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "Personal access token",
+        "type": "password",
+        "required": true,
+        "help": "id.getharvest.com/developers"
+      },
+      {
+        "key": "account_id",
+        "label": "Account ID",
+        "type": "string",
+        "required": true,
+        "help": "Shown next to the token."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "create_time_entry",
+      "name": "Create time entry",
+      "method": "POST",
+      "endpoint": "/time_entries",
+      "body": {
+        "project_id": "{{ inputs.project_id }}",
+        "task_id": "{{ inputs.task_id }}",
+        "spent_date": "{{ inputs.spent_date }}",
+        "hours": "{{ inputs.hours }}",
+        "notes": "{{ inputs.notes }}",
+        "user_id": "{{ inputs.user_id }}"
+      },
+      "inputs": [
+        {
+          "key": "project_id",
+          "label": "Project ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "task_id",
+          "label": "Task ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "spent_date",
+          "label": "Date",
+          "type": "string",
+          "required": true,
+          "placeholder": "2026-10-12"
+        },
+        {
+          "key": "hours",
+          "label": "Hours",
+          "type": "number",
+          "help": "Leave empty to start a timer (duration-based accounts)."
+        },
+        {
+          "key": "notes",
+          "label": "Notes",
+          "type": "text"
+        },
+        {
+          "key": "user_id",
+          "label": "User ID",
+          "type": "number",
+          "help": "Defaults to you."
+        }
+      ]
+    },
+    {
+      "key": "stop_timer",
+      "name": "Stop timer",
+      "method": "PATCH",
+      "endpoint": "/time_entries/{{ inputs.time_entry_id }}/stop",
+      "inputs": [
+        {
+          "key": "time_entry_id",
+          "label": "Time entry ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_time_entries",
+      "name": "List time entries",
+      "method": "GET",
+      "endpoint": "/time_entries",
+      "query": {
+        "from": "{{ inputs.from }}",
+        "to": "{{ inputs.to }}",
+        "project_id": "{{ inputs.project_id }}",
+        "user_id": "{{ inputs.user_id }}",
+        "per_page": "{{ inputs.per_page }}"
+      },
+      "output_path": "time_entries",
+      "inputs": [
+        {
+          "key": "from",
+          "label": "From",
+          "type": "string",
+          "placeholder": "2026-10-01"
+        },
+        {
+          "key": "to",
+          "label": "To",
+          "type": "string"
+        },
+        {
+          "key": "project_id",
+          "label": "Project ID",
+          "type": "string"
+        },
+        {
+          "key": "user_id",
+          "label": "User ID",
+          "type": "string"
+        },
+        {
+          "key": "per_page",
+          "label": "Max results",
+          "type": "number",
+          "default": 100
+        }
+      ]
+    },
+    {
+      "key": "list_projects",
+      "name": "List projects",
+      "method": "GET",
+      "endpoint": "/projects",
+      "output_path": "projects",
+      "inputs": []
+    },
+    {
+      "key": "list_project_tasks",
+      "name": "List project task assignments",
+      "description": "Find the task IDs you can log time to.",
+      "method": "GET",
+      "endpoint": "/projects/{{ inputs.project_id }}/task_assignments",
+      "output_path": "task_assignments",
+      "inputs": [
+        {
+          "key": "project_id",
+          "label": "Project ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "create_client",
+      "name": "Create client",
+      "method": "POST",
+      "endpoint": "/clients",
+      "body": {
+        "name": "{{ inputs.name }}"
+      },
+      "inputs": [
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_time_entry",
+      "name": "New time entry",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/time_entries",
+      "query": {
+        "per_page": 50
+      },
+      "items_path": "time_entries",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

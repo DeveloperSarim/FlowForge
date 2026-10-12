@@ -1,0 +1,273 @@
+{
+  "key": "square",
+  "name": "Square",
+  "category": "Payments & Finance",
+  "description": "Manage customers, create payment links and read payments and orders.",
+  "brand": "square",
+  "website": "https://squareup.com",
+  "docs_url": "https://developer.squareup.com/reference/square",
+  "popular": true,
+  "base_url": "https://{{ credentials.environment }}/v2",
+  "auth": [
+    {
+      "type": "bearer",
+      "fields": [
+        {
+          "key": "environment",
+          "label": "Environment",
+          "type": "select",
+          "required": true,
+          "default": "connect.squareup.com",
+          "options": [
+            {
+              "value": "connect.squareup.com",
+              "label": "Production"
+            },
+            {
+              "value": "connect.squareupsandbox.com",
+              "label": "Sandbox"
+            }
+          ]
+        },
+        {
+          "key": "token",
+          "label": "Access token",
+          "type": "password",
+          "required": true,
+          "help": "Developer Dashboard > your app > Credentials > Access token."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "create_customer",
+      "name": "Create customer",
+      "method": "POST",
+      "endpoint": "/customers",
+      "output_path": "customer",
+      "body": {
+        "given_name": "{{ inputs.given_name }}",
+        "family_name": "{{ inputs.family_name }}",
+        "email_address": "{{ inputs.email }}",
+        "phone_number": "{{ inputs.phone }}",
+        "company_name": "{{ inputs.company }}",
+        "reference_id": "{{ inputs.reference_id }}",
+        "note": "{{ inputs.note }}"
+      },
+      "inputs": [
+        {
+          "key": "given_name",
+          "label": "First name",
+          "type": "string"
+        },
+        {
+          "key": "family_name",
+          "label": "Last name",
+          "type": "string"
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string"
+        },
+        {
+          "key": "phone",
+          "label": "Phone",
+          "type": "string"
+        },
+        {
+          "key": "company",
+          "label": "Company",
+          "type": "string"
+        },
+        {
+          "key": "reference_id",
+          "label": "Reference ID",
+          "type": "string"
+        },
+        {
+          "key": "note",
+          "label": "Note",
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "key": "search_customers",
+      "name": "Find customer by email",
+      "method": "POST",
+      "endpoint": "/customers/search",
+      "output_path": "customers",
+      "body": {
+        "query": {
+          "filter": {
+            "email_address": {
+              "exact": "{{ inputs.email }}"
+            }
+          }
+        }
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "create_payment_link",
+      "name": "Create payment link",
+      "method": "POST",
+      "endpoint": "/online-checkout/payment-links",
+      "output_fields": {
+        "url": "payment_link.url"
+      },
+      "body": {
+        "quick_pay": {
+          "name": "{{ inputs.name }}",
+          "price_money": {
+            "amount": "{{ inputs.amount }}",
+            "currency": "{{ inputs.currency }}"
+          },
+          "location_id": "{{ inputs.location_id }}"
+        },
+        "description": "{{ inputs.description }}"
+      },
+      "inputs": [
+        {
+          "key": "name",
+          "label": "Item name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "amount",
+          "label": "Amount (smallest unit)",
+          "type": "number",
+          "required": true,
+          "help": "e.g. 1000 = $10.00."
+        },
+        {
+          "key": "currency",
+          "label": "Currency",
+          "type": "string",
+          "required": true,
+          "default": "USD"
+        },
+        {
+          "key": "location_id",
+          "label": "Location ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "description",
+          "label": "Description",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "list_payments",
+      "name": "List payments",
+      "method": "GET",
+      "endpoint": "/payments",
+      "output_path": "payments",
+      "query": {
+        "begin_time": "{{ inputs.begin_time }}",
+        "location_id": "{{ inputs.location_id }}",
+        "sort_order": "DESC",
+        "limit": "{{ inputs.limit }}"
+      },
+      "inputs": [
+        {
+          "key": "begin_time",
+          "label": "Since (RFC 3339)",
+          "type": "string",
+          "placeholder": "2025-01-01T00:00:00Z"
+        },
+        {
+          "key": "location_id",
+          "label": "Location ID",
+          "type": "string"
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    },
+    {
+      "key": "get_payment",
+      "name": "Get payment",
+      "method": "GET",
+      "endpoint": "/payments/{{ inputs.payment_id }}",
+      "output_path": "payment",
+      "inputs": [
+        {
+          "key": "payment_id",
+          "label": "Payment ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "get_order",
+      "name": "Get order",
+      "method": "GET",
+      "endpoint": "/orders/{{ inputs.order_id }}",
+      "output_path": "order",
+      "inputs": [
+        {
+          "key": "order_id",
+          "label": "Order ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_payment",
+      "name": "New payment",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/payments",
+      "query": {
+        "sort_order": "DESC",
+        "limit": 50
+      },
+      "items_path": "payments",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    },
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Developer Dashboard > your app > Webhooks > Add subscription with this URL.",
+      "data_path": "data.object",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,106 @@
+{
+  "key": "radarr",
+  "name": "Radarr",
+  "category": "Video & Media",
+  "description": "Look up and add movies, run commands and read the download queue in Radarr.",
+  "brand": "radarr",
+  "website": "https://radarr.video",
+  "docs_url": "https://radarr.video/docs/api/",
+  "base_url": "{{ credentials.server_url }}/api/v3",
+  "auth": { "type": "api_key", "in": "header", "name": "X-Api-Key", "fields": [
+    { "key": "server_url", "label": "Radarr URL", "type": "string", "required": true, "placeholder": "http://192.168.1.10:7878" },
+    { "key": "api_key", "label": "API key", "type": "password", "required": true, "help": "Settings > General > Security." }
+  ] },
+  "actions": [
+    {
+      "key": "lookup_movie",
+      "name": "Look up movie",
+      "description": "Search TMDB through Radarr (term or tmdb:ID / imdb:ID).",
+      "method": "GET",
+      "endpoint": "/movie/lookup",
+      "query": { "term": "{{ inputs.term }}" },
+      "inputs": [{ "key": "term", "label": "Search", "type": "string", "required": true, "placeholder": "The Matrix" }]
+    },
+    {
+      "key": "add_movie",
+      "name": "Add movie",
+      "method": "POST",
+      "endpoint": "/movie",
+      "body": {
+        "title": "{{ inputs.title }}", "tmdbId": "{{ inputs.tmdb_id }}", "qualityProfileId": "{{ inputs.quality_profile_id }}", "rootFolderPath": "{{ inputs.root_folder_path }}",
+        "monitored": "{{ inputs.monitored }}", "minimumAvailability": "{{ inputs.minimum_availability }}", "addOptions": { "searchForMovie": "{{ inputs.search_now }}" }
+      },
+      "inputs": [
+        { "key": "title", "label": "Title", "type": "string", "required": true },
+        { "key": "tmdb_id", "label": "TMDB ID", "type": "number", "required": true },
+        { "key": "quality_profile_id", "label": "Quality profile ID", "type": "number", "required": true, "help": "See List quality profiles." },
+        { "key": "root_folder_path", "label": "Root folder path", "type": "string", "required": true, "placeholder": "/movies" },
+        { "key": "monitored", "label": "Monitored", "type": "boolean", "default": true },
+        { "key": "minimum_availability", "label": "Minimum availability", "type": "select", "default": "released", "options": [
+          { "value": "announced", "label": "Announced" }, { "value": "inCinemas", "label": "In cinemas" }, { "value": "released", "label": "Released" }
+        ] },
+        { "key": "search_now", "label": "Search for movie now", "type": "boolean", "default": true }
+      ]
+    },
+    {
+      "key": "list_movies",
+      "name": "List movies",
+      "method": "GET",
+      "endpoint": "/movie",
+      "inputs": []
+    },
+    {
+      "key": "list_quality_profiles",
+      "name": "List quality profiles",
+      "method": "GET",
+      "endpoint": "/qualityprofile",
+      "inputs": []
+    },
+    {
+      "key": "list_root_folders",
+      "name": "List root folders",
+      "method": "GET",
+      "endpoint": "/rootfolder",
+      "inputs": []
+    },
+    {
+      "key": "get_queue",
+      "name": "Get download queue",
+      "method": "GET",
+      "endpoint": "/queue",
+      "output_path": "records",
+      "inputs": []
+    },
+    {
+      "key": "get_calendar",
+      "name": "Get calendar",
+      "method": "GET",
+      "endpoint": "/calendar",
+      "query": { "start": "{{ inputs.start }}", "end": "{{ inputs.end }}" },
+      "inputs": [
+        { "key": "start", "label": "Start (ISO date)", "type": "string", "placeholder": "2026-01-01" },
+        { "key": "end", "label": "End (ISO date)", "type": "string", "placeholder": "2026-01-31" }
+      ]
+    },
+    {
+      "key": "run_command",
+      "name": "Run command",
+      "method": "POST",
+      "endpoint": "/command",
+      "body": { "name": "{{ inputs.name }}", "...": "{{ inputs.params }}" },
+      "inputs": [
+        { "key": "name", "label": "Command", "type": "string", "required": true, "placeholder": "MoviesSearch", "help": "e.g. RefreshMovie, MoviesSearch, RssSync, MissingMoviesSearch." },
+        { "key": "params", "label": "Parameters (JSON)", "type": "json", "placeholder": "{\"movieIds\":[1]}" }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "description": "Settings > Connect > Webhook, paste this URL (Grab, Download, MovieAdded…).",
+      "type": "webhook",
+      "inputs": [{ "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }]
+    }
+  ]
+}

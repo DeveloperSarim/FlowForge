@@ -1,0 +1,172 @@
+{
+  "key": "engagebay",
+  "name": "EngageBay",
+  "category": "CRM & Sales",
+  "description": "Create contacts, deals and notes in the EngageBay CRM.",
+  "brand": "engagebay",
+  "website": "https://www.engagebay.com",
+  "docs_url": "https://github.com/engagebay/restapi",
+  "base_url": "https://app.engagebay.com/dev/api/panel",
+  "headers": {
+    "Accept": "application/json"
+  },
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "Authorization",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "REST API key",
+        "type": "password",
+        "required": true
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "create_contact",
+      "name": "Create contact",
+      "method": "POST",
+      "endpoint": "/subscribers/subscriber",
+      "body": {
+        "properties": [
+          {
+            "name": "name",
+            "value": "{{ inputs.first_name }}",
+            "type": "SYSTEM"
+          },
+          {
+            "name": "email",
+            "value": "{{ inputs.email }}",
+            "type": "SYSTEM"
+          }
+        ],
+        "score": "{{ inputs.score }}"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "first_name",
+          "label": "First name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "score",
+          "label": "Score",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "get_contact_by_email",
+      "name": "Get contact by email",
+      "method": "GET",
+      "endpoint": "/subscribers/contact-by-email/{{ inputs.email }}",
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "create_deal",
+      "name": "Create deal",
+      "method": "POST",
+      "endpoint": "/deals/deal",
+      "body": {
+        "name": "{{ inputs.name }}",
+        "amount": "{{ inputs.amount }}",
+        "track_name": "{{ inputs.track_name }}",
+        "milestoneLabelName": "{{ inputs.milestone }}"
+      },
+      "inputs": [
+        {
+          "key": "name",
+          "label": "Deal name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "amount",
+          "label": "Amount",
+          "type": "number"
+        },
+        {
+          "key": "track_name",
+          "label": "Pipeline (track) name",
+          "type": "string",
+          "placeholder": "Default"
+        },
+        {
+          "key": "milestone",
+          "label": "Milestone (stage) name",
+          "type": "string",
+          "placeholder": "New"
+        }
+      ]
+    },
+    {
+      "key": "create_note",
+      "name": "Add note",
+      "method": "POST",
+      "endpoint": "/notes",
+      "body": {
+        "subject": "{{ inputs.subject }}",
+        "content": "{{ inputs.content }}",
+        "parentId": "{{ inputs.contact_id }}"
+      },
+      "inputs": [
+        {
+          "key": "contact_id",
+          "label": "Contact ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "subject",
+          "label": "Subject",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "content",
+          "label": "Note",
+          "type": "text"
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_contact",
+      "name": "New contact",
+      "type": "polling",
+      "method": "POST",
+      "endpoint": "/subscribers",
+      "body_format": "form",
+      "body": {
+        "page_size": 50,
+        "sort_key": "-created_time"
+      },
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,77 @@
+{
+  "key": "exotel",
+  "name": "Exotel",
+  "category": "Communication",
+  "description": "Send SMS, connect two numbers by phone call and get call details with Exotel.",
+  "brand": "exotel",
+  "website": "https://exotel.com",
+  "docs_url": "https://developer.exotel.com/api/",
+  "base_url": "https://{{ credentials.host }}/v1/Accounts/{{ credentials.account_sid }}",
+  "auth": [
+    { "type": "basic", "fields": [
+      { "key": "host", "label": "Cluster", "type": "select", "required": true, "default": "api.exotel.com", "options": [
+        { "value": "api.exotel.com", "label": "Singapore (api.exotel.com)" }, { "value": "api.in.exotel.com", "label": "Mumbai (api.in.exotel.com)" }
+      ] },
+      { "key": "account_sid", "label": "Account SID", "type": "string", "required": true },
+      { "key": "username", "label": "API key", "type": "string", "required": true, "help": "Dashboard → Developer settings → API settings." },
+      { "key": "password", "label": "API token", "type": "password", "required": true }
+    ] }
+  ],
+  "actions": [
+    {
+      "key": "send_sms",
+      "name": "Send SMS",
+      "method": "POST",
+      "endpoint": "/Sms/send.json",
+      "body_format": "form",
+      "body": {
+        "From": "{{ inputs.from }}",
+        "To": "{{ inputs.to }}",
+        "Body": "{{ inputs.body }}",
+        "DltEntityId": "{{ inputs.dlt_entity_id }}",
+        "DltTemplateId": "{{ inputs.dlt_template_id }}",
+        "StatusCallback": "{{ inputs.status_callback }}"
+      },
+      "inputs": [
+        { "key": "from", "label": "From (ExoPhone or sender ID)", "type": "string", "required": true },
+        { "key": "to", "label": "To", "type": "string", "required": true },
+        { "key": "body", "label": "Message", "type": "text", "required": true },
+        { "key": "dlt_entity_id", "label": "DLT entity ID", "type": "string", "help": "Required for SMS to India." },
+        { "key": "dlt_template_id", "label": "DLT template ID", "type": "string" },
+        { "key": "status_callback", "label": "Status callback URL", "type": "string" }
+      ]
+    },
+    {
+      "key": "connect_call",
+      "name": "Connect two numbers (call)",
+      "description": "Calls From first, then connects them to To, showing your ExoPhone as caller ID.",
+      "method": "POST",
+      "endpoint": "/Calls/connect.json",
+      "body_format": "form",
+      "body": {
+        "From": "{{ inputs.from }}",
+        "To": "{{ inputs.to }}",
+        "CallerId": "{{ inputs.caller_id }}",
+        "TimeLimit": "{{ inputs.time_limit }}",
+        "StatusCallback": "{{ inputs.status_callback }}"
+      },
+      "inputs": [
+        { "key": "from", "label": "First number to call", "type": "string", "required": true },
+        { "key": "to", "label": "Number to connect to", "type": "string", "required": true },
+        { "key": "caller_id", "label": "Caller ID (ExoPhone)", "type": "string", "required": true },
+        { "key": "time_limit", "label": "Max duration (seconds)", "type": "number" },
+        { "key": "status_callback", "label": "Status callback URL", "type": "string" }
+      ]
+    },
+    {
+      "key": "get_call",
+      "name": "Get call details",
+      "method": "GET",
+      "endpoint": "/Calls/{{ inputs.call_sid }}.json",
+      "output_path": "Call",
+      "inputs": [
+        { "key": "call_sid", "label": "Call SID", "type": "string", "required": true }
+      ]
+    }
+  ]
+}

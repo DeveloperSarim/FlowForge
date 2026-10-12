@@ -1,0 +1,208 @@
+{
+  "key": "flutterwave",
+  "name": "Flutterwave",
+  "category": "Payments & Finance",
+  "description": "Create payment links, verify transactions and issue refunds.",
+  "brand": "flutterwave",
+  "website": "https://flutterwave.com",
+  "docs_url": "https://developer.flutterwave.com/v3.0/reference",
+  "base_url": "https://api.flutterwave.com/v3",
+  "auth": [
+    {
+      "type": "bearer",
+      "fields": [
+        {
+          "key": "token",
+          "label": "Secret key",
+          "type": "password",
+          "required": true,
+          "help": "Settings > API keys (FLWSECK-…)."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "create_payment",
+      "name": "Create payment link",
+      "method": "POST",
+      "endpoint": "/payments",
+      "output_fields": {
+        "link": "data.link"
+      },
+      "body": {
+        "tx_ref": "{{ inputs.tx_ref }}",
+        "amount": "{{ inputs.amount }}",
+        "currency": "{{ inputs.currency }}",
+        "redirect_url": "{{ inputs.redirect_url }}",
+        "customer": {
+          "email": "{{ inputs.email }}",
+          "name": "{{ inputs.name }}",
+          "phonenumber": "{{ inputs.phone }}"
+        },
+        "customizations": {
+          "title": "{{ inputs.title }}"
+        }
+      },
+      "inputs": [
+        {
+          "key": "tx_ref",
+          "label": "Transaction reference",
+          "type": "string",
+          "required": true,
+          "help": "Your unique reference."
+        },
+        {
+          "key": "amount",
+          "label": "Amount",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "currency",
+          "label": "Currency",
+          "type": "string",
+          "required": true,
+          "default": "NGN"
+        },
+        {
+          "key": "redirect_url",
+          "label": "Redirect URL",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "email",
+          "label": "Customer email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "name",
+          "label": "Customer name",
+          "type": "string"
+        },
+        {
+          "key": "phone",
+          "label": "Customer phone",
+          "type": "string"
+        },
+        {
+          "key": "title",
+          "label": "Checkout title",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "verify_transaction",
+      "name": "Verify transaction",
+      "method": "GET",
+      "endpoint": "/transactions/{{ inputs.transaction_id }}/verify",
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "transaction_id",
+          "label": "Transaction ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "verify_by_reference",
+      "name": "Verify transaction by reference",
+      "method": "GET",
+      "endpoint": "/transactions/verify_by_reference",
+      "output_path": "data",
+      "query": {
+        "tx_ref": "{{ inputs.tx_ref }}"
+      },
+      "inputs": [
+        {
+          "key": "tx_ref",
+          "label": "Transaction reference",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_transactions",
+      "name": "List transactions",
+      "method": "GET",
+      "endpoint": "/transactions",
+      "output_path": "data",
+      "query": {
+        "from": "{{ inputs.from }}",
+        "to": "{{ inputs.to }}",
+        "status": "{{ inputs.status }}",
+        "customer_email": "{{ inputs.email }}"
+      },
+      "inputs": [
+        {
+          "key": "from",
+          "label": "From date",
+          "type": "string",
+          "placeholder": "2025-01-01"
+        },
+        {
+          "key": "to",
+          "label": "To date",
+          "type": "string"
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "string",
+          "placeholder": "successful"
+        },
+        {
+          "key": "email",
+          "label": "Customer email",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "refund_transaction",
+      "name": "Refund transaction",
+      "method": "POST",
+      "endpoint": "/transactions/{{ inputs.transaction_id }}/refund",
+      "output_path": "data",
+      "body": {
+        "amount": "{{ inputs.amount }}"
+      },
+      "inputs": [
+        {
+          "key": "transaction_id",
+          "label": "Transaction ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "amount",
+          "label": "Amount",
+          "type": "number",
+          "help": "Blank = full refund."
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Settings > Webhooks: paste this URL.",
+      "data_path": "data",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

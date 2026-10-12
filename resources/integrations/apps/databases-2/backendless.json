@@ -1,0 +1,92 @@
+{
+  "key": "backendless",
+  "name": "Backendless",
+  "category": "Databases",
+  "description": "Find, create, update and delete objects in Backendless data tables.",
+  "brand": "backendless",
+  "website": "https://backendless.com",
+  "docs_url": "https://backendless.com/docs/rest/data_overview.html",
+  "base_url": "{{ credentials.api_host }}/{{ credentials.app_id }}/{{ credentials.api_key }}",
+  "auth": { "type": "api_key", "fields": [
+    { "key": "api_host", "label": "Region", "type": "select", "required": true, "default": "https://api.backendless.com", "options": [
+      { "value": "https://api.backendless.com", "label": "US" }, { "value": "https://eu-api.backendless.com", "label": "EU" }
+    ] },
+    { "key": "app_id", "label": "Application ID", "type": "string", "required": true, "help": "Backendless Console → Manage → App Settings." },
+    { "key": "api_key", "label": "REST API key", "type": "password", "required": true }
+  ] },
+  "actions": [
+    {
+      "key": "find_objects",
+      "name": "Find objects",
+      "method": "GET",
+      "endpoint": "/data/{{ inputs.table }}",
+      "query": { "where": "{{ inputs.where }}", "sortBy": "{{ inputs.sort_by }}", "props": "{{ inputs.props }}", "pageSize": "{{ inputs.page_size }}", "offset": "{{ inputs.offset }}" },
+      "inputs": [
+        { "key": "table", "label": "Table", "type": "string", "required": true },
+        { "key": "where", "label": "Where clause", "type": "string", "placeholder": "age > 21 AND status = 'active'" },
+        { "key": "sort_by", "label": "Sort by", "type": "string", "placeholder": "created desc" },
+        { "key": "props", "label": "Properties", "type": "string", "placeholder": "name,email" },
+        { "key": "page_size", "label": "Page size (max 100)", "type": "number" },
+        { "key": "offset", "label": "Offset", "type": "number" }
+      ]
+    },
+    {
+      "key": "get_object",
+      "name": "Get object",
+      "method": "GET",
+      "endpoint": "/data/{{ inputs.table }}/{{ inputs.object_id }}",
+      "inputs": [
+        { "key": "table", "label": "Table", "type": "string", "required": true },
+        { "key": "object_id", "label": "Object ID", "type": "string", "required": true }
+      ]
+    },
+    {
+      "key": "create_object",
+      "name": "Create object",
+      "method": "POST",
+      "endpoint": "/data/{{ inputs.table }}",
+      "body": "{{ inputs.data }}",
+      "inputs": [
+        { "key": "table", "label": "Table", "type": "string", "required": true },
+        { "key": "data", "label": "Properties (JSON)", "type": "json", "required": true }
+      ]
+    },
+    {
+      "key": "update_object",
+      "name": "Update object",
+      "method": "PUT",
+      "endpoint": "/data/{{ inputs.table }}/{{ inputs.object_id }}",
+      "body": "{{ inputs.data }}",
+      "inputs": [
+        { "key": "table", "label": "Table", "type": "string", "required": true },
+        { "key": "object_id", "label": "Object ID", "type": "string", "required": true },
+        { "key": "data", "label": "Properties to change (JSON)", "type": "json", "required": true }
+      ]
+    },
+    {
+      "key": "delete_object",
+      "name": "Delete object",
+      "method": "DELETE",
+      "endpoint": "/data/{{ inputs.table }}/{{ inputs.object_id }}",
+      "inputs": [
+        { "key": "table", "label": "Table", "type": "string", "required": true },
+        { "key": "object_id", "label": "Object ID", "type": "string", "required": true }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_object",
+      "name": "New object",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/data/{{ inputs.table }}",
+      "query": { "sortBy": "created desc", "pageSize": 50 },
+      "id_field": "objectId",
+      "inputs": [
+        { "key": "table", "label": "Table", "type": "string", "required": true },
+        { "key": "poll_interval", "label": "Check every (minutes)", "type": "number", "default": 5 }
+      ]
+    }
+  ]
+}

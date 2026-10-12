@@ -1,0 +1,363 @@
+{
+  "key": "hubspot",
+  "name": "HubSpot",
+  "category": "CRM & Sales",
+  "description": "Create, update and search contacts, companies and deals.",
+  "brand": "hubspot",
+  "website": "https://www.hubspot.com",
+  "docs_url": "https://developers.hubspot.com/docs/api/crm/understanding-the-crm",
+  "popular": true,
+  "base_url": "https://api.hubapi.com",
+  "auth": [
+    {
+      "type": "bearer",
+      "fields": [
+        {
+          "key": "token",
+          "label": "Private app access token",
+          "type": "password",
+          "required": true,
+          "help": "Settings > Integrations > Private apps."
+        }
+      ]
+    },
+    {
+      "type": "oauth2",
+      "authorize_url": "https://app.hubspot.com/oauth/authorize",
+      "token_url": "https://api.hubapi.com/oauth/v1/token",
+      "scopes": [
+        "crm.objects.contacts.read",
+        "crm.objects.contacts.write",
+        "crm.objects.companies.read",
+        "crm.objects.companies.write",
+        "crm.objects.deals.read",
+        "crm.objects.deals.write"
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "create_contact",
+      "name": "Create contact",
+      "description": "Adds a contact to your CRM.",
+      "method": "POST",
+      "endpoint": "/crm/v3/objects/contacts",
+      "body": {
+        "properties": {
+          "email": "{{ inputs.email }}",
+          "firstname": "{{ inputs.first_name }}",
+          "lastname": "{{ inputs.last_name }}",
+          "phone": "{{ inputs.phone }}",
+          "company": "{{ inputs.company }}"
+        }
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "first_name",
+          "label": "First name",
+          "type": "string"
+        },
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string"
+        },
+        {
+          "key": "phone",
+          "label": "Phone",
+          "type": "string"
+        },
+        {
+          "key": "company",
+          "label": "Company name",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "update_contact",
+      "name": "Update contact",
+      "method": "PATCH",
+      "endpoint": "/crm/v3/objects/contacts/{{ inputs.contact_id }}",
+      "body": {
+        "properties": "{{ inputs.properties }}"
+      },
+      "inputs": [
+        {
+          "key": "contact_id",
+          "label": "Contact ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "properties",
+          "label": "Properties",
+          "type": "keyvalue",
+          "required": true,
+          "help": "Internal property names and new values."
+        }
+      ]
+    },
+    {
+      "key": "get_contact",
+      "name": "Get contact",
+      "method": "GET",
+      "endpoint": "/crm/v3/objects/contacts/{{ inputs.contact_id }}",
+      "query": {
+        "idProperty": "{{ inputs.id_property }}",
+        "properties": "{{ inputs.properties }}"
+      },
+      "inputs": [
+        {
+          "key": "contact_id",
+          "label": "Contact ID or email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "id_property",
+          "label": "Look up by",
+          "type": "select",
+          "options": [
+            {
+              "value": "email",
+              "label": "Email"
+            }
+          ],
+          "help": "Leave empty to look up by record ID."
+        },
+        {
+          "key": "properties",
+          "label": "Properties",
+          "type": "string",
+          "placeholder": "email,firstname,lastname"
+        }
+      ]
+    },
+    {
+      "key": "search_objects",
+      "name": "Search CRM records",
+      "method": "POST",
+      "endpoint": "/crm/v3/objects/{{ inputs.object }}/search",
+      "body": {
+        "filterGroups": [
+          {
+            "filters": [
+              {
+                "propertyName": "{{ inputs.property }}",
+                "operator": "{{ inputs.operator }}",
+                "value": "{{ inputs.value }}"
+              }
+            ]
+          }
+        ],
+        "properties": "{{ inputs.return_properties }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_path": "results",
+      "inputs": [
+        {
+          "key": "object",
+          "label": "Object",
+          "type": "select",
+          "required": true,
+          "options": [
+            {
+              "value": "contacts",
+              "label": "Contacts"
+            },
+            {
+              "value": "companies",
+              "label": "Companies"
+            },
+            {
+              "value": "deals",
+              "label": "Deals"
+            }
+          ],
+          "default": "contacts"
+        },
+        {
+          "key": "property",
+          "label": "Property",
+          "type": "string",
+          "required": true,
+          "default": "email"
+        },
+        {
+          "key": "operator",
+          "label": "Operator",
+          "type": "select",
+          "options": [
+            {
+              "value": "EQ",
+              "label": "Equals"
+            },
+            {
+              "value": "NEQ",
+              "label": "Not equal"
+            },
+            {
+              "value": "CONTAINS_TOKEN",
+              "label": "Contains word"
+            },
+            {
+              "value": "GT",
+              "label": "Greater than"
+            },
+            {
+              "value": "LT",
+              "label": "Less than"
+            },
+            {
+              "value": "HAS_PROPERTY",
+              "label": "Is known"
+            }
+          ],
+          "default": "EQ"
+        },
+        {
+          "key": "value",
+          "label": "Value",
+          "type": "string"
+        },
+        {
+          "key": "return_properties",
+          "label": "Properties to return",
+          "type": "list"
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 10
+        }
+      ]
+    },
+    {
+      "key": "create_company",
+      "name": "Create company",
+      "method": "POST",
+      "endpoint": "/crm/v3/objects/companies",
+      "body": {
+        "properties": {
+          "name": "{{ inputs.name }}",
+          "domain": "{{ inputs.domain }}"
+        }
+      },
+      "inputs": [
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "domain",
+          "label": "Domain",
+          "type": "string",
+          "placeholder": "example.com"
+        }
+      ]
+    },
+    {
+      "key": "create_deal",
+      "name": "Create deal",
+      "method": "POST",
+      "endpoint": "/crm/v3/objects/deals",
+      "body": {
+        "properties": {
+          "dealname": "{{ inputs.dealname }}",
+          "amount": "{{ inputs.amount }}",
+          "pipeline": "{{ inputs.pipeline }}",
+          "dealstage": "{{ inputs.dealstage }}",
+          "closedate": "{{ inputs.closedate }}"
+        }
+      },
+      "inputs": [
+        {
+          "key": "dealname",
+          "label": "Deal name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "amount",
+          "label": "Amount",
+          "type": "number"
+        },
+        {
+          "key": "pipeline",
+          "label": "Pipeline ID",
+          "type": "string",
+          "default": "default"
+        },
+        {
+          "key": "dealstage",
+          "label": "Deal stage ID",
+          "type": "string",
+          "required": true,
+          "placeholder": "appointmentscheduled"
+        },
+        {
+          "key": "closedate",
+          "label": "Close date",
+          "type": "string",
+          "placeholder": "2026-12-31"
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_contact",
+      "name": "New contact",
+      "type": "polling",
+      "method": "POST",
+      "endpoint": "/crm/v3/objects/contacts/search",
+      "body": {
+        "sorts": [
+          {
+            "propertyName": "createdate",
+            "direction": "DESCENDING"
+          }
+        ],
+        "properties": [
+          "email",
+          "firstname",
+          "lastname",
+          "createdate"
+        ],
+        "limit": 50
+      },
+      "items_path": "results",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    },
+    {
+      "key": "webhook_event",
+      "name": "Webhook (workflow or app subscription)",
+      "type": "webhook",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

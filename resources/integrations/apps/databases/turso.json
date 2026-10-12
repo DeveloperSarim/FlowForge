@@ -1,0 +1,68 @@
+{
+  "key": "turso",
+  "name": "Turso",
+  "category": "Databases",
+  "description": "Create, list and delete libSQL databases and mint database auth tokens.",
+  "brand": "turso",
+  "website": "https://turso.tech",
+  "docs_url": "https://docs.turso.tech/api-reference/introduction",
+  "base_url": "https://api.turso.tech/v1",
+  "auth": { "type": "bearer", "fields": [{ "key": "token", "label": "Platform API token", "type": "password", "required": true, "help": "turso auth api-tokens mint <name>" }] },
+  "actions": [
+    {
+      "key": "list_databases",
+      "name": "List databases",
+      "method": "GET",
+      "endpoint": "/organizations/{{ inputs.organization }}/databases",
+      "output_path": "databases",
+      "inputs": [{ "key": "organization", "label": "Organization slug", "type": "string", "required": true }]
+    },
+    {
+      "key": "get_database",
+      "name": "Get database",
+      "method": "GET",
+      "endpoint": "/organizations/{{ inputs.organization }}/databases/{{ inputs.database }}",
+      "output_path": "database",
+      "inputs": [
+        { "key": "organization", "label": "Organization slug", "type": "string", "required": true },
+        { "key": "database", "label": "Database name", "type": "string", "required": true }
+      ]
+    },
+    {
+      "key": "create_database",
+      "name": "Create database",
+      "method": "POST",
+      "endpoint": "/organizations/{{ inputs.organization }}/databases",
+      "output_path": "database",
+      "body": { "name": "{{ inputs.name }}", "group": "{{ inputs.group }}" },
+      "inputs": [
+        { "key": "organization", "label": "Organization slug", "type": "string", "required": true },
+        { "key": "name", "label": "Database name", "type": "string", "required": true },
+        { "key": "group", "label": "Group", "type": "string", "required": true, "default": "default" }
+      ]
+    },
+    {
+      "key": "delete_database",
+      "name": "Delete database",
+      "method": "DELETE",
+      "endpoint": "/organizations/{{ inputs.organization }}/databases/{{ inputs.database }}",
+      "inputs": [
+        { "key": "organization", "label": "Organization slug", "type": "string", "required": true },
+        { "key": "database", "label": "Database name", "type": "string", "required": true }
+      ]
+    },
+    {
+      "key": "create_database_token",
+      "name": "Create database auth token",
+      "method": "POST",
+      "endpoint": "/organizations/{{ inputs.organization }}/databases/{{ inputs.database }}/auth/tokens",
+      "query": { "expiration": "{{ inputs.expiration }}", "authorization": "{{ inputs.authorization }}" },
+      "inputs": [
+        { "key": "organization", "label": "Organization slug", "type": "string", "required": true },
+        { "key": "database", "label": "Database name", "type": "string", "required": true },
+        { "key": "expiration", "label": "Expires", "type": "string", "default": "never", "placeholder": "never, 2w1d30m" },
+        { "key": "authorization", "label": "Access", "type": "select", "default": "full-access", "options": [{ "value": "full-access", "label": "Full access" }, { "value": "read-only", "label": "Read only" }] }
+      ]
+    }
+  ]
+}

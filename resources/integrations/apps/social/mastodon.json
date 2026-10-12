@@ -1,0 +1,92 @@
+{
+  "key": "mastodon",
+  "name": "Mastodon",
+  "category": "Social Media",
+  "description": "Post statuses, boost and favourite, search, and watch hashtags on any instance.",
+  "brand": "mastodon",
+  "website": "https://joinmastodon.org",
+  "docs_url": "https://docs.joinmastodon.org/methods/statuses/",
+  "base_url": "{{ credentials.instance_url }}",
+  "auth": { "type": "bearer", "fields": [
+    { "key": "instance_url", "label": "Instance URL", "type": "string", "required": true, "placeholder": "https://mastodon.social" },
+    { "key": "token", "label": "Access token", "type": "password", "required": true, "help": "Preferences > Development > New application (scopes read, write)." }
+  ] },
+  "actions": [
+    {
+      "key": "post_status",
+      "name": "Post status",
+      "method": "POST",
+      "endpoint": "/api/v1/statuses",
+      "body": { "status": "{{ inputs.status }}", "visibility": "{{ inputs.visibility }}", "spoiler_text": "{{ inputs.spoiler_text }}", "in_reply_to_id": "{{ inputs.in_reply_to_id }}", "language": "{{ inputs.language }}" },
+      "inputs": [
+        { "key": "status", "label": "Text", "type": "text", "required": true },
+        { "key": "visibility", "label": "Visibility", "type": "select", "default": "public", "options": [
+          { "value": "public", "label": "Public" }, { "value": "unlisted", "label": "Unlisted" }, { "value": "private", "label": "Followers only" }, { "value": "direct", "label": "Direct" }
+        ] },
+        { "key": "spoiler_text", "label": "Content warning", "type": "string" },
+        { "key": "in_reply_to_id", "label": "Reply to status ID", "type": "string" },
+        { "key": "language", "label": "Language (ISO 639)", "type": "string", "placeholder": "en" }
+      ]
+    },
+    {
+      "key": "boost_status",
+      "name": "Boost status",
+      "method": "POST",
+      "endpoint": "/api/v1/statuses/{{ inputs.id }}/reblog",
+      "inputs": [{ "key": "id", "label": "Status ID", "type": "string", "required": true }]
+    },
+    {
+      "key": "favourite_status",
+      "name": "Favourite status",
+      "method": "POST",
+      "endpoint": "/api/v1/statuses/{{ inputs.id }}/favourite",
+      "inputs": [{ "key": "id", "label": "Status ID", "type": "string", "required": true }]
+    },
+    {
+      "key": "search",
+      "name": "Search",
+      "method": "GET",
+      "endpoint": "/api/v2/search",
+      "query": { "q": "{{ inputs.q }}", "type": "{{ inputs.type }}", "limit": "{{ inputs.limit }}" },
+      "inputs": [
+        { "key": "q", "label": "Query", "type": "string", "required": true },
+        { "key": "type", "label": "Type", "type": "select", "options": [
+          { "value": "accounts", "label": "Accounts" }, { "value": "statuses", "label": "Statuses" }, { "value": "hashtags", "label": "Hashtags" }
+        ] },
+        { "key": "limit", "label": "Limit (max 40)", "type": "number", "default": 20 }
+      ]
+    },
+    {
+      "key": "verify_credentials",
+      "name": "Get my account",
+      "method": "GET",
+      "endpoint": "/api/v1/accounts/verify_credentials",
+      "inputs": []
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_hashtag_status",
+      "name": "New post with hashtag",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/api/v1/timelines/tag/{{ inputs.hashtag }}",
+      "query": { "limit": 20 },
+      "id_field": "id",
+      "inputs": [
+        { "key": "hashtag", "label": "Hashtag (without #)", "type": "string", "required": true },
+        { "key": "poll_interval", "label": "Check every (minutes)", "type": "number", "default": 5 }
+      ]
+    },
+    {
+      "key": "new_notification",
+      "name": "New notification",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/api/v1/notifications",
+      "query": { "limit": 30 },
+      "id_field": "id",
+      "inputs": [{ "key": "poll_interval", "label": "Check every (minutes)", "type": "number", "default": 5 }]
+    }
+  ]
+}

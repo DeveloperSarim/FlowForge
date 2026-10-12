@@ -1,0 +1,248 @@
+{
+  "key": "cosmic",
+  "name": "Cosmic",
+  "category": "CMS & Websites",
+  "description": "Find, create, update and delete objects in a Cosmic bucket.",
+  "brand": "cosmic",
+  "website": "https://www.cosmicjs.com",
+  "docs_url": "https://www.cosmicjs.com/docs/api",
+  "base_url": "https://api.cosmicjs.com/v3/buckets/{{ credentials.bucket_slug }}",
+  "auth": [
+    {
+      "type": "api_key",
+      "in": "query",
+      "name": "read_key",
+      "fields": [
+        {
+          "key": "bucket_slug",
+          "label": "Bucket slug",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "api_key",
+          "label": "Bucket read key",
+          "type": "password",
+          "required": true
+        },
+        {
+          "key": "write_key",
+          "label": "Bucket write key",
+          "type": "password",
+          "required": false,
+          "help": "Needed to create, update or delete."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "find_objects",
+      "name": "Find objects",
+      "method": "GET",
+      "endpoint": "/objects",
+      "output_path": "objects",
+      "query": {
+        "query": "{{ inputs.query }}",
+        "props": "{{ inputs.props }}",
+        "sort": "{{ inputs.sort }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "inputs": [
+        {
+          "key": "query",
+          "label": "Query (JSON string)",
+          "type": "string",
+          "required": true,
+          "default": "{\"type\":\"posts\"}"
+        },
+        {
+          "key": "props",
+          "label": "Props",
+          "type": "string",
+          "placeholder": "id,title,slug,metadata"
+        },
+        {
+          "key": "sort",
+          "label": "Sort",
+          "type": "string",
+          "default": "-created_at"
+        },
+        {
+          "key": "limit",
+          "label": "Max objects",
+          "type": "number",
+          "default": 10
+        }
+      ]
+    },
+    {
+      "key": "get_object",
+      "name": "Get object",
+      "method": "GET",
+      "endpoint": "/objects/{{ inputs.object_id }}",
+      "query": {
+        "props": "{{ inputs.props }}"
+      },
+      "output_path": "object",
+      "inputs": [
+        {
+          "key": "object_id",
+          "label": "Object ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "props",
+          "label": "Props",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "create_object",
+      "name": "Create object",
+      "method": "POST",
+      "endpoint": "/objects",
+      "headers": {
+        "Authorization": "Bearer {{ credentials.write_key }}"
+      },
+      "output_path": "object",
+      "body": {
+        "title": "{{ inputs.title }}",
+        "type": "{{ inputs.type }}",
+        "slug": "{{ inputs.slug }}",
+        "metadata": "{{ inputs.metadata }}",
+        "status": "{{ inputs.status }}"
+      },
+      "inputs": [
+        {
+          "key": "type",
+          "label": "Object type slug",
+          "type": "string",
+          "required": true,
+          "placeholder": "posts"
+        },
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "slug",
+          "label": "Slug",
+          "type": "string"
+        },
+        {
+          "key": "metadata",
+          "label": "Metadata (JSON)",
+          "type": "json"
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "options": [
+            {
+              "value": "published",
+              "label": "Published"
+            },
+            {
+              "value": "draft",
+              "label": "Draft"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "update_object",
+      "name": "Update object",
+      "method": "PATCH",
+      "endpoint": "/objects/{{ inputs.object_id }}",
+      "headers": {
+        "Authorization": "Bearer {{ credentials.write_key }}"
+      },
+      "body": "{{ inputs.data }}",
+      "output_path": "object",
+      "inputs": [
+        {
+          "key": "object_id",
+          "label": "Object ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "data",
+          "label": "Changes (JSON)",
+          "type": "json",
+          "required": true,
+          "placeholder": "{ \"title\": \"New\", \"metadata\": { } }"
+        }
+      ]
+    },
+    {
+      "key": "delete_object",
+      "name": "Delete object",
+      "method": "DELETE",
+      "endpoint": "/objects/{{ inputs.object_id }}",
+      "headers": {
+        "Authorization": "Bearer {{ credentials.write_key }}"
+      },
+      "inputs": [
+        {
+          "key": "object_id",
+          "label": "Object ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_object",
+      "name": "New object",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/objects",
+      "query": {
+        "query": "{\"type\":\"{{ inputs.type }}\"}",
+        "sort": "-created_at",
+        "limit": 20,
+        "props": "id,slug,title,type,status,created_at,metadata"
+      },
+      "items_path": "objects",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "type",
+          "label": "Object type slug",
+          "type": "string",
+          "required": true,
+          "placeholder": "posts"
+        },
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    },
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Cosmic webhooks (object created, edited, published...).",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

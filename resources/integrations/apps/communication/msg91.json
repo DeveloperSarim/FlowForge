@@ -1,0 +1,62 @@
+{
+  "key": "msg91",
+  "name": "MSG91",
+  "category": "Communication",
+  "description": "Send template SMS and send/verify OTPs with MSG91.",
+  "brand": "msg91",
+  "website": "https://msg91.com",
+  "docs_url": "https://docs.msg91.com",
+  "base_url": "https://control.msg91.com/api/v5",
+  "auth": [
+    { "type": "api_key", "in": "header", "name": "authkey", "fields": [{ "key": "api_key", "label": "Auth key", "type": "password", "required": true }] }
+  ],
+  "actions": [
+    {
+      "key": "send_sms",
+      "name": "Send SMS (flow template)",
+      "method": "POST",
+      "endpoint": "/flow",
+      "body": { "template_id": "{{ inputs.template_id }}", "recipients": "{{ inputs.recipients }}" },
+      "inputs": [
+        { "key": "template_id", "label": "Template ID", "type": "string", "required": true },
+        { "key": "recipients", "label": "Recipients (JSON)", "type": "json", "required": true, "placeholder": "[{\"mobiles\":\"919999999999\",\"var1\":\"Ada\"}]", "help": "mobiles with country code; other keys fill the template variables." }
+      ]
+    },
+    {
+      "key": "send_otp",
+      "name": "Send OTP",
+      "method": "POST",
+      "endpoint": "/otp",
+      "query": { "template_id": "{{ inputs.template_id }}", "mobile": "{{ inputs.mobile }}", "otp_length": "{{ inputs.otp_length }}" },
+      "inputs": [
+        { "key": "template_id", "label": "OTP template ID", "type": "string", "required": true },
+        { "key": "mobile", "label": "Mobile (with country code)", "type": "string", "required": true, "placeholder": "919999999999" },
+        { "key": "otp_length", "label": "OTP length", "type": "number" }
+      ]
+    },
+    {
+      "key": "verify_otp",
+      "name": "Verify OTP",
+      "method": "GET",
+      "endpoint": "/otp/verify",
+      "query": { "mobile": "{{ inputs.mobile }}", "otp": "{{ inputs.otp }}" },
+      "inputs": [
+        { "key": "mobile", "label": "Mobile (with country code)", "type": "string", "required": true },
+        { "key": "otp", "label": "OTP entered by the user", "type": "string", "required": true }
+      ]
+    },
+    {
+      "key": "resend_otp",
+      "name": "Resend OTP",
+      "method": "GET",
+      "endpoint": "/otp/retry",
+      "query": { "mobile": "{{ inputs.mobile }}", "retrytype": "{{ inputs.retrytype }}" },
+      "inputs": [
+        { "key": "mobile", "label": "Mobile (with country code)", "type": "string", "required": true },
+        { "key": "retrytype", "label": "Resend via", "type": "select", "default": "text", "options": [
+          { "value": "text", "label": "SMS" }, { "value": "voice", "label": "Voice call" }
+        ] }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,84 @@
+{
+  "key": "datadog",
+  "name": "Datadog",
+  "category": "Developer Tools",
+  "description": "Post events, send logs and look up monitors.",
+  "brand": "datadog",
+  "website": "https://www.datadoghq.com",
+  "docs_url": "https://docs.datadoghq.com/api/latest/",
+  "base_url": "https://api.{{ credentials.site }}",
+  "headers": { "DD-APPLICATION-KEY": "{{ credentials.app_key }}" },
+  "auth": { "type": "api_key", "in": "header", "name": "DD-API-KEY", "fields": [
+    { "key": "site", "label": "Site", "type": "select", "required": true, "default": "datadoghq.com", "options": [
+      { "value": "datadoghq.com", "label": "US1 (datadoghq.com)" }, { "value": "us3.datadoghq.com", "label": "US3" }, { "value": "us5.datadoghq.com", "label": "US5" },
+      { "value": "datadoghq.eu", "label": "EU1 (datadoghq.eu)" }, { "value": "ap1.datadoghq.com", "label": "AP1" }, { "value": "ap2.datadoghq.com", "label": "AP2" },
+      { "value": "ddog-gov.com", "label": "US1-FED (ddog-gov.com)" }
+    ] },
+    { "key": "api_key", "label": "API key", "type": "password", "required": true },
+    { "key": "app_key", "label": "Application key", "type": "password", "help": "Needed for reading data such as monitors; not for posting events or logs." }
+  ] },
+  "actions": [
+    {
+      "key": "post_event",
+      "name": "Post event",
+      "method": "POST",
+      "endpoint": "/api/v1/events",
+      "body": { "title": "{{ inputs.title }}", "text": "{{ inputs.text }}", "alert_type": "{{ inputs.alert_type }}", "priority": "{{ inputs.priority }}", "tags": "{{ inputs.tags }}", "aggregation_key": "{{ inputs.aggregation_key }}" },
+      "inputs": [
+        { "key": "title", "label": "Title", "type": "string", "required": true },
+        { "key": "text", "label": "Text (Markdown)", "type": "text", "required": true },
+        { "key": "alert_type", "label": "Alert type", "type": "select", "default": "info", "options": [
+          { "value": "info", "label": "Info" }, { "value": "success", "label": "Success" }, { "value": "warning", "label": "Warning" }, { "value": "error", "label": "Error" }
+        ] },
+        { "key": "priority", "label": "Priority", "type": "select", "default": "normal", "options": [{ "value": "normal", "label": "Normal" }, { "value": "low", "label": "Low" }] },
+        { "key": "tags", "label": "Tags", "type": "list", "placeholder": "env:prod" },
+        { "key": "aggregation_key", "label": "Aggregation key", "type": "string" }
+      ]
+    },
+    {
+      "key": "send_log",
+      "name": "Send log",
+      "method": "POST",
+      "endpoint": "https://http-intake.logs.{{ credentials.site }}/api/v2/logs",
+      "body": [{ "message": "{{ inputs.message }}", "service": "{{ inputs.service }}", "ddsource": "{{ inputs.source }}", "hostname": "{{ inputs.hostname }}", "ddtags": "{{ inputs.tags }}", "status": "{{ inputs.status }}" }],
+      "inputs": [
+        { "key": "message", "label": "Message", "type": "text", "required": true },
+        { "key": "service", "label": "Service", "type": "string" },
+        { "key": "source", "label": "Source", "type": "string", "default": "flowforge" },
+        { "key": "hostname", "label": "Host", "type": "string" },
+        { "key": "tags", "label": "Tags", "type": "string", "placeholder": "env:prod,team:payments" },
+        { "key": "status", "label": "Level", "type": "select", "default": "info", "options": [
+          { "value": "debug", "label": "Debug" }, { "value": "info", "label": "Info" }, { "value": "warn", "label": "Warning" }, { "value": "error", "label": "Error" }, { "value": "critical", "label": "Critical" }
+        ] }
+      ]
+    },
+    {
+      "key": "list_monitors",
+      "name": "List monitors",
+      "description": "Needs an application key.",
+      "method": "GET",
+      "endpoint": "/api/v1/monitor",
+      "query": { "name": "{{ inputs.name }}", "monitor_tags": "{{ inputs.tags }}" },
+      "inputs": [
+        { "key": "name", "label": "Name contains", "type": "string" },
+        { "key": "tags", "label": "Monitor tags", "type": "string", "placeholder": "service:api,env:prod" }
+      ]
+    },
+    {
+      "key": "get_monitor",
+      "name": "Get monitor",
+      "description": "Needs an application key.",
+      "method": "GET",
+      "endpoint": "/api/v1/monitor/{{ inputs.monitor_id }}",
+      "inputs": [{ "key": "monitor_id", "label": "Monitor ID", "type": "number", "required": true }]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook notification",
+      "type": "webhook",
+      "inputs": [{ "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }]
+    }
+  ]
+}

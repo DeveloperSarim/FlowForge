@@ -1,0 +1,198 @@
+{
+  "key": "payhip",
+  "name": "Payhip",
+  "category": "E-commerce",
+  "description": "Create coupons and verify or manage software license keys on Payhip.",
+  "brand": "payhip",
+  "website": "https://payhip.com",
+  "docs_url": "https://payhip.com/api-reference/coupons",
+  "base_url": "https://payhip.com/api/v2",
+  "auth": [
+    {
+      "type": "api_key",
+      "in": "header",
+      "name": "payhip-api-key",
+      "fields": [
+        {
+          "key": "api_key",
+          "label": "API key",
+          "type": "password",
+          "required": true,
+          "help": "Settings > Developer."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "create_coupon",
+      "name": "Create coupon",
+      "method": "POST",
+      "endpoint": "/coupons",
+      "body": {
+        "code": "{{ inputs.code }}",
+        "coupon_type": "{{ inputs.coupon_type }}",
+        "percent_off": "{{ inputs.percent_off }}",
+        "amount_off": "{{ inputs.amount_off }}",
+        "product_key": "{{ inputs.product_key }}",
+        "collection_id": "{{ inputs.collection_id }}",
+        "usage_limit": "{{ inputs.usage_limit }}",
+        "notes": "{{ inputs.notes }}"
+      },
+      "inputs": [
+        {
+          "key": "code",
+          "label": "Code",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "coupon_type",
+          "label": "Applies to",
+          "type": "select",
+          "options": [
+            {
+              "value": "multi",
+              "label": "All products"
+            },
+            {
+              "value": "single",
+              "label": "One product"
+            },
+            {
+              "value": "collection",
+              "label": "A collection"
+            }
+          ],
+          "default": "multi",
+          "required": true
+        },
+        {
+          "key": "percent_off",
+          "label": "Percent off",
+          "type": "number"
+        },
+        {
+          "key": "amount_off",
+          "label": "Amount off (cents)",
+          "type": "number"
+        },
+        {
+          "key": "product_key",
+          "label": "Product key",
+          "type": "string",
+          "help": "For \"One product\"."
+        },
+        {
+          "key": "collection_id",
+          "label": "Collection ID",
+          "type": "string",
+          "help": "For \"A collection\"."
+        },
+        {
+          "key": "usage_limit",
+          "label": "Usage limit",
+          "type": "number"
+        },
+        {
+          "key": "notes",
+          "label": "Notes",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "list_coupons",
+      "name": "List coupons",
+      "method": "GET",
+      "endpoint": "/coupons",
+      "query": {
+        "limit": "{{ inputs.limit }}",
+        "offset": "{{ inputs.offset }}"
+      },
+      "inputs": [
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 10,
+          "help": "1–100."
+        },
+        {
+          "key": "offset",
+          "label": "Offset",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "verify_license",
+      "name": "Verify license key",
+      "description": "Uses the product secret key, not the account API key.",
+      "method": "GET",
+      "endpoint": "/license/verify",
+      "headers": {
+        "product-secret-key": "{{ inputs.product_secret_key }}"
+      },
+      "query": {
+        "license_key": "{{ inputs.license_key }}"
+      },
+      "inputs": [
+        {
+          "key": "product_secret_key",
+          "label": "Product secret key",
+          "type": "password",
+          "required": true,
+          "help": "Product > Edit > License keys."
+        },
+        {
+          "key": "license_key",
+          "label": "License key",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "disable_license",
+      "name": "Disable license key",
+      "method": "PUT",
+      "endpoint": "/license/disable",
+      "headers": {
+        "product-secret-key": "{{ inputs.product_secret_key }}"
+      },
+      "body": {
+        "license_key": "{{ inputs.license_key }}"
+      },
+      "inputs": [
+        {
+          "key": "product_secret_key",
+          "label": "Product secret key",
+          "type": "password",
+          "required": true
+        },
+        {
+          "key": "license_key",
+          "label": "License key",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Settings > Developer > Webhooks: paste this URL (paid, refunded, subscription events).",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

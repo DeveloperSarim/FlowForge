@@ -1,0 +1,86 @@
+{
+  "key": "textbelt",
+  "name": "Textbelt",
+  "category": "Communication",
+  "description": "Send SMS and one-time passwords, check delivery status and remaining quota.",
+  "brand": "textbelt",
+  "website": "https://textbelt.com",
+  "docs_url": "https://docs.textbelt.com",
+  "base_url": "https://textbelt.com",
+  "auth": [
+    { "type": "api_key", "fields": [{ "key": "api_key", "label": "API key", "type": "password", "required": true }] }
+  ],
+  "actions": [
+    {
+      "key": "send_sms",
+      "name": "Send SMS",
+      "method": "POST",
+      "endpoint": "/text",
+      "body_format": "form",
+      "body": {
+        "phone": "{{ inputs.phone }}",
+        "message": "{{ inputs.message }}",
+        "key": "{{ credentials.api_key }}",
+        "sender": "{{ inputs.sender }}",
+        "replyWebhookUrl": "{{ inputs.reply_webhook_url }}"
+      },
+      "error_path": "error",
+      "inputs": [
+        { "key": "phone", "label": "Phone", "type": "string", "required": true, "placeholder": "+15557727420" },
+        { "key": "message", "label": "Message", "type": "text", "required": true },
+        { "key": "sender", "label": "Sender name", "type": "string", "help": "Used for compliance text in some countries." },
+        { "key": "reply_webhook_url", "label": "Reply webhook URL", "type": "string", "help": "Textbelt POSTs replies here (US numbers only)." }
+      ]
+    },
+    {
+      "key": "get_status",
+      "name": "Get delivery status",
+      "method": "GET",
+      "endpoint": "/status/{{ inputs.text_id }}",
+      "inputs": [
+        { "key": "text_id", "label": "Text ID", "type": "string", "required": true }
+      ]
+    },
+    {
+      "key": "get_quota",
+      "name": "Get remaining quota",
+      "method": "GET",
+      "endpoint": "/quota/{{ credentials.api_key }}",
+      "inputs": []
+    },
+    {
+      "key": "send_otp",
+      "name": "Send OTP",
+      "method": "POST",
+      "endpoint": "/otp/generate",
+      "body_format": "form",
+      "body": {
+        "phone": "{{ inputs.phone }}",
+        "userid": "{{ inputs.userid }}",
+        "key": "{{ credentials.api_key }}",
+        "message": "{{ inputs.message }}",
+        "lifetime": "{{ inputs.lifetime }}",
+        "length": "{{ inputs.length }}"
+      },
+      "error_path": "error",
+      "inputs": [
+        { "key": "phone", "label": "Phone", "type": "string", "required": true },
+        { "key": "userid", "label": "Your user ID", "type": "string", "required": true, "help": "Any stable identifier; reuse it in Verify OTP." },
+        { "key": "message", "label": "Custom message", "type": "text", "placeholder": "Your code is $OTP", "help": "Must contain $OTP." },
+        { "key": "lifetime", "label": "Valid for (seconds)", "type": "number" },
+        { "key": "length", "label": "Code length", "type": "number" }
+      ]
+    },
+    {
+      "key": "verify_otp",
+      "name": "Verify OTP",
+      "method": "GET",
+      "endpoint": "/otp/verify",
+      "query": { "otp": "{{ inputs.otp }}", "userid": "{{ inputs.userid }}", "key": "{{ credentials.api_key }}" },
+      "inputs": [
+        { "key": "otp", "label": "Code entered by the user", "type": "string", "required": true },
+        { "key": "userid", "label": "Your user ID", "type": "string", "required": true }
+      ]
+    }
+  ]
+}

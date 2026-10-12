@@ -1,0 +1,264 @@
+{
+  "key": "paymongo",
+  "name": "PayMongo",
+  "category": "Payments & Finance",
+  "description": "Create payment links and checkout sessions, fetch payments and refund with PayMongo.",
+  "brand": "paymongo",
+  "website": "https://www.paymongo.com",
+  "docs_url": "https://developers.paymongo.com/reference",
+  "base_url": "https://api.paymongo.com/v1",
+  "auth": [
+    {
+      "type": "basic",
+      "fields": [
+        {
+          "key": "username",
+          "label": "Secret key (sk_…)",
+          "type": "password",
+          "required": true,
+          "help": "Dashboard > Developers > API keys."
+        },
+        {
+          "key": "password",
+          "label": "Password",
+          "type": "password",
+          "required": false,
+          "default": "",
+          "help": "Leave blank."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "create_link",
+      "name": "Create payment link",
+      "method": "POST",
+      "endpoint": "/links",
+      "body": {
+        "data": {
+          "attributes": {
+            "amount": "{{ inputs.amount }}",
+            "description": "{{ inputs.description }}",
+            "remarks": "{{ inputs.remarks }}"
+          }
+        }
+      },
+      "output_path": "data",
+      "output_fields": {
+        "url": "attributes.checkout_url"
+      },
+      "inputs": [
+        {
+          "key": "amount",
+          "label": "Amount (centavos)",
+          "type": "number",
+          "required": true,
+          "help": "10000 = ₱100.00. Minimum 10000."
+        },
+        {
+          "key": "description",
+          "label": "Description",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "remarks",
+          "label": "Remarks",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "get_link",
+      "name": "Get payment link",
+      "method": "GET",
+      "endpoint": "/links/{{ inputs.link_id }}",
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "link_id",
+          "label": "Link ID",
+          "type": "string",
+          "required": true,
+          "placeholder": "link_…"
+        }
+      ]
+    },
+    {
+      "key": "create_checkout_session",
+      "name": "Create checkout session",
+      "method": "POST",
+      "endpoint": "/checkout_sessions",
+      "body": {
+        "data": {
+          "attributes": {
+            "line_items": "{{ inputs.line_items }}",
+            "payment_method_types": "{{ inputs.payment_method_types }}",
+            "description": "{{ inputs.description }}",
+            "reference_number": "{{ inputs.reference_number }}",
+            "success_url": "{{ inputs.success_url }}",
+            "cancel_url": "{{ inputs.cancel_url }}",
+            "send_email_receipt": "{{ inputs.send_email_receipt }}"
+          }
+        }
+      },
+      "output_path": "data",
+      "output_fields": {
+        "url": "attributes.checkout_url"
+      },
+      "inputs": [
+        {
+          "key": "line_items",
+          "label": "Line items",
+          "type": "json",
+          "required": true,
+          "placeholder": "[{\"amount\": 10000, \"currency\": \"PHP\", \"name\": \"T-shirt\", \"quantity\": 1}]"
+        },
+        {
+          "key": "payment_method_types",
+          "label": "Payment methods",
+          "type": "list",
+          "required": true,
+          "placeholder": "card, gcash, paymaya"
+        },
+        {
+          "key": "description",
+          "label": "Description",
+          "type": "string"
+        },
+        {
+          "key": "reference_number",
+          "label": "Reference number",
+          "type": "string"
+        },
+        {
+          "key": "success_url",
+          "label": "Success URL",
+          "type": "string"
+        },
+        {
+          "key": "cancel_url",
+          "label": "Cancel URL",
+          "type": "string"
+        },
+        {
+          "key": "send_email_receipt",
+          "label": "Email receipt",
+          "type": "boolean"
+        }
+      ]
+    },
+    {
+      "key": "list_payments",
+      "name": "List payments",
+      "method": "GET",
+      "endpoint": "/payments",
+      "query": {
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 20,
+          "help": "Max 100."
+        }
+      ]
+    },
+    {
+      "key": "get_payment",
+      "name": "Get payment",
+      "method": "GET",
+      "endpoint": "/payments/{{ inputs.payment_id }}",
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "payment_id",
+          "label": "Payment ID",
+          "type": "string",
+          "required": true,
+          "placeholder": "pay_…"
+        }
+      ]
+    },
+    {
+      "key": "create_refund",
+      "name": "Refund payment",
+      "method": "POST",
+      "endpoint": "/refunds",
+      "body": {
+        "data": {
+          "attributes": {
+            "amount": "{{ inputs.amount }}",
+            "payment_id": "{{ inputs.payment_id }}",
+            "reason": "{{ inputs.reason }}",
+            "notes": "{{ inputs.notes }}"
+          }
+        }
+      },
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "payment_id",
+          "label": "Payment ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "amount",
+          "label": "Amount (centavos)",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "reason",
+          "label": "Reason",
+          "type": "select",
+          "options": [
+            {
+              "value": "requested_by_customer",
+              "label": "Requested by customer"
+            },
+            {
+              "value": "duplicate",
+              "label": "Duplicate"
+            },
+            {
+              "value": "fraudulent",
+              "label": "Fraudulent"
+            },
+            {
+              "value": "others",
+              "label": "Others"
+            }
+          ],
+          "required": true
+        },
+        {
+          "key": "notes",
+          "label": "Notes",
+          "type": "string"
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Dashboard > Developers > Webhooks: add this URL and choose events.",
+      "data_path": "data.attributes.data",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

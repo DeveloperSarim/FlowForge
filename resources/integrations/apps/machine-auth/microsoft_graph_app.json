@@ -1,0 +1,161 @@
+{
+  "key": "microsoft_graph_app",
+  "name": "Microsoft 365 (app-only)",
+  "category": "Productivity",
+  "brand": "microsoft",
+  "description": "Send mail as any mailbox and manage users with an app registration (no user sign-in).",
+  "website": "https://www.microsoft.com/microsoft-365",
+  "docs_url": "https://learn.microsoft.com/graph/auth-v2-service",
+  "base_url": "https://graph.microsoft.com/v1.0",
+  "auth": {
+    "type": "oauth2_client_credentials",
+    "token_url": "https://login.microsoftonline.com/{{ credentials.tenant_id }}/oauth2/v2.0/token",
+    "scopes": [
+      "https://graph.microsoft.com/.default"
+    ],
+    "fields": [
+      {
+        "key": "tenant_id",
+        "label": "Directory (tenant) ID",
+        "type": "string",
+        "required": true
+      },
+      {
+        "key": "client_id",
+        "label": "Application (client) ID",
+        "type": "string",
+        "required": true
+      },
+      {
+        "key": "client_secret",
+        "label": "Client secret",
+        "type": "password",
+        "required": true,
+        "help": "Grant application permissions (e.g. Mail.Send, User.Read.All) and admin consent in Entra ID."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "send_mail",
+      "name": "Send email from a mailbox",
+      "method": "POST",
+      "endpoint": "/users/{{ inputs.from }}/sendMail",
+      "body": {
+        "message": {
+          "subject": "{{ inputs.subject }}",
+          "body": {
+            "contentType": "{{ inputs.format }}",
+            "content": "{{ inputs.body }}"
+          },
+          "toRecipients": [
+            {
+              "emailAddress": {
+                "address": "{{ inputs.to }}"
+              }
+            }
+          ]
+        },
+        "saveToSentItems": true
+      },
+      "inputs": [
+        {
+          "key": "from",
+          "label": "From mailbox (UPN or ID)",
+          "type": "string",
+          "required": true,
+          "placeholder": "alerts@contoso.com"
+        },
+        {
+          "key": "to",
+          "label": "To",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "subject",
+          "label": "Subject",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "format",
+          "label": "Format",
+          "type": "select",
+          "default": "HTML",
+          "options": [
+            {
+              "value": "HTML",
+              "label": "HTML"
+            },
+            {
+              "value": "Text",
+              "label": "Plain text"
+            }
+          ]
+        },
+        {
+          "key": "body",
+          "label": "Body",
+          "type": "text",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_users",
+      "name": "List users",
+      "method": "GET",
+      "endpoint": "/users",
+      "query": {
+        "$top": "{{ inputs.top }}",
+        "$filter": "{{ inputs.filter }}"
+      },
+      "inputs": [
+        {
+          "key": "top",
+          "label": "Max results",
+          "type": "number",
+          "default": 25
+        },
+        {
+          "key": "filter",
+          "label": "OData filter",
+          "type": "string",
+          "placeholder": "startswith(displayName,'A')"
+        }
+      ]
+    },
+    {
+      "key": "get_user",
+      "name": "Get user",
+      "method": "GET",
+      "endpoint": "/users/{{ inputs.user }}",
+      "inputs": [
+        {
+          "key": "user",
+          "label": "User (UPN or ID)",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_groups",
+      "name": "List groups",
+      "method": "GET",
+      "endpoint": "/groups",
+      "query": {
+        "$top": "{{ inputs.top }}"
+      },
+      "inputs": [
+        {
+          "key": "top",
+          "label": "Max results",
+          "type": "number",
+          "default": 25
+        }
+      ]
+    }
+  ]
+}

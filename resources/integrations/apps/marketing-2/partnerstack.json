@@ -1,0 +1,85 @@
+{
+  "key": "partnerstack",
+  "name": "PartnerStack",
+  "category": "Marketing & Email",
+  "description": "Create referred customers, record transactions and list partnerships.",
+  "brand": "partnerstack",
+  "website": "https://partnerstack.com",
+  "docs_url": "https://docs.partnerstack.com/reference",
+  "base_url": "https://api.partnerstack.com/api/v2",
+  "auth": { "type": "basic", "fields": [
+    { "key": "username", "label": "Public key", "type": "string", "required": true, "help": "Settings > Integrations > PartnerStack API keys (production)." },
+    { "key": "password", "label": "Secret key", "type": "password", "required": true }
+  ] },
+  "actions": [
+    {
+      "key": "create_customer",
+      "name": "Create customer",
+      "description": "Attributes a new customer to a partner.",
+      "method": "POST",
+      "endpoint": "/customers",
+      "body": {
+        "customer_key": "{{ inputs.customer_key }}",
+        "partner_key": "{{ inputs.partner_key }}",
+        "email": "{{ inputs.email }}",
+        "name": "{{ inputs.name }}",
+        "meta": "{{ inputs.meta }}"
+      },
+      "output_path": "data",
+      "inputs": [
+        { "key": "customer_key", "label": "Customer key (your ID)", "type": "string", "required": true },
+        { "key": "partner_key", "label": "Partner key", "type": "string", "required": true },
+        { "key": "email", "label": "Email", "type": "string", "required": true },
+        { "key": "name", "label": "Name", "type": "string" },
+        { "key": "meta", "label": "Metadata", "type": "keyvalue" }
+      ]
+    },
+    {
+      "key": "get_customer",
+      "name": "Get customer",
+      "method": "GET",
+      "endpoint": "/customers/{{ inputs.customer_key }}",
+      "output_path": "data",
+      "inputs": [{ "key": "customer_key", "label": "Customer key", "type": "string", "required": true }]
+    },
+    {
+      "key": "create_transaction",
+      "name": "Record transaction",
+      "description": "Records revenue for a customer so partners earn commission.",
+      "method": "POST",
+      "endpoint": "/transactions",
+      "body": {
+        "customer_key": "{{ inputs.customer_key }}",
+        "amount": "{{ inputs.amount }}",
+        "currency": "{{ inputs.currency }}",
+        "category_key": "{{ inputs.category_key }}",
+        "product_key": "{{ inputs.product_key }}"
+      },
+      "output_path": "data",
+      "inputs": [
+        { "key": "customer_key", "label": "Customer key", "type": "string", "required": true },
+        { "key": "amount", "label": "Amount (cents)", "type": "number", "required": true },
+        { "key": "currency", "label": "Currency", "type": "string", "default": "USD" },
+        { "key": "category_key", "label": "Category key", "type": "string" },
+        { "key": "product_key", "label": "Product key", "type": "string" }
+      ]
+    },
+    {
+      "key": "list_partnerships",
+      "name": "List partnerships",
+      "method": "GET",
+      "endpoint": "/partnerships",
+      "query": { "limit": "{{ inputs.limit }}" },
+      "output_path": "data.items",
+      "inputs": [{ "key": "limit", "label": "Limit (max 250)", "type": "number", "default": 50 }]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "inputs": [{ "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }]
+    }
+  ]
+}

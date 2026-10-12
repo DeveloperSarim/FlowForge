@@ -1,0 +1,108 @@
+{
+  "key": "leonardo_ai",
+  "name": "Leonardo.Ai",
+  "category": "AI",
+  "description": "Generate images and fetch finished generations.",
+  "brand": "leonardoai",
+  "website": "https://leonardo.ai",
+  "docs_url": "https://docs.leonardo.ai/reference",
+  "base_url": "https://cloud.leonardo.ai/api/rest/v1",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "API key",
+        "type": "password",
+        "required": true
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "create_generation",
+      "name": "Generate images",
+      "description": "Starts a job; fetch the images with Get generation.",
+      "method": "POST",
+      "endpoint": "/generations",
+      "body": {
+        "prompt": "{{ inputs.prompt }}",
+        "negative_prompt": "{{ inputs.negative_prompt }}",
+        "modelId": "{{ inputs.model_id }}",
+        "width": "{{ inputs.width }}",
+        "height": "{{ inputs.height }}",
+        "num_images": "{{ inputs.num_images }}"
+      },
+      "output_fields": {
+        "generation_id": "sdGenerationJob.generationId"
+      },
+      "inputs": [
+        {
+          "key": "prompt",
+          "label": "Prompt",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "negative_prompt",
+          "label": "Negative prompt",
+          "type": "text"
+        },
+        {
+          "key": "model_id",
+          "label": "Model ID",
+          "type": "string",
+          "help": "From List platform models; blank uses the default."
+        },
+        {
+          "key": "width",
+          "label": "Width",
+          "type": "number",
+          "placeholder": "1024"
+        },
+        {
+          "key": "height",
+          "label": "Height",
+          "type": "number",
+          "placeholder": "768"
+        },
+        {
+          "key": "num_images",
+          "label": "Number of images",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "get_generation",
+      "name": "Get generation",
+      "method": "GET",
+      "endpoint": "/generations/{{ inputs.generation_id }}",
+      "output_fields": {
+        "image_urls": "generations_by_pk.generated_images.*.url"
+      },
+      "inputs": [
+        {
+          "key": "generation_id",
+          "label": "Generation ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_models",
+      "name": "List platform models",
+      "method": "GET",
+      "endpoint": "/platformModels",
+      "inputs": []
+    },
+    {
+      "key": "get_user",
+      "name": "Get account info",
+      "method": "GET",
+      "endpoint": "/me",
+      "inputs": []
+    }
+  ]
+}

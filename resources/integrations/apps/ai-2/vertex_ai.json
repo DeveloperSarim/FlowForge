@@ -1,0 +1,192 @@
+{
+  "key": "vertex_ai",
+  "name": "Google Vertex AI",
+  "category": "AI",
+  "description": "Generate text with Gemini models on Google Cloud Vertex AI.",
+  "brand": "googlecloud",
+  "website": "https://cloud.google.com/vertex-ai",
+  "docs_url": "https://cloud.google.com/vertex-ai/generative-ai/docs/reference/rest",
+  "popular": true,
+  "base_url": "https://{{ credentials.api_host }}/v1/projects/{{ credentials.project_id }}/locations/{{ credentials.location }}",
+  "auth": [
+    {
+      "type": "google_service_account",
+      "scopes": [
+        "https://www.googleapis.com/auth/cloud-platform"
+      ],
+      "fields": [
+        {
+          "key": "project_id",
+          "label": "Project ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "location",
+          "label": "Location",
+          "type": "string",
+          "required": true,
+          "default": "global",
+          "help": "global, or a region such as us-central1."
+        },
+        {
+          "key": "api_host",
+          "label": "API host",
+          "type": "string",
+          "required": true,
+          "default": "aiplatform.googleapis.com",
+          "help": "aiplatform.googleapis.com for global; <region>-aiplatform.googleapis.com (e.g. us-central1-aiplatform.googleapis.com) for a region."
+        },
+        {
+          "key": "service_account_json",
+          "label": "Service Account JSON key",
+          "type": "code",
+          "required": true,
+          "help": "Grant the service account the Vertex AI User role."
+        }
+      ]
+    },
+    {
+      "type": "oauth2",
+      "authorize_url": "https://accounts.google.com/o/oauth2/v2/auth",
+      "token_url": "https://oauth2.googleapis.com/token",
+      "scopes": [
+        "https://www.googleapis.com/auth/cloud-platform"
+      ],
+      "authorize_params": {
+        "access_type": "offline",
+        "prompt": "consent"
+      },
+      "fields": [
+        {
+          "key": "project_id",
+          "label": "Project ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "location",
+          "label": "Location",
+          "type": "string",
+          "required": true,
+          "default": "global",
+          "help": "global, or a region such as us-central1."
+        },
+        {
+          "key": "api_host",
+          "label": "API host",
+          "type": "string",
+          "required": true,
+          "default": "aiplatform.googleapis.com",
+          "help": "aiplatform.googleapis.com for global; <region>-aiplatform.googleapis.com (e.g. us-central1-aiplatform.googleapis.com) for a region."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "generate_content",
+      "name": "Generate text",
+      "description": "Send a prompt and get the reply as {{ steps.<id>.text }}.",
+      "method": "POST",
+      "endpoint": "/publishers/google/models/{{ inputs.model }}:generateContent",
+      "timeout": 300,
+      "body": {
+        "contents": [
+          {
+            "role": "user",
+            "parts": [
+              {
+                "text": "{{ inputs.prompt }}"
+              }
+            ]
+          }
+        ],
+        "systemInstruction": {
+          "parts": [
+            {
+              "text": "{{ inputs.system }}"
+            }
+          ]
+        },
+        "generationConfig": {
+          "temperature": "{{ inputs.temperature }}",
+          "maxOutputTokens": "{{ inputs.max_tokens }}"
+        }
+      },
+      "output_fields": {
+        "text": "candidates.0.content.parts.*.text"
+      },
+      "inputs": [
+        {
+          "key": "model",
+          "label": "Model",
+          "type": "string",
+          "required": true,
+          "default": "gemini-2.5-flash"
+        },
+        {
+          "key": "prompt",
+          "label": "Prompt",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "system",
+          "label": "System prompt",
+          "type": "text",
+          "required": true,
+          "default": "You are a helpful assistant.",
+          "help": "Sent as the system message."
+        },
+        {
+          "key": "temperature",
+          "label": "Temperature",
+          "type": "number",
+          "placeholder": "0.7"
+        },
+        {
+          "key": "max_tokens",
+          "label": "Max output tokens",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "count_tokens",
+      "name": "Count tokens",
+      "method": "POST",
+      "endpoint": "/publishers/google/models/{{ inputs.model }}:countTokens",
+      "body": {
+        "contents": [
+          {
+            "role": "user",
+            "parts": [
+              {
+                "text": "{{ inputs.text }}"
+              }
+            ]
+          }
+        ]
+      },
+      "output_fields": {
+        "total_tokens": "totalTokens"
+      },
+      "inputs": [
+        {
+          "key": "model",
+          "label": "Model",
+          "type": "string",
+          "required": true,
+          "default": "gemini-2.5-flash"
+        },
+        {
+          "key": "text",
+          "label": "Text",
+          "type": "text",
+          "required": true
+        }
+      ]
+    }
+  ]
+}

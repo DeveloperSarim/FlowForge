@@ -1,0 +1,90 @@
+{
+  "key": "airbrake",
+  "name": "Airbrake",
+  "category": "Developer Tools",
+  "description": "Report errors, list projects and error groups, and track deploys.",
+  "brand": "airbrake",
+  "website": "https://airbrake.io",
+  "docs_url": "https://docs.airbrake.io/docs/devops-tools/api/",
+  "base_url": "https://api.airbrake.io/api",
+  "auth": { "type": "api_key", "in": "query", "name": "key", "fields": [
+    { "key": "api_key", "label": "User API key", "type": "password", "required": true, "help": "Profile → User key (works for every project)." }
+  ] },
+  "actions": [
+    {
+      "key": "list_projects",
+      "name": "List projects",
+      "method": "GET",
+      "endpoint": "/v4/projects",
+      "output_path": "projects",
+      "inputs": []
+    },
+    {
+      "key": "list_groups",
+      "name": "List error groups",
+      "method": "GET",
+      "endpoint": "/v4/projects/{{ inputs.project_id }}/groups",
+      "query": { "page": "{{ inputs.page }}", "limit": "{{ inputs.limit }}" },
+      "output_path": "groups",
+      "inputs": [
+        { "key": "project_id", "label": "Project ID", "type": "string", "required": true },
+        { "key": "page", "label": "Page", "type": "number" },
+        { "key": "limit", "label": "Limit", "type": "number" }
+      ]
+    },
+    {
+      "key": "get_group",
+      "name": "Get error group",
+      "method": "GET",
+      "endpoint": "/v4/projects/{{ inputs.project_id }}/groups/{{ inputs.group_id }}",
+      "inputs": [
+        { "key": "project_id", "label": "Project ID", "type": "string", "required": true },
+        { "key": "group_id", "label": "Group ID", "type": "string", "required": true }
+      ]
+    },
+    {
+      "key": "create_notice",
+      "name": "Report error",
+      "method": "POST",
+      "endpoint": "/v3/projects/{{ inputs.project_id }}/notices",
+      "body": {
+        "errors": [{ "type": "{{ inputs.error_type }}", "message": "{{ inputs.message }}" }],
+        "context": { "environment": "{{ inputs.environment }}", "severity": "{{ inputs.severity }}" },
+        "params": "{{ inputs.params }}"
+      },
+      "inputs": [
+        { "key": "project_id", "label": "Project ID", "type": "string", "required": true },
+        { "key": "error_type", "label": "Error type", "type": "string", "required": true, "placeholder": "RuntimeError" },
+        { "key": "message", "label": "Message", "type": "text", "required": true },
+        { "key": "environment", "label": "Environment", "type": "string", "default": "production" },
+        { "key": "severity", "label": "Severity", "type": "select", "default": "error", "options": [
+          { "value": "critical", "label": "Critical" }, { "value": "error", "label": "Error" }, { "value": "warning", "label": "Warning" }, { "value": "info", "label": "Info" }
+        ] },
+        { "key": "params", "label": "Params", "type": "keyvalue" }
+      ]
+    },
+    {
+      "key": "create_deploy",
+      "name": "Track deploy",
+      "method": "POST",
+      "endpoint": "/v4/projects/{{ inputs.project_id }}/deploys",
+      "body": { "environment": "{{ inputs.environment }}", "username": "{{ inputs.username }}", "repository": "{{ inputs.repository }}", "revision": "{{ inputs.revision }}", "version": "{{ inputs.version }}" },
+      "inputs": [
+        { "key": "project_id", "label": "Project ID", "type": "string", "required": true },
+        { "key": "environment", "label": "Environment", "type": "string", "required": true, "default": "production" },
+        { "key": "revision", "label": "Revision", "type": "string", "placeholder": "Git SHA" },
+        { "key": "repository", "label": "Repository URL", "type": "string" },
+        { "key": "version", "label": "Version", "type": "string" },
+        { "key": "username", "label": "Deployed by", "type": "string" }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook notification",
+      "type": "webhook",
+      "inputs": [{ "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }]
+    }
+  ]
+}

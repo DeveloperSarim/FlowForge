@@ -1,0 +1,91 @@
+{
+  "key": "zoho_cliq",
+  "name": "Zoho Cliq",
+  "category": "Communication",
+  "description": "Post messages to Zoho Cliq channels, chats, users and bot subscribers.",
+  "brand": "zoho",
+  "website": "https://www.zoho.com/cliq/",
+  "docs_url": "https://www.zoho.com/cliq/help/restapi/v2/",
+  "base_url": "https://cliq.zoho.{{ credentials.dc }}/api/v2",
+  "auth": [
+    {
+      "type": "oauth2",
+      "authorize_url": "https://accounts.zoho.{{ credentials.dc }}/oauth/v2/auth",
+      "token_url": "https://accounts.zoho.{{ credentials.dc }}/oauth/v2/token",
+      "scopes": ["ZohoCliq.Webhooks.CREATE"],
+      "scope_separator": ",",
+      "authorize_params": { "access_type": "offline", "prompt": "consent" },
+      "token_type": "Zoho-oauthtoken",
+      "fields": [
+        { "key": "dc", "label": "Data center", "type": "select", "required": true, "default": "com", "options": [
+          { "value": "com", "label": "US (.com)" }, { "value": "eu", "label": "EU (.eu)" }, { "value": "in", "label": "India (.in)" },
+          { "value": "com.au", "label": "Australia (.com.au)" }, { "value": "jp", "label": "Japan (.jp)" }, { "value": "ca", "label": "Canada (.ca)" },
+          { "value": "com.cn", "label": "China (.com.cn)" }, { "value": "sa", "label": "Saudi Arabia (.sa)" }
+        ], "help": "The domain your Zoho account lives on (zoho.com, zoho.eu, ...)." }
+      ]
+    },
+    {
+      "type": "api_key",
+      "in": "query",
+      "name": "zapikey",
+      "fields": [
+        { "key": "dc", "label": "Data center", "type": "select", "required": true, "default": "com", "options": [
+          { "value": "com", "label": "US (.com)" }, { "value": "eu", "label": "EU (.eu)" }, { "value": "in", "label": "India (.in)" },
+          { "value": "com.au", "label": "Australia (.com.au)" }, { "value": "jp", "label": "Japan (.jp)" }, { "value": "ca", "label": "Canada (.ca)" },
+          { "value": "com.cn", "label": "China (.com.cn)" }, { "value": "sa", "label": "Saudi Arabia (.sa)" }
+        ] },
+        { "key": "api_key", "label": "Webhook token", "type": "password", "required": true, "help": "Cliq → Profile → Bots & Tools → Webhook Tokens. Messages are posted as you." }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "post_to_channel",
+      "name": "Post message to channel",
+      "method": "POST",
+      "endpoint": "/channelsbyname/{{ inputs.channel }}/message",
+      "body": { "text": "{{ inputs.text }}", "bot": { "name": "{{ inputs.bot_name }}", "image": "{{ inputs.bot_image }}" } },
+      "inputs": [
+        { "key": "channel", "label": "Channel unique name", "type": "string", "required": true, "placeholder": "announcements", "help": "Shown in the channel's info panel; you must be a member." },
+        { "key": "text", "label": "Message", "type": "text", "required": true },
+        { "key": "bot_name", "label": "Post as bot name", "type": "string" },
+        { "key": "bot_image", "label": "Bot image URL", "type": "string" }
+      ]
+    },
+    {
+      "key": "post_to_user",
+      "name": "Send direct message to user",
+      "method": "POST",
+      "endpoint": "/buddies/{{ inputs.email }}/message",
+      "body": { "text": "{{ inputs.text }}" },
+      "inputs": [
+        { "key": "email", "label": "User email", "type": "string", "required": true },
+        { "key": "text", "label": "Message", "type": "text", "required": true }
+      ]
+    },
+    {
+      "key": "post_to_chat",
+      "name": "Post message to chat",
+      "method": "POST",
+      "endpoint": "/chats/{{ inputs.chat_id }}/message",
+      "body": { "text": "{{ inputs.text }}" },
+      "inputs": [
+        { "key": "chat_id", "label": "Chat ID", "type": "string", "required": true },
+        { "key": "text", "label": "Message", "type": "text", "required": true }
+      ]
+    },
+    {
+      "key": "post_as_bot",
+      "name": "Send bot message to subscribers",
+      "method": "POST",
+      "endpoint": "/bots/{{ inputs.bot }}/message",
+      "body": { "text": "{{ inputs.text }}", "broadcast": "{{ inputs.broadcast }}", "userids": "{{ inputs.userids }}" },
+      "inputs": [
+        { "key": "bot", "label": "Bot unique name", "type": "string", "required": true },
+        { "key": "text", "label": "Message", "type": "text", "required": true },
+        { "key": "broadcast", "label": "Send to all subscribers", "type": "boolean" },
+        { "key": "userids", "label": "Only these user IDs (comma separated)", "type": "string" }
+      ]
+    }
+  ]
+}

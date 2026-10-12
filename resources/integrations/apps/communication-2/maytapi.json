@@ -1,0 +1,68 @@
+{
+  "key": "maytapi",
+  "name": "Maytapi",
+  "category": "Communication",
+  "description": "Send WhatsApp text and media messages through Maytapi phone instances.",
+  "brand": "maytapi",
+  "website": "https://maytapi.com",
+  "docs_url": "https://maytapi.com/whatsapp-api-documentation",
+  "base_url": "https://api.maytapi.com/api/{{ credentials.product_id }}",
+  "auth": [
+    { "type": "api_key", "in": "header", "name": "x-maytapi-key", "fields": [
+      { "key": "product_id", "label": "Product ID", "type": "string", "required": true },
+      { "key": "api_key", "label": "API token", "type": "password", "required": true }
+    ] }
+  ],
+  "actions": [
+    {
+      "key": "send_text",
+      "name": "Send text message",
+      "method": "POST",
+      "endpoint": "/{{ inputs.phone_id }}/sendMessage",
+      "body": { "to_number": "{{ inputs.to_number }}", "type": "text", "message": "{{ inputs.message }}" },
+      "inputs": [
+        { "key": "phone_id", "label": "Phone ID", "type": "string", "required": true, "help": "From List phones or the Maytapi console." },
+        { "key": "to_number", "label": "To", "type": "string", "required": true, "placeholder": "905301234567", "help": "Number with country code, or a group ID ending in @g.us." },
+        { "key": "message", "label": "Message", "type": "text", "required": true }
+      ]
+    },
+    {
+      "key": "send_media",
+      "name": "Send media message",
+      "method": "POST",
+      "endpoint": "/{{ inputs.phone_id }}/sendMessage",
+      "body": { "to_number": "{{ inputs.to_number }}", "type": "media", "message": "{{ inputs.media_url }}", "text": "{{ inputs.caption }}" },
+      "inputs": [
+        { "key": "phone_id", "label": "Phone ID", "type": "string", "required": true },
+        { "key": "to_number", "label": "To", "type": "string", "required": true },
+        { "key": "media_url", "label": "Media URL", "type": "string", "required": true },
+        { "key": "caption", "label": "Caption", "type": "text" }
+      ]
+    },
+    {
+      "key": "list_phones",
+      "name": "List phones",
+      "method": "GET",
+      "endpoint": "/listPhones",
+      "inputs": []
+    },
+    {
+      "key": "get_status",
+      "name": "Get phone status",
+      "method": "GET",
+      "endpoint": "/{{ inputs.phone_id }}/status",
+      "inputs": [
+        { "key": "phone_id", "label": "Phone ID", "type": "string", "required": true }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "description": "Set this URL as the webhook in Maytapi → Settings.",
+      "type": "webhook",
+      "inputs": [{ "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }]
+    }
+  ]
+}

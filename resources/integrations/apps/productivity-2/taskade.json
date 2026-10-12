@@ -1,0 +1,156 @@
+{
+  "key": "taskade",
+  "name": "Taskade",
+  "category": "Productivity",
+  "description": "Create Taskade projects and tasks, list tasks and complete them.",
+  "brand": "taskade",
+  "website": "https://www.taskade.com",
+  "docs_url": "https://docs.taskade.com/developers",
+  "popular": true,
+  "base_url": "https://www.taskade.com/api/v1",
+  "auth": [
+    {
+      "type": "bearer",
+      "fields": [
+        {
+          "key": "token",
+          "label": "Personal access token",
+          "type": "password",
+          "required": true,
+          "help": "Settings > API > Personal access tokens."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_workspaces",
+      "name": "List workspaces",
+      "method": "GET",
+      "endpoint": "/workspaces",
+      "output_path": "items",
+      "inputs": []
+    },
+    {
+      "key": "list_folder_projects",
+      "name": "List projects in a folder",
+      "method": "GET",
+      "endpoint": "/folders/{{ inputs.folder_id }}/projects",
+      "output_path": "items",
+      "inputs": [
+        {
+          "key": "folder_id",
+          "label": "Folder or workspace ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "create_project",
+      "name": "Create project",
+      "method": "POST",
+      "endpoint": "/projects",
+      "body": {
+        "folderId": "{{ inputs.folder_id }}",
+        "contentType": "text/markdown",
+        "content": "{{ inputs.content }}"
+      },
+      "inputs": [
+        {
+          "key": "folder_id",
+          "label": "Folder or workspace ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "content",
+          "label": "Content (Markdown)",
+          "type": "text",
+          "required": true,
+          "placeholder": "# Project title\n- First task"
+        }
+      ]
+    },
+    {
+      "key": "list_tasks",
+      "name": "List project tasks",
+      "method": "GET",
+      "endpoint": "/projects/{{ inputs.project_id }}/tasks",
+      "output_path": "items",
+      "inputs": [
+        {
+          "key": "project_id",
+          "label": "Project ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "create_task",
+      "name": "Create task",
+      "method": "POST",
+      "endpoint": "/projects/{{ inputs.project_id }}/tasks/",
+      "body": {
+        "tasks": [
+          {
+            "contentType": "text/markdown",
+            "content": "{{ inputs.content }}",
+            "placement": "{{ inputs.placement }}"
+          }
+        ]
+      },
+      "inputs": [
+        {
+          "key": "project_id",
+          "label": "Project ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "content",
+          "label": "Task (Markdown)",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "placement",
+          "label": "Placement",
+          "type": "select",
+          "default": "beforeend",
+          "options": [
+            {
+              "value": "beforeend",
+              "label": "At the end"
+            },
+            {
+              "value": "afterbegin",
+              "label": "At the top"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "complete_task",
+      "name": "Complete task",
+      "method": "POST",
+      "endpoint": "/projects/{{ inputs.project_id }}/tasks/{{ inputs.task_id }}/complete",
+      "inputs": [
+        {
+          "key": "project_id",
+          "label": "Project ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "task_id",
+          "label": "Task ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ]
+}

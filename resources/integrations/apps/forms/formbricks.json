@@ -1,0 +1,129 @@
+{
+  "key": "formbricks",
+  "name": "Formbricks",
+  "category": "Forms & Surveys",
+  "description": "Get new Formbricks responses and list surveys (cloud or self-hosted).",
+  "brand": "formbricks",
+  "website": "https://formbricks.com",
+  "docs_url": "https://formbricks.com/docs",
+  "base_url": "{{ credentials.host }}/api/v1/management",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "x-api-key",
+    "fields": [
+      {
+        "key": "host",
+        "label": "Formbricks URL",
+        "type": "string",
+        "required": true,
+        "default": "https://app.formbricks.com",
+        "help": "Your self-hosted URL, without a trailing slash"
+      },
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "Organization settings > API keys"
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_surveys",
+      "name": "List surveys",
+      "method": "GET",
+      "endpoint": "/surveys",
+      "output_path": "data",
+      "inputs": []
+    },
+    {
+      "key": "list_responses",
+      "name": "List responses",
+      "method": "GET",
+      "endpoint": "/responses",
+      "output_path": "data",
+      "query": {
+        "surveyId": "{{ inputs.survey_id }}",
+        "limit": "{{ inputs.limit }}",
+        "skip": "{{ inputs.skip }}"
+      },
+      "inputs": [
+        {
+          "key": "survey_id",
+          "label": "Survey ID",
+          "type": "string"
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 50
+        },
+        {
+          "key": "skip",
+          "label": "Skip",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "get_response",
+      "name": "Get response",
+      "method": "GET",
+      "endpoint": "/responses/{{ inputs.response_id }}",
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "response_id",
+          "label": "Response ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_response",
+      "name": "New response (polling)",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/responses",
+      "query": {
+        "surveyId": "{{ inputs.survey_id }}",
+        "limit": 50
+      },
+      "items_path": "data",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "survey_id",
+          "label": "Survey ID (optional)",
+          "type": "string"
+        },
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    },
+    {
+      "key": "response_webhook",
+      "name": "Response event (webhook)",
+      "type": "webhook",
+      "description": "Configuration > Integrations > Webhooks, paste this URL.",
+      "data_path": "data",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

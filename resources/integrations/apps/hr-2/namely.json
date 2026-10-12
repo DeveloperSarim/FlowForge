@@ -1,0 +1,266 @@
+{
+  "key": "namely",
+  "name": "Namely",
+  "category": "HR & Recruiting",
+  "description": "Create, update and look up employee profiles in Namely.",
+  "brand": "namely",
+  "website": "https://www.namely.com",
+  "docs_url": "https://developers.namely.com",
+  "base_url": "https://{{ credentials.company }}.namely.com/api/v1",
+  "auth": [
+    {
+      "type": "bearer",
+      "fields": [
+        {
+          "key": "company",
+          "label": "Company subdomain",
+          "type": "string",
+          "required": true,
+          "placeholder": "acme",
+          "help": "The part before .namely.com."
+        },
+        {
+          "key": "token",
+          "label": "Personal access token",
+          "type": "password",
+          "required": true,
+          "help": "Your profile > API > Personal access tokens."
+        }
+      ]
+    },
+    {
+      "type": "oauth2",
+      "authorize_url": "https://{{ credentials.company }}.namely.com/api/v1/oauth2/authorize",
+      "token_url": "https://{{ credentials.company }}.namely.com/api/v1/oauth2/token",
+      "fields": [
+        {
+          "key": "company",
+          "label": "Company subdomain",
+          "type": "string",
+          "required": true,
+          "placeholder": "acme",
+          "help": "The part before .namely.com."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_profiles",
+      "name": "List profiles",
+      "method": "GET",
+      "endpoint": "/profiles",
+      "query": {
+        "filter[email]": "{{ inputs.email }}",
+        "filter[user_status]": "{{ inputs.user_status }}",
+        "sort": "{{ inputs.sort }}",
+        "per_page": "{{ inputs.per_page }}"
+      },
+      "output_path": "profiles",
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string"
+        },
+        {
+          "key": "user_status",
+          "label": "Status",
+          "type": "select",
+          "options": [
+            {
+              "value": "active",
+              "label": "Active"
+            },
+            {
+              "value": "inactive",
+              "label": "Inactive"
+            },
+            {
+              "value": "pending",
+              "label": "Pending"
+            }
+          ]
+        },
+        {
+          "key": "sort",
+          "label": "Sort",
+          "type": "select",
+          "options": [
+            {
+              "value": "-created_at",
+              "label": "Newest first"
+            },
+            {
+              "value": "created_at",
+              "label": "Oldest first"
+            },
+            {
+              "value": "last_name",
+              "label": "Last name"
+            }
+          ]
+        },
+        {
+          "key": "per_page",
+          "label": "Max results",
+          "type": "number",
+          "default": 50,
+          "help": "Up to 50."
+        }
+      ]
+    },
+    {
+      "key": "get_profile",
+      "name": "Get profile",
+      "method": "GET",
+      "endpoint": "/profiles/{{ inputs.profile_id }}",
+      "output_path": "profiles.0",
+      "inputs": [
+        {
+          "key": "profile_id",
+          "label": "Profile ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "get_me",
+      "name": "Get my profile",
+      "method": "GET",
+      "endpoint": "/profiles/me",
+      "output_path": "profiles.0",
+      "inputs": []
+    },
+    {
+      "key": "create_profile",
+      "name": "Create profile",
+      "method": "POST",
+      "endpoint": "/profiles",
+      "body": {
+        "profiles": [
+          {
+            "first_name": "{{ inputs.first_name }}",
+            "last_name": "{{ inputs.last_name }}",
+            "email": "{{ inputs.email }}",
+            "user_status": "{{ inputs.user_status }}",
+            "start_date": "{{ inputs.start_date }}",
+            "personal_email": "{{ inputs.personal_email }}",
+            "...": "{{ inputs.extra }}"
+          }
+        ]
+      },
+      "output_path": "profiles.0",
+      "inputs": [
+        {
+          "key": "first_name",
+          "label": "First name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "email",
+          "label": "Work email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "user_status",
+          "label": "Status",
+          "type": "select",
+          "required": true,
+          "default": "active",
+          "options": [
+            {
+              "value": "active",
+              "label": "Active"
+            },
+            {
+              "value": "pending",
+              "label": "Pending"
+            },
+            {
+              "value": "inactive",
+              "label": "Inactive"
+            }
+          ]
+        },
+        {
+          "key": "start_date",
+          "label": "Start date",
+          "type": "string",
+          "placeholder": "2026-11-01"
+        },
+        {
+          "key": "personal_email",
+          "label": "Personal email",
+          "type": "string",
+          "help": "Required when status is pending."
+        },
+        {
+          "key": "extra",
+          "label": "Other fields",
+          "type": "keyvalue",
+          "help": "Any other profile field, e.g. job_title = Engineer."
+        }
+      ]
+    },
+    {
+      "key": "update_profile",
+      "name": "Update profile",
+      "method": "PUT",
+      "endpoint": "/profiles/{{ inputs.profile_id }}",
+      "body": {
+        "profiles": [
+          "{{ inputs.fields }}"
+        ]
+      },
+      "output_path": "profiles.0",
+      "inputs": [
+        {
+          "key": "profile_id",
+          "label": "Profile ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "fields",
+          "label": "Fields to update",
+          "type": "keyvalue",
+          "required": true,
+          "help": "e.g. job_title = Engineer, user_status = inactive."
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_profile",
+      "name": "New profile",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/profiles",
+      "query": {
+        "sort": "-created_at",
+        "per_page": 50
+      },
+      "items_path": "profiles",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

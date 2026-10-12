@@ -1,0 +1,74 @@
+{
+  "key": "new_relic",
+  "name": "New Relic",
+  "category": "Developer Tools",
+  "description": "Run NRQL queries, record deployments and call the NerdGraph API.",
+  "brand": "newrelic",
+  "website": "https://newrelic.com",
+  "docs_url": "https://docs.newrelic.com/docs/apis/nerdgraph/get-started/introduction-new-relic-nerdgraph/",
+  "base_url": "https://{{ credentials.api_host }}",
+  "auth": { "type": "api_key", "in": "header", "name": "API-Key", "fields": [
+    { "key": "api_host", "label": "Region", "type": "select", "required": true, "default": "api.newrelic.com", "options": [
+      { "value": "api.newrelic.com", "label": "US" }, { "value": "api.eu.newrelic.com", "label": "EU" }
+    ] },
+    { "key": "api_key", "label": "User API key (NRAK-…)", "type": "password", "required": true }
+  ] },
+  "actions": [
+    {
+      "key": "nrql_query",
+      "name": "Run NRQL query",
+      "method": "POST",
+      "endpoint": "/graphql",
+      "error_path": "errors",
+      "output_path": "data.actor.account.nrql.results",
+      "body": {
+        "query": "query($accountId: Int!, $nrql: Nrql!) { actor { account(id: $accountId) { nrql(query: $nrql) { results } } } }",
+        "variables": { "accountId": "{{ inputs.account_id }}", "nrql": "{{ inputs.nrql }}" }
+      },
+      "inputs": [
+        { "key": "account_id", "label": "Account ID", "type": "number", "required": true },
+        { "key": "nrql", "label": "NRQL", "type": "text", "required": true, "placeholder": "SELECT count(*) FROM Transaction SINCE 1 hour ago" }
+      ]
+    },
+    {
+      "key": "record_deployment",
+      "name": "Record deployment",
+      "description": "Adds a deployment marker (change tracking) to an entity.",
+      "method": "POST",
+      "endpoint": "/graphql",
+      "error_path": "errors",
+      "output_path": "data.changeTrackingCreateDeployment",
+      "body": {
+        "query": "mutation($entityGuid: EntityGuid!, $version: String!, $description: String, $user: String) { changeTrackingCreateDeployment(deployment: { entityGuid: $entityGuid, version: $version, description: $description, user: $user }) { deploymentId entityGuid } }",
+        "variables": { "entityGuid": "{{ inputs.entity_guid }}", "version": "{{ inputs.version }}", "description": "{{ inputs.description }}", "user": "{{ inputs.user }}" }
+      },
+      "inputs": [
+        { "key": "entity_guid", "label": "Entity GUID", "type": "string", "required": true },
+        { "key": "version", "label": "Version", "type": "string", "required": true },
+        { "key": "description", "label": "Description", "type": "string" },
+        { "key": "user", "label": "Deployed by", "type": "string" }
+      ]
+    },
+    {
+      "key": "graphql",
+      "name": "Run NerdGraph query",
+      "method": "POST",
+      "endpoint": "/graphql",
+      "error_path": "errors",
+      "output_path": "data",
+      "body": { "query": "{{ inputs.query }}", "variables": "{{ inputs.variables }}" },
+      "inputs": [
+        { "key": "query", "label": "GraphQL query", "type": "code", "required": true, "placeholder": "{ actor { user { name email } } }" },
+        { "key": "variables", "label": "Variables (JSON)", "type": "json" }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "alert_webhook",
+      "name": "Alert workflow webhook",
+      "type": "webhook",
+      "inputs": [{ "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }]
+    }
+  ]
+}

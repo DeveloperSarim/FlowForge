@@ -1,0 +1,158 @@
+{
+  "key": "lightspeed_retail",
+  "name": "Lightspeed Retail",
+  "category": "E-commerce",
+  "description": "Read items and sales and create customers in Lightspeed Retail (R-Series).",
+  "brand": "lightspeed",
+  "website": "https://www.lightspeedhq.com/pos/retail/",
+  "docs_url": "https://developers.lightspeedhq.com/retail/introduction/introduction/",
+  "base_url": "https://api.lightspeedapp.com/API/V3",
+  "auth": [
+    {
+      "type": "oauth2",
+      "authorize_url": "https://cloud.lightspeedapp.com/auth/oauth/authorize",
+      "token_url": "https://cloud.lightspeedapp.com/auth/oauth/token",
+      "scopes": [
+        "employee:all"
+      ],
+      "fields": [
+        {
+          "key": "account_id",
+          "label": "Account ID",
+          "type": "string",
+          "required": false,
+          "help": "After connecting, run \"Get account\" and copy accountID here."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "get_account",
+      "name": "Get account",
+      "description": "Shows the accountID of the connected store.",
+      "method": "GET",
+      "endpoint": "/Account.json",
+      "inputs": []
+    },
+    {
+      "key": "list_items",
+      "name": "List items",
+      "method": "GET",
+      "endpoint": "/Account/{{ credentials.account_id }}/Item.json",
+      "query": {
+        "limit": "{{ inputs.limit }}"
+      },
+      "inputs": [
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 100,
+          "help": "Max 100."
+        }
+      ]
+    },
+    {
+      "key": "get_sale",
+      "name": "Get sale",
+      "method": "GET",
+      "endpoint": "/Account/{{ credentials.account_id }}/Sale/{{ inputs.sale_id }}.json",
+      "query": {
+        "load_relations": "{{ inputs.load_relations }}"
+      },
+      "inputs": [
+        {
+          "key": "sale_id",
+          "label": "Sale ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "load_relations",
+          "label": "Load relations",
+          "type": "string",
+          "placeholder": "[\"SaleLines\",\"Customer\"]"
+        }
+      ]
+    },
+    {
+      "key": "list_sales",
+      "name": "List sales",
+      "method": "GET",
+      "endpoint": "/Account/{{ credentials.account_id }}/Sale.json",
+      "query": {
+        "limit": "{{ inputs.limit }}",
+        "completed": "{{ inputs.completed }}"
+      },
+      "inputs": [
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 100
+        },
+        {
+          "key": "completed",
+          "label": "Completed",
+          "type": "select",
+          "options": [
+            {
+              "value": "true",
+              "label": "Completed only"
+            },
+            {
+              "value": "false",
+              "label": "Open only"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "create_customer",
+      "name": "Create customer",
+      "method": "POST",
+      "endpoint": "/Account/{{ credentials.account_id }}/Customer.json",
+      "body": {
+        "firstName": "{{ inputs.first_name }}",
+        "lastName": "{{ inputs.last_name }}",
+        "company": "{{ inputs.company }}",
+        "Contact": {
+          "Emails": {
+            "ContactEmail": [
+              {
+                "address": "{{ inputs.email }}",
+                "useType": "Primary"
+              }
+            ]
+          }
+        }
+      },
+      "inputs": [
+        {
+          "key": "first_name",
+          "label": "First name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string"
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "company",
+          "label": "Company",
+          "type": "string"
+        }
+      ]
+    }
+  ]
+}

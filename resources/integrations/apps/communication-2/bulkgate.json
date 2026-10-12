@@ -1,0 +1,53 @@
+{
+  "key": "bulkgate",
+  "name": "BulkGate",
+  "category": "Communication",
+  "description": "Send transactional SMS and check your credit balance with BulkGate.",
+  "brand": "bulkgate",
+  "website": "https://www.bulkgate.com",
+  "docs_url": "https://help.bulkgate.com/docs/en/http-simple-transactional.html",
+  "base_url": "https://portal.bulkgate.com/api/1.0",
+  "auth": [
+    { "type": "api_key", "fields": [
+      { "key": "application_id", "label": "Application ID", "type": "string", "required": true, "help": "Portal → Modules & APIs → create an API." },
+      { "key": "api_key", "label": "Application token", "type": "password", "required": true }
+    ] }
+  ],
+  "actions": [
+    {
+      "key": "send_sms",
+      "name": "Send SMS",
+      "method": "POST",
+      "endpoint": "/simple/transactional",
+      "body": {
+        "application_id": "{{ credentials.application_id }}",
+        "application_token": "{{ credentials.api_key }}",
+        "number": "{{ inputs.number }}",
+        "text": "{{ inputs.text }}",
+        "unicode": "{{ inputs.unicode }}",
+        "sender_id": "{{ inputs.sender_id }}",
+        "sender_id_value": "{{ inputs.sender_id_value }}",
+        "country": "{{ inputs.country }}"
+      },
+      "inputs": [
+        { "key": "number", "label": "Phone number", "type": "string", "required": true, "placeholder": "447700900000" },
+        { "key": "text", "label": "Message", "type": "text", "required": true },
+        { "key": "unicode", "label": "Unicode", "type": "boolean" },
+        { "key": "sender_id", "label": "Sender type", "type": "select", "default": "gSystem", "options": [
+          { "value": "gSystem", "label": "System number" }, { "value": "gShort", "label": "Short code" },
+          { "value": "gText", "label": "Text sender" }, { "value": "gOwn", "label": "Own number" }, { "value": "gProfile", "label": "Sender profile" }
+        ] },
+        { "key": "sender_id_value", "label": "Sender value", "type": "string", "help": "The text sender, own number or profile ID for those sender types." },
+        { "key": "country", "label": "Country code (ISO)", "type": "string", "placeholder": "gb", "help": "Lets you send numbers without the international prefix." }
+      ]
+    },
+    {
+      "key": "get_credit",
+      "name": "Get credit balance",
+      "method": "POST",
+      "endpoint": "/simple/info",
+      "body": { "application_id": "{{ credentials.application_id }}", "application_token": "{{ credentials.api_key }}" },
+      "inputs": []
+    }
+  ]
+}

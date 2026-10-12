@@ -1,0 +1,179 @@
+{
+  "key": "espocrm",
+  "name": "EspoCRM",
+  "category": "CRM & Sales",
+  "description": "Create, update and read leads, contacts and any entity in EspoCRM.",
+  "brand": "espocrm",
+  "website": "https://www.espocrm.com",
+  "docs_url": "https://docs.espocrm.com/development/api/",
+  "base_url": "{{ credentials.site_url }}/api/v1",
+  "auth": [
+    {
+      "type": "api_key",
+      "in": "header",
+      "name": "X-Api-Key",
+      "fields": [
+        {
+          "key": "site_url",
+          "label": "Site URL",
+          "type": "string",
+          "required": true,
+          "placeholder": "https://crm.example.com",
+          "help": "No trailing slash."
+        },
+        {
+          "key": "api_key",
+          "label": "API key",
+          "type": "password",
+          "required": true,
+          "help": "Create an API user under Administration > API Users."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "create_lead",
+      "name": "Create lead",
+      "method": "POST",
+      "endpoint": "/Lead",
+      "body": {
+        "firstName": "{{ inputs.first_name }}",
+        "lastName": "{{ inputs.last_name }}",
+        "emailAddress": "{{ inputs.email }}",
+        "phoneNumber": "{{ inputs.phone }}",
+        "accountName": "{{ inputs.account_name }}"
+      },
+      "inputs": [
+        {
+          "key": "first_name",
+          "label": "First name",
+          "type": "string"
+        },
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string"
+        },
+        {
+          "key": "phone",
+          "label": "Phone",
+          "type": "string"
+        },
+        {
+          "key": "account_name",
+          "label": "Company",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "create_record",
+      "name": "Create record",
+      "method": "POST",
+      "endpoint": "/{{ inputs.entity }}",
+      "body": "{{ inputs.fields }}",
+      "inputs": [
+        {
+          "key": "entity",
+          "label": "Entity type",
+          "type": "string",
+          "required": true,
+          "default": "Contact"
+        },
+        {
+          "key": "fields",
+          "label": "Fields",
+          "type": "json",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "update_record",
+      "name": "Update record",
+      "method": "PUT",
+      "endpoint": "/{{ inputs.entity }}/{{ inputs.id }}",
+      "body": "{{ inputs.fields }}",
+      "inputs": [
+        {
+          "key": "entity",
+          "label": "Entity type",
+          "type": "string",
+          "required": true,
+          "default": "Contact"
+        },
+        {
+          "key": "id",
+          "label": "Record ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "fields",
+          "label": "Fields",
+          "type": "json",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "get_record",
+      "name": "Get record",
+      "method": "GET",
+      "endpoint": "/{{ inputs.entity }}/{{ inputs.id }}",
+      "inputs": [
+        {
+          "key": "entity",
+          "label": "Entity type",
+          "type": "string",
+          "required": true,
+          "default": "Contact"
+        },
+        {
+          "key": "id",
+          "label": "Record ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_record",
+      "name": "New record",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/{{ inputs.entity }}",
+      "query": {
+        "orderBy": "createdAt",
+        "order": "desc",
+        "maxSize": 50
+      },
+      "items_path": "list",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "entity",
+          "label": "Entity type",
+          "type": "string",
+          "required": true,
+          "default": "Lead"
+        },
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,69 @@
+{
+  "key": "have_i_been_pwned",
+  "name": "Have I Been Pwned",
+  "category": "Security & IT",
+  "description": "Check accounts and domains against known data breaches.",
+  "brand": "haveibeenpwned",
+  "website": "https://haveibeenpwned.com",
+  "docs_url": "https://haveibeenpwned.com/API/v3",
+  "base_url": "https://haveibeenpwned.com/api/v3",
+  "auth": { "type": "api_key", "in": "header", "name": "hibp-api-key", "fields": [
+    { "key": "api_key", "label": "API key", "type": "password", "required": true, "help": "haveibeenpwned.com/API/Key (paid subscription)." }
+  ] },
+  "actions": [
+    {
+      "key": "breached_account",
+      "name": "Get breaches for account",
+      "description": "Fails with HTTP 404 when the account is in no breach.",
+      "method": "GET",
+      "endpoint": "/breachedaccount/{{ inputs.account }}",
+      "query": { "truncateResponse": "false", "domain": "{{ inputs.domain }}", "includeUnverified": "{{ inputs.include_unverified }}" },
+      "inputs": [
+        { "key": "account", "label": "Email address", "type": "string", "required": true },
+        { "key": "domain", "label": "Only breaches of domain", "type": "string" },
+        { "key": "include_unverified", "label": "Include unverified breaches", "type": "boolean" }
+      ]
+    },
+    {
+      "key": "paste_account",
+      "name": "Get pastes for account",
+      "method": "GET",
+      "endpoint": "/pasteaccount/{{ inputs.account }}",
+      "inputs": [{ "key": "account", "label": "Email address", "type": "string", "required": true }]
+    },
+    {
+      "key": "breached_domain",
+      "name": "Search verified domain",
+      "description": "Breached addresses on a domain you verified in the dashboard.",
+      "method": "GET",
+      "endpoint": "/breacheddomain/{{ inputs.domain }}",
+      "inputs": [{ "key": "domain", "label": "Domain", "type": "string", "required": true }]
+    },
+    {
+      "key": "list_breaches",
+      "name": "List breaches",
+      "method": "GET",
+      "endpoint": "/breaches",
+      "query": { "domain": "{{ inputs.domain }}" },
+      "inputs": [{ "key": "domain", "label": "Domain", "type": "string" }]
+    },
+    {
+      "key": "get_breach",
+      "name": "Get breach",
+      "method": "GET",
+      "endpoint": "/breach/{{ inputs.name }}",
+      "inputs": [{ "key": "name", "label": "Breach name", "type": "string", "required": true, "placeholder": "Adobe" }]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "latest_breach",
+      "name": "New breach added (polling)",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/latestbreach",
+      "id_field": "Name",
+      "inputs": [{ "key": "poll_interval", "label": "Check every (minutes)", "type": "number", "default": 5 }]
+    }
+  ]
+}

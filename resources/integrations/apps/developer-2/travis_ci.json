@@ -1,0 +1,84 @@
+{
+  "key": "travis_ci",
+  "name": "Travis CI",
+  "category": "Developer Tools",
+  "description": "Trigger, restart and cancel builds and list a repository's builds.",
+  "brand": "travisci",
+  "website": "https://www.travis-ci.com",
+  "docs_url": "https://developer.travis-ci.com/",
+  "base_url": "https://api.travis-ci.com",
+  "headers": { "Travis-API-Version": "3" },
+  "auth": { "type": "api_key", "in": "header", "name": "Authorization", "prefix": "token ", "fields": [
+    { "key": "api_key", "label": "API token", "type": "password", "required": true, "help": "travis-ci.com → Settings → API authentication → Copy token." }
+  ] },
+  "actions": [
+    {
+      "key": "trigger_build",
+      "name": "Trigger build",
+      "method": "POST",
+      "endpoint": "/repo/{{ inputs.repo }}/requests",
+      "body": { "request": { "branch": "{{ inputs.branch }}", "message": "{{ inputs.message }}", "config": "{{ inputs.config }}" } },
+      "inputs": [
+        { "key": "repo", "label": "Repository", "type": "string", "required": true, "placeholder": "owner/repo" },
+        { "key": "branch", "label": "Branch", "type": "string", "required": true, "placeholder": "main" },
+        { "key": "message", "label": "Message", "type": "string" },
+        { "key": "config", "label": "Config overrides", "type": "json", "help": "Merged into .travis.yml, e.g. {\"env\": {\"jobs\": [\"FOO=bar\"]}}." }
+      ]
+    },
+    {
+      "key": "list_builds",
+      "name": "List builds",
+      "method": "GET",
+      "endpoint": "/repo/{{ inputs.repo }}/builds",
+      "query": { "branch.name": "{{ inputs.branch }}", "state": "{{ inputs.state }}", "limit": "{{ inputs.limit }}" },
+      "output_path": "builds",
+      "inputs": [
+        { "key": "repo", "label": "Repository", "type": "string", "required": true, "placeholder": "owner/repo" },
+        { "key": "branch", "label": "Branch", "type": "string" },
+        { "key": "state", "label": "State", "type": "select", "options": [
+          { "value": "created", "label": "Created" }, { "value": "started", "label": "Started" }, { "value": "passed", "label": "Passed" },
+          { "value": "failed", "label": "Failed" }, { "value": "errored", "label": "Errored" }, { "value": "canceled", "label": "Canceled" }
+        ] },
+        { "key": "limit", "label": "Limit", "type": "number", "default": 25 }
+      ]
+    },
+    {
+      "key": "get_build",
+      "name": "Get build",
+      "method": "GET",
+      "endpoint": "/build/{{ inputs.build_id }}",
+      "inputs": [{ "key": "build_id", "label": "Build ID", "type": "number", "required": true }]
+    },
+    {
+      "key": "restart_build",
+      "name": "Restart build",
+      "method": "POST",
+      "endpoint": "/build/{{ inputs.build_id }}/restart",
+      "inputs": [{ "key": "build_id", "label": "Build ID", "type": "number", "required": true }]
+    },
+    {
+      "key": "cancel_build",
+      "name": "Cancel build",
+      "method": "POST",
+      "endpoint": "/build/{{ inputs.build_id }}/cancel",
+      "inputs": [{ "key": "build_id", "label": "Build ID", "type": "number", "required": true }]
+    },
+    {
+      "key": "list_repos",
+      "name": "List repositories",
+      "method": "GET",
+      "endpoint": "/repos",
+      "query": { "limit": "{{ inputs.limit }}" },
+      "output_path": "repositories",
+      "inputs": [{ "key": "limit", "label": "Limit", "type": "number", "default": 25 }]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Build notification (webhook)",
+      "type": "webhook",
+      "inputs": [{ "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }]
+    }
+  ]
+}

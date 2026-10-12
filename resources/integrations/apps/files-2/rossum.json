@@ -1,0 +1,158 @@
+{
+  "key": "rossum",
+  "name": "Rossum",
+  "category": "Files & Documents",
+  "description": "Read queues, annotations and extracted invoice data from Rossum.",
+  "brand": "rossum",
+  "website": "https://rossum.ai",
+  "docs_url": "https://elis.rossum.ai/api/docs/",
+  "base_url": "{{ credentials.base_url }}",
+  "auth": [
+    {
+      "type": "bearer",
+      "fields": [
+        {
+          "key": "base_url",
+          "label": "API URL",
+          "type": "string",
+          "required": true,
+          "default": "https://api.elis.rossum.ai/v1",
+          "help": "Use your organization URL if you have one, e.g. https://example.rossum.app/api/v1."
+        },
+        {
+          "key": "token",
+          "label": "API token",
+          "type": "password",
+          "required": true,
+          "help": "Get it from POST /auth/login or your Rossum settings."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_queues",
+      "name": "List queues",
+      "method": "GET",
+      "endpoint": "/queues",
+      "inputs": []
+    },
+    {
+      "key": "list_annotations",
+      "name": "List annotations",
+      "method": "GET",
+      "endpoint": "/annotations",
+      "query": {
+        "queue": "{{ inputs.queue }}",
+        "status": "{{ inputs.status }}",
+        "page_size": "{{ inputs.page_size }}"
+      },
+      "inputs": [
+        {
+          "key": "queue",
+          "label": "Queue ID",
+          "type": "string"
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "string",
+          "placeholder": "to_review",
+          "help": "e.g. to_review, confirmed, exported."
+        },
+        {
+          "key": "page_size",
+          "label": "Page size",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "get_annotation",
+      "name": "Get annotation",
+      "method": "GET",
+      "endpoint": "/annotations/{{ inputs.annotation_id }}",
+      "inputs": [
+        {
+          "key": "annotation_id",
+          "label": "Annotation ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "get_annotation_content",
+      "name": "Get extracted data",
+      "method": "GET",
+      "endpoint": "/annotations/{{ inputs.annotation_id }}/content",
+      "inputs": [
+        {
+          "key": "annotation_id",
+          "label": "Annotation ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "export_annotations",
+      "name": "Export annotations",
+      "method": "GET",
+      "endpoint": "/queues/{{ inputs.queue_id }}/export",
+      "query": {
+        "format": "json",
+        "id": "{{ inputs.ids }}",
+        "status": "{{ inputs.status }}"
+      },
+      "inputs": [
+        {
+          "key": "queue_id",
+          "label": "Queue ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "ids",
+          "label": "Annotation IDs",
+          "type": "string",
+          "placeholder": "123,456"
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "string",
+          "placeholder": "exported"
+        }
+      ]
+    },
+    {
+      "key": "confirm_annotation",
+      "name": "Confirm annotation",
+      "method": "POST",
+      "endpoint": "/annotations/{{ inputs.annotation_id }}/confirm",
+      "inputs": [
+        {
+          "key": "annotation_id",
+          "label": "Annotation ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,183 @@
+{
+  "key": "goto_webinar",
+  "name": "GoTo Webinar",
+  "category": "Events & Webinars",
+  "description": "List webinars, register people and fetch registrants and attendees.",
+  "brand": "gotowebinar",
+  "website": "https://www.goto.com/webinar",
+  "docs_url": "https://developer.goto.com/GoToWebinarV2",
+  "base_url": "https://api.getgo.com/G2W/rest/v2/organizers/{{ credentials.organizer_key }}",
+  "auth": [
+    {
+      "type": "oauth2",
+      "authorize_url": "https://authentication.logmeininc.com/oauth/authorize",
+      "token_url": "https://authentication.logmeininc.com/oauth/token",
+      "client_auth": "basic",
+      "fields": [
+        {
+          "key": "organizer_key",
+          "label": "Organizer key",
+          "type": "string",
+          "required": true,
+          "help": "Your GoTo Webinar organizer key (GoTo returns it as organizer_key with the OAuth token; your GoTo admin can also look it up)."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_webinars",
+      "name": "List webinars",
+      "method": "GET",
+      "endpoint": "/webinars",
+      "query": {
+        "fromTime": "{{ inputs.from_time }}",
+        "toTime": "{{ inputs.to_time }}",
+        "size": "{{ inputs.size }}",
+        "page": "{{ inputs.page }}"
+      },
+      "output_path": "_embedded.webinars",
+      "inputs": [
+        {
+          "key": "from_time",
+          "label": "From",
+          "type": "string",
+          "required": true,
+          "placeholder": "2026-10-01T00:00:00Z"
+        },
+        {
+          "key": "to_time",
+          "label": "To",
+          "type": "string",
+          "required": true,
+          "placeholder": "2026-12-31T23:59:59Z"
+        },
+        {
+          "key": "size",
+          "label": "Per page",
+          "type": "number",
+          "default": 50,
+          "help": "Up to 200."
+        },
+        {
+          "key": "page",
+          "label": "Page (from 0)",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "get_webinar",
+      "name": "Get webinar",
+      "method": "GET",
+      "endpoint": "/webinars/{{ inputs.webinar_key }}",
+      "inputs": [
+        {
+          "key": "webinar_key",
+          "label": "Webinar key",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "create_registrant",
+      "name": "Register person",
+      "description": "Returns registrantKey and joinUrl.",
+      "method": "POST",
+      "endpoint": "/webinars/{{ inputs.webinar_key }}/registrants",
+      "query": {
+        "resendConfirmation": "{{ inputs.resend_confirmation }}"
+      },
+      "body": {
+        "firstName": "{{ inputs.first_name }}",
+        "lastName": "{{ inputs.last_name }}",
+        "email": "{{ inputs.email }}",
+        "organization": "{{ inputs.organization }}",
+        "jobTitle": "{{ inputs.job_title }}",
+        "phone": "{{ inputs.phone }}",
+        "source": "{{ inputs.source }}"
+      },
+      "inputs": [
+        {
+          "key": "webinar_key",
+          "label": "Webinar key",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "first_name",
+          "label": "First name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "organization",
+          "label": "Organization",
+          "type": "string"
+        },
+        {
+          "key": "job_title",
+          "label": "Job title",
+          "type": "string"
+        },
+        {
+          "key": "phone",
+          "label": "Phone",
+          "type": "string"
+        },
+        {
+          "key": "source",
+          "label": "Source",
+          "type": "string",
+          "placeholder": "flowforge"
+        },
+        {
+          "key": "resend_confirmation",
+          "label": "Resend confirmation if already registered",
+          "type": "boolean"
+        }
+      ]
+    },
+    {
+      "key": "list_registrants",
+      "name": "List registrants",
+      "method": "GET",
+      "endpoint": "/webinars/{{ inputs.webinar_key }}/registrants",
+      "inputs": [
+        {
+          "key": "webinar_key",
+          "label": "Webinar key",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_attendees",
+      "name": "List attendees",
+      "method": "GET",
+      "endpoint": "/webinars/{{ inputs.webinar_key }}/attendees",
+      "inputs": [
+        {
+          "key": "webinar_key",
+          "label": "Webinar key",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ]
+}

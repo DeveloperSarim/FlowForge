@@ -1,0 +1,105 @@
+{
+  "key": "stability_ai",
+  "name": "Stability AI",
+  "category": "AI",
+  "description": "Generate images with Stable Diffusion and check credits.",
+  "brand": "stabilityai",
+  "website": "https://stability.ai",
+  "docs_url": "https://platform.stability.ai/docs/api-reference",
+  "base_url": "https://api.stability.ai",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "API key",
+        "type": "password",
+        "required": true
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "text_to_image",
+      "name": "Generate image (SDXL)",
+      "description": "Returns base64 PNG images.",
+      "method": "POST",
+      "endpoint": "/v1/generation/{{ inputs.engine_id }}/text-to-image",
+      "timeout": 300,
+      "body": {
+        "text_prompts": [
+          {
+            "text": "{{ inputs.prompt }}",
+            "weight": 1
+          }
+        ],
+        "width": "{{ inputs.width }}",
+        "height": "{{ inputs.height }}",
+        "cfg_scale": "{{ inputs.cfg_scale }}",
+        "steps": "{{ inputs.steps }}",
+        "samples": "{{ inputs.samples }}"
+      },
+      "output_fields": {
+        "image_base64": "artifacts.0.base64"
+      },
+      "inputs": [
+        {
+          "key": "engine_id",
+          "label": "Engine",
+          "type": "string",
+          "required": true,
+          "default": "stable-diffusion-xl-1024-v1-0"
+        },
+        {
+          "key": "prompt",
+          "label": "Prompt",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "width",
+          "label": "Width",
+          "type": "number",
+          "default": 1024
+        },
+        {
+          "key": "height",
+          "label": "Height",
+          "type": "number",
+          "default": 1024
+        },
+        {
+          "key": "cfg_scale",
+          "label": "CFG scale",
+          "type": "number",
+          "placeholder": "7"
+        },
+        {
+          "key": "steps",
+          "label": "Steps",
+          "type": "number",
+          "placeholder": "30"
+        },
+        {
+          "key": "samples",
+          "label": "Number of images",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "get_balance",
+      "name": "Get credit balance",
+      "method": "GET",
+      "endpoint": "/v1/user/balance",
+      "inputs": []
+    },
+    {
+      "key": "list_engines",
+      "name": "List engines",
+      "method": "GET",
+      "endpoint": "/v1/engines/list",
+      "inputs": []
+    }
+  ]
+}

@@ -1,0 +1,239 @@
+{
+  "key": "todoist",
+  "name": "Todoist",
+  "category": "Productivity",
+  "description": "Create, update, filter and close Todoist tasks.",
+  "brand": "todoist",
+  "website": "https://todoist.com",
+  "docs_url": "https://developer.todoist.com/api/v1/",
+  "popular": true,
+  "base_url": "https://api.todoist.com/api/v1",
+  "auth": [
+    {
+      "type": "bearer",
+      "fields": [
+        {
+          "key": "token",
+          "label": "API token",
+          "type": "password",
+          "required": true,
+          "help": "Settings > Integrations > Developer."
+        }
+      ]
+    },
+    {
+      "type": "oauth2",
+      "authorize_url": "https://app.todoist.com/oauth/authorize",
+      "token_url": "https://api.todoist.com/oauth/access_token",
+      "scopes": [
+        "data:read_write"
+      ],
+      "scope_separator": ","
+    }
+  ],
+  "actions": [
+    {
+      "key": "create_task",
+      "name": "Create task",
+      "method": "POST",
+      "endpoint": "/tasks",
+      "body": {
+        "content": "{{ inputs.content }}",
+        "description": "{{ inputs.description }}",
+        "project_id": "{{ inputs.project_id }}",
+        "section_id": "{{ inputs.section_id }}",
+        "labels": "{{ inputs.labels }}",
+        "priority": "{{ inputs.priority }}",
+        "due_string": "{{ inputs.due_string }}",
+        "due_date": "{{ inputs.due_date }}",
+        "assignee_id": "{{ inputs.assignee_id }}"
+      },
+      "inputs": [
+        {
+          "key": "content",
+          "label": "Task name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "description",
+          "label": "Description",
+          "type": "text"
+        },
+        {
+          "key": "project_id",
+          "label": "Project ID",
+          "type": "string",
+          "help": "Leave empty for the Inbox."
+        },
+        {
+          "key": "section_id",
+          "label": "Section ID",
+          "type": "string"
+        },
+        {
+          "key": "labels",
+          "label": "Labels",
+          "type": "list"
+        },
+        {
+          "key": "priority",
+          "label": "Priority",
+          "type": "number",
+          "help": "1 (normal) to 4 (urgent)."
+        },
+        {
+          "key": "due_string",
+          "label": "Due (natural language)",
+          "type": "string",
+          "placeholder": "tomorrow at 5pm"
+        },
+        {
+          "key": "due_date",
+          "label": "Due date",
+          "type": "string",
+          "placeholder": "2026-10-12"
+        },
+        {
+          "key": "assignee_id",
+          "label": "Assignee ID",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "filter_tasks",
+      "name": "Find tasks by filter",
+      "method": "GET",
+      "endpoint": "/tasks/filter",
+      "query": {
+        "query": "{{ inputs.query }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_path": "results",
+      "inputs": [
+        {
+          "key": "query",
+          "label": "Filter",
+          "type": "string",
+          "required": true,
+          "placeholder": "today | overdue",
+          "help": "Todoist filter syntax."
+        },
+        {
+          "key": "limit",
+          "label": "Max results",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    },
+    {
+      "key": "update_task",
+      "name": "Update task",
+      "method": "POST",
+      "endpoint": "/tasks/{{ inputs.task_id }}",
+      "body": {
+        "content": "{{ inputs.content }}",
+        "description": "{{ inputs.description }}",
+        "labels": "{{ inputs.labels }}",
+        "priority": "{{ inputs.priority }}",
+        "due_string": "{{ inputs.due_string }}"
+      },
+      "inputs": [
+        {
+          "key": "task_id",
+          "label": "Task ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "content",
+          "label": "Task name",
+          "type": "string"
+        },
+        {
+          "key": "description",
+          "label": "Description",
+          "type": "text"
+        },
+        {
+          "key": "labels",
+          "label": "Labels",
+          "type": "list"
+        },
+        {
+          "key": "priority",
+          "label": "Priority",
+          "type": "number"
+        },
+        {
+          "key": "due_string",
+          "label": "Due (natural language)",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "close_task",
+      "name": "Complete task",
+      "method": "POST",
+      "endpoint": "/tasks/{{ inputs.task_id }}/close",
+      "inputs": [
+        {
+          "key": "task_id",
+          "label": "Task ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "add_comment",
+      "name": "Add comment",
+      "method": "POST",
+      "endpoint": "/comments",
+      "body": {
+        "task_id": "{{ inputs.task_id }}",
+        "content": "{{ inputs.content }}"
+      },
+      "inputs": [
+        {
+          "key": "task_id",
+          "label": "Task ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "content",
+          "label": "Comment",
+          "type": "text",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_projects",
+      "name": "List projects",
+      "method": "GET",
+      "endpoint": "/projects",
+      "output_path": "results",
+      "inputs": []
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Set this URL as the webhook callback of your app in the Todoist App Management console.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

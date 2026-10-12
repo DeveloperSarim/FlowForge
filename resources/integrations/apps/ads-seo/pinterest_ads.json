@@ -1,0 +1,82 @@
+{
+  "key": "pinterest_ads",
+  "name": "Pinterest Ads",
+  "category": "Ads & SEO",
+  "description": "List ad accounts and campaigns, pull campaign analytics and change campaign status.",
+  "brand": "pinterest",
+  "website": "https://ads.pinterest.com",
+  "docs_url": "https://developers.pinterest.com/docs/api/v5/",
+  "base_url": "https://api.pinterest.com/v5",
+  "auth": [
+    {
+      "type": "oauth2",
+      "authorize_url": "https://www.pinterest.com/oauth/",
+      "token_url": "https://api.pinterest.com/v5/oauth/token",
+      "client_auth": "basic",
+      "scope_separator": ",",
+      "scopes": ["ads:read", "ads:write", "user_accounts:read"]
+    },
+    { "type": "bearer", "fields": [{ "key": "token", "label": "Access token", "type": "password", "required": true, "help": "Needs the ads:read (and ads:write to change campaigns) scopes." }] }
+  ],
+  "actions": [
+    {
+      "key": "list_ad_accounts",
+      "name": "List ad accounts",
+      "method": "GET",
+      "endpoint": "/ad_accounts",
+      "query": { "page_size": "{{ inputs.page_size }}" },
+      "output_path": "items",
+      "inputs": [{ "key": "page_size", "label": "Page size (max 250)", "type": "number", "default": 25 }]
+    },
+    {
+      "key": "list_campaigns",
+      "name": "List campaigns",
+      "method": "GET",
+      "endpoint": "/ad_accounts/{{ inputs.ad_account_id }}/campaigns",
+      "query": { "page_size": "{{ inputs.page_size }}" },
+      "output_path": "items",
+      "inputs": [
+        { "key": "ad_account_id", "label": "Ad account ID", "type": "string", "required": true },
+        { "key": "page_size", "label": "Page size (max 250)", "type": "number", "default": 25 }
+      ]
+    },
+    {
+      "key": "get_campaign_analytics",
+      "name": "Get campaign analytics",
+      "method": "GET",
+      "endpoint": "/ad_accounts/{{ inputs.ad_account_id }}/campaigns/analytics",
+      "query": {
+        "start_date": "{{ inputs.start_date }}",
+        "end_date": "{{ inputs.end_date }}",
+        "campaign_ids": "{{ inputs.campaign_ids }}",
+        "columns": "{{ inputs.columns }}",
+        "granularity": "{{ inputs.granularity }}"
+      },
+      "inputs": [
+        { "key": "ad_account_id", "label": "Ad account ID", "type": "string", "required": true },
+        { "key": "start_date", "label": "Start date (YYYY-MM-DD)", "type": "string", "required": true },
+        { "key": "end_date", "label": "End date (YYYY-MM-DD)", "type": "string", "required": true },
+        { "key": "campaign_ids", "label": "Campaign IDs (comma-separated)", "type": "string", "required": true },
+        { "key": "columns", "label": "Columns (comma-separated)", "type": "string", "required": true, "placeholder": "SPEND_IN_DOLLAR,IMPRESSION_1,CLICKTHROUGH_1" },
+        { "key": "granularity", "label": "Granularity", "type": "select", "required": true, "default": "DAY", "options": [
+          { "value": "TOTAL", "label": "Total" }, { "value": "DAY", "label": "Day" }, { "value": "HOUR", "label": "Hour" },
+          { "value": "WEEK", "label": "Week" }, { "value": "MONTH", "label": "Month" }
+        ] }
+      ]
+    },
+    {
+      "key": "update_campaign_status",
+      "name": "Change campaign status",
+      "method": "PATCH",
+      "endpoint": "/ad_accounts/{{ inputs.ad_account_id }}/campaigns",
+      "body": [{ "id": "{{ inputs.campaign_id }}", "status": "{{ inputs.status }}" }],
+      "inputs": [
+        { "key": "ad_account_id", "label": "Ad account ID", "type": "string", "required": true },
+        { "key": "campaign_id", "label": "Campaign ID", "type": "string", "required": true },
+        { "key": "status", "label": "Status", "type": "select", "required": true, "default": "PAUSED", "options": [
+          { "value": "ACTIVE", "label": "Active" }, { "value": "PAUSED", "label": "Paused" }, { "value": "ARCHIVED", "label": "Archived" }
+        ] }
+      ]
+    }
+  ]
+}

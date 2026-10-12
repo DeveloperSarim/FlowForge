@@ -1,0 +1,94 @@
+{
+  "key": "synthesia",
+  "name": "Synthesia",
+  "category": "Video & Media",
+  "description": "Generate AI avatar videos from scripts or templates and fetch their status.",
+  "brand": "synthesia",
+  "website": "https://www.synthesia.io",
+  "docs_url": "https://docs.synthesia.io/reference/introduction",
+  "base_url": "https://api.synthesia.io/v2",
+  "auth": { "type": "api_key", "in": "header", "name": "Authorization" },
+  "actions": [
+    {
+      "key": "create_video",
+      "name": "Create video",
+      "method": "POST",
+      "endpoint": "/videos",
+      "timeout": 60,
+      "body": {
+        "title": "{{ inputs.title }}",
+        "description": "{{ inputs.description }}",
+        "visibility": "{{ inputs.visibility }}",
+        "aspectRatio": "{{ inputs.aspect_ratio }}",
+        "test": "{{ inputs.test }}",
+        "input": [{ "scriptText": "{{ inputs.script }}", "avatar": "{{ inputs.avatar }}", "background": "{{ inputs.background }}" }]
+      },
+      "inputs": [
+        { "key": "script", "label": "Script", "type": "text", "required": true },
+        { "key": "avatar", "label": "Avatar ID", "type": "string", "required": true },
+        { "key": "background", "label": "Background", "type": "string", "required": true, "help": "Stock background name, uploaded asset ID or image URL." },
+        { "key": "title", "label": "Title", "type": "string" },
+        { "key": "description", "label": "Description", "type": "text" },
+        { "key": "visibility", "label": "Visibility", "type": "select", "default": "private", "options": [
+          { "value": "private", "label": "Private" }, { "value": "public", "label": "Public" }
+        ] },
+        { "key": "aspect_ratio", "label": "Aspect ratio", "type": "select", "default": "16:9", "options": [
+          { "value": "16:9", "label": "16:9" }, { "value": "9:16", "label": "9:16" }, { "value": "1:1", "label": "1:1" }, { "value": "4:5", "label": "4:5" }, { "value": "5:4", "label": "5:4" }
+        ] },
+        { "key": "test", "label": "Test video (free, watermarked)", "type": "boolean" }
+      ]
+    },
+    {
+      "key": "create_video_from_template",
+      "name": "Create video from template",
+      "method": "POST",
+      "endpoint": "/videos/fromTemplate",
+      "timeout": 60,
+      "body": { "templateId": "{{ inputs.template_id }}", "templateData": "{{ inputs.template_data }}", "title": "{{ inputs.title }}", "visibility": "{{ inputs.visibility }}", "test": "{{ inputs.test }}" },
+      "inputs": [
+        { "key": "template_id", "label": "Template ID", "type": "string", "required": true },
+        { "key": "template_data", "label": "Template variables", "type": "keyvalue" },
+        { "key": "title", "label": "Title", "type": "string" },
+        { "key": "visibility", "label": "Visibility", "type": "select", "default": "private", "options": [
+          { "value": "private", "label": "Private" }, { "value": "public", "label": "Public" }
+        ] },
+        { "key": "test", "label": "Test video (free, watermarked)", "type": "boolean" }
+      ]
+    },
+    {
+      "key": "get_video",
+      "name": "Get video",
+      "description": "Status and download URL.",
+      "method": "GET",
+      "endpoint": "/videos/{{ inputs.video_id }}",
+      "inputs": [{ "key": "video_id", "label": "Video ID", "type": "string", "required": true }]
+    },
+    {
+      "key": "list_videos",
+      "name": "List videos",
+      "method": "GET",
+      "endpoint": "/videos",
+      "query": { "limit": "{{ inputs.limit }}", "offset": "{{ inputs.offset }}" },
+      "inputs": [
+        { "key": "limit", "label": "Limit", "type": "number", "default": 20 },
+        { "key": "offset", "label": "Offset", "type": "number" }
+      ]
+    },
+    {
+      "key": "delete_video",
+      "name": "Delete video",
+      "method": "DELETE",
+      "endpoint": "/videos/{{ inputs.video_id }}",
+      "inputs": [{ "key": "video_id", "label": "Video ID", "type": "string", "required": true }]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "description": "Register this URL with POST /v2/webhooks (e.g. video.completed).",
+      "type": "webhook",
+      "inputs": [{ "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }]
+    }
+  ]
+}

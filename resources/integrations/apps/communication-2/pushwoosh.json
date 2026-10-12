@@ -1,0 +1,51 @@
+{
+  "key": "pushwoosh",
+  "name": "Pushwoosh",
+  "category": "Communication",
+  "description": "Send and cancel push notifications to your app's users with Pushwoosh.",
+  "brand": "pushwoosh",
+  "website": "https://www.pushwoosh.com",
+  "docs_url": "https://docs.pushwoosh.com/developer/api-reference/messages-api/",
+  "base_url": "https://api.pushwoosh.com/json/1.3",
+  "auth": [
+    { "type": "api_key", "fields": [{ "key": "api_key", "label": "API access token", "type": "password", "required": true, "help": "Control Panel → Settings → API Access." }] }
+  ],
+  "actions": [
+    {
+      "key": "send_push",
+      "name": "Send push notification",
+      "method": "POST",
+      "endpoint": "/createMessage",
+      "body": {
+        "request": {
+          "application": "{{ inputs.application }}",
+          "auth": "{{ credentials.api_key }}",
+          "notifications": [{
+            "send_date": "now",
+            "content": "{{ inputs.content }}",
+            "link": "{{ inputs.link }}",
+            "users": "{{ inputs.users }}",
+            "data": "{{ inputs.data }}"
+          }]
+        }
+      },
+      "inputs": [
+        { "key": "application", "label": "Application code", "type": "string", "required": true, "placeholder": "XXXXX-XXXXX" },
+        { "key": "content", "label": "Message", "type": "text", "required": true },
+        { "key": "users", "label": "Only these user IDs", "type": "list", "help": "Leave empty to send to all subscribers." },
+        { "key": "link", "label": "Open URL", "type": "string" },
+        { "key": "data", "label": "Custom data (JSON)", "type": "json", "placeholder": "{\"order_id\":\"1042\"}" }
+      ]
+    },
+    {
+      "key": "delete_message",
+      "name": "Cancel scheduled message",
+      "method": "POST",
+      "endpoint": "/deleteMessage",
+      "body": { "request": { "auth": "{{ credentials.api_key }}", "message": "{{ inputs.message_code }}" } },
+      "inputs": [
+        { "key": "message_code", "label": "Message code", "type": "string", "required": true }
+      ]
+    }
+  ]
+}

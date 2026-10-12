@@ -1,0 +1,102 @@
+{
+  "key": "jumpcloud",
+  "name": "JumpCloud",
+  "category": "Security & IT",
+  "description": "Create, find, update, suspend and delete users and manage user group membership.",
+  "brand": "jumpcloud",
+  "website": "https://jumpcloud.com",
+  "docs_url": "https://docs.jumpcloud.com/api/",
+  "base_url": "https://{{ credentials.host }}/api",
+  "headers": { "x-org-id": "{{ credentials.org_id }}" },
+  "auth": { "type": "api_key", "in": "header", "name": "x-api-key", "fields": [
+    { "key": "host", "label": "Console host", "type": "string", "required": true, "default": "console.jumpcloud.com", "help": "console.eu.jumpcloud.com for EU organizations." },
+    { "key": "api_key", "label": "API key", "type": "password", "required": true, "help": "Admin portal → your account → My API Key, or a service account key." },
+    { "key": "org_id", "label": "Organization ID", "type": "string", "help": "Only for multi-tenant (MTP) admins." }
+  ] },
+  "actions": [
+    {
+      "key": "create_user",
+      "name": "Create user",
+      "method": "POST",
+      "endpoint": "/systemusers",
+      "body": { "username": "{{ inputs.username }}", "email": "{{ inputs.email }}", "firstname": "{{ inputs.first_name }}", "lastname": "{{ inputs.last_name }}", "password": "{{ inputs.password }}", "jobTitle": "{{ inputs.job_title }}", "department": "{{ inputs.department }}", "...": "{{ inputs.extra }}" },
+      "inputs": [
+        { "key": "username", "label": "Username", "type": "string", "required": true },
+        { "key": "email", "label": "Email", "type": "string", "required": true },
+        { "key": "first_name", "label": "First name", "type": "string" },
+        { "key": "last_name", "label": "Last name", "type": "string" },
+        { "key": "password", "label": "Password", "type": "password", "help": "Leave empty to let the user activate via email." },
+        { "key": "job_title", "label": "Job title", "type": "string" },
+        { "key": "department", "label": "Department", "type": "string" },
+        { "key": "extra", "label": "Other attributes", "type": "keyvalue" }
+      ]
+    },
+    {
+      "key": "find_users",
+      "name": "Find users",
+      "method": "GET",
+      "endpoint": "/systemusers",
+      "query": { "filter": "{{ inputs.filter }}", "limit": "{{ inputs.limit }}", "skip": "{{ inputs.skip }}" },
+      "output_path": "results",
+      "inputs": [
+        { "key": "filter", "label": "Filter", "type": "string", "placeholder": "email:$eq:ana@example.com" },
+        { "key": "limit", "label": "Limit", "type": "number", "default": 100 },
+        { "key": "skip", "label": "Skip", "type": "number" }
+      ]
+    },
+    {
+      "key": "get_user",
+      "name": "Get user",
+      "method": "GET",
+      "endpoint": "/systemusers/{{ inputs.user_id }}",
+      "inputs": [{ "key": "user_id", "label": "User ID", "type": "string", "required": true }]
+    },
+    {
+      "key": "update_user",
+      "name": "Update user",
+      "method": "PUT",
+      "endpoint": "/systemusers/{{ inputs.user_id }}",
+      "body": { "suspended": "{{ inputs.suspended }}", "email": "{{ inputs.email }}", "firstname": "{{ inputs.first_name }}", "lastname": "{{ inputs.last_name }}", "jobTitle": "{{ inputs.job_title }}", "department": "{{ inputs.department }}", "...": "{{ inputs.extra }}" },
+      "inputs": [
+        { "key": "user_id", "label": "User ID", "type": "string", "required": true },
+        { "key": "suspended", "label": "Suspended", "type": "boolean" },
+        { "key": "email", "label": "Email", "type": "string" },
+        { "key": "first_name", "label": "First name", "type": "string" },
+        { "key": "last_name", "label": "Last name", "type": "string" },
+        { "key": "job_title", "label": "Job title", "type": "string" },
+        { "key": "department", "label": "Department", "type": "string" },
+        { "key": "extra", "label": "Other attributes", "type": "keyvalue" }
+      ]
+    },
+    {
+      "key": "delete_user",
+      "name": "Delete user",
+      "method": "DELETE",
+      "endpoint": "/systemusers/{{ inputs.user_id }}",
+      "inputs": [{ "key": "user_id", "label": "User ID", "type": "string", "required": true }]
+    },
+    {
+      "key": "update_group_membership",
+      "name": "Add or remove user in group",
+      "method": "POST",
+      "endpoint": "/v2/usergroups/{{ inputs.group_id }}/members",
+      "body": { "op": "{{ inputs.op }}", "type": "user", "id": "{{ inputs.user_id }}" },
+      "inputs": [
+        { "key": "group_id", "label": "User group ID", "type": "string", "required": true },
+        { "key": "user_id", "label": "User ID", "type": "string", "required": true },
+        { "key": "op", "label": "Operation", "type": "select", "required": true, "default": "add", "options": [{ "value": "add", "label": "Add" }, { "value": "remove", "label": "Remove" }] }
+      ]
+    },
+    {
+      "key": "list_user_groups",
+      "name": "List user groups",
+      "method": "GET",
+      "endpoint": "/v2/usergroups",
+      "query": { "filter": "{{ inputs.filter }}", "limit": "{{ inputs.limit }}" },
+      "inputs": [
+        { "key": "filter", "label": "Filter", "type": "string", "placeholder": "name:eq:Engineering" },
+        { "key": "limit", "label": "Limit", "type": "number", "default": 100 }
+      ]
+    }
+  ]
+}

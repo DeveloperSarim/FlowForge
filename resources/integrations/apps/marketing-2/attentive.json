@@ -1,0 +1,84 @@
+{
+  "key": "attentive",
+  "name": "Attentive",
+  "category": "Marketing & Email",
+  "description": "Subscribe users to SMS/email, send custom events and set custom attributes.",
+  "brand": "attentive",
+  "website": "https://www.attentive.com",
+  "docs_url": "https://docs.attentive.com/pages/developer-guides/introduction/",
+  "base_url": "https://api.attentivemobile.com/v1",
+  "auth": { "type": "bearer", "fields": [{ "key": "token", "label": "API key", "type": "password", "required": true, "help": "Create a private app in Attentive (Marketplace > Create app) and copy its API key." }] },
+  "actions": [
+    {
+      "key": "subscribe_user",
+      "name": "Subscribe user",
+      "method": "POST",
+      "endpoint": "/subscriptions",
+      "body": {
+        "user": { "phone": "{{ inputs.phone }}", "email": "{{ inputs.email }}" },
+        "signUpSourceId": "{{ inputs.sign_up_source_id }}",
+        "singleOptIn": "{{ inputs.single_opt_in }}"
+      },
+      "inputs": [
+        { "key": "phone", "label": "Phone (E.164)", "type": "string", "placeholder": "+15005550006" },
+        { "key": "email", "label": "Email", "type": "string" },
+        { "key": "sign_up_source_id", "label": "Sign-up source ID", "type": "string", "required": true, "help": "Sign-up Units > API sign-up source." },
+        { "key": "single_opt_in", "label": "Single opt-in (skip confirmation)", "type": "boolean" }
+      ]
+    },
+    {
+      "key": "unsubscribe_user",
+      "name": "Unsubscribe user",
+      "method": "POST",
+      "endpoint": "/subscriptions/unsubscribe",
+      "body": { "user": { "phone": "{{ inputs.phone }}", "email": "{{ inputs.email }}" } },
+      "inputs": [
+        { "key": "phone", "label": "Phone (E.164)", "type": "string" },
+        { "key": "email", "label": "Email", "type": "string" }
+      ]
+    },
+    {
+      "key": "custom_event",
+      "name": "Send custom event",
+      "description": "Triggers journeys and segments on your own event types.",
+      "method": "POST",
+      "endpoint": "/events/custom",
+      "body": {
+        "type": "{{ inputs.type }}",
+        "properties": "{{ inputs.properties }}",
+        "externalEventId": "{{ inputs.external_event_id }}",
+        "user": { "phone": "{{ inputs.phone }}", "email": "{{ inputs.email }}" }
+      },
+      "inputs": [
+        { "key": "type", "label": "Event type", "type": "string", "required": true, "placeholder": "Order Shipped" },
+        { "key": "phone", "label": "Phone (E.164)", "type": "string" },
+        { "key": "email", "label": "Email", "type": "string" },
+        { "key": "properties", "label": "Properties", "type": "keyvalue" },
+        { "key": "external_event_id", "label": "Event ID (dedupe)", "type": "string" }
+      ]
+    },
+    {
+      "key": "set_attributes",
+      "name": "Set custom attributes",
+      "method": "POST",
+      "endpoint": "/attributes/custom",
+      "body": {
+        "properties": "{{ inputs.properties }}",
+        "user": { "phone": "{{ inputs.phone }}", "email": "{{ inputs.email }}" }
+      },
+      "inputs": [
+        { "key": "phone", "label": "Phone (E.164)", "type": "string" },
+        { "key": "email", "label": "Email", "type": "string" },
+        { "key": "properties", "label": "Attributes", "type": "keyvalue", "required": true }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "inputs": [{ "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }]
+    }
+  ]
+}

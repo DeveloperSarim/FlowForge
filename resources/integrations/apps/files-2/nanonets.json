@@ -1,0 +1,98 @@
+{
+  "key": "nanonets",
+  "name": "Nanonets",
+  "category": "Files & Documents",
+  "description": "Extract data from documents by URL with your Nanonets OCR models.",
+  "brand": "nanonets",
+  "website": "https://nanonets.com",
+  "docs_url": "https://docs.nanonets.com/reference/overview",
+  "base_url": "https://app.nanonets.com/api/v2",
+  "auth": [
+    {
+      "type": "basic",
+      "fields": [
+        {
+          "key": "username",
+          "label": "API key",
+          "type": "password",
+          "required": true,
+          "help": "Account > API keys."
+        },
+        {
+          "key": "password",
+          "label": "Password",
+          "type": "password",
+          "required": false,
+          "help": "Leave empty."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "predict_url",
+      "name": "Extract from URL",
+      "method": "POST",
+      "endpoint": "/OCR/Model/{{ inputs.model_id }}/LabelUrls/",
+      "body_format": "form",
+      "timeout": 180,
+      "body": {
+        "urls": "{{ inputs.urls }}",
+        "request_metadata": "{{ inputs.request_metadata }}"
+      },
+      "inputs": [
+        {
+          "key": "model_id",
+          "label": "Model ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "urls",
+          "label": "File URL",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "request_metadata",
+          "label": "Metadata",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "get_prediction",
+      "name": "Get prediction by file ID",
+      "method": "GET",
+      "endpoint": "/Inferences/Model/{{ inputs.model_id }}/InferenceRequestFiles/GetPredictions/{{ inputs.request_file_id }}",
+      "inputs": [
+        {
+          "key": "model_id",
+          "label": "Model ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "request_file_id",
+          "label": "Request file ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Prediction ready",
+      "type": "webhook",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

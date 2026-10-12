@@ -1,0 +1,173 @@
+{
+  "key": "smile_io",
+  "name": "Smile.io",
+  "category": "E-commerce",
+  "description": "Look up loyalty members, adjust points and log custom activities in Smile.io.",
+  "brand": "smile",
+  "website": "https://smile.io",
+  "docs_url": "https://dev.smile.io/api",
+  "base_url": "https://api.smile.io/v1",
+  "auth": [
+    {
+      "type": "bearer",
+      "fields": [
+        {
+          "key": "token",
+          "label": "Private API key",
+          "type": "password",
+          "required": true,
+          "help": "Smile admin > Settings > Platform > API (Plus plan and up)."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "find_customer",
+      "name": "Find customer by email",
+      "method": "GET",
+      "endpoint": "/customers",
+      "query": {
+        "email": "{{ inputs.email }}"
+      },
+      "output_path": "customers",
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "get_customer",
+      "name": "Get customer",
+      "method": "GET",
+      "endpoint": "/customers/{{ inputs.customer_id }}",
+      "output_path": "customer",
+      "inputs": [
+        {
+          "key": "customer_id",
+          "label": "Customer ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "adjust_points",
+      "name": "Add or remove points",
+      "method": "POST",
+      "endpoint": "/points_transactions",
+      "body": {
+        "points_transaction": {
+          "customer_id": "{{ inputs.customer_id }}",
+          "points_change": "{{ inputs.points_change }}",
+          "description": "{{ inputs.description }}",
+          "internal_note": "{{ inputs.internal_note }}"
+        }
+      },
+      "output_path": "points_transaction",
+      "inputs": [
+        {
+          "key": "customer_id",
+          "label": "Customer ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "points_change",
+          "label": "Points change",
+          "type": "number",
+          "required": true,
+          "help": "Negative to deduct."
+        },
+        {
+          "key": "description",
+          "label": "Description (shown to customer)",
+          "type": "string"
+        },
+        {
+          "key": "internal_note",
+          "label": "Internal note",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "list_points_transactions",
+      "name": "List points transactions",
+      "method": "GET",
+      "endpoint": "/points_transactions",
+      "query": {
+        "customer_id": "{{ inputs.customer_id }}"
+      },
+      "output_path": "points_transactions",
+      "inputs": [
+        {
+          "key": "customer_id",
+          "label": "Customer ID",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "create_activity",
+      "name": "Record custom activity",
+      "method": "POST",
+      "endpoint": "/activities",
+      "body": {
+        "activity": {
+          "token": "{{ inputs.token }}",
+          "customer_email": "{{ inputs.email }}",
+          "customer_id": "{{ inputs.customer_id }}",
+          "distinct_id": "{{ inputs.distinct_id }}"
+        }
+      },
+      "inputs": [
+        {
+          "key": "token",
+          "label": "Activity rule token",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "email",
+          "label": "Customer email",
+          "type": "string"
+        },
+        {
+          "key": "customer_id",
+          "label": "Customer ID",
+          "type": "number"
+        },
+        {
+          "key": "distinct_id",
+          "label": "Distinct ID",
+          "type": "string",
+          "help": "Prevents the same activity being counted twice."
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_points_transaction",
+      "name": "New points transaction",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/points_transactions",
+      "items_path": "points_transactions",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

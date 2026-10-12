@@ -1,0 +1,257 @@
+{
+  "key": "langfuse",
+  "name": "Langfuse",
+  "category": "AI",
+  "description": "Score traces, fetch prompts and build datasets in Langfuse.",
+  "brand": "langfuse",
+  "website": "https://langfuse.com",
+  "docs_url": "https://api.reference.langfuse.com",
+  "popular": true,
+  "base_url": "{{ credentials.base_url }}/api/public",
+  "auth": {
+    "type": "basic",
+    "fields": [
+      {
+        "key": "base_url",
+        "label": "Host",
+        "type": "string",
+        "required": true,
+        "default": "https://cloud.langfuse.com",
+        "help": "https://cloud.langfuse.com (EU), https://us.cloud.langfuse.com (US) or your self-hosted URL."
+      },
+      {
+        "key": "username",
+        "label": "Public key",
+        "type": "string",
+        "required": true,
+        "placeholder": "pk-lf-..."
+      },
+      {
+        "key": "password",
+        "label": "Secret key",
+        "type": "password",
+        "required": true,
+        "placeholder": "sk-lf-..."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "create_score",
+      "name": "Create score",
+      "method": "POST",
+      "endpoint": "/scores",
+      "body": {
+        "traceId": "{{ inputs.trace_id }}",
+        "observationId": "{{ inputs.observation_id }}",
+        "name": "{{ inputs.name }}",
+        "value": "{{ inputs.value }}",
+        "dataType": "{{ inputs.data_type }}",
+        "comment": "{{ inputs.comment }}"
+      },
+      "inputs": [
+        {
+          "key": "trace_id",
+          "label": "Trace ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "name",
+          "label": "Score name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "value",
+          "label": "Value",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "data_type",
+          "label": "Data type",
+          "type": "select",
+          "options": [
+            {
+              "value": "NUMERIC",
+              "label": "Numeric"
+            },
+            {
+              "value": "BOOLEAN",
+              "label": "Boolean (0/1)"
+            }
+          ]
+        },
+        {
+          "key": "observation_id",
+          "label": "Observation ID",
+          "type": "string"
+        },
+        {
+          "key": "comment",
+          "label": "Comment",
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "key": "list_traces",
+      "name": "List traces",
+      "method": "GET",
+      "endpoint": "/traces",
+      "query": {
+        "page": "{{ inputs.page }}",
+        "limit": "{{ inputs.limit }}",
+        "userId": "{{ inputs.user_id }}",
+        "name": "{{ inputs.name }}",
+        "sessionId": "{{ inputs.session_id }}",
+        "orderBy": "timestamp.desc"
+      },
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "user_id",
+          "label": "User ID",
+          "type": "string"
+        },
+        {
+          "key": "name",
+          "label": "Trace name",
+          "type": "string"
+        },
+        {
+          "key": "session_id",
+          "label": "Session ID",
+          "type": "string"
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 50
+        },
+        {
+          "key": "page",
+          "label": "Page",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "get_trace",
+      "name": "Get trace",
+      "method": "GET",
+      "endpoint": "/traces/{{ inputs.trace_id }}",
+      "inputs": [
+        {
+          "key": "trace_id",
+          "label": "Trace ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "get_prompt",
+      "name": "Get prompt",
+      "description": "Prompt content is {{ steps.<id>.prompt }}.",
+      "method": "GET",
+      "endpoint": "/v2/prompts/{{ inputs.name }}",
+      "query": {
+        "label": "{{ inputs.label }}",
+        "version": "{{ inputs.version }}"
+      },
+      "inputs": [
+        {
+          "key": "name",
+          "label": "Prompt name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "label",
+          "label": "Label",
+          "type": "string",
+          "placeholder": "production"
+        },
+        {
+          "key": "version",
+          "label": "Version",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "create_dataset_item",
+      "name": "Create dataset item",
+      "method": "POST",
+      "endpoint": "/dataset-items",
+      "body": {
+        "datasetName": "{{ inputs.dataset_name }}",
+        "input": "{{ inputs.input }}",
+        "expectedOutput": "{{ inputs.expected_output }}",
+        "metadata": "{{ inputs.metadata }}",
+        "sourceTraceId": "{{ inputs.source_trace_id }}"
+      },
+      "inputs": [
+        {
+          "key": "dataset_name",
+          "label": "Dataset name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "input",
+          "label": "Input (JSON)",
+          "type": "json",
+          "required": true
+        },
+        {
+          "key": "expected_output",
+          "label": "Expected output (JSON)",
+          "type": "json"
+        },
+        {
+          "key": "metadata",
+          "label": "Metadata (JSON)",
+          "type": "json"
+        },
+        {
+          "key": "source_trace_id",
+          "label": "Source trace ID",
+          "type": "string"
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_trace",
+      "name": "New trace",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/traces",
+      "query": {
+        "limit": 50,
+        "orderBy": "timestamp.desc",
+        "name": "{{ inputs.name }}"
+      },
+      "items_path": "data",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "name",
+          "label": "Only traces named",
+          "type": "string"
+        },
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

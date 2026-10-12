@@ -1,0 +1,69 @@
+{
+  "key": "ubidots",
+  "name": "Ubidots",
+  "category": "IoT & Smart Home",
+  "description": "Send sensor values to Ubidots devices and read the latest readings.",
+  "brand": "ubidots",
+  "website": "https://ubidots.com",
+  "docs_url": "https://docs.ubidots.com/reference/welcome",
+  "base_url": "https://industrial.api.ubidots.com/api/v1.6",
+  "auth": [
+    {
+      "type": "api_key",
+      "in": "header",
+      "name": "X-Auth-Token",
+      "fields": [
+        { "key": "api_key", "label": "Token", "type": "password", "required": true, "help": "Your avatar > API Credentials > Tokens." }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "send_values",
+      "name": "Send values",
+      "description": "Writes one or more variables to a device (created automatically if new).",
+      "method": "POST",
+      "endpoint": "/devices/{{ inputs.device_label }}/",
+      "body": "{{ inputs.values }}",
+      "inputs": [
+        { "key": "device_label", "label": "Device label", "type": "string", "required": true, "placeholder": "greenhouse" },
+        { "key": "values", "label": "Values", "type": "keyvalue", "required": true, "help": "Variable label = value, e.g. temperature = 22.5." }
+      ]
+    },
+    {
+      "key": "get_last_value",
+      "name": "Get last value",
+      "method": "GET",
+      "endpoint": "/devices/{{ inputs.device_label }}/{{ inputs.variable_label }}/lv",
+      "inputs": [
+        { "key": "device_label", "label": "Device label", "type": "string", "required": true },
+        { "key": "variable_label", "label": "Variable label", "type": "string", "required": true }
+      ]
+    },
+    {
+      "key": "get_values",
+      "name": "Get variable values",
+      "description": "Returns recent dots of a variable, newest first.",
+      "method": "GET",
+      "endpoint": "/devices/{{ inputs.device_label }}/{{ inputs.variable_label }}/values",
+      "query": { "page_size": "{{ inputs.page_size }}" },
+      "output_path": "results",
+      "inputs": [
+        { "key": "device_label", "label": "Device label", "type": "string", "required": true },
+        { "key": "variable_label", "label": "Variable label", "type": "string", "required": true },
+        { "key": "page_size", "label": "Max results", "type": "number", "default": 50 }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Event webhook",
+      "type": "webhook",
+      "description": "In Ubidots create an Event with a Webhook action pointing at this URL.",
+      "inputs": [
+        { "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }
+      ]
+    }
+  ]
+}

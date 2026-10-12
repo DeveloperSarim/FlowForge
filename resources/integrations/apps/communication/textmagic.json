@@ -1,0 +1,53 @@
+{
+  "key": "textmagic",
+  "name": "Textmagic",
+  "category": "Communication",
+  "description": "Send SMS and read replies with Textmagic.",
+  "brand": "textmagic",
+  "website": "https://www.textmagic.com",
+  "docs_url": "https://docs.textmagic.com",
+  "base_url": "https://rest.textmagic.com/api/v2",
+  "headers": { "X-TM-Username": "{{ credentials.username }}" },
+  "auth": [
+    {
+      "type": "api_key",
+      "in": "header",
+      "name": "X-TM-Key",
+      "fields": [
+        { "key": "username", "label": "Username", "type": "string", "required": true },
+        { "key": "api_key", "label": "API key", "type": "password", "required": true, "help": "Settings > API." }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "send_sms",
+      "name": "Send SMS",
+      "method": "POST",
+      "endpoint": "/messages",
+      "body_format": "form",
+      "body": { "phones": "{{ inputs.phones }}", "text": "{{ inputs.text }}", "from": "{{ inputs.from }}" },
+      "inputs": [
+        { "key": "phones", "label": "To", "type": "string", "required": true, "placeholder": "447860021130,447860021131", "help": "Comma-separated, E.164 without +." },
+        { "key": "text", "label": "Message", "type": "text", "required": true },
+        { "key": "from", "label": "From (sender ID or number)", "type": "string" }
+      ]
+    },
+    {
+      "key": "list_replies",
+      "name": "List replies (inbound SMS)",
+      "method": "GET",
+      "endpoint": "/replies",
+      "query": { "limit": "{{ inputs.limit }}" },
+      "output_path": "resources",
+      "inputs": [{ "key": "limit", "label": "Max results", "type": "number", "default": 25 }]
+    },
+    {
+      "key": "get_message",
+      "name": "Get sent message",
+      "method": "GET",
+      "endpoint": "/messages/{{ inputs.message_id }}",
+      "inputs": [{ "key": "message_id", "label": "Message ID", "type": "string", "required": true }]
+    }
+  ]
+}

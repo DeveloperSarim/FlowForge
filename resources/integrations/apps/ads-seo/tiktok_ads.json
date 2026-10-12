@@ -1,0 +1,109 @@
+{
+  "key": "tiktok_ads",
+  "name": "TikTok Ads",
+  "category": "Ads & SEO",
+  "description": "List campaigns, ad groups and ads, pull reports and pause or enable campaigns.",
+  "brand": "tiktok",
+  "website": "https://ads.tiktok.com",
+  "docs_url": "https://business-api.tiktok.com/portal/docs",
+  "popular": true,
+  "base_url": "https://business-api.tiktok.com/open_api/v1.3",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "Access-Token",
+    "fields": [{ "key": "api_key", "label": "Access token", "type": "password", "required": true,
+      "help": "Long-term Marketing API access token of your TikTok for Business developer app (it does not expire)." }]
+  },
+  "actions": [
+    {
+      "key": "list_campaigns",
+      "name": "List campaigns",
+      "method": "GET",
+      "endpoint": "/campaign/get/",
+      "query": { "advertiser_id": "{{ inputs.advertiser_id }}", "page": "{{ inputs.page }}", "page_size": "{{ inputs.page_size }}" },
+      "error_path": "code",
+      "output_path": "data.list",
+      "inputs": [
+        { "key": "advertiser_id", "label": "Advertiser ID", "type": "string", "required": true },
+        { "key": "page", "label": "Page", "type": "number", "default": 1 },
+        { "key": "page_size", "label": "Page size (max 1000)", "type": "number", "default": 100 }
+      ]
+    },
+    {
+      "key": "list_ad_groups",
+      "name": "List ad groups",
+      "method": "GET",
+      "endpoint": "/adgroup/get/",
+      "query": { "advertiser_id": "{{ inputs.advertiser_id }}", "page": "{{ inputs.page }}", "page_size": "{{ inputs.page_size }}" },
+      "error_path": "code",
+      "output_path": "data.list",
+      "inputs": [
+        { "key": "advertiser_id", "label": "Advertiser ID", "type": "string", "required": true },
+        { "key": "page", "label": "Page", "type": "number", "default": 1 },
+        { "key": "page_size", "label": "Page size (max 1000)", "type": "number", "default": 100 }
+      ]
+    },
+    {
+      "key": "list_ads",
+      "name": "List ads",
+      "method": "GET",
+      "endpoint": "/ad/get/",
+      "query": { "advertiser_id": "{{ inputs.advertiser_id }}", "page": "{{ inputs.page }}", "page_size": "{{ inputs.page_size }}" },
+      "error_path": "code",
+      "output_path": "data.list",
+      "inputs": [
+        { "key": "advertiser_id", "label": "Advertiser ID", "type": "string", "required": true },
+        { "key": "page", "label": "Page", "type": "number", "default": 1 },
+        { "key": "page_size", "label": "Page size (max 1000)", "type": "number", "default": 100 }
+      ]
+    },
+    {
+      "key": "get_report",
+      "name": "Get report",
+      "description": "Synchronous basic report: spend, impressions, clicks... by campaign, ad group or ad.",
+      "method": "GET",
+      "endpoint": "/report/integrated/get/",
+      "query": {
+        "advertiser_id": "{{ inputs.advertiser_id }}",
+        "report_type": "BASIC",
+        "data_level": "{{ inputs.data_level }}",
+        "dimensions": "{{ inputs.dimensions }}",
+        "metrics": "{{ inputs.metrics }}",
+        "start_date": "{{ inputs.start_date }}",
+        "end_date": "{{ inputs.end_date }}",
+        "page_size": "{{ inputs.page_size }}"
+      },
+      "error_path": "code",
+      "output_path": "data.list",
+      "inputs": [
+        { "key": "advertiser_id", "label": "Advertiser ID", "type": "string", "required": true },
+        { "key": "data_level", "label": "Data level", "type": "select", "required": true, "default": "AUCTION_CAMPAIGN", "options": [
+          { "value": "AUCTION_ADVERTISER", "label": "Advertiser" }, { "value": "AUCTION_CAMPAIGN", "label": "Campaign" },
+          { "value": "AUCTION_ADGROUP", "label": "Ad group" }, { "value": "AUCTION_AD", "label": "Ad" }
+        ] },
+        { "key": "dimensions", "label": "Dimensions (JSON array)", "type": "string", "required": true, "placeholder": "[\"campaign_id\",\"stat_time_day\"]", "help": "Must match the data level: campaign_id, adgroup_id, ad_id, advertiser_id, plus stat_time_day or stat_time_hour." },
+        { "key": "metrics", "label": "Metrics (JSON array)", "type": "string", "required": true, "placeholder": "[\"spend\",\"impressions\",\"clicks\",\"conversion\"]" },
+        { "key": "start_date", "label": "Start date (YYYY-MM-DD)", "type": "string", "required": true },
+        { "key": "end_date", "label": "End date (YYYY-MM-DD)", "type": "string", "required": true },
+        { "key": "page_size", "label": "Page size (max 1000)", "type": "number", "default": 100 }
+      ]
+    },
+    {
+      "key": "update_campaign_status",
+      "name": "Enable, pause or delete campaigns",
+      "method": "POST",
+      "endpoint": "/campaign/status/update/",
+      "body": { "advertiser_id": "{{ inputs.advertiser_id }}", "campaign_ids": "{{ inputs.campaign_ids }}", "operation_status": "{{ inputs.operation_status }}" },
+      "error_path": "code",
+      "output_path": "data",
+      "inputs": [
+        { "key": "advertiser_id", "label": "Advertiser ID", "type": "string", "required": true },
+        { "key": "campaign_ids", "label": "Campaign IDs", "type": "list", "required": true },
+        { "key": "operation_status", "label": "Status", "type": "select", "required": true, "default": "DISABLE", "options": [
+          { "value": "ENABLE", "label": "Enable" }, { "value": "DISABLE", "label": "Pause" }, { "value": "DELETE", "label": "Delete" }
+        ] }
+      ]
+    }
+  ]
+}

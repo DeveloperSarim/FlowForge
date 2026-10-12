@@ -1,0 +1,143 @@
+{
+  "key": "replicate",
+  "name": "Replicate",
+  "category": "AI",
+  "description": "Run open-source models and check on predictions.",
+  "brand": "replicate",
+  "website": "https://replicate.com",
+  "docs_url": "https://replicate.com/docs/reference/http",
+  "base_url": "https://api.replicate.com/v1",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "API token",
+        "type": "password",
+        "required": true
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "run_model",
+      "name": "Run official model",
+      "description": "Waits up to 60s for the result; otherwise poll with Get prediction.",
+      "method": "POST",
+      "endpoint": "/models/{{ inputs.owner }}/{{ inputs.model }}/predictions",
+      "headers": {
+        "Prefer": "wait"
+      },
+      "timeout": 120,
+      "body": {
+        "input": "{{ inputs.input }}",
+        "webhook": "{{ inputs.webhook }}"
+      },
+      "inputs": [
+        {
+          "key": "owner",
+          "label": "Model owner",
+          "type": "string",
+          "required": true,
+          "placeholder": "black-forest-labs"
+        },
+        {
+          "key": "model",
+          "label": "Model name",
+          "type": "string",
+          "required": true,
+          "placeholder": "flux-schnell"
+        },
+        {
+          "key": "input",
+          "label": "Model input (JSON)",
+          "type": "json",
+          "required": true,
+          "placeholder": "{\"prompt\": \"a red fox\"}"
+        },
+        {
+          "key": "webhook",
+          "label": "Webhook URL",
+          "type": "string",
+          "help": "Replicate POSTs the finished prediction here."
+        }
+      ]
+    },
+    {
+      "key": "create_prediction",
+      "name": "Create prediction (by version)",
+      "method": "POST",
+      "endpoint": "/predictions",
+      "headers": {
+        "Prefer": "wait"
+      },
+      "timeout": 120,
+      "body": {
+        "version": "{{ inputs.version }}",
+        "input": "{{ inputs.input }}",
+        "webhook": "{{ inputs.webhook }}"
+      },
+      "inputs": [
+        {
+          "key": "version",
+          "label": "Model version ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "input",
+          "label": "Model input (JSON)",
+          "type": "json",
+          "required": true
+        },
+        {
+          "key": "webhook",
+          "label": "Webhook URL",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "get_prediction",
+      "name": "Get prediction",
+      "method": "GET",
+      "endpoint": "/predictions/{{ inputs.prediction_id }}",
+      "inputs": [
+        {
+          "key": "prediction_id",
+          "label": "Prediction ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "cancel_prediction",
+      "name": "Cancel prediction",
+      "method": "POST",
+      "endpoint": "/predictions/{{ inputs.prediction_id }}/cancel",
+      "inputs": [
+        {
+          "key": "prediction_id",
+          "label": "Prediction ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "prediction_webhook",
+      "name": "Prediction webhook",
+      "type": "webhook",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

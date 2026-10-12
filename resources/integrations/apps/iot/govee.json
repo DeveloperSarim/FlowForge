@@ -1,0 +1,65 @@
+{
+  "key": "govee",
+  "name": "Govee",
+  "category": "IoT & Smart Home",
+  "description": "List Govee lights and appliances, read their state and control them.",
+  "brand": "govee",
+  "website": "https://www.govee.com",
+  "docs_url": "https://developer.govee.com",
+  "base_url": "https://openapi.api.govee.com/router/api/v1",
+  "auth": [
+    {
+      "type": "api_key",
+      "in": "header",
+      "name": "Govee-API-Key",
+      "fields": [
+        { "key": "api_key", "label": "API key", "type": "password", "required": true, "help": "Govee Home app > Profile > Settings > Apply for API key (sent by email)." }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_devices",
+      "name": "List devices",
+      "description": "Returns each device's sku, device ID and supported capabilities.",
+      "method": "GET",
+      "endpoint": "/user/devices",
+      "output_path": "data",
+      "inputs": []
+    },
+    {
+      "key": "get_device_state",
+      "name": "Get device state",
+      "method": "POST",
+      "endpoint": "/device/state",
+      "body": { "requestId": "flowforge", "payload": { "sku": "{{ inputs.sku }}", "device": "{{ inputs.device }}" } },
+      "output_path": "payload",
+      "inputs": [
+        { "key": "sku", "label": "Model (sku)", "type": "string", "required": true, "placeholder": "H6008" },
+        { "key": "device", "label": "Device ID", "type": "string", "required": true, "placeholder": "AB:CD:EF:12:34:56:78:90" }
+      ]
+    },
+    {
+      "key": "control_device",
+      "name": "Control device",
+      "description": "Sends one capability command, e.g. type devices.capabilities.on_off, instance powerSwitch, value 1.",
+      "method": "POST",
+      "endpoint": "/device/control",
+      "body": {
+        "requestId": "flowforge",
+        "payload": {
+          "sku": "{{ inputs.sku }}",
+          "device": "{{ inputs.device }}",
+          "capability": { "type": "{{ inputs.capability_type }}", "instance": "{{ inputs.instance }}", "value": "{{ inputs.value }}" }
+        }
+      },
+      "inputs": [
+        { "key": "sku", "label": "Model (sku)", "type": "string", "required": true },
+        { "key": "device", "label": "Device ID", "type": "string", "required": true },
+        { "key": "capability_type", "label": "Capability type", "type": "string", "required": true, "placeholder": "devices.capabilities.on_off", "help": "From the device's capabilities in List devices." },
+        { "key": "instance", "label": "Instance", "type": "string", "required": true, "placeholder": "powerSwitch" },
+        { "key": "value", "label": "Value", "type": "json", "required": true, "placeholder": "1", "help": "Number, text or object as the capability expects (e.g. 1 = on, 0 = off; brightness 1-100)." }
+      ]
+    }
+  ]
+}

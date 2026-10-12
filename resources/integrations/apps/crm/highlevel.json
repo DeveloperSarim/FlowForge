@@ -1,0 +1,256 @@
+{
+  "key": "highlevel",
+  "name": "HighLevel",
+  "category": "CRM & Sales",
+  "description": "Create and update contacts, tags and opportunities in HighLevel.",
+  "brand": "highlevel",
+  "website": "https://www.gohighlevel.com",
+  "docs_url": "https://highlevel.stoplight.io/docs/integrations",
+  "base_url": "https://services.leadconnectorhq.com",
+  "headers": {
+    "Version": "2021-07-28"
+  },
+  "auth": [
+    {
+      "type": "bearer",
+      "fields": [
+        {
+          "key": "location_id",
+          "label": "Location (sub-account) ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "token",
+          "label": "Private integration token",
+          "type": "password",
+          "required": true,
+          "help": "Sub-account settings > Private Integrations."
+        }
+      ]
+    },
+    {
+      "type": "oauth2",
+      "authorize_url": "https://marketplace.gohighlevel.com/oauth/chooselocation",
+      "token_url": "https://services.leadconnectorhq.com/oauth/token",
+      "scopes": [
+        "contacts.readonly",
+        "contacts.write",
+        "opportunities.readonly",
+        "opportunities.write"
+      ],
+      "fields": [
+        {
+          "key": "location_id",
+          "label": "Location (sub-account) ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "upsert_contact",
+      "name": "Create or update contact",
+      "description": "Matches on email or phone per your location's duplicate settings.",
+      "method": "POST",
+      "endpoint": "/contacts/upsert",
+      "body": {
+        "locationId": "{{ credentials.location_id }}",
+        "email": "{{ inputs.email }}",
+        "phone": "{{ inputs.phone }}",
+        "firstName": "{{ inputs.first_name }}",
+        "lastName": "{{ inputs.last_name }}",
+        "companyName": "{{ inputs.company_name }}",
+        "tags": "{{ inputs.tags }}",
+        "source": "{{ inputs.source }}"
+      },
+      "output_path": "contact",
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string"
+        },
+        {
+          "key": "phone",
+          "label": "Phone",
+          "type": "string"
+        },
+        {
+          "key": "first_name",
+          "label": "First name",
+          "type": "string"
+        },
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string"
+        },
+        {
+          "key": "company_name",
+          "label": "Company",
+          "type": "string"
+        },
+        {
+          "key": "tags",
+          "label": "Tags",
+          "type": "list"
+        },
+        {
+          "key": "source",
+          "label": "Source",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "get_contact",
+      "name": "Get contact",
+      "method": "GET",
+      "endpoint": "/contacts/{{ inputs.contact_id }}",
+      "output_path": "contact",
+      "inputs": [
+        {
+          "key": "contact_id",
+          "label": "Contact ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "update_contact",
+      "name": "Update contact",
+      "method": "PUT",
+      "endpoint": "/contacts/{{ inputs.contact_id }}",
+      "body": "{{ inputs.fields }}",
+      "output_path": "contact",
+      "inputs": [
+        {
+          "key": "contact_id",
+          "label": "Contact ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "fields",
+          "label": "Fields",
+          "type": "json",
+          "required": true,
+          "help": "e.g. {\"firstName\": \"Jane\", \"tags\": [\"vip\"]}"
+        }
+      ]
+    },
+    {
+      "key": "add_tags",
+      "name": "Add tags",
+      "method": "POST",
+      "endpoint": "/contacts/{{ inputs.contact_id }}/tags",
+      "body": {
+        "tags": "{{ inputs.tags }}"
+      },
+      "inputs": [
+        {
+          "key": "contact_id",
+          "label": "Contact ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "tags",
+          "label": "Tags",
+          "type": "list",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "create_opportunity",
+      "name": "Create opportunity",
+      "method": "POST",
+      "endpoint": "/opportunities/",
+      "body": {
+        "locationId": "{{ credentials.location_id }}",
+        "name": "{{ inputs.name }}",
+        "pipelineId": "{{ inputs.pipeline_id }}",
+        "pipelineStageId": "{{ inputs.pipeline_stage_id }}",
+        "contactId": "{{ inputs.contact_id }}",
+        "status": "{{ inputs.status }}",
+        "monetaryValue": "{{ inputs.monetary_value }}"
+      },
+      "output_path": "opportunity",
+      "inputs": [
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "pipeline_id",
+          "label": "Pipeline ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "pipeline_stage_id",
+          "label": "Stage ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "contact_id",
+          "label": "Contact ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "required": true,
+          "options": [
+            {
+              "value": "open",
+              "label": "Open"
+            },
+            {
+              "value": "won",
+              "label": "Won"
+            },
+            {
+              "value": "lost",
+              "label": "Lost"
+            },
+            {
+              "value": "abandoned",
+              "label": "Abandoned"
+            }
+          ],
+          "default": "open"
+        },
+        {
+          "key": "monetary_value",
+          "label": "Value",
+          "type": "number"
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Workflow webhook",
+      "type": "webhook",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

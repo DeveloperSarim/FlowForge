@@ -1,0 +1,89 @@
+{
+  "key": "neynar",
+  "name": "Neynar (Farcaster)",
+  "category": "Social Media",
+  "description": "Publish casts, look up users and casts, and watch accounts on Farcaster via Neynar.",
+  "brand": "farcaster",
+  "website": "https://neynar.com",
+  "docs_url": "https://docs.neynar.com/reference",
+  "base_url": "https://api.neynar.com/v2/farcaster",
+  "auth": { "type": "api_key", "in": "header", "name": "x-api-key" },
+  "actions": [
+    {
+      "key": "publish_cast",
+      "name": "Publish cast",
+      "method": "POST",
+      "endpoint": "/cast/",
+      "body": { "signer_uuid": "{{ inputs.signer_uuid }}", "text": "{{ inputs.text }}", "embeds": "{{ inputs.embeds }}", "parent": "{{ inputs.parent }}", "channel_id": "{{ inputs.channel_id }}", "idem": "{{ inputs.idem }}" },
+      "inputs": [
+        { "key": "signer_uuid", "label": "Signer UUID", "type": "string", "required": true, "help": "An approved signer created with this API key." },
+        { "key": "text", "label": "Text", "type": "text", "required": true },
+        { "key": "embeds", "label": "Embeds (JSON, max 2)", "type": "json", "placeholder": "[{\"url\":\"https://example.com\"}]" },
+        { "key": "parent", "label": "Reply to (cast hash or channel URL)", "type": "string" },
+        { "key": "channel_id", "label": "Channel ID", "type": "string", "placeholder": "neynar" },
+        { "key": "idem", "label": "Idempotency key", "type": "string" }
+      ]
+    },
+    {
+      "key": "lookup_user",
+      "name": "Look up user by username",
+      "method": "GET",
+      "endpoint": "/user/by_username/",
+      "output_path": "user",
+      "query": { "username": "{{ inputs.username }}" },
+      "inputs": [{ "key": "username", "label": "Username", "type": "string", "required": true }]
+    },
+    {
+      "key": "get_user_casts",
+      "name": "Get user's casts",
+      "method": "GET",
+      "endpoint": "/feed/user/casts/",
+      "output_path": "casts",
+      "query": { "fid": "{{ inputs.fid }}", "limit": "{{ inputs.limit }}", "include_replies": "{{ inputs.include_replies }}" },
+      "inputs": [
+        { "key": "fid", "label": "User FID", "type": "number", "required": true },
+        { "key": "limit", "label": "Limit (max 150)", "type": "number", "default": 25 },
+        { "key": "include_replies", "label": "Include replies", "type": "select", "default": "true", "options": [
+          { "value": "true", "label": "Yes" }, { "value": "false", "label": "No" }
+        ] }
+      ]
+    },
+    {
+      "key": "lookup_cast",
+      "name": "Look up cast",
+      "method": "GET",
+      "endpoint": "/cast/",
+      "output_path": "cast",
+      "query": { "identifier": "{{ inputs.identifier }}", "type": "{{ inputs.type }}" },
+      "inputs": [
+        { "key": "identifier", "label": "Cast hash or URL", "type": "string", "required": true },
+        { "key": "type", "label": "Identifier type", "type": "select", "default": "hash", "options": [
+          { "value": "hash", "label": "Hash" }, { "value": "url", "label": "URL" }
+        ] }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_user_cast",
+      "name": "New cast by user",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/feed/user/casts/",
+      "query": { "fid": "{{ inputs.fid }}", "limit": 25 },
+      "items_path": "casts",
+      "id_field": "hash",
+      "inputs": [
+        { "key": "fid", "label": "User FID", "type": "number", "required": true },
+        { "key": "poll_interval", "label": "Check every (minutes)", "type": "number", "default": 5 }
+      ]
+    },
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "description": "Create a webhook in the Neynar dashboard (e.g. cast.created) pointing at this URL.",
+      "type": "webhook",
+      "inputs": [{ "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }]
+    }
+  ]
+}

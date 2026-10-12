@@ -1,0 +1,164 @@
+{
+  "key": "ghost",
+  "name": "Ghost",
+  "category": "CMS & Websites",
+  "description": "Read published posts, pages and tags and react to Ghost webhooks.",
+  "brand": "ghost",
+  "website": "https://ghost.org",
+  "docs_url": "https://ghost.org/docs/content-api/",
+  "popular": true,
+  "base_url": "{{ credentials.site_url }}/ghost/api/content",
+  "headers": {
+    "Accept-Version": "v5.0"
+  },
+  "auth": [
+    {
+      "type": "api_key",
+      "in": "query",
+      "name": "key",
+      "fields": [
+        {
+          "key": "site_url",
+          "label": "Site URL",
+          "type": "string",
+          "required": true,
+          "placeholder": "https://blog.example.com",
+          "help": "No trailing slash."
+        },
+        {
+          "key": "api_key",
+          "label": "Content API key",
+          "type": "password",
+          "required": true,
+          "help": "Settings > Integrations > Add custom integration."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_posts",
+      "name": "List posts",
+      "method": "GET",
+      "endpoint": "/posts/",
+      "output_path": "posts",
+      "query": {
+        "limit": "{{ inputs.limit }}",
+        "filter": "{{ inputs.filter }}",
+        "include": "tags,authors",
+        "order": "published_at desc"
+      },
+      "inputs": [
+        {
+          "key": "filter",
+          "label": "Filter",
+          "type": "string",
+          "placeholder": "tag:news+featured:true"
+        },
+        {
+          "key": "limit",
+          "label": "Max posts",
+          "type": "number",
+          "default": 15
+        }
+      ]
+    },
+    {
+      "key": "get_post_by_slug",
+      "name": "Get post by slug",
+      "method": "GET",
+      "endpoint": "/posts/slug/{{ inputs.slug }}/",
+      "output_path": "posts.0",
+      "query": {
+        "include": "tags,authors"
+      },
+      "inputs": [
+        {
+          "key": "slug",
+          "label": "Slug",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_pages",
+      "name": "List pages",
+      "method": "GET",
+      "endpoint": "/pages/",
+      "output_path": "pages",
+      "query": {
+        "limit": "{{ inputs.limit }}",
+        "filter": "{{ inputs.filter }}"
+      },
+      "inputs": [
+        {
+          "key": "filter",
+          "label": "Filter",
+          "type": "string"
+        },
+        {
+          "key": "limit",
+          "label": "Max pages",
+          "type": "number",
+          "default": 15
+        }
+      ]
+    },
+    {
+      "key": "list_tags",
+      "name": "List tags",
+      "method": "GET",
+      "endpoint": "/tags/",
+      "output_path": "tags",
+      "query": {
+        "limit": "{{ inputs.limit }}"
+      },
+      "inputs": [
+        {
+          "key": "limit",
+          "label": "Max tags",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_post",
+      "name": "New published post",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/posts/",
+      "query": {
+        "order": "published_at desc",
+        "limit": 15,
+        "include": "tags,authors"
+      },
+      "items_path": "posts",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    },
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Ghost webhooks (post.published, member.added, ...) from a custom integration.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

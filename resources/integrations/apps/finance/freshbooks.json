@@ -1,0 +1,179 @@
+{
+  "key": "freshbooks",
+  "name": "FreshBooks",
+  "category": "Payments & Finance",
+  "description": "Create clients and invoices and look up invoices in FreshBooks.",
+  "brand": "freshbooks",
+  "website": "https://www.freshbooks.com",
+  "docs_url": "https://www.freshbooks.com/api/start",
+  "base_url": "https://api.freshbooks.com",
+  "headers": {
+    "Api-Version": "alpha"
+  },
+  "auth": [
+    {
+      "type": "oauth2",
+      "authorize_url": "https://auth.freshbooks.com/oauth/authorize",
+      "token_url": "https://api.freshbooks.com/auth/oauth/token",
+      "scopes": [
+        "user:profile:read",
+        "user:clients:read",
+        "user:clients:write",
+        "user:invoices:read",
+        "user:invoices:write"
+      ],
+      "fields": [
+        {
+          "key": "account_id",
+          "label": "Account ID",
+          "type": "string",
+          "required": false,
+          "help": "After connecting, run \"Get my identity\" and copy business_memberships[].business.account_id here."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "get_identity",
+      "name": "Get my identity",
+      "method": "GET",
+      "endpoint": "/auth/api/v1/users/me",
+      "output_path": "response",
+      "inputs": []
+    },
+    {
+      "key": "create_client",
+      "name": "Create client",
+      "method": "POST",
+      "endpoint": "/accounting/account/{{ credentials.account_id }}/users/clients",
+      "output_path": "response.result.client",
+      "body": {
+        "client": {
+          "email": "{{ inputs.email }}",
+          "fname": "{{ inputs.first_name }}",
+          "lname": "{{ inputs.last_name }}",
+          "organization": "{{ inputs.organization }}",
+          "mob_phone": "{{ inputs.phone }}"
+        }
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "first_name",
+          "label": "First name",
+          "type": "string"
+        },
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string"
+        },
+        {
+          "key": "organization",
+          "label": "Organization",
+          "type": "string"
+        },
+        {
+          "key": "phone",
+          "label": "Mobile phone",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "find_clients",
+      "name": "Find clients by email",
+      "method": "GET",
+      "endpoint": "/accounting/account/{{ credentials.account_id }}/users/clients",
+      "output_path": "response.result.clients",
+      "query": {
+        "search[email]": "{{ inputs.email }}"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "create_invoice",
+      "name": "Create invoice",
+      "method": "POST",
+      "endpoint": "/accounting/account/{{ credentials.account_id }}/invoices/invoices",
+      "output_path": "response.result.invoice",
+      "body": {
+        "invoice": {
+          "customerid": "{{ inputs.client_id }}",
+          "create_date": "{{ inputs.create_date }}",
+          "due_offset_days": "{{ inputs.due_offset_days }}",
+          "currency_code": "{{ inputs.currency }}",
+          "lines": "{{ inputs.lines }}",
+          "notes": "{{ inputs.notes }}"
+        }
+      },
+      "inputs": [
+        {
+          "key": "client_id",
+          "label": "Client ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "create_date",
+          "label": "Invoice date",
+          "type": "string",
+          "required": true,
+          "placeholder": "2025-06-01"
+        },
+        {
+          "key": "due_offset_days",
+          "label": "Due in (days)",
+          "type": "number"
+        },
+        {
+          "key": "currency",
+          "label": "Currency",
+          "type": "string",
+          "placeholder": "USD"
+        },
+        {
+          "key": "lines",
+          "label": "Lines",
+          "type": "json",
+          "required": true,
+          "placeholder": "[{\"type\": 0, \"name\": \"Consulting\", \"qty\": 1, \"unit_cost\": {\"amount\": \"100.00\", \"code\": \"USD\"}}]"
+        },
+        {
+          "key": "notes",
+          "label": "Notes",
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "key": "get_invoice",
+      "name": "Get invoice",
+      "method": "GET",
+      "endpoint": "/accounting/account/{{ credentials.account_id }}/invoices/invoices/{{ inputs.invoice_id }}",
+      "output_path": "response.result.invoice",
+      "inputs": [
+        {
+          "key": "invoice_id",
+          "label": "Invoice ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": []
+}

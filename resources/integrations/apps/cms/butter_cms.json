@@ -1,0 +1,172 @@
+{
+  "key": "butter_cms",
+  "name": "ButterCMS",
+  "category": "CMS & Websites",
+  "description": "Read blog posts, pages and collections from ButterCMS.",
+  "brand": "buttercms",
+  "website": "https://buttercms.com",
+  "docs_url": "https://buttercms.com/docs/api/",
+  "base_url": "https://api.buttercms.com/v2",
+  "auth": [
+    {
+      "type": "api_key",
+      "in": "query",
+      "name": "auth_token",
+      "fields": [
+        {
+          "key": "api_key",
+          "label": "Read API token",
+          "type": "password",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_posts",
+      "name": "List blog posts",
+      "method": "GET",
+      "endpoint": "/posts/",
+      "output_path": "data",
+      "query": {
+        "page_size": "{{ inputs.page_size }}",
+        "category_slug": "{{ inputs.category }}",
+        "tag_slug": "{{ inputs.tag }}",
+        "exclude_body": "true"
+      },
+      "inputs": [
+        {
+          "key": "category",
+          "label": "Category slug",
+          "type": "string"
+        },
+        {
+          "key": "tag",
+          "label": "Tag slug",
+          "type": "string"
+        },
+        {
+          "key": "page_size",
+          "label": "Max posts",
+          "type": "number",
+          "default": 10
+        }
+      ]
+    },
+    {
+      "key": "get_post",
+      "name": "Get blog post",
+      "method": "GET",
+      "endpoint": "/posts/{{ inputs.slug }}/",
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "slug",
+          "label": "Slug",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_pages",
+      "name": "List pages",
+      "method": "GET",
+      "endpoint": "/pages/{{ inputs.page_type }}/",
+      "output_path": "data",
+      "query": {
+        "page_size": "{{ inputs.page_size }}"
+      },
+      "inputs": [
+        {
+          "key": "page_type",
+          "label": "Page type",
+          "type": "string",
+          "required": true,
+          "default": "*",
+          "help": "* for single pages."
+        },
+        {
+          "key": "page_size",
+          "label": "Max pages",
+          "type": "number",
+          "default": 10
+        }
+      ]
+    },
+    {
+      "key": "get_page",
+      "name": "Get page",
+      "method": "GET",
+      "endpoint": "/pages/{{ inputs.page_type }}/{{ inputs.slug }}/",
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "page_type",
+          "label": "Page type",
+          "type": "string",
+          "required": true,
+          "default": "*"
+        },
+        {
+          "key": "slug",
+          "label": "Slug",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "get_collection",
+      "name": "Get collection items",
+      "method": "GET",
+      "endpoint": "/content/{{ inputs.collection }}/",
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "collection",
+          "label": "Collection key",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_post",
+      "name": "New blog post",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/posts/",
+      "query": {
+        "page_size": 20,
+        "exclude_body": "true"
+      },
+      "items_path": "data",
+      "id_field": "slug",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    },
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "ButterCMS webhooks (post.published, page.published, ...).",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

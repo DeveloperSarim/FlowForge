@@ -1,0 +1,140 @@
+{
+  "key": "signable",
+  "name": "Signable",
+  "category": "Files & Documents",
+  "description": "Send envelopes from templates and track them in Signable.",
+  "brand": "signable",
+  "website": "https://www.signable.co.uk",
+  "docs_url": "https://developers.signable.app/",
+  "base_url": "https://api.signable.co.uk/v1",
+  "auth": [
+    {
+      "type": "basic",
+      "fields": [
+        {
+          "key": "username",
+          "label": "API key",
+          "type": "password",
+          "required": true,
+          "help": "Company Settings > API & Webhooks."
+        },
+        {
+          "key": "password",
+          "label": "Password",
+          "type": "password",
+          "required": false,
+          "help": "Any value; Signable ignores it."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "send_envelope_from_template",
+      "name": "Send envelope from template",
+      "method": "POST",
+      "endpoint": "/envelopes",
+      "body": {
+        "envelope_title": "{{ inputs.title }}",
+        "envelope_parties": "{{ inputs.parties }}",
+        "envelope_documents": [
+          {
+            "document_title": "{{ inputs.document_title }}",
+            "document_template_fingerprint": "{{ inputs.template_fingerprint }}",
+            "document_merge_fields": "{{ inputs.merge_fields }}"
+          }
+        ]
+      },
+      "inputs": [
+        {
+          "key": "title",
+          "label": "Envelope title",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "template_fingerprint",
+          "label": "Template fingerprint",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "document_title",
+          "label": "Document title",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "parties",
+          "label": "Parties",
+          "type": "json",
+          "required": true,
+          "placeholder": "[{\"party_name\": \"Jane Doe\", \"party_email\": \"jane@example.com\", \"party_id\": \"20748256\", \"party_role\": \"signer\"}]",
+          "help": "party_id values come from Get template."
+        },
+        {
+          "key": "merge_fields",
+          "label": "Merge fields",
+          "type": "json",
+          "placeholder": "[{\"field_id\": \"454958773\", \"field_value\": \"Acme Ltd\"}]"
+        }
+      ]
+    },
+    {
+      "key": "list_templates",
+      "name": "List templates",
+      "method": "GET",
+      "endpoint": "/templates/",
+      "inputs": []
+    },
+    {
+      "key": "get_template",
+      "name": "Get template",
+      "method": "GET",
+      "endpoint": "/templates/{{ inputs.template_fingerprint }}",
+      "inputs": [
+        {
+          "key": "template_fingerprint",
+          "label": "Template fingerprint",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_envelopes",
+      "name": "List envelopes",
+      "method": "GET",
+      "endpoint": "/envelopes",
+      "inputs": []
+    },
+    {
+      "key": "get_envelope",
+      "name": "Get envelope",
+      "method": "GET",
+      "endpoint": "/envelopes/{{ inputs.envelope_fingerprint }}",
+      "inputs": [
+        {
+          "key": "envelope_fingerprint",
+          "label": "Envelope fingerprint",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

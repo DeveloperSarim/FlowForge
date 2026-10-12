@@ -1,0 +1,108 @@
+{
+  "key": "sentry-triage",
+  "name": "Route Sentry errors: page fatal ones, post the rest",
+  "description": "New Sentry issues with level fatal trigger a PagerDuty incident; everything else goes to Slack.",
+  "category": "Engineering",
+  "featured": true,
+  "graph": {
+    "nodes": [
+      {
+        "id": "trigger",
+        "type": "trigger",
+        "position": {
+          "x": 0,
+          "y": 200
+        },
+        "data": {
+          "integration": "sentry",
+          "trigger": "new_issue",
+          "label": "New issue",
+          "config": {
+            "organization": "",
+            "poll_interval": 5
+          }
+        }
+      },
+      {
+        "id": "step_1",
+        "type": "branch",
+        "position": {
+          "x": 240,
+          "y": 200
+        },
+        "data": {
+          "integration": "logic",
+          "action": "if",
+          "label": "Is it fatal?",
+          "config": {
+            "combinator": "all",
+            "conditions": [
+              {
+                "left": "{{ steps.trigger.data.level }}",
+                "operator": "equals",
+                "right": "fatal"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "id": "step_2",
+        "type": "action",
+        "position": {
+          "x": 480,
+          "y": 60
+        },
+        "data": {
+          "integration": "pagerduty",
+          "action": "send_event",
+          "label": "Page on-call",
+          "config": {
+            "routing_key": "",
+            "event_action": "trigger",
+            "summary": "{{ steps.trigger.data.title }}",
+            "source": "sentry",
+            "severity": "critical"
+          }
+        }
+      },
+      {
+        "id": "step_3",
+        "type": "action",
+        "position": {
+          "x": 480,
+          "y": 340
+        },
+        "data": {
+          "integration": "slack",
+          "action": "post_message",
+          "label": "Post to #errors",
+          "config": {
+            "channel": "#errors",
+            "text": "{{ steps.trigger.data.level }}: {{ steps.trigger.data.title }}\n{{ steps.trigger.data.permalink }}"
+          }
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "e-trigger-step_1-out",
+        "source": "trigger",
+        "target": "step_1",
+        "sourceHandle": null
+      },
+      {
+        "id": "e-step_1-step_2-true",
+        "source": "step_1",
+        "target": "step_2",
+        "sourceHandle": "true"
+      },
+      {
+        "id": "e-step_1-step_3-false",
+        "source": "step_1",
+        "target": "step_3",
+        "sourceHandle": "false"
+      }
+    ]
+  }
+}

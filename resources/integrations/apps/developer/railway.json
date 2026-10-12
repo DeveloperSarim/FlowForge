@@ -1,0 +1,39 @@
+{
+  "key": "railway",
+  "name": "Railway",
+  "category": "Developer Tools",
+  "description": "Run Railway GraphQL queries and redeploy deployments.",
+  "brand": "railway",
+  "website": "https://railway.com",
+  "docs_url": "https://docs.railway.com/reference/public-api",
+  "base_url": "https://backboard.railway.com/graphql/v2",
+  "auth": { "type": "bearer", "fields": [{ "key": "token", "label": "Account or workspace token", "type": "password", "required": true, "help": "Account settings → Tokens." }] },
+  "actions": [
+    {
+      "key": "graphql_query",
+      "name": "Run GraphQL query",
+      "method": "POST",
+      "endpoint": "https://backboard.railway.com/graphql/v2",
+      "error_path": "errors",
+      "output_path": "data",
+      "body": { "query": "{{ inputs.query }}", "variables": "{{ inputs.variables }}" },
+      "inputs": [
+        { "key": "query", "label": "Query", "type": "code", "required": true, "placeholder": "query { me { name email } }" },
+        { "key": "variables", "label": "Variables (JSON)", "type": "json" }
+      ]
+    },
+    {
+      "key": "redeploy_deployment",
+      "name": "Redeploy deployment",
+      "method": "POST",
+      "endpoint": "https://backboard.railway.com/graphql/v2",
+      "error_path": "errors",
+      "output_path": "data.deploymentRedeploy",
+      "body": {
+        "query": "mutation($id: String!) { deploymentRedeploy(id: $id) { id status } }",
+        "variables": { "id": "{{ inputs.deployment_id }}" }
+      },
+      "inputs": [{ "key": "deployment_id", "label": "Deployment ID", "type": "string", "required": true }]
+    }
+  ]
+}

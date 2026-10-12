@@ -1,0 +1,132 @@
+{
+  "key": "keycloak",
+  "name": "Keycloak",
+  "category": "Security & IT",
+  "description": "Create, find, update, disable and delete realm users and manage their groups.",
+  "brand": "keycloak",
+  "website": "https://www.keycloak.org",
+  "docs_url": "https://www.keycloak.org/docs-api/latest/rest-api/index.html",
+  "base_url": "{{ credentials.base_url }}/admin/realms/{{ credentials.realm }}",
+  "auth": [
+    {
+      "type": "oauth2",
+      "authorize_url": "{{ credentials.base_url }}/realms/{{ credentials.realm }}/protocol/openid-connect/auth",
+      "token_url": "{{ credentials.base_url }}/realms/{{ credentials.realm }}/protocol/openid-connect/token",
+      "scopes": ["openid", "offline_access"],
+      "fields": [
+        { "key": "base_url", "label": "Keycloak URL", "type": "string", "required": true, "placeholder": "https://sso.example.com", "help": "Without a trailing slash (add /auth for Keycloak 16 and older)." },
+        { "key": "realm", "label": "Realm", "type": "string", "required": true, "help": "The realm whose users you manage; the signing-in admin must have realm-management roles in it." },
+        { "key": "client_id", "label": "Client ID", "type": "string", "required": true, "help": "A confidential OpenID Connect client in that realm with Standard flow enabled." },
+        { "key": "client_secret", "label": "Client secret", "type": "password", "required": true }
+      ]
+    },
+    { "type": "bearer", "fields": [
+      { "key": "base_url", "label": "Keycloak URL", "type": "string", "required": true, "placeholder": "https://sso.example.com" },
+      { "key": "realm", "label": "Realm", "type": "string", "required": true },
+      { "key": "token", "label": "Access token", "type": "password", "required": true, "help": "Keycloak tokens are short-lived; prefer the OAuth2 option for unattended workflows." }
+    ] }
+  ],
+  "actions": [
+    {
+      "key": "create_user",
+      "name": "Create user",
+      "method": "POST",
+      "endpoint": "/users",
+      "body": { "username": "{{ inputs.username }}", "email": "{{ inputs.email }}", "firstName": "{{ inputs.first_name }}", "lastName": "{{ inputs.last_name }}", "enabled": "{{ inputs.enabled }}", "emailVerified": "{{ inputs.email_verified }}", "groups": "{{ inputs.groups }}", "requiredActions": "{{ inputs.required_actions }}" },
+      "inputs": [
+        { "key": "username", "label": "Username", "type": "string", "required": true },
+        { "key": "email", "label": "Email", "type": "string" },
+        { "key": "first_name", "label": "First name", "type": "string" },
+        { "key": "last_name", "label": "Last name", "type": "string" },
+        { "key": "enabled", "label": "Enabled", "type": "boolean", "default": true },
+        { "key": "email_verified", "label": "Email verified", "type": "boolean" },
+        { "key": "groups", "label": "Group paths", "type": "list", "placeholder": "/staff" },
+        { "key": "required_actions", "label": "Required actions", "type": "list", "placeholder": "UPDATE_PASSWORD" }
+      ]
+    },
+    {
+      "key": "find_users",
+      "name": "Find users",
+      "method": "GET",
+      "endpoint": "/users",
+      "query": { "email": "{{ inputs.email }}", "username": "{{ inputs.username }}", "search": "{{ inputs.search }}", "exact": "{{ inputs.exact }}", "max": "{{ inputs.max }}" },
+      "inputs": [
+        { "key": "email", "label": "Email", "type": "string" },
+        { "key": "username", "label": "Username", "type": "string" },
+        { "key": "search", "label": "Search text", "type": "string" },
+        { "key": "exact", "label": "Exact match", "type": "boolean" },
+        { "key": "max", "label": "Max results", "type": "number", "default": 50 }
+      ]
+    },
+    {
+      "key": "get_user",
+      "name": "Get user",
+      "method": "GET",
+      "endpoint": "/users/{{ inputs.user_id }}",
+      "inputs": [{ "key": "user_id", "label": "User ID", "type": "string", "required": true }]
+    },
+    {
+      "key": "update_user",
+      "name": "Update user",
+      "description": "Set Enabled off to disable the account.",
+      "method": "PUT",
+      "endpoint": "/users/{{ inputs.user_id }}",
+      "body": { "enabled": "{{ inputs.enabled }}", "email": "{{ inputs.email }}", "firstName": "{{ inputs.first_name }}", "lastName": "{{ inputs.last_name }}", "attributes": "{{ inputs.attributes }}" },
+      "inputs": [
+        { "key": "user_id", "label": "User ID", "type": "string", "required": true },
+        { "key": "enabled", "label": "Enabled", "type": "boolean" },
+        { "key": "email", "label": "Email", "type": "string" },
+        { "key": "first_name", "label": "First name", "type": "string" },
+        { "key": "last_name", "label": "Last name", "type": "string" },
+        { "key": "attributes", "label": "Attributes (JSON)", "type": "json", "help": "Replaces all attributes, e.g. {\"department\": [\"Sales\"]}." }
+      ]
+    },
+    {
+      "key": "delete_user",
+      "name": "Delete user",
+      "method": "DELETE",
+      "endpoint": "/users/{{ inputs.user_id }}",
+      "inputs": [{ "key": "user_id", "label": "User ID", "type": "string", "required": true }]
+    },
+    {
+      "key": "add_user_to_group",
+      "name": "Add user to group",
+      "method": "PUT",
+      "endpoint": "/users/{{ inputs.user_id }}/groups/{{ inputs.group_id }}",
+      "inputs": [
+        { "key": "user_id", "label": "User ID", "type": "string", "required": true },
+        { "key": "group_id", "label": "Group ID", "type": "string", "required": true }
+      ]
+    },
+    {
+      "key": "remove_user_from_group",
+      "name": "Remove user from group",
+      "method": "DELETE",
+      "endpoint": "/users/{{ inputs.user_id }}/groups/{{ inputs.group_id }}",
+      "inputs": [
+        { "key": "user_id", "label": "User ID", "type": "string", "required": true },
+        { "key": "group_id", "label": "Group ID", "type": "string", "required": true }
+      ]
+    },
+    {
+      "key": "execute_actions_email",
+      "name": "Send required-actions email",
+      "description": "Emails the user a link to e.g. reset their password or verify their email.",
+      "method": "PUT",
+      "endpoint": "/users/{{ inputs.user_id }}/execute-actions-email",
+      "body": "{{ inputs.actions }}",
+      "inputs": [
+        { "key": "user_id", "label": "User ID", "type": "string", "required": true },
+        { "key": "actions", "label": "Actions", "type": "list", "required": true, "placeholder": "UPDATE_PASSWORD", "help": "UPDATE_PASSWORD, VERIFY_EMAIL, CONFIGURE_TOTP, UPDATE_PROFILE." }
+      ]
+    },
+    {
+      "key": "list_groups",
+      "name": "List groups",
+      "method": "GET",
+      "endpoint": "/groups",
+      "query": { "search": "{{ inputs.search }}" },
+      "inputs": [{ "key": "search", "label": "Search", "type": "string" }]
+    }
+  ]
+}

@@ -1,0 +1,130 @@
+{
+  "key": "google_slides",
+  "name": "Google Slides",
+  "category": "Files & Documents",
+  "description": "Create presentations and fill slide templates by replacing text.",
+  "brand": "googleslides",
+  "website": "https://www.google.com/slides/about/",
+  "docs_url": "https://developers.google.com/slides/api/reference/rest",
+  "base_url": "https://slides.googleapis.com/v1",
+  "auth": [
+    {
+      "type": "oauth2",
+      "authorize_url": "https://accounts.google.com/o/oauth2/v2/auth",
+      "token_url": "https://oauth2.googleapis.com/token",
+      "scopes": [
+        "https://www.googleapis.com/auth/presentations"
+      ],
+      "authorize_params": {
+        "access_type": "offline",
+        "prompt": "consent"
+      }
+    },
+    {
+      "type": "google_service_account",
+      "scopes": [
+        "https://www.googleapis.com/auth/presentations"
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "create_presentation",
+      "name": "Create presentation",
+      "method": "POST",
+      "endpoint": "/presentations",
+      "body": {
+        "title": "{{ inputs.title }}"
+      },
+      "inputs": [
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "get_presentation",
+      "name": "Get presentation",
+      "method": "GET",
+      "endpoint": "/presentations/{{ inputs.presentation_id }}",
+      "inputs": [
+        {
+          "key": "presentation_id",
+          "label": "Presentation ID",
+          "type": "string",
+          "required": true,
+          "help": "The id in the URL: /presentation/d/<ID>/edit"
+        }
+      ]
+    },
+    {
+      "key": "replace_text",
+      "name": "Replace text",
+      "description": "Replaces every occurrence of a placeholder, e.g. {{name}}, across all slides.",
+      "method": "POST",
+      "endpoint": "/presentations/{{ inputs.presentation_id }}:batchUpdate",
+      "body": {
+        "requests": [
+          {
+            "replaceAllText": {
+              "containsText": {
+                "text": "{{ inputs.find }}",
+                "matchCase": true
+              },
+              "replaceText": "{{ inputs.replace }}"
+            }
+          }
+        ]
+      },
+      "inputs": [
+        {
+          "key": "presentation_id",
+          "label": "Presentation ID",
+          "type": "string",
+          "required": true,
+          "help": "The id in the URL: /presentation/d/<ID>/edit"
+        },
+        {
+          "key": "find",
+          "label": "Find",
+          "type": "string",
+          "required": true,
+          "placeholder": "[[customer_name]]"
+        },
+        {
+          "key": "replace",
+          "label": "Replace with",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "batch_update",
+      "name": "Batch update",
+      "method": "POST",
+      "endpoint": "/presentations/{{ inputs.presentation_id }}:batchUpdate",
+      "body": {
+        "requests": "{{ inputs.requests }}"
+      },
+      "inputs": [
+        {
+          "key": "presentation_id",
+          "label": "Presentation ID",
+          "type": "string",
+          "required": true,
+          "help": "The id in the URL: /presentation/d/<ID>/edit"
+        },
+        {
+          "key": "requests",
+          "label": "Requests (JSON array)",
+          "type": "json",
+          "required": true,
+          "placeholder": "[{ \"createSlide\": { \"slideLayoutReference\": { \"predefinedLayout\": \"TITLE_AND_BODY\" } } }]"
+        }
+      ]
+    }
+  ]
+}

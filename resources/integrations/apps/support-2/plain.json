@@ -1,0 +1,99 @@
+{
+  "key": "plain",
+  "name": "Plain",
+  "category": "Customer Support",
+  "description": "Upsert customers, create support threads and reply to threads in Plain.",
+  "brand": "plain",
+  "website": "https://www.plain.com",
+  "docs_url": "https://www.plain.com/docs/api-reference/graphql",
+  "base_url": "https://core-api.uk.plain.com",
+  "auth": {
+    "type": "bearer",
+    "fields": [{ "key": "token", "label": "API key", "type": "password", "required": true, "placeholder": "plainApiKey_..." }]
+  },
+  "actions": [
+    {
+      "key": "upsert_customer",
+      "name": "Create or update customer",
+      "method": "POST",
+      "endpoint": "/graphql/v1",
+      "output_path": "data.upsertCustomer",
+      "error_path": "data.upsertCustomer.error.message",
+      "body": {
+        "query": "mutation upsertCustomer($input: UpsertCustomerInput!) { upsertCustomer(input: $input) { result customer { id fullName email { email } externalId } error { message type code fields { field message type } } } }",
+        "variables": {
+          "input": {
+            "identifier": { "emailAddress": "{{ inputs.email }}" },
+            "onCreate": { "fullName": "{{ inputs.full_name }}", "email": { "email": "{{ inputs.email }}", "isVerified": false }, "externalId": "{{ inputs.external_id }}" },
+            "onUpdate": { "fullName": { "value": "{{ inputs.full_name }}" } }
+          }
+        }
+      },
+      "inputs": [
+        { "key": "email", "label": "Email", "type": "string", "required": true },
+        { "key": "full_name", "label": "Full name", "type": "string", "required": true },
+        { "key": "external_id", "label": "External ID", "type": "string", "help": "Your own ID for this customer" }
+      ]
+    },
+    {
+      "key": "create_thread",
+      "name": "Create thread",
+      "method": "POST",
+      "endpoint": "/graphql/v1",
+      "output_path": "data.createThread",
+      "error_path": "data.createThread.error.message",
+      "body": {
+        "query": "mutation createThread($input: CreateThreadInput!) { createThread(input: $input) { thread { id title status priority } error { message type code fields { field message type } } } }",
+        "variables": {
+          "input": {
+            "customerIdentifier": { "emailAddress": "{{ inputs.customer_email }}" },
+            "title": "{{ inputs.title }}",
+            "description": "{{ inputs.description }}",
+            "priority": "{{ inputs.priority }}",
+            "labelTypeIds": "{{ inputs.label_type_ids }}"
+          }
+        }
+      },
+      "inputs": [
+        { "key": "customer_email", "label": "Customer email", "type": "string", "required": true, "help": "The customer must exist (use Create or update customer first)." },
+        { "key": "title", "label": "Title", "type": "string", "required": true },
+        { "key": "description", "label": "Description", "type": "text" },
+        { "key": "priority", "label": "Priority", "type": "number", "help": "0 Urgent, 1 High, 2 Normal (default), 3 Low" },
+        { "key": "label_type_ids", "label": "Label type IDs", "type": "list" }
+      ]
+    },
+    {
+      "key": "reply_to_thread",
+      "name": "Reply to thread",
+      "description": "Sends a reply on the thread's channel (e.g. email).",
+      "method": "POST",
+      "endpoint": "/graphql/v1",
+      "output_path": "data.replyToThread",
+      "error_path": "data.replyToThread.error.message",
+      "body": {
+        "query": "mutation replyToThread($input: ReplyToThreadInput!) { replyToThread(input: $input) { error { message type code fields { field message type } } } }",
+        "variables": {
+          "input": {
+            "threadId": "{{ inputs.thread_id }}",
+            "textContent": "{{ inputs.text }}",
+            "markdownContent": "{{ inputs.markdown }}"
+          }
+        }
+      },
+      "inputs": [
+        { "key": "thread_id", "label": "Thread ID", "type": "string", "required": true },
+        { "key": "text", "label": "Reply (plain text)", "type": "text", "required": true },
+        { "key": "markdown", "label": "Reply (Markdown)", "type": "text" }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Add this URL under Settings > Webhooks.",
+      "inputs": [{ "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }]
+    }
+  ]
+}

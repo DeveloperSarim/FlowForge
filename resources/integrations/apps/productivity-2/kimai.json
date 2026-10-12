@@ -1,0 +1,200 @@
+{
+  "key": "kimai",
+  "name": "Kimai",
+  "category": "Productivity",
+  "description": "Start, stop and log timesheets in a self-hosted Kimai.",
+  "brand": "kimai",
+  "website": "https://www.kimai.org",
+  "docs_url": "https://www.kimai.org/documentation/rest-api.html",
+  "base_url": "{{ credentials.url }}/api",
+  "auth": [
+    {
+      "type": "bearer",
+      "fields": [
+        {
+          "key": "url",
+          "label": "Kimai URL",
+          "type": "string",
+          "required": true,
+          "placeholder": "https://kimai.example.com",
+          "help": "Base URL without a trailing slash."
+        },
+        {
+          "key": "token",
+          "label": "API token",
+          "type": "password",
+          "required": true,
+          "help": "Your profile > API access."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_projects",
+      "name": "List projects",
+      "method": "GET",
+      "endpoint": "/projects",
+      "query": {
+        "customer": "{{ inputs.customer }}"
+      },
+      "inputs": [
+        {
+          "key": "customer",
+          "label": "Customer ID",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "list_activities",
+      "name": "List activities",
+      "method": "GET",
+      "endpoint": "/activities",
+      "query": {
+        "project": "{{ inputs.project }}"
+      },
+      "inputs": [
+        {
+          "key": "project",
+          "label": "Project ID",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "list_timesheets",
+      "name": "List timesheets",
+      "method": "GET",
+      "endpoint": "/timesheets",
+      "query": {
+        "begin": "{{ inputs.begin }}",
+        "end": "{{ inputs.end }}",
+        "project": "{{ inputs.project }}",
+        "size": "{{ inputs.size }}",
+        "orderBy": "begin",
+        "order": "DESC"
+      },
+      "inputs": [
+        {
+          "key": "begin",
+          "label": "From",
+          "type": "string",
+          "placeholder": "2026-10-01T00:00:00"
+        },
+        {
+          "key": "end",
+          "label": "Until",
+          "type": "string",
+          "placeholder": "2026-10-31T23:59:59"
+        },
+        {
+          "key": "project",
+          "label": "Project ID",
+          "type": "number"
+        },
+        {
+          "key": "size",
+          "label": "Max results",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "create_timesheet",
+      "name": "Create / start timesheet",
+      "method": "POST",
+      "endpoint": "/timesheets",
+      "body": {
+        "project": "{{ inputs.project }}",
+        "activity": "{{ inputs.activity }}",
+        "begin": "{{ inputs.begin }}",
+        "end": "{{ inputs.end }}",
+        "description": "{{ inputs.description }}",
+        "tags": "{{ inputs.tags }}"
+      },
+      "inputs": [
+        {
+          "key": "project",
+          "label": "Project ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "activity",
+          "label": "Activity ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "begin",
+          "label": "Begin",
+          "type": "string",
+          "required": true,
+          "placeholder": "2026-10-12T09:00:00"
+        },
+        {
+          "key": "end",
+          "label": "End",
+          "type": "string",
+          "placeholder": "2026-10-12T10:30:00",
+          "help": "Leave empty to start a running timer."
+        },
+        {
+          "key": "description",
+          "label": "Description",
+          "type": "text"
+        },
+        {
+          "key": "tags",
+          "label": "Tags (comma-separated)",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "list_active",
+      "name": "List running timesheets",
+      "method": "GET",
+      "endpoint": "/timesheets/active",
+      "inputs": []
+    },
+    {
+      "key": "stop_timesheet",
+      "name": "Stop timesheet",
+      "method": "PATCH",
+      "endpoint": "/timesheets/{{ inputs.timesheet_id }}/stop",
+      "inputs": [
+        {
+          "key": "timesheet_id",
+          "label": "Timesheet ID",
+          "type": "number",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_timesheet",
+      "name": "New timesheet",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/timesheets",
+      "query": {
+        "orderBy": "id",
+        "order": "DESC",
+        "size": 50
+      },
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

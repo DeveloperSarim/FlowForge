@@ -1,0 +1,176 @@
+{
+  "key": "re_amaze",
+  "name": "Re:amaze",
+  "category": "Customer Support",
+  "description": "Create conversations, post messages and add contacts in Re:amaze.",
+  "brand": "reamaze",
+  "website": "https://www.reamaze.com",
+  "docs_url": "https://www.reamaze.com/api",
+  "base_url": "https://{{ credentials.brand }}.reamaze.io/api/v1",
+  "auth": {
+    "type": "basic",
+    "fields": [
+      {
+        "key": "brand",
+        "label": "Brand subdomain",
+        "type": "string",
+        "required": true,
+        "placeholder": "yourbrand",
+        "help": "The part before .reamaze.io"
+      },
+      {
+        "key": "username",
+        "label": "Login email",
+        "type": "string",
+        "required": true
+      },
+      {
+        "key": "password",
+        "label": "API token",
+        "type": "password",
+        "required": true,
+        "help": "Settings > Developer > API Token"
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "create_conversation",
+      "name": "Create conversation",
+      "method": "POST",
+      "endpoint": "/conversations",
+      "body": {
+        "conversation": {
+          "subject": "{{ inputs.subject }}",
+          "category": "{{ inputs.category }}",
+          "message": {
+            "body": "{{ inputs.body }}"
+          },
+          "user": {
+            "name": "{{ inputs.name }}",
+            "email": "{{ inputs.email }}"
+          }
+        }
+      },
+      "inputs": [
+        {
+          "key": "category",
+          "label": "Channel slug",
+          "type": "string",
+          "required": true,
+          "help": "The channel's slug, from Settings > Channels"
+        },
+        {
+          "key": "subject",
+          "label": "Subject",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "body",
+          "label": "Message",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "email",
+          "label": "Customer email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "name",
+          "label": "Customer name",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "add_message",
+      "name": "Add message",
+      "method": "POST",
+      "endpoint": "/conversations/{{ inputs.slug }}/messages",
+      "body": {
+        "message": {
+          "body": "{{ inputs.body }}",
+          "visibility": "{{ inputs.visibility }}"
+        }
+      },
+      "inputs": [
+        {
+          "key": "slug",
+          "label": "Conversation slug",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "body",
+          "label": "Message",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "visibility",
+          "label": "Visibility",
+          "type": "number",
+          "default": 0,
+          "help": "0 = reply, 1 = internal note"
+        }
+      ]
+    },
+    {
+      "key": "get_conversation",
+      "name": "Get conversation",
+      "method": "GET",
+      "endpoint": "/conversations/{{ inputs.slug }}",
+      "inputs": [
+        {
+          "key": "slug",
+          "label": "Conversation slug",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "create_contact",
+      "name": "Create contact",
+      "method": "POST",
+      "endpoint": "/contacts",
+      "body": {
+        "contact": {
+          "name": "{{ inputs.name }}",
+          "email": "{{ inputs.email }}"
+        }
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string"
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Add this URL in Settings > Developer > Webhooks.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

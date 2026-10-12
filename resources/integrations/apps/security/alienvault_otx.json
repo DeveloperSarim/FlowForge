@@ -1,0 +1,65 @@
+{
+  "key": "alienvault_otx",
+  "name": "AlienVault OTX",
+  "category": "Security & IT",
+  "description": "Look up threat intel for IPs, domains, hashes and URLs and read OTX pulses.",
+  "brand": "alienvault",
+  "website": "https://otx.alienvault.com",
+  "docs_url": "https://otx.alienvault.com/api",
+  "base_url": "https://otx.alienvault.com/api/v1",
+  "auth": { "type": "api_key", "in": "header", "name": "X-OTX-API-KEY", "fields": [
+    { "key": "api_key", "label": "OTX key", "type": "password", "required": true, "help": "otx.alienvault.com → Settings → OTX Key." }
+  ] },
+  "actions": [
+    {
+      "key": "lookup_indicator",
+      "name": "Look up indicator",
+      "method": "GET",
+      "endpoint": "/indicators/{{ inputs.type }}/{{ inputs.indicator }}/{{ inputs.section }}",
+      "inputs": [
+        { "key": "type", "label": "Indicator type", "type": "select", "required": true, "default": "IPv4", "options": [
+          { "value": "IPv4", "label": "IPv4" }, { "value": "IPv6", "label": "IPv6" }, { "value": "domain", "label": "Domain" }, { "value": "hostname", "label": "Hostname" },
+          { "value": "file", "label": "File hash" }, { "value": "url", "label": "URL" }, { "value": "cve", "label": "CVE" }
+        ] },
+        { "key": "indicator", "label": "Indicator", "type": "string", "required": true, "placeholder": "8.8.8.8" },
+        { "key": "section", "label": "Section", "type": "select", "required": true, "default": "general", "options": [
+          { "value": "general", "label": "General (pulses, counts)" }, { "value": "reputation", "label": "Reputation (IP)" }, { "value": "geo", "label": "Geo (IP, domain, hostname)" },
+          { "value": "malware", "label": "Malware samples" }, { "value": "url_list", "label": "URL list" }, { "value": "passive_dns", "label": "Passive DNS" },
+          { "value": "analysis", "label": "Analysis (file)" }, { "value": "whois", "label": "WHOIS (domain)" }
+        ] }
+      ]
+    },
+    {
+      "key": "get_pulse",
+      "name": "Get pulse",
+      "method": "GET",
+      "endpoint": "/pulses/{{ inputs.pulse_id }}",
+      "inputs": [{ "key": "pulse_id", "label": "Pulse ID", "type": "string", "required": true }]
+    },
+    {
+      "key": "subscribed_pulses",
+      "name": "List subscribed pulses",
+      "method": "GET",
+      "endpoint": "/pulses/subscribed",
+      "query": { "modified_since": "{{ inputs.modified_since }}", "limit": "{{ inputs.limit }}", "page": "{{ inputs.page }}" },
+      "output_path": "results",
+      "inputs": [
+        { "key": "modified_since", "label": "Modified since (ISO 8601)", "type": "string" },
+        { "key": "limit", "label": "Limit", "type": "number", "default": 20 },
+        { "key": "page", "label": "Page", "type": "number" }
+      ]
+    },
+    {
+      "key": "search_pulses",
+      "name": "Search pulses",
+      "method": "GET",
+      "endpoint": "/search/pulses",
+      "query": { "q": "{{ inputs.q }}", "limit": "{{ inputs.limit }}" },
+      "output_path": "results",
+      "inputs": [
+        { "key": "q", "label": "Query", "type": "string", "required": true },
+        { "key": "limit", "label": "Limit", "type": "number", "default": 20 }
+      ]
+    }
+  ]
+}

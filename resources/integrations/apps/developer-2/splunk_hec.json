@@ -1,0 +1,40 @@
+{
+  "key": "splunk_hec",
+  "name": "Splunk HTTP Event Collector",
+  "category": "Developer Tools",
+  "description": "Send events to Splunk Enterprise or Splunk Cloud through HEC.",
+  "brand": "splunk",
+  "website": "https://www.splunk.com",
+  "docs_url": "https://docs.splunk.com/Documentation/Splunk/latest/Data/HECRESTendpoints",
+  "base_url": "{{ credentials.base_url }}/services/collector",
+  "auth": { "type": "api_key", "in": "header", "name": "Authorization", "prefix": "Splunk ", "fields": [
+    { "key": "base_url", "label": "HEC URL", "type": "string", "required": true, "placeholder": "https://splunk.example.com:8088", "help": "Splunk Cloud: https://http-inputs-<stack>.splunkcloud.com. Without a trailing slash; the TLS certificate must be trusted." },
+    { "key": "api_key", "label": "HEC token", "type": "password", "required": true, "help": "Settings → Data inputs → HTTP Event Collector." }
+  ] },
+  "actions": [
+    {
+      "key": "send_event",
+      "name": "Send event",
+      "method": "POST",
+      "endpoint": "/event",
+      "body": { "event": "{{ inputs.event }}", "sourcetype": "{{ inputs.sourcetype }}", "source": "{{ inputs.source }}", "index": "{{ inputs.index }}", "host": "{{ inputs.host }}", "time": "{{ inputs.time }}", "fields": "{{ inputs.fields }}" },
+      "error_path": "code",
+      "inputs": [
+        { "key": "event", "label": "Event (JSON or text)", "type": "json", "required": true, "placeholder": "{\"action\": \"login\", \"user\": \"ana\"}" },
+        { "key": "sourcetype", "label": "Sourcetype", "type": "string", "placeholder": "_json" },
+        { "key": "source", "label": "Source", "type": "string", "placeholder": "flowforge" },
+        { "key": "index", "label": "Index", "type": "string", "help": "Must be allowed for this token." },
+        { "key": "host", "label": "Host", "type": "string" },
+        { "key": "time", "label": "Time (epoch seconds)", "type": "number", "help": "Defaults to receipt time." },
+        { "key": "fields", "label": "Indexed fields", "type": "keyvalue" }
+      ]
+    },
+    {
+      "key": "health",
+      "name": "Check HEC health",
+      "method": "GET",
+      "endpoint": "/health",
+      "inputs": []
+    }
+  ]
+}

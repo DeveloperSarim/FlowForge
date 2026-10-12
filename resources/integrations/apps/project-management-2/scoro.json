@@ -1,0 +1,214 @@
+{
+  "key": "scoro",
+  "name": "Scoro",
+  "category": "Project Management",
+  "description": "Create and list Scoro tasks, projects and contacts.",
+  "brand": "scoro",
+  "website": "https://www.scoro.com",
+  "docs_url": "https://api.scoro.com/",
+  "base_url": "https://{{ credentials.company }}.scoro.com/api/v2",
+  "auth": [
+    {
+      "type": "api_key",
+      "fields": [
+        {
+          "key": "company",
+          "label": "Site subdomain",
+          "type": "string",
+          "required": true,
+          "placeholder": "yourcompany",
+          "help": "From https://yourcompany.scoro.com."
+        },
+        {
+          "key": "company_account_id",
+          "label": "Company account ID",
+          "type": "string",
+          "required": true,
+          "help": "Usually the same as your subdomain."
+        },
+        {
+          "key": "api_key",
+          "label": "API key",
+          "type": "password",
+          "required": true,
+          "help": "Settings > External connections > Scoro API. Sent in the request body."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_tasks",
+      "name": "List tasks",
+      "method": "POST",
+      "endpoint": "/tasks/list",
+      "body": {
+        "apiKey": "{{ credentials.api_key }}",
+        "company_account_id": "{{ credentials.company_account_id }}",
+        "filter": "{{ inputs.filter }}",
+        "per_page": "{{ inputs.per_page }}",
+        "page": "{{ inputs.page }}"
+      },
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "filter",
+          "label": "Filter",
+          "type": "json",
+          "placeholder": "{\"project_id\": 12}"
+        },
+        {
+          "key": "per_page",
+          "label": "Per page (max 100)",
+          "type": "number"
+        },
+        {
+          "key": "page",
+          "label": "Page",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "create_task",
+      "name": "Create task",
+      "method": "POST",
+      "endpoint": "/tasks/modify",
+      "body": {
+        "apiKey": "{{ credentials.api_key }}",
+        "company_account_id": "{{ credentials.company_account_id }}",
+        "request": {
+          "event_name": "{{ inputs.event_name }}",
+          "description": "{{ inputs.description }}",
+          "datetime_due": "{{ inputs.datetime_due }}",
+          "project_id": "{{ inputs.project_id }}",
+          "...": "{{ inputs.extra }}"
+        }
+      },
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "event_name",
+          "label": "Title",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "description",
+          "label": "Description",
+          "type": "text"
+        },
+        {
+          "key": "datetime_due",
+          "label": "Due",
+          "type": "string",
+          "placeholder": "2026-10-20T17:00:00+00:00"
+        },
+        {
+          "key": "project_id",
+          "label": "Project ID",
+          "type": "number"
+        },
+        {
+          "key": "extra",
+          "label": "Extra fields",
+          "type": "json",
+          "help": "Other task fields, e.g. {\"assignees\": [3], \"priority_id\": 2}."
+        }
+      ]
+    },
+    {
+      "key": "list_projects",
+      "name": "List projects",
+      "method": "POST",
+      "endpoint": "/projects/list",
+      "body": {
+        "apiKey": "{{ credentials.api_key }}",
+        "company_account_id": "{{ credentials.company_account_id }}",
+        "filter": "{{ inputs.filter }}"
+      },
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "filter",
+          "label": "Filter",
+          "type": "json"
+        }
+      ]
+    },
+    {
+      "key": "list_contacts",
+      "name": "List contacts",
+      "method": "POST",
+      "endpoint": "/contacts/list",
+      "body": {
+        "apiKey": "{{ credentials.api_key }}",
+        "company_account_id": "{{ credentials.company_account_id }}",
+        "filter": "{{ inputs.filter }}"
+      },
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "filter",
+          "label": "Filter",
+          "type": "json",
+          "placeholder": "{\"name\": \"Acme\"}"
+        }
+      ]
+    },
+    {
+      "key": "create_contact",
+      "name": "Create contact",
+      "method": "POST",
+      "endpoint": "/contacts/modify",
+      "body": {
+        "apiKey": "{{ credentials.api_key }}",
+        "company_account_id": "{{ credentials.company_account_id }}",
+        "request": {
+          "name": "{{ inputs.name }}",
+          "lastname": "{{ inputs.lastname }}",
+          "contact_type": "{{ inputs.contact_type }}",
+          "...": "{{ inputs.extra }}"
+        }
+      },
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string",
+          "required": true,
+          "help": "First name for a person, or the company name."
+        },
+        {
+          "key": "lastname",
+          "label": "Last name",
+          "type": "string"
+        },
+        {
+          "key": "contact_type",
+          "label": "Type",
+          "type": "select",
+          "required": true,
+          "default": "company",
+          "options": [
+            {
+              "value": "company",
+              "label": "Company"
+            },
+            {
+              "value": "person",
+              "label": "Person"
+            }
+          ]
+        },
+        {
+          "key": "extra",
+          "label": "Extra fields",
+          "type": "json",
+          "help": "Other contact fields, e.g. {\"means_of_contact\": {\"email\": [\"jo@acme.com\"]}}."
+        }
+      ]
+    }
+  ]
+}

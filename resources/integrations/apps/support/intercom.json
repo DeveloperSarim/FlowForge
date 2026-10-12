@@ -1,0 +1,298 @@
+{
+  "key": "intercom",
+  "name": "Intercom",
+  "category": "Customer Support",
+  "description": "Manage contacts and conversations, and reply as an admin in Intercom.",
+  "brand": "intercom",
+  "website": "https://www.intercom.com",
+  "docs_url": "https://developers.intercom.com/docs",
+  "popular": true,
+  "base_url": "https://api.intercom.io",
+  "headers": {
+    "Intercom-Version": "2.11"
+  },
+  "auth": [
+    {
+      "type": "bearer",
+      "fields": [
+        {
+          "key": "token",
+          "label": "Access token",
+          "type": "password",
+          "required": true,
+          "help": "Developer Hub > your app > Authentication"
+        }
+      ]
+    },
+    {
+      "type": "oauth2",
+      "authorize_url": "https://app.intercom.com/oauth",
+      "token_url": "https://api.intercom.io/auth/eagle/token",
+      "scopes": []
+    }
+  ],
+  "actions": [
+    {
+      "key": "create_contact",
+      "name": "Create contact",
+      "method": "POST",
+      "endpoint": "/contacts",
+      "body": {
+        "role": "{{ inputs.role }}",
+        "email": "{{ inputs.email }}",
+        "name": "{{ inputs.name }}",
+        "phone": "{{ inputs.phone }}",
+        "external_id": "{{ inputs.external_id }}"
+      },
+      "inputs": [
+        {
+          "key": "role",
+          "label": "Role",
+          "type": "select",
+          "default": "user",
+          "options": [
+            {
+              "value": "user",
+              "label": "User"
+            },
+            {
+              "value": "lead",
+              "label": "Lead"
+            }
+          ]
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string"
+        },
+        {
+          "key": "phone",
+          "label": "Phone",
+          "type": "string"
+        },
+        {
+          "key": "external_id",
+          "label": "External ID",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "update_contact",
+      "name": "Update contact",
+      "method": "PUT",
+      "endpoint": "/contacts/{{ inputs.contact_id }}",
+      "body": {
+        "email": "{{ inputs.email }}",
+        "name": "{{ inputs.name }}",
+        "phone": "{{ inputs.phone }}",
+        "custom_attributes": "{{ inputs.custom_attributes }}"
+      },
+      "inputs": [
+        {
+          "key": "contact_id",
+          "label": "Contact ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string"
+        },
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string"
+        },
+        {
+          "key": "phone",
+          "label": "Phone",
+          "type": "string"
+        },
+        {
+          "key": "custom_attributes",
+          "label": "Custom attributes",
+          "type": "keyvalue"
+        }
+      ]
+    },
+    {
+      "key": "search_contacts",
+      "name": "Find contact",
+      "description": "Searches contacts by one field.",
+      "method": "POST",
+      "endpoint": "/contacts/search",
+      "output_path": "data",
+      "body": {
+        "query": {
+          "field": "{{ inputs.field }}",
+          "operator": "=",
+          "value": "{{ inputs.value }}"
+        }
+      },
+      "inputs": [
+        {
+          "key": "field",
+          "label": "Field",
+          "type": "select",
+          "default": "email",
+          "options": [
+            {
+              "value": "email",
+              "label": "Email"
+            },
+            {
+              "value": "external_id",
+              "label": "External ID"
+            },
+            {
+              "value": "phone",
+              "label": "Phone"
+            },
+            {
+              "value": "name",
+              "label": "Name"
+            }
+          ]
+        },
+        {
+          "key": "value",
+          "label": "Value",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "create_conversation",
+      "name": "Create conversation",
+      "description": "Starts a conversation as a contact.",
+      "method": "POST",
+      "endpoint": "/conversations",
+      "body": {
+        "from": {
+          "type": "{{ inputs.from_type }}",
+          "id": "{{ inputs.contact_id }}"
+        },
+        "body": "{{ inputs.body }}"
+      },
+      "inputs": [
+        {
+          "key": "contact_id",
+          "label": "Contact ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "from_type",
+          "label": "Contact role",
+          "type": "select",
+          "default": "user",
+          "options": [
+            {
+              "value": "user",
+              "label": "User"
+            },
+            {
+              "value": "lead",
+              "label": "Lead"
+            }
+          ]
+        },
+        {
+          "key": "body",
+          "label": "Message",
+          "type": "text",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "reply_conversation",
+      "name": "Reply to conversation",
+      "description": "Replies or adds a note as an admin.",
+      "method": "POST",
+      "endpoint": "/conversations/{{ inputs.conversation_id }}/reply",
+      "body": {
+        "message_type": "{{ inputs.message_type }}",
+        "type": "admin",
+        "admin_id": "{{ inputs.admin_id }}",
+        "body": "{{ inputs.body }}"
+      },
+      "inputs": [
+        {
+          "key": "conversation_id",
+          "label": "Conversation ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "admin_id",
+          "label": "Admin ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "message_type",
+          "label": "Type",
+          "type": "select",
+          "default": "comment",
+          "options": [
+            {
+              "value": "comment",
+              "label": "Reply"
+            },
+            {
+              "value": "note",
+              "label": "Internal note"
+            }
+          ]
+        },
+        {
+          "key": "body",
+          "label": "Message (HTML)",
+          "type": "text",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "get_conversation",
+      "name": "Get conversation",
+      "method": "GET",
+      "endpoint": "/conversations/{{ inputs.conversation_id }}",
+      "inputs": [
+        {
+          "key": "conversation_id",
+          "label": "Conversation ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Subscribe a webhook topic in Developer Hub > Webhooks to this URL.",
+      "data_path": "data.item",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

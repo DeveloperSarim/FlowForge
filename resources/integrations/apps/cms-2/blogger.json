@@ -1,0 +1,293 @@
+{
+  "key": "blogger",
+  "name": "Blogger",
+  "category": "CMS & Websites",
+  "description": "Create, update, publish and list posts on Blogger blogs.",
+  "brand": "blogger",
+  "website": "https://www.blogger.com",
+  "docs_url": "https://developers.google.com/blogger/docs/3.0/reference",
+  "base_url": "https://www.googleapis.com/blogger/v3",
+  "auth": [
+    {
+      "type": "oauth2",
+      "authorize_url": "https://accounts.google.com/o/oauth2/v2/auth",
+      "token_url": "https://oauth2.googleapis.com/token",
+      "scopes": [
+        "https://www.googleapis.com/auth/blogger"
+      ],
+      "authorize_params": {
+        "access_type": "offline",
+        "prompt": "consent"
+      }
+    }
+  ],
+  "actions": [
+    {
+      "key": "create_post",
+      "name": "Create post",
+      "method": "POST",
+      "endpoint": "/blogs/{{ inputs.blog_id }}/posts/",
+      "query": {
+        "isDraft": "{{ inputs.is_draft }}"
+      },
+      "body": {
+        "kind": "blogger#post",
+        "title": "{{ inputs.title }}",
+        "content": "{{ inputs.content }}",
+        "labels": "{{ inputs.labels }}"
+      },
+      "inputs": [
+        {
+          "key": "blog_id",
+          "label": "Blog ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "content",
+          "label": "Content (HTML)",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "labels",
+          "label": "Labels",
+          "type": "list"
+        },
+        {
+          "key": "is_draft",
+          "label": "Save as draft",
+          "type": "select",
+          "options": [
+            {
+              "value": "true",
+              "label": "Yes"
+            },
+            {
+              "value": "false",
+              "label": "No"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "update_post",
+      "name": "Update post",
+      "method": "PATCH",
+      "endpoint": "/blogs/{{ inputs.blog_id }}/posts/{{ inputs.post_id }}",
+      "body": {
+        "title": "{{ inputs.title }}",
+        "content": "{{ inputs.content }}",
+        "labels": "{{ inputs.labels }}"
+      },
+      "inputs": [
+        {
+          "key": "blog_id",
+          "label": "Blog ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "post_id",
+          "label": "Post ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "string"
+        },
+        {
+          "key": "content",
+          "label": "Content (HTML)",
+          "type": "text"
+        },
+        {
+          "key": "labels",
+          "label": "Labels",
+          "type": "list"
+        }
+      ]
+    },
+    {
+      "key": "publish_post",
+      "name": "Publish post",
+      "method": "POST",
+      "endpoint": "/blogs/{{ inputs.blog_id }}/posts/{{ inputs.post_id }}/publish",
+      "query": {
+        "publishDate": "{{ inputs.publish_date }}"
+      },
+      "inputs": [
+        {
+          "key": "blog_id",
+          "label": "Blog ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "post_id",
+          "label": "Post ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "publish_date",
+          "label": "Schedule for",
+          "type": "string",
+          "placeholder": "2026-11-01T09:00:00Z",
+          "help": "Leave empty to publish now."
+        }
+      ]
+    },
+    {
+      "key": "get_post",
+      "name": "Get post",
+      "method": "GET",
+      "endpoint": "/blogs/{{ inputs.blog_id }}/posts/{{ inputs.post_id }}",
+      "inputs": [
+        {
+          "key": "blog_id",
+          "label": "Blog ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "post_id",
+          "label": "Post ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_posts",
+      "name": "List posts",
+      "method": "GET",
+      "endpoint": "/blogs/{{ inputs.blog_id }}/posts",
+      "query": {
+        "maxResults": "{{ inputs.max_results }}",
+        "labels": "{{ inputs.labels }}",
+        "status": "{{ inputs.status }}"
+      },
+      "inputs": [
+        {
+          "key": "blog_id",
+          "label": "Blog ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "max_results",
+          "label": "Max results",
+          "type": "number"
+        },
+        {
+          "key": "labels",
+          "label": "Labels",
+          "type": "string",
+          "placeholder": "news,tips"
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "options": [
+            {
+              "value": "live",
+              "label": "Live"
+            },
+            {
+              "value": "draft",
+              "label": "Draft"
+            },
+            {
+              "value": "scheduled",
+              "label": "Scheduled"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "delete_post",
+      "name": "Delete post",
+      "method": "DELETE",
+      "endpoint": "/blogs/{{ inputs.blog_id }}/posts/{{ inputs.post_id }}",
+      "inputs": [
+        {
+          "key": "blog_id",
+          "label": "Blog ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "post_id",
+          "label": "Post ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_my_blogs",
+      "name": "List my blogs",
+      "method": "GET",
+      "endpoint": "/users/self/blogs",
+      "inputs": []
+    },
+    {
+      "key": "get_blog_by_url",
+      "name": "Get blog by URL",
+      "method": "GET",
+      "endpoint": "/blogs/byurl",
+      "query": {
+        "url": "{{ inputs.url }}"
+      },
+      "inputs": [
+        {
+          "key": "url",
+          "label": "Blog URL",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_post",
+      "name": "New post",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/blogs/{{ inputs.blog_id }}/posts",
+      "query": {
+        "maxResults": 20,
+        "orderBy": "published"
+      },
+      "items_path": "items",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "blog_id",
+          "label": "Blog ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

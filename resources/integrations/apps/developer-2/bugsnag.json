@@ -1,0 +1,89 @@
+{
+  "key": "bugsnag",
+  "name": "BugSnag",
+  "category": "Developer Tools",
+  "description": "List, inspect and fix, reopen or ignore errors in your BugSnag projects.",
+  "brand": "bugsnag",
+  "website": "https://www.bugsnag.com",
+  "docs_url": "https://bugsnagapiv2.docs.apiary.io/",
+  "base_url": "https://api.bugsnag.com",
+  "headers": { "X-Version": "2" },
+  "auth": { "type": "api_key", "in": "header", "name": "Authorization", "prefix": "token ", "fields": [
+    { "key": "api_key", "label": "Personal auth token", "type": "password", "required": true, "help": "My account → Personal auth tokens." }
+  ] },
+  "actions": [
+    {
+      "key": "list_organizations",
+      "name": "List organizations",
+      "method": "GET",
+      "endpoint": "/user/organizations",
+      "inputs": []
+    },
+    {
+      "key": "list_projects",
+      "name": "List projects",
+      "method": "GET",
+      "endpoint": "/organizations/{{ inputs.organization_id }}/projects",
+      "inputs": [{ "key": "organization_id", "label": "Organization ID", "type": "string", "required": true }]
+    },
+    {
+      "key": "list_errors",
+      "name": "List errors",
+      "method": "GET",
+      "endpoint": "/projects/{{ inputs.project_id }}/errors",
+      "query": { "sort": "{{ inputs.sort }}", "direction": "desc", "per_page": "{{ inputs.per_page }}" },
+      "inputs": [
+        { "key": "project_id", "label": "Project ID", "type": "string", "required": true },
+        { "key": "sort", "label": "Sort by", "type": "select", "default": "last_seen", "options": [
+          { "value": "last_seen", "label": "Last seen" }, { "value": "first_seen", "label": "First seen" }, { "value": "events", "label": "Events" }, { "value": "users", "label": "Users" }
+        ] },
+        { "key": "per_page", "label": "Per page", "type": "number", "default": 30 }
+      ]
+    },
+    {
+      "key": "get_error",
+      "name": "Get error",
+      "method": "GET",
+      "endpoint": "/projects/{{ inputs.project_id }}/errors/{{ inputs.error_id }}",
+      "inputs": [
+        { "key": "project_id", "label": "Project ID", "type": "string", "required": true },
+        { "key": "error_id", "label": "Error ID", "type": "string", "required": true }
+      ]
+    },
+    {
+      "key": "update_error_status",
+      "name": "Fix, reopen or ignore error",
+      "method": "PATCH",
+      "endpoint": "/projects/{{ inputs.project_id }}/errors/{{ inputs.error_id }}",
+      "body": { "operation": "{{ inputs.operation }}" },
+      "inputs": [
+        { "key": "project_id", "label": "Project ID", "type": "string", "required": true },
+        { "key": "error_id", "label": "Error ID", "type": "string", "required": true },
+        { "key": "operation", "label": "Operation", "type": "select", "required": true, "default": "fix", "options": [
+          { "value": "fix", "label": "Mark as fixed" }, { "value": "open", "label": "Reopen" }, { "value": "ignore", "label": "Ignore" }
+        ] }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_error",
+      "name": "New error (polling)",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/projects/{{ inputs.project_id }}/errors",
+      "query": { "sort": "first_seen", "direction": "desc", "per_page": 30 },
+      "id_field": "id",
+      "inputs": [
+        { "key": "project_id", "label": "Project ID", "type": "string", "required": true },
+        { "key": "poll_interval", "label": "Check every (minutes)", "type": "number", "default": 5 }
+      ]
+    },
+    {
+      "key": "webhook_event",
+      "name": "Webhook notification",
+      "type": "webhook",
+      "inputs": [{ "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }]
+    }
+  ]
+}

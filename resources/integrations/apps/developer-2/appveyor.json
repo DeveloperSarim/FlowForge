@@ -1,0 +1,88 @@
+{
+  "key": "appveyor",
+  "name": "AppVeyor",
+  "category": "Developer Tools",
+  "description": "Start, re-run and cancel builds and read project build history.",
+  "brand": "appveyor",
+  "website": "https://www.appveyor.com",
+  "docs_url": "https://www.appveyor.com/docs/api/",
+  "base_url": "https://ci.appveyor.com/api",
+  "auth": { "type": "bearer", "fields": [{ "key": "token", "label": "API key", "type": "password", "required": true, "help": "Account → API keys. Use an account-specific (v1) key; v2 user keys need /account/<name>/ paths." }] },
+  "actions": [
+    {
+      "key": "start_build",
+      "name": "Start build",
+      "method": "POST",
+      "endpoint": "/builds",
+      "body": { "accountName": "{{ inputs.account_name }}", "projectSlug": "{{ inputs.project_slug }}", "branch": "{{ inputs.branch }}", "commitId": "{{ inputs.commit_id }}", "environmentVariables": "{{ inputs.environment_variables }}" },
+      "inputs": [
+        { "key": "account_name", "label": "Account name", "type": "string", "required": true },
+        { "key": "project_slug", "label": "Project slug", "type": "string", "required": true },
+        { "key": "branch", "label": "Branch", "type": "string", "placeholder": "master" },
+        { "key": "commit_id", "label": "Commit ID", "type": "string" },
+        { "key": "environment_variables", "label": "Environment variables", "type": "keyvalue" }
+      ]
+    },
+    {
+      "key": "rerun_build",
+      "name": "Re-run build",
+      "method": "PUT",
+      "endpoint": "/builds",
+      "body": { "buildId": "{{ inputs.build_id }}", "reRunIncomplete": "{{ inputs.rerun_incomplete }}" },
+      "inputs": [
+        { "key": "build_id", "label": "Build ID", "type": "number", "required": true },
+        { "key": "rerun_incomplete", "label": "Only re-run failed / cancelled jobs", "type": "boolean" }
+      ]
+    },
+    {
+      "key": "cancel_build",
+      "name": "Cancel build",
+      "method": "DELETE",
+      "endpoint": "/builds/{{ inputs.account_name }}/{{ inputs.project_slug }}/{{ inputs.build_version }}",
+      "inputs": [
+        { "key": "account_name", "label": "Account name", "type": "string", "required": true },
+        { "key": "project_slug", "label": "Project slug", "type": "string", "required": true },
+        { "key": "build_version", "label": "Build version", "type": "string", "required": true, "placeholder": "1.0.42" }
+      ]
+    },
+    {
+      "key": "get_last_build",
+      "name": "Get last build",
+      "method": "GET",
+      "endpoint": "/projects/{{ inputs.account_name }}/{{ inputs.project_slug }}",
+      "inputs": [
+        { "key": "account_name", "label": "Account name", "type": "string", "required": true },
+        { "key": "project_slug", "label": "Project slug", "type": "string", "required": true }
+      ]
+    },
+    {
+      "key": "get_build_history",
+      "name": "Get build history",
+      "method": "GET",
+      "endpoint": "/projects/{{ inputs.account_name }}/{{ inputs.project_slug }}/history",
+      "query": { "recordsNumber": "{{ inputs.records }}", "branch": "{{ inputs.branch }}" },
+      "output_path": "builds",
+      "inputs": [
+        { "key": "account_name", "label": "Account name", "type": "string", "required": true },
+        { "key": "project_slug", "label": "Project slug", "type": "string", "required": true },
+        { "key": "records", "label": "Number of builds", "type": "number", "required": true, "default": 10 },
+        { "key": "branch", "label": "Branch", "type": "string" }
+      ]
+    },
+    {
+      "key": "list_projects",
+      "name": "List projects",
+      "method": "GET",
+      "endpoint": "/projects",
+      "inputs": []
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Build notification (webhook)",
+      "type": "webhook",
+      "inputs": [{ "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }]
+    }
+  ]
+}

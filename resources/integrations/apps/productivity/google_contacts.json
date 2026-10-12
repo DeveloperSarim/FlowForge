@@ -1,0 +1,157 @@
+{
+  "key": "google_contacts",
+  "name": "Google Contacts",
+  "category": "Productivity",
+  "description": "Create, search and read contacts via the People API.",
+  "brand": "google",
+  "website": "https://contacts.google.com",
+  "docs_url": "https://developers.google.com/people/api/rest",
+  "base_url": "https://people.googleapis.com/v1",
+  "auth": [
+    {
+      "type": "oauth2",
+      "authorize_url": "https://accounts.google.com/o/oauth2/v2/auth",
+      "token_url": "https://oauth2.googleapis.com/token",
+      "scopes": [
+        "https://www.googleapis.com/auth/contacts"
+      ],
+      "authorize_params": {
+        "access_type": "offline",
+        "prompt": "consent"
+      }
+    }
+  ],
+  "actions": [
+    {
+      "key": "create_contact",
+      "name": "Create contact",
+      "method": "POST",
+      "endpoint": "/people:createContact",
+      "query": {
+        "personFields": "names,emailAddresses,phoneNumbers,organizations"
+      },
+      "body": {
+        "names": [
+          {
+            "givenName": "{{ inputs.given_name }}",
+            "familyName": "{{ inputs.family_name }}"
+          }
+        ],
+        "emailAddresses": [
+          {
+            "value": "{{ inputs.email }}"
+          }
+        ],
+        "phoneNumbers": "{{ inputs.phone_numbers }}"
+      },
+      "inputs": [
+        {
+          "key": "given_name",
+          "label": "First name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "family_name",
+          "label": "Last name",
+          "type": "string"
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "phone_numbers",
+          "label": "Phone numbers",
+          "type": "json",
+          "placeholder": "[{ \"value\": \"+1 555 0100\", \"type\": \"mobile\" }]"
+        }
+      ]
+    },
+    {
+      "key": "search_contacts",
+      "name": "Search contacts",
+      "method": "GET",
+      "endpoint": "/people:searchContacts",
+      "query": {
+        "query": "{{ inputs.query }}",
+        "readMask": "names,emailAddresses,phoneNumbers,organizations",
+        "pageSize": "{{ inputs.page_size }}"
+      },
+      "output_path": "results",
+      "inputs": [
+        {
+          "key": "query",
+          "label": "Search",
+          "type": "string",
+          "required": true,
+          "help": "Matches names, emails, phones and organizations (prefix match)."
+        },
+        {
+          "key": "page_size",
+          "label": "Max results",
+          "type": "number",
+          "default": 10
+        }
+      ]
+    },
+    {
+      "key": "get_contact",
+      "name": "Get contact",
+      "method": "GET",
+      "endpoint": "/people/{{ inputs.person_id }}",
+      "query": {
+        "personFields": "names,emailAddresses,phoneNumbers,organizations"
+      },
+      "inputs": [
+        {
+          "key": "person_id",
+          "label": "Contact ID",
+          "type": "string",
+          "required": true,
+          "placeholder": "c1234567890",
+          "help": "The part after \"people/\" in the resourceName."
+        }
+      ]
+    },
+    {
+      "key": "list_contacts",
+      "name": "List contacts",
+      "description": "Most recently changed first.",
+      "method": "GET",
+      "endpoint": "/people/me/connections",
+      "query": {
+        "personFields": "names,emailAddresses,phoneNumbers,organizations",
+        "sortOrder": "LAST_MODIFIED_DESCENDING",
+        "pageSize": "{{ inputs.page_size }}"
+      },
+      "output_path": "connections",
+      "inputs": [
+        {
+          "key": "page_size",
+          "label": "Max results",
+          "type": "number",
+          "default": 100
+        }
+      ]
+    },
+    {
+      "key": "delete_contact",
+      "name": "Delete contact",
+      "method": "DELETE",
+      "endpoint": "/people/{{ inputs.person_id }}:deleteContact",
+      "inputs": [
+        {
+          "key": "person_id",
+          "label": "Contact ID",
+          "type": "string",
+          "required": true,
+          "placeholder": "c1234567890",
+          "help": "The part after \"people/\" in the resourceName."
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "key": "squadcast",
+  "name": "Squadcast",
+  "category": "Developer Tools",
+  "description": "Trigger and resolve incidents through a service's Incident Webhook alert source.",
+  "brand": "squadcast",
+  "website": "https://www.squadcast.com",
+  "docs_url": "https://support.squadcast.com/integrations/incident-webhook-incident-webhook-api",
+  "base_url": "https://{{ credentials.host }}/v2/incidents/api",
+  "auth": { "type": "api_key", "fields": [
+    { "key": "host", "label": "API host", "type": "string", "required": true, "default": "api.squadcast.com", "help": "api.eu.squadcast.com for EU accounts." },
+    { "key": "api_key", "label": "Incident Webhook API key", "type": "password", "required": true, "help": "Service → Alert sources → Incident Webhook: the key at the end of the webhook URL." }
+  ] },
+  "actions": [
+    {
+      "key": "send_event",
+      "name": "Trigger or resolve incident",
+      "method": "POST",
+      "endpoint": "/{{ credentials.api_key }}",
+      "body": { "message": "{{ inputs.message }}", "description": "{{ inputs.description }}", "status": "{{ inputs.status }}", "event_id": "{{ inputs.event_id }}", "tags": "{{ inputs.tags }}" },
+      "inputs": [
+        { "key": "status", "label": "Status", "type": "select", "required": true, "default": "trigger", "options": [{ "value": "trigger", "label": "Trigger" }, { "value": "resolve", "label": "Resolve" }] },
+        { "key": "message", "label": "Message", "type": "string", "required": true },
+        { "key": "description", "label": "Description", "type": "text" },
+        { "key": "event_id", "label": "Event ID", "type": "string", "required": true, "help": "Same ID on trigger and resolve so they match." },
+        { "key": "tags", "label": "Tags", "type": "keyvalue" }
+      ]
+    }
+  ]
+}

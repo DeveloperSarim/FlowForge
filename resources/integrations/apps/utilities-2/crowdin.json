@@ -1,0 +1,101 @@
+{
+  "key": "crowdin",
+  "name": "Crowdin",
+  "category": "Utilities",
+  "description": "Add source strings, build translations and track localization progress.",
+  "brand": "crowdin",
+  "website": "https://crowdin.com",
+  "docs_url": "https://support.crowdin.com/developer/api/v2/",
+  "base_url": "{{ credentials.api_url }}",
+  "auth": { "type": "bearer", "fields": [
+    { "key": "token", "label": "Personal access token", "type": "password", "required": true, "help": "Account Settings → API → New Token." },
+    { "key": "api_url", "label": "API URL", "type": "string", "required": true, "default": "https://api.crowdin.com/api/v2", "help": "Crowdin Enterprise: https://<organization>.api.crowdin.com/api/v2" }
+  ] },
+  "actions": [
+    {
+      "key": "list_projects",
+      "name": "List projects",
+      "method": "GET",
+      "endpoint": "/projects",
+      "query": { "limit": "{{ inputs.limit }}", "offset": "{{ inputs.offset }}" },
+      "output_path": "data",
+      "inputs": [
+        { "key": "limit", "label": "Limit", "type": "number" },
+        { "key": "offset", "label": "Offset", "type": "number" }
+      ]
+    },
+    {
+      "key": "list_strings",
+      "name": "List source strings",
+      "method": "GET",
+      "endpoint": "/projects/{{ inputs.project_id }}/strings",
+      "query": { "fileId": "{{ inputs.file_id }}", "filter": "{{ inputs.filter }}", "limit": "{{ inputs.limit }}", "offset": "{{ inputs.offset }}" },
+      "output_path": "data",
+      "inputs": [
+        { "key": "project_id", "label": "Project ID", "type": "number", "required": true },
+        { "key": "file_id", "label": "File ID", "type": "number" },
+        { "key": "filter", "label": "Search text", "type": "string" },
+        { "key": "limit", "label": "Limit", "type": "number" },
+        { "key": "offset", "label": "Offset", "type": "number" }
+      ]
+    },
+    {
+      "key": "add_string",
+      "name": "Add source string",
+      "method": "POST",
+      "endpoint": "/projects/{{ inputs.project_id }}/strings",
+      "body": { "text": "{{ inputs.text }}", "identifier": "{{ inputs.identifier }}", "fileId": "{{ inputs.file_id }}", "context": "{{ inputs.context }}", "labelIds": "{{ inputs.label_ids }}" },
+      "output_path": "data",
+      "inputs": [
+        { "key": "project_id", "label": "Project ID", "type": "number", "required": true },
+        { "key": "text", "label": "Text", "type": "text", "required": true },
+        { "key": "identifier", "label": "Identifier (key)", "type": "string" },
+        { "key": "file_id", "label": "File ID", "type": "number", "help": "Required for file-based projects." },
+        { "key": "context", "label": "Context", "type": "text" },
+        { "key": "label_ids", "label": "Label IDs (JSON array)", "type": "json", "placeholder": "[1, 2]" }
+      ]
+    },
+    {
+      "key": "build_translations",
+      "name": "Build project translations",
+      "method": "POST",
+      "endpoint": "/projects/{{ inputs.project_id }}/translations/builds",
+      "body": { "targetLanguageIds": "{{ inputs.target_language_ids }}", "skipUntranslatedStrings": "{{ inputs.skip_untranslated }}", "exportApprovedOnly": "{{ inputs.approved_only }}" },
+      "output_path": "data",
+      "inputs": [
+        { "key": "project_id", "label": "Project ID", "type": "number", "required": true },
+        { "key": "target_language_ids", "label": "Languages", "type": "list", "help": "Crowdin language IDs, e.g. de, fr, es-ES. Empty = all." },
+        { "key": "skip_untranslated", "label": "Skip untranslated strings", "type": "boolean" },
+        { "key": "approved_only", "label": "Approved only", "type": "boolean" }
+      ]
+    },
+    {
+      "key": "download_build",
+      "name": "Get build download URL",
+      "method": "GET",
+      "endpoint": "/projects/{{ inputs.project_id }}/translations/builds/{{ inputs.build_id }}/download",
+      "output_path": "data",
+      "inputs": [
+        { "key": "project_id", "label": "Project ID", "type": "number", "required": true },
+        { "key": "build_id", "label": "Build ID", "type": "number", "required": true }
+      ]
+    },
+    {
+      "key": "translation_progress",
+      "name": "Get translation progress",
+      "method": "GET",
+      "endpoint": "/projects/{{ inputs.project_id }}/languages/progress",
+      "output_path": "data",
+      "inputs": [{ "key": "project_id", "label": "Project ID", "type": "number", "required": true }]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Crowdin webhook",
+      "description": "Add this URL in Project → Integrations → Webhooks.",
+      "type": "webhook",
+      "inputs": [{ "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }]
+    }
+  ]
+}

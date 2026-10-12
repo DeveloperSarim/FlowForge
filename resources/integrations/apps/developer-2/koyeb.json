@@ -1,0 +1,72 @@
+{
+  "key": "koyeb",
+  "name": "Koyeb",
+  "category": "Developer Tools",
+  "description": "List apps and services, redeploy, pause and resume services.",
+  "brand": "koyeb",
+  "website": "https://www.koyeb.com",
+  "docs_url": "https://www.koyeb.com/docs/reference/api",
+  "base_url": "https://app.koyeb.com/v1",
+  "auth": { "type": "bearer", "fields": [{ "key": "token", "label": "API access token", "type": "password", "required": true, "help": "Organization settings → API → Create API access token." }] },
+  "actions": [
+    {
+      "key": "list_apps",
+      "name": "List apps",
+      "method": "GET",
+      "endpoint": "/apps",
+      "query": { "name": "{{ inputs.name }}", "limit": "{{ inputs.limit }}" },
+      "output_path": "apps",
+      "inputs": [
+        { "key": "name", "label": "Name", "type": "string" },
+        { "key": "limit", "label": "Limit", "type": "number" }
+      ]
+    },
+    {
+      "key": "list_services",
+      "name": "List services",
+      "method": "GET",
+      "endpoint": "/services",
+      "query": { "app_id": "{{ inputs.app_id }}", "name": "{{ inputs.name }}", "limit": "{{ inputs.limit }}" },
+      "output_path": "services",
+      "inputs": [
+        { "key": "app_id", "label": "App ID", "type": "string" },
+        { "key": "name", "label": "Name", "type": "string" },
+        { "key": "limit", "label": "Limit", "type": "number" }
+      ]
+    },
+    {
+      "key": "get_service",
+      "name": "Get service",
+      "method": "GET",
+      "endpoint": "/services/{{ inputs.service_id }}",
+      "output_path": "service",
+      "inputs": [{ "key": "service_id", "label": "Service ID", "type": "string", "required": true }]
+    },
+    {
+      "key": "redeploy_service",
+      "name": "Redeploy service",
+      "method": "POST",
+      "endpoint": "/services/{{ inputs.service_id }}/redeploy",
+      "body": { "sha": "{{ inputs.sha }}", "skip_build": "{{ inputs.skip_build }}" },
+      "inputs": [
+        { "key": "service_id", "label": "Service ID", "type": "string", "required": true },
+        { "key": "sha", "label": "Git commit SHA", "type": "string", "help": "Leave empty to use the latest commit of the branch." },
+        { "key": "skip_build", "label": "Skip build", "type": "boolean" }
+      ]
+    },
+    {
+      "key": "pause_service",
+      "name": "Pause service",
+      "method": "POST",
+      "endpoint": "/services/{{ inputs.service_id }}/pause",
+      "inputs": [{ "key": "service_id", "label": "Service ID", "type": "string", "required": true }]
+    },
+    {
+      "key": "resume_service",
+      "name": "Resume service",
+      "method": "POST",
+      "endpoint": "/services/{{ inputs.service_id }}/resume",
+      "inputs": [{ "key": "service_id", "label": "Service ID", "type": "string", "required": true }]
+    }
+  ]
+}

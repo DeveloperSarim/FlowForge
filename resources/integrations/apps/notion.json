@@ -1,0 +1,35 @@
+{
+  "key": "notion",
+  "name": "Notion",
+  "category": "Productivity",
+  "description": "Create pages in and query Notion databases.",
+  "base_url": "https://api.notion.com/v1",
+  "headers": { "Notion-Version": "2022-06-28" },
+  "auth": { "type": "bearer", "fields": [{ "key": "token", "label": "Internal integration secret", "type": "password", "required": true }] },
+  "actions": [
+    {
+      "key": "create_database_page",
+      "name": "Create database item",
+      "method": "POST",
+      "endpoint": "/pages",
+      "body": { "parent": { "database_id": "{{ inputs.database_id }}" }, "properties": "{{ inputs.properties }}" },
+      "inputs": [
+        { "key": "database_id", "label": "Database ID", "type": "string", "required": true },
+        { "key": "properties", "label": "Properties (Notion JSON)", "type": "json", "required": true,
+          "placeholder": "{\n  \"Name\": { \"title\": [{ \"text\": { \"content\": \"{{ steps.trigger.data.name }}\" } }] }\n}" }
+      ]
+    },
+    {
+      "key": "query_database",
+      "name": "Query database",
+      "method": "POST",
+      "endpoint": "/databases/{{ inputs.database_id }}/query",
+      "body": { "filter": "{{ inputs.filter }}", "page_size": "{{ inputs.page_size }}" },
+      "inputs": [
+        { "key": "database_id", "label": "Database ID", "type": "string", "required": true },
+        { "key": "filter", "label": "Filter (Notion JSON)", "type": "json" },
+        { "key": "page_size", "label": "Page size", "type": "number", "default": 50 }
+      ]
+    }
+  ]
+}

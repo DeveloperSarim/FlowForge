@@ -1,0 +1,75 @@
+{
+  "key": "bitly",
+  "name": "Bitly",
+  "category": "Utilities",
+  "description": "Shorten links, create branded Bitlinks and expand short URLs.",
+  "brand": "bitly",
+  "website": "https://bitly.com",
+  "docs_url": "https://dev.bitly.com/api-reference",
+  "popular": true,
+  "base_url": "https://api-ssl.bitly.com/v4",
+  "auth": { "type": "bearer", "fields": [
+    { "key": "token", "label": "Access token", "type": "password", "required": true, "help": "Bitly → Settings → Developer settings → API." }
+  ] },
+  "actions": [
+    {
+      "key": "shorten_link",
+      "name": "Shorten link",
+      "method": "POST",
+      "endpoint": "/shorten",
+      "body": { "long_url": "{{ inputs.long_url }}", "domain": "{{ inputs.domain }}", "group_guid": "{{ inputs.group_guid }}" },
+      "output_fields": { "short_url": "link" },
+      "inputs": [
+        { "key": "long_url", "label": "Long URL", "type": "string", "required": true },
+        { "key": "domain", "label": "Domain", "type": "string", "placeholder": "bit.ly" },
+        { "key": "group_guid", "label": "Group GUID", "type": "string", "help": "Leave empty for your default group." }
+      ]
+    },
+    {
+      "key": "create_bitlink",
+      "name": "Create Bitlink",
+      "description": "Short link with a title and tags.",
+      "method": "POST",
+      "endpoint": "/bitlinks",
+      "body": { "long_url": "{{ inputs.long_url }}", "domain": "{{ inputs.domain }}", "group_guid": "{{ inputs.group_guid }}", "title": "{{ inputs.title }}", "tags": "{{ inputs.tags }}" },
+      "output_fields": { "short_url": "link" },
+      "inputs": [
+        { "key": "long_url", "label": "Long URL", "type": "string", "required": true },
+        { "key": "title", "label": "Title", "type": "string" },
+        { "key": "tags", "label": "Tags", "type": "list" },
+        { "key": "domain", "label": "Domain", "type": "string", "placeholder": "bit.ly" },
+        { "key": "group_guid", "label": "Group GUID", "type": "string" }
+      ]
+    },
+    {
+      "key": "expand_link",
+      "name": "Expand Bitlink",
+      "description": "Returns the long URL behind a Bitlink.",
+      "method": "POST",
+      "endpoint": "/expand",
+      "body": { "bitlink_id": "{{ inputs.bitlink_id }}" },
+      "inputs": [{ "key": "bitlink_id", "label": "Bitlink", "type": "string", "required": true, "placeholder": "bit.ly/12a4b6c", "help": "Without https://." }]
+    },
+    {
+      "key": "list_bitlinks",
+      "name": "List Bitlinks in group",
+      "method": "GET",
+      "endpoint": "/groups/{{ inputs.group_guid }}/bitlinks",
+      "query": { "size": "{{ inputs.size }}", "query": "{{ inputs.query }}" },
+      "output_path": "links",
+      "inputs": [
+        { "key": "group_guid", "label": "Group GUID", "type": "string", "required": true, "help": "Find it with \"Get current user\" (default_group_guid)." },
+        { "key": "query", "label": "Search", "type": "string" },
+        { "key": "size", "label": "Page size", "type": "number", "default": 50 }
+      ]
+    },
+    {
+      "key": "get_user",
+      "name": "Get current user",
+      "description": "Your account, including the default group GUID.",
+      "method": "GET",
+      "endpoint": "/user",
+      "inputs": []
+    }
+  ]
+}

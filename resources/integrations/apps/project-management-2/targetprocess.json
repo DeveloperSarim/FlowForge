@@ -1,0 +1,175 @@
+{
+  "key": "targetprocess",
+  "name": "Targetprocess",
+  "category": "Project Management",
+  "description": "Create user stories, bugs and comments in Targetprocess.",
+  "brand": "targetprocess",
+  "website": "https://www.targetprocess.com",
+  "docs_url": "https://dev.targetprocess.com/docs/rest-getting-started",
+  "base_url": "{{ credentials.url }}/api/v1",
+  "auth": [
+    {
+      "type": "api_key",
+      "in": "query",
+      "name": "access_token",
+      "fields": [
+        {
+          "key": "url",
+          "label": "Targetprocess URL",
+          "type": "string",
+          "required": true,
+          "placeholder": "https://yourcompany.tpondemand.com",
+          "help": "Base URL without a trailing slash."
+        },
+        {
+          "key": "api_key",
+          "label": "Access token",
+          "type": "password",
+          "required": true,
+          "help": "Settings > Access tokens."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_user_stories",
+      "name": "List user stories",
+      "method": "GET",
+      "endpoint": "/UserStories",
+      "query": {
+        "where": "{{ inputs.where }}",
+        "take": "{{ inputs.take }}",
+        "orderByDesc": "CreateDate"
+      },
+      "output_path": "Items",
+      "inputs": [
+        {
+          "key": "where",
+          "label": "Filter",
+          "type": "string",
+          "placeholder": "(Project.Id eq 123)"
+        },
+        {
+          "key": "take",
+          "label": "Max results",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "create_user_story",
+      "name": "Create user story",
+      "method": "POST",
+      "endpoint": "/UserStories",
+      "body": {
+        "Name": "{{ inputs.name }}",
+        "Description": "{{ inputs.description }}",
+        "Project": {
+          "Id": "{{ inputs.project_id }}"
+        }
+      },
+      "inputs": [
+        {
+          "key": "project_id",
+          "label": "Project ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "description",
+          "label": "Description (HTML)",
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "key": "create_bug",
+      "name": "Create bug",
+      "method": "POST",
+      "endpoint": "/Bugs",
+      "body": {
+        "Name": "{{ inputs.name }}",
+        "Description": "{{ inputs.description }}",
+        "Project": {
+          "Id": "{{ inputs.project_id }}"
+        }
+      },
+      "inputs": [
+        {
+          "key": "project_id",
+          "label": "Project ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "description",
+          "label": "Description (HTML)",
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "key": "add_comment",
+      "name": "Add comment",
+      "method": "POST",
+      "endpoint": "/Comments",
+      "body": {
+        "Description": "{{ inputs.description }}",
+        "General": {
+          "Id": "{{ inputs.entity_id }}"
+        }
+      },
+      "inputs": [
+        {
+          "key": "entity_id",
+          "label": "Entity ID",
+          "type": "number",
+          "required": true,
+          "help": "User story, bug, task… ID."
+        },
+        {
+          "key": "description",
+          "label": "Comment (HTML)",
+          "type": "text",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_user_story",
+      "name": "New user story",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/UserStories",
+      "query": {
+        "orderByDesc": "Id",
+        "take": 50
+      },
+      "items_path": "Items",
+      "id_field": "Id",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

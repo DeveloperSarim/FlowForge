@@ -1,0 +1,215 @@
+{
+  "key": "iterable",
+  "name": "Iterable",
+  "category": "Marketing & Email",
+  "description": "Update users, track events, manage list membership, send email.",
+  "brand": "iterable",
+  "website": "https://iterable.com",
+  "docs_url": "https://api.iterable.com/api/docs",
+  "base_url": "https://{{ credentials.host }}/api",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "Api-Key",
+    "fields": [
+      {
+        "key": "host",
+        "label": "Data center",
+        "type": "select",
+        "required": true,
+        "default": "api.iterable.com",
+        "options": [
+          {
+            "value": "api.iterable.com",
+            "label": "US"
+          },
+          {
+            "value": "api.eu.iterable.com",
+            "label": "EU"
+          }
+        ]
+      },
+      {
+        "key": "api_key",
+        "label": "Server-side API key",
+        "type": "password",
+        "required": true
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "update_user",
+      "name": "Create or update user",
+      "method": "POST",
+      "endpoint": "/users/update",
+      "body": {
+        "email": "{{ inputs.email }}",
+        "dataFields": "{{ inputs.data_fields }}"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "data_fields",
+          "label": "Data fields",
+          "type": "json",
+          "placeholder": "{\"firstName\": \"Ada\"}"
+        }
+      ]
+    },
+    {
+      "key": "get_user",
+      "name": "Get user by email",
+      "method": "GET",
+      "endpoint": "/users/getByEmail",
+      "query": {
+        "email": "{{ inputs.email }}"
+      },
+      "output_path": "user",
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "track_event",
+      "name": "Track event",
+      "method": "POST",
+      "endpoint": "/events/track",
+      "body": {
+        "email": "{{ inputs.email }}",
+        "eventName": "{{ inputs.event_name }}",
+        "dataFields": "{{ inputs.data_fields }}"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "event_name",
+          "label": "Event name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "data_fields",
+          "label": "Data fields",
+          "type": "json"
+        }
+      ]
+    },
+    {
+      "key": "subscribe_to_list",
+      "name": "Subscribe to list",
+      "method": "POST",
+      "endpoint": "/lists/subscribe",
+      "body": {
+        "listId": "{{ inputs.list_id }}",
+        "subscribers": [
+          {
+            "email": "{{ inputs.email }}"
+          }
+        ]
+      },
+      "inputs": [
+        {
+          "key": "list_id",
+          "label": "List ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "unsubscribe_from_list",
+      "name": "Unsubscribe from list",
+      "method": "POST",
+      "endpoint": "/lists/unsubscribe",
+      "body": {
+        "listId": "{{ inputs.list_id }}",
+        "subscribers": [
+          {
+            "email": "{{ inputs.email }}"
+          }
+        ]
+      },
+      "inputs": [
+        {
+          "key": "list_id",
+          "label": "List ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "send_email",
+      "name": "Send triggered email campaign",
+      "method": "POST",
+      "endpoint": "/email/target",
+      "body": {
+        "campaignId": "{{ inputs.campaign_id }}",
+        "recipientEmail": "{{ inputs.email }}",
+        "dataFields": "{{ inputs.data_fields }}"
+      },
+      "inputs": [
+        {
+          "key": "campaign_id",
+          "label": "Campaign ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "data_fields",
+          "label": "Data fields",
+          "type": "json"
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "System webhook",
+      "type": "webhook",
+      "description": "Integrations → System Webhooks (emailSend, emailOpen, emailUnSubscribe…).",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,83 @@
+{
+  "key": "render",
+  "name": "Render",
+  "category": "Developer Tools",
+  "description": "Deploy, restart, suspend and resume Render services.",
+  "brand": "render",
+  "website": "https://render.com",
+  "docs_url": "https://api-docs.render.com",
+  "base_url": "https://api.render.com/v1",
+  "auth": { "type": "bearer", "fields": [{ "key": "token", "label": "API key", "type": "password", "required": true, "help": "Account settings → API keys." }] },
+  "actions": [
+    {
+      "key": "list_services",
+      "name": "List services",
+      "method": "GET",
+      "endpoint": "/services",
+      "query": { "name": "{{ inputs.name }}", "limit": "{{ inputs.limit }}" },
+      "inputs": [
+        { "key": "name", "label": "Service name", "type": "string" },
+        { "key": "limit", "label": "Limit", "type": "number", "default": 20 }
+      ]
+    },
+    {
+      "key": "trigger_deploy",
+      "name": "Trigger deploy",
+      "method": "POST",
+      "endpoint": "/services/{{ inputs.service_id }}/deploys",
+      "body": { "clearCache": "{{ inputs.clear_cache }}" },
+      "inputs": [
+        { "key": "service_id", "label": "Service ID", "type": "string", "required": true, "placeholder": "srv-…" },
+        { "key": "clear_cache", "label": "Build cache", "type": "select", "default": "do_not_clear", "options": [
+          { "value": "do_not_clear", "label": "Keep cache" }, { "value": "clear", "label": "Clear cache" }
+        ] }
+      ]
+    },
+    {
+      "key": "get_deploy",
+      "name": "Get deploy",
+      "method": "GET",
+      "endpoint": "/services/{{ inputs.service_id }}/deploys/{{ inputs.deploy_id }}",
+      "inputs": [
+        { "key": "service_id", "label": "Service ID", "type": "string", "required": true },
+        { "key": "deploy_id", "label": "Deploy ID", "type": "string", "required": true }
+      ]
+    },
+    {
+      "key": "restart_service",
+      "name": "Restart service",
+      "method": "POST",
+      "endpoint": "/services/{{ inputs.service_id }}/restart",
+      "inputs": [{ "key": "service_id", "label": "Service ID", "type": "string", "required": true }]
+    },
+    {
+      "key": "suspend_service",
+      "name": "Suspend service",
+      "method": "POST",
+      "endpoint": "/services/{{ inputs.service_id }}/suspend",
+      "inputs": [{ "key": "service_id", "label": "Service ID", "type": "string", "required": true }]
+    },
+    {
+      "key": "resume_service",
+      "name": "Resume service",
+      "method": "POST",
+      "endpoint": "/services/{{ inputs.service_id }}/resume",
+      "inputs": [{ "key": "service_id", "label": "Service ID", "type": "string", "required": true }]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_deploy",
+      "name": "New deploy (polling)",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/services/{{ inputs.service_id }}/deploys",
+      "query": { "limit": 20 },
+      "id_field": "deploy.id",
+      "inputs": [
+        { "key": "service_id", "label": "Service ID", "type": "string", "required": true },
+        { "key": "poll_interval", "label": "Check every (minutes)", "type": "number", "default": 5 }
+      ]
+    }
+  ]
+}

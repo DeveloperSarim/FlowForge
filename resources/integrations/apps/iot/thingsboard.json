@@ -1,0 +1,63 @@
+{
+  "key": "thingsboard",
+  "name": "ThingsBoard",
+  "category": "IoT & Smart Home",
+  "description": "Push telemetry and attributes for a ThingsBoard device and read its attributes.",
+  "brand": "thingsboard",
+  "website": "https://thingsboard.io",
+  "docs_url": "https://thingsboard.io/docs/reference/http-api/",
+  "base_url": "{{ credentials.host }}/api/v1/{{ credentials.api_key }}",
+  "auth": [
+    {
+      "type": "api_key",
+      "fields": [
+        { "key": "host", "label": "ThingsBoard URL", "type": "string", "required": true, "placeholder": "https://thingsboard.cloud", "help": "Your server or ThingsBoard Cloud URL, no trailing slash." },
+        { "key": "api_key", "label": "Device access token", "type": "password", "required": true, "help": "Devices > your device > Copy access token. One credential per device." }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "send_telemetry",
+      "name": "Send telemetry",
+      "method": "POST",
+      "endpoint": "/telemetry",
+      "body": "{{ inputs.values }}",
+      "inputs": [
+        { "key": "values", "label": "Values", "type": "keyvalue", "required": true, "help": "Key = value, e.g. temperature = 21.5." }
+      ]
+    },
+    {
+      "key": "send_telemetry_json",
+      "name": "Send telemetry (JSON)",
+      "description": "Send a JSON object or array, e.g. with your own timestamps: {\"ts\": 1700000000000, \"values\": {...}}.",
+      "method": "POST",
+      "endpoint": "/telemetry",
+      "body": "{{ inputs.payload }}",
+      "inputs": [
+        { "key": "payload", "label": "Payload", "type": "json", "required": true }
+      ]
+    },
+    {
+      "key": "update_attributes",
+      "name": "Update client attributes",
+      "method": "POST",
+      "endpoint": "/attributes",
+      "body": "{{ inputs.attributes }}",
+      "inputs": [
+        { "key": "attributes", "label": "Attributes", "type": "keyvalue", "required": true }
+      ]
+    },
+    {
+      "key": "get_attributes",
+      "name": "Get attributes",
+      "method": "GET",
+      "endpoint": "/attributes",
+      "query": { "clientKeys": "{{ inputs.client_keys }}", "sharedKeys": "{{ inputs.shared_keys }}" },
+      "inputs": [
+        { "key": "client_keys", "label": "Client attribute keys", "type": "string", "placeholder": "firmwareVersion,model" },
+        { "key": "shared_keys", "label": "Shared attribute keys", "type": "string", "placeholder": "targetTemperature" }
+      ]
+    }
+  ]
+}

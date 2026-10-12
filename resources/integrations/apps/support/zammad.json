@@ -1,0 +1,247 @@
+{
+  "key": "zammad",
+  "name": "Zammad",
+  "category": "Customer Support",
+  "description": "Create, update, search and comment on tickets in Zammad.",
+  "brand": "zammad",
+  "website": "https://zammad.com",
+  "docs_url": "https://docs.zammad.org/en/latest/api/intro.html",
+  "base_url": "{{ credentials.base_url }}/api/v1",
+  "auth": [
+    {
+      "type": "api_key",
+      "in": "header",
+      "name": "Authorization",
+      "prefix": "Token token=",
+      "fields": [
+        {
+          "key": "base_url",
+          "label": "Zammad URL",
+          "type": "string",
+          "required": true,
+          "placeholder": "https://yourcompany.zammad.com",
+          "help": "Without a trailing slash"
+        },
+        {
+          "key": "api_key",
+          "label": "Access token",
+          "type": "password",
+          "required": true,
+          "help": "Profile > Token Access"
+        }
+      ]
+    },
+    {
+      "type": "basic",
+      "fields": [
+        {
+          "key": "base_url",
+          "label": "Zammad URL",
+          "type": "string",
+          "required": true,
+          "placeholder": "https://yourcompany.zammad.com",
+          "help": "Without a trailing slash"
+        },
+        {
+          "key": "username",
+          "label": "Email or login",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "password",
+          "label": "Password",
+          "type": "password",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "create_ticket",
+      "name": "Create ticket",
+      "method": "POST",
+      "endpoint": "/tickets",
+      "body": {
+        "title": "{{ inputs.title }}",
+        "group": "{{ inputs.group }}",
+        "customer_id": "guess:{{ inputs.customer_email }}",
+        "article": {
+          "subject": "{{ inputs.title }}",
+          "body": "{{ inputs.body }}",
+          "type": "note",
+          "internal": false
+        }
+      },
+      "inputs": [
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "group",
+          "label": "Group",
+          "type": "string",
+          "required": true,
+          "default": "Users"
+        },
+        {
+          "key": "customer_email",
+          "label": "Customer email",
+          "type": "string",
+          "required": true,
+          "help": "Created if it does not exist."
+        },
+        {
+          "key": "body",
+          "label": "Message",
+          "type": "text",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "update_ticket",
+      "name": "Update ticket",
+      "method": "PUT",
+      "endpoint": "/tickets/{{ inputs.ticket_id }}",
+      "body": {
+        "state": "{{ inputs.state }}",
+        "group": "{{ inputs.group }}",
+        "owner_id": "{{ inputs.owner_id }}"
+      },
+      "inputs": [
+        {
+          "key": "ticket_id",
+          "label": "Ticket ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "state",
+          "label": "State",
+          "type": "select",
+          "options": [
+            {
+              "value": "new",
+              "label": "New"
+            },
+            {
+              "value": "open",
+              "label": "Open"
+            },
+            {
+              "value": "pending reminder",
+              "label": "Pending reminder"
+            },
+            {
+              "value": "closed",
+              "label": "Closed"
+            }
+          ]
+        },
+        {
+          "key": "group",
+          "label": "Group",
+          "type": "string"
+        },
+        {
+          "key": "owner_id",
+          "label": "Owner user ID",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "add_article",
+      "name": "Add note or reply",
+      "description": "Adds an article (note) to a ticket.",
+      "method": "POST",
+      "endpoint": "/ticket_articles",
+      "body": {
+        "ticket_id": "{{ inputs.ticket_id }}",
+        "body": "{{ inputs.body }}",
+        "type": "note",
+        "internal": "{{ inputs.internal }}"
+      },
+      "inputs": [
+        {
+          "key": "ticket_id",
+          "label": "Ticket ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "body",
+          "label": "Text",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "internal",
+          "label": "Internal",
+          "type": "boolean",
+          "default": true
+        }
+      ]
+    },
+    {
+      "key": "get_ticket",
+      "name": "Get ticket",
+      "method": "GET",
+      "endpoint": "/tickets/{{ inputs.ticket_id }}",
+      "inputs": [
+        {
+          "key": "ticket_id",
+          "label": "Ticket ID",
+          "type": "number",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "search_tickets",
+      "name": "Search tickets",
+      "method": "GET",
+      "endpoint": "/tickets/search",
+      "query": {
+        "query": "{{ inputs.query }}",
+        "limit": "{{ inputs.limit }}",
+        "expand": "true"
+      },
+      "inputs": [
+        {
+          "key": "query",
+          "label": "Query",
+          "type": "string",
+          "required": true,
+          "placeholder": "state.name:open AND customer.email:jane@example.com"
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 20
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Create a webhook (Manage > Webhook) and fire it from a trigger.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

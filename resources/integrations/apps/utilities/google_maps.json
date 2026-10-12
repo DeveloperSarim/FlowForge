@@ -1,0 +1,95 @@
+{
+  "key": "google_maps",
+  "name": "Google Maps Platform",
+  "category": "Utilities",
+  "description": "Geocode addresses, search places and get travel distances and times.",
+  "brand": "googlemaps",
+  "website": "https://mapsplatform.google.com",
+  "docs_url": "https://developers.google.com/maps/documentation",
+  "popular": true,
+  "base_url": "https://maps.googleapis.com/maps/api",
+  "auth": { "type": "api_key", "in": "query", "name": "key", "fields": [
+    { "key": "api_key", "label": "API key", "type": "password", "required": true, "help": "Google Cloud console → APIs & Services → Credentials. Enable each API you use." }
+  ] },
+  "actions": [
+    {
+      "key": "geocode",
+      "name": "Geocode address",
+      "description": "Turns an address into coordinates (Geocoding API).",
+      "method": "GET",
+      "endpoint": "/geocode/json",
+      "query": { "address": "{{ inputs.address }}", "region": "{{ inputs.region }}", "language": "{{ inputs.language }}" },
+      "error_path": "error_message",
+      "inputs": [
+        { "key": "address", "label": "Address", "type": "string", "required": true, "placeholder": "1600 Amphitheatre Parkway, Mountain View, CA" },
+        { "key": "region", "label": "Region bias", "type": "string", "placeholder": "us" },
+        { "key": "language", "label": "Language", "type": "string", "placeholder": "en" }
+      ]
+    },
+    {
+      "key": "reverse_geocode",
+      "name": "Reverse geocode",
+      "description": "Turns coordinates into an address (Geocoding API).",
+      "method": "GET",
+      "endpoint": "/geocode/json",
+      "query": { "latlng": "{{ inputs.latlng }}", "language": "{{ inputs.language }}" },
+      "error_path": "error_message",
+      "inputs": [
+        { "key": "latlng", "label": "Coordinates (lat,lng)", "type": "string", "required": true, "placeholder": "40.714224,-73.961452" },
+        { "key": "language", "label": "Language", "type": "string", "placeholder": "en" }
+      ]
+    },
+    {
+      "key": "search_places",
+      "name": "Search places",
+      "description": "Text search for places like \"pizza in New York\" (Places API New).",
+      "method": "POST",
+      "endpoint": "https://places.googleapis.com/v1/places:searchText",
+      "headers": { "X-Goog-FieldMask": "{{ inputs.field_mask }}" },
+      "body": { "textQuery": "{{ inputs.query }}", "languageCode": "{{ inputs.language }}", "regionCode": "{{ inputs.region }}" },
+      "output_path": "places",
+      "inputs": [
+        { "key": "query", "label": "Search text", "type": "string", "required": true, "placeholder": "pizza in New York" },
+        { "key": "field_mask", "label": "Fields to return", "type": "string", "required": true, "default": "places.id,places.displayName,places.formattedAddress,places.location,places.rating", "help": "Comma-separated field mask. Billing depends on the fields requested." },
+        { "key": "language", "label": "Language", "type": "string", "placeholder": "en" },
+        { "key": "region", "label": "Region code", "type": "string", "placeholder": "US" }
+      ]
+    },
+    {
+      "key": "distance_matrix",
+      "name": "Get distance matrix",
+      "description": "Travel distance and time between origins and destinations.",
+      "method": "GET",
+      "endpoint": "/distancematrix/json",
+      "query": { "origins": "{{ inputs.origins }}", "destinations": "{{ inputs.destinations }}", "mode": "{{ inputs.mode }}", "units": "{{ inputs.units }}", "departure_time": "{{ inputs.departure_time }}" },
+      "error_path": "error_message",
+      "inputs": [
+        { "key": "origins", "label": "Origins", "type": "string", "required": true, "placeholder": "Seattle, WA|Portland, OR", "help": "Addresses or lat,lng. Separate several with |." },
+        { "key": "destinations", "label": "Destinations", "type": "string", "required": true, "placeholder": "San Francisco, CA" },
+        { "key": "mode", "label": "Travel mode", "type": "select", "default": "driving", "options": [
+          { "value": "driving", "label": "Driving" }, { "value": "walking", "label": "Walking" }, { "value": "bicycling", "label": "Bicycling" }, { "value": "transit", "label": "Transit" }
+        ] },
+        { "key": "units", "label": "Units", "type": "select", "default": "metric", "options": [{ "value": "metric", "label": "Metric" }, { "value": "imperial", "label": "Imperial" }] },
+        { "key": "departure_time", "label": "Departure time", "type": "string", "placeholder": "now", "help": "'now' or a Unix timestamp; enables traffic-aware times." }
+      ]
+    },
+    {
+      "key": "compute_route",
+      "name": "Compute route",
+      "description": "Distance and duration from one address to another (Routes API).",
+      "method": "POST",
+      "endpoint": "https://routes.googleapis.com/directions/v2:computeRoutes",
+      "headers": { "X-Goog-FieldMask": "{{ inputs.field_mask }}" },
+      "body": { "origin": { "address": "{{ inputs.origin }}" }, "destination": { "address": "{{ inputs.destination }}" }, "travelMode": "{{ inputs.travel_mode }}" },
+      "output_path": "routes",
+      "inputs": [
+        { "key": "origin", "label": "Origin address", "type": "string", "required": true },
+        { "key": "destination", "label": "Destination address", "type": "string", "required": true },
+        { "key": "travel_mode", "label": "Travel mode", "type": "select", "default": "DRIVE", "options": [
+          { "value": "DRIVE", "label": "Drive" }, { "value": "WALK", "label": "Walk" }, { "value": "BICYCLE", "label": "Bicycle" }, { "value": "TWO_WHEELER", "label": "Two-wheeler" }, { "value": "TRANSIT", "label": "Transit" }
+        ] },
+        { "key": "field_mask", "label": "Fields to return", "type": "string", "required": true, "default": "routes.duration,routes.distanceMeters" }
+      ]
+    }
+  ]
+}

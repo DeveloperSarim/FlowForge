@@ -1,0 +1,313 @@
+{
+  "key": "jira",
+  "name": "Jira",
+  "category": "Project Management",
+  "description": "Create, update, transition, comment on and search Jira Cloud issues.",
+  "brand": "jira",
+  "website": "https://www.atlassian.com/software/jira",
+  "docs_url": "https://developer.atlassian.com/cloud/jira/platform/rest/v3/",
+  "popular": true,
+  "base_url": "https://{{ credentials.subdomain }}.atlassian.net",
+  "auth": {
+    "type": "basic",
+    "fields": [
+      {
+        "key": "subdomain",
+        "label": "Site",
+        "type": "string",
+        "required": true,
+        "placeholder": "your-team",
+        "help": "The part before .atlassian.net"
+      },
+      {
+        "key": "username",
+        "label": "Email",
+        "type": "string",
+        "required": true
+      },
+      {
+        "key": "password",
+        "label": "API token",
+        "type": "password",
+        "required": true,
+        "help": "id.atlassian.com/manage-profile/security/api-tokens"
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "create_issue",
+      "name": "Create issue",
+      "description": "Uses REST v2 so the description can be plain text (v3 requires ADF JSON).",
+      "method": "POST",
+      "endpoint": "/rest/api/2/issue",
+      "body": {
+        "fields": {
+          "project": {
+            "key": "{{ inputs.project_key }}"
+          },
+          "summary": "{{ inputs.summary }}",
+          "issuetype": {
+            "name": "{{ inputs.issue_type }}"
+          },
+          "description": "{{ inputs.description }}",
+          "labels": "{{ inputs.labels }}",
+          "priority": {
+            "name": "{{ inputs.priority }}"
+          },
+          "assignee": {
+            "accountId": "{{ inputs.assignee_id }}"
+          },
+          "duedate": "{{ inputs.due_date }}"
+        }
+      },
+      "inputs": [
+        {
+          "key": "project_key",
+          "label": "Project key",
+          "type": "string",
+          "required": true,
+          "placeholder": "PROJ"
+        },
+        {
+          "key": "summary",
+          "label": "Summary",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "issue_type",
+          "label": "Issue type",
+          "type": "string",
+          "required": true,
+          "default": "Task"
+        },
+        {
+          "key": "description",
+          "label": "Description",
+          "type": "text"
+        },
+        {
+          "key": "labels",
+          "label": "Labels",
+          "type": "list"
+        },
+        {
+          "key": "priority",
+          "label": "Priority",
+          "type": "string",
+          "placeholder": "High"
+        },
+        {
+          "key": "assignee_id",
+          "label": "Assignee account ID",
+          "type": "string"
+        },
+        {
+          "key": "due_date",
+          "label": "Due date",
+          "type": "string",
+          "placeholder": "2026-10-12"
+        }
+      ]
+    },
+    {
+      "key": "get_issue",
+      "name": "Get issue",
+      "method": "GET",
+      "endpoint": "/rest/api/3/issue/{{ inputs.issue_key }}",
+      "query": {
+        "fields": "{{ inputs.fields }}"
+      },
+      "inputs": [
+        {
+          "key": "issue_key",
+          "label": "Issue key",
+          "type": "string",
+          "required": true,
+          "placeholder": "PROJ-123"
+        },
+        {
+          "key": "fields",
+          "label": "Fields",
+          "type": "string",
+          "placeholder": "summary,status,assignee",
+          "help": "Empty = all navigable fields."
+        }
+      ]
+    },
+    {
+      "key": "update_issue",
+      "name": "Update issue",
+      "description": "Changes only the fields you fill in.",
+      "method": "PUT",
+      "endpoint": "/rest/api/2/issue/{{ inputs.issue_key }}",
+      "body": {
+        "fields": {
+          "summary": "{{ inputs.summary }}",
+          "description": "{{ inputs.description }}",
+          "labels": "{{ inputs.labels }}",
+          "duedate": "{{ inputs.due_date }}"
+        }
+      },
+      "inputs": [
+        {
+          "key": "issue_key",
+          "label": "Issue key",
+          "type": "string",
+          "required": true,
+          "placeholder": "PROJ-123"
+        },
+        {
+          "key": "summary",
+          "label": "Summary",
+          "type": "string"
+        },
+        {
+          "key": "description",
+          "label": "Description",
+          "type": "text"
+        },
+        {
+          "key": "labels",
+          "label": "Labels (replaces)",
+          "type": "list"
+        },
+        {
+          "key": "due_date",
+          "label": "Due date",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "add_comment",
+      "name": "Add comment",
+      "method": "POST",
+      "endpoint": "/rest/api/2/issue/{{ inputs.issue_key }}/comment",
+      "body": {
+        "body": "{{ inputs.body }}"
+      },
+      "inputs": [
+        {
+          "key": "issue_key",
+          "label": "Issue key",
+          "type": "string",
+          "required": true,
+          "placeholder": "PROJ-123"
+        },
+        {
+          "key": "body",
+          "label": "Comment",
+          "type": "text",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "transition_issue",
+      "name": "Transition issue",
+      "description": "Moves an issue to another status.",
+      "method": "POST",
+      "endpoint": "/rest/api/3/issue/{{ inputs.issue_key }}/transitions",
+      "body": {
+        "transition": {
+          "id": "{{ inputs.transition_id }}"
+        }
+      },
+      "inputs": [
+        {
+          "key": "issue_key",
+          "label": "Issue key",
+          "type": "string",
+          "required": true,
+          "placeholder": "PROJ-123"
+        },
+        {
+          "key": "transition_id",
+          "label": "Transition ID",
+          "type": "string",
+          "required": true,
+          "help": "GET /rest/api/3/issue/{key}/transitions lists the ids (use Make an API call)."
+        }
+      ]
+    },
+    {
+      "key": "search_issues",
+      "name": "Search issues (JQL)",
+      "method": "GET",
+      "endpoint": "/rest/api/3/search/jql",
+      "query": {
+        "jql": "{{ inputs.jql }}",
+        "fields": "{{ inputs.fields }}",
+        "maxResults": "{{ inputs.max_results }}"
+      },
+      "output_path": "issues",
+      "inputs": [
+        {
+          "key": "jql",
+          "label": "JQL",
+          "type": "string",
+          "required": true,
+          "placeholder": "project = PROJ AND status = \"To Do\" ORDER BY created DESC"
+        },
+        {
+          "key": "fields",
+          "label": "Fields",
+          "type": "string",
+          "default": "summary,status,assignee,priority,created"
+        },
+        {
+          "key": "max_results",
+          "label": "Max results",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_issue",
+      "name": "New issue",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/rest/api/3/search/jql",
+      "query": {
+        "jql": "project = \"{{ inputs.project_key }}\" ORDER BY created DESC",
+        "maxResults": 50,
+        "fields": "summary,status,issuetype,assignee,reporter,priority,labels,created"
+      },
+      "items_path": "issues",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "project_key",
+          "label": "Project key",
+          "type": "string",
+          "required": true,
+          "placeholder": "PROJ"
+        },
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    },
+    {
+      "key": "webhook_event",
+      "name": "Jira webhook",
+      "type": "webhook",
+      "description": "Add this URL under Settings > System > WebHooks (admin).",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

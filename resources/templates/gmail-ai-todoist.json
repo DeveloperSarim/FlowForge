@@ -1,0 +1,99 @@
+{
+  "key": "gmail-ai-todoist",
+  "name": "Turn important emails into Todoist tasks with AI",
+  "description": "New Gmail messages matching your search are read by OpenAI, which writes a one-line task added to Todoist.",
+  "category": "AI",
+  "featured": false,
+  "graph": {
+    "nodes": [
+      {
+        "id": "trigger",
+        "type": "trigger",
+        "position": {
+          "x": 0,
+          "y": 200
+        },
+        "data": {
+          "integration": "gmail",
+          "trigger": "new_email",
+          "label": "New email",
+          "config": {
+            "q": "is:important is:unread",
+            "poll_interval": 5
+          }
+        }
+      },
+      {
+        "id": "step_1",
+        "type": "action",
+        "position": {
+          "x": 240,
+          "y": 200
+        },
+        "data": {
+          "integration": "gmail",
+          "action": "get_message",
+          "label": "Read email",
+          "config": {
+            "message_id": "{{ steps.trigger.data.id }}"
+          }
+        }
+      },
+      {
+        "id": "step_2",
+        "type": "action",
+        "position": {
+          "x": 480,
+          "y": 200
+        },
+        "data": {
+          "integration": "openai",
+          "action": "chat_completion",
+          "label": "Extract the task",
+          "config": {
+            "model": "gpt-4o-mini",
+            "system": "Turn the email into one actionable task under 12 words. Reply with the task only.",
+            "prompt": "{{ steps.step_1.snippet }}"
+          }
+        }
+      },
+      {
+        "id": "step_3",
+        "type": "action",
+        "position": {
+          "x": 720,
+          "y": 200
+        },
+        "data": {
+          "integration": "todoist",
+          "action": "create_task",
+          "label": "Add task",
+          "config": {
+            "content": "{{ steps.step_2.text }}",
+            "due_string": "today"
+          }
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "e-trigger-step_1",
+        "source": "trigger",
+        "target": "step_1",
+        "sourceHandle": null
+      },
+      {
+        "id": "e-step_1-step_2",
+        "source": "step_1",
+        "target": "step_2",
+        "sourceHandle": null
+      },
+      {
+        "id": "e-step_2-step_3",
+        "source": "step_2",
+        "target": "step_3",
+        "sourceHandle": null
+      }
+    ]
+  }
+}

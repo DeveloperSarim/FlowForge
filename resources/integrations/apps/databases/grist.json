@@ -1,0 +1,93 @@
+{
+  "key": "grist",
+  "name": "Grist",
+  "category": "Databases",
+  "description": "List, add, update and upsert records, or run SQL against a Grist document.",
+  "brand": "grist",
+  "website": "https://www.getgrist.com",
+  "docs_url": "https://support.getgrist.com/api/",
+  "base_url": "{{ credentials.base_url }}/api",
+  "auth": { "type": "bearer", "fields": [
+    { "key": "base_url", "label": "Grist URL", "type": "string", "required": true, "default": "https://docs.getgrist.com", "help": "https://docs.getgrist.com, your team site (https://<team>.getgrist.com) or self-hosted URL." },
+    { "key": "token", "label": "API key", "type": "password", "required": true, "help": "Profile settings → API." }
+  ] },
+  "actions": [
+    {
+      "key": "list_records",
+      "name": "List records",
+      "method": "GET",
+      "endpoint": "/docs/{{ inputs.doc_id }}/tables/{{ inputs.table_id }}/records",
+      "query": { "filter": "{{ inputs.filter }}", "sort": "{{ inputs.sort }}", "limit": "{{ inputs.limit }}" },
+      "output_path": "records",
+      "inputs": [
+        { "key": "doc_id", "label": "Document ID", "type": "string", "required": true, "help": "Document settings → API → Document ID." },
+        { "key": "table_id", "label": "Table ID", "type": "string", "required": true, "placeholder": "Table1" },
+        { "key": "filter", "label": "Filter (JSON)", "type": "code", "placeholder": "{\"Status\": [\"Open\", \"Blocked\"]}" },
+        { "key": "sort", "label": "Sort", "type": "string", "placeholder": "-Due,Name" },
+        { "key": "limit", "label": "Limit", "type": "number" }
+      ]
+    },
+    {
+      "key": "add_record",
+      "name": "Add record",
+      "method": "POST",
+      "endpoint": "/docs/{{ inputs.doc_id }}/tables/{{ inputs.table_id }}/records",
+      "body": { "records": [{ "fields": "{{ inputs.fields }}" }] },
+      "inputs": [
+        { "key": "doc_id", "label": "Document ID", "type": "string", "required": true },
+        { "key": "table_id", "label": "Table ID", "type": "string", "required": true },
+        { "key": "fields", "label": "Fields (JSON)", "type": "json", "required": true, "placeholder": "{ \"Name\": \"Ada\", \"Status\": \"Open\" }", "help": "Keys are column IDs." }
+      ]
+    },
+    {
+      "key": "update_record",
+      "name": "Update record",
+      "method": "PATCH",
+      "endpoint": "/docs/{{ inputs.doc_id }}/tables/{{ inputs.table_id }}/records",
+      "body": { "records": [{ "id": "{{ inputs.row_id }}", "fields": "{{ inputs.fields }}" }] },
+      "inputs": [
+        { "key": "doc_id", "label": "Document ID", "type": "string", "required": true },
+        { "key": "table_id", "label": "Table ID", "type": "string", "required": true },
+        { "key": "row_id", "label": "Row ID", "type": "number", "required": true },
+        { "key": "fields", "label": "Fields to change (JSON)", "type": "json", "required": true }
+      ]
+    },
+    {
+      "key": "upsert_record",
+      "name": "Add or update record",
+      "description": "Updates the record matching the lookup columns, or adds it.",
+      "method": "PUT",
+      "endpoint": "/docs/{{ inputs.doc_id }}/tables/{{ inputs.table_id }}/records",
+      "body": { "records": [{ "require": "{{ inputs.require }}", "fields": "{{ inputs.fields }}" }] },
+      "inputs": [
+        { "key": "doc_id", "label": "Document ID", "type": "string", "required": true },
+        { "key": "table_id", "label": "Table ID", "type": "string", "required": true },
+        { "key": "require", "label": "Match on (JSON)", "type": "json", "required": true, "placeholder": "{ \"Email\": \"ada@example.com\" }" },
+        { "key": "fields", "label": "Fields to set (JSON)", "type": "json" }
+      ]
+    },
+    {
+      "key": "run_sql",
+      "name": "Run SQL query",
+      "description": "Read-only SELECT against the document.",
+      "method": "POST",
+      "endpoint": "/docs/{{ inputs.doc_id }}/sql",
+      "body": { "sql": "{{ inputs.sql }}", "args": "{{ inputs.args }}" },
+      "output_path": "records",
+      "inputs": [
+        { "key": "doc_id", "label": "Document ID", "type": "string", "required": true },
+        { "key": "sql", "label": "SQL", "type": "code", "required": true, "placeholder": "SELECT * FROM Table1 WHERE Status = ?" },
+        { "key": "args", "label": "Parameters", "type": "list" }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "table_webhook",
+      "name": "Table webhook",
+      "description": "Receives a list of added or updated records.",
+      "type": "webhook",
+      "inputs": [{ "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }]
+    }
+  ]
+}

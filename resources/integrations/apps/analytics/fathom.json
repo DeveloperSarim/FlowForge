@@ -1,0 +1,60 @@
+{
+  "key": "fathom",
+  "name": "Fathom Analytics",
+  "category": "Analytics",
+  "description": "List sites, aggregate pageviews and events, and get current visitors.",
+  "brand": "fathom",
+  "website": "https://usefathom.com",
+  "docs_url": "https://usefathom.com/api",
+  "base_url": "https://api.usefathom.com/v1",
+  "auth": { "type": "bearer", "fields": [{ "key": "token", "label": "API token", "type": "password", "required": true, "help": "app.usefathom.com/api" }] },
+  "actions": [
+    {
+      "key": "list_sites",
+      "name": "List sites",
+      "method": "GET",
+      "endpoint": "/sites",
+      "query": { "limit": "{{ inputs.limit }}" },
+      "output_path": "data",
+      "inputs": [{ "key": "limit", "label": "Limit", "type": "number", "default": 50 }]
+    },
+    {
+      "key": "aggregate",
+      "name": "Aggregate stats",
+      "method": "GET",
+      "endpoint": "/aggregations",
+      "query": {
+        "entity": "{{ inputs.entity }}", "entity_id": "{{ inputs.site_id }}", "entity_name": "{{ inputs.event_name }}",
+        "aggregates": "{{ inputs.aggregates }}", "date_from": "{{ inputs.date_from }}", "date_to": "{{ inputs.date_to }}",
+        "date_grouping": "{{ inputs.date_grouping }}", "field_grouping": "{{ inputs.field_grouping }}", "sort_by": "{{ inputs.sort_by }}", "limit": "{{ inputs.limit }}"
+      },
+      "inputs": [
+        { "key": "entity", "label": "Entity", "type": "select", "required": true, "default": "pageview", "options": [
+          { "value": "pageview", "label": "Pageviews" }, { "value": "event", "label": "Events" }
+        ] },
+        { "key": "site_id", "label": "Site ID", "type": "string", "required": true },
+        { "key": "event_name", "label": "Event name", "type": "string", "help": "For entity = event." },
+        { "key": "aggregates", "label": "Aggregates", "type": "string", "required": true, "default": "visits,uniques,pageviews", "help": "pageview: visits, uniques, pageviews, avg_duration, bounce_rate. event: conversions, unique_conversions, value." },
+        { "key": "date_from", "label": "From (YYYY-MM-DD HH:MM:SS)", "type": "string" },
+        { "key": "date_to", "label": "To (YYYY-MM-DD HH:MM:SS)", "type": "string" },
+        { "key": "date_grouping", "label": "Group by date", "type": "select", "options": [
+          { "value": "hour", "label": "Hour" }, { "value": "day", "label": "Day" }, { "value": "month", "label": "Month" }, { "value": "year", "label": "Year" }
+        ] },
+        { "key": "field_grouping", "label": "Group by fields", "type": "string", "placeholder": "pathname,referrer_hostname" },
+        { "key": "sort_by", "label": "Sort by", "type": "string", "placeholder": "pageviews:desc" },
+        { "key": "limit", "label": "Limit", "type": "number" }
+      ]
+    },
+    {
+      "key": "current_visitors",
+      "name": "Current visitors",
+      "method": "GET",
+      "endpoint": "/current_visitors",
+      "query": { "site_id": "{{ inputs.site_id }}", "detailed": "{{ inputs.detailed }}" },
+      "inputs": [
+        { "key": "site_id", "label": "Site ID", "type": "string", "required": true },
+        { "key": "detailed", "label": "Include top pages and referrers", "type": "boolean", "default": false }
+      ]
+    }
+  ]
+}

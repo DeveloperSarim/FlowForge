@@ -1,0 +1,99 @@
+{
+  "key": "featurebase",
+  "name": "Featurebase",
+  "category": "Customer Support",
+  "description": "Create and update feedback posts and add comments in Featurebase.",
+  "brand": "featurebase",
+  "website": "https://www.featurebase.app",
+  "docs_url": "https://help.featurebase.app/api-reference",
+  "base_url": "https://do.featurebase.app/v2",
+  "auth": {
+    "type": "bearer",
+    "fields": [{ "key": "token", "label": "Secret API key", "type": "password", "required": true, "placeholder": "sk_..." }]
+  },
+  "actions": [
+    {
+      "key": "create_post",
+      "name": "Create post",
+      "method": "POST",
+      "endpoint": "/posts",
+      "body": {
+        "title": "{{ inputs.title }}",
+        "content": "{{ inputs.content }}",
+        "boardId": "{{ inputs.board_id }}",
+        "statusId": "{{ inputs.status_id }}",
+        "tags": "{{ inputs.tags }}",
+        "author": { "email": "{{ inputs.author_email }}", "name": "{{ inputs.author_name }}" }
+      },
+      "inputs": [
+        { "key": "title", "label": "Title", "type": "string", "required": true },
+        { "key": "content", "label": "Content (HTML)", "type": "text" },
+        { "key": "board_id", "label": "Board ID", "type": "string" },
+        { "key": "status_id", "label": "Status ID", "type": "string" },
+        { "key": "tags", "label": "Tags", "type": "list" },
+        { "key": "author_email", "label": "Author email", "type": "string" },
+        { "key": "author_name", "label": "Author name", "type": "string" }
+      ]
+    },
+    {
+      "key": "update_post",
+      "name": "Update post",
+      "method": "PATCH",
+      "endpoint": "/posts/{{ inputs.post_id }}",
+      "body": {
+        "title": "{{ inputs.title }}",
+        "content": "{{ inputs.content }}",
+        "statusId": "{{ inputs.status_id }}",
+        "tags": "{{ inputs.tags }}",
+        "sendStatusUpdateEmail": "{{ inputs.notify }}"
+      },
+      "inputs": [
+        { "key": "post_id", "label": "Post ID", "type": "string", "required": true },
+        { "key": "title", "label": "Title", "type": "string" },
+        { "key": "content", "label": "Content (HTML)", "type": "text" },
+        { "key": "status_id", "label": "Status ID", "type": "string" },
+        { "key": "tags", "label": "Tags", "type": "list" },
+        { "key": "notify", "label": "Email voters about the status change", "type": "boolean" }
+      ]
+    },
+    {
+      "key": "get_post",
+      "name": "Get post",
+      "method": "GET",
+      "endpoint": "/posts/{{ inputs.post_id }}",
+      "inputs": [{ "key": "post_id", "label": "Post ID", "type": "string", "required": true }]
+    },
+    {
+      "key": "create_comment",
+      "name": "Add comment",
+      "method": "POST",
+      "endpoint": "/comments",
+      "body": { "postId": "{{ inputs.post_id }}", "content": "{{ inputs.content }}", "isPrivate": "{{ inputs.private }}" },
+      "inputs": [
+        { "key": "post_id", "label": "Post ID", "type": "string", "required": true },
+        { "key": "content", "label": "Comment (HTML)", "type": "text", "required": true },
+        { "key": "private", "label": "Private (admins only)", "type": "boolean" }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_post",
+      "name": "New post",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/posts",
+      "query": { "sortBy": "createdAt", "sortOrder": "desc", "limit": 50 },
+      "items_path": "data",
+      "id_field": "id",
+      "inputs": [{ "key": "poll_interval", "label": "Check every (minutes)", "type": "number", "default": 5 }]
+    },
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Add this URL as a webhook in Featurebase settings.",
+      "inputs": [{ "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }]
+    }
+  ]
+}

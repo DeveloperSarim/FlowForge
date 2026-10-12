@@ -1,0 +1,225 @@
+{
+  "key": "salesforce",
+  "name": "Salesforce",
+  "category": "CRM & Sales",
+  "description": "Create, update and query any Salesforce object with SOQL.",
+  "brand": "salesforce",
+  "website": "https://www.salesforce.com",
+  "docs_url": "https://developer.salesforce.com/docs/atlas.en-us.api_rest.meta/api_rest/",
+  "popular": true,
+  "base_url": "{{ credentials.instance_url }}/services/data/v62.0",
+  "auth": [
+    {
+      "type": "oauth2",
+      "authorize_url": "https://login.salesforce.com/services/oauth2/authorize",
+      "token_url": "https://login.salesforce.com/services/oauth2/token",
+      "scopes": [
+        "api",
+        "refresh_token"
+      ],
+      "fields": [
+        {
+          "key": "instance_url",
+          "label": "Instance URL",
+          "type": "string",
+          "required": true,
+          "placeholder": "https://yourcompany.my.salesforce.com",
+          "help": "Your My Domain URL, without a trailing slash."
+        }
+      ]
+    },
+    {
+      "type": "bearer",
+      "fields": [
+        {
+          "key": "instance_url",
+          "label": "Instance URL",
+          "type": "string",
+          "required": true,
+          "placeholder": "https://yourcompany.my.salesforce.com",
+          "help": "Your My Domain URL, without a trailing slash."
+        },
+        {
+          "key": "token",
+          "label": "Access token / session ID",
+          "type": "password",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "create_record",
+      "name": "Create record",
+      "method": "POST",
+      "endpoint": "/sobjects/{{ inputs.sobject }}",
+      "body": "{{ inputs.fields }}",
+      "inputs": [
+        {
+          "key": "sobject",
+          "label": "Object",
+          "type": "string",
+          "required": true,
+          "default": "Lead",
+          "placeholder": "Lead, Contact, Account, Opportunity"
+        },
+        {
+          "key": "fields",
+          "label": "Fields",
+          "type": "json",
+          "required": true,
+          "help": "Field API names, e.g. {\"LastName\": \"Smith\", \"Company\": \"Acme\"}"
+        }
+      ]
+    },
+    {
+      "key": "update_record",
+      "name": "Update record",
+      "description": "Returns an empty response on success.",
+      "method": "PATCH",
+      "endpoint": "/sobjects/{{ inputs.sobject }}/{{ inputs.record_id }}",
+      "body": "{{ inputs.fields }}",
+      "inputs": [
+        {
+          "key": "sobject",
+          "label": "Object",
+          "type": "string",
+          "required": true,
+          "default": "Lead"
+        },
+        {
+          "key": "record_id",
+          "label": "Record ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "fields",
+          "label": "Fields",
+          "type": "json",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "upsert_record",
+      "name": "Upsert by external ID",
+      "method": "PATCH",
+      "endpoint": "/sobjects/{{ inputs.sobject }}/{{ inputs.external_id_field }}/{{ inputs.external_id }}",
+      "body": "{{ inputs.fields }}",
+      "inputs": [
+        {
+          "key": "sobject",
+          "label": "Object",
+          "type": "string",
+          "required": true,
+          "default": "Contact"
+        },
+        {
+          "key": "external_id_field",
+          "label": "External ID field",
+          "type": "string",
+          "required": true,
+          "placeholder": "Email__c"
+        },
+        {
+          "key": "external_id",
+          "label": "External ID value",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "fields",
+          "label": "Fields",
+          "type": "json",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "get_record",
+      "name": "Get record",
+      "method": "GET",
+      "endpoint": "/sobjects/{{ inputs.sobject }}/{{ inputs.record_id }}",
+      "query": {
+        "fields": "{{ inputs.fields }}"
+      },
+      "inputs": [
+        {
+          "key": "sobject",
+          "label": "Object",
+          "type": "string",
+          "required": true,
+          "default": "Lead"
+        },
+        {
+          "key": "record_id",
+          "label": "Record ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "fields",
+          "label": "Fields",
+          "type": "string",
+          "placeholder": "Id,Name,Email"
+        }
+      ]
+    },
+    {
+      "key": "soql_query",
+      "name": "Run SOQL query",
+      "method": "GET",
+      "endpoint": "/query",
+      "query": {
+        "q": "{{ inputs.q }}"
+      },
+      "inputs": [
+        {
+          "key": "q",
+          "label": "SOQL",
+          "type": "code",
+          "required": true,
+          "placeholder": "SELECT Id, Name FROM Account WHERE Name LIKE 'Acme%' LIMIT 10"
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_record",
+      "name": "New record",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/query",
+      "query": {
+        "q": "SELECT {{ inputs.fields }} FROM {{ inputs.sobject }} ORDER BY CreatedDate DESC LIMIT 50"
+      },
+      "items_path": "records",
+      "id_field": "Id",
+      "inputs": [
+        {
+          "key": "sobject",
+          "label": "Object",
+          "type": "string",
+          "required": true,
+          "default": "Lead"
+        },
+        {
+          "key": "fields",
+          "label": "Fields",
+          "type": "string",
+          "required": true,
+          "default": "Id, Name, CreatedDate"
+        },
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

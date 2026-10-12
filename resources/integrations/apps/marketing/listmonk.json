@@ -1,0 +1,253 @@
+{
+  "key": "listmonk",
+  "name": "listmonk",
+  "category": "Marketing & Email",
+  "description": "Manage subscribers and lists, send transactional mail (self-hosted).",
+  "brand": "listmonk",
+  "website": "https://listmonk.app",
+  "docs_url": "https://listmonk.app/docs/apis/apis/",
+  "base_url": "{{ credentials.url }}/api",
+  "auth": {
+    "type": "basic",
+    "fields": [
+      {
+        "key": "url",
+        "label": "listmonk URL",
+        "type": "string",
+        "required": true,
+        "placeholder": "https://lists.example.com",
+        "help": "No trailing slash."
+      },
+      {
+        "key": "username",
+        "label": "API user",
+        "type": "string",
+        "required": true
+      },
+      {
+        "key": "password",
+        "label": "API token",
+        "type": "password",
+        "required": true
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "create_subscriber",
+      "name": "Create subscriber",
+      "method": "POST",
+      "endpoint": "/subscribers",
+      "output_path": "data",
+      "body": {
+        "email": "{{ inputs.email }}",
+        "name": "{{ inputs.name }}",
+        "status": "enabled",
+        "lists": "{{ inputs.lists }}",
+        "attribs": "{{ inputs.attribs }}",
+        "preconfirm_subscriptions": "{{ inputs.preconfirm }}"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "lists",
+          "label": "List IDs",
+          "type": "json",
+          "placeholder": "[1, 2]"
+        },
+        {
+          "key": "attribs",
+          "label": "Attributes",
+          "type": "json"
+        },
+        {
+          "key": "preconfirm",
+          "label": "Preconfirm subscriptions",
+          "type": "boolean",
+          "default": false
+        }
+      ]
+    },
+    {
+      "key": "find_subscriber",
+      "name": "Find subscriber by email",
+      "method": "GET",
+      "endpoint": "/subscribers",
+      "query": {
+        "query": "subscribers.email = '{{ inputs.email }}'"
+      },
+      "output_path": "data.results",
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "manage_lists",
+      "name": "Add / remove / unsubscribe from lists",
+      "method": "PUT",
+      "endpoint": "/subscribers/lists",
+      "body": {
+        "ids": "{{ inputs.subscriber_ids }}",
+        "action": "{{ inputs.action }}",
+        "target_list_ids": "{{ inputs.list_ids }}",
+        "status": "{{ inputs.status }}"
+      },
+      "inputs": [
+        {
+          "key": "subscriber_ids",
+          "label": "Subscriber IDs",
+          "type": "json",
+          "required": true,
+          "placeholder": "[1]"
+        },
+        {
+          "key": "list_ids",
+          "label": "List IDs",
+          "type": "json",
+          "required": true,
+          "placeholder": "[2, 3]"
+        },
+        {
+          "key": "action",
+          "label": "Action",
+          "type": "select",
+          "required": true,
+          "options": [
+            {
+              "value": "add",
+              "label": "Add"
+            },
+            {
+              "value": "remove",
+              "label": "Remove"
+            },
+            {
+              "value": "unsubscribe",
+              "label": "Unsubscribe"
+            }
+          ],
+          "default": "add"
+        },
+        {
+          "key": "status",
+          "label": "Status (when adding)",
+          "type": "select",
+          "options": [
+            {
+              "value": "confirmed",
+              "label": "Confirmed"
+            },
+            {
+              "value": "unconfirmed",
+              "label": "Unconfirmed"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "send_tx",
+      "name": "Send transactional message",
+      "method": "POST",
+      "endpoint": "/tx",
+      "body": {
+        "subscriber_email": "{{ inputs.email }}",
+        "template_id": "{{ inputs.template_id }}",
+        "data": "{{ inputs.data }}",
+        "content_type": "{{ inputs.content_type }}"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Subscriber email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "template_id",
+          "label": "Template ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "data",
+          "label": "Data",
+          "type": "json"
+        },
+        {
+          "key": "content_type",
+          "label": "Content type",
+          "type": "select",
+          "options": [
+            {
+              "value": "html",
+              "label": "HTML"
+            },
+            {
+              "value": "markdown",
+              "label": "Markdown"
+            },
+            {
+              "value": "plain",
+              "label": "Plain"
+            }
+          ],
+          "default": "html"
+        }
+      ]
+    },
+    {
+      "key": "list_campaigns",
+      "name": "List campaigns",
+      "method": "GET",
+      "endpoint": "/campaigns",
+      "query": {
+        "order_by": "created_at",
+        "order": "desc",
+        "per_page": 20
+      },
+      "output_path": "data.results",
+      "inputs": []
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_subscriber",
+      "name": "New subscriber",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/subscribers",
+      "query": {
+        "order_by": "created_at",
+        "order": "desc",
+        "per_page": 50
+      },
+      "items_path": "data.results",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

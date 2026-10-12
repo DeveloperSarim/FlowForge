@@ -1,0 +1,90 @@
+{
+  "key": "stack_exchange",
+  "name": "Stack Exchange",
+  "category": "Social Media",
+  "description": "Search questions and read answers and users on Stack Overflow and other Stack Exchange sites.",
+  "brand": "stackexchange",
+  "website": "https://stackexchange.com",
+  "docs_url": "https://api.stackexchange.com/docs",
+  "base_url": "https://api.stackexchange.com/2.3",
+  "auth": [
+    { "type": "none" },
+    { "type": "api_key", "in": "query", "name": "key", "fields": [{ "key": "api_key", "label": "App key", "type": "password", "required": true, "help": "Optional: raises the daily quota (stackapps.com/apps/oauth/register)." }] }
+  ],
+  "actions": [
+    {
+      "key": "search_questions",
+      "name": "Search questions",
+      "method": "GET",
+      "endpoint": "/search/advanced",
+      "output_path": "items",
+      "query": { "q": "{{ inputs.q }}", "tagged": "{{ inputs.tagged }}", "site": "{{ inputs.site }}", "sort": "{{ inputs.sort }}", "order": "desc", "pagesize": "{{ inputs.pagesize }}" },
+      "inputs": [
+        { "key": "q", "label": "Query", "type": "string", "required": true, "placeholder": "laravel queue" },
+        { "key": "tagged", "label": "Tags (semicolon-separated)", "type": "string", "placeholder": "php;laravel" },
+        { "key": "site", "label": "Site", "type": "string", "required": true, "default": "stackoverflow" },
+        { "key": "sort", "label": "Sort", "type": "select", "default": "relevance", "options": [
+          { "value": "relevance", "label": "Relevance" }, { "value": "creation", "label": "Newest" }, { "value": "activity", "label": "Activity" }, { "value": "votes", "label": "Votes" }
+        ] },
+        { "key": "pagesize", "label": "Page size (max 100)", "type": "number", "default": 30 }
+      ]
+    },
+    {
+      "key": "list_questions",
+      "name": "List questions by tag",
+      "method": "GET",
+      "endpoint": "/questions",
+      "output_path": "items",
+      "query": { "tagged": "{{ inputs.tagged }}", "site": "{{ inputs.site }}", "sort": "{{ inputs.sort }}", "order": "desc", "pagesize": "{{ inputs.pagesize }}" },
+      "inputs": [
+        { "key": "tagged", "label": "Tags (semicolon-separated)", "type": "string", "placeholder": "php;laravel" },
+        { "key": "site", "label": "Site", "type": "string", "required": true, "default": "stackoverflow" },
+        { "key": "sort", "label": "Sort", "type": "select", "default": "creation", "options": [
+          { "value": "creation", "label": "Newest" }, { "value": "activity", "label": "Activity" }, { "value": "votes", "label": "Votes" }, { "value": "hot", "label": "Hot" }
+        ] },
+        { "key": "pagesize", "label": "Page size (max 100)", "type": "number", "default": 30 }
+      ]
+    },
+    {
+      "key": "get_answers",
+      "name": "Get answers to questions",
+      "method": "GET",
+      "endpoint": "/questions/{{ inputs.question_ids }}/answers",
+      "output_path": "items",
+      "query": { "site": "{{ inputs.site }}", "sort": "votes", "order": "desc", "filter": "withbody" },
+      "inputs": [
+        { "key": "question_ids", "label": "Question IDs (semicolon-separated)", "type": "string", "required": true, "placeholder": "11227809" },
+        { "key": "site", "label": "Site", "type": "string", "required": true, "default": "stackoverflow" }
+      ]
+    },
+    {
+      "key": "get_users",
+      "name": "Get users",
+      "method": "GET",
+      "endpoint": "/users/{{ inputs.user_ids }}",
+      "output_path": "items",
+      "query": { "site": "{{ inputs.site }}" },
+      "inputs": [
+        { "key": "user_ids", "label": "User IDs (semicolon-separated)", "type": "string", "required": true, "placeholder": "22656" },
+        { "key": "site", "label": "Site", "type": "string", "required": true, "default": "stackoverflow" }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_question",
+      "name": "New question with tag",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/questions",
+      "query": { "tagged": "{{ inputs.tagged }}", "site": "{{ inputs.site }}", "sort": "creation", "order": "desc", "pagesize": 30 },
+      "items_path": "items",
+      "id_field": "question_id",
+      "inputs": [
+        { "key": "tagged", "label": "Tags (semicolon-separated)", "type": "string", "required": true, "placeholder": "laravel" },
+        { "key": "site", "label": "Site", "type": "string", "required": true, "default": "stackoverflow" },
+        { "key": "poll_interval", "label": "Check every (minutes)", "type": "number", "default": 5 }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,72 @@
+{
+  "key": "coingecko",
+  "name": "CoinGecko",
+  "category": "Utilities",
+  "description": "Crypto prices, market data, coin details and trending coins.",
+  "brand": "coingecko",
+  "website": "https://www.coingecko.com",
+  "docs_url": "https://docs.coingecko.com",
+  "popular": true,
+  "base_url": "https://api.coingecko.com/api/v3",
+  "auth": { "type": "api_key", "in": "header", "name": "x-cg-demo-api-key", "fields": [
+    { "key": "api_key", "label": "Demo API key", "type": "password", "required": true, "help": "Free Demo key from coingecko.com/en/developers/dashboard." }
+  ] },
+  "actions": [
+    {
+      "key": "get_price",
+      "name": "Get coin price",
+      "method": "GET",
+      "endpoint": "/simple/price",
+      "query": { "ids": "{{ inputs.ids }}", "vs_currencies": "{{ inputs.vs_currencies }}", "include_24hr_change": "{{ inputs.include_24hr_change }}", "include_market_cap": "{{ inputs.include_market_cap }}" },
+      "inputs": [
+        { "key": "ids", "label": "Coin IDs", "type": "string", "required": true, "placeholder": "bitcoin,ethereum", "help": "CoinGecko API IDs, comma-separated." },
+        { "key": "vs_currencies", "label": "Currencies", "type": "string", "required": true, "default": "usd", "placeholder": "usd,eur" },
+        { "key": "include_24hr_change", "label": "Include 24h change", "type": "select", "default": "false", "options": [{ "value": "false", "label": "No" }, { "value": "true", "label": "Yes" }] },
+        { "key": "include_market_cap", "label": "Include market cap", "type": "select", "default": "false", "options": [{ "value": "false", "label": "No" }, { "value": "true", "label": "Yes" }] }
+      ]
+    },
+    {
+      "key": "list_markets",
+      "name": "List coin markets",
+      "description": "Price, market cap and volume for many coins.",
+      "method": "GET",
+      "endpoint": "/coins/markets",
+      "query": { "vs_currency": "{{ inputs.vs_currency }}", "ids": "{{ inputs.ids }}", "category": "{{ inputs.category }}", "order": "{{ inputs.order }}", "per_page": "{{ inputs.per_page }}", "page": "{{ inputs.page }}" },
+      "inputs": [
+        { "key": "vs_currency", "label": "Currency", "type": "string", "required": true, "default": "usd" },
+        { "key": "ids", "label": "Coin IDs", "type": "string", "placeholder": "bitcoin,ethereum" },
+        { "key": "category", "label": "Category", "type": "string", "placeholder": "layer-1" },
+        { "key": "order", "label": "Sort", "type": "select", "default": "market_cap_desc", "options": [
+          { "value": "market_cap_desc", "label": "Market cap (high first)" }, { "value": "market_cap_asc", "label": "Market cap (low first)" },
+          { "value": "volume_desc", "label": "Volume (high first)" }, { "value": "volume_asc", "label": "Volume (low first)" }
+        ] },
+        { "key": "per_page", "label": "Per page", "type": "number", "default": 100, "help": "Max 250." },
+        { "key": "page", "label": "Page", "type": "number" }
+      ]
+    },
+    {
+      "key": "get_coin",
+      "name": "Get coin details",
+      "method": "GET",
+      "endpoint": "/coins/{{ inputs.coin_id }}",
+      "query": { "localization": "false", "tickers": "false", "community_data": "false", "developer_data": "false" },
+      "inputs": [{ "key": "coin_id", "label": "Coin ID", "type": "string", "required": true, "placeholder": "bitcoin" }]
+    },
+    {
+      "key": "search",
+      "name": "Search coins",
+      "description": "Find coin, exchange and category IDs by name or symbol.",
+      "method": "GET",
+      "endpoint": "/search",
+      "query": { "query": "{{ inputs.query }}" },
+      "inputs": [{ "key": "query", "label": "Search", "type": "string", "required": true, "placeholder": "solana" }]
+    },
+    {
+      "key": "trending",
+      "name": "Get trending coins",
+      "method": "GET",
+      "endpoint": "/search/trending",
+      "inputs": []
+    }
+  ]
+}

@@ -1,0 +1,98 @@
+{
+  "key": "amplitude",
+  "name": "Amplitude",
+  "category": "Analytics",
+  "description": "Send events and query segmentation, active users and user activity.",
+  "brand": "amplitude",
+  "website": "https://amplitude.com",
+  "docs_url": "https://amplitude.com/docs/apis/analytics/http-v2",
+  "base_url": "https://amplitude.com/api/2",
+  "auth": { "type": "basic", "fields": [
+    { "key": "username", "label": "API key", "type": "string", "required": true, "help": "Project settings > General (US data center)." },
+    { "key": "password", "label": "Secret key", "type": "password", "required": true }
+  ] },
+  "actions": [
+    {
+      "key": "send_event",
+      "name": "Send event",
+      "method": "POST",
+      "endpoint": "https://api2.amplitude.com/2/httpapi",
+      "body": { "api_key": "{{ credentials.username }}", "events": [{
+        "event_type": "{{ inputs.event_type }}",
+        "user_id": "{{ inputs.user_id }}",
+        "device_id": "{{ inputs.device_id }}",
+        "event_properties": "{{ inputs.event_properties }}",
+        "user_properties": "{{ inputs.user_properties }}",
+        "time": "{{ inputs.time }}",
+        "insert_id": "{{ inputs.insert_id }}"
+      }] },
+      "inputs": [
+        { "key": "event_type", "label": "Event type", "type": "string", "required": true },
+        { "key": "user_id", "label": "User ID", "type": "string", "help": "User ID or device ID is required." },
+        { "key": "device_id", "label": "Device ID", "type": "string" },
+        { "key": "event_properties", "label": "Event properties", "type": "json" },
+        { "key": "user_properties", "label": "User properties", "type": "json" },
+        { "key": "time", "label": "Time (ms since epoch)", "type": "number" },
+        { "key": "insert_id", "label": "Insert ID (dedupe)", "type": "string" }
+      ]
+    },
+    {
+      "key": "event_segmentation",
+      "name": "Event segmentation",
+      "method": "GET",
+      "endpoint": "/events/segmentation",
+      "query": { "e": "{{ inputs.e }}", "start": "{{ inputs.start }}", "end": "{{ inputs.end }}", "m": "{{ inputs.m }}", "i": "{{ inputs.i }}" },
+      "output_path": "data",
+      "inputs": [
+        { "key": "e", "label": "Event (JSON)", "type": "string", "required": true, "placeholder": "{\"event_type\":\"Sign Up\"}" },
+        { "key": "start", "label": "Start (YYYYMMDD)", "type": "string", "required": true },
+        { "key": "end", "label": "End (YYYYMMDD)", "type": "string", "required": true },
+        { "key": "m", "label": "Metric", "type": "select", "default": "uniques", "options": [
+          { "value": "uniques", "label": "Uniques" }, { "value": "totals", "label": "Totals" }, { "value": "pct_dau", "label": "% of DAU" }, { "value": "average", "label": "Average" }
+        ] },
+        { "key": "i", "label": "Interval", "type": "select", "default": "1", "options": [
+          { "value": "1", "label": "Daily" }, { "value": "7", "label": "Weekly" }, { "value": "30", "label": "Monthly" }, { "value": "-3600000", "label": "Hourly" }
+        ] }
+      ]
+    },
+    {
+      "key": "active_users",
+      "name": "Active or new users",
+      "method": "GET",
+      "endpoint": "/users",
+      "query": { "start": "{{ inputs.start }}", "end": "{{ inputs.end }}", "m": "{{ inputs.m }}", "i": "{{ inputs.i }}" },
+      "output_path": "data",
+      "inputs": [
+        { "key": "start", "label": "Start (YYYYMMDD)", "type": "string", "required": true },
+        { "key": "end", "label": "End (YYYYMMDD)", "type": "string", "required": true },
+        { "key": "m", "label": "Metric", "type": "select", "default": "active", "options": [
+          { "value": "active", "label": "Active users" }, { "value": "new", "label": "New users" }
+        ] },
+        { "key": "i", "label": "Interval", "type": "select", "default": "1", "options": [
+          { "value": "1", "label": "Daily" }, { "value": "7", "label": "Weekly" }, { "value": "30", "label": "Monthly" }
+        ] }
+      ]
+    },
+    {
+      "key": "user_search",
+      "name": "Find user",
+      "description": "Looks up an Amplitude ID by user ID, device ID or Amplitude ID.",
+      "method": "GET",
+      "endpoint": "/usersearch",
+      "query": { "user": "{{ inputs.user }}" },
+      "output_path": "matches",
+      "inputs": [{ "key": "user", "label": "User / device / Amplitude ID", "type": "string", "required": true }]
+    },
+    {
+      "key": "user_activity",
+      "name": "Get user activity",
+      "method": "GET",
+      "endpoint": "/useractivity",
+      "query": { "user": "{{ inputs.amplitude_id }}", "limit": "{{ inputs.limit }}" },
+      "inputs": [
+        { "key": "amplitude_id", "label": "Amplitude ID", "type": "string", "required": true },
+        { "key": "limit", "label": "Max events", "type": "number", "default": 100 }
+      ]
+    }
+  ]
+}

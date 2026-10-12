@@ -1,0 +1,204 @@
+{
+  "key": "rippling",
+  "name": "Rippling",
+  "category": "HR & Recruiting",
+  "description": "List workers, users, departments and leave requests in Rippling.",
+  "brand": "rippling",
+  "website": "https://www.rippling.com",
+  "docs_url": "https://developer.rippling.com",
+  "popular": true,
+  "base_url": "https://rest.ripplingapis.com",
+  "auth": [
+    {
+      "type": "bearer",
+      "fields": [
+        {
+          "key": "token",
+          "label": "API token",
+          "type": "password",
+          "required": true,
+          "help": "Tools > Developer > API Tokens. Give it the scopes you need (e.g. workers.read). Unused tokens are revoked after 30 days."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_workers",
+      "name": "List workers",
+      "method": "GET",
+      "endpoint": "/workers/",
+      "query": {
+        "filter": "{{ inputs.filter }}",
+        "expand": "{{ inputs.expand }}",
+        "order_by": "{{ inputs.order_by }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_path": "results",
+      "inputs": [
+        {
+          "key": "filter",
+          "label": "Filter",
+          "type": "string",
+          "placeholder": "status eq 'ACTIVE'",
+          "help": "OData-style filter."
+        },
+        {
+          "key": "expand",
+          "label": "Expand",
+          "type": "string",
+          "placeholder": "user,department"
+        },
+        {
+          "key": "order_by",
+          "label": "Order by",
+          "type": "string",
+          "placeholder": "created_at desc"
+        },
+        {
+          "key": "limit",
+          "label": "Max results",
+          "type": "number",
+          "default": 100,
+          "help": "Up to 100."
+        }
+      ]
+    },
+    {
+      "key": "get_worker",
+      "name": "Get worker",
+      "method": "GET",
+      "endpoint": "/workers/{{ inputs.worker_id }}/",
+      "query": {
+        "expand": "{{ inputs.expand }}"
+      },
+      "inputs": [
+        {
+          "key": "worker_id",
+          "label": "Worker ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "expand",
+          "label": "Expand",
+          "type": "string",
+          "placeholder": "user,department"
+        }
+      ]
+    },
+    {
+      "key": "list_users",
+      "name": "List users",
+      "method": "GET",
+      "endpoint": "/users/",
+      "query": {
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_path": "results",
+      "inputs": [
+        {
+          "key": "limit",
+          "label": "Max results",
+          "type": "number",
+          "default": 100
+        }
+      ]
+    },
+    {
+      "key": "list_departments",
+      "name": "List departments",
+      "method": "GET",
+      "endpoint": "/departments/",
+      "query": {
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_path": "results",
+      "inputs": [
+        {
+          "key": "limit",
+          "label": "Max results",
+          "type": "number",
+          "default": 100
+        }
+      ]
+    },
+    {
+      "key": "create_department",
+      "name": "Create department",
+      "method": "POST",
+      "endpoint": "/departments/",
+      "body": {
+        "name": "{{ inputs.name }}",
+        "parent_id": "{{ inputs.parent_id }}",
+        "reference_code": "{{ inputs.reference_code }}"
+      },
+      "inputs": [
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "parent_id",
+          "label": "Parent department ID",
+          "type": "string"
+        },
+        {
+          "key": "reference_code",
+          "label": "Reference code",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "list_leave_requests",
+      "name": "List leave requests",
+      "method": "GET",
+      "endpoint": "/leave-requests/",
+      "query": {
+        "filter": "{{ inputs.filter }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_path": "results",
+      "inputs": [
+        {
+          "key": "filter",
+          "label": "Filter",
+          "type": "string",
+          "placeholder": "status eq 'PENDING'"
+        },
+        {
+          "key": "limit",
+          "label": "Max results",
+          "type": "number",
+          "default": 100
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_worker",
+      "name": "New worker",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/workers/",
+      "query": {
+        "order_by": "created_at desc",
+        "limit": 50
+      },
+      "items_path": "results",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

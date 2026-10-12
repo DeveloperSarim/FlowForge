@@ -1,0 +1,75 @@
+{
+  "key": "unbounce",
+  "name": "Unbounce",
+  "category": "Marketing & Email",
+  "description": "List landing pages and their leads, and catch form submissions.",
+  "brand": "unbounce",
+  "website": "https://unbounce.com",
+  "docs_url": "https://developer.unbounce.com/api_reference/",
+  "base_url": "https://api.unbounce.com",
+  "headers": { "Accept": "application/vnd.unbounce.api.v0.4+json" },
+  "auth": [
+    { "type": "basic", "fields": [
+      { "key": "username", "label": "API key", "type": "password", "required": true, "help": "Account settings > API keys. Sent as the Basic auth username." },
+      { "key": "password", "label": "Password (leave empty)", "type": "password", "required": false }
+    ] },
+    { "type": "oauth2", "authorize_url": "https://api.unbounce.com/oauth/authorize", "token_url": "https://api.unbounce.com/oauth/token" }
+  ],
+  "actions": [
+    {
+      "key": "list_pages",
+      "name": "List pages",
+      "method": "GET",
+      "endpoint": "/pages",
+      "query": { "limit": "{{ inputs.limit }}", "offset": "{{ inputs.offset }}" },
+      "output_path": "pages",
+      "inputs": [
+        { "key": "limit", "label": "Limit (max 1000)", "type": "number", "default": 50 },
+        { "key": "offset", "label": "Offset", "type": "number" }
+      ]
+    },
+    {
+      "key": "list_leads",
+      "name": "List leads",
+      "method": "GET",
+      "endpoint": "/pages/{{ inputs.page_id }}/leads",
+      "query": { "sort_order": "desc", "limit": "{{ inputs.limit }}", "from": "{{ inputs.from }}", "to": "{{ inputs.to }}" },
+      "output_path": "leads",
+      "inputs": [
+        { "key": "page_id", "label": "Page ID", "type": "string", "required": true },
+        { "key": "limit", "label": "Limit (max 1000)", "type": "number", "default": 50 },
+        { "key": "from", "label": "From (ISO 8601)", "type": "string" },
+        { "key": "to", "label": "To (ISO 8601)", "type": "string" }
+      ]
+    },
+    {
+      "key": "get_lead",
+      "name": "Get lead",
+      "method": "GET",
+      "endpoint": "/leads/{{ inputs.lead_id }}",
+      "inputs": [{ "key": "lead_id", "label": "Lead ID", "type": "string", "required": true }]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_lead",
+      "name": "New lead",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/pages/{{ inputs.page_id }}/leads",
+      "query": { "sort_order": "desc", "limit": 50 },
+      "items_path": "leads",
+      "id_field": "id",
+      "inputs": [
+        { "key": "page_id", "label": "Page ID", "type": "string", "required": true },
+        { "key": "poll_interval", "label": "Check every (minutes)", "type": "number", "default": 5 }
+      ]
+    },
+    {
+      "key": "form_submission",
+      "name": "Form submission (webhook)",
+      "type": "webhook",
+      "inputs": [{ "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }]
+    }
+  ]
+}

@@ -1,0 +1,111 @@
+{
+  "key": "dify",
+  "name": "Dify",
+  "category": "AI",
+  "description": "Chat with Dify apps and run Dify workflows.",
+  "brand": "dify",
+  "website": "https://dify.ai",
+  "docs_url": "https://docs.dify.ai/en/api-reference",
+  "base_url": "{{ credentials.base_url }}",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "base_url",
+        "label": "API base URL",
+        "type": "string",
+        "required": true,
+        "default": "https://api.dify.ai/v1",
+        "help": "https://api.dify.ai/v1 for Dify Cloud, or https://your-host/v1 when self-hosted."
+      },
+      {
+        "key": "token",
+        "label": "App API key",
+        "type": "password",
+        "required": true,
+        "help": "App → API Access → API Key (starts with app-)."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "send_chat_message",
+      "name": "Send chat message",
+      "description": "Blocking call; the reply is {{ steps.<id>.text }}.",
+      "method": "POST",
+      "endpoint": "/chat-messages",
+      "timeout": 300,
+      "body": {
+        "query": "{{ inputs.query }}",
+        "inputs": "{{ inputs.inputs }}",
+        "response_mode": "blocking",
+        "user": "{{ inputs.user }}",
+        "conversation_id": "{{ inputs.conversation_id }}"
+      },
+      "output_fields": {
+        "text": "answer"
+      },
+      "inputs": [
+        {
+          "key": "query",
+          "label": "Message",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "inputs",
+          "label": "Input variables",
+          "type": "keyvalue",
+          "required": true,
+          "help": "Your app's input variables. Dify requires this object; if your app has none, add any row (unknown names are ignored)."
+        },
+        {
+          "key": "user",
+          "label": "User ID",
+          "type": "string",
+          "required": true,
+          "default": "flowforge",
+          "help": "Identifies the end user in Dify logs."
+        },
+        {
+          "key": "conversation_id",
+          "label": "Conversation ID",
+          "type": "string",
+          "help": "Continue an existing conversation."
+        }
+      ]
+    },
+    {
+      "key": "run_workflow",
+      "name": "Run workflow",
+      "description": "Blocking call; outputs are {{ steps.<id>.outputs }}.",
+      "method": "POST",
+      "endpoint": "/workflows/run",
+      "timeout": 300,
+      "body": {
+        "inputs": "{{ inputs.inputs }}",
+        "response_mode": "blocking",
+        "user": "{{ inputs.user }}"
+      },
+      "output_fields": {
+        "outputs": "data.outputs"
+      },
+      "inputs": [
+        {
+          "key": "inputs",
+          "label": "Input variables",
+          "type": "keyvalue",
+          "required": true
+        },
+        {
+          "key": "user",
+          "label": "User ID",
+          "type": "string",
+          "required": true,
+          "default": "flowforge",
+          "help": "Identifies the end user in Dify logs."
+        }
+      ]
+    }
+  ]
+}

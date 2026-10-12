@@ -1,0 +1,75 @@
+{
+  "key": "impact",
+  "name": "impact.com",
+  "category": "Marketing & Email",
+  "description": "Send conversions to impact.com and list your campaigns and actions.",
+  "brand": "impact",
+  "website": "https://impact.com",
+  "docs_url": "https://integrations.impact.com/impact-brand/reference",
+  "base_url": "https://api.impact.com/Advertisers/{{ credentials.username }}",
+  "headers": { "Accept": "application/json" },
+  "auth": { "type": "basic", "fields": [
+    { "key": "username", "label": "Account SID", "type": "string", "required": true, "help": "Settings > API (top-right menu)." },
+    { "key": "password", "label": "Auth token", "type": "password", "required": true }
+  ] },
+  "actions": [
+    {
+      "key": "create_conversion",
+      "name": "Send conversion",
+      "description": "Reports an online conversion (sale, sign-up...) for partner attribution.",
+      "method": "POST",
+      "endpoint": "/Conversions",
+      "body_format": "form",
+      "body": {
+        "CampaignId": "{{ inputs.campaign_id }}",
+        "ActionTrackerId": "{{ inputs.action_tracker_id }}",
+        "EventDate": "{{ inputs.event_date }}",
+        "ClickId": "{{ inputs.click_id }}",
+        "OrderId": "{{ inputs.order_id }}",
+        "CustomerId": "{{ inputs.customer_id }}",
+        "CustomerEmail": "{{ inputs.customer_email }}",
+        "CurrencyCode": "{{ inputs.currency_code }}",
+        "...": "{{ inputs.extra }}"
+      },
+      "inputs": [
+        { "key": "campaign_id", "label": "Program (campaign) ID", "type": "string", "required": true },
+        { "key": "action_tracker_id", "label": "Event type (action tracker) ID", "type": "string", "required": true },
+        { "key": "event_date", "label": "Event date (ISO 8601)", "type": "string", "required": true },
+        { "key": "click_id", "label": "Click ID (irclickid)", "type": "string" },
+        { "key": "order_id", "label": "Order ID", "type": "string" },
+        { "key": "customer_id", "label": "Customer ID", "type": "string" },
+        { "key": "customer_email", "label": "Customer email (SHA-1 hashed)", "type": "string" },
+        { "key": "currency_code", "label": "Currency", "type": "string", "placeholder": "USD" },
+        { "key": "extra", "label": "Item and other fields", "type": "keyvalue", "help": "e.g. ItemSku1, ItemSubTotal1, ItemQuantity1, ItemCategory1, OrderPromoCode." }
+      ]
+    },
+    {
+      "key": "list_campaigns",
+      "name": "List programs",
+      "method": "GET",
+      "endpoint": "/Campaigns",
+      "output_path": "Campaigns",
+      "inputs": []
+    },
+    {
+      "key": "list_actions",
+      "name": "List actions",
+      "description": "Tracked conversions with their status and payout.",
+      "method": "GET",
+      "endpoint": "/Actions",
+      "query": {
+        "CampaignId": "{{ inputs.campaign_id }}",
+        "ActionDateStart": "{{ inputs.start }}",
+        "ActionDateEnd": "{{ inputs.end }}",
+        "PageSize": "{{ inputs.page_size }}"
+      },
+      "output_path": "Actions",
+      "inputs": [
+        { "key": "campaign_id", "label": "Program (campaign) ID", "type": "string", "required": true },
+        { "key": "start", "label": "From (ISO 8601)", "type": "string" },
+        { "key": "end", "label": "To (ISO 8601)", "type": "string" },
+        { "key": "page_size", "label": "Page size", "type": "number", "default": 100 }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,73 @@
+{
+  "key": "calendly-to-pipedrive",
+  "name": "Turn Calendly bookings into Pipedrive deals",
+  "description": "When someone books a call, create the person and an open deal in Pipedrive.",
+  "category": "Sales & CRM",
+  "featured": false,
+  "graph": {
+    "nodes": [
+      {
+        "id": "trigger",
+        "type": "trigger",
+        "position": {
+          "x": 0,
+          "y": 200
+        },
+        "data": {
+          "integration": "calendly",
+          "trigger": "webhook_event",
+          "label": "Invitee created",
+          "config": {}
+        }
+      },
+      {
+        "id": "step_1",
+        "type": "action",
+        "position": {
+          "x": 240,
+          "y": 200
+        },
+        "data": {
+          "integration": "pipedrive",
+          "action": "create_person",
+          "label": "Create person",
+          "config": {
+            "name": "{{ steps.trigger.data.payload.name }}",
+            "email": "{{ steps.trigger.data.payload.email }}"
+          }
+        }
+      },
+      {
+        "id": "step_2",
+        "type": "action",
+        "position": {
+          "x": 480,
+          "y": 200
+        },
+        "data": {
+          "integration": "pipedrive",
+          "action": "create_deal",
+          "label": "Create deal",
+          "config": {
+            "title": "Call with {{ steps.trigger.data.payload.name }}",
+            "person_id": "{{ steps.step_1.data.id }}"
+          }
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "e-trigger-step_1",
+        "source": "trigger",
+        "target": "step_1",
+        "sourceHandle": null
+      },
+      {
+        "id": "e-step_1-step_2",
+        "source": "step_1",
+        "target": "step_2",
+        "sourceHandle": null
+      }
+    ]
+  }
+}

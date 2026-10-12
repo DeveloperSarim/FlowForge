@@ -1,0 +1,219 @@
+{
+  "key": "braze",
+  "name": "Braze",
+  "category": "Marketing & Email",
+  "description": "Update users, track events, trigger campaigns and set email status.",
+  "brand": "braze",
+  "website": "https://www.braze.com",
+  "docs_url": "https://www.braze.com/docs/api/basics/",
+  "base_url": "{{ credentials.rest_endpoint }}",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "rest_endpoint",
+        "label": "REST endpoint",
+        "type": "string",
+        "required": true,
+        "placeholder": "https://rest.iad-01.braze.com",
+        "help": "Settings → APIs and Identifiers. No trailing slash."
+      },
+      {
+        "key": "token",
+        "label": "REST API key",
+        "type": "password",
+        "required": true
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "update_user",
+      "name": "Update user attributes",
+      "method": "POST",
+      "endpoint": "/users/track",
+      "body": {
+        "attributes": [
+          {
+            "external_id": "{{ inputs.external_id }}",
+            "email": "{{ inputs.email }}",
+            "first_name": "{{ inputs.first_name }}",
+            "last_name": "{{ inputs.last_name }}",
+            "email_subscribe": "{{ inputs.email_subscribe }}"
+          }
+        ]
+      },
+      "inputs": [
+        {
+          "key": "external_id",
+          "label": "External user ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string"
+        },
+        {
+          "key": "first_name",
+          "label": "First name",
+          "type": "string"
+        },
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string"
+        },
+        {
+          "key": "email_subscribe",
+          "label": "Email subscription",
+          "type": "select",
+          "options": [
+            {
+              "value": "opted_in",
+              "label": "Opted in"
+            },
+            {
+              "value": "subscribed",
+              "label": "Subscribed"
+            },
+            {
+              "value": "unsubscribed",
+              "label": "Unsubscribed"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "track_event",
+      "name": "Track custom event",
+      "method": "POST",
+      "endpoint": "/users/track",
+      "body": {
+        "events": [
+          {
+            "external_id": "{{ inputs.external_id }}",
+            "name": "{{ inputs.name }}",
+            "time": "{{ inputs.time }}",
+            "properties": "{{ inputs.properties }}"
+          }
+        ]
+      },
+      "inputs": [
+        {
+          "key": "external_id",
+          "label": "External user ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "name",
+          "label": "Event name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "time",
+          "label": "Time (ISO 8601)",
+          "type": "string",
+          "required": true,
+          "placeholder": "2026-01-31T10:00:00Z"
+        },
+        {
+          "key": "properties",
+          "label": "Properties",
+          "type": "json"
+        }
+      ]
+    },
+    {
+      "key": "trigger_campaign",
+      "name": "Trigger API campaign",
+      "method": "POST",
+      "endpoint": "/campaigns/trigger/send",
+      "body": {
+        "campaign_id": "{{ inputs.campaign_id }}",
+        "recipients": [
+          {
+            "external_user_id": "{{ inputs.external_id }}",
+            "trigger_properties": "{{ inputs.trigger_properties }}"
+          }
+        ]
+      },
+      "inputs": [
+        {
+          "key": "campaign_id",
+          "label": "Campaign ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "external_id",
+          "label": "External user ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "trigger_properties",
+          "label": "Trigger properties",
+          "type": "json"
+        }
+      ]
+    },
+    {
+      "key": "set_email_status",
+      "name": "Set email subscription status",
+      "method": "POST",
+      "endpoint": "/email/status",
+      "body": {
+        "email": "{{ inputs.email }}",
+        "subscription_state": "{{ inputs.state }}"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "state",
+          "label": "State",
+          "type": "select",
+          "required": true,
+          "options": [
+            {
+              "value": "opted_in",
+              "label": "Opted in"
+            },
+            {
+              "value": "subscribed",
+              "label": "Subscribed"
+            },
+            {
+              "value": "unsubscribed",
+              "label": "Unsubscribed"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook campaign",
+      "type": "webhook",
+      "description": "Point a Braze webhook campaign or Canvas step at this URL.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

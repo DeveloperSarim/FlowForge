@@ -1,0 +1,83 @@
+{
+  "key": "planetscale",
+  "name": "PlanetScale",
+  "category": "Databases",
+  "description": "List databases and branches, create branches and open deploy requests.",
+  "brand": "planetscale",
+  "website": "https://planetscale.com",
+  "docs_url": "https://planetscale.com/docs/api/reference/getting-started-with-planetscale-api",
+  "base_url": "https://api.planetscale.com/v1",
+  "headers": { "Authorization": "{{ credentials.token_id }}:{{ credentials.api_key }}" },
+  "auth": { "type": "api_key", "fields": [
+    { "key": "token_id", "label": "Service token ID", "type": "string", "required": true, "help": "Organization settings → Service tokens." },
+    { "key": "api_key", "label": "Service token", "type": "password", "required": true }
+  ] },
+  "actions": [
+    {
+      "key": "list_databases",
+      "name": "List databases",
+      "method": "GET",
+      "endpoint": "/organizations/{{ inputs.organization }}/databases",
+      "output_path": "data",
+      "inputs": [{ "key": "organization", "label": "Organization", "type": "string", "required": true }]
+    },
+    {
+      "key": "list_branches",
+      "name": "List branches",
+      "method": "GET",
+      "endpoint": "/organizations/{{ inputs.organization }}/databases/{{ inputs.database }}/branches",
+      "output_path": "data",
+      "inputs": [
+        { "key": "organization", "label": "Organization", "type": "string", "required": true },
+        { "key": "database", "label": "Database", "type": "string", "required": true }
+      ]
+    },
+    {
+      "key": "create_branch",
+      "name": "Create branch",
+      "method": "POST",
+      "endpoint": "/organizations/{{ inputs.organization }}/databases/{{ inputs.database }}/branches",
+      "body": { "name": "{{ inputs.name }}", "parent_branch": "{{ inputs.parent_branch }}" },
+      "inputs": [
+        { "key": "organization", "label": "Organization", "type": "string", "required": true },
+        { "key": "database", "label": "Database", "type": "string", "required": true },
+        { "key": "name", "label": "Branch name", "type": "string", "required": true },
+        { "key": "parent_branch", "label": "Parent branch", "type": "string", "required": true, "default": "main" }
+      ]
+    },
+    {
+      "key": "create_deploy_request",
+      "name": "Open deploy request",
+      "description": "Vitess (MySQL) databases.",
+      "method": "POST",
+      "endpoint": "/organizations/{{ inputs.organization }}/databases/{{ inputs.database }}/deploy-requests",
+      "body": { "branch": "{{ inputs.branch }}", "into_branch": "{{ inputs.into_branch }}", "notes": "{{ inputs.notes }}" },
+      "inputs": [
+        { "key": "organization", "label": "Organization", "type": "string", "required": true },
+        { "key": "database", "label": "Database", "type": "string", "required": true },
+        { "key": "branch", "label": "From branch", "type": "string", "required": true },
+        { "key": "into_branch", "label": "Into branch", "type": "string", "required": true, "default": "main" },
+        { "key": "notes", "label": "Notes", "type": "text" }
+      ]
+    },
+    {
+      "key": "get_deploy_request",
+      "name": "Get deploy request",
+      "method": "GET",
+      "endpoint": "/organizations/{{ inputs.organization }}/databases/{{ inputs.database }}/deploy-requests/{{ inputs.number }}",
+      "inputs": [
+        { "key": "organization", "label": "Organization", "type": "string", "required": true },
+        { "key": "database", "label": "Database", "type": "string", "required": true },
+        { "key": "number", "label": "Deploy request number", "type": "number", "required": true }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "inputs": [{ "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }]
+    }
+  ]
+}

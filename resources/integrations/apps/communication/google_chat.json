@@ -1,0 +1,92 @@
+{
+  "key": "google_chat",
+  "name": "Google Chat",
+  "category": "Communication",
+  "description": "Post to spaces via an incoming webhook or the Chat API, and read messages.",
+  "brand": "googlechat",
+  "website": "https://workspace.google.com/products/chat/",
+  "docs_url": "https://developers.google.com/workspace/chat/api/reference/rest",
+  "base_url": "https://chat.googleapis.com/v1",
+  "auth": [
+    { "type": "none" },
+    {
+      "type": "oauth2",
+      "authorize_url": "https://accounts.google.com/o/oauth2/v2/auth",
+      "token_url": "https://oauth2.googleapis.com/token",
+      "scopes": ["https://www.googleapis.com/auth/chat.messages", "https://www.googleapis.com/auth/chat.spaces.readonly"],
+      "authorize_params": { "access_type": "offline", "prompt": "consent" }
+    },
+    {
+      "type": "google_service_account",
+      "scopes": ["https://www.googleapis.com/auth/chat.bot"],
+      "fields": [{ "key": "service_account_json", "label": "Service Account JSON key", "type": "code", "required": true, "help": "Key of the service account configured as your Chat app. Add the app to each space it should post in." }]
+    }
+  ],
+  "actions": [
+    {
+      "key": "send_webhook_message",
+      "name": "Send message (incoming webhook)",
+      "description": "No credential needed: copy the three parts from the space's webhook URL.",
+      "method": "POST",
+      "endpoint": "/spaces/{{ inputs.space_id }}/messages",
+      "query": { "key": "{{ inputs.key }}", "token": "{{ inputs.token }}" },
+      "body": { "text": "{{ inputs.text }}" },
+      "inputs": [
+        { "key": "space_id", "label": "Space ID", "type": "string", "required": true, "help": "Webhook URL: https://chat.googleapis.com/v1/spaces/<Space ID>/messages?key=<Key>&token=<Token>" },
+        { "key": "key", "label": "Key", "type": "string", "required": true },
+        { "key": "token", "label": "Token", "type": "password", "required": true },
+        { "key": "text", "label": "Message", "type": "text", "required": true }
+      ]
+    },
+    {
+      "key": "create_message",
+      "name": "Send message (Chat API)",
+      "method": "POST",
+      "endpoint": "/spaces/{{ inputs.space_id }}/messages",
+      "body": { "text": "{{ inputs.text }}" },
+      "inputs": [
+        { "key": "space_id", "label": "Space ID", "type": "string", "required": true, "placeholder": "AAAAxxxxxxx", "help": "The part after spaces/ in the space name." },
+        { "key": "text", "label": "Message", "type": "text", "required": true }
+      ]
+    },
+    {
+      "key": "list_spaces",
+      "name": "List spaces",
+      "method": "GET",
+      "endpoint": "/spaces",
+      "query": { "pageSize": "{{ inputs.page_size }}" },
+      "output_path": "spaces",
+      "inputs": [{ "key": "page_size", "label": "Max results", "type": "number", "default": 100 }]
+    },
+    {
+      "key": "list_messages",
+      "name": "List messages",
+      "method": "GET",
+      "endpoint": "/spaces/{{ inputs.space_id }}/messages",
+      "query": { "pageSize": "{{ inputs.page_size }}", "orderBy": "createTime desc", "filter": "{{ inputs.filter }}" },
+      "output_path": "messages",
+      "inputs": [
+        { "key": "space_id", "label": "Space ID", "type": "string", "required": true },
+        { "key": "page_size", "label": "Max results", "type": "number", "default": 25 },
+        { "key": "filter", "label": "Filter", "type": "string", "placeholder": "createTime > \"2024-01-01T00:00:00Z\"" }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_message",
+      "name": "New message in space",
+      "description": "Needs a user OAuth credential.",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/spaces/{{ inputs.space_id }}/messages",
+      "query": { "pageSize": 25, "orderBy": "createTime desc" },
+      "items_path": "messages",
+      "id_field": "name",
+      "inputs": [
+        { "key": "space_id", "label": "Space ID", "type": "string", "required": true },
+        { "key": "poll_interval", "label": "Check every (minutes)", "type": "number", "default": 5 }
+      ]
+    }
+  ]
+}

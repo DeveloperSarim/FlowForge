@@ -1,0 +1,99 @@
+{
+  "key": "genesys_cloud",
+  "name": "Genesys Cloud",
+  "category": "Communication",
+  "description": "Send agentless SMS/WhatsApp, look up users, queues and conversations in Genesys Cloud.",
+  "brand": "genesys",
+  "website": "https://www.genesys.com/genesys-cloud",
+  "docs_url": "https://developer.genesys.cloud/platform/api/",
+  "base_url": "https://api.{{ credentials.region }}/api/v2",
+  "auth": [
+    {
+      "type": "oauth2",
+      "authorize_url": "https://login.{{ credentials.region }}/oauth/authorize",
+      "token_url": "https://login.{{ credentials.region }}/oauth/token",
+      "client_auth": "basic",
+      "fields": [
+        { "key": "region", "label": "Region", "type": "select", "required": true, "default": "mypurecloud.com", "options": [
+          { "value": "mypurecloud.com", "label": "Americas (US East)" },
+          { "value": "usw2.pure.cloud", "label": "Americas (US West)" },
+          { "value": "cac1.pure.cloud", "label": "Americas (Canada)" },
+          { "value": "sae1.pure.cloud", "label": "Americas (São Paulo)" },
+          { "value": "mypurecloud.ie", "label": "EMEA (Dublin)" },
+          { "value": "mypurecloud.de", "label": "EMEA (Frankfurt)" },
+          { "value": "euw2.pure.cloud", "label": "EMEA (London)" },
+          { "value": "euc2.pure.cloud", "label": "EMEA (Zurich)" },
+          { "value": "mec1.pure.cloud", "label": "Middle East (UAE)" },
+          { "value": "aps1.pure.cloud", "label": "Asia Pacific (Mumbai)" },
+          { "value": "apne2.pure.cloud", "label": "Asia Pacific (Seoul)" },
+          { "value": "mypurecloud.com.au", "label": "Asia Pacific (Sydney)" },
+          { "value": "mypurecloud.jp", "label": "Asia Pacific (Tokyo)" },
+          { "value": "apne3.pure.cloud", "label": "Asia Pacific (Osaka)" }
+        ], "help": "Use an OAuth client with the Code Authorization grant; its roles/scopes decide what the token may do." }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "send_agentless_message",
+      "name": "Send agentless message",
+      "description": "Sends an outbound SMS or WhatsApp message without an agent.",
+      "method": "POST",
+      "endpoint": "/conversations/messages/agentless",
+      "body": {
+        "fromAddress": "{{ inputs.from_address }}",
+        "toAddress": "{{ inputs.to_address }}",
+        "toAddressMessengerType": "{{ inputs.messenger_type }}",
+        "textBody": "{{ inputs.text_body }}"
+      },
+      "inputs": [
+        { "key": "from_address", "label": "From", "type": "string", "required": true, "help": "Your SMS number (E.164), or the WhatsApp integration ID." },
+        { "key": "to_address", "label": "To (E.164)", "type": "string", "required": true },
+        { "key": "messenger_type", "label": "Channel", "type": "select", "default": "sms", "options": [
+          { "value": "sms", "label": "SMS" }, { "value": "whatsapp", "label": "WhatsApp" }
+        ] },
+        { "key": "text_body", "label": "Message", "type": "text", "required": true }
+      ]
+    },
+    {
+      "key": "get_conversation",
+      "name": "Get conversation",
+      "method": "GET",
+      "endpoint": "/conversations/{{ inputs.conversation_id }}",
+      "inputs": [
+        { "key": "conversation_id", "label": "Conversation ID", "type": "string", "required": true }
+      ]
+    },
+    {
+      "key": "list_users",
+      "name": "List users",
+      "method": "GET",
+      "endpoint": "/users",
+      "query": { "pageSize": "{{ inputs.page_size }}", "pageNumber": "{{ inputs.page_number }}" },
+      "output_path": "entities",
+      "inputs": [
+        { "key": "page_size", "label": "Page size", "type": "number", "default": 100 },
+        { "key": "page_number", "label": "Page", "type": "number", "default": 1 }
+      ]
+    },
+    {
+      "key": "list_queues",
+      "name": "List queues",
+      "method": "GET",
+      "endpoint": "/routing/queues",
+      "query": { "pageSize": "{{ inputs.page_size }}", "name": "{{ inputs.name }}" },
+      "output_path": "entities",
+      "inputs": [
+        { "key": "page_size", "label": "Page size", "type": "number", "default": 100 },
+        { "key": "name", "label": "Name filter", "type": "string", "help": "Supports * wildcards." }
+      ]
+    },
+    {
+      "key": "get_me",
+      "name": "Get current user",
+      "method": "GET",
+      "endpoint": "/users/me",
+      "inputs": []
+    }
+  ]
+}

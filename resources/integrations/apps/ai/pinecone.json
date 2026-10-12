@@ -1,0 +1,213 @@
+{
+  "key": "pinecone",
+  "name": "Pinecone",
+  "category": "AI",
+  "description": "Upsert, query and delete vectors and create embeddings.",
+  "brand": "pinecone",
+  "website": "https://www.pinecone.io",
+  "docs_url": "https://docs.pinecone.io/reference/api/introduction",
+  "popular": true,
+  "base_url": "https://api.pinecone.io",
+  "headers": {
+    "X-Pinecone-API-Version": "2025-04"
+  },
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "Api-Key",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "query_vectors",
+      "name": "Query vectors",
+      "method": "POST",
+      "endpoint": "https://{{ inputs.index_host }}/query",
+      "body": {
+        "vector": "{{ inputs.vector }}",
+        "topK": "{{ inputs.top_k }}",
+        "namespace": "{{ inputs.namespace }}",
+        "filter": "{{ inputs.filter }}",
+        "includeMetadata": true
+      },
+      "output_fields": {
+        "matches": "matches"
+      },
+      "inputs": [
+        {
+          "key": "index_host",
+          "label": "Index host",
+          "type": "string",
+          "required": true,
+          "placeholder": "my-index-abc123.svc.aped-4627-b74a.pinecone.io",
+          "help": "From Describe index, without https://."
+        },
+        {
+          "key": "vector",
+          "label": "Vector (JSON array)",
+          "type": "json",
+          "required": true
+        },
+        {
+          "key": "top_k",
+          "label": "Top K",
+          "type": "number",
+          "required": true,
+          "default": 5
+        },
+        {
+          "key": "namespace",
+          "label": "Namespace",
+          "type": "string"
+        },
+        {
+          "key": "filter",
+          "label": "Metadata filter (JSON)",
+          "type": "json"
+        }
+      ]
+    },
+    {
+      "key": "upsert_vectors",
+      "name": "Upsert vectors",
+      "method": "POST",
+      "endpoint": "https://{{ inputs.index_host }}/vectors/upsert",
+      "body": {
+        "vectors": "{{ inputs.vectors }}",
+        "namespace": "{{ inputs.namespace }}"
+      },
+      "inputs": [
+        {
+          "key": "index_host",
+          "label": "Index host",
+          "type": "string",
+          "required": true,
+          "help": "From Describe index, without https://."
+        },
+        {
+          "key": "vectors",
+          "label": "Vectors (JSON)",
+          "type": "json",
+          "required": true,
+          "placeholder": "[{\"id\": \"1\", \"values\": [0.1, 0.2], \"metadata\": {\"text\": \"...\"}}]"
+        },
+        {
+          "key": "namespace",
+          "label": "Namespace",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "delete_vectors",
+      "name": "Delete vectors",
+      "method": "POST",
+      "endpoint": "https://{{ inputs.index_host }}/vectors/delete",
+      "body": {
+        "ids": "{{ inputs.ids }}",
+        "namespace": "{{ inputs.namespace }}"
+      },
+      "inputs": [
+        {
+          "key": "index_host",
+          "label": "Index host",
+          "type": "string",
+          "required": true,
+          "help": "From Describe index, without https://."
+        },
+        {
+          "key": "ids",
+          "label": "Vector IDs",
+          "type": "list",
+          "required": true
+        },
+        {
+          "key": "namespace",
+          "label": "Namespace",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "embed",
+      "name": "Create embedding",
+      "description": "Embed text with a Pinecone-hosted model.",
+      "method": "POST",
+      "endpoint": "/embed",
+      "body": {
+        "model": "{{ inputs.model }}",
+        "parameters": {
+          "input_type": "{{ inputs.input_type }}"
+        },
+        "inputs": [
+          {
+            "text": "{{ inputs.text }}"
+          }
+        ]
+      },
+      "output_fields": {
+        "embedding": "data.0.values"
+      },
+      "inputs": [
+        {
+          "key": "model",
+          "label": "Model",
+          "type": "string",
+          "required": true,
+          "default": "multilingual-e5-large"
+        },
+        {
+          "key": "text",
+          "label": "Text",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "input_type",
+          "label": "Input type",
+          "type": "select",
+          "options": [
+            {
+              "value": "passage",
+              "label": "Passage"
+            },
+            {
+              "value": "query",
+              "label": "Query"
+            }
+          ],
+          "required": true,
+          "default": "passage"
+        }
+      ]
+    },
+    {
+      "key": "list_indexes",
+      "name": "List indexes",
+      "method": "GET",
+      "endpoint": "/indexes",
+      "inputs": []
+    },
+    {
+      "key": "describe_index",
+      "name": "Describe index",
+      "method": "GET",
+      "endpoint": "/indexes/{{ inputs.index_name }}",
+      "inputs": [
+        {
+          "key": "index_name",
+          "label": "Index name",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ]
+}

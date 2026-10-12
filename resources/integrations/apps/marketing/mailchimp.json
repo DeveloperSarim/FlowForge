@@ -1,0 +1,387 @@
+{
+  "key": "mailchimp",
+  "name": "Mailchimp",
+  "category": "Marketing & Email",
+  "description": "Add, update, tag and unsubscribe audience members; list campaigns.",
+  "brand": "mailchimp",
+  "website": "https://mailchimp.com",
+  "docs_url": "https://mailchimp.com/developer/marketing/api/",
+  "popular": true,
+  "base_url": "https://{{ credentials.dc }}.api.mailchimp.com/3.0",
+  "auth": [
+    {
+      "type": "basic",
+      "fields": [
+        {
+          "key": "dc",
+          "label": "Data center",
+          "type": "string",
+          "required": true,
+          "placeholder": "us21",
+          "help": "The part after the dash at the end of your API key (…-us21 → us21)."
+        },
+        {
+          "key": "username",
+          "label": "Username",
+          "type": "string",
+          "required": false,
+          "default": "flowforge",
+          "help": "Any value; Mailchimp ignores it."
+        },
+        {
+          "key": "password",
+          "label": "API key",
+          "type": "password",
+          "required": true
+        }
+      ]
+    },
+    {
+      "type": "oauth2",
+      "authorize_url": "https://login.mailchimp.com/oauth2/authorize",
+      "token_url": "https://login.mailchimp.com/oauth2/token",
+      "scopes": [],
+      "fields": [
+        {
+          "key": "dc",
+          "label": "Data center",
+          "type": "string",
+          "required": true,
+          "placeholder": "us21",
+          "help": "The part after the dash at the end of your API key (…-us21 → us21)."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "upsert_member",
+      "name": "Add or update subscriber",
+      "description": "Creates the member if new, otherwise updates it.",
+      "method": "PUT",
+      "endpoint": "/lists/{{ inputs.list_id }}/members/{{ inputs.email }}",
+      "body": {
+        "email_address": "{{ inputs.email }}",
+        "status_if_new": "{{ inputs.status_if_new }}",
+        "status": "{{ inputs.status }}",
+        "merge_fields": {
+          "FNAME": "{{ inputs.first_name }}",
+          "LNAME": "{{ inputs.last_name }}"
+        }
+      },
+      "inputs": [
+        {
+          "key": "list_id",
+          "label": "Audience ID",
+          "type": "string",
+          "required": true,
+          "help": "Audience → Settings → Audience name and defaults → Audience ID."
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true,
+          "help": "Mailchimp accepts the email address in place of the MD5 subscriber hash."
+        },
+        {
+          "key": "status_if_new",
+          "label": "Status if new",
+          "type": "select",
+          "required": true,
+          "options": [
+            {
+              "value": "subscribed",
+              "label": "Subscribed"
+            },
+            {
+              "value": "pending",
+              "label": "Pending (double opt-in)"
+            },
+            {
+              "value": "unsubscribed",
+              "label": "Unsubscribed"
+            },
+            {
+              "value": "transactional",
+              "label": "Transactional"
+            }
+          ],
+          "default": "subscribed"
+        },
+        {
+          "key": "status",
+          "label": "Status (existing members)",
+          "type": "select",
+          "options": [
+            {
+              "value": "subscribed",
+              "label": "Subscribed"
+            },
+            {
+              "value": "pending",
+              "label": "Pending"
+            },
+            {
+              "value": "unsubscribed",
+              "label": "Unsubscribed"
+            },
+            {
+              "value": "cleaned",
+              "label": "Cleaned"
+            }
+          ],
+          "help": "Leave empty to keep the current status."
+        },
+        {
+          "key": "first_name",
+          "label": "First name",
+          "type": "string"
+        },
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "update_member_fields",
+      "name": "Update merge fields",
+      "description": "Sets any merge fields on an existing member.",
+      "method": "PATCH",
+      "endpoint": "/lists/{{ inputs.list_id }}/members/{{ inputs.email }}",
+      "body": {
+        "merge_fields": "{{ inputs.merge_fields }}"
+      },
+      "inputs": [
+        {
+          "key": "list_id",
+          "label": "Audience ID",
+          "type": "string",
+          "required": true,
+          "help": "Audience → Settings → Audience name and defaults → Audience ID."
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true,
+          "help": "Mailchimp accepts the email address in place of the MD5 subscriber hash."
+        },
+        {
+          "key": "merge_fields",
+          "label": "Merge fields",
+          "type": "keyvalue",
+          "required": true,
+          "help": "Tag → value, e.g. FNAME → Ada"
+        }
+      ]
+    },
+    {
+      "key": "tag_member",
+      "name": "Add or remove tag",
+      "description": "Adds a tag to (or removes it from) a member. Unknown tags are created.",
+      "method": "POST",
+      "endpoint": "/lists/{{ inputs.list_id }}/members/{{ inputs.email }}/tags",
+      "body": {
+        "tags": [
+          {
+            "name": "{{ inputs.tag }}",
+            "status": "{{ inputs.tag_status }}"
+          }
+        ]
+      },
+      "inputs": [
+        {
+          "key": "list_id",
+          "label": "Audience ID",
+          "type": "string",
+          "required": true,
+          "help": "Audience → Settings → Audience name and defaults → Audience ID."
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true,
+          "help": "Mailchimp accepts the email address in place of the MD5 subscriber hash."
+        },
+        {
+          "key": "tag",
+          "label": "Tag",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "tag_status",
+          "label": "Action",
+          "type": "select",
+          "required": true,
+          "options": [
+            {
+              "value": "active",
+              "label": "Add tag"
+            },
+            {
+              "value": "inactive",
+              "label": "Remove tag"
+            }
+          ],
+          "default": "active"
+        }
+      ]
+    },
+    {
+      "key": "get_member",
+      "name": "Get subscriber",
+      "method": "GET",
+      "endpoint": "/lists/{{ inputs.list_id }}/members/{{ inputs.email }}",
+      "inputs": [
+        {
+          "key": "list_id",
+          "label": "Audience ID",
+          "type": "string",
+          "required": true,
+          "help": "Audience → Settings → Audience name and defaults → Audience ID."
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true,
+          "help": "Mailchimp accepts the email address in place of the MD5 subscriber hash."
+        }
+      ]
+    },
+    {
+      "key": "unsubscribe_member",
+      "name": "Unsubscribe",
+      "method": "PATCH",
+      "endpoint": "/lists/{{ inputs.list_id }}/members/{{ inputs.email }}",
+      "body": {
+        "status": "unsubscribed"
+      },
+      "inputs": [
+        {
+          "key": "list_id",
+          "label": "Audience ID",
+          "type": "string",
+          "required": true,
+          "help": "Audience → Settings → Audience name and defaults → Audience ID."
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true,
+          "help": "Mailchimp accepts the email address in place of the MD5 subscriber hash."
+        }
+      ]
+    },
+    {
+      "key": "list_campaigns",
+      "name": "List campaigns",
+      "method": "GET",
+      "endpoint": "/campaigns",
+      "output_path": "campaigns",
+      "query": {
+        "count": "{{ inputs.count }}",
+        "status": "{{ inputs.status }}",
+        "sort_field": "create_time",
+        "sort_dir": "DESC"
+      },
+      "inputs": [
+        {
+          "key": "count",
+          "label": "Max results",
+          "type": "number",
+          "default": 10
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "options": [
+            {
+              "value": "save",
+              "label": "Draft"
+            },
+            {
+              "value": "schedule",
+              "label": "Scheduled"
+            },
+            {
+              "value": "sending",
+              "label": "Sending"
+            },
+            {
+              "value": "sent",
+              "label": "Sent"
+            },
+            {
+              "value": "paused",
+              "label": "Paused"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "list_audiences",
+      "name": "List audiences",
+      "method": "GET",
+      "endpoint": "/lists",
+      "output_path": "lists",
+      "query": {
+        "count": 100
+      },
+      "inputs": []
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_subscriber",
+      "name": "New subscriber",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/lists/{{ inputs.list_id }}/members",
+      "query": {
+        "status": "subscribed",
+        "sort_field": "timestamp_opt",
+        "sort_dir": "DESC",
+        "count": 50
+      },
+      "items_path": "members",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "list_id",
+          "label": "Audience ID",
+          "type": "string",
+          "required": true,
+          "help": "Audience → Settings → Audience name and defaults → Audience ID."
+        },
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    },
+    {
+      "key": "webhook_event",
+      "name": "Audience webhook",
+      "type": "webhook",
+      "description": "Audience → Settings → Webhooks. Mailchimp sends form-encoded events (subscribe, unsubscribe, profile…).",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

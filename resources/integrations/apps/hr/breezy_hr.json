@@ -1,0 +1,131 @@
+{
+  "key": "breezy_hr",
+  "name": "Breezy HR",
+  "category": "HR & Recruiting",
+  "description": "List positions and candidates and add candidates in Breezy HR.",
+  "brand": "breezyhr",
+  "website": "https://breezy.hr",
+  "docs_url": "https://developer.breezy.hr/reference/overview",
+  "base_url": "https://api.breezy.hr/v3",
+  "auth": [
+    {
+      "type": "api_key",
+      "in": "header",
+      "name": "Authorization",
+      "fields": [
+        {
+          "key": "company_id",
+          "label": "Company ID",
+          "type": "string",
+          "required": true,
+          "help": "From GET /v3/companies."
+        },
+        {
+          "key": "api_key",
+          "label": "Access token",
+          "type": "password",
+          "required": true,
+          "help": "Get one from POST https://api.breezy.hr/v3/signin with your email and password."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_positions",
+      "name": "List positions",
+      "method": "GET",
+      "endpoint": "/company/{{ credentials.company_id }}/positions",
+      "query": {
+        "state": "{{ inputs.state }}"
+      },
+      "inputs": [
+        {
+          "key": "state",
+          "label": "State",
+          "type": "select",
+          "options": [
+            {
+              "value": "published",
+              "label": "Published"
+            },
+            {
+              "value": "draft",
+              "label": "Draft"
+            },
+            {
+              "value": "closed",
+              "label": "Closed"
+            },
+            {
+              "value": "archived",
+              "label": "Archived"
+            }
+          ],
+          "default": "published"
+        }
+      ]
+    },
+    {
+      "key": "list_candidates",
+      "name": "List candidates",
+      "method": "GET",
+      "endpoint": "/company/{{ credentials.company_id }}/position/{{ inputs.position_id }}/candidates",
+      "inputs": [
+        {
+          "key": "position_id",
+          "label": "Position ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "add_candidate",
+      "name": "Add candidate",
+      "method": "POST",
+      "endpoint": "/company/{{ credentials.company_id }}/position/{{ inputs.position_id }}/candidates",
+      "body": {
+        "name": "{{ inputs.name }}",
+        "email_address": "{{ inputs.email_address }}",
+        "phone_number": "{{ inputs.phone_number }}",
+        "summary": "{{ inputs.summary }}",
+        "source": "{{ inputs.source }}"
+      },
+      "inputs": [
+        {
+          "key": "position_id",
+          "label": "Position ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "email_address",
+          "label": "Email",
+          "type": "string"
+        },
+        {
+          "key": "phone_number",
+          "label": "Phone",
+          "type": "string"
+        },
+        {
+          "key": "summary",
+          "label": "Summary",
+          "type": "text"
+        },
+        {
+          "key": "source",
+          "label": "Source",
+          "type": "string"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,56 @@
+{
+  "key": "dialpad",
+  "name": "Dialpad",
+  "category": "Communication",
+  "description": "Send SMS, start calls and look up users and calls in Dialpad.",
+  "brand": "dialpad",
+  "website": "https://www.dialpad.com",
+  "docs_url": "https://developers.dialpad.com/reference",
+  "base_url": "https://dialpad.com/api/v2",
+  "auth": [
+    { "type": "bearer", "fields": [{ "key": "token", "label": "API key", "type": "password", "required": true, "help": "Admin Settings > Authentication > API keys." }] }
+  ],
+  "actions": [
+    {
+      "key": "send_sms",
+      "name": "Send SMS",
+      "method": "POST",
+      "endpoint": "/sms",
+      "body": { "user_id": "{{ inputs.user_id }}", "to_numbers": "{{ inputs.to_numbers }}", "text": "{{ inputs.text }}", "infer_country_code": "{{ inputs.infer_country_code }}" },
+      "inputs": [
+        { "key": "user_id", "label": "Sender user ID", "type": "number", "required": true, "help": "From List users." },
+        { "key": "to_numbers", "label": "To", "type": "list", "required": true, "placeholder": "+14155550100" },
+        { "key": "text", "label": "Message", "type": "text", "required": true },
+        { "key": "infer_country_code", "label": "Infer country code", "type": "boolean", "default": false }
+      ]
+    },
+    {
+      "key": "initiate_call",
+      "name": "Start call",
+      "description": "Rings the user's Dialpad apps and dials the number when they answer.",
+      "method": "POST",
+      "endpoint": "/users/{{ inputs.user_id }}/initiate_call",
+      "body": { "phone_number": "{{ inputs.phone_number }}" },
+      "inputs": [
+        { "key": "user_id", "label": "User ID", "type": "string", "required": true },
+        { "key": "phone_number", "label": "Number to call", "type": "string", "required": true, "placeholder": "+14155550100" }
+      ]
+    },
+    {
+      "key": "list_users",
+      "name": "List users",
+      "method": "GET",
+      "endpoint": "/users",
+      "query": { "email": "{{ inputs.email }}" },
+      "output_path": "items",
+      "inputs": [{ "key": "email", "label": "Filter by email", "type": "string" }]
+    },
+    {
+      "key": "get_call",
+      "name": "Get call",
+      "method": "GET",
+      "endpoint": "/call/{{ inputs.call_id }}",
+      "inputs": [{ "key": "call_id", "label": "Call ID", "type": "string", "required": true }]
+    }
+  ]
+}

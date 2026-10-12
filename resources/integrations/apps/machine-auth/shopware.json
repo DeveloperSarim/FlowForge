@@ -1,0 +1,145 @@
+{
+  "key": "shopware",
+  "name": "Shopware",
+  "category": "E-commerce",
+  "brand": "shopware",
+  "description": "Search and manage products, orders and customers in Shopware 6.",
+  "website": "https://www.shopware.com",
+  "docs_url": "https://shopware.stoplight.io/docs/admin-api",
+  "base_url": "{{ credentials.shop_url }}/api",
+  "auth": {
+    "type": "oauth2_client_credentials",
+    "token_url": "{{ credentials.shop_url }}/api/oauth/token",
+    "fields": [
+      {
+        "key": "shop_url",
+        "label": "Shop URL",
+        "type": "string",
+        "required": true,
+        "placeholder": "https://shop.example.com"
+      },
+      {
+        "key": "client_id",
+        "label": "Access key ID (integration)",
+        "type": "string",
+        "required": true,
+        "help": "Settings → System → Integrations → Add integration."
+      },
+      {
+        "key": "client_secret",
+        "label": "Secret access key",
+        "type": "password",
+        "required": true
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "search_products",
+      "name": "Search products",
+      "method": "POST",
+      "endpoint": "/search/product",
+      "body": {
+        "term": "{{ inputs.term }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "inputs": [
+        {
+          "key": "term",
+          "label": "Search term",
+          "type": "string"
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 25
+        }
+      ]
+    },
+    {
+      "key": "get_product",
+      "name": "Get product",
+      "method": "GET",
+      "endpoint": "/product/{{ inputs.product_id }}",
+      "inputs": [
+        {
+          "key": "product_id",
+          "label": "Product ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "update_product_stock",
+      "name": "Update product stock",
+      "method": "PATCH",
+      "endpoint": "/product/{{ inputs.product_id }}",
+      "body": {
+        "stock": "{{ inputs.stock }}"
+      },
+      "inputs": [
+        {
+          "key": "product_id",
+          "label": "Product ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "stock",
+          "label": "Stock",
+          "type": "number",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "search_orders",
+      "name": "Search orders",
+      "method": "POST",
+      "endpoint": "/search/order",
+      "body": {
+        "limit": "{{ inputs.limit }}",
+        "sort": [
+          {
+            "field": "orderDateTime",
+            "order": "DESC"
+          }
+        ]
+      },
+      "inputs": [
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 25
+        }
+      ]
+    },
+    {
+      "key": "search_customers",
+      "name": "Search customers",
+      "method": "POST",
+      "endpoint": "/search/customer",
+      "body": {
+        "term": "{{ inputs.term }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "inputs": [
+        {
+          "key": "term",
+          "label": "Search term (e.g. email)",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 10
+        }
+      ]
+    }
+  ]
+}

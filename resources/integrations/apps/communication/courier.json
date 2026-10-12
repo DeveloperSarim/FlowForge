@@ -1,0 +1,66 @@
+{
+  "key": "courier",
+  "name": "Courier",
+  "category": "Communication",
+  "description": "Send notifications by email, SMS, push or chat through Courier.",
+  "brand": "courier",
+  "website": "https://www.courier.com",
+  "docs_url": "https://www.courier.com/docs/reference/send/message/",
+  "base_url": "https://api.courier.com",
+  "auth": [
+    { "type": "bearer", "fields": [{ "key": "token", "label": "Auth token", "type": "password", "required": true }] }
+  ],
+  "actions": [
+    {
+      "key": "send_template",
+      "name": "Send template",
+      "method": "POST",
+      "endpoint": "/send",
+      "body": {
+        "message": {
+          "to": { "user_id": "{{ inputs.user_id }}", "email": "{{ inputs.email }}", "phone_number": "{{ inputs.phone_number }}" },
+          "template": "{{ inputs.template }}",
+          "data": "{{ inputs.data }}"
+        }
+      },
+      "inputs": [
+        { "key": "template", "label": "Template ID or alias", "type": "string", "required": true },
+        { "key": "user_id", "label": "Recipient user ID", "type": "string", "help": "Set a user ID, email or phone number." },
+        { "key": "email", "label": "Or email", "type": "string" },
+        { "key": "phone_number", "label": "Or phone number", "type": "string" },
+        { "key": "data", "label": "Template data (JSON)", "type": "json" }
+      ]
+    },
+    {
+      "key": "send_message",
+      "name": "Send message",
+      "method": "POST",
+      "endpoint": "/send",
+      "body": {
+        "message": {
+          "to": { "user_id": "{{ inputs.user_id }}", "email": "{{ inputs.email }}", "phone_number": "{{ inputs.phone_number }}" },
+          "content": { "title": "{{ inputs.title }}", "body": "{{ inputs.body }}" },
+          "routing": { "method": "single", "channels": ["{{ inputs.channel }}"] }
+        }
+      },
+      "inputs": [
+        { "key": "channel", "label": "Channel", "type": "select", "required": true, "default": "email", "options": [
+          { "value": "email", "label": "Email" }, { "value": "sms", "label": "SMS" }, { "value": "push", "label": "Push" },
+          { "value": "chat", "label": "Chat" }, { "value": "inbox", "label": "Inbox" }
+        ] },
+        { "key": "user_id", "label": "Recipient user ID", "type": "string" },
+        { "key": "email", "label": "Or email", "type": "string" },
+        { "key": "phone_number", "label": "Or phone number", "type": "string" },
+        { "key": "title", "label": "Title / subject", "type": "string" },
+        { "key": "body", "label": "Body", "type": "text", "required": true }
+      ]
+    },
+    {
+      "key": "get_message",
+      "name": "Get message status",
+      "method": "GET",
+      "endpoint": "/messages/{{ inputs.message_id }}",
+      "inputs": [{ "key": "message_id", "label": "Message / request ID", "type": "string", "required": true }]
+    }
+  ]
+}

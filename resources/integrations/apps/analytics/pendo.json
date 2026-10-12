@@ -1,0 +1,47 @@
+{
+  "key": "pendo",
+  "name": "Pendo",
+  "category": "Analytics",
+  "description": "Send server-side track events and look up visitors and accounts.",
+  "brand": "pendo",
+  "website": "https://www.pendo.io",
+  "docs_url": "https://engageapi.pendo.io",
+  "base_url": "{{ credentials.host }}",
+  "headers": { "x-pendo-integration-key": "{{ credentials.api_key }}" },
+  "auth": { "type": "api_key", "fields": [
+    { "key": "host", "label": "Pendo host", "type": "string", "required": true, "default": "https://app.pendo.io", "help": "EU: https://app.eu.pendo.io" },
+    { "key": "api_key", "label": "Integration key", "type": "password", "required": true, "help": "Settings > Integrations > Integration keys." },
+    { "key": "track_secret", "label": "Track Event shared secret", "type": "password", "help": "Settings > Subscription settings > Applications. Needed only for \"Track event\"." }
+  ] },
+  "actions": [
+    {
+      "key": "track_event",
+      "name": "Track event",
+      "method": "POST",
+      "endpoint": "/data/track",
+      "headers": { "x-pendo-integration-key": "{{ credentials.track_secret }}" },
+      "body": { "type": "track", "event": "{{ inputs.event }}", "visitorId": "{{ inputs.visitor_id }}", "accountId": "{{ inputs.account_id }}", "timestamp": "{{ inputs.timestamp }}", "properties": "{{ inputs.properties }}" },
+      "inputs": [
+        { "key": "event", "label": "Event name", "type": "string", "required": true },
+        { "key": "visitor_id", "label": "Visitor ID", "type": "string", "required": true },
+        { "key": "account_id", "label": "Account ID", "type": "string" },
+        { "key": "timestamp", "label": "Timestamp (ms since epoch)", "type": "number", "required": true },
+        { "key": "properties", "label": "Properties", "type": "json" }
+      ]
+    },
+    {
+      "key": "get_visitor",
+      "name": "Get visitor",
+      "method": "GET",
+      "endpoint": "/api/v1/visitor/{{ inputs.visitor_id }}",
+      "inputs": [{ "key": "visitor_id", "label": "Visitor ID", "type": "string", "required": true }]
+    },
+    {
+      "key": "get_account",
+      "name": "Get account",
+      "method": "GET",
+      "endpoint": "/api/v1/account/{{ inputs.account_id }}",
+      "inputs": [{ "key": "account_id", "label": "Account ID", "type": "string", "required": true }]
+    }
+  ]
+}

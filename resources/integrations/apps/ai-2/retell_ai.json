@@ -1,0 +1,123 @@
+{
+  "key": "retell_ai",
+  "name": "Retell AI",
+  "category": "AI",
+  "description": "Place outbound AI voice calls and fetch call results.",
+  "brand": "retellai",
+  "website": "https://www.retellai.com",
+  "docs_url": "https://docs.retellai.com/api-references/create-phone-call",
+  "base_url": "https://api.retellai.com",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "API key",
+        "type": "password",
+        "required": true
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "create_phone_call",
+      "name": "Create phone call",
+      "method": "POST",
+      "endpoint": "/v2/create-phone-call",
+      "body": {
+        "from_number": "{{ inputs.from_number }}",
+        "to_number": "{{ inputs.to_number }}",
+        "override_agent_id": "{{ inputs.agent_id }}",
+        "retell_llm_dynamic_variables": "{{ inputs.variables }}",
+        "metadata": "{{ inputs.metadata }}"
+      },
+      "inputs": [
+        {
+          "key": "from_number",
+          "label": "From number",
+          "type": "string",
+          "required": true,
+          "placeholder": "+14155550100",
+          "help": "A number you bought or imported in Retell."
+        },
+        {
+          "key": "to_number",
+          "label": "To number",
+          "type": "string",
+          "required": true,
+          "placeholder": "+14155550123"
+        },
+        {
+          "key": "agent_id",
+          "label": "Agent ID",
+          "type": "string",
+          "help": "Overrides the agent bound to the from number."
+        },
+        {
+          "key": "variables",
+          "label": "Dynamic variables",
+          "type": "keyvalue"
+        },
+        {
+          "key": "metadata",
+          "label": "Metadata (JSON)",
+          "type": "json"
+        }
+      ]
+    },
+    {
+      "key": "get_call",
+      "name": "Get call",
+      "method": "GET",
+      "endpoint": "/v2/get-call/{{ inputs.call_id }}",
+      "inputs": [
+        {
+          "key": "call_id",
+          "label": "Call ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_calls",
+      "name": "List calls",
+      "method": "POST",
+      "endpoint": "/v3/list-calls",
+      "body": {
+        "filter_criteria": "{{ inputs.filter_criteria }}",
+        "sort_order": "descending",
+        "limit": "{{ inputs.limit }}"
+      },
+      "inputs": [
+        {
+          "key": "filter_criteria",
+          "label": "Filter (JSON)",
+          "type": "json",
+          "placeholder": "{\"agent_id\": [\"agent_...\"]}"
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Call event",
+      "type": "webhook",
+      "description": "Paste the URL as the agent or account webhook (call_started, call_ended, call_analyzed).",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

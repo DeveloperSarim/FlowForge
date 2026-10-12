@@ -1,0 +1,293 @@
+{
+  "key": "squidex",
+  "name": "Squidex",
+  "category": "CMS & Websites",
+  "description": "Create, update, publish and query content items in Squidex.",
+  "brand": "squidex",
+  "website": "https://squidex.io",
+  "docs_url": "https://docs.squidex.io/id-02-documentation/developer-guides/api-overview",
+  "base_url": "{{ credentials.base_url }}/api/content/{{ credentials.app }}",
+  "auth": [
+    {
+      "type": "bearer",
+      "fields": [
+        {
+          "key": "base_url",
+          "label": "Squidex URL",
+          "type": "string",
+          "required": true,
+          "default": "https://cloud.squidex.io",
+          "help": "Your own URL when self-hosted. No trailing slash."
+        },
+        {
+          "key": "app",
+          "label": "App name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "token",
+          "label": "Access token",
+          "type": "password",
+          "required": true,
+          "help": "Get it from /identity-server/connect/token with your client ID/secret (client_credentials, scope squidex-api)."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_contents",
+      "name": "Query contents",
+      "method": "GET",
+      "endpoint": "/{{ inputs.schema }}",
+      "query": {
+        "$filter": "{{ inputs.filter }}",
+        "$search": "{{ inputs.search }}",
+        "$orderby": "{{ inputs.orderby }}",
+        "$top": "{{ inputs.top }}",
+        "$skip": "{{ inputs.skip }}"
+      },
+      "inputs": [
+        {
+          "key": "schema",
+          "label": "Schema",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "filter",
+          "label": "OData filter",
+          "type": "string",
+          "placeholder": "data/title/iv eq 'Hello'"
+        },
+        {
+          "key": "search",
+          "label": "Full-text search",
+          "type": "string"
+        },
+        {
+          "key": "orderby",
+          "label": "Order by",
+          "type": "string",
+          "placeholder": "created desc"
+        },
+        {
+          "key": "top",
+          "label": "Top",
+          "type": "number"
+        },
+        {
+          "key": "skip",
+          "label": "Skip",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "get_content",
+      "name": "Get content item",
+      "method": "GET",
+      "endpoint": "/{{ inputs.schema }}/{{ inputs.id }}",
+      "inputs": [
+        {
+          "key": "schema",
+          "label": "Schema",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "id",
+          "label": "Content ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "create_content",
+      "name": "Create content item",
+      "method": "POST",
+      "endpoint": "/{{ inputs.schema }}",
+      "query": {
+        "publish": "{{ inputs.publish }}"
+      },
+      "body": "{{ inputs.data }}",
+      "inputs": [
+        {
+          "key": "schema",
+          "label": "Schema",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "data",
+          "label": "Data",
+          "type": "json",
+          "required": true,
+          "placeholder": "{\"title\": {\"iv\": \"Hello\"}}"
+        },
+        {
+          "key": "publish",
+          "label": "Publish",
+          "type": "select",
+          "options": [
+            {
+              "value": "true",
+              "label": "Yes"
+            },
+            {
+              "value": "false",
+              "label": "No"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "update_content",
+      "name": "Update content item",
+      "method": "PATCH",
+      "endpoint": "/{{ inputs.schema }}/{{ inputs.id }}",
+      "body": "{{ inputs.data }}",
+      "inputs": [
+        {
+          "key": "schema",
+          "label": "Schema",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "id",
+          "label": "Content ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "data",
+          "label": "Changed fields",
+          "type": "json",
+          "required": true,
+          "placeholder": "{\"title\": {\"iv\": \"New title\"}}"
+        }
+      ]
+    },
+    {
+      "key": "change_status",
+      "name": "Change status",
+      "method": "PUT",
+      "endpoint": "/{{ inputs.schema }}/{{ inputs.id }}/status",
+      "body": {
+        "status": "{{ inputs.status }}"
+      },
+      "inputs": [
+        {
+          "key": "schema",
+          "label": "Schema",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "id",
+          "label": "Content ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "string",
+          "required": true,
+          "default": "Published",
+          "help": "Published, Draft, Archived or a custom status."
+        }
+      ]
+    },
+    {
+      "key": "delete_content",
+      "name": "Delete content item",
+      "method": "DELETE",
+      "endpoint": "/{{ inputs.schema }}/{{ inputs.id }}",
+      "inputs": [
+        {
+          "key": "schema",
+          "label": "Schema",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "id",
+          "label": "Content ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "graphql_query",
+      "name": "Run GraphQL query",
+      "description": "Runs a GraphQL query or mutation.",
+      "method": "POST",
+      "endpoint": "/graphql",
+      "body": {
+        "query": "{{ inputs.query }}",
+        "variables": "{{ inputs.variables }}"
+      },
+      "inputs": [
+        {
+          "key": "query",
+          "label": "Query",
+          "type": "code",
+          "required": true,
+          "placeholder": "query { ... }"
+        },
+        {
+          "key": "variables",
+          "label": "Variables",
+          "type": "json"
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_content",
+      "name": "New content item",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/{{ inputs.schema }}",
+      "query": {
+        "$orderby": "created desc",
+        "$top": 20
+      },
+      "items_path": "items",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "schema",
+          "label": "Schema",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    },
+    {
+      "key": "webhook_event",
+      "name": "Rule webhook",
+      "type": "webhook",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

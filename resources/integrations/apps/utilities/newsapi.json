@@ -1,0 +1,91 @@
+{
+  "key": "newsapi",
+  "name": "NewsAPI",
+  "category": "Utilities",
+  "description": "Search news articles and get top headlines from thousands of sources.",
+  "brand": "newsapi",
+  "website": "https://newsapi.org",
+  "docs_url": "https://newsapi.org/docs",
+  "base_url": "https://newsapi.org/v2",
+  "auth": { "type": "api_key", "in": "header", "name": "X-Api-Key", "fields": [
+    { "key": "api_key", "label": "API key", "type": "password", "required": true }
+  ] },
+  "actions": [
+    {
+      "key": "top_headlines",
+      "name": "Get top headlines",
+      "method": "GET",
+      "endpoint": "/top-headlines",
+      "query": { "country": "{{ inputs.country }}", "category": "{{ inputs.category }}", "sources": "{{ inputs.sources }}", "q": "{{ inputs.q }}", "pageSize": "{{ inputs.page_size }}", "page": "{{ inputs.page }}" },
+      "output_path": "articles",
+      "inputs": [
+        { "key": "country", "label": "Country", "type": "string", "placeholder": "us", "help": "Can't be combined with Sources." },
+        { "key": "category", "label": "Category", "type": "select", "options": [
+          { "value": "", "label": "Any" }, { "value": "business", "label": "Business" }, { "value": "entertainment", "label": "Entertainment" },
+          { "value": "general", "label": "General" }, { "value": "health", "label": "Health" }, { "value": "science", "label": "Science" },
+          { "value": "sports", "label": "Sports" }, { "value": "technology", "label": "Technology" }
+        ] },
+        { "key": "sources", "label": "Sources", "type": "string", "placeholder": "bbc-news,the-verge" },
+        { "key": "q", "label": "Keywords", "type": "string" },
+        { "key": "page_size", "label": "Page size", "type": "number", "default": 20, "help": "Max 100." },
+        { "key": "page", "label": "Page", "type": "number" }
+      ]
+    },
+    {
+      "key": "search_articles",
+      "name": "Search all articles",
+      "method": "GET",
+      "endpoint": "/everything",
+      "query": {
+        "q": "{{ inputs.q }}", "searchIn": "{{ inputs.search_in }}", "sources": "{{ inputs.sources }}", "domains": "{{ inputs.domains }}",
+        "from": "{{ inputs.from }}", "to": "{{ inputs.to }}", "language": "{{ inputs.language }}", "sortBy": "{{ inputs.sort_by }}",
+        "pageSize": "{{ inputs.page_size }}", "page": "{{ inputs.page }}"
+      },
+      "output_path": "articles",
+      "inputs": [
+        { "key": "q", "label": "Keywords", "type": "string", "required": true, "placeholder": "\"electric cars\" AND (tesla OR rivian)" },
+        { "key": "search_in", "label": "Search in", "type": "string", "placeholder": "title,description,content" },
+        { "key": "sources", "label": "Sources", "type": "string" },
+        { "key": "domains", "label": "Domains", "type": "string", "placeholder": "techcrunch.com,bbc.co.uk" },
+        { "key": "from", "label": "From", "type": "string", "placeholder": "2026-01-01" },
+        { "key": "to", "label": "To", "type": "string" },
+        { "key": "language", "label": "Language", "type": "string", "placeholder": "en" },
+        { "key": "sort_by", "label": "Sort", "type": "select", "default": "publishedAt", "options": [
+          { "value": "publishedAt", "label": "Newest" }, { "value": "relevancy", "label": "Relevance" }, { "value": "popularity", "label": "Popularity" }
+        ] },
+        { "key": "page_size", "label": "Page size", "type": "number", "default": 20 },
+        { "key": "page", "label": "Page", "type": "number" }
+      ]
+    },
+    {
+      "key": "list_sources",
+      "name": "List sources",
+      "method": "GET",
+      "endpoint": "/top-headlines/sources",
+      "query": { "category": "{{ inputs.category }}", "language": "{{ inputs.language }}", "country": "{{ inputs.country }}" },
+      "output_path": "sources",
+      "inputs": [
+        { "key": "category", "label": "Category", "type": "string", "placeholder": "technology" },
+        { "key": "language", "label": "Language", "type": "string", "placeholder": "en" },
+        { "key": "country", "label": "Country", "type": "string", "placeholder": "us" }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_article",
+      "name": "New article matching search",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/everything",
+      "query": { "q": "{{ inputs.q }}", "language": "{{ inputs.language }}", "sortBy": "publishedAt", "pageSize": 20 },
+      "items_path": "articles",
+      "id_field": "url",
+      "inputs": [
+        { "key": "q", "label": "Keywords", "type": "string", "required": true },
+        { "key": "language", "label": "Language", "type": "string", "placeholder": "en" },
+        { "key": "poll_interval", "label": "Check every (minutes)", "type": "number", "default": 15, "help": "The free plan allows 100 requests a day." }
+      ]
+    }
+  ]
+}

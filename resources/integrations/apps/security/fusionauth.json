@@ -1,0 +1,113 @@
+{
+  "key": "fusionauth",
+  "name": "FusionAuth",
+  "category": "Security & IT",
+  "description": "Create, find, update, deactivate and register users to applications.",
+  "brand": "fusionauth",
+  "website": "https://fusionauth.io",
+  "docs_url": "https://fusionauth.io/docs/apis/",
+  "base_url": "{{ credentials.base_url }}/api",
+  "headers": { "X-FusionAuth-TenantId": "{{ credentials.tenant_id }}" },
+  "auth": { "type": "api_key", "in": "header", "name": "Authorization", "fields": [
+    { "key": "base_url", "label": "FusionAuth URL", "type": "string", "required": true, "placeholder": "https://auth.example.com", "help": "Without a trailing slash." },
+    { "key": "api_key", "label": "API key", "type": "password", "required": true, "help": "Settings → API Keys." },
+    { "key": "tenant_id", "label": "Tenant ID", "type": "string", "help": "Required when you have more than one tenant and the key is not tenant-scoped." }
+  ] },
+  "actions": [
+    {
+      "key": "create_user",
+      "name": "Create user",
+      "method": "POST",
+      "endpoint": "/user",
+      "body": { "user": { "email": "{{ inputs.email }}", "password": "{{ inputs.password }}", "firstName": "{{ inputs.first_name }}", "lastName": "{{ inputs.last_name }}", "username": "{{ inputs.username }}", "data": "{{ inputs.data }}" }, "sendSetPasswordEmail": "{{ inputs.send_set_password_email }}", "skipVerification": "{{ inputs.skip_verification }}" },
+      "output_path": "user",
+      "inputs": [
+        { "key": "email", "label": "Email", "type": "string", "required": true },
+        { "key": "password", "label": "Password", "type": "password", "help": "Leave empty and enable the set-password email instead." },
+        { "key": "first_name", "label": "First name", "type": "string" },
+        { "key": "last_name", "label": "Last name", "type": "string" },
+        { "key": "username", "label": "Username", "type": "string" },
+        { "key": "data", "label": "Custom data", "type": "keyvalue" },
+        { "key": "send_set_password_email", "label": "Send set-password email", "type": "boolean" },
+        { "key": "skip_verification", "label": "Skip email verification", "type": "boolean" }
+      ]
+    },
+    {
+      "key": "get_user",
+      "name": "Get user",
+      "method": "GET",
+      "endpoint": "/user/{{ inputs.user_id }}",
+      "output_path": "user",
+      "inputs": [{ "key": "user_id", "label": "User ID", "type": "string", "required": true }]
+    },
+    {
+      "key": "find_user_by_email",
+      "name": "Find user by email",
+      "method": "GET",
+      "endpoint": "/user",
+      "query": { "email": "{{ inputs.email }}" },
+      "output_path": "user",
+      "inputs": [{ "key": "email", "label": "Email", "type": "string", "required": true }]
+    },
+    {
+      "key": "search_users",
+      "name": "Search users",
+      "method": "GET",
+      "endpoint": "/user/search",
+      "query": { "queryString": "{{ inputs.query }}", "numberOfResults": "{{ inputs.limit }}" },
+      "output_path": "users",
+      "inputs": [
+        { "key": "query", "label": "Query string", "type": "string", "required": true, "placeholder": "lastName:smith" },
+        { "key": "limit", "label": "Limit", "type": "number", "default": 25 }
+      ]
+    },
+    {
+      "key": "update_user",
+      "name": "Update user",
+      "description": "Changes only the fields you set.",
+      "method": "PATCH",
+      "endpoint": "/user/{{ inputs.user_id }}",
+      "body": { "user": { "email": "{{ inputs.email }}", "firstName": "{{ inputs.first_name }}", "lastName": "{{ inputs.last_name }}", "data": "{{ inputs.data }}" } },
+      "output_path": "user",
+      "inputs": [
+        { "key": "user_id", "label": "User ID", "type": "string", "required": true },
+        { "key": "email", "label": "Email", "type": "string" },
+        { "key": "first_name", "label": "First name", "type": "string" },
+        { "key": "last_name", "label": "Last name", "type": "string" },
+        { "key": "data", "label": "Custom data", "type": "keyvalue" }
+      ]
+    },
+    {
+      "key": "delete_user",
+      "name": "Deactivate or delete user",
+      "method": "DELETE",
+      "endpoint": "/user/{{ inputs.user_id }}",
+      "query": { "hardDelete": "{{ inputs.hard_delete }}" },
+      "inputs": [
+        { "key": "user_id", "label": "User ID", "type": "string", "required": true },
+        { "key": "hard_delete", "label": "Permanently delete (otherwise deactivate)", "type": "boolean" }
+      ]
+    },
+    {
+      "key": "register_user",
+      "name": "Register user to application",
+      "method": "POST",
+      "endpoint": "/user/registration/{{ inputs.user_id }}",
+      "body": { "registration": { "applicationId": "{{ inputs.application_id }}", "roles": "{{ inputs.roles }}" } },
+      "inputs": [
+        { "key": "user_id", "label": "User ID", "type": "string", "required": true },
+        { "key": "application_id", "label": "Application ID", "type": "string", "required": true },
+        { "key": "roles", "label": "Roles", "type": "list" }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "data_path": "event",
+      "inputs": [{ "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }]
+    }
+  ]
+}

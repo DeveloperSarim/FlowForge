@@ -1,0 +1,72 @@
+{
+  "key": "bunny_cdn",
+  "name": "Bunny.net",
+  "category": "Developer Tools",
+  "description": "Purge CDN cache by URL or pull zone and read pull zones and statistics.",
+  "brand": "bunnydotnet",
+  "website": "https://bunny.net",
+  "docs_url": "https://docs.bunny.net/reference/bunnynet-api-overview",
+  "base_url": "https://api.bunny.net",
+  "auth": { "type": "api_key", "in": "header", "name": "AccessKey", "fields": [
+    { "key": "api_key", "label": "Account API key", "type": "password", "required": true, "help": "Account settings → API key (not a storage zone password)." }
+  ] },
+  "actions": [
+    {
+      "key": "purge_url",
+      "name": "Purge URL",
+      "method": "POST",
+      "endpoint": "/purge",
+      "query": { "url": "{{ inputs.url }}", "async": "{{ inputs.async }}" },
+      "inputs": [
+        { "key": "url", "label": "URL", "type": "string", "required": true, "placeholder": "https://myzone.b-cdn.net/images/*", "help": "A trailing * purges everything under the path." },
+        { "key": "async", "label": "Don't wait for completion", "type": "boolean" }
+      ]
+    },
+    {
+      "key": "purge_pull_zone",
+      "name": "Purge pull zone",
+      "method": "POST",
+      "endpoint": "/pullzone/{{ inputs.pull_zone_id }}/purgeCache",
+      "body": { "CacheTag": "{{ inputs.cache_tag }}" },
+      "inputs": [
+        { "key": "pull_zone_id", "label": "Pull zone ID", "type": "number", "required": true },
+        { "key": "cache_tag", "label": "Cache tag", "type": "string", "help": "Only purge files with this tag; leave empty to purge everything." }
+      ]
+    },
+    {
+      "key": "list_pull_zones",
+      "name": "List pull zones",
+      "method": "GET",
+      "endpoint": "/pullzone",
+      "query": { "search": "{{ inputs.search }}" },
+      "inputs": [{ "key": "search", "label": "Search", "type": "string" }]
+    },
+    {
+      "key": "get_pull_zone",
+      "name": "Get pull zone",
+      "method": "GET",
+      "endpoint": "/pullzone/{{ inputs.pull_zone_id }}",
+      "inputs": [{ "key": "pull_zone_id", "label": "Pull zone ID", "type": "number", "required": true }]
+    },
+    {
+      "key": "get_statistics",
+      "name": "Get statistics",
+      "method": "GET",
+      "endpoint": "/statistics",
+      "query": { "dateFrom": "{{ inputs.date_from }}", "dateTo": "{{ inputs.date_to }}", "pullZone": "{{ inputs.pull_zone_id }}", "hourly": "{{ inputs.hourly }}" },
+      "inputs": [
+        { "key": "date_from", "label": "From", "type": "string", "placeholder": "2026-01-01" },
+        { "key": "date_to", "label": "To", "type": "string", "placeholder": "2026-01-31" },
+        { "key": "pull_zone_id", "label": "Pull zone ID", "type": "number", "help": "Leave empty for all zones." },
+        { "key": "hourly", "label": "Hourly breakdown", "type": "boolean" }
+      ]
+    },
+    {
+      "key": "list_storage_zones",
+      "name": "List storage zones",
+      "method": "GET",
+      "endpoint": "/storagezone",
+      "inputs": []
+    }
+  ]
+}

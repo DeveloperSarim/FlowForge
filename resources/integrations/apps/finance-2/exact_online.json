@@ -1,0 +1,253 @@
+{
+  "key": "exact_online",
+  "name": "Exact Online",
+  "category": "Payments & Finance",
+  "description": "Create and list accounts and list sales invoices and items in Exact Online.",
+  "brand": "exactonline",
+  "website": "https://www.exact.com",
+  "docs_url": "https://start.exactonline.nl/docs/HlpRestAPIResources.aspx",
+  "base_url": "https://start.exactonline.{{ credentials.region }}/api/v1",
+  "auth": [
+    {
+      "type": "oauth2",
+      "authorize_url": "https://start.exactonline.{{ credentials.region }}/api/oauth2/auth",
+      "token_url": "https://start.exactonline.{{ credentials.region }}/api/oauth2/token",
+      "fields": [
+        {
+          "key": "region",
+          "label": "Country",
+          "type": "select",
+          "required": true,
+          "options": [
+            {
+              "value": "nl",
+              "label": "Netherlands"
+            },
+            {
+              "value": "be",
+              "label": "Belgium"
+            },
+            {
+              "value": "de",
+              "label": "Germany"
+            },
+            {
+              "value": "co.uk",
+              "label": "United Kingdom"
+            },
+            {
+              "value": "fr",
+              "label": "France"
+            },
+            {
+              "value": "es",
+              "label": "Spain"
+            },
+            {
+              "value": "com",
+              "label": "United States"
+            }
+          ],
+          "default": "nl"
+        },
+        {
+          "key": "division",
+          "label": "Division",
+          "type": "string",
+          "required": false,
+          "help": "After connecting, run \"Get current user\" and copy CurrentDivision here."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "get_me",
+      "name": "Get current user",
+      "method": "GET",
+      "endpoint": "/current/Me",
+      "query": {
+        "$select": "CurrentDivision,FullName,UserName"
+      },
+      "output_path": "d.results",
+      "inputs": []
+    },
+    {
+      "key": "list_accounts",
+      "name": "List accounts",
+      "method": "GET",
+      "endpoint": "/{{ credentials.division }}/crm/Accounts",
+      "query": {
+        "$filter": "{{ inputs.filter }}",
+        "$select": "{{ inputs.select }}",
+        "$top": "{{ inputs.top }}"
+      },
+      "output_path": "d.results",
+      "inputs": [
+        {
+          "key": "filter",
+          "label": "Filter (OData)",
+          "type": "string",
+          "placeholder": "Email eq 'ana@example.com'"
+        },
+        {
+          "key": "select",
+          "label": "Fields",
+          "type": "string",
+          "placeholder": "ID,Name,Email,Code"
+        },
+        {
+          "key": "top",
+          "label": "Max results",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    },
+    {
+      "key": "create_account",
+      "name": "Create account",
+      "method": "POST",
+      "endpoint": "/{{ credentials.division }}/crm/Accounts",
+      "body": {
+        "Name": "{{ inputs.name }}",
+        "Email": "{{ inputs.email }}",
+        "Phone": "{{ inputs.phone }}",
+        "AddressLine1": "{{ inputs.address }}",
+        "Postcode": "{{ inputs.postcode }}",
+        "City": "{{ inputs.city }}",
+        "Country": "{{ inputs.country }}",
+        "VATNumber": "{{ inputs.vat_number }}",
+        "Status": "{{ inputs.status }}"
+      },
+      "output_path": "d",
+      "inputs": [
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string"
+        },
+        {
+          "key": "phone",
+          "label": "Phone",
+          "type": "string"
+        },
+        {
+          "key": "address",
+          "label": "Address",
+          "type": "string"
+        },
+        {
+          "key": "postcode",
+          "label": "Postcode",
+          "type": "string"
+        },
+        {
+          "key": "city",
+          "label": "City",
+          "type": "string"
+        },
+        {
+          "key": "country",
+          "label": "Country code",
+          "type": "string",
+          "placeholder": "NL"
+        },
+        {
+          "key": "vat_number",
+          "label": "VAT number",
+          "type": "string"
+        },
+        {
+          "key": "status",
+          "label": "Relationship",
+          "type": "select",
+          "options": [
+            {
+              "value": "C",
+              "label": "Customer"
+            },
+            {
+              "value": "P",
+              "label": "Prospect"
+            },
+            {
+              "value": "S",
+              "label": "Suspect"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "list_sales_invoices",
+      "name": "List sales invoices",
+      "method": "GET",
+      "endpoint": "/{{ credentials.division }}/salesinvoice/SalesInvoices",
+      "query": {
+        "$filter": "{{ inputs.filter }}",
+        "$select": "{{ inputs.select }}",
+        "$top": "{{ inputs.top }}"
+      },
+      "output_path": "d.results",
+      "inputs": [
+        {
+          "key": "filter",
+          "label": "Filter (OData)",
+          "type": "string",
+          "placeholder": "Status eq 20"
+        },
+        {
+          "key": "select",
+          "label": "Fields",
+          "type": "string",
+          "placeholder": "InvoiceID,InvoiceNumber,AmountDC,InvoiceToName"
+        },
+        {
+          "key": "top",
+          "label": "Max results",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    },
+    {
+      "key": "list_items",
+      "name": "List items",
+      "method": "GET",
+      "endpoint": "/{{ credentials.division }}/logistics/Items",
+      "query": {
+        "$filter": "{{ inputs.filter }}",
+        "$select": "{{ inputs.select }}",
+        "$top": "{{ inputs.top }}"
+      },
+      "output_path": "d.results",
+      "inputs": [
+        {
+          "key": "filter",
+          "label": "Filter (OData)",
+          "type": "string",
+          "placeholder": "Code eq 'SKU-1'"
+        },
+        {
+          "key": "select",
+          "label": "Fields",
+          "type": "string",
+          "placeholder": "ID,Code,Description"
+        },
+        {
+          "key": "top",
+          "label": "Max results",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    }
+  ]
+}

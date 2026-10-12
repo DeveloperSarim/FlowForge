@@ -1,0 +1,57 @@
+{
+  "key": "fast2sms",
+  "name": "Fast2SMS",
+  "category": "Communication",
+  "description": "Send quick, OTP and DLT-template SMS to Indian numbers with Fast2SMS.",
+  "brand": "fast2sms",
+  "website": "https://www.fast2sms.com",
+  "docs_url": "https://docs.fast2sms.com",
+  "base_url": "https://www.fast2sms.com/dev",
+  "auth": [
+    { "type": "api_key", "in": "header", "name": "authorization", "fields": [{ "key": "api_key", "label": "API key", "type": "password", "required": true, "help": "Dashboard → Dev API." }] }
+  ],
+  "actions": [
+    {
+      "key": "send_quick_sms",
+      "name": "Send quick SMS",
+      "method": "POST",
+      "endpoint": "/bulkV2",
+      "body": { "route": "q", "message": "{{ inputs.message }}", "language": "english", "flash": 0, "numbers": "{{ inputs.numbers }}" },
+      "inputs": [
+        { "key": "numbers", "label": "Numbers", "type": "string", "required": true, "placeholder": "9999999999,8888888888", "help": "10-digit Indian numbers, comma separated." },
+        { "key": "message", "label": "Message", "type": "text", "required": true }
+      ]
+    },
+    {
+      "key": "send_otp",
+      "name": "Send OTP SMS",
+      "method": "POST",
+      "endpoint": "/bulkV2",
+      "body": { "route": "otp", "variables_values": "{{ inputs.otp }}", "numbers": "{{ inputs.numbers }}" },
+      "inputs": [
+        { "key": "numbers", "label": "Numbers", "type": "string", "required": true },
+        { "key": "otp", "label": "OTP value", "type": "string", "required": true, "help": "Digits only; generate it in an earlier step." }
+      ]
+    },
+    {
+      "key": "send_dlt_sms",
+      "name": "Send DLT template SMS",
+      "method": "POST",
+      "endpoint": "/bulkV2",
+      "body": {
+        "route": "dlt",
+        "sender_id": "{{ inputs.sender_id }}",
+        "message": "{{ inputs.message_id }}",
+        "variables_values": "{{ inputs.variables_values }}",
+        "flash": 0,
+        "numbers": "{{ inputs.numbers }}"
+      },
+      "inputs": [
+        { "key": "sender_id", "label": "DLT sender ID", "type": "string", "required": true },
+        { "key": "message_id", "label": "Message (template) ID", "type": "string", "required": true, "help": "The Fast2SMS message ID of your approved DLT template." },
+        { "key": "variables_values", "label": "Variable values", "type": "string", "placeholder": "Ada|1042", "help": "Separate values with |." },
+        { "key": "numbers", "label": "Numbers", "type": "string", "required": true }
+      ]
+    }
+  ]
+}

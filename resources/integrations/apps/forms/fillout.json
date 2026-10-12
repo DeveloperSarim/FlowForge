@@ -1,0 +1,189 @@
+{
+  "key": "fillout",
+  "name": "Fillout",
+  "category": "Forms & Surveys",
+  "description": "Get new Fillout submissions, read forms and register webhooks.",
+  "brand": "fillout",
+  "website": "https://www.fillout.com",
+  "docs_url": "https://www.fillout.com/help/fillout-rest-api",
+  "base_url": "https://api.fillout.com/v1/api",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "Account settings > Developer"
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_forms",
+      "name": "List forms",
+      "method": "GET",
+      "endpoint": "/forms",
+      "inputs": []
+    },
+    {
+      "key": "get_form",
+      "name": "Get form",
+      "description": "Questions and metadata.",
+      "method": "GET",
+      "endpoint": "/forms/{{ inputs.form_id }}",
+      "inputs": [
+        {
+          "key": "form_id",
+          "label": "Form ID",
+          "type": "string",
+          "required": true,
+          "help": "The public id in the form URL"
+        }
+      ]
+    },
+    {
+      "key": "list_submissions",
+      "name": "List submissions",
+      "method": "GET",
+      "endpoint": "/forms/{{ inputs.form_id }}/submissions",
+      "output_path": "responses",
+      "query": {
+        "limit": "{{ inputs.limit }}",
+        "afterDate": "{{ inputs.after_date }}",
+        "beforeDate": "{{ inputs.before_date }}",
+        "status": "{{ inputs.status }}",
+        "sort": "desc"
+      },
+      "inputs": [
+        {
+          "key": "form_id",
+          "label": "Form ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 50
+        },
+        {
+          "key": "after_date",
+          "label": "After date",
+          "type": "string",
+          "placeholder": "2024-01-31T00:00:00.000Z"
+        },
+        {
+          "key": "before_date",
+          "label": "Before date",
+          "type": "string"
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "options": [
+            {
+              "value": "finished",
+              "label": "Finished"
+            },
+            {
+              "value": "in_progress",
+              "label": "In progress"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "get_submission",
+      "name": "Get submission",
+      "method": "GET",
+      "endpoint": "/forms/{{ inputs.form_id }}/submissions/{{ inputs.submission_id }}",
+      "output_path": "submission",
+      "inputs": [
+        {
+          "key": "form_id",
+          "label": "Form ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "submission_id",
+          "label": "Submission ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "create_webhook",
+      "name": "Create webhook",
+      "method": "POST",
+      "endpoint": "/webhook/create",
+      "body": {
+        "formId": "{{ inputs.form_id }}",
+        "url": "{{ inputs.url }}"
+      },
+      "inputs": [
+        {
+          "key": "form_id",
+          "label": "Form ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "url",
+          "label": "Webhook URL",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_submission",
+      "name": "New submission (polling)",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/forms/{{ inputs.form_id }}/submissions",
+      "query": {
+        "limit": 50,
+        "sort": "desc"
+      },
+      "items_path": "responses",
+      "id_field": "submissionId",
+      "inputs": [
+        {
+          "key": "form_id",
+          "label": "Form ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    },
+    {
+      "key": "new_submission_webhook",
+      "name": "New submission (webhook)",
+      "type": "webhook",
+      "description": "Form > Integrate > Webhook, or use the Create webhook action.",
+      "data_path": "submission",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

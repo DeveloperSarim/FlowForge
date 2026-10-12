@@ -1,0 +1,442 @@
+{
+  "key": "authorize_net",
+  "name": "Authorize.net",
+  "category": "Payments & Finance",
+  "description": "Capture, void and refund transactions, charge saved profiles and look up payments.",
+  "brand": "authorizedotnet",
+  "website": "https://www.authorize.net",
+  "docs_url": "https://developer.authorize.net/api/reference/index.html",
+  "popular": true,
+  "base_url": "{{ credentials.environment }}/xml/v1",
+  "auth": [
+    {
+      "type": "api_key",
+      "fields": [
+        {
+          "key": "api_login_id",
+          "label": "API login ID",
+          "type": "string",
+          "required": true,
+          "help": "Merchant Interface > Account > Settings > API Credentials & Keys."
+        },
+        {
+          "key": "api_key",
+          "label": "Transaction key",
+          "type": "password",
+          "required": true
+        },
+        {
+          "key": "environment",
+          "label": "Environment",
+          "type": "select",
+          "required": true,
+          "options": [
+            {
+              "value": "https://api.authorize.net",
+              "label": "Production"
+            },
+            {
+              "value": "https://apitest.authorize.net",
+              "label": "Sandbox"
+            }
+          ],
+          "default": "https://api.authorize.net"
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "get_hosted_payment_page",
+      "name": "Create hosted payment page token",
+      "description": "Returns a token for the Accept Hosted payment form, so card data never touches your workflow.",
+      "method": "POST",
+      "endpoint": "/request.api",
+      "body": {
+        "getHostedPaymentPageRequest": {
+          "merchantAuthentication": {
+            "name": "{{ credentials.api_login_id }}",
+            "transactionKey": "{{ credentials.api_key }}"
+          },
+          "refId": "{{ inputs.ref_id }}",
+          "transactionRequest": {
+            "transactionType": "{{ inputs.transaction_type }}",
+            "amount": "{{ inputs.amount }}",
+            "order": {
+              "invoiceNumber": "{{ inputs.invoice_number }}",
+              "description": "{{ inputs.description }}"
+            }
+          },
+          "hostedPaymentSettings": {
+            "setting": [
+              {
+                "settingName": "hostedPaymentReturnOptions",
+                "settingValue": "{\"showReceipt\": true, \"url\": \"{{ inputs.return_url }}\", \"urlText\": \"Continue\", \"cancelUrl\": \"{{ inputs.cancel_url }}\", \"cancelUrlText\": \"Cancel\"}"
+              }
+            ]
+          }
+        }
+      },
+      "inputs": [
+        {
+          "key": "transaction_type",
+          "label": "Type",
+          "type": "select",
+          "options": [
+            {
+              "value": "authCaptureTransaction",
+              "label": "Charge (auth + capture)"
+            },
+            {
+              "value": "authOnlyTransaction",
+              "label": "Authorize only"
+            }
+          ],
+          "default": "authCaptureTransaction",
+          "required": true
+        },
+        {
+          "key": "amount",
+          "label": "Amount",
+          "type": "string",
+          "required": true,
+          "placeholder": "25.00"
+        },
+        {
+          "key": "invoice_number",
+          "label": "Invoice number",
+          "type": "string"
+        },
+        {
+          "key": "description",
+          "label": "Description",
+          "type": "string"
+        },
+        {
+          "key": "return_url",
+          "label": "Return URL",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "cancel_url",
+          "label": "Cancel URL",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "ref_id",
+          "label": "Reference ID",
+          "type": "string",
+          "help": "Optional, echoed back in the response (max 20 chars)."
+        }
+      ]
+    },
+    {
+      "key": "charge_customer_profile",
+      "name": "Charge saved customer profile",
+      "method": "POST",
+      "endpoint": "/request.api",
+      "body": {
+        "createTransactionRequest": {
+          "merchantAuthentication": {
+            "name": "{{ credentials.api_login_id }}",
+            "transactionKey": "{{ credentials.api_key }}"
+          },
+          "refId": "{{ inputs.ref_id }}",
+          "transactionRequest": {
+            "transactionType": "authCaptureTransaction",
+            "amount": "{{ inputs.amount }}",
+            "profile": {
+              "customerProfileId": "{{ inputs.customer_profile_id }}",
+              "paymentProfile": {
+                "paymentProfileId": "{{ inputs.payment_profile_id }}"
+              }
+            },
+            "order": {
+              "invoiceNumber": "{{ inputs.invoice_number }}",
+              "description": "{{ inputs.description }}"
+            }
+          }
+        }
+      },
+      "inputs": [
+        {
+          "key": "amount",
+          "label": "Amount",
+          "type": "string",
+          "required": true,
+          "placeholder": "25.00"
+        },
+        {
+          "key": "customer_profile_id",
+          "label": "Customer profile ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "payment_profile_id",
+          "label": "Payment profile ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "invoice_number",
+          "label": "Invoice number",
+          "type": "string"
+        },
+        {
+          "key": "description",
+          "label": "Description",
+          "type": "string"
+        },
+        {
+          "key": "ref_id",
+          "label": "Reference ID",
+          "type": "string",
+          "help": "Optional, echoed back in the response (max 20 chars)."
+        }
+      ]
+    },
+    {
+      "key": "capture_transaction",
+      "name": "Capture authorized transaction",
+      "method": "POST",
+      "endpoint": "/request.api",
+      "body": {
+        "createTransactionRequest": {
+          "merchantAuthentication": {
+            "name": "{{ credentials.api_login_id }}",
+            "transactionKey": "{{ credentials.api_key }}"
+          },
+          "refId": "{{ inputs.ref_id }}",
+          "transactionRequest": {
+            "transactionType": "priorAuthCaptureTransaction",
+            "amount": "{{ inputs.amount }}",
+            "refTransId": "{{ inputs.transaction_id }}"
+          }
+        }
+      },
+      "inputs": [
+        {
+          "key": "transaction_id",
+          "label": "Transaction ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "amount",
+          "label": "Amount",
+          "type": "string",
+          "help": "Blank = authorized amount."
+        },
+        {
+          "key": "ref_id",
+          "label": "Reference ID",
+          "type": "string",
+          "help": "Optional, echoed back in the response (max 20 chars)."
+        }
+      ]
+    },
+    {
+      "key": "void_transaction",
+      "name": "Void transaction",
+      "method": "POST",
+      "endpoint": "/request.api",
+      "body": {
+        "createTransactionRequest": {
+          "merchantAuthentication": {
+            "name": "{{ credentials.api_login_id }}",
+            "transactionKey": "{{ credentials.api_key }}"
+          },
+          "refId": "{{ inputs.ref_id }}",
+          "transactionRequest": {
+            "transactionType": "voidTransaction",
+            "refTransId": "{{ inputs.transaction_id }}"
+          }
+        }
+      },
+      "inputs": [
+        {
+          "key": "transaction_id",
+          "label": "Transaction ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "ref_id",
+          "label": "Reference ID",
+          "type": "string",
+          "help": "Optional, echoed back in the response (max 20 chars)."
+        }
+      ]
+    },
+    {
+      "key": "refund_transaction",
+      "name": "Refund settled transaction",
+      "method": "POST",
+      "endpoint": "/request.api",
+      "body": {
+        "createTransactionRequest": {
+          "merchantAuthentication": {
+            "name": "{{ credentials.api_login_id }}",
+            "transactionKey": "{{ credentials.api_key }}"
+          },
+          "refId": "{{ inputs.ref_id }}",
+          "transactionRequest": {
+            "transactionType": "refundTransaction",
+            "amount": "{{ inputs.amount }}",
+            "payment": {
+              "creditCard": {
+                "cardNumber": "{{ inputs.card_last4 }}",
+                "expirationDate": "XXXX"
+              }
+            },
+            "refTransId": "{{ inputs.transaction_id }}"
+          }
+        }
+      },
+      "inputs": [
+        {
+          "key": "transaction_id",
+          "label": "Transaction ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "amount",
+          "label": "Amount",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "card_last4",
+          "label": "Card last 4 digits",
+          "type": "string",
+          "required": true,
+          "placeholder": "1111"
+        },
+        {
+          "key": "ref_id",
+          "label": "Reference ID",
+          "type": "string",
+          "help": "Optional, echoed back in the response (max 20 chars)."
+        }
+      ]
+    },
+    {
+      "key": "get_transaction_details",
+      "name": "Get transaction details",
+      "method": "POST",
+      "endpoint": "/request.api",
+      "body": {
+        "getTransactionDetailsRequest": {
+          "merchantAuthentication": {
+            "name": "{{ credentials.api_login_id }}",
+            "transactionKey": "{{ credentials.api_key }}"
+          },
+          "transId": "{{ inputs.transaction_id }}"
+        }
+      },
+      "inputs": [
+        {
+          "key": "transaction_id",
+          "label": "Transaction ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_unsettled_transactions",
+      "name": "List unsettled transactions",
+      "method": "POST",
+      "endpoint": "/request.api",
+      "body": {
+        "getUnsettledTransactionListRequest": {
+          "merchantAuthentication": {
+            "name": "{{ credentials.api_login_id }}",
+            "transactionKey": "{{ credentials.api_key }}"
+          }
+        }
+      },
+      "inputs": []
+    },
+    {
+      "key": "create_customer_profile",
+      "name": "Create customer profile",
+      "method": "POST",
+      "endpoint": "/request.api",
+      "body": {
+        "createCustomerProfileRequest": {
+          "merchantAuthentication": {
+            "name": "{{ credentials.api_login_id }}",
+            "transactionKey": "{{ credentials.api_key }}"
+          },
+          "profile": {
+            "merchantCustomerId": "{{ inputs.merchant_customer_id }}",
+            "description": "{{ inputs.description }}",
+            "email": "{{ inputs.email }}"
+          }
+        }
+      },
+      "inputs": [
+        {
+          "key": "merchant_customer_id",
+          "label": "Your customer ID",
+          "type": "string"
+        },
+        {
+          "key": "description",
+          "label": "Description",
+          "type": "string"
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "get_customer_profile",
+      "name": "Get customer profile",
+      "method": "POST",
+      "endpoint": "/request.api",
+      "body": {
+        "getCustomerProfileRequest": {
+          "merchantAuthentication": {
+            "name": "{{ credentials.api_login_id }}",
+            "transactionKey": "{{ credentials.api_key }}"
+          },
+          "customerProfileId": "{{ inputs.customer_profile_id }}"
+        }
+      },
+      "inputs": [
+        {
+          "key": "customer_profile_id",
+          "label": "Customer profile ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Merchant Interface > Account > Settings > Webhooks: add an endpoint with this URL.",
+      "data_path": "payload",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

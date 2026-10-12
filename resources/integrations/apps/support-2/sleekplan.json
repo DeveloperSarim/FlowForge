@@ -1,0 +1,72 @@
+{
+  "key": "sleekplan",
+  "name": "Sleekplan",
+  "category": "Customer Support",
+  "description": "Create feedback posts, update them and add comments in Sleekplan.",
+  "brand": "sleekplan",
+  "website": "https://sleekplan.com",
+  "docs_url": "https://sleekplan.com/developer/api",
+  "base_url": "https://api.sleekplan.com/v1",
+  "auth": {
+    "type": "bearer",
+    "fields": [{ "key": "token", "label": "API key", "type": "password", "required": true }]
+  },
+  "actions": [
+    {
+      "key": "create_post",
+      "name": "Create feedback post",
+      "method": "POST",
+      "endpoint": "/post",
+      "output_path": "data",
+      "body": {
+        "title": "{{ inputs.title }}",
+        "type": "{{ inputs.category_id }}",
+        "description": "{{ inputs.description }}",
+        "status": "{{ inputs.status }}",
+        "user": "{{ inputs.user_id }}"
+      },
+      "inputs": [
+        { "key": "title", "label": "Title", "type": "string", "required": true },
+        { "key": "category_id", "label": "Category ID", "type": "string", "required": true },
+        { "key": "description", "label": "Description", "type": "text" },
+        { "key": "status", "label": "Status", "type": "string" },
+        { "key": "user_id", "label": "User ID", "type": "string" }
+      ]
+    },
+    {
+      "key": "update_post",
+      "name": "Update feedback post",
+      "method": "PUT",
+      "endpoint": "/post/{{ inputs.post_id }}",
+      "output_path": "data",
+      "body": "{{ inputs.fields }}",
+      "inputs": [
+        { "key": "post_id", "label": "Post ID", "type": "string", "required": true },
+        { "key": "fields", "label": "Fields", "type": "keyvalue", "required": true, "help": "e.g. title, description, status" }
+      ]
+    },
+    {
+      "key": "add_comment",
+      "name": "Add comment",
+      "method": "POST",
+      "endpoint": "/post/{{ inputs.post_id }}/comment",
+      "output_path": "data",
+      "body": { "comment": "{{ inputs.comment }}", "public": "{{ inputs.public }}", "user_id": "{{ inputs.user_id }}" },
+      "inputs": [
+        { "key": "post_id", "label": "Post ID", "type": "string", "required": true },
+        { "key": "comment", "label": "Comment", "type": "text", "required": true },
+        { "key": "public", "label": "Public", "type": "boolean" },
+        { "key": "user_id", "label": "User ID", "type": "string" }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Add this URL as a webhook in Sleekplan settings.",
+      "inputs": [{ "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }]
+    }
+  ]
+}

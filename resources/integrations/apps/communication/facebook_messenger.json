@@ -1,0 +1,47 @@
+{
+  "key": "facebook_messenger",
+  "name": "Facebook Messenger",
+  "category": "Communication",
+  "description": "Send Messenger messages from a Facebook Page and look up profiles.",
+  "brand": "messenger",
+  "website": "https://www.messenger.com",
+  "docs_url": "https://developers.facebook.com/docs/messenger-platform/reference/send-api/",
+  "base_url": "https://graph.facebook.com/v23.0",
+  "auth": [
+    { "type": "bearer", "fields": [{ "key": "token", "label": "Page access token", "type": "password", "required": true }] }
+  ],
+  "actions": [
+    {
+      "key": "send_text",
+      "name": "Send text message",
+      "method": "POST",
+      "endpoint": "/me/messages",
+      "body": {
+        "recipient": { "id": "{{ inputs.recipient_id }}" },
+        "messaging_type": "{{ inputs.messaging_type }}",
+        "tag": "{{ inputs.tag }}",
+        "message": { "text": "{{ inputs.text }}" }
+      },
+      "inputs": [
+        { "key": "recipient_id", "label": "Recipient PSID", "type": "string", "required": true, "help": "The page-scoped user ID from an incoming message." },
+        { "key": "text", "label": "Message", "type": "text", "required": true },
+        { "key": "messaging_type", "label": "Messaging type", "type": "select", "default": "RESPONSE", "options": [
+          { "value": "RESPONSE", "label": "Response (within 24h)" }, { "value": "UPDATE", "label": "Update (within 24h)" }, { "value": "MESSAGE_TAG", "label": "Message tag (outside 24h)" }
+        ] },
+        { "key": "tag", "label": "Tag", "type": "select", "options": [
+          { "value": "", "label": "None" }, { "value": "ACCOUNT_UPDATE", "label": "Account update" },
+          { "value": "CONFIRMED_EVENT_UPDATE", "label": "Confirmed event update" }, { "value": "POST_PURCHASE_UPDATE", "label": "Post-purchase update" },
+          { "value": "HUMAN_AGENT", "label": "Human agent" }
+        ] }
+      ]
+    },
+    {
+      "key": "get_profile",
+      "name": "Get user profile",
+      "method": "GET",
+      "endpoint": "/{{ inputs.psid }}",
+      "query": { "fields": "first_name,last_name,profile_pic" },
+      "inputs": [{ "key": "psid", "label": "User PSID", "type": "string", "required": true }]
+    }
+  ]
+}

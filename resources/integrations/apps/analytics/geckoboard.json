@@ -1,0 +1,59 @@
+{
+  "key": "geckoboard",
+  "name": "Geckoboard",
+  "category": "Analytics",
+  "description": "Create datasets and push or replace their data for dashboards.",
+  "brand": "geckoboard",
+  "website": "https://www.geckoboard.com",
+  "docs_url": "https://developer.geckoboard.com",
+  "base_url": "https://api.geckoboard.com",
+  "auth": { "type": "basic", "fields": [
+    { "key": "username", "label": "API key", "type": "password", "required": true, "help": "Account > API key." },
+    { "key": "password", "label": "Password", "type": "password", "required": false, "default": "", "help": "Leave empty." }
+  ] },
+  "actions": [
+    {
+      "key": "create_dataset",
+      "name": "Find or create dataset",
+      "method": "PUT",
+      "endpoint": "/datasets/{{ inputs.dataset_id }}",
+      "body": { "fields": "{{ inputs.fields }}", "unique_by": "{{ inputs.unique_by }}" },
+      "inputs": [
+        { "key": "dataset_id", "label": "Dataset ID", "type": "string", "required": true, "placeholder": "sales.by_day" },
+        { "key": "fields", "label": "Schema", "type": "json", "required": true,
+          "placeholder": "{ \"amount\": { \"type\": \"number\", \"name\": \"Amount\" }, \"day\": { \"type\": \"date\", \"name\": \"Day\" } }" },
+        { "key": "unique_by", "label": "Unique by fields", "type": "list" }
+      ]
+    },
+    {
+      "key": "append_data",
+      "name": "Append data",
+      "method": "POST",
+      "endpoint": "/datasets/{{ inputs.dataset_id }}/data",
+      "body": { "data": "{{ inputs.data }}", "delete_by": "{{ inputs.delete_by }}" },
+      "inputs": [
+        { "key": "dataset_id", "label": "Dataset ID", "type": "string", "required": true },
+        { "key": "data", "label": "Records (JSON array)", "type": "json", "required": true, "placeholder": "[{ \"amount\": 42, \"day\": \"2026-01-31\" }]" },
+        { "key": "delete_by", "label": "Trim oldest by field", "type": "string", "help": "Date/datetime field used to drop the oldest records past 5000." }
+      ]
+    },
+    {
+      "key": "replace_data",
+      "name": "Replace all data",
+      "method": "PUT",
+      "endpoint": "/datasets/{{ inputs.dataset_id }}/data",
+      "body": { "data": "{{ inputs.data }}" },
+      "inputs": [
+        { "key": "dataset_id", "label": "Dataset ID", "type": "string", "required": true },
+        { "key": "data", "label": "Records (JSON array)", "type": "json", "required": true }
+      ]
+    },
+    {
+      "key": "delete_dataset",
+      "name": "Delete dataset",
+      "method": "DELETE",
+      "endpoint": "/datasets/{{ inputs.dataset_id }}",
+      "inputs": [{ "key": "dataset_id", "label": "Dataset ID", "type": "string", "required": true }]
+    }
+  ]
+}

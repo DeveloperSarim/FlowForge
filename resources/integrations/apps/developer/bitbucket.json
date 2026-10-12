@@ -1,0 +1,109 @@
+{
+  "key": "bitbucket",
+  "name": "Bitbucket",
+  "category": "Developer Tools",
+  "description": "Open pull requests, comment, create issues and run Pipelines in Bitbucket Cloud.",
+  "brand": "bitbucket",
+  "website": "https://bitbucket.org",
+  "docs_url": "https://developer.atlassian.com/cloud/bitbucket/rest/intro/",
+  "base_url": "https://api.bitbucket.org/2.0",
+  "auth": [
+    { "type": "basic", "fields": [
+      { "key": "username", "label": "Atlassian account email", "type": "string", "required": true, "help": "For legacy app passwords use your Bitbucket username instead." },
+      { "key": "password", "label": "API token", "type": "password", "required": true, "help": "Atlassian account → Security → API tokens (with Bitbucket scopes), or a legacy app password." }
+    ] },
+    { "type": "bearer", "fields": [{ "key": "token", "label": "Repository, project or workspace access token", "type": "password", "required": true }] }
+  ],
+  "actions": [
+    {
+      "key": "create_pull_request",
+      "name": "Create pull request",
+      "method": "POST",
+      "endpoint": "/repositories/{{ inputs.workspace }}/{{ inputs.repo }}/pullrequests",
+      "body": {
+        "title": "{{ inputs.title }}",
+        "description": "{{ inputs.description }}",
+        "source": { "branch": { "name": "{{ inputs.source_branch }}" } },
+        "destination": { "branch": { "name": "{{ inputs.destination_branch }}" } },
+        "close_source_branch": "{{ inputs.close_source_branch }}"
+      },
+      "inputs": [
+        { "key": "workspace", "label": "Workspace", "type": "string", "required": true },
+        { "key": "repo", "label": "Repository slug", "type": "string", "required": true },
+        { "key": "title", "label": "Title", "type": "string", "required": true },
+        { "key": "source_branch", "label": "Source branch", "type": "string", "required": true },
+        { "key": "destination_branch", "label": "Destination branch", "type": "string", "help": "Defaults to the repository's main branch." },
+        { "key": "description", "label": "Description (Markdown)", "type": "text" },
+        { "key": "close_source_branch", "label": "Close source branch after merge", "type": "boolean", "default": false }
+      ]
+    },
+    {
+      "key": "comment_pull_request",
+      "name": "Comment on pull request",
+      "method": "POST",
+      "endpoint": "/repositories/{{ inputs.workspace }}/{{ inputs.repo }}/pullrequests/{{ inputs.pull_request_id }}/comments",
+      "body": { "content": { "raw": "{{ inputs.comment }}" } },
+      "inputs": [
+        { "key": "workspace", "label": "Workspace", "type": "string", "required": true },
+        { "key": "repo", "label": "Repository slug", "type": "string", "required": true },
+        { "key": "pull_request_id", "label": "Pull request ID", "type": "number", "required": true },
+        { "key": "comment", "label": "Comment (Markdown)", "type": "text", "required": true }
+      ]
+    },
+    {
+      "key": "create_issue",
+      "name": "Create issue",
+      "description": "Needs the repository's issue tracker to be enabled.",
+      "method": "POST",
+      "endpoint": "/repositories/{{ inputs.workspace }}/{{ inputs.repo }}/issues",
+      "body": { "title": "{{ inputs.title }}", "content": { "raw": "{{ inputs.content }}" }, "kind": "{{ inputs.kind }}", "priority": "{{ inputs.priority }}" },
+      "inputs": [
+        { "key": "workspace", "label": "Workspace", "type": "string", "required": true },
+        { "key": "repo", "label": "Repository slug", "type": "string", "required": true },
+        { "key": "title", "label": "Title", "type": "string", "required": true },
+        { "key": "content", "label": "Description (Markdown)", "type": "text" },
+        { "key": "kind", "label": "Kind", "type": "select", "default": "bug", "options": [
+          { "value": "bug", "label": "Bug" }, { "value": "enhancement", "label": "Enhancement" }, { "value": "proposal", "label": "Proposal" }, { "value": "task", "label": "Task" }
+        ] },
+        { "key": "priority", "label": "Priority", "type": "select", "default": "major", "options": [
+          { "value": "trivial", "label": "Trivial" }, { "value": "minor", "label": "Minor" }, { "value": "major", "label": "Major" }, { "value": "critical", "label": "Critical" }, { "value": "blocker", "label": "Blocker" }
+        ] }
+      ]
+    },
+    {
+      "key": "run_pipeline",
+      "name": "Run pipeline",
+      "method": "POST",
+      "endpoint": "/repositories/{{ inputs.workspace }}/{{ inputs.repo }}/pipelines",
+      "body": { "target": { "type": "pipeline_ref_target", "ref_type": "branch", "ref_name": "{{ inputs.branch }}" } },
+      "inputs": [
+        { "key": "workspace", "label": "Workspace", "type": "string", "required": true },
+        { "key": "repo", "label": "Repository slug", "type": "string", "required": true },
+        { "key": "branch", "label": "Branch", "type": "string", "required": true, "default": "main" }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_pull_request",
+      "name": "New open pull request (polling)",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/repositories/{{ inputs.workspace }}/{{ inputs.repo }}/pullrequests",
+      "query": { "sort": "-created_on", "pagelen": 30 },
+      "items_path": "values",
+      "id_field": "id",
+      "inputs": [
+        { "key": "workspace", "label": "Workspace", "type": "string", "required": true },
+        { "key": "repo", "label": "Repository slug", "type": "string", "required": true },
+        { "key": "poll_interval", "label": "Check every (minutes)", "type": "number", "default": 5 }
+      ]
+    },
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "inputs": [{ "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }]
+    }
+  ]
+}

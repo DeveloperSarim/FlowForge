@@ -1,0 +1,60 @@
+{
+  "key": "github",
+  "name": "GitHub",
+  "category": "Developer Tools",
+  "description": "Issues and comments via a personal access token.",
+  "base_url": "https://api.github.com",
+  "headers": { "Accept": "application/vnd.github+json", "X-GitHub-Api-Version": "2022-11-28" },
+  "auth": { "type": "bearer", "fields": [{ "key": "token", "label": "Personal access token", "type": "password", "required": true }] },
+  "actions": [
+    {
+      "key": "create_issue",
+      "name": "Create issue",
+      "method": "POST",
+      "endpoint": "/repos/{{ inputs.owner }}/{{ inputs.repo }}/issues",
+      "body": { "title": "{{ inputs.title }}", "body": "{{ inputs.body }}", "labels": "{{ inputs.labels }}" },
+      "inputs": [
+        { "key": "owner", "label": "Owner", "type": "string", "required": true },
+        { "key": "repo", "label": "Repository", "type": "string", "required": true },
+        { "key": "title", "label": "Title", "type": "string", "required": true },
+        { "key": "body", "label": "Body (Markdown)", "type": "text" },
+        { "key": "labels", "label": "Labels", "type": "list" }
+      ]
+    },
+    {
+      "key": "create_comment",
+      "name": "Comment on issue / PR",
+      "method": "POST",
+      "endpoint": "/repos/{{ inputs.owner }}/{{ inputs.repo }}/issues/{{ inputs.number }}/comments",
+      "body": { "body": "{{ inputs.body }}" },
+      "inputs": [
+        { "key": "owner", "label": "Owner", "type": "string", "required": true },
+        { "key": "repo", "label": "Repository", "type": "string", "required": true },
+        { "key": "number", "label": "Issue / PR number", "type": "number", "required": true },
+        { "key": "body", "label": "Comment", "type": "text", "required": true }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_issue",
+      "name": "New issue (polling)",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/repos/{{ inputs.owner }}/{{ inputs.repo }}/issues",
+      "query": { "state": "all", "sort": "created", "direction": "desc", "per_page": 30 },
+      "id_field": "id",
+      "inputs": [
+        { "key": "owner", "label": "Owner", "type": "string", "required": true },
+        { "key": "repo", "label": "Repository", "type": "string", "required": true },
+        { "key": "poll_interval", "label": "Check every (minutes)", "type": "number", "default": 5 }
+      ]
+    },
+    {
+      "key": "repo_event",
+      "name": "Repository webhook",
+      "type": "webhook",
+      "inputs": [{ "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }]
+    }
+  ]
+}

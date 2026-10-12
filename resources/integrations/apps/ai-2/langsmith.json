@@ -1,0 +1,176 @@
+{
+  "key": "langsmith",
+  "name": "LangSmith",
+  "category": "AI",
+  "description": "Query runs, log feedback and add dataset examples in LangSmith.",
+  "brand": "langchain",
+  "website": "https://www.langchain.com/langsmith",
+  "docs_url": "https://api.smith.langchain.com/redoc",
+  "base_url": "{{ credentials.base_url }}/api/v1",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "x-api-key",
+    "fields": [
+      {
+        "key": "base_url",
+        "label": "API URL",
+        "type": "string",
+        "required": true,
+        "default": "https://api.smith.langchain.com",
+        "help": "https://api.smith.langchain.com (US), https://eu.api.smith.langchain.com (EU) or your self-hosted URL."
+      },
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_projects",
+      "name": "List projects",
+      "method": "GET",
+      "endpoint": "/sessions",
+      "query": {
+        "name_contains": "{{ inputs.name_contains }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "inputs": [
+        {
+          "key": "name_contains",
+          "label": "Name contains",
+          "type": "string"
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 100
+        }
+      ]
+    },
+    {
+      "key": "query_runs",
+      "name": "Query runs",
+      "method": "POST",
+      "endpoint": "/runs/query",
+      "body": {
+        "session": [
+          "{{ inputs.project_id }}"
+        ],
+        "filter": "{{ inputs.filter }}",
+        "is_root": "{{ inputs.is_root }}",
+        "error": "{{ inputs.error }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_path": "runs",
+      "inputs": [
+        {
+          "key": "project_id",
+          "label": "Project ID",
+          "type": "string",
+          "required": true,
+          "help": "Project (session) UUID from List projects."
+        },
+        {
+          "key": "filter",
+          "label": "Filter",
+          "type": "string",
+          "placeholder": "eq(run_type, \"llm\")"
+        },
+        {
+          "key": "is_root",
+          "label": "Root runs only",
+          "type": "boolean"
+        },
+        {
+          "key": "error",
+          "label": "Errored runs only",
+          "type": "boolean"
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    },
+    {
+      "key": "create_feedback",
+      "name": "Create feedback",
+      "method": "POST",
+      "endpoint": "/feedback",
+      "body": {
+        "run_id": "{{ inputs.run_id }}",
+        "key": "{{ inputs.key }}",
+        "score": "{{ inputs.score }}",
+        "comment": "{{ inputs.comment }}"
+      },
+      "inputs": [
+        {
+          "key": "run_id",
+          "label": "Run ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "key",
+          "label": "Feedback key",
+          "type": "string",
+          "required": true,
+          "placeholder": "correctness"
+        },
+        {
+          "key": "score",
+          "label": "Score",
+          "type": "number"
+        },
+        {
+          "key": "comment",
+          "label": "Comment",
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "key": "create_example",
+      "name": "Create dataset example",
+      "method": "POST",
+      "endpoint": "/examples",
+      "body": {
+        "dataset_id": "{{ inputs.dataset_id }}",
+        "inputs": "{{ inputs.inputs }}",
+        "outputs": "{{ inputs.outputs }}",
+        "metadata": "{{ inputs.metadata }}"
+      },
+      "inputs": [
+        {
+          "key": "dataset_id",
+          "label": "Dataset ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "inputs",
+          "label": "Inputs (JSON)",
+          "type": "json",
+          "required": true
+        },
+        {
+          "key": "outputs",
+          "label": "Outputs (JSON)",
+          "type": "json"
+        },
+        {
+          "key": "metadata",
+          "label": "Metadata (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

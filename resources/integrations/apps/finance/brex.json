@@ -1,0 +1,113 @@
+{
+  "key": "brex",
+  "name": "Brex",
+  "category": "Payments & Finance",
+  "description": "Read Brex card transactions, cash accounts and users.",
+  "brand": "brex",
+  "website": "https://www.brex.com",
+  "docs_url": "https://developer.brex.com/",
+  "base_url": "https://api.brex.com",
+  "auth": [
+    {
+      "type": "bearer",
+      "fields": [
+        {
+          "key": "token",
+          "label": "User token",
+          "type": "password",
+          "required": true,
+          "help": "Brex dashboard > Developer > Create token."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_card_transactions",
+      "name": "List card transactions",
+      "method": "GET",
+      "endpoint": "/v2/transactions/card/primary",
+      "output_path": "items",
+      "query": {
+        "posted_at_start": "{{ inputs.posted_at_start }}",
+        "limit": "{{ inputs.limit }}",
+        "cursor": "{{ inputs.cursor }}"
+      },
+      "inputs": [
+        {
+          "key": "posted_at_start",
+          "label": "Posted since",
+          "type": "string",
+          "placeholder": "2025-01-01T00:00:00Z"
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 100
+        },
+        {
+          "key": "cursor",
+          "label": "Cursor",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "list_cash_accounts",
+      "name": "List cash accounts",
+      "method": "GET",
+      "endpoint": "/v2/accounts/cash",
+      "output_path": "items",
+      "inputs": []
+    },
+    {
+      "key": "list_cash_transactions",
+      "name": "List cash transactions",
+      "method": "GET",
+      "endpoint": "/v2/transactions/cash/{{ inputs.account_id }}",
+      "output_path": "items",
+      "query": {
+        "posted_at_start": "{{ inputs.posted_at_start }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "inputs": [
+        {
+          "key": "account_id",
+          "label": "Cash account ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "posted_at_start",
+          "label": "Posted since",
+          "type": "string"
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 100
+        }
+      ]
+    },
+    {
+      "key": "list_users",
+      "name": "List users",
+      "method": "GET",
+      "endpoint": "/v2/users",
+      "output_path": "items",
+      "query": {
+        "email": "{{ inputs.email }}"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string"
+        }
+      ]
+    }
+  ],
+  "triggers": []
+}

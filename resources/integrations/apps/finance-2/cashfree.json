@@ -1,0 +1,322 @@
+{
+  "key": "cashfree",
+  "name": "Cashfree Payments",
+  "category": "Payments & Finance",
+  "description": "Create orders and payment links, fetch payments and issue refunds with Cashfree.",
+  "brand": "cashfree",
+  "website": "https://www.cashfree.com",
+  "docs_url": "https://www.cashfree.com/docs/api-reference/payments/latest/overview",
+  "popular": true,
+  "base_url": "{{ credentials.environment }}",
+  "headers": {
+    "x-client-id": "{{ credentials.client_id }}",
+    "x-api-version": "2023-08-01"
+  },
+  "auth": [
+    {
+      "type": "api_key",
+      "in": "header",
+      "name": "x-client-secret",
+      "fields": [
+        {
+          "key": "client_id",
+          "label": "App ID (client ID)",
+          "type": "string",
+          "required": true,
+          "help": "Merchant dashboard > Developers > API keys."
+        },
+        {
+          "key": "api_key",
+          "label": "Secret key",
+          "type": "password",
+          "required": true
+        },
+        {
+          "key": "environment",
+          "label": "Environment",
+          "type": "select",
+          "required": true,
+          "options": [
+            {
+              "value": "https://api.cashfree.com/pg",
+              "label": "Production"
+            },
+            {
+              "value": "https://sandbox.cashfree.com/pg",
+              "label": "Sandbox"
+            }
+          ],
+          "default": "https://api.cashfree.com/pg"
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "create_order",
+      "name": "Create order",
+      "method": "POST",
+      "endpoint": "/orders",
+      "body": {
+        "order_id": "{{ inputs.order_id }}",
+        "order_amount": "{{ inputs.amount }}",
+        "order_currency": "{{ inputs.currency }}",
+        "customer_details": {
+          "customer_id": "{{ inputs.customer_id }}",
+          "customer_phone": "{{ inputs.customer_phone }}",
+          "customer_email": "{{ inputs.customer_email }}",
+          "customer_name": "{{ inputs.customer_name }}"
+        },
+        "order_meta": {
+          "return_url": "{{ inputs.return_url }}",
+          "notify_url": "{{ inputs.notify_url }}"
+        },
+        "order_note": "{{ inputs.note }}"
+      },
+      "output_fields": {
+        "payment_session_id": "payment_session_id"
+      },
+      "inputs": [
+        {
+          "key": "amount",
+          "label": "Amount",
+          "type": "number",
+          "required": true,
+          "placeholder": "499.00"
+        },
+        {
+          "key": "currency",
+          "label": "Currency",
+          "type": "string",
+          "required": true,
+          "default": "INR"
+        },
+        {
+          "key": "customer_id",
+          "label": "Customer ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "customer_phone",
+          "label": "Customer phone",
+          "type": "string",
+          "required": true,
+          "placeholder": "9999999999"
+        },
+        {
+          "key": "customer_email",
+          "label": "Customer email",
+          "type": "string"
+        },
+        {
+          "key": "customer_name",
+          "label": "Customer name",
+          "type": "string"
+        },
+        {
+          "key": "order_id",
+          "label": "Order ID",
+          "type": "string",
+          "help": "Your own ID; Cashfree generates one if blank."
+        },
+        {
+          "key": "return_url",
+          "label": "Return URL",
+          "type": "string",
+          "placeholder": "https://example.com/return?order_id={order_id}"
+        },
+        {
+          "key": "notify_url",
+          "label": "Notify URL",
+          "type": "string"
+        },
+        {
+          "key": "note",
+          "label": "Order note",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "get_order",
+      "name": "Get order",
+      "method": "GET",
+      "endpoint": "/orders/{{ inputs.order_id }}",
+      "inputs": [
+        {
+          "key": "order_id",
+          "label": "Order ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "get_order_payments",
+      "name": "Get payments for order",
+      "method": "GET",
+      "endpoint": "/orders/{{ inputs.order_id }}/payments",
+      "inputs": [
+        {
+          "key": "order_id",
+          "label": "Order ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "create_payment_link",
+      "name": "Create payment link",
+      "method": "POST",
+      "endpoint": "/links",
+      "body": {
+        "link_id": "{{ inputs.link_id }}",
+        "link_amount": "{{ inputs.amount }}",
+        "link_currency": "{{ inputs.currency }}",
+        "link_purpose": "{{ inputs.purpose }}",
+        "customer_details": {
+          "customer_phone": "{{ inputs.customer_phone }}",
+          "customer_email": "{{ inputs.customer_email }}",
+          "customer_name": "{{ inputs.customer_name }}"
+        },
+        "link_notify": {
+          "send_sms": "{{ inputs.send_sms }}",
+          "send_email": "{{ inputs.send_email }}"
+        },
+        "link_expiry_time": "{{ inputs.expiry_time }}"
+      },
+      "output_fields": {
+        "url": "link_url"
+      },
+      "inputs": [
+        {
+          "key": "link_id",
+          "label": "Link ID",
+          "type": "string",
+          "required": true,
+          "help": "Unique ID you choose."
+        },
+        {
+          "key": "amount",
+          "label": "Amount",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "currency",
+          "label": "Currency",
+          "type": "string",
+          "required": true,
+          "default": "INR"
+        },
+        {
+          "key": "purpose",
+          "label": "Purpose",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "customer_phone",
+          "label": "Customer phone",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "customer_email",
+          "label": "Customer email",
+          "type": "string"
+        },
+        {
+          "key": "customer_name",
+          "label": "Customer name",
+          "type": "string"
+        },
+        {
+          "key": "send_sms",
+          "label": "Send SMS",
+          "type": "boolean"
+        },
+        {
+          "key": "send_email",
+          "label": "Send email",
+          "type": "boolean"
+        },
+        {
+          "key": "expiry_time",
+          "label": "Expires at",
+          "type": "string",
+          "placeholder": "2026-12-31T23:59:59+05:30"
+        }
+      ]
+    },
+    {
+      "key": "get_payment_link",
+      "name": "Get payment link",
+      "method": "GET",
+      "endpoint": "/links/{{ inputs.link_id }}",
+      "inputs": [
+        {
+          "key": "link_id",
+          "label": "Link ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "refund_order",
+      "name": "Refund order",
+      "method": "POST",
+      "endpoint": "/orders/{{ inputs.order_id }}/refunds",
+      "body": {
+        "refund_amount": "{{ inputs.amount }}",
+        "refund_id": "{{ inputs.refund_id }}",
+        "refund_note": "{{ inputs.note }}"
+      },
+      "inputs": [
+        {
+          "key": "order_id",
+          "label": "Order ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "amount",
+          "label": "Refund amount",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "refund_id",
+          "label": "Refund ID",
+          "type": "string",
+          "required": true,
+          "help": "Unique ID you choose."
+        },
+        {
+          "key": "note",
+          "label": "Note",
+          "type": "string"
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Merchant dashboard > Developers > Webhooks: add this URL and pick the payment events.",
+      "data_path": "data",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

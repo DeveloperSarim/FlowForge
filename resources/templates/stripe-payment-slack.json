@@ -1,0 +1,102 @@
+{
+  "key": "stripe-payment-slack",
+  "name": "Celebrate Stripe payments in Slack",
+  "description": "Posts every successful Stripe payment to a channel. Point a Stripe webhook (payment_intent.succeeded) at the workflow URL.",
+  "category": "Finance",
+  "featured": false,
+  "graph": {
+    "nodes": [
+      {
+        "id": "trigger",
+        "type": "trigger",
+        "position": {
+          "x": 0,
+          "y": 200
+        },
+        "data": {
+          "integration": "stripe",
+          "trigger": "event",
+          "label": "Stripe event",
+          "config": {}
+        }
+      },
+      {
+        "id": "step_1",
+        "type": "action",
+        "position": {
+          "x": 240,
+          "y": 200
+        },
+        "data": {
+          "integration": "logic",
+          "action": "filter",
+          "label": "Only succeeded",
+          "config": {
+            "combinator": "all",
+            "conditions": [
+              {
+                "left": "{{ steps.trigger.data.status }}",
+                "operator": "equals",
+                "right": "succeeded"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "id": "step_2",
+        "type": "action",
+        "position": {
+          "x": 480,
+          "y": 200
+        },
+        "data": {
+          "integration": "transform",
+          "action": "text_format",
+          "label": "Format amount",
+          "config": {
+            "text": "{{ steps.trigger.data.amount }}",
+            "operation": "none"
+          }
+        }
+      },
+      {
+        "id": "step_3",
+        "type": "action",
+        "position": {
+          "x": 720,
+          "y": 200
+        },
+        "data": {
+          "integration": "slack",
+          "action": "post_message",
+          "label": "Post to #wins",
+          "config": {
+            "channel": "#wins",
+            "text": "New payment: {{ steps.trigger.data.amount_received }} {{ steps.trigger.data.currency }} (cents) from {{ steps.trigger.data.receipt_email }}"
+          }
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "e-trigger-step_1",
+        "source": "trigger",
+        "target": "step_1",
+        "sourceHandle": null
+      },
+      {
+        "id": "e-step_1-step_2",
+        "source": "step_1",
+        "target": "step_2",
+        "sourceHandle": null
+      },
+      {
+        "id": "e-step_2-step_3",
+        "source": "step_2",
+        "target": "step_3",
+        "sourceHandle": null
+      }
+    ]
+  }
+}

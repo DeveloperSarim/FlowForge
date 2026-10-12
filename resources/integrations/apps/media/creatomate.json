@@ -1,0 +1,70 @@
+{
+  "key": "creatomate",
+  "name": "Creatomate",
+  "category": "Video & Media",
+  "description": "Render videos and images from templates or RenderScript and check render status.",
+  "brand": "creatomate",
+  "website": "https://creatomate.com",
+  "docs_url": "https://creatomate.com/docs/api/reference/introduction",
+  "base_url": "https://api.creatomate.com",
+  "auth": { "type": "bearer", "fields": [
+    { "key": "token", "label": "API key", "type": "password", "required": true, "help": "Project settings > API Integration." }
+  ] },
+  "actions": [
+    {
+      "key": "render_template",
+      "name": "Render template",
+      "method": "POST",
+      "endpoint": "/v2/renders",
+      "body": { "template_id": "{{ inputs.template_id }}", "modifications": "{{ inputs.modifications }}", "webhook_url": "{{ inputs.webhook_url }}", "metadata": "{{ inputs.metadata }}" },
+      "inputs": [
+        { "key": "template_id", "label": "Template ID", "type": "string", "required": true },
+        { "key": "modifications", "label": "Modifications", "type": "keyvalue", "help": "Element name (e.g. Title.text) → new value." },
+        { "key": "webhook_url", "label": "Webhook URL", "type": "string", "help": "Called when the render finishes." },
+        { "key": "metadata", "label": "Metadata (echoed back)", "type": "string" }
+      ]
+    },
+    {
+      "key": "render_source",
+      "name": "Render from RenderScript",
+      "method": "POST",
+      "endpoint": "/v2/renders",
+      "body": { "...": "{{ inputs.source }}", "webhook_url": "{{ inputs.webhook_url }}" },
+      "inputs": [
+        { "key": "source", "label": "RenderScript (JSON)", "type": "json", "required": true, "placeholder": "{\"output_format\":\"mp4\",\"width\":1280,\"height\":720,\"elements\":[…]}" },
+        { "key": "webhook_url", "label": "Webhook URL", "type": "string" }
+      ]
+    },
+    {
+      "key": "get_render",
+      "name": "Get render",
+      "method": "GET",
+      "endpoint": "/v2/renders/{{ inputs.render_id }}",
+      "inputs": [{ "key": "render_id", "label": "Render ID", "type": "string", "required": true }]
+    },
+    {
+      "key": "list_templates",
+      "name": "List templates",
+      "method": "GET",
+      "endpoint": "/v2/templates",
+      "query": { "tags": "{{ inputs.tags }}" },
+      "inputs": [{ "key": "tags", "label": "Tags (comma-separated)", "type": "string" }]
+    },
+    {
+      "key": "get_template",
+      "name": "Get template",
+      "method": "GET",
+      "endpoint": "/v2/templates/{{ inputs.template_id }}",
+      "inputs": [{ "key": "template_id", "label": "Template ID", "type": "string", "required": true }]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "render_webhook",
+      "name": "Render finished (webhook)",
+      "description": "Pass this URL as webhook_url when rendering.",
+      "type": "webhook",
+      "inputs": [{ "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }]
+    }
+  ]
+}

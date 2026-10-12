@@ -1,0 +1,293 @@
+{
+  "key": "mercado_libre",
+  "name": "Mercado Libre",
+  "category": "E-commerce",
+  "description": "Read orders, update listings and answer buyer questions on Mercado Libre.",
+  "brand": "mercadolibre",
+  "website": "https://www.mercadolibre.com",
+  "docs_url": "https://developers.mercadolibre.com.ar/en_us/api-docs",
+  "base_url": "https://api.mercadolibre.com",
+  "auth": [
+    {
+      "type": "oauth2",
+      "authorize_url": "https://{{ credentials.auth_domain }}/authorization",
+      "token_url": "https://api.mercadolibre.com/oauth/token",
+      "scopes": [
+        "offline_access",
+        "read",
+        "write"
+      ],
+      "fields": [
+        {
+          "key": "auth_domain",
+          "label": "Country",
+          "type": "select",
+          "required": true,
+          "options": [
+            {
+              "value": "auth.mercadolibre.com.ar",
+              "label": "Argentina"
+            },
+            {
+              "value": "auth.mercadolivre.com.br",
+              "label": "Brasil"
+            },
+            {
+              "value": "auth.mercadolibre.com.mx",
+              "label": "México"
+            },
+            {
+              "value": "auth.mercadolibre.com.co",
+              "label": "Colombia"
+            },
+            {
+              "value": "auth.mercadolibre.cl",
+              "label": "Chile"
+            },
+            {
+              "value": "auth.mercadolibre.com.uy",
+              "label": "Uruguay"
+            },
+            {
+              "value": "auth.mercadolibre.com.pe",
+              "label": "Perú"
+            }
+          ],
+          "default": "auth.mercadolibre.com.ar"
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "get_me",
+      "name": "Get my user",
+      "description": "Returns your seller ID (id).",
+      "method": "GET",
+      "endpoint": "/users/me",
+      "inputs": []
+    },
+    {
+      "key": "search_orders",
+      "name": "Search orders",
+      "method": "GET",
+      "endpoint": "/orders/search",
+      "query": {
+        "seller": "{{ inputs.seller_id }}",
+        "order.status": "{{ inputs.status }}",
+        "sort": "date_desc",
+        "limit": "{{ inputs.limit }}",
+        "offset": "{{ inputs.offset }}"
+      },
+      "output_path": "results",
+      "inputs": [
+        {
+          "key": "seller_id",
+          "label": "Seller ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "options": [
+            {
+              "value": "paid",
+              "label": "Paid"
+            },
+            {
+              "value": "confirmed",
+              "label": "Confirmed"
+            },
+            {
+              "value": "payment_in_process",
+              "label": "Payment in process"
+            },
+            {
+              "value": "cancelled",
+              "label": "Cancelled"
+            }
+          ]
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 50
+        },
+        {
+          "key": "offset",
+          "label": "Offset",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "get_order",
+      "name": "Get order",
+      "method": "GET",
+      "endpoint": "/orders/{{ inputs.order_id }}",
+      "inputs": [
+        {
+          "key": "order_id",
+          "label": "Order ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "get_item",
+      "name": "Get listing",
+      "method": "GET",
+      "endpoint": "/items/{{ inputs.item_id }}",
+      "inputs": [
+        {
+          "key": "item_id",
+          "label": "Item ID",
+          "type": "string",
+          "required": true,
+          "placeholder": "MLA1234567890"
+        }
+      ]
+    },
+    {
+      "key": "update_item",
+      "name": "Update listing",
+      "method": "PUT",
+      "endpoint": "/items/{{ inputs.item_id }}",
+      "body": {
+        "price": "{{ inputs.price }}",
+        "available_quantity": "{{ inputs.available_quantity }}",
+        "status": "{{ inputs.status }}"
+      },
+      "inputs": [
+        {
+          "key": "item_id",
+          "label": "Item ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "price",
+          "label": "Price",
+          "type": "number"
+        },
+        {
+          "key": "available_quantity",
+          "label": "Available quantity",
+          "type": "number"
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "options": [
+            {
+              "value": "active",
+              "label": "Active"
+            },
+            {
+              "value": "paused",
+              "label": "Paused"
+            },
+            {
+              "value": "closed",
+              "label": "Closed"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "list_questions",
+      "name": "List unanswered questions",
+      "method": "GET",
+      "endpoint": "/questions/search",
+      "query": {
+        "seller_id": "{{ inputs.seller_id }}",
+        "status": "UNANSWERED",
+        "sort_fields": "date_created",
+        "sort_types": "DESC",
+        "api_version": 4
+      },
+      "output_path": "questions",
+      "inputs": [
+        {
+          "key": "seller_id",
+          "label": "Seller ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "answer_question",
+      "name": "Answer question",
+      "method": "POST",
+      "endpoint": "/answers",
+      "body": {
+        "question_id": "{{ inputs.question_id }}",
+        "text": "{{ inputs.text }}"
+      },
+      "inputs": [
+        {
+          "key": "question_id",
+          "label": "Question ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "text",
+          "label": "Answer",
+          "type": "text",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_order",
+      "name": "New order",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/orders/search",
+      "query": {
+        "seller": "{{ inputs.seller_id }}",
+        "sort": "date_desc",
+        "limit": 50
+      },
+      "items_path": "results",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "seller_id",
+          "label": "Seller ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    },
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Set this URL as the notifications callback URL of your Mercado Libre app and pick the topics.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

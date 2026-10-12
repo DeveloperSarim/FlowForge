@@ -1,0 +1,62 @@
+{
+  "key": "360dialog",
+  "name": "360dialog",
+  "category": "Communication",
+  "description": "Send WhatsApp text and template messages through 360dialog.",
+  "brand": "360dialog",
+  "website": "https://www.360dialog.com",
+  "docs_url": "https://docs.360dialog.com/docs/waba-messaging/messaging",
+  "base_url": "https://waba-v2.360dialog.io",
+  "auth": [
+    { "type": "api_key", "in": "header", "name": "D360-API-KEY", "fields": [{ "key": "api_key", "label": "API key (per WhatsApp number)", "type": "password", "required": true }] }
+  ],
+  "actions": [
+    {
+      "key": "send_text",
+      "name": "Send text message",
+      "description": "Free-form text only works within 24 hours of the user's last message; otherwise send a template.",
+      "method": "POST",
+      "endpoint": "/messages",
+      "body": { "messaging_product": "whatsapp", "recipient_type": "individual", "to": "{{ inputs.to }}", "type": "text", "text": { "body": "{{ inputs.body }}" } },
+      "inputs": [
+        { "key": "to", "label": "To (phone number)", "type": "string", "required": true, "placeholder": "4915112345678" },
+        { "key": "body", "label": "Message", "type": "text", "required": true }
+      ]
+    },
+    {
+      "key": "send_template",
+      "name": "Send template message",
+      "method": "POST",
+      "endpoint": "/messages",
+      "body": {
+        "messaging_product": "whatsapp",
+        "to": "{{ inputs.to }}",
+        "type": "template",
+        "template": { "name": "{{ inputs.template_name }}", "language": { "code": "{{ inputs.language }}" }, "components": "{{ inputs.components }}" }
+      },
+      "inputs": [
+        { "key": "to", "label": "To (phone number)", "type": "string", "required": true },
+        { "key": "template_name", "label": "Template name", "type": "string", "required": true },
+        { "key": "language", "label": "Language code", "type": "string", "required": true, "default": "en" },
+        { "key": "components", "label": "Components (JSON)", "type": "json", "placeholder": "[{\"type\":\"body\",\"parameters\":[{\"type\":\"text\",\"text\":\"Ada\"}]}]" }
+      ]
+    },
+    {
+      "key": "mark_as_read",
+      "name": "Mark message as read",
+      "method": "POST",
+      "endpoint": "/messages",
+      "body": { "messaging_product": "whatsapp", "status": "read", "message_id": "{{ inputs.message_id }}" },
+      "inputs": [{ "key": "message_id", "label": "Incoming message ID (wamid…)", "type": "string", "required": true }]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Incoming message webhook",
+      "description": "Register this URL with 360dialog's /v1/configs/webhook endpoint.",
+      "type": "webhook",
+      "inputs": [{ "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }]
+    }
+  ]
+}

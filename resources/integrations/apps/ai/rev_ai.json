@@ -1,0 +1,109 @@
+{
+  "key": "rev_ai",
+  "name": "Rev AI",
+  "category": "AI",
+  "description": "Submit audio for transcription and fetch the transcript.",
+  "brand": "rev",
+  "website": "https://www.rev.ai",
+  "docs_url": "https://docs.rev.ai/api/asynchronous/reference/",
+  "base_url": "https://api.rev.ai/speechtotext/v1",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "Access token",
+        "type": "password",
+        "required": true
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "submit_job",
+      "name": "Transcribe audio URL",
+      "method": "POST",
+      "endpoint": "/jobs",
+      "body": {
+        "source_config": {
+          "url": "{{ inputs.media_url }}"
+        },
+        "notification_config": {
+          "url": "{{ inputs.callback_url }}"
+        },
+        "language": "{{ inputs.language }}",
+        "metadata": "{{ inputs.metadata }}"
+      },
+      "inputs": [
+        {
+          "key": "media_url",
+          "label": "Media URL",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "language",
+          "label": "Language",
+          "type": "string",
+          "placeholder": "en"
+        },
+        {
+          "key": "callback_url",
+          "label": "Notification URL",
+          "type": "string"
+        },
+        {
+          "key": "metadata",
+          "label": "Metadata",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "get_job",
+      "name": "Get job",
+      "method": "GET",
+      "endpoint": "/jobs/{{ inputs.job_id }}",
+      "inputs": [
+        {
+          "key": "job_id",
+          "label": "Job ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "get_transcript",
+      "name": "Get transcript (text)",
+      "method": "GET",
+      "endpoint": "/jobs/{{ inputs.job_id }}/transcript",
+      "headers": {
+        "Accept": "text/plain"
+      },
+      "inputs": [
+        {
+          "key": "job_id",
+          "label": "Job ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "job_done",
+      "name": "Job finished (webhook)",
+      "type": "webhook",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ],
+      "data_path": "job"
+    }
+  ]
+}

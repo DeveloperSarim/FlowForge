@@ -1,0 +1,107 @@
+{
+  "key": "mixmax",
+  "name": "Mixmax",
+  "category": "CRM & Sales",
+  "description": "Add recipients to Mixmax sequences and list sequences.",
+  "brand": "mixmax",
+  "website": "https://www.mixmax.com",
+  "docs_url": "https://developer.mixmax.com/reference",
+  "base_url": "https://api.mixmax.com/v1",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "X-API-Token",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "API token",
+        "type": "password",
+        "required": true
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "add_to_sequence",
+      "name": "Add recipient to sequence",
+      "method": "POST",
+      "endpoint": "/sequences/{{ inputs.sequence_id }}/recipients",
+      "body": {
+        "recipients": [
+          {
+            "email": "{{ inputs.email }}",
+            "variables": "{{ inputs.variables }}"
+          }
+        ]
+      },
+      "inputs": [
+        {
+          "key": "sequence_id",
+          "label": "Sequence ID",
+          "type": "string",
+          "required": true,
+          "help": "Use List sequences to find it."
+        },
+        {
+          "key": "email",
+          "label": "Recipient email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "variables",
+          "label": "Variables",
+          "type": "keyvalue",
+          "help": "Sequence variables, e.g. First name, Company"
+        }
+      ]
+    },
+    {
+      "key": "list_sequences",
+      "name": "List sequences",
+      "method": "GET",
+      "endpoint": "/sequences",
+      "output_path": "results",
+      "query": {
+        "name": "{{ inputs.name }}"
+      },
+      "inputs": [
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "list_sequence_recipients",
+      "name": "List sequence recipients",
+      "method": "GET",
+      "endpoint": "/sequences/{{ inputs.sequence_id }}/recipients",
+      "query": {
+        "limit": "{{ inputs.limit }}",
+        "offset": "{{ inputs.offset }}"
+      },
+      "inputs": [
+        {
+          "key": "sequence_id",
+          "label": "Sequence ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 50
+        },
+        {
+          "key": "offset",
+          "label": "Offset",
+          "type": "number",
+          "default": 0
+        }
+      ]
+    }
+  ]
+}

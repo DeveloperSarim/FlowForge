@@ -1,0 +1,128 @@
+{
+  "key": "fullenrich",
+  "name": "FullEnrich",
+  "category": "CRM & Sales",
+  "description": "Find work emails, personal emails and phone numbers for contacts.",
+  "brand": "fullenrich",
+  "website": "https://fullenrich.com",
+  "docs_url": "https://docs.fullenrich.com/",
+  "base_url": "https://app.fullenrich.com/api/v2",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "API key",
+        "type": "password",
+        "required": true
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "enrich_contact",
+      "name": "Start contact enrichment",
+      "description": "Starts an async enrichment; results arrive at the webhook URL or via Get enrichment.",
+      "method": "POST",
+      "endpoint": "/contact/enrich/bulk",
+      "body": {
+        "name": "{{ inputs.name }}",
+        "webhook_url": "{{ inputs.webhook_url }}",
+        "data": [
+          {
+            "first_name": "{{ inputs.first_name }}",
+            "last_name": "{{ inputs.last_name }}",
+            "domain": "{{ inputs.domain }}",
+            "company_name": "{{ inputs.company_name }}",
+            "linkedin_url": "{{ inputs.linkedin_url }}",
+            "enrich_fields": "{{ inputs.enrich_fields }}"
+          }
+        ]
+      },
+      "inputs": [
+        {
+          "key": "name",
+          "label": "Enrichment name",
+          "type": "string",
+          "required": true,
+          "default": "FlowForge"
+        },
+        {
+          "key": "first_name",
+          "label": "First name",
+          "type": "string"
+        },
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string"
+        },
+        {
+          "key": "domain",
+          "label": "Company domain",
+          "type": "string"
+        },
+        {
+          "key": "company_name",
+          "label": "Company name",
+          "type": "string"
+        },
+        {
+          "key": "linkedin_url",
+          "label": "LinkedIn URL",
+          "type": "string",
+          "help": "Give a LinkedIn URL, or first + last name with a domain or company name."
+        },
+        {
+          "key": "enrich_fields",
+          "label": "Data to find",
+          "type": "list",
+          "required": true,
+          "help": "Any of: contact.work_emails, contact.personal_emails, contact.phones"
+        },
+        {
+          "key": "webhook_url",
+          "label": "Webhook URL",
+          "type": "string",
+          "help": "Paste a FlowForge webhook trigger URL to get the result"
+        }
+      ]
+    },
+    {
+      "key": "get_enrichment",
+      "name": "Get enrichment",
+      "method": "GET",
+      "endpoint": "/contact/enrich/bulk/{{ inputs.enrichment_id }}",
+      "inputs": [
+        {
+          "key": "enrichment_id",
+          "label": "Enrichment ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "get_credits",
+      "name": "Get credit balance",
+      "method": "GET",
+      "endpoint": "/account/credits",
+      "inputs": []
+    }
+  ],
+  "triggers": [
+    {
+      "key": "enrichment_finished",
+      "name": "Enrichment finished",
+      "type": "webhook",
+      "description": "Use this trigger's URL as the webhook URL of Start contact enrichment.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

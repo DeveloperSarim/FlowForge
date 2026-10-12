@@ -1,0 +1,73 @@
+{
+  "key": "hookdeck",
+  "name": "Hookdeck",
+  "category": "Utilities",
+  "description": "Inspect, filter and retry webhook events flowing through Hookdeck connections.",
+  "brand": "hookdeck",
+  "website": "https://hookdeck.com",
+  "docs_url": "https://hookdeck.com/docs/api",
+  "base_url": "https://api.hookdeck.com/2026-09-01",
+  "auth": { "type": "bearer", "fields": [
+    { "key": "token", "label": "API key", "type": "password", "required": true, "help": "Project settings → Secrets → API key." }
+  ] },
+  "actions": [
+    {
+      "key": "list_events",
+      "name": "List events",
+      "method": "GET",
+      "endpoint": "/events",
+      "query": { "status": "{{ inputs.status }}", "webhook_id": "{{ inputs.connection_id }}", "order_by": "created_at", "dir": "desc", "limit": "{{ inputs.limit }}" },
+      "inputs": [
+        { "key": "status", "label": "Status", "type": "select", "options": [
+          { "value": "SUCCESSFUL", "label": "Successful" }, { "value": "FAILED", "label": "Failed" }, { "value": "QUEUED", "label": "Queued" },
+          { "value": "SCHEDULED", "label": "Scheduled" }, { "value": "HOLD", "label": "On hold" }
+        ] },
+        { "key": "connection_id", "label": "Connection ID", "type": "string" },
+        { "key": "limit", "label": "Limit", "type": "number" }
+      ]
+    },
+    {
+      "key": "get_event",
+      "name": "Get event",
+      "method": "GET",
+      "endpoint": "/events/{{ inputs.event_id }}",
+      "inputs": [{ "key": "event_id", "label": "Event ID", "type": "string", "required": true }]
+    },
+    {
+      "key": "retry_event",
+      "name": "Retry event",
+      "method": "POST",
+      "endpoint": "/events/{{ inputs.event_id }}/retry",
+      "inputs": [{ "key": "event_id", "label": "Event ID", "type": "string", "required": true }]
+    },
+    {
+      "key": "list_connections",
+      "name": "List connections",
+      "method": "GET",
+      "endpoint": "/connections",
+      "query": { "name": "{{ inputs.name }}", "limit": "{{ inputs.limit }}" },
+      "inputs": [
+        { "key": "name", "label": "Name", "type": "string" },
+        { "key": "limit", "label": "Limit", "type": "number" }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_event",
+      "name": "New event",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/events",
+      "query": { "status": "{{ inputs.status }}", "order_by": "created_at", "dir": "desc", "limit": 50 },
+      "items_path": "models",
+      "id_field": "id",
+      "inputs": [
+        { "key": "status", "label": "Only status", "type": "select", "options": [
+          { "value": "SUCCESSFUL", "label": "Successful" }, { "value": "FAILED", "label": "Failed" }
+        ] },
+        { "key": "poll_interval", "label": "Check every (minutes)", "type": "number", "default": 5 }
+      ]
+    }
+  ]
+}

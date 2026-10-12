@@ -1,0 +1,276 @@
+{
+  "key": "wrike",
+  "name": "Wrike",
+  "category": "Project Management",
+  "description": "Create, update and comment on Wrike tasks; watch folders for new tasks.",
+  "brand": "wrike",
+  "website": "https://www.wrike.com",
+  "docs_url": "https://developers.wrike.com/api/v4/",
+  "base_url": "https://{{ credentials.host }}/api/v4",
+  "auth": [
+    {
+      "type": "bearer",
+      "fields": [
+        {
+          "key": "token",
+          "label": "Permanent access token",
+          "type": "password",
+          "required": true,
+          "help": "Apps & Integrations > API."
+        },
+        {
+          "key": "host",
+          "label": "API host",
+          "type": "string",
+          "required": true,
+          "default": "www.wrike.com",
+          "help": "www.wrike.com, or app-eu.wrike.com for EU accounts."
+        }
+      ]
+    },
+    {
+      "type": "oauth2",
+      "authorize_url": "https://login.wrike.com/oauth2/authorize/v4",
+      "token_url": "https://login.wrike.com/oauth2/token",
+      "fields": [
+        {
+          "key": "host",
+          "label": "API host",
+          "type": "string",
+          "required": true,
+          "default": "www.wrike.com",
+          "help": "www.wrike.com, or app-eu.wrike.com for EU accounts."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "create_task",
+      "name": "Create task",
+      "method": "POST",
+      "endpoint": "/folders/{{ inputs.folder_id }}/tasks",
+      "body_format": "form",
+      "body": {
+        "title": "{{ inputs.title }}",
+        "description": "{{ inputs.description }}",
+        "status": "{{ inputs.status }}",
+        "importance": "{{ inputs.importance }}"
+      },
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "folder_id",
+          "label": "Folder or project ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "description",
+          "label": "Description (HTML)",
+          "type": "text"
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "options": [
+            {
+              "value": "Active",
+              "label": "Active"
+            },
+            {
+              "value": "Completed",
+              "label": "Completed"
+            },
+            {
+              "value": "Deferred",
+              "label": "Deferred"
+            },
+            {
+              "value": "Cancelled",
+              "label": "Cancelled"
+            }
+          ]
+        },
+        {
+          "key": "importance",
+          "label": "Importance",
+          "type": "select",
+          "options": [
+            {
+              "value": "High",
+              "label": "High"
+            },
+            {
+              "value": "Normal",
+              "label": "Normal"
+            },
+            {
+              "value": "Low",
+              "label": "Low"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "get_task",
+      "name": "Get task",
+      "method": "GET",
+      "endpoint": "/tasks/{{ inputs.task_id }}",
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "task_id",
+          "label": "Task ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "update_task",
+      "name": "Update task",
+      "method": "PUT",
+      "endpoint": "/tasks/{{ inputs.task_id }}",
+      "body_format": "form",
+      "body": {
+        "title": "{{ inputs.title }}",
+        "description": "{{ inputs.description }}",
+        "status": "{{ inputs.status }}",
+        "importance": "{{ inputs.importance }}"
+      },
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "task_id",
+          "label": "Task ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "string"
+        },
+        {
+          "key": "description",
+          "label": "Description (HTML)",
+          "type": "text"
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "options": [
+            {
+              "value": "Active",
+              "label": "Active"
+            },
+            {
+              "value": "Completed",
+              "label": "Completed"
+            },
+            {
+              "value": "Deferred",
+              "label": "Deferred"
+            },
+            {
+              "value": "Cancelled",
+              "label": "Cancelled"
+            }
+          ]
+        },
+        {
+          "key": "importance",
+          "label": "Importance",
+          "type": "select",
+          "options": [
+            {
+              "value": "High",
+              "label": "High"
+            },
+            {
+              "value": "Normal",
+              "label": "Normal"
+            },
+            {
+              "value": "Low",
+              "label": "Low"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "add_comment",
+      "name": "Add comment",
+      "method": "POST",
+      "endpoint": "/tasks/{{ inputs.task_id }}/comments",
+      "body_format": "form",
+      "body": {
+        "text": "{{ inputs.text }}"
+      },
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "task_id",
+          "label": "Task ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "text",
+          "label": "Comment (HTML)",
+          "type": "text",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_folders",
+      "name": "List folders and projects",
+      "method": "GET",
+      "endpoint": "/folders",
+      "output_path": "data",
+      "inputs": []
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_task",
+      "name": "New task in folder",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/folders/{{ inputs.folder_id }}/tasks",
+      "query": {
+        "sortField": "CreatedDate",
+        "sortOrder": "Desc",
+        "pageSize": 50
+      },
+      "items_path": "data",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "folder_id",
+          "label": "Folder or project ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

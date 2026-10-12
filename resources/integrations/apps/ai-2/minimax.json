@@ -1,0 +1,216 @@
+{
+  "key": "minimax",
+  "name": "MiniMax",
+  "category": "AI",
+  "description": "Chat with MiniMax models, synthesize speech and generate images.",
+  "brand": "minimax",
+  "website": "https://www.minimax.io",
+  "docs_url": "https://platform.minimax.io/docs/api-reference/api-overview",
+  "base_url": "https://{{ credentials.host }}/v1",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "host",
+        "label": "Platform",
+        "type": "select",
+        "required": true,
+        "default": "api.minimax.io",
+        "options": [
+          {
+            "value": "api.minimax.io",
+            "label": "Global (minimax.io)"
+          },
+          {
+            "value": "api.minimaxi.com",
+            "label": "China (minimaxi.com)"
+          }
+        ]
+      },
+      {
+        "key": "token",
+        "label": "API key",
+        "type": "password",
+        "required": true
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "chat_completion",
+      "name": "Chat completion",
+      "description": "Send a prompt and get the reply as {{ steps.<id>.text }}.",
+      "method": "POST",
+      "endpoint": "/chat/completions",
+      "timeout": 300,
+      "body": {
+        "model": "{{ inputs.model }}",
+        "messages": [
+          {
+            "role": "system",
+            "content": "{{ inputs.system }}"
+          },
+          {
+            "role": "user",
+            "content": "{{ inputs.prompt }}"
+          }
+        ],
+        "temperature": "{{ inputs.temperature }}",
+        "max_completion_tokens": "{{ inputs.max_tokens }}"
+      },
+      "output_fields": {
+        "text": "choices.0.message.content"
+      },
+      "inputs": [
+        {
+          "key": "model",
+          "label": "Model",
+          "type": "string",
+          "required": true,
+          "default": "MiniMax-M3"
+        },
+        {
+          "key": "prompt",
+          "label": "Prompt",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "system",
+          "label": "System prompt",
+          "type": "text",
+          "required": true,
+          "default": "You are a helpful assistant.",
+          "help": "Sent as the system message."
+        },
+        {
+          "key": "temperature",
+          "label": "Temperature",
+          "type": "number",
+          "placeholder": "0.7"
+        },
+        {
+          "key": "max_tokens",
+          "label": "Max output tokens",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "text_to_speech",
+      "name": "Text to speech",
+      "description": "Returns a download link (valid 24h) as {{ steps.<id>.audio_url }}.",
+      "method": "POST",
+      "endpoint": "/t2a_v2",
+      "timeout": 300,
+      "error_path": "base_resp.status_code",
+      "body": {
+        "model": "{{ inputs.model }}",
+        "text": "{{ inputs.text }}",
+        "stream": false,
+        "output_format": "url",
+        "voice_setting": {
+          "voice_id": "{{ inputs.voice_id }}",
+          "speed": "{{ inputs.speed }}"
+        },
+        "audio_setting": {
+          "format": "{{ inputs.format }}"
+        }
+      },
+      "output_fields": {
+        "audio_url": "data.audio"
+      },
+      "inputs": [
+        {
+          "key": "text",
+          "label": "Text",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "model",
+          "label": "Model",
+          "type": "string",
+          "required": true,
+          "default": "speech-2.8-hd"
+        },
+        {
+          "key": "voice_id",
+          "label": "Voice ID",
+          "type": "string",
+          "required": true,
+          "default": "English_expressive_narrator"
+        },
+        {
+          "key": "speed",
+          "label": "Speed",
+          "type": "number",
+          "placeholder": "1"
+        },
+        {
+          "key": "format",
+          "label": "Audio format",
+          "type": "select",
+          "options": [
+            {
+              "value": "mp3",
+              "label": "MP3"
+            },
+            {
+              "value": "wav",
+              "label": "WAV"
+            },
+            {
+              "value": "flac",
+              "label": "FLAC"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "generate_image",
+      "name": "Generate image",
+      "method": "POST",
+      "endpoint": "/image_generation",
+      "timeout": 300,
+      "error_path": "base_resp.status_code",
+      "body": {
+        "model": "{{ inputs.model }}",
+        "prompt": "{{ inputs.prompt }}",
+        "aspect_ratio": "{{ inputs.aspect_ratio }}",
+        "n": "{{ inputs.n }}",
+        "response_format": "url"
+      },
+      "output_fields": {
+        "url": "data.image_urls.0"
+      },
+      "inputs": [
+        {
+          "key": "model",
+          "label": "Model",
+          "type": "string",
+          "required": true,
+          "default": "image-01"
+        },
+        {
+          "key": "prompt",
+          "label": "Prompt",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "aspect_ratio",
+          "label": "Aspect ratio",
+          "type": "string",
+          "placeholder": "16:9"
+        },
+        {
+          "key": "n",
+          "label": "Number of images",
+          "type": "number"
+        }
+      ]
+    }
+  ]
+}

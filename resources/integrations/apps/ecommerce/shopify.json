@@ -1,0 +1,331 @@
+{
+  "key": "shopify",
+  "name": "Shopify",
+  "category": "E-commerce",
+  "description": "Manage orders, products, customers and inventory in your Shopify store.",
+  "brand": "shopify",
+  "website": "https://www.shopify.com",
+  "docs_url": "https://shopify.dev/docs/api/admin-rest",
+  "popular": true,
+  "base_url": "https://{{ credentials.shop }}.myshopify.com/admin/api/2025-10",
+  "auth": [
+    {
+      "type": "api_key",
+      "in": "header",
+      "name": "X-Shopify-Access-Token",
+      "fields": [
+        {
+          "key": "shop",
+          "label": "Shop subdomain",
+          "type": "string",
+          "required": true,
+          "placeholder": "my-store",
+          "help": "The part before .myshopify.com."
+        },
+        {
+          "key": "api_key",
+          "label": "Admin API access token",
+          "type": "password",
+          "required": true,
+          "help": "Admin API token of a custom app (starts with shpat_)."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_orders",
+      "name": "List orders",
+      "description": "Lists recent orders, newest first.",
+      "method": "GET",
+      "endpoint": "/orders.json",
+      "query": {
+        "status": "{{ inputs.status }}",
+        "financial_status": "{{ inputs.financial_status }}",
+        "fulfillment_status": "{{ inputs.fulfillment_status }}",
+        "created_at_min": "{{ inputs.created_at_min }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_path": "orders",
+      "inputs": [
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "options": [
+            {
+              "value": "any",
+              "label": "Any"
+            },
+            {
+              "value": "open",
+              "label": "Open"
+            },
+            {
+              "value": "closed",
+              "label": "Closed"
+            },
+            {
+              "value": "cancelled",
+              "label": "Cancelled"
+            }
+          ],
+          "default": "any"
+        },
+        {
+          "key": "financial_status",
+          "label": "Financial status",
+          "type": "string",
+          "placeholder": "paid"
+        },
+        {
+          "key": "fulfillment_status",
+          "label": "Fulfillment status",
+          "type": "string",
+          "placeholder": "unfulfilled"
+        },
+        {
+          "key": "created_at_min",
+          "label": "Created after",
+          "type": "string",
+          "placeholder": "2025-01-01T00:00:00Z"
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 50,
+          "help": "Max 250."
+        }
+      ]
+    },
+    {
+      "key": "get_order",
+      "name": "Get order",
+      "method": "GET",
+      "endpoint": "/orders/{{ inputs.order_id }}.json",
+      "output_path": "order",
+      "inputs": [
+        {
+          "key": "order_id",
+          "label": "Order ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "create_product",
+      "name": "Create product",
+      "method": "POST",
+      "endpoint": "/products.json",
+      "output_path": "product",
+      "body": {
+        "product": {
+          "title": "{{ inputs.title }}",
+          "body_html": "{{ inputs.body_html }}",
+          "vendor": "{{ inputs.vendor }}",
+          "product_type": "{{ inputs.product_type }}",
+          "tags": "{{ inputs.tags }}",
+          "status": "{{ inputs.status }}"
+        }
+      },
+      "inputs": [
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "body_html",
+          "label": "Description (HTML)",
+          "type": "text"
+        },
+        {
+          "key": "vendor",
+          "label": "Vendor",
+          "type": "string"
+        },
+        {
+          "key": "product_type",
+          "label": "Product type",
+          "type": "string"
+        },
+        {
+          "key": "tags",
+          "label": "Tags",
+          "type": "string",
+          "placeholder": "summer, sale"
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "options": [
+            {
+              "value": "active",
+              "label": "Active"
+            },
+            {
+              "value": "draft",
+              "label": "Draft"
+            },
+            {
+              "value": "archived",
+              "label": "Archived"
+            }
+          ],
+          "default": "draft"
+        }
+      ]
+    },
+    {
+      "key": "create_customer",
+      "name": "Create customer",
+      "method": "POST",
+      "endpoint": "/customers.json",
+      "output_path": "customer",
+      "body": {
+        "customer": {
+          "email": "{{ inputs.email }}",
+          "first_name": "{{ inputs.first_name }}",
+          "last_name": "{{ inputs.last_name }}",
+          "phone": "{{ inputs.phone }}",
+          "tags": "{{ inputs.tags }}",
+          "note": "{{ inputs.note }}"
+        }
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "first_name",
+          "label": "First name",
+          "type": "string"
+        },
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string"
+        },
+        {
+          "key": "phone",
+          "label": "Phone",
+          "type": "string",
+          "placeholder": "+15142546011"
+        },
+        {
+          "key": "tags",
+          "label": "Tags",
+          "type": "string"
+        },
+        {
+          "key": "note",
+          "label": "Note",
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "key": "search_customers",
+      "name": "Search customers",
+      "method": "GET",
+      "endpoint": "/customers/search.json",
+      "output_path": "customers",
+      "query": {
+        "query": "{{ inputs.query }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "inputs": [
+        {
+          "key": "query",
+          "label": "Query",
+          "type": "string",
+          "required": true,
+          "placeholder": "email:jane@example.com"
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    },
+    {
+      "key": "set_inventory_level",
+      "name": "Set inventory level",
+      "description": "Sets the available quantity of an inventory item at a location.",
+      "method": "POST",
+      "endpoint": "/inventory_levels/set.json",
+      "output_path": "inventory_level",
+      "body": {
+        "location_id": "{{ inputs.location_id }}",
+        "inventory_item_id": "{{ inputs.inventory_item_id }}",
+        "available": "{{ inputs.available }}"
+      },
+      "inputs": [
+        {
+          "key": "location_id",
+          "label": "Location ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "inventory_item_id",
+          "label": "Inventory item ID",
+          "type": "number",
+          "required": true,
+          "help": "The variant's inventory_item_id, not the variant ID."
+        },
+        {
+          "key": "available",
+          "label": "Available quantity",
+          "type": "number",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_order",
+      "name": "New order",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/orders.json",
+      "query": {
+        "status": "any",
+        "limit": 50
+      },
+      "items_path": "orders",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    },
+    {
+      "key": "order_created",
+      "name": "Order created (webhook)",
+      "type": "webhook",
+      "description": "In Shopify admin: Settings > Notifications > Webhooks > Create webhook, event \"Order creation\", format JSON.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

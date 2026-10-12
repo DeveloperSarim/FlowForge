@@ -1,0 +1,259 @@
+{
+  "key": "backlog",
+  "name": "Backlog",
+  "category": "Project Management",
+  "description": "Create, list and comment on Backlog (Nulab) issues.",
+  "brand": "backlog",
+  "website": "https://nulab.com/backlog/",
+  "docs_url": "https://developer.nulab.com/docs/backlog/",
+  "base_url": "https://{{ credentials.space }}.{{ credentials.domain }}/api/v2",
+  "auth": [
+    {
+      "type": "api_key",
+      "in": "query",
+      "name": "apiKey",
+      "fields": [
+        {
+          "key": "space",
+          "label": "Space ID",
+          "type": "string",
+          "required": true,
+          "placeholder": "yourspace",
+          "help": "From https://yourspace.backlog.com."
+        },
+        {
+          "key": "domain",
+          "label": "Domain",
+          "type": "select",
+          "required": true,
+          "default": "backlog.com",
+          "options": [
+            {
+              "value": "backlog.com",
+              "label": "backlog.com"
+            },
+            {
+              "value": "backlog.jp",
+              "label": "backlog.jp"
+            }
+          ]
+        },
+        {
+          "key": "api_key",
+          "label": "API key",
+          "type": "password",
+          "required": true,
+          "help": "Personal settings > API."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_projects",
+      "name": "List projects",
+      "method": "GET",
+      "endpoint": "/projects",
+      "inputs": []
+    },
+    {
+      "key": "list_issue_types",
+      "name": "List issue types",
+      "method": "GET",
+      "endpoint": "/projects/{{ inputs.project }}/issueTypes",
+      "inputs": [
+        {
+          "key": "project",
+          "label": "Project ID or key",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "create_issue",
+      "name": "Create issue",
+      "method": "POST",
+      "endpoint": "/issues",
+      "body_format": "form",
+      "body": {
+        "projectId": "{{ inputs.project_id }}",
+        "summary": "{{ inputs.summary }}",
+        "issueTypeId": "{{ inputs.issue_type_id }}",
+        "priorityId": "{{ inputs.priority_id }}",
+        "description": "{{ inputs.description }}",
+        "dueDate": "{{ inputs.due_date }}",
+        "assigneeId": "{{ inputs.assignee_id }}"
+      },
+      "inputs": [
+        {
+          "key": "project_id",
+          "label": "Project ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "summary",
+          "label": "Summary",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "issue_type_id",
+          "label": "Issue type ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "priority_id",
+          "label": "Priority",
+          "type": "select",
+          "required": true,
+          "default": "3",
+          "options": [
+            {
+              "value": "2",
+              "label": "High"
+            },
+            {
+              "value": "3",
+              "label": "Normal"
+            },
+            {
+              "value": "4",
+              "label": "Low"
+            }
+          ]
+        },
+        {
+          "key": "description",
+          "label": "Description",
+          "type": "text"
+        },
+        {
+          "key": "due_date",
+          "label": "Due date",
+          "type": "string",
+          "placeholder": "2026-10-20"
+        },
+        {
+          "key": "assignee_id",
+          "label": "Assignee user ID",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "get_issue",
+      "name": "Get issue",
+      "method": "GET",
+      "endpoint": "/issues/{{ inputs.issue }}",
+      "inputs": [
+        {
+          "key": "issue",
+          "label": "Issue ID or key",
+          "type": "string",
+          "required": true,
+          "placeholder": "PROJ-12"
+        }
+      ]
+    },
+    {
+      "key": "list_issues",
+      "name": "Search issues",
+      "method": "GET",
+      "endpoint": "/issues",
+      "query": {
+        "projectId[]": "{{ inputs.project_id }}",
+        "keyword": "{{ inputs.keyword }}",
+        "count": "{{ inputs.count }}",
+        "sort": "created",
+        "order": "desc"
+      },
+      "inputs": [
+        {
+          "key": "project_id",
+          "label": "Project ID",
+          "type": "number"
+        },
+        {
+          "key": "keyword",
+          "label": "Keyword",
+          "type": "string"
+        },
+        {
+          "key": "count",
+          "label": "Max results (1-100)",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "add_comment",
+      "name": "Add comment",
+      "method": "POST",
+      "endpoint": "/issues/{{ inputs.issue }}/comments",
+      "body_format": "form",
+      "body": {
+        "content": "{{ inputs.content }}"
+      },
+      "inputs": [
+        {
+          "key": "issue",
+          "label": "Issue ID or key",
+          "type": "string",
+          "required": true,
+          "placeholder": "PROJ-12"
+        },
+        {
+          "key": "content",
+          "label": "Comment",
+          "type": "text",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_issue",
+      "name": "New issue",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/issues",
+      "query": {
+        "projectId[]": "{{ inputs.project_id }}",
+        "sort": "created",
+        "order": "desc",
+        "count": 50
+      },
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "project_id",
+          "label": "Project ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    },
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

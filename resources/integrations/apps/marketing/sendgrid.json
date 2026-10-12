@@ -1,0 +1,280 @@
+{
+  "key": "sendgrid",
+  "name": "SendGrid",
+  "category": "Marketing & Email",
+  "description": "Send email, upsert marketing contacts and manage global unsubscribes.",
+  "brand": "sendgrid",
+  "website": "https://sendgrid.com",
+  "docs_url": "https://www.twilio.com/docs/sendgrid/api-reference",
+  "popular": true,
+  "base_url": "https://api.sendgrid.com/v3",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "API key (SG.…)",
+        "type": "password",
+        "required": true
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "send_email",
+      "name": "Send email",
+      "description": "Sends one email. Returns 202 with an empty body.",
+      "method": "POST",
+      "endpoint": "/mail/send",
+      "body": {
+        "personalizations": [
+          {
+            "to": [
+              {
+                "email": "{{ inputs.to }}"
+              }
+            ]
+          }
+        ],
+        "from": {
+          "email": "{{ inputs.from_email }}",
+          "name": "{{ inputs.from_name }}"
+        },
+        "reply_to": {
+          "email": "{{ inputs.reply_to }}"
+        },
+        "subject": "{{ inputs.subject }}",
+        "content": [
+          {
+            "type": "{{ inputs.content_type }}",
+            "value": "{{ inputs.content }}"
+          }
+        ]
+      },
+      "inputs": [
+        {
+          "key": "to",
+          "label": "To",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "from_email",
+          "label": "From email",
+          "type": "string",
+          "required": true,
+          "help": "Must be a verified sender."
+        },
+        {
+          "key": "from_name",
+          "label": "From name",
+          "type": "string"
+        },
+        {
+          "key": "subject",
+          "label": "Subject",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "content_type",
+          "label": "Content type",
+          "type": "select",
+          "required": true,
+          "options": [
+            {
+              "value": "text/html",
+              "label": "HTML"
+            },
+            {
+              "value": "text/plain",
+              "label": "Plain text"
+            }
+          ],
+          "default": "text/html"
+        },
+        {
+          "key": "content",
+          "label": "Body",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "reply_to",
+          "label": "Reply-to email",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "send_template_email",
+      "name": "Send dynamic template email",
+      "description": "Sends a dynamic template (d-…) with Handlebars data.",
+      "method": "POST",
+      "endpoint": "/mail/send",
+      "body": {
+        "personalizations": [
+          {
+            "to": [
+              {
+                "email": "{{ inputs.to }}"
+              }
+            ],
+            "dynamic_template_data": "{{ inputs.template_data }}"
+          }
+        ],
+        "from": {
+          "email": "{{ inputs.from_email }}",
+          "name": "{{ inputs.from_name }}"
+        },
+        "template_id": "{{ inputs.template_id }}"
+      },
+      "inputs": [
+        {
+          "key": "to",
+          "label": "To",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "from_email",
+          "label": "From email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "from_name",
+          "label": "From name",
+          "type": "string"
+        },
+        {
+          "key": "template_id",
+          "label": "Template ID",
+          "type": "string",
+          "required": true,
+          "placeholder": "d-0123456789abcdef"
+        },
+        {
+          "key": "template_data",
+          "label": "Template data",
+          "type": "json",
+          "placeholder": "{\"first_name\": \"Ada\"}"
+        }
+      ]
+    },
+    {
+      "key": "upsert_contact",
+      "name": "Add or update contact",
+      "description": "Queues an upsert of a Marketing Campaigns contact (returns a job_id).",
+      "method": "PUT",
+      "endpoint": "/marketing/contacts",
+      "body": {
+        "list_ids": "{{ inputs.list_ids }}",
+        "contacts": [
+          {
+            "email": "{{ inputs.email }}",
+            "first_name": "{{ inputs.first_name }}",
+            "last_name": "{{ inputs.last_name }}",
+            "custom_fields": "{{ inputs.custom_fields }}"
+          }
+        ]
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "first_name",
+          "label": "First name",
+          "type": "string"
+        },
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string"
+        },
+        {
+          "key": "list_ids",
+          "label": "List IDs",
+          "type": "list",
+          "help": "Optional lists to add the contact to."
+        },
+        {
+          "key": "custom_fields",
+          "label": "Custom fields",
+          "type": "keyvalue",
+          "help": "Custom field ID (e.g. e1_T) → value"
+        }
+      ]
+    },
+    {
+      "key": "find_contact",
+      "name": "Find contact by email",
+      "method": "POST",
+      "endpoint": "/marketing/contacts/search/emails",
+      "body": {
+        "emails": [
+          "{{ inputs.email }}"
+        ]
+      },
+      "output_path": "result",
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "global_unsubscribe",
+      "name": "Unsubscribe globally",
+      "description": "Adds the address to the global unsubscribe list.",
+      "method": "POST",
+      "endpoint": "/asm/suppressions/global",
+      "body": {
+        "recipient_emails": [
+          "{{ inputs.email }}"
+        ]
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_lists",
+      "name": "List contact lists",
+      "method": "GET",
+      "endpoint": "/marketing/lists",
+      "query": {
+        "page_size": 100
+      },
+      "output_path": "result",
+      "inputs": []
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Event webhook",
+      "type": "webhook",
+      "description": "Settings → Mail Settings → Event Webhook. Receives a JSON array of events.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

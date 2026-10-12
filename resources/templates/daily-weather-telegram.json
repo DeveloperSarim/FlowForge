@@ -1,0 +1,75 @@
+{
+  "key": "daily-weather-telegram",
+  "name": "Morning weather report on Telegram",
+  "description": "Every day at 7:00 the current weather for your city is sent to a Telegram chat.",
+  "category": "Personal",
+  "featured": false,
+  "graph": {
+    "nodes": [
+      {
+        "id": "trigger",
+        "type": "trigger",
+        "position": {
+          "x": 0,
+          "y": 200
+        },
+        "data": {
+          "integration": "schedule",
+          "trigger": "cron",
+          "label": "Every day at 7:00",
+          "config": {
+            "cron": "0 7 * * *"
+          }
+        }
+      },
+      {
+        "id": "step_1",
+        "type": "action",
+        "position": {
+          "x": 240,
+          "y": 200
+        },
+        "data": {
+          "integration": "openweathermap",
+          "action": "current_weather",
+          "label": "Get weather",
+          "config": {
+            "city": "Lahore",
+            "units": "metric"
+          }
+        }
+      },
+      {
+        "id": "step_2",
+        "type": "action",
+        "position": {
+          "x": 480,
+          "y": 200
+        },
+        "data": {
+          "integration": "telegram",
+          "action": "send_message",
+          "label": "Send to Telegram",
+          "config": {
+            "chat_id": "",
+            "text": "Good morning! {{ steps.step_1.name }}: {{ steps.step_1.main.temp }}°C, {{ steps.step_1.weather.0.description }}."
+          }
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "e-trigger-step_1",
+        "source": "trigger",
+        "target": "step_1",
+        "sourceHandle": null
+      },
+      {
+        "id": "e-step_1-step_2",
+        "source": "step_1",
+        "target": "step_2",
+        "sourceHandle": null
+      }
+    ]
+  }
+}

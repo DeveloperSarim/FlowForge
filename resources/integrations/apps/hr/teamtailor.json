@@ -1,0 +1,149 @@
+{
+  "key": "teamtailor",
+  "name": "Teamtailor",
+  "category": "HR & Recruiting",
+  "description": "Find and create candidates, list jobs and create applications.",
+  "brand": "teamtailor",
+  "website": "https://www.teamtailor.com",
+  "docs_url": "https://docs.teamtailor.com/",
+  "base_url": "https://api.teamtailor.com/v1",
+  "headers": {
+    "X-Api-Version": "20240404",
+    "Content-Type": "application/vnd.api+json"
+  },
+  "auth": [
+    {
+      "type": "api_key",
+      "in": "header",
+      "name": "Authorization",
+      "prefix": "Token token=",
+      "fields": [
+        {
+          "key": "api_key",
+          "label": "API key",
+          "type": "password",
+          "required": true,
+          "help": "Settings > Integrations > API keys."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "find_candidate",
+      "name": "Find candidate by email",
+      "method": "GET",
+      "endpoint": "/candidates",
+      "query": {
+        "filter[email]": "{{ inputs.email }}"
+      },
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "create_candidate",
+      "name": "Create candidate",
+      "method": "POST",
+      "endpoint": "/candidates",
+      "body": {
+        "data": {
+          "type": "candidates",
+          "attributes": {
+            "first-name": "{{ inputs.first_name }}",
+            "last-name": "{{ inputs.last_name }}",
+            "email": "{{ inputs.email }}",
+            "phone": "{{ inputs.phone }}",
+            "sourced": "{{ inputs.sourced }}"
+          }
+        }
+      },
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "first_name",
+          "label": "First name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "phone",
+          "label": "Phone",
+          "type": "string"
+        },
+        {
+          "key": "sourced",
+          "label": "Sourced",
+          "type": "boolean",
+          "default": true
+        }
+      ]
+    },
+    {
+      "key": "list_jobs",
+      "name": "List jobs",
+      "method": "GET",
+      "endpoint": "/jobs",
+      "output_path": "data",
+      "inputs": []
+    },
+    {
+      "key": "create_application",
+      "name": "Apply candidate to job",
+      "method": "POST",
+      "endpoint": "/job-applications",
+      "body": {
+        "data": {
+          "type": "job-applications",
+          "relationships": {
+            "candidate": {
+              "data": {
+                "type": "candidates",
+                "id": "{{ inputs.candidate_id }}"
+              }
+            },
+            "job": {
+              "data": {
+                "type": "jobs",
+                "id": "{{ inputs.job_id }}"
+              }
+            }
+          }
+        }
+      },
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "candidate_id",
+          "label": "Candidate ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "job_id",
+          "label": "Job ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ]
+}

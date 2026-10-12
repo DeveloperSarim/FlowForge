@@ -1,0 +1,52 @@
+{
+  "key": "axiom",
+  "name": "Axiom",
+  "category": "Developer Tools",
+  "description": "Ingest events into datasets and run APL queries.",
+  "brand": "axiom",
+  "website": "https://axiom.co",
+  "docs_url": "https://axiom.co/docs/restapi/introduction",
+  "base_url": "https://api.axiom.co/v1",
+  "headers": { "X-AXIOM-ORG-ID": "{{ credentials.org_id }}" },
+  "auth": { "type": "bearer", "fields": [
+    { "key": "token", "label": "API token", "type": "password", "required": true, "help": "Settings → API tokens, with ingest and/or query permission on the dataset." },
+    { "key": "org_id", "label": "Organization ID", "type": "string", "help": "Only needed with a personal access token." }
+  ] },
+  "actions": [
+    {
+      "key": "ingest",
+      "name": "Ingest events",
+      "method": "POST",
+      "endpoint": "/datasets/{{ inputs.dataset }}/ingest",
+      "body": "{{ inputs.events }}",
+      "inputs": [
+        { "key": "dataset", "label": "Dataset", "type": "string", "required": true },
+        { "key": "events", "label": "Events (JSON array)", "type": "json", "required": true, "placeholder": "[{\"_time\": \"2026-01-01T00:00:00Z\", \"level\": \"info\", \"message\": \"hello\"}]" }
+      ]
+    },
+    {
+      "key": "query",
+      "name": "Run APL query",
+      "method": "POST",
+      "endpoint": "/datasets/_apl",
+      "query": { "format": "{{ inputs.format }}" },
+      "body": { "apl": "{{ inputs.apl }}", "startTime": "{{ inputs.start_time }}", "endTime": "{{ inputs.end_time }}" },
+      "timeout": 120,
+      "inputs": [
+        { "key": "apl", "label": "APL query", "type": "code", "required": true, "placeholder": "['my-dataset'] | where level == 'error' | count" },
+        { "key": "start_time", "label": "Start time", "type": "string", "placeholder": "now-1h" },
+        { "key": "end_time", "label": "End time", "type": "string", "placeholder": "now" },
+        { "key": "format", "label": "Result format", "type": "select", "required": true, "default": "tabular", "options": [
+          { "value": "tabular", "label": "Tabular" }, { "value": "legacy", "label": "Legacy" }
+        ] }
+      ]
+    },
+    {
+      "key": "list_datasets",
+      "name": "List datasets",
+      "method": "GET",
+      "endpoint": "/datasets",
+      "inputs": []
+    }
+  ]
+}

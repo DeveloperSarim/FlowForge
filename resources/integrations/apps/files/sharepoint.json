@@ -1,0 +1,189 @@
+{
+  "key": "sharepoint",
+  "name": "SharePoint",
+  "category": "Files & Documents",
+  "description": "Find sites and create, update or list SharePoint list items.",
+  "brand": "microsoftsharepoint",
+  "website": "https://www.microsoft.com/microsoft-365/sharepoint/collaboration",
+  "docs_url": "https://learn.microsoft.com/graph/api/resources/sharepoint",
+  "base_url": "https://graph.microsoft.com/v1.0",
+  "auth": [
+    {
+      "type": "oauth2",
+      "authorize_url": "https://login.microsoftonline.com/common/oauth2/v2.0/authorize",
+      "token_url": "https://login.microsoftonline.com/common/oauth2/v2.0/token",
+      "scopes": [
+        "offline_access",
+        "Sites.ReadWrite.All"
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "search_sites",
+      "name": "Search sites",
+      "method": "GET",
+      "endpoint": "/sites",
+      "query": {
+        "search": "{{ inputs.query }}"
+      },
+      "output_path": "value",
+      "inputs": [
+        {
+          "key": "query",
+          "label": "Search text",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_lists",
+      "name": "List lists",
+      "method": "GET",
+      "endpoint": "/sites/{{ inputs.site_id }}/lists",
+      "output_path": "value",
+      "inputs": [
+        {
+          "key": "site_id",
+          "label": "Site ID",
+          "type": "string",
+          "required": true,
+          "placeholder": "contoso.sharepoint.com,<site guid>,<web guid>",
+          "help": "Use Search sites to find it."
+        }
+      ]
+    },
+    {
+      "key": "list_items",
+      "name": "List items",
+      "method": "GET",
+      "endpoint": "/sites/{{ inputs.site_id }}/lists/{{ inputs.list_id }}/items",
+      "query": {
+        "expand": "fields",
+        "$top": "{{ inputs.top }}"
+      },
+      "output_path": "value",
+      "inputs": [
+        {
+          "key": "site_id",
+          "label": "Site ID",
+          "type": "string",
+          "required": true,
+          "placeholder": "contoso.sharepoint.com,<site guid>,<web guid>",
+          "help": "Use Search sites to find it."
+        },
+        {
+          "key": "list_id",
+          "label": "List ID or name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "top",
+          "label": "Max items",
+          "type": "number",
+          "default": 100
+        }
+      ]
+    },
+    {
+      "key": "create_item",
+      "name": "Create list item",
+      "method": "POST",
+      "endpoint": "/sites/{{ inputs.site_id }}/lists/{{ inputs.list_id }}/items",
+      "body": {
+        "fields": "{{ inputs.fields }}"
+      },
+      "inputs": [
+        {
+          "key": "site_id",
+          "label": "Site ID",
+          "type": "string",
+          "required": true,
+          "placeholder": "contoso.sharepoint.com,<site guid>,<web guid>",
+          "help": "Use Search sites to find it."
+        },
+        {
+          "key": "list_id",
+          "label": "List ID or name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "fields",
+          "label": "Fields (JSON)",
+          "type": "json",
+          "required": true,
+          "placeholder": "{\n  \"Title\": \"New item\"\n}",
+          "help": "Column internal names as keys."
+        }
+      ]
+    },
+    {
+      "key": "update_item",
+      "name": "Update list item",
+      "method": "PATCH",
+      "endpoint": "/sites/{{ inputs.site_id }}/lists/{{ inputs.list_id }}/items/{{ inputs.list_item_id }}/fields",
+      "body": "{{ inputs.fields }}",
+      "inputs": [
+        {
+          "key": "site_id",
+          "label": "Site ID",
+          "type": "string",
+          "required": true,
+          "placeholder": "contoso.sharepoint.com,<site guid>,<web guid>",
+          "help": "Use Search sites to find it."
+        },
+        {
+          "key": "list_id",
+          "label": "List ID or name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "list_item_id",
+          "label": "Item ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "fields",
+          "label": "Fields (JSON)",
+          "type": "json",
+          "required": true,
+          "placeholder": "{\n  \"Title\": \"New item\"\n}",
+          "help": "Column internal names as keys."
+        }
+      ]
+    },
+    {
+      "key": "delete_item",
+      "name": "Delete list item",
+      "method": "DELETE",
+      "endpoint": "/sites/{{ inputs.site_id }}/lists/{{ inputs.list_id }}/items/{{ inputs.list_item_id }}",
+      "inputs": [
+        {
+          "key": "site_id",
+          "label": "Site ID",
+          "type": "string",
+          "required": true,
+          "placeholder": "contoso.sharepoint.com,<site guid>,<web guid>",
+          "help": "Use Search sites to find it."
+        },
+        {
+          "key": "list_id",
+          "label": "List ID or name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "list_item_id",
+          "label": "Item ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ]
+}

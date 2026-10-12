@@ -1,0 +1,168 @@
+{
+  "key": "mailerlite",
+  "name": "MailerLite",
+  "category": "Marketing & Email",
+  "description": "Create, update and group subscribers.",
+  "brand": "mailerlite",
+  "website": "https://www.mailerlite.com",
+  "docs_url": "https://developers.mailerlite.com/docs/",
+  "base_url": "https://connect.mailerlite.com/api",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "API token",
+        "type": "password",
+        "required": true
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "upsert_subscriber",
+      "name": "Create or update subscriber",
+      "method": "POST",
+      "endpoint": "/subscribers",
+      "output_path": "data",
+      "body": {
+        "email": "{{ inputs.email }}",
+        "fields": {
+          "name": "{{ inputs.name }}",
+          "last_name": "{{ inputs.last_name }}",
+          "...": "{{ inputs.fields }}"
+        },
+        "groups": "{{ inputs.groups }}",
+        "status": "{{ inputs.status }}"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "name",
+          "label": "First name",
+          "type": "string"
+        },
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string"
+        },
+        {
+          "key": "groups",
+          "label": "Group IDs",
+          "type": "list"
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "options": [
+            {
+              "value": "active",
+              "label": "Active"
+            },
+            {
+              "value": "unsubscribed",
+              "label": "Unsubscribed"
+            },
+            {
+              "value": "unconfirmed",
+              "label": "Unconfirmed"
+            }
+          ]
+        },
+        {
+          "key": "fields",
+          "label": "Other fields",
+          "type": "keyvalue"
+        }
+      ]
+    },
+    {
+      "key": "get_subscriber",
+      "name": "Get subscriber",
+      "method": "GET",
+      "endpoint": "/subscribers/{{ inputs.subscriber }}",
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "subscriber",
+          "label": "Email or subscriber ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "add_to_group",
+      "name": "Add subscriber to group",
+      "method": "POST",
+      "endpoint": "/subscribers/{{ inputs.subscriber_id }}/groups/{{ inputs.group_id }}",
+      "inputs": [
+        {
+          "key": "subscriber_id",
+          "label": "Subscriber ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "group_id",
+          "label": "Group ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "remove_from_group",
+      "name": "Remove subscriber from group",
+      "method": "DELETE",
+      "endpoint": "/subscribers/{{ inputs.subscriber_id }}/groups/{{ inputs.group_id }}",
+      "inputs": [
+        {
+          "key": "subscriber_id",
+          "label": "Subscriber ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "group_id",
+          "label": "Group ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_groups",
+      "name": "List groups",
+      "method": "GET",
+      "endpoint": "/groups",
+      "query": {
+        "limit": 100
+      },
+      "output_path": "data",
+      "inputs": []
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Integrations → API → Webhooks (subscriber.created, campaign.sent…).",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

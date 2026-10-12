@@ -1,0 +1,64 @@
+{
+  "key": "sprout_social",
+  "name": "Sprout Social",
+  "category": "Social Media",
+  "description": "List connected profiles and pull profile analytics and inbox messages.",
+  "brand": "sproutsocial",
+  "website": "https://sproutsocial.com",
+  "docs_url": "https://api.sproutsocial.com/docs/",
+  "base_url": "https://api.sproutsocial.com/v1",
+  "auth": { "type": "bearer", "fields": [
+    { "key": "token", "label": "API token", "type": "password", "required": true, "help": "Settings > Global Features > API (Advanced plan)." },
+    { "key": "customer_id", "label": "Customer ID", "type": "string", "required": true, "help": "Returned by Get client info." }
+  ] },
+  "actions": [
+    {
+      "key": "get_client",
+      "name": "Get client info",
+      "description": "Returns the customer IDs your token can access.",
+      "method": "GET",
+      "endpoint": "/metadata/client",
+      "output_path": "data",
+      "inputs": []
+    },
+    {
+      "key": "list_profiles",
+      "name": "List profiles",
+      "method": "GET",
+      "endpoint": "/{{ credentials.customer_id }}/metadata/customer",
+      "output_path": "data",
+      "inputs": []
+    },
+    {
+      "key": "get_profile_analytics",
+      "name": "Get profile analytics",
+      "method": "POST",
+      "endpoint": "/{{ credentials.customer_id }}/analytics/profiles",
+      "body": {
+        "filters": ["customer_profile_id.eq({{ inputs.profile_ids }})", "reporting_period.in({{ inputs.start_date }}...{{ inputs.end_date }})"],
+        "metrics": "{{ inputs.metrics }}",
+        "page": "{{ inputs.page }}"
+      },
+      "inputs": [
+        { "key": "profile_ids", "label": "Profile IDs (comma-separated)", "type": "string", "required": true },
+        { "key": "start_date", "label": "Start date", "type": "string", "required": true, "placeholder": "2026-01-01" },
+        { "key": "end_date", "label": "End date", "type": "string", "required": true, "placeholder": "2026-01-31" },
+        { "key": "metrics", "label": "Metrics", "type": "list", "required": true, "placeholder": "impressions, reactions" },
+        { "key": "page", "label": "Page", "type": "number", "default": 1 }
+      ]
+    },
+    {
+      "key": "get_messages",
+      "name": "Get inbox messages",
+      "method": "POST",
+      "endpoint": "/{{ credentials.customer_id }}/messages",
+      "body": { "filters": "{{ inputs.filters }}", "fields": "{{ inputs.fields }}", "limit": "{{ inputs.limit }}", "page_cursor": "{{ inputs.page_cursor }}" },
+      "inputs": [
+        { "key": "filters", "label": "Filters", "type": "list", "required": true, "placeholder": "customer_profile_id.eq(1234), created_time.in(2026-01-01T00:00:00..2026-01-02T00:00:00)" },
+        { "key": "fields", "label": "Fields to return", "type": "list", "placeholder": "created_time, network, text, from", "help": "Without fields only guid is returned." },
+        { "key": "limit", "label": "Limit (max 100)", "type": "number", "default": 50 },
+        { "key": "page_cursor", "label": "Page cursor", "type": "string" }
+      ]
+    }
+  ]
+}

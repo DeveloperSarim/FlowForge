@@ -1,0 +1,62 @@
+{
+  "key": "google_sheets",
+  "name": "Google Sheets",
+  "category": "Productivity",
+  "description": "Append, update and read spreadsheet rows.",
+  "base_url": "https://sheets.googleapis.com/v4/spreadsheets",
+  "auth": [
+    {
+      "type": "oauth2",
+      "authorize_url": "https://accounts.google.com/o/oauth2/v2/auth",
+      "token_url": "https://oauth2.googleapis.com/token",
+      "scopes": ["https://www.googleapis.com/auth/spreadsheets"],
+      "authorize_params": { "access_type": "offline", "prompt": "consent" }
+    },
+    { "type": "google_service_account", "scopes": ["https://www.googleapis.com/auth/spreadsheets"] }
+  ],
+  "actions": [
+    {
+      "key": "append_row",
+      "name": "Append row",
+      "method": "POST",
+      "endpoint": "/{{ inputs.spreadsheet_id }}/values/{{ inputs.range }}:append",
+      "query": { "valueInputOption": "{{ inputs.value_input_option }}", "insertDataOption": "INSERT_ROWS" },
+      "body": { "majorDimension": "ROWS", "values": ["{{ inputs.values }}"] },
+      "inputs": [
+        { "key": "spreadsheet_id", "label": "Spreadsheet ID", "type": "string", "required": true, "help": "The long id in the sheet URL: /spreadsheets/d/<ID>/edit" },
+        { "key": "range", "label": "Sheet / range", "type": "string", "required": true, "default": "Sheet1", "placeholder": "Sheet1" },
+        { "key": "values", "label": "Cell values (left to right)", "type": "list", "required": true },
+        { "key": "value_input_option", "label": "Value input", "type": "select", "default": "USER_ENTERED", "options": [
+          { "value": "USER_ENTERED", "label": "As if typed (parse numbers, dates, formulas)" }, { "value": "RAW", "label": "Raw strings" }
+        ] }
+      ]
+    },
+    {
+      "key": "update_row",
+      "name": "Update row",
+      "method": "PUT",
+      "endpoint": "/{{ inputs.spreadsheet_id }}/values/{{ inputs.range }}",
+      "query": { "valueInputOption": "{{ inputs.value_input_option }}" },
+      "body": { "majorDimension": "ROWS", "values": ["{{ inputs.values }}"] },
+      "inputs": [
+        { "key": "spreadsheet_id", "label": "Spreadsheet ID", "type": "string", "required": true },
+        { "key": "range", "label": "Row range", "type": "string", "required": true, "placeholder": "Sheet1!A2:D2" },
+        { "key": "values", "label": "Cell values (left to right)", "type": "list", "required": true },
+        { "key": "value_input_option", "label": "Value input", "type": "select", "default": "USER_ENTERED", "options": [
+          { "value": "USER_ENTERED", "label": "As if typed" }, { "value": "RAW", "label": "Raw strings" }
+        ] }
+      ]
+    },
+    {
+      "key": "read_rows",
+      "name": "Read rows",
+      "method": "GET",
+      "endpoint": "/{{ inputs.spreadsheet_id }}/values/{{ inputs.range }}",
+      "query": { "majorDimension": "ROWS", "valueRenderOption": "FORMATTED_VALUE" },
+      "inputs": [
+        { "key": "spreadsheet_id", "label": "Spreadsheet ID", "type": "string", "required": true },
+        { "key": "range", "label": "Range", "type": "string", "required": true, "default": "Sheet1!A1:Z1000" }
+      ]
+    }
+  ]
+}

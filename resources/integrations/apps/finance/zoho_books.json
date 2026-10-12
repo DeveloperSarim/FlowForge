@@ -1,0 +1,318 @@
+{
+  "key": "zoho_books",
+  "name": "Zoho Books",
+  "category": "Payments & Finance",
+  "description": "Create contacts and invoices and list invoices in Zoho Books.",
+  "brand": "zoho",
+  "website": "https://www.zoho.com/books/",
+  "docs_url": "https://www.zoho.com/books/api/v3/introduction/",
+  "base_url": "https://www.zohoapis.{{ credentials.data_center }}/books/v3",
+  "auth": [
+    {
+      "type": "oauth2",
+      "authorize_url": "https://accounts.zoho.{{ credentials.data_center }}/oauth/v2/auth",
+      "token_url": "https://accounts.zoho.{{ credentials.data_center }}/oauth/v2/token",
+      "scopes": [
+        "ZohoBooks.fullaccess.all"
+      ],
+      "scope_separator": ",",
+      "authorize_params": {
+        "access_type": "offline",
+        "prompt": "consent"
+      },
+      "fields": [
+        {
+          "key": "organization_id",
+          "label": "Organization ID",
+          "type": "string",
+          "required": true,
+          "help": "Zoho Books > Settings > Organization profile."
+        },
+        {
+          "key": "data_center",
+          "label": "Data center",
+          "type": "select",
+          "required": true,
+          "default": "com",
+          "options": [
+            {
+              "value": "com",
+              "label": "US (.com)"
+            },
+            {
+              "value": "eu",
+              "label": "EU (.eu)"
+            },
+            {
+              "value": "in",
+              "label": "India (.in)"
+            },
+            {
+              "value": "com.au",
+              "label": "Australia (.com.au)"
+            },
+            {
+              "value": "jp",
+              "label": "Japan (.jp)"
+            },
+            {
+              "value": "ca",
+              "label": "Canada (.ca)"
+            },
+            {
+              "value": "sa",
+              "label": "Saudi Arabia (.sa)"
+            }
+          ]
+        }
+      ],
+      "token_type": "Zoho-oauthtoken"
+    }
+  ],
+  "actions": [
+    {
+      "key": "create_contact",
+      "name": "Create contact",
+      "method": "POST",
+      "endpoint": "/contacts",
+      "query": {
+        "organization_id": "{{ credentials.organization_id }}"
+      },
+      "output_path": "contact",
+      "body": {
+        "contact_name": "{{ inputs.contact_name }}",
+        "company_name": "{{ inputs.company_name }}",
+        "contact_type": "{{ inputs.contact_type }}",
+        "contact_persons": [
+          {
+            "first_name": "{{ inputs.first_name }}",
+            "last_name": "{{ inputs.last_name }}",
+            "email": "{{ inputs.email }}",
+            "is_primary_contact": true
+          }
+        ]
+      },
+      "inputs": [
+        {
+          "key": "contact_name",
+          "label": "Display name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "company_name",
+          "label": "Company",
+          "type": "string"
+        },
+        {
+          "key": "contact_type",
+          "label": "Type",
+          "type": "select",
+          "options": [
+            {
+              "value": "customer",
+              "label": "Customer"
+            },
+            {
+              "value": "vendor",
+              "label": "Vendor"
+            }
+          ],
+          "default": "customer"
+        },
+        {
+          "key": "first_name",
+          "label": "First name",
+          "type": "string"
+        },
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string"
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "find_contacts",
+      "name": "Find contacts",
+      "method": "GET",
+      "endpoint": "/contacts",
+      "output_path": "contacts",
+      "query": {
+        "organization_id": "{{ credentials.organization_id }}",
+        "email": "{{ inputs.email }}",
+        "search_text": "{{ inputs.search_text }}"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string"
+        },
+        {
+          "key": "search_text",
+          "label": "Search text",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "create_invoice",
+      "name": "Create invoice",
+      "method": "POST",
+      "endpoint": "/invoices",
+      "query": {
+        "organization_id": "{{ credentials.organization_id }}"
+      },
+      "output_path": "invoice",
+      "body": {
+        "customer_id": "{{ inputs.customer_id }}",
+        "line_items": "{{ inputs.line_items }}",
+        "date": "{{ inputs.date }}",
+        "due_date": "{{ inputs.due_date }}",
+        "reference_number": "{{ inputs.reference_number }}",
+        "notes": "{{ inputs.notes }}"
+      },
+      "inputs": [
+        {
+          "key": "customer_id",
+          "label": "Customer ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "line_items",
+          "label": "Line items",
+          "type": "json",
+          "required": true,
+          "placeholder": "[{\"name\": \"Consulting\", \"rate\": 100, \"quantity\": 1}]"
+        },
+        {
+          "key": "date",
+          "label": "Date",
+          "type": "string",
+          "placeholder": "2025-06-01"
+        },
+        {
+          "key": "due_date",
+          "label": "Due date",
+          "type": "string"
+        },
+        {
+          "key": "reference_number",
+          "label": "Reference number",
+          "type": "string"
+        },
+        {
+          "key": "notes",
+          "label": "Notes",
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "key": "get_invoice",
+      "name": "Get invoice",
+      "method": "GET",
+      "endpoint": "/invoices/{{ inputs.invoice_id }}",
+      "query": {
+        "organization_id": "{{ credentials.organization_id }}"
+      },
+      "output_path": "invoice",
+      "inputs": [
+        {
+          "key": "invoice_id",
+          "label": "Invoice ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_invoices",
+      "name": "List invoices",
+      "method": "GET",
+      "endpoint": "/invoices",
+      "output_path": "invoices",
+      "query": {
+        "organization_id": "{{ credentials.organization_id }}",
+        "status": "{{ inputs.status }}",
+        "customer_id": "{{ inputs.customer_id }}",
+        "sort_column": "created_time",
+        "sort_order": "D"
+      },
+      "inputs": [
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "options": [
+            {
+              "value": "draft",
+              "label": "Draft"
+            },
+            {
+              "value": "sent",
+              "label": "Sent"
+            },
+            {
+              "value": "overdue",
+              "label": "Overdue"
+            },
+            {
+              "value": "paid",
+              "label": "Paid"
+            },
+            {
+              "value": "unpaid",
+              "label": "Unpaid"
+            },
+            {
+              "value": "partially_paid",
+              "label": "Partially paid"
+            },
+            {
+              "value": "void",
+              "label": "Void"
+            }
+          ]
+        },
+        {
+          "key": "customer_id",
+          "label": "Customer ID",
+          "type": "string"
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_invoice",
+      "name": "New invoice",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/invoices",
+      "query": {
+        "organization_id": "{{ credentials.organization_id }}",
+        "sort_column": "created_time",
+        "sort_order": "D",
+        "per_page": 50
+      },
+      "items_path": "invoices",
+      "id_field": "invoice_id",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

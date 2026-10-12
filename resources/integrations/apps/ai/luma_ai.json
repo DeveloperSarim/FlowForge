@@ -1,0 +1,146 @@
+{
+  "key": "luma_ai",
+  "name": "Luma AI",
+  "category": "AI",
+  "description": "Generate videos and images with Luma Dream Machine.",
+  "brand": "luma",
+  "website": "https://lumalabs.ai",
+  "docs_url": "https://docs.lumalabs.ai/reference",
+  "base_url": "https://api.lumalabs.ai/dream-machine/v1",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "API key",
+        "type": "password",
+        "required": true
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "create_video",
+      "name": "Generate video",
+      "description": "Starts a generation; poll with Get generation.",
+      "method": "POST",
+      "endpoint": "/generations",
+      "body": {
+        "prompt": "{{ inputs.prompt }}",
+        "model": "{{ inputs.model }}",
+        "aspect_ratio": "{{ inputs.aspect_ratio }}",
+        "resolution": "{{ inputs.resolution }}",
+        "duration": "{{ inputs.duration }}",
+        "callback_url": "{{ inputs.callback_url }}"
+      },
+      "inputs": [
+        {
+          "key": "prompt",
+          "label": "Prompt",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "model",
+          "label": "Model",
+          "type": "string",
+          "required": true,
+          "default": "ray-2"
+        },
+        {
+          "key": "aspect_ratio",
+          "label": "Aspect ratio",
+          "type": "string",
+          "placeholder": "16:9"
+        },
+        {
+          "key": "resolution",
+          "label": "Resolution",
+          "type": "string",
+          "placeholder": "720p"
+        },
+        {
+          "key": "duration",
+          "label": "Duration",
+          "type": "string",
+          "placeholder": "5s"
+        },
+        {
+          "key": "callback_url",
+          "label": "Callback URL",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "create_image",
+      "name": "Generate image",
+      "method": "POST",
+      "endpoint": "/generations/image",
+      "body": {
+        "prompt": "{{ inputs.prompt }}",
+        "model": "{{ inputs.model }}",
+        "aspect_ratio": "{{ inputs.aspect_ratio }}",
+        "callback_url": "{{ inputs.callback_url }}"
+      },
+      "inputs": [
+        {
+          "key": "prompt",
+          "label": "Prompt",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "model",
+          "label": "Model",
+          "type": "string",
+          "required": true,
+          "default": "photon-1"
+        },
+        {
+          "key": "aspect_ratio",
+          "label": "Aspect ratio",
+          "type": "string",
+          "placeholder": "16:9"
+        },
+        {
+          "key": "callback_url",
+          "label": "Callback URL",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "get_generation",
+      "name": "Get generation",
+      "method": "GET",
+      "endpoint": "/generations/{{ inputs.generation_id }}",
+      "output_fields": {
+        "video": "assets.video",
+        "image": "assets.image"
+      },
+      "inputs": [
+        {
+          "key": "generation_id",
+          "label": "Generation ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "generation_callback",
+      "name": "Generation callback",
+      "type": "webhook",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

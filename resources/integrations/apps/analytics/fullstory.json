@@ -1,0 +1,46 @@
+{
+  "key": "fullstory",
+  "name": "Fullstory",
+  "category": "Analytics",
+  "description": "Create or update users and send server-side custom events.",
+  "brand": "fullstory",
+  "website": "https://www.fullstory.com",
+  "docs_url": "https://developer.fullstory.com/server/getting-started/",
+  "base_url": "https://api.fullstory.com",
+  "auth": { "type": "api_key", "in": "header", "name": "Authorization", "prefix": "Basic ", "fields": [{ "key": "api_key", "label": "API key", "type": "password", "required": true, "help": "Settings > API keys (US data center)." }] },
+  "actions": [
+    {
+      "key": "upsert_user",
+      "name": "Create or update user",
+      "method": "POST",
+      "endpoint": "/v2/users",
+      "body": { "uid": "{{ inputs.uid }}", "display_name": "{{ inputs.display_name }}", "email": "{{ inputs.email }}", "properties": "{{ inputs.properties }}" },
+      "inputs": [
+        { "key": "uid", "label": "User ID (uid)", "type": "string", "required": true },
+        { "key": "display_name", "label": "Display name", "type": "string" },
+        { "key": "email", "label": "Email", "type": "string" },
+        { "key": "properties", "label": "Custom properties", "type": "json", "placeholder": "{ \"plan\": \"pro\" }" }
+      ]
+    },
+    {
+      "key": "get_user",
+      "name": "Get user",
+      "method": "GET",
+      "endpoint": "/v2/users/{{ inputs.id }}",
+      "inputs": [{ "key": "id", "label": "Fullstory user ID", "type": "string", "required": true, "help": "The id returned by Create or update user (not your uid)." }]
+    },
+    {
+      "key": "send_event",
+      "name": "Send custom event",
+      "method": "POST",
+      "endpoint": "/v2/events",
+      "body": { "name": "{{ inputs.name }}", "user": { "uid": "{{ inputs.uid }}" }, "properties": "{{ inputs.properties }}", "timestamp": "{{ inputs.timestamp }}" },
+      "inputs": [
+        { "key": "name", "label": "Event name", "type": "string", "required": true },
+        { "key": "uid", "label": "User ID (uid)", "type": "string", "required": true },
+        { "key": "properties", "label": "Properties", "type": "json" },
+        { "key": "timestamp", "label": "Timestamp (ISO 8601)", "type": "string" }
+      ]
+    }
+  ]
+}

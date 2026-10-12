@@ -1,0 +1,157 @@
+{
+  "key": "cockpit_cms",
+  "name": "Cockpit CMS",
+  "category": "CMS & Websites",
+  "description": "Read, save and delete content items in a Cockpit CMS v2 instance.",
+  "brand": "cockpit",
+  "website": "https://getcockpit.com",
+  "docs_url": "https://getcockpit.com/documentation/core/api/rest",
+  "base_url": "{{ credentials.base_url }}/api",
+  "auth": [
+    {
+      "type": "api_key",
+      "in": "header",
+      "name": "api-key",
+      "fields": [
+        {
+          "key": "base_url",
+          "label": "Cockpit URL",
+          "type": "string",
+          "required": true,
+          "placeholder": "https://cms.example.com",
+          "help": "No trailing slash."
+        },
+        {
+          "key": "api_key",
+          "label": "API key",
+          "type": "password",
+          "required": true,
+          "help": "Settings > API & Security."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_items",
+      "name": "List items",
+      "method": "GET",
+      "endpoint": "/content/items/{{ inputs.model }}",
+      "query": {
+        "filter": "{{ inputs.filter }}",
+        "sort": "{{ inputs.sort }}",
+        "limit": "{{ inputs.limit }}",
+        "skip": "{{ inputs.skip }}"
+      },
+      "inputs": [
+        {
+          "key": "model",
+          "label": "Model",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "filter",
+          "label": "Filter (JSON)",
+          "type": "string",
+          "placeholder": "{\"published\": true}"
+        },
+        {
+          "key": "sort",
+          "label": "Sort (JSON)",
+          "type": "string",
+          "placeholder": "{\"_created\": -1}"
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number"
+        },
+        {
+          "key": "skip",
+          "label": "Skip",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "get_item",
+      "name": "Get item",
+      "method": "GET",
+      "endpoint": "/content/item/{{ inputs.model }}/{{ inputs.id }}",
+      "inputs": [
+        {
+          "key": "model",
+          "label": "Model",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "id",
+          "label": "Item ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "get_singleton",
+      "name": "Get singleton",
+      "method": "GET",
+      "endpoint": "/content/item/{{ inputs.model }}",
+      "inputs": [
+        {
+          "key": "model",
+          "label": "Singleton model",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "save_item",
+      "name": "Create or update item",
+      "method": "POST",
+      "endpoint": "/content/item/{{ inputs.model }}",
+      "body": {
+        "data": "{{ inputs.data }}"
+      },
+      "inputs": [
+        {
+          "key": "model",
+          "label": "Model",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "data",
+          "label": "Data",
+          "type": "json",
+          "required": true,
+          "placeholder": "{\"title\": \"Hello\"}",
+          "help": "Include _id to update an existing item."
+        }
+      ]
+    },
+    {
+      "key": "delete_item",
+      "name": "Delete item",
+      "method": "DELETE",
+      "endpoint": "/content/item/{{ inputs.model }}/{{ inputs.id }}",
+      "inputs": [
+        {
+          "key": "model",
+          "label": "Model",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "id",
+          "label": "Item ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ]
+}

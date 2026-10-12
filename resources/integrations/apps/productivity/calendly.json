@@ -1,0 +1,247 @@
+{
+  "key": "calendly",
+  "name": "Calendly",
+  "category": "Productivity",
+  "description": "React to bookings, list scheduled events and create scheduling links.",
+  "brand": "calendly",
+  "website": "https://calendly.com",
+  "docs_url": "https://developer.calendly.com/api-docs",
+  "popular": true,
+  "base_url": "https://api.calendly.com",
+  "auth": [
+    {
+      "type": "bearer",
+      "fields": [
+        {
+          "key": "token",
+          "label": "Personal access token",
+          "type": "password",
+          "required": true,
+          "help": "Integrations > API & Webhooks."
+        }
+      ]
+    },
+    {
+      "type": "oauth2",
+      "authorize_url": "https://auth.calendly.com/oauth/authorize",
+      "token_url": "https://auth.calendly.com/oauth/token"
+    }
+  ],
+  "actions": [
+    {
+      "key": "get_current_user",
+      "name": "Get current user",
+      "description": "Returns your user and organization URIs.",
+      "method": "GET",
+      "endpoint": "/users/me",
+      "output_path": "resource",
+      "inputs": []
+    },
+    {
+      "key": "list_events",
+      "name": "List scheduled events",
+      "method": "GET",
+      "endpoint": "/scheduled_events",
+      "query": {
+        "user": "{{ inputs.user }}",
+        "organization": "{{ inputs.organization }}",
+        "status": "{{ inputs.status }}",
+        "min_start_time": "{{ inputs.min_start_time }}",
+        "max_start_time": "{{ inputs.max_start_time }}",
+        "invitee_email": "{{ inputs.invitee_email }}",
+        "count": "{{ inputs.count }}",
+        "sort": "start_time:desc"
+      },
+      "output_path": "collection",
+      "inputs": [
+        {
+          "key": "user",
+          "label": "User URI",
+          "type": "string",
+          "placeholder": "https://api.calendly.com/users/XXXX",
+          "help": "User or organization URI is required."
+        },
+        {
+          "key": "organization",
+          "label": "Organization URI",
+          "type": "string"
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "options": [
+            {
+              "value": "active",
+              "label": "active"
+            },
+            {
+              "value": "canceled",
+              "label": "canceled"
+            }
+          ]
+        },
+        {
+          "key": "min_start_time",
+          "label": "Starts after",
+          "type": "string",
+          "placeholder": "2026-10-12T00:00:00Z"
+        },
+        {
+          "key": "max_start_time",
+          "label": "Starts before",
+          "type": "string"
+        },
+        {
+          "key": "invitee_email",
+          "label": "Invitee email",
+          "type": "string"
+        },
+        {
+          "key": "count",
+          "label": "Max results",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    },
+    {
+      "key": "list_invitees",
+      "name": "List event invitees",
+      "method": "GET",
+      "endpoint": "/scheduled_events/{{ inputs.event_uuid }}/invitees",
+      "output_path": "collection",
+      "inputs": [
+        {
+          "key": "event_uuid",
+          "label": "Event UUID",
+          "type": "string",
+          "required": true,
+          "help": "The last part of the event URI."
+        }
+      ]
+    },
+    {
+      "key": "cancel_event",
+      "name": "Cancel event",
+      "method": "POST",
+      "endpoint": "/scheduled_events/{{ inputs.event_uuid }}/cancellation",
+      "body": {
+        "reason": "{{ inputs.reason }}"
+      },
+      "inputs": [
+        {
+          "key": "event_uuid",
+          "label": "Event UUID",
+          "type": "string",
+          "required": true,
+          "help": "The last part of the event URI."
+        },
+        {
+          "key": "reason",
+          "label": "Reason",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "create_scheduling_link",
+      "name": "Create single-use scheduling link",
+      "method": "POST",
+      "endpoint": "/scheduling_links",
+      "body": {
+        "max_event_count": 1,
+        "owner": "{{ inputs.event_type }}",
+        "owner_type": "EventType"
+      },
+      "output_path": "resource",
+      "inputs": [
+        {
+          "key": "event_type",
+          "label": "Event type URI",
+          "type": "string",
+          "required": true,
+          "placeholder": "https://api.calendly.com/event_types/XXXX"
+        }
+      ]
+    },
+    {
+      "key": "create_webhook",
+      "name": "Create webhook subscription",
+      "description": "Registers a URL to receive booking events (needs a paid plan).",
+      "method": "POST",
+      "endpoint": "/webhook_subscriptions",
+      "body": {
+        "url": "{{ inputs.url }}",
+        "events": "{{ inputs.events }}",
+        "organization": "{{ inputs.organization }}",
+        "user": "{{ inputs.user }}",
+        "scope": "{{ inputs.scope }}"
+      },
+      "output_path": "resource",
+      "inputs": [
+        {
+          "key": "url",
+          "label": "Callback URL",
+          "type": "string",
+          "required": true,
+          "help": "Paste the URL of a workflow's Calendly webhook trigger."
+        },
+        {
+          "key": "events",
+          "label": "Events",
+          "type": "list",
+          "required": true,
+          "default": [
+            "invitee.created",
+            "invitee.canceled"
+          ]
+        },
+        {
+          "key": "organization",
+          "label": "Organization URI",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "user",
+          "label": "User URI",
+          "type": "string",
+          "help": "Required when scope is user."
+        },
+        {
+          "key": "scope",
+          "label": "Scope",
+          "type": "select",
+          "default": "user",
+          "options": [
+            {
+              "value": "user",
+              "label": "User"
+            },
+            {
+              "value": "organization",
+              "label": "Organization"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Booking event (webhook)",
+      "type": "webhook",
+      "description": "invitee.created / invitee.canceled. Register the URL with Create webhook subscription.",
+      "data_path": "payload",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

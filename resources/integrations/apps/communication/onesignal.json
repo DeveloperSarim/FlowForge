@@ -1,0 +1,57 @@
+{
+  "key": "onesignal",
+  "name": "OneSignal",
+  "category": "Communication",
+  "description": "Send push notifications to segments or users and check delivery stats.",
+  "brand": "onesignal",
+  "website": "https://onesignal.com",
+  "docs_url": "https://documentation.onesignal.com/reference/push-notification",
+  "base_url": "https://api.onesignal.com",
+  "auth": [
+    {
+      "type": "api_key",
+      "in": "header",
+      "name": "Authorization",
+      "prefix": "Key ",
+      "fields": [
+        { "key": "app_id", "label": "App ID", "type": "string", "required": true },
+        { "key": "api_key", "label": "App API key", "type": "password", "required": true, "help": "Settings > Keys & IDs." }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "send_push",
+      "name": "Send push notification",
+      "method": "POST",
+      "endpoint": "/notifications",
+      "query": { "c": "push" },
+      "body": {
+        "app_id": "{{ credentials.app_id }}",
+        "target_channel": "push",
+        "headings": { "en": "{{ inputs.heading }}" },
+        "contents": { "en": "{{ inputs.content }}" },
+        "included_segments": "{{ inputs.segments }}",
+        "include_aliases": { "external_id": "{{ inputs.external_ids }}" },
+        "url": "{{ inputs.url }}",
+        "data": "{{ inputs.data }}"
+      },
+      "inputs": [
+        { "key": "heading", "label": "Title", "type": "string" },
+        { "key": "content", "label": "Message", "type": "text", "required": true },
+        { "key": "segments", "label": "Segments", "type": "list", "placeholder": "Total Subscriptions", "help": "Set segments or external IDs." },
+        { "key": "external_ids", "label": "Or external user IDs", "type": "list" },
+        { "key": "url", "label": "Launch URL", "type": "string" },
+        { "key": "data", "label": "Custom data", "type": "keyvalue" }
+      ]
+    },
+    {
+      "key": "get_notification",
+      "name": "Get notification",
+      "method": "GET",
+      "endpoint": "/notifications/{{ inputs.notification_id }}",
+      "query": { "app_id": "{{ credentials.app_id }}" },
+      "inputs": [{ "key": "notification_id", "label": "Notification ID", "type": "string", "required": true }]
+    }
+  ]
+}

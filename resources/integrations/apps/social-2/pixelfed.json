@@ -1,0 +1,85 @@
+{
+  "key": "pixelfed",
+  "name": "Pixelfed",
+  "category": "Social Media",
+  "description": "Read timelines, follow accounts and like posts on any Pixelfed instance.",
+  "brand": "pixelfed",
+  "website": "https://pixelfed.org",
+  "docs_url": "https://docs.pixelfed.org/technical-documentation/api/",
+  "base_url": "{{ credentials.instance_url }}",
+  "auth": { "type": "bearer", "fields": [
+    { "key": "instance_url", "label": "Instance URL", "type": "string", "required": true, "placeholder": "https://pixelfed.social" },
+    { "key": "token", "label": "Personal access token", "type": "password", "required": true, "help": "Settings > Applications > Personal access tokens (scopes read, write, follow)." }
+  ] },
+  "actions": [
+    {
+      "key": "verify_credentials",
+      "name": "Get my account",
+      "method": "GET",
+      "endpoint": "/api/v1/accounts/verify_credentials",
+      "inputs": []
+    },
+    {
+      "key": "get_account_statuses",
+      "name": "Get account posts",
+      "method": "GET",
+      "endpoint": "/api/v1/accounts/{{ inputs.account_id }}/statuses",
+      "query": { "limit": "{{ inputs.limit }}" },
+      "inputs": [
+        { "key": "account_id", "label": "Account ID", "type": "string", "required": true },
+        { "key": "limit", "label": "Limit", "type": "number", "default": 20 }
+      ]
+    },
+    {
+      "key": "home_timeline",
+      "name": "Get home timeline",
+      "method": "GET",
+      "endpoint": "/api/v1/timelines/home",
+      "query": { "limit": "{{ inputs.limit }}" },
+      "inputs": [{ "key": "limit", "label": "Limit", "type": "number", "default": 20 }]
+    },
+    {
+      "key": "search",
+      "name": "Search",
+      "method": "GET",
+      "endpoint": "/api/v2/search",
+      "query": { "q": "{{ inputs.q }}", "type": "{{ inputs.type }}", "limit": "{{ inputs.limit }}" },
+      "inputs": [
+        { "key": "q", "label": "Query", "type": "string", "required": true },
+        { "key": "type", "label": "Type", "type": "select", "options": [
+          { "value": "", "label": "All" }, { "value": "accounts", "label": "Accounts" }, { "value": "statuses", "label": "Posts" }, { "value": "hashtags", "label": "Hashtags" }
+        ] },
+        { "key": "limit", "label": "Limit", "type": "number", "default": 20 }
+      ]
+    },
+    {
+      "key": "favourite_status",
+      "name": "Like post",
+      "method": "POST",
+      "endpoint": "/api/v1/statuses/{{ inputs.status_id }}/favourite",
+      "inputs": [{ "key": "status_id", "label": "Post ID", "type": "string", "required": true }]
+    },
+    {
+      "key": "follow_account",
+      "name": "Follow account",
+      "method": "POST",
+      "endpoint": "/api/v1/accounts/{{ inputs.account_id }}/follow",
+      "inputs": [{ "key": "account_id", "label": "Account ID", "type": "string", "required": true }]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_account_post",
+      "name": "New post by account",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/api/v1/accounts/{{ inputs.account_id }}/statuses",
+      "query": { "limit": 20 },
+      "id_field": "id",
+      "inputs": [
+        { "key": "account_id", "label": "Account ID", "type": "string", "required": true },
+        { "key": "poll_interval", "label": "Check every (minutes)", "type": "number", "default": 5 }
+      ]
+    }
+  ]
+}

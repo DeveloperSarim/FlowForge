@@ -1,0 +1,188 @@
+{
+  "key": "salesloft",
+  "name": "Salesloft",
+  "category": "CRM & Sales",
+  "description": "Create people, add them to cadences and log notes in Salesloft.",
+  "brand": "salesloft",
+  "website": "https://www.salesloft.com",
+  "docs_url": "https://developers.salesloft.com/docs/api",
+  "base_url": "https://api.salesloft.com/v2",
+  "auth": [
+    {
+      "type": "bearer",
+      "fields": [
+        {
+          "key": "token",
+          "label": "API key",
+          "type": "password",
+          "required": true,
+          "help": "Settings > API Keys."
+        }
+      ]
+    },
+    {
+      "type": "oauth2",
+      "authorize_url": "https://accounts.salesloft.com/oauth/authorize",
+      "token_url": "https://accounts.salesloft.com/oauth/token",
+      "scopes": []
+    }
+  ],
+  "actions": [
+    {
+      "key": "create_person",
+      "name": "Create person",
+      "method": "POST",
+      "endpoint": "/people",
+      "body": {
+        "email_address": "{{ inputs.email_address }}",
+        "first_name": "{{ inputs.first_name }}",
+        "last_name": "{{ inputs.last_name }}",
+        "title": "{{ inputs.title }}",
+        "phone": "{{ inputs.phone }}"
+      },
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "email_address",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "first_name",
+          "label": "First name",
+          "type": "string"
+        },
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string"
+        },
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "string"
+        },
+        {
+          "key": "phone",
+          "label": "Phone",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "get_person",
+      "name": "Get person",
+      "method": "GET",
+      "endpoint": "/people/{{ inputs.person_id }}",
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "person_id",
+          "label": "Person ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "find_person",
+      "name": "Find person by email",
+      "method": "GET",
+      "endpoint": "/people",
+      "query": {
+        "email_addresses[]": "{{ inputs.email }}"
+      },
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "add_to_cadence",
+      "name": "Add person to cadence",
+      "method": "POST",
+      "endpoint": "/cadence_memberships",
+      "query": {
+        "person_id": "{{ inputs.person_id }}",
+        "cadence_id": "{{ inputs.cadence_id }}",
+        "user_id": "{{ inputs.user_id }}"
+      },
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "person_id",
+          "label": "Person ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "cadence_id",
+          "label": "Cadence ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "user_id",
+          "label": "On behalf of user ID",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "create_note",
+      "name": "Create note",
+      "method": "POST",
+      "endpoint": "/notes",
+      "body": {
+        "content": "{{ inputs.content }}",
+        "associated_with_type": "person",
+        "associated_with_id": "{{ inputs.person_id }}"
+      },
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "person_id",
+          "label": "Person ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "content",
+          "label": "Note",
+          "type": "text",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_person",
+      "name": "New person",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/people",
+      "query": {
+        "sort_by": "created_at",
+        "sort_direction": "DESC",
+        "per_page": 50
+      },
+      "items_path": "data",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,88 @@
+{
+  "key": "lastfm",
+  "name": "Last.fm",
+  "category": "Video & Media",
+  "description": "Look up artists and tracks, charts and a user's recent scrobbles on Last.fm.",
+  "brand": "lastdotfm",
+  "website": "https://www.last.fm",
+  "docs_url": "https://www.last.fm/api",
+  "base_url": "https://ws.audioscrobbler.com/2.0",
+  "auth": { "type": "api_key", "in": "query", "name": "api_key", "fields": [
+    { "key": "api_key", "label": "API key", "type": "password", "required": true, "help": "Create one at last.fm/api/account/create." }
+  ] },
+  "actions": [
+    {
+      "key": "get_artist_info",
+      "name": "Get artist info",
+      "method": "GET",
+      "endpoint": "/",
+      "error_path": "error",
+      "output_path": "artist",
+      "query": { "method": "artist.getInfo", "format": "json", "artist": "{{ inputs.artist }}", "autocorrect": 1 },
+      "inputs": [{ "key": "artist", "label": "Artist", "type": "string", "required": true }]
+    },
+    {
+      "key": "get_artist_top_tracks",
+      "name": "Get artist top tracks",
+      "method": "GET",
+      "endpoint": "/",
+      "error_path": "error",
+      "output_path": "toptracks.track",
+      "query": { "method": "artist.getTopTracks", "format": "json", "artist": "{{ inputs.artist }}", "limit": "{{ inputs.limit }}", "autocorrect": 1 },
+      "inputs": [
+        { "key": "artist", "label": "Artist", "type": "string", "required": true },
+        { "key": "limit", "label": "Limit", "type": "number", "default": 10 }
+      ]
+    },
+    {
+      "key": "search_tracks",
+      "name": "Search tracks",
+      "method": "GET",
+      "endpoint": "/",
+      "error_path": "error",
+      "output_path": "results.trackmatches.track",
+      "query": { "method": "track.search", "format": "json", "track": "{{ inputs.track }}", "artist": "{{ inputs.artist }}", "limit": "{{ inputs.limit }}" },
+      "inputs": [
+        { "key": "track", "label": "Track", "type": "string", "required": true },
+        { "key": "artist", "label": "Artist", "type": "string" },
+        { "key": "limit", "label": "Limit", "type": "number", "default": 30 }
+      ]
+    },
+    {
+      "key": "get_track_info",
+      "name": "Get track info",
+      "method": "GET",
+      "endpoint": "/",
+      "error_path": "error",
+      "output_path": "track",
+      "query": { "method": "track.getInfo", "format": "json", "artist": "{{ inputs.artist }}", "track": "{{ inputs.track }}", "autocorrect": 1 },
+      "inputs": [
+        { "key": "artist", "label": "Artist", "type": "string", "required": true },
+        { "key": "track", "label": "Track", "type": "string", "required": true }
+      ]
+    },
+    {
+      "key": "get_user_recent_tracks",
+      "name": "Get user's recent tracks",
+      "method": "GET",
+      "endpoint": "/",
+      "error_path": "error",
+      "output_path": "recenttracks.track",
+      "query": { "method": "user.getRecentTracks", "format": "json", "user": "{{ inputs.user }}", "limit": "{{ inputs.limit }}" },
+      "inputs": [
+        { "key": "user", "label": "Username", "type": "string", "required": true },
+        { "key": "limit", "label": "Limit", "type": "number", "default": 50 }
+      ]
+    },
+    {
+      "key": "get_top_artists_chart",
+      "name": "Get top artists chart",
+      "method": "GET",
+      "endpoint": "/",
+      "error_path": "error",
+      "output_path": "artists.artist",
+      "query": { "method": "chart.getTopArtists", "format": "json", "limit": "{{ inputs.limit }}" },
+      "inputs": [{ "key": "limit", "label": "Limit", "type": "number", "default": 50 }]
+    }
+  ]
+}

@@ -1,0 +1,82 @@
+{
+  "key": "woocommerce-sms",
+  "name": "Text customers about new WooCommerce orders",
+  "description": "Sends an SMS confirmation through Twilio when an order with a phone number arrives.",
+  "category": "E-commerce",
+  "featured": false,
+  "graph": {
+    "nodes": [
+      {
+        "id": "trigger",
+        "type": "trigger",
+        "position": {
+          "x": 0,
+          "y": 200
+        },
+        "data": {
+          "integration": "woocommerce",
+          "trigger": "new_order",
+          "label": "New order",
+          "config": {
+            "poll_interval": 5
+          }
+        }
+      },
+      {
+        "id": "step_1",
+        "type": "action",
+        "position": {
+          "x": 240,
+          "y": 200
+        },
+        "data": {
+          "integration": "logic",
+          "action": "filter",
+          "label": "Has a phone",
+          "config": {
+            "combinator": "all",
+            "conditions": [
+              {
+                "left": "{{ steps.trigger.data.billing.phone }}",
+                "operator": "is_not_empty",
+                "right": ""
+              }
+            ]
+          }
+        }
+      },
+      {
+        "id": "step_2",
+        "type": "action",
+        "position": {
+          "x": 480,
+          "y": 200
+        },
+        "data": {
+          "integration": "twilio",
+          "action": "send_sms",
+          "label": "Send SMS",
+          "config": {
+            "to": "{{ steps.trigger.data.billing.phone }}",
+            "from": "",
+            "body": "Thanks for order #{{ steps.trigger.data.number }}! We're on it."
+          }
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "e-trigger-step_1",
+        "source": "trigger",
+        "target": "step_1",
+        "sourceHandle": null
+      },
+      {
+        "id": "e-step_1-step_2",
+        "source": "step_1",
+        "target": "step_2",
+        "sourceHandle": null
+      }
+    ]
+  }
+}

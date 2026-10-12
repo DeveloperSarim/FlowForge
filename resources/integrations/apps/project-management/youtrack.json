@@ -1,0 +1,179 @@
+{
+  "key": "youtrack",
+  "name": "YouTrack",
+  "category": "Project Management",
+  "description": "Create, search and comment on YouTrack issues.",
+  "brand": "youtrack",
+  "website": "https://www.jetbrains.com/youtrack/",
+  "docs_url": "https://www.jetbrains.com/help/youtrack/devportal/youtrack-rest-api.html",
+  "base_url": "https://{{ credentials.host }}/api",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "host",
+        "label": "YouTrack host",
+        "type": "string",
+        "required": true,
+        "placeholder": "yourteam.youtrack.cloud",
+        "help": "Include a path for self-hosted installs, e.g. example.com/youtrack."
+      },
+      {
+        "key": "token",
+        "label": "Permanent token",
+        "type": "password",
+        "required": true,
+        "help": "Profile > Account Security > New token."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "create_issue",
+      "name": "Create issue",
+      "method": "POST",
+      "endpoint": "/issues",
+      "query": {
+        "fields": "id,idReadable,summary"
+      },
+      "body": {
+        "project": {
+          "id": "{{ inputs.project_id }}"
+        },
+        "summary": "{{ inputs.summary }}",
+        "description": "{{ inputs.description }}"
+      },
+      "inputs": [
+        {
+          "key": "project_id",
+          "label": "Project ID",
+          "type": "string",
+          "required": true,
+          "placeholder": "0-0",
+          "help": "Internal id from List projects (not the short name)."
+        },
+        {
+          "key": "summary",
+          "label": "Summary",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "description",
+          "label": "Description (Markdown)",
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "key": "get_issue",
+      "name": "Get issue",
+      "method": "GET",
+      "endpoint": "/issues/{{ inputs.issue_id }}",
+      "query": {
+        "fields": "id,idReadable,summary,description,created,updated,resolved,project(shortName),reporter(login,name),customFields(name,value(name))"
+      },
+      "inputs": [
+        {
+          "key": "issue_id",
+          "label": "Issue ID",
+          "type": "string",
+          "required": true,
+          "placeholder": "PROJ-42"
+        }
+      ]
+    },
+    {
+      "key": "search_issues",
+      "name": "Search issues",
+      "method": "GET",
+      "endpoint": "/issues",
+      "query": {
+        "query": "{{ inputs.query }}",
+        "fields": "id,idReadable,summary,description,created,updated,resolved,project(shortName),reporter(login,name),customFields(name,value(name))",
+        "$top": "{{ inputs.top }}"
+      },
+      "inputs": [
+        {
+          "key": "query",
+          "label": "Query",
+          "type": "string",
+          "required": true,
+          "placeholder": "project: PROJ #Unresolved sort by: created desc"
+        },
+        {
+          "key": "top",
+          "label": "Max results",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    },
+    {
+      "key": "add_comment",
+      "name": "Add comment",
+      "method": "POST",
+      "endpoint": "/issues/{{ inputs.issue_id }}/comments",
+      "query": {
+        "fields": "id,text,created"
+      },
+      "body": {
+        "text": "{{ inputs.text }}"
+      },
+      "inputs": [
+        {
+          "key": "issue_id",
+          "label": "Issue ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "text",
+          "label": "Comment (Markdown)",
+          "type": "text",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_projects",
+      "name": "List projects",
+      "method": "GET",
+      "endpoint": "/admin/projects",
+      "query": {
+        "fields": "id,name,shortName"
+      },
+      "inputs": []
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_issue",
+      "name": "New issue",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/issues",
+      "query": {
+        "query": "project: {{ inputs.project }} sort by: created desc",
+        "fields": "id,idReadable,summary,description,created,updated,resolved,project(shortName),reporter(login,name),customFields(name,value(name))",
+        "$top": 50
+      },
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "project",
+          "label": "Project short name",
+          "type": "string",
+          "required": true,
+          "placeholder": "PROJ"
+        },
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

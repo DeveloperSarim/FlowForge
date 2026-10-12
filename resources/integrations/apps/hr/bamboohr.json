@@ -1,0 +1,231 @@
+{
+  "key": "bamboohr",
+  "name": "BambooHR",
+  "category": "HR & Recruiting",
+  "description": "Add, update and look up employees and time off in BambooHR.",
+  "brand": "bamboohr",
+  "website": "https://www.bamboohr.com",
+  "docs_url": "https://documentation.bamboohr.com/reference",
+  "popular": true,
+  "base_url": "https://api.bamboohr.com/api/gateway.php/{{ credentials.company_domain }}/v1",
+  "auth": [
+    {
+      "type": "basic",
+      "fields": [
+        {
+          "key": "company_domain",
+          "label": "Company domain",
+          "type": "string",
+          "required": true,
+          "placeholder": "yourcompany",
+          "help": "The part before .bamboohr.com."
+        },
+        {
+          "key": "username",
+          "label": "API key",
+          "type": "password",
+          "required": true,
+          "help": "Your profile menu > API Keys."
+        },
+        {
+          "key": "password",
+          "label": "Password",
+          "type": "password",
+          "required": false,
+          "default": "x",
+          "help": "Any value; BambooHR ignores it."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "get_employee",
+      "name": "Get employee",
+      "method": "GET",
+      "endpoint": "/employees/{{ inputs.employee_id }}",
+      "query": {
+        "fields": "{{ inputs.fields }}"
+      },
+      "inputs": [
+        {
+          "key": "employee_id",
+          "label": "Employee ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "fields",
+          "label": "Fields",
+          "type": "string",
+          "required": true,
+          "default": "firstName,lastName,workEmail,jobTitle,department,hireDate"
+        }
+      ]
+    },
+    {
+      "key": "add_employee",
+      "name": "Add employee",
+      "description": "The new ID is in the Location response header.",
+      "method": "POST",
+      "endpoint": "/employees",
+      "body": {
+        "firstName": "{{ inputs.first_name }}",
+        "lastName": "{{ inputs.last_name }}",
+        "workEmail": "{{ inputs.work_email }}",
+        "jobTitle": "{{ inputs.job_title }}",
+        "hireDate": "{{ inputs.hire_date }}"
+      },
+      "inputs": [
+        {
+          "key": "first_name",
+          "label": "First name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "work_email",
+          "label": "Work email",
+          "type": "string"
+        },
+        {
+          "key": "job_title",
+          "label": "Job title",
+          "type": "string"
+        },
+        {
+          "key": "hire_date",
+          "label": "Hire date",
+          "type": "string",
+          "placeholder": "2026-01-15"
+        }
+      ]
+    },
+    {
+      "key": "update_employee",
+      "name": "Update employee",
+      "method": "POST",
+      "endpoint": "/employees/{{ inputs.employee_id }}",
+      "body": "{{ inputs.fields }}",
+      "inputs": [
+        {
+          "key": "employee_id",
+          "label": "Employee ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "fields",
+          "label": "Fields",
+          "type": "json",
+          "required": true,
+          "help": "e.g. {\"jobTitle\": \"Lead Engineer\"}"
+        }
+      ]
+    },
+    {
+      "key": "employee_directory",
+      "name": "Employee directory",
+      "method": "GET",
+      "endpoint": "/employees/directory",
+      "output_path": "employees",
+      "inputs": []
+    },
+    {
+      "key": "time_off_requests",
+      "name": "List time-off requests",
+      "method": "GET",
+      "endpoint": "/time_off/requests",
+      "query": {
+        "start": "{{ inputs.start }}",
+        "end": "{{ inputs.end }}",
+        "status": "{{ inputs.status }}"
+      },
+      "inputs": [
+        {
+          "key": "start",
+          "label": "Start date",
+          "type": "string",
+          "required": true,
+          "placeholder": "2026-01-01"
+        },
+        {
+          "key": "end",
+          "label": "End date",
+          "type": "string",
+          "required": true,
+          "placeholder": "2026-12-31"
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "options": [
+            {
+              "value": "approved",
+              "label": "Approved"
+            },
+            {
+              "value": "requested",
+              "label": "Requested"
+            },
+            {
+              "value": "denied",
+              "label": "Denied"
+            },
+            {
+              "value": "canceled",
+              "label": "Canceled"
+            },
+            {
+              "value": "superceded",
+              "label": "Superseded"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "whos_out",
+      "name": "Who's out",
+      "method": "GET",
+      "endpoint": "/time_off/whos_out",
+      "query": {
+        "start": "{{ inputs.start }}",
+        "end": "{{ inputs.end }}"
+      },
+      "inputs": [
+        {
+          "key": "start",
+          "label": "Start date",
+          "type": "string"
+        },
+        {
+          "key": "end",
+          "label": "End date",
+          "type": "string"
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

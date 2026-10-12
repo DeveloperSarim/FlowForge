@@ -1,0 +1,307 @@
+{
+  "key": "tito",
+  "name": "Tito",
+  "category": "Events & Webinars",
+  "description": "List Tito events, registrations and tickets and create discount codes.",
+  "brand": "tito",
+  "website": "https://ti.to",
+  "docs_url": "https://ti.to/docs/api/admin",
+  "base_url": "https://api.tito.io/v3",
+  "auth": [
+    {
+      "type": "api_key",
+      "in": "header",
+      "name": "Authorization",
+      "prefix": "Token token=",
+      "fields": [
+        {
+          "key": "api_key",
+          "label": "Secret API token",
+          "type": "password",
+          "required": true,
+          "help": "Your account > API access > Generate (secret) token."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "hello",
+      "name": "Check token",
+      "description": "Returns the accounts this token can access.",
+      "method": "GET",
+      "endpoint": "/hello",
+      "inputs": []
+    },
+    {
+      "key": "list_events",
+      "name": "List upcoming events",
+      "method": "GET",
+      "endpoint": "/{{ inputs.account }}/events",
+      "output_path": "events",
+      "inputs": [
+        {
+          "key": "account",
+          "label": "Account slug",
+          "type": "string",
+          "required": true,
+          "placeholder": "my-org"
+        }
+      ]
+    },
+    {
+      "key": "list_registrations",
+      "name": "List registrations",
+      "description": "Newest first.",
+      "method": "GET",
+      "endpoint": "/{{ inputs.account }}/{{ inputs.event }}/registrations",
+      "query": {
+        "page[size]": "{{ inputs.page_size }}"
+      },
+      "output_path": "registrations",
+      "inputs": [
+        {
+          "key": "account",
+          "label": "Account slug",
+          "type": "string",
+          "required": true,
+          "placeholder": "my-org"
+        },
+        {
+          "key": "event",
+          "label": "Event slug",
+          "type": "string",
+          "required": true,
+          "placeholder": "my-conf-2026"
+        },
+        {
+          "key": "page_size",
+          "label": "Per page",
+          "type": "number",
+          "default": 100
+        }
+      ]
+    },
+    {
+      "key": "list_tickets",
+      "name": "List tickets",
+      "description": "Newest first.",
+      "method": "GET",
+      "endpoint": "/{{ inputs.account }}/{{ inputs.event }}/tickets",
+      "query": {
+        "page[size]": "{{ inputs.page_size }}"
+      },
+      "output_path": "tickets",
+      "inputs": [
+        {
+          "key": "account",
+          "label": "Account slug",
+          "type": "string",
+          "required": true,
+          "placeholder": "my-org"
+        },
+        {
+          "key": "event",
+          "label": "Event slug",
+          "type": "string",
+          "required": true,
+          "placeholder": "my-conf-2026"
+        },
+        {
+          "key": "page_size",
+          "label": "Per page",
+          "type": "number",
+          "default": 100
+        }
+      ]
+    },
+    {
+      "key": "create_discount_code",
+      "name": "Create discount code",
+      "method": "POST",
+      "endpoint": "/{{ inputs.account }}/{{ inputs.event }}/discount_codes",
+      "body": {
+        "discount_code": {
+          "code": "{{ inputs.code }}",
+          "type": "{{ inputs.type }}",
+          "value": "{{ inputs.value }}"
+        }
+      },
+      "output_path": "discount_code",
+      "inputs": [
+        {
+          "key": "account",
+          "label": "Account slug",
+          "type": "string",
+          "required": true,
+          "placeholder": "my-org"
+        },
+        {
+          "key": "event",
+          "label": "Event slug",
+          "type": "string",
+          "required": true,
+          "placeholder": "my-conf-2026"
+        },
+        {
+          "key": "code",
+          "label": "Code",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "type",
+          "label": "Type",
+          "type": "select",
+          "required": true,
+          "default": "PercentOffDiscountCode",
+          "options": [
+            {
+              "value": "PercentOffDiscountCode",
+              "label": "Percent off"
+            },
+            {
+              "value": "MoneyOffDiscountCode",
+              "label": "Amount off"
+            }
+          ]
+        },
+        {
+          "key": "value",
+          "label": "Value",
+          "type": "string",
+          "required": true,
+          "placeholder": "20.0"
+        }
+      ]
+    },
+    {
+      "key": "create_webhook",
+      "name": "Create webhook endpoint",
+      "method": "POST",
+      "endpoint": "/{{ inputs.account }}/{{ inputs.event }}/webhook_endpoints",
+      "body": {
+        "webhook_endpoint": {
+          "url": "{{ inputs.url }}",
+          "included_triggers": "{{ inputs.included_triggers }}"
+        }
+      },
+      "inputs": [
+        {
+          "key": "account",
+          "label": "Account slug",
+          "type": "string",
+          "required": true,
+          "placeholder": "my-org"
+        },
+        {
+          "key": "event",
+          "label": "Event slug",
+          "type": "string",
+          "required": true,
+          "placeholder": "my-conf-2026"
+        },
+        {
+          "key": "url",
+          "label": "URL",
+          "type": "string",
+          "required": true,
+          "help": "Paste a workflow's Tito webhook trigger URL."
+        },
+        {
+          "key": "included_triggers",
+          "label": "Triggers",
+          "type": "list",
+          "required": true,
+          "default": [
+            "registration.completed"
+          ],
+          "help": "e.g. registration.completed, ticket.completed, checkin.created."
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_registration",
+      "name": "New registration",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/{{ inputs.account }}/{{ inputs.event }}/registrations",
+      "query": {
+        "page[size]": 50
+      },
+      "items_path": "registrations",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "account",
+          "label": "Account slug",
+          "type": "string",
+          "required": true,
+          "placeholder": "my-org"
+        },
+        {
+          "key": "event",
+          "label": "Event slug",
+          "type": "string",
+          "required": true,
+          "placeholder": "my-conf-2026"
+        },
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    },
+    {
+      "key": "new_ticket",
+      "name": "New ticket",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/{{ inputs.account }}/{{ inputs.event }}/tickets",
+      "query": {
+        "page[size]": 50
+      },
+      "items_path": "tickets",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "account",
+          "label": "Account slug",
+          "type": "string",
+          "required": true,
+          "placeholder": "my-org"
+        },
+        {
+          "key": "event",
+          "label": "Event slug",
+          "type": "string",
+          "required": true,
+          "placeholder": "my-conf-2026"
+        },
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    },
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Register the URL with Create webhook endpoint. The trigger name arrives in the X-Webhook-Name header.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,104 @@
+{
+  "key": "verify-leads-hunter",
+  "name": "Verify lead emails before adding them to HubSpot",
+  "description": "Only deliverable emails from your form reach the CRM.",
+  "category": "Sales & CRM",
+  "featured": false,
+  "graph": {
+    "nodes": [
+      {
+        "id": "trigger",
+        "type": "trigger",
+        "position": {
+          "x": 0,
+          "y": 200
+        },
+        "data": {
+          "integration": "webhook",
+          "trigger": "catch",
+          "label": "Lead form",
+          "config": {
+            "method": "POST",
+            "sample_payload": "{\n  \"name\": \"Ada Lovelace\",\n  \"email\": \"ada@example.com\"\n}"
+          }
+        }
+      },
+      {
+        "id": "step_1",
+        "type": "action",
+        "position": {
+          "x": 240,
+          "y": 200
+        },
+        "data": {
+          "integration": "hunter",
+          "action": "email_verifier",
+          "label": "Verify email",
+          "config": {
+            "email": "{{ steps.trigger.data.email }}"
+          }
+        }
+      },
+      {
+        "id": "step_2",
+        "type": "branch",
+        "position": {
+          "x": 480,
+          "y": 200
+        },
+        "data": {
+          "integration": "logic",
+          "action": "if",
+          "label": "Deliverable?",
+          "config": {
+            "combinator": "all",
+            "conditions": [
+              {
+                "left": "{{ steps.step_1.data.status }}",
+                "operator": "equals",
+                "right": "valid"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "id": "step_3",
+        "type": "action",
+        "position": {
+          "x": 720,
+          "y": 80
+        },
+        "data": {
+          "integration": "hubspot",
+          "action": "create_contact",
+          "label": "Create contact",
+          "config": {
+            "email": "{{ steps.trigger.data.email }}",
+            "first_name": "{{ steps.trigger.data.name }}"
+          }
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "e-trigger-step_1-out",
+        "source": "trigger",
+        "target": "step_1",
+        "sourceHandle": null
+      },
+      {
+        "id": "e-step_1-step_2-out",
+        "source": "step_1",
+        "target": "step_2",
+        "sourceHandle": null
+      },
+      {
+        "id": "e-step_2-step_3-true",
+        "source": "step_2",
+        "target": "step_3",
+        "sourceHandle": "true"
+      }
+    ]
+  }
+}

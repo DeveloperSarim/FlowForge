@@ -1,0 +1,89 @@
+{
+  "key": "algolia",
+  "name": "Algolia",
+  "category": "Developer Tools",
+  "description": "Search an index and add, update, get or delete records.",
+  "brand": "algolia",
+  "website": "https://www.algolia.com",
+  "docs_url": "https://www.algolia.com/doc/rest-api/search/",
+  "base_url": "https://{{ credentials.app_id }}.algolia.net/1",
+  "headers": { "X-Algolia-Application-Id": "{{ credentials.app_id }}" },
+  "auth": { "type": "api_key", "in": "header", "name": "X-Algolia-API-Key", "fields": [
+    { "key": "app_id", "label": "Application ID", "type": "string", "required": true },
+    { "key": "api_key", "label": "API key", "type": "password", "required": true, "help": "Write API key for indexing; a search-only key is enough for searching." }
+  ] },
+  "actions": [
+    {
+      "key": "search",
+      "name": "Search index",
+      "method": "POST",
+      "endpoint": "/indexes/{{ inputs.index }}/query",
+      "body": { "query": "{{ inputs.query }}", "filters": "{{ inputs.filters }}", "hitsPerPage": "{{ inputs.hits_per_page }}", "page": "{{ inputs.page }}" },
+      "inputs": [
+        { "key": "index", "label": "Index name", "type": "string", "required": true },
+        { "key": "query", "label": "Query", "type": "string" },
+        { "key": "filters", "label": "Filters", "type": "string", "placeholder": "category:books AND price < 20" },
+        { "key": "hits_per_page", "label": "Hits per page", "type": "number", "default": 20 },
+        { "key": "page", "label": "Page (0-based)", "type": "number" }
+      ]
+    },
+    {
+      "key": "add_record",
+      "name": "Add record",
+      "description": "Algolia generates the objectID.",
+      "method": "POST",
+      "endpoint": "/indexes/{{ inputs.index }}",
+      "body": "{{ inputs.record }}",
+      "inputs": [
+        { "key": "index", "label": "Index name", "type": "string", "required": true },
+        { "key": "record", "label": "Record (JSON)", "type": "json", "required": true, "placeholder": "{ \"name\": \"Blue shoes\", \"price\": 59 }" }
+      ]
+    },
+    {
+      "key": "save_record",
+      "name": "Add or replace record",
+      "method": "PUT",
+      "endpoint": "/indexes/{{ inputs.index }}/{{ inputs.object_id }}",
+      "body": "{{ inputs.record }}",
+      "inputs": [
+        { "key": "index", "label": "Index name", "type": "string", "required": true },
+        { "key": "object_id", "label": "objectID", "type": "string", "required": true },
+        { "key": "record", "label": "Record (JSON)", "type": "json", "required": true }
+      ]
+    },
+    {
+      "key": "partial_update",
+      "name": "Update record attributes",
+      "method": "POST",
+      "endpoint": "/indexes/{{ inputs.index }}/{{ inputs.object_id }}/partial",
+      "query": { "createIfNotExists": "{{ inputs.create_if_missing }}" },
+      "body": "{{ inputs.attributes }}",
+      "inputs": [
+        { "key": "index", "label": "Index name", "type": "string", "required": true },
+        { "key": "object_id", "label": "objectID", "type": "string", "required": true },
+        { "key": "attributes", "label": "Attributes to change (JSON)", "type": "json", "required": true },
+        { "key": "create_if_missing", "label": "Create if missing", "type": "select", "default": "true", "options": [{ "value": "true", "label": "Yes" }, { "value": "false", "label": "No" }] }
+      ]
+    },
+    {
+      "key": "get_record",
+      "name": "Get record",
+      "method": "GET",
+      "endpoint": "/indexes/{{ inputs.index }}/{{ inputs.object_id }}",
+      "inputs": [
+        { "key": "index", "label": "Index name", "type": "string", "required": true },
+        { "key": "object_id", "label": "objectID", "type": "string", "required": true }
+      ]
+    },
+    {
+      "key": "delete_record",
+      "name": "Delete record",
+      "method": "DELETE",
+      "endpoint": "/indexes/{{ inputs.index }}/{{ inputs.object_id }}",
+      "inputs": [
+        { "key": "index", "label": "Index name", "type": "string", "required": true },
+        { "key": "object_id", "label": "objectID", "type": "string", "required": true }
+      ]
+    }
+  ]
+}

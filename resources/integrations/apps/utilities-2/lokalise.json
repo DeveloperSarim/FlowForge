@@ -1,0 +1,92 @@
+{
+  "key": "lokalise",
+  "name": "Lokalise",
+  "category": "Utilities",
+  "description": "Manage translation keys, update translations and export localization files.",
+  "brand": "lokalise",
+  "website": "https://lokalise.com",
+  "docs_url": "https://developers.lokalise.com/reference/lokalise-rest-api",
+  "base_url": "https://api.lokalise.com/api2",
+  "auth": { "type": "api_key", "in": "header", "name": "X-Api-Token", "fields": [
+    { "key": "api_key", "label": "API token", "type": "password", "required": true, "help": "Profile settings → API tokens." }
+  ] },
+  "actions": [
+    {
+      "key": "list_projects",
+      "name": "List projects",
+      "method": "GET",
+      "endpoint": "/projects",
+      "query": { "limit": "{{ inputs.limit }}", "page": "{{ inputs.page }}" },
+      "inputs": [
+        { "key": "limit", "label": "Limit", "type": "number" },
+        { "key": "page", "label": "Page", "type": "number" }
+      ]
+    },
+    {
+      "key": "list_keys",
+      "name": "List keys",
+      "method": "GET",
+      "endpoint": "/projects/{{ inputs.project_id }}/keys",
+      "query": { "include_translations": "{{ inputs.include_translations }}", "filter_keys": "{{ inputs.filter_keys }}", "limit": "{{ inputs.limit }}", "page": "{{ inputs.page }}" },
+      "inputs": [
+        { "key": "project_id", "label": "Project ID", "type": "string", "required": true },
+        { "key": "include_translations", "label": "Include translations", "type": "select", "options": [{ "value": "1", "label": "Yes" }, { "value": "0", "label": "No" }] },
+        { "key": "filter_keys", "label": "Key names", "type": "string", "placeholder": "welcome_title,cta_button" },
+        { "key": "limit", "label": "Limit", "type": "number" },
+        { "key": "page", "label": "Page", "type": "number" }
+      ]
+    },
+    {
+      "key": "create_key",
+      "name": "Create key",
+      "method": "POST",
+      "endpoint": "/projects/{{ inputs.project_id }}/keys",
+      "body": { "keys": [{ "key_name": "{{ inputs.key_name }}", "platforms": "{{ inputs.platforms }}", "description": "{{ inputs.description }}", "tags": "{{ inputs.tags }}", "translations": "{{ inputs.translations }}" }] },
+      "inputs": [
+        { "key": "project_id", "label": "Project ID", "type": "string", "required": true },
+        { "key": "key_name", "label": "Key name", "type": "string", "required": true },
+        { "key": "platforms", "label": "Platforms", "type": "list", "required": true, "help": "ios, android, web, other." },
+        { "key": "description", "label": "Description", "type": "string" },
+        { "key": "tags", "label": "Tags", "type": "list" },
+        { "key": "translations", "label": "Translations (JSON)", "type": "json", "placeholder": "[{ \"language_iso\": \"en\", \"translation\": \"Welcome\" }]" }
+      ]
+    },
+    {
+      "key": "update_translation",
+      "name": "Update translation",
+      "method": "PUT",
+      "endpoint": "/projects/{{ inputs.project_id }}/translations/{{ inputs.translation_id }}",
+      "body": { "translation": "{{ inputs.translation }}", "is_reviewed": "{{ inputs.is_reviewed }}" },
+      "inputs": [
+        { "key": "project_id", "label": "Project ID", "type": "string", "required": true },
+        { "key": "translation_id", "label": "Translation ID", "type": "string", "required": true },
+        { "key": "translation", "label": "Translation", "type": "text", "required": true },
+        { "key": "is_reviewed", "label": "Mark reviewed", "type": "boolean" }
+      ]
+    },
+    {
+      "key": "download_files",
+      "name": "Download files",
+      "description": "Builds an export bundle and returns its download URL.",
+      "method": "POST",
+      "endpoint": "/projects/{{ inputs.project_id }}/files/download",
+      "body": { "format": "{{ inputs.format }}", "filter_langs": "{{ inputs.filter_langs }}", "original_filenames": "{{ inputs.original_filenames }}", "bundle_structure": "{{ inputs.bundle_structure }}" },
+      "inputs": [
+        { "key": "project_id", "label": "Project ID", "type": "string", "required": true },
+        { "key": "format", "label": "Format", "type": "string", "required": true, "placeholder": "json", "help": "json, xliff, strings, xml, po, yaml, csv…" },
+        { "key": "filter_langs", "label": "Only these languages", "type": "list" },
+        { "key": "original_filenames", "label": "Use original filenames", "type": "boolean" },
+        { "key": "bundle_structure", "label": "Bundle structure", "type": "string", "placeholder": "locale/%LANG_ISO%.%FORMAT%", "help": "Required when original filenames is off." }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Lokalise webhook",
+      "description": "Add this URL in Project → Integrations → Webhooks.",
+      "type": "webhook",
+      "inputs": [{ "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }]
+    }
+  ]
+}

@@ -1,0 +1,101 @@
+{
+  "key": "aircall",
+  "name": "Aircall",
+  "category": "Communication",
+  "description": "Read calls, comment on them, and create or search contacts in Aircall.",
+  "brand": "aircall",
+  "website": "https://aircall.io",
+  "docs_url": "https://developer.aircall.io/api-references/",
+  "base_url": "https://api.aircall.io/v1",
+  "auth": [
+    {
+      "type": "basic",
+      "fields": [
+        { "key": "username", "label": "API ID", "type": "string", "required": true },
+        { "key": "password", "label": "API token", "type": "password", "required": true }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_calls",
+      "name": "List calls",
+      "method": "GET",
+      "endpoint": "/calls",
+      "query": { "order": "desc", "per_page": "{{ inputs.per_page }}", "from": "{{ inputs.from }}" },
+      "output_path": "calls",
+      "inputs": [
+        { "key": "per_page", "label": "Max results", "type": "number", "default": 20 },
+        { "key": "from", "label": "Since (Unix timestamp)", "type": "number" }
+      ]
+    },
+    {
+      "key": "get_call",
+      "name": "Get call",
+      "method": "GET",
+      "endpoint": "/calls/{{ inputs.call_id }}",
+      "output_path": "call",
+      "inputs": [{ "key": "call_id", "label": "Call ID", "type": "string", "required": true }]
+    },
+    {
+      "key": "comment_call",
+      "name": "Comment on call",
+      "method": "POST",
+      "endpoint": "/calls/{{ inputs.call_id }}/comments",
+      "body": { "content": "{{ inputs.content }}" },
+      "inputs": [
+        { "key": "call_id", "label": "Call ID", "type": "string", "required": true },
+        { "key": "content", "label": "Comment", "type": "text", "required": true }
+      ]
+    },
+    {
+      "key": "create_contact",
+      "name": "Create contact",
+      "method": "POST",
+      "endpoint": "/contacts",
+      "body": {
+        "first_name": "{{ inputs.first_name }}",
+        "last_name": "{{ inputs.last_name }}",
+        "company_name": "{{ inputs.company_name }}",
+        "phone_numbers": [{ "label": "Work", "value": "{{ inputs.phone }}" }]
+      },
+      "output_path": "contact",
+      "inputs": [
+        { "key": "phone", "label": "Phone number", "type": "string", "required": true, "placeholder": "+19001112222" },
+        { "key": "first_name", "label": "First name", "type": "string" },
+        { "key": "last_name", "label": "Last name", "type": "string" },
+        { "key": "company_name", "label": "Company", "type": "string" }
+      ]
+    },
+    {
+      "key": "search_contacts",
+      "name": "Search contacts by phone",
+      "method": "GET",
+      "endpoint": "/contacts/search",
+      "query": { "phone_number": "{{ inputs.phone_number }}" },
+      "output_path": "contacts",
+      "inputs": [{ "key": "phone_number", "label": "Phone number", "type": "string", "required": true }]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_call",
+      "name": "New call",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/calls",
+      "query": { "order": "desc", "per_page": 20 },
+      "items_path": "calls",
+      "id_field": "id",
+      "inputs": [{ "key": "poll_interval", "label": "Check every (minutes)", "type": "number", "default": 5 }]
+    },
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "description": "Add this URL as an Aircall webhook (Integrations > Webhook).",
+      "type": "webhook",
+      "data_path": "data",
+      "inputs": [{ "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }]
+    }
+  ]
+}

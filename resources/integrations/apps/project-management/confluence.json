@@ -1,0 +1,230 @@
+{
+  "key": "confluence",
+  "name": "Confluence",
+  "category": "Project Management",
+  "description": "Create, update, read and search Confluence Cloud pages.",
+  "brand": "confluence",
+  "website": "https://www.atlassian.com/software/confluence",
+  "docs_url": "https://developer.atlassian.com/cloud/confluence/rest/v2/",
+  "base_url": "https://{{ credentials.subdomain }}.atlassian.net/wiki",
+  "auth": {
+    "type": "basic",
+    "fields": [
+      {
+        "key": "subdomain",
+        "label": "Site",
+        "type": "string",
+        "required": true,
+        "placeholder": "your-team",
+        "help": "The part before .atlassian.net"
+      },
+      {
+        "key": "username",
+        "label": "Email",
+        "type": "string",
+        "required": true
+      },
+      {
+        "key": "password",
+        "label": "API token",
+        "type": "password",
+        "required": true,
+        "help": "id.atlassian.com/manage-profile/security/api-tokens"
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "create_page",
+      "name": "Create page",
+      "method": "POST",
+      "endpoint": "/api/v2/pages",
+      "body": {
+        "spaceId": "{{ inputs.space_id }}",
+        "status": "current",
+        "title": "{{ inputs.title }}",
+        "parentId": "{{ inputs.parent_id }}",
+        "body": {
+          "representation": "storage",
+          "value": "{{ inputs.body }}"
+        }
+      },
+      "inputs": [
+        {
+          "key": "space_id",
+          "label": "Space ID",
+          "type": "string",
+          "required": true,
+          "help": "Numeric id from List spaces."
+        },
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "body",
+          "label": "Body (storage format / XHTML)",
+          "type": "text",
+          "required": true,
+          "placeholder": "<p>Hello</p>"
+        },
+        {
+          "key": "parent_id",
+          "label": "Parent page ID",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "get_page",
+      "name": "Get page",
+      "method": "GET",
+      "endpoint": "/api/v2/pages/{{ inputs.page_id }}",
+      "query": {
+        "body-format": "storage"
+      },
+      "inputs": [
+        {
+          "key": "page_id",
+          "label": "Page ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "update_page",
+      "name": "Update page",
+      "method": "PUT",
+      "endpoint": "/api/v2/pages/{{ inputs.page_id }}",
+      "body": {
+        "id": "{{ inputs.page_id }}",
+        "status": "current",
+        "title": "{{ inputs.title }}",
+        "body": {
+          "representation": "storage",
+          "value": "{{ inputs.body }}"
+        },
+        "version": {
+          "number": "{{ inputs.version_number }}",
+          "message": "{{ inputs.version_message }}"
+        }
+      },
+      "inputs": [
+        {
+          "key": "page_id",
+          "label": "Page ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "body",
+          "label": "Body (storage format)",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "version_number",
+          "label": "New version number",
+          "type": "number",
+          "required": true,
+          "help": "Current version + 1 (see Get page > version.number)."
+        },
+        {
+          "key": "version_message",
+          "label": "Change note",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "list_spaces",
+      "name": "List spaces",
+      "method": "GET",
+      "endpoint": "/api/v2/spaces",
+      "query": {
+        "keys": "{{ inputs.keys }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_path": "results",
+      "inputs": [
+        {
+          "key": "keys",
+          "label": "Space keys",
+          "type": "string",
+          "placeholder": "ENG,HR"
+        },
+        {
+          "key": "limit",
+          "label": "Max results",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    },
+    {
+      "key": "search",
+      "name": "Search (CQL)",
+      "method": "GET",
+      "endpoint": "/rest/api/search",
+      "query": {
+        "cql": "{{ inputs.cql }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_path": "results",
+      "inputs": [
+        {
+          "key": "cql",
+          "label": "CQL",
+          "type": "string",
+          "required": true,
+          "placeholder": "type = page AND text ~ \"roadmap\""
+        },
+        {
+          "key": "limit",
+          "label": "Max results",
+          "type": "number",
+          "default": 25
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_page",
+      "name": "New page in space",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/api/v2/pages",
+      "query": {
+        "space-id": "{{ inputs.space_id }}",
+        "sort": "-created-date",
+        "limit": 50
+      },
+      "items_path": "results",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "space_id",
+          "label": "Space ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

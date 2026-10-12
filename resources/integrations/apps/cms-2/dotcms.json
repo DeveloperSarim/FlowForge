@@ -1,0 +1,104 @@
+{
+  "key": "dotcms",
+  "name": "dotCMS",
+  "category": "CMS & Websites",
+  "description": "Search, read and publish content in dotCMS.",
+  "brand": "dotcms",
+  "website": "https://www.dotcms.com",
+  "docs_url": "https://dev.dotcms.com/docs/rest-api",
+  "base_url": "{{ credentials.base_url }}",
+  "auth": [
+    {
+      "type": "bearer",
+      "fields": [
+        {
+          "key": "base_url",
+          "label": "dotCMS URL",
+          "type": "string",
+          "required": true,
+          "placeholder": "https://demo.dotcms.com",
+          "help": "No trailing slash."
+        },
+        {
+          "key": "token",
+          "label": "API token",
+          "type": "password",
+          "required": true,
+          "help": "User Tools > API Access Tokens."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "search_content",
+      "name": "Search content",
+      "method": "POST",
+      "endpoint": "/api/content/_search",
+      "body": {
+        "query": "{{ inputs.query }}",
+        "sort": "{{ inputs.sort }}",
+        "limit": "{{ inputs.limit }}",
+        "offset": "{{ inputs.offset }}"
+      },
+      "inputs": [
+        {
+          "key": "query",
+          "label": "Lucene query",
+          "type": "string",
+          "required": true,
+          "placeholder": "+contentType:Blog +live:true"
+        },
+        {
+          "key": "sort",
+          "label": "Sort",
+          "type": "string",
+          "placeholder": "modDate desc"
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number"
+        },
+        {
+          "key": "offset",
+          "label": "Offset",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "get_content",
+      "name": "Get content by identifier",
+      "method": "GET",
+      "endpoint": "/api/content/id/{{ inputs.identifier }}",
+      "inputs": [
+        {
+          "key": "identifier",
+          "label": "Identifier",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "publish_content",
+      "name": "Create or update and publish",
+      "method": "PUT",
+      "endpoint": "/api/v1/workflow/actions/default/fire/PUBLISH",
+      "body": {
+        "contentlet": "{{ inputs.contentlet }}"
+      },
+      "inputs": [
+        {
+          "key": "contentlet",
+          "label": "Contentlet",
+          "type": "json",
+          "required": true,
+          "placeholder": "{\"contentType\": \"Blog\", \"title\": \"Hello\", \"urlTitle\": \"hello\"}",
+          "help": "Include identifier to update an existing item."
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,82 @@
+{
+  "key": "shelly_cloud",
+  "name": "Shelly Cloud",
+  "category": "IoT & Smart Home",
+  "description": "Read Shelly device status and switch relays, lights and covers via Shelly Cloud.",
+  "brand": "shelly",
+  "website": "https://www.shelly.com",
+  "docs_url": "https://shelly-api-docs.shelly.cloud/cloud-control-api/",
+  "base_url": "{{ credentials.server }}/v2/devices/api",
+  "auth": [
+    {
+      "type": "api_key",
+      "in": "query",
+      "name": "auth_key",
+      "fields": [
+        { "key": "server", "label": "Cloud server URL", "type": "string", "required": true, "placeholder": "https://shelly-103-eu.shelly.cloud", "help": "Shelly app > User settings > Authorization cloud key shows the server next to the key." },
+        { "key": "api_key", "label": "Authorization cloud key", "type": "password", "required": true, "help": "Changes when you change your Shelly password." }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "get_devices",
+      "name": "Get device status",
+      "description": "Status and/or settings of up to 10 devices (rate limit: 1 request per second).",
+      "method": "POST",
+      "endpoint": "/get",
+      "body": { "ids": "{{ inputs.ids }}", "select": "{{ inputs.select }}" },
+      "inputs": [
+        { "key": "ids", "label": "Device IDs", "type": "list", "required": true },
+        { "key": "select", "label": "Return", "type": "list", "default": ["status"], "help": "status and/or settings." }
+      ]
+    },
+    {
+      "key": "set_switch",
+      "name": "Set switch",
+      "method": "POST",
+      "endpoint": "/set/switch",
+      "body": { "id": "{{ inputs.id }}", "channel": "{{ inputs.channel }}", "on": "{{ inputs.on }}", "toggle_after": "{{ inputs.toggle_after }}" },
+      "inputs": [
+        { "key": "id", "label": "Device ID", "type": "string", "required": true },
+        { "key": "channel", "label": "Channel", "type": "number", "default": 0 },
+        { "key": "on", "label": "On", "type": "boolean", "default": false, "help": "Off when unchecked." },
+        { "key": "toggle_after", "label": "Flip back after (seconds)", "type": "number" }
+      ]
+    },
+    {
+      "key": "set_light",
+      "name": "Set light",
+      "method": "POST",
+      "endpoint": "/set/light",
+      "body": {
+        "id": "{{ inputs.id }}",
+        "channel": "{{ inputs.channel }}",
+        "on": "{{ inputs.on }}",
+        "brightness": "{{ inputs.brightness }}",
+        "temperature": "{{ inputs.temperature }}",
+        "toggle_after": "{{ inputs.toggle_after }}"
+      },
+      "inputs": [
+        { "key": "id", "label": "Device ID", "type": "string", "required": true },
+        { "key": "channel", "label": "Channel", "type": "number", "default": 0 },
+        { "key": "on", "label": "On", "type": "boolean" },
+        { "key": "brightness", "label": "Brightness (0-100)", "type": "number" },
+        { "key": "temperature", "label": "Colour temperature (K)", "type": "number", "placeholder": "3000" },
+        { "key": "toggle_after", "label": "Flip back after (seconds)", "type": "number" }
+      ]
+    },
+    {
+      "key": "set_cover",
+      "name": "Set cover",
+      "method": "POST",
+      "endpoint": "/set/cover",
+      "body": { "id": "{{ inputs.id }}", "channel": "{{ inputs.channel }}", "position": "{{ inputs.position }}" },
+      "inputs": [
+        { "key": "id", "label": "Device ID", "type": "string", "required": true },
+        { "key": "channel", "label": "Channel", "type": "number", "default": 0 },
+        { "key": "position", "label": "Position", "type": "string", "required": true, "placeholder": "open, close, stop or 0-100" }
+      ]
+    }
+  ]
+}

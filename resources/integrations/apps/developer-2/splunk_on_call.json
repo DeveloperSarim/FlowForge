@@ -1,0 +1,73 @@
+{
+  "key": "splunk_on_call",
+  "name": "Splunk On-Call",
+  "category": "Developer Tools",
+  "description": "Create, acknowledge and resolve incidents and see who is on call (VictorOps).",
+  "brand": "splunk",
+  "website": "https://www.splunk.com/en_us/products/on-call.html",
+  "docs_url": "https://portal.victorops.com/public/api-docs.html",
+  "base_url": "https://api.victorops.com/api-public",
+  "headers": { "X-VO-Api-Id": "{{ credentials.api_id }}" },
+  "auth": { "type": "api_key", "in": "header", "name": "X-VO-Api-Key", "fields": [
+    { "key": "api_id", "label": "API ID", "type": "string", "required": true, "help": "Integrations → API." },
+    { "key": "api_key", "label": "API key", "type": "password", "required": true }
+  ] },
+  "actions": [
+    {
+      "key": "create_incident",
+      "name": "Create incident",
+      "method": "POST",
+      "endpoint": "/v1/incidents",
+      "body": { "summary": "{{ inputs.summary }}", "details": "{{ inputs.details }}", "userName": "{{ inputs.user_name }}", "targets": [{ "type": "{{ inputs.target_type }}", "slug": "{{ inputs.target_slug }}" }], "isMultiResponder": "{{ inputs.multi_responder }}" },
+      "inputs": [
+        { "key": "summary", "label": "Summary", "type": "string", "required": true },
+        { "key": "details", "label": "Details", "type": "text", "required": true },
+        { "key": "user_name", "label": "Created by (username)", "type": "string", "required": true },
+        { "key": "target_type", "label": "Page", "type": "select", "required": true, "default": "EscalationPolicy", "options": [
+          { "value": "EscalationPolicy", "label": "Escalation policy" }, { "value": "User", "label": "User" }
+        ] },
+        { "key": "target_slug", "label": "Policy slug or username", "type": "string", "required": true },
+        { "key": "multi_responder", "label": "Multi-responder", "type": "boolean" }
+      ]
+    },
+    {
+      "key": "ack_incidents",
+      "name": "Acknowledge incidents",
+      "method": "PATCH",
+      "endpoint": "/v1/incidents/ack",
+      "body": { "userName": "{{ inputs.user_name }}", "incidentNames": "{{ inputs.incident_numbers }}", "message": "{{ inputs.message }}" },
+      "inputs": [
+        { "key": "user_name", "label": "Username", "type": "string", "required": true },
+        { "key": "incident_numbers", "label": "Incident numbers", "type": "list", "required": true },
+        { "key": "message", "label": "Message", "type": "string" }
+      ]
+    },
+    {
+      "key": "resolve_incidents",
+      "name": "Resolve incidents",
+      "method": "PATCH",
+      "endpoint": "/v1/incidents/resolve",
+      "body": { "userName": "{{ inputs.user_name }}", "incidentNames": "{{ inputs.incident_numbers }}", "message": "{{ inputs.message }}" },
+      "inputs": [
+        { "key": "user_name", "label": "Username", "type": "string", "required": true },
+        { "key": "incident_numbers", "label": "Incident numbers", "type": "list", "required": true },
+        { "key": "message", "label": "Message", "type": "string" }
+      ]
+    },
+    {
+      "key": "list_incidents",
+      "name": "List current incidents",
+      "method": "GET",
+      "endpoint": "/v1/incidents",
+      "output_path": "incidents",
+      "inputs": []
+    },
+    {
+      "key": "get_on_call",
+      "name": "Get current on-call",
+      "method": "GET",
+      "endpoint": "/v1/oncall/current",
+      "inputs": []
+    }
+  ]
+}

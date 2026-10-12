@@ -1,0 +1,246 @@
+{
+  "key": "sevdesk",
+  "name": "sevdesk",
+  "category": "Payments & Finance",
+  "description": "Create and list contacts and list, get and email invoices in sevdesk.",
+  "brand": "sevdesk",
+  "website": "https://sevdesk.de",
+  "docs_url": "https://api.sevdesk.de",
+  "base_url": "https://my.sevdesk.de/api/v1",
+  "auth": [
+    {
+      "type": "api_key",
+      "in": "header",
+      "name": "Authorization",
+      "fields": [
+        {
+          "key": "api_key",
+          "label": "API token",
+          "type": "password",
+          "required": true,
+          "help": "sevdesk > Settings > Users > your user."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_contacts",
+      "name": "List contacts",
+      "method": "GET",
+      "endpoint": "/Contact",
+      "query": {
+        "customerNumber": "{{ inputs.customer_number }}",
+        "depth": "{{ inputs.depth }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_path": "objects",
+      "inputs": [
+        {
+          "key": "customer_number",
+          "label": "Customer number",
+          "type": "string"
+        },
+        {
+          "key": "depth",
+          "label": "Include",
+          "type": "select",
+          "options": [
+            {
+              "value": "0",
+              "label": "Organisations only"
+            },
+            {
+              "value": "1",
+              "label": "Organisations and people"
+            }
+          ],
+          "default": "1"
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 100
+        }
+      ]
+    },
+    {
+      "key": "create_contact",
+      "name": "Create contact",
+      "method": "POST",
+      "endpoint": "/Contact",
+      "body": {
+        "name": "{{ inputs.organisation }}",
+        "surename": "{{ inputs.first_name }}",
+        "familyname": "{{ inputs.last_name }}",
+        "customerNumber": "{{ inputs.customer_number }}",
+        "category": {
+          "id": "{{ inputs.category_id }}",
+          "objectName": "Category"
+        },
+        "description": "{{ inputs.description }}"
+      },
+      "output_path": "objects",
+      "inputs": [
+        {
+          "key": "organisation",
+          "label": "Organisation name",
+          "type": "string",
+          "help": "Give an organisation name, or a first + last name for a person."
+        },
+        {
+          "key": "first_name",
+          "label": "First name",
+          "type": "string"
+        },
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string"
+        },
+        {
+          "key": "customer_number",
+          "label": "Customer number",
+          "type": "string"
+        },
+        {
+          "key": "category_id",
+          "label": "Category",
+          "type": "select",
+          "options": [
+            {
+              "value": "3",
+              "label": "Customer"
+            },
+            {
+              "value": "2",
+              "label": "Supplier"
+            },
+            {
+              "value": "4",
+              "label": "Partner"
+            },
+            {
+              "value": "28",
+              "label": "Prospect"
+            }
+          ],
+          "default": "3",
+          "required": true
+        },
+        {
+          "key": "description",
+          "label": "Description",
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "key": "list_invoices",
+      "name": "List invoices",
+      "method": "GET",
+      "endpoint": "/Invoice",
+      "query": {
+        "status": "{{ inputs.status }}",
+        "invoiceNumber": "{{ inputs.invoice_number }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_path": "objects",
+      "inputs": [
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "options": [
+            {
+              "value": "100",
+              "label": "Draft"
+            },
+            {
+              "value": "200",
+              "label": "Open"
+            },
+            {
+              "value": "750",
+              "label": "Partially paid"
+            },
+            {
+              "value": "1000",
+              "label": "Paid"
+            }
+          ]
+        },
+        {
+          "key": "invoice_number",
+          "label": "Invoice number",
+          "type": "string"
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 100
+        }
+      ]
+    },
+    {
+      "key": "get_invoice",
+      "name": "Get invoice",
+      "method": "GET",
+      "endpoint": "/Invoice/{{ inputs.invoice_id }}",
+      "output_path": "objects",
+      "inputs": [
+        {
+          "key": "invoice_id",
+          "label": "Invoice ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "send_invoice_email",
+      "name": "Send invoice by email",
+      "method": "POST",
+      "endpoint": "/Invoice/{{ inputs.invoice_id }}/sendViaEmail",
+      "body": {
+        "toEmail": "{{ inputs.to_email }}",
+        "subject": "{{ inputs.subject }}",
+        "text": "{{ inputs.text }}",
+        "copy": "{{ inputs.copy }}"
+      },
+      "inputs": [
+        {
+          "key": "invoice_id",
+          "label": "Invoice ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "to_email",
+          "label": "To email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "subject",
+          "label": "Subject",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "text",
+          "label": "Message",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "copy",
+          "label": "Send me a copy",
+          "type": "boolean"
+        }
+      ]
+    }
+  ]
+}

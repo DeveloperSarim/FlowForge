@@ -1,0 +1,122 @@
+{
+  "key": "birdeye",
+  "name": "Birdeye",
+  "category": "Marketing & Email",
+  "description": "Fetch reviews and check in customers to send review requests.",
+  "brand": "birdeye",
+  "website": "https://birdeye.com",
+  "docs_url": "https://developers.birdeye.com/",
+  "base_url": "https://api.birdeye.com/resources/v1",
+  "headers": {
+    "Accept": "application/json",
+    "Content-Type": "application/json"
+  },
+  "auth": {
+    "type": "api_key",
+    "in": "query",
+    "name": "api_key",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "Partner/business API key",
+        "type": "password",
+        "required": true
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "get_reviews",
+      "name": "Get reviews",
+      "method": "POST",
+      "endpoint": "/review/businessId/{{ inputs.business_id }}",
+      "query": {
+        "sindex": "{{ inputs.start_index }}",
+        "count": "{{ inputs.count }}"
+      },
+      "body": "{{ inputs.filters }}",
+      "inputs": [
+        {
+          "key": "business_id",
+          "label": "Business ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "start_index",
+          "label": "Start index",
+          "type": "number",
+          "default": 0
+        },
+        {
+          "key": "count",
+          "label": "Count",
+          "type": "number",
+          "default": 25
+        },
+        {
+          "key": "filters",
+          "label": "Filters",
+          "type": "json",
+          "placeholder": "{ \"fromDate\": \"01/01/2026\", \"ratings\": [1, 2] }"
+        }
+      ]
+    },
+    {
+      "key": "checkin_customer",
+      "name": "Check in customer",
+      "description": "Adds the customer and sends them a review request.",
+      "method": "POST",
+      "endpoint": "/customer/checkin",
+      "query": {
+        "bid": "{{ inputs.business_id }}"
+      },
+      "body": {
+        "name": "{{ inputs.name }}",
+        "emailId": "{{ inputs.email }}",
+        "phone": "{{ inputs.phone }}",
+        "smsEnabled": "{{ inputs.sms_enabled }}"
+      },
+      "inputs": [
+        {
+          "key": "business_id",
+          "label": "Business ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string"
+        },
+        {
+          "key": "phone",
+          "label": "Phone",
+          "type": "string"
+        },
+        {
+          "key": "sms_enabled",
+          "label": "Send by SMS",
+          "type": "select",
+          "default": "0",
+          "options": [
+            {
+              "value": "0",
+              "label": "No (email)"
+            },
+            {
+              "value": "1",
+              "label": "Yes"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

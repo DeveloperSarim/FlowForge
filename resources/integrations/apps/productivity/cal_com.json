@@ -1,0 +1,236 @@
+{
+  "key": "cal_com",
+  "name": "Cal.com",
+  "category": "Productivity",
+  "description": "List, create and cancel Cal.com bookings.",
+  "brand": "caldotcom",
+  "website": "https://cal.com",
+  "docs_url": "https://cal.com/docs/api-reference/v2/introduction",
+  "base_url": "https://api.cal.com/v2",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "placeholder": "cal_live_…",
+        "help": "Settings > Developer > API keys."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_bookings",
+      "name": "List bookings",
+      "method": "GET",
+      "endpoint": "/bookings",
+      "headers": {
+        "cal-api-version": "2026-05-01"
+      },
+      "query": {
+        "status": "{{ inputs.status }}",
+        "attendeeEmail": "{{ inputs.attendee_email }}",
+        "eventTypeId": "{{ inputs.event_type_id }}",
+        "afterStart": "{{ inputs.after_start }}",
+        "beforeEnd": "{{ inputs.before_end }}",
+        "sortCreated": "desc",
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "options": [
+            {
+              "value": "upcoming",
+              "label": "upcoming"
+            },
+            {
+              "value": "recurring",
+              "label": "recurring"
+            },
+            {
+              "value": "past",
+              "label": "past"
+            },
+            {
+              "value": "cancelled",
+              "label": "cancelled"
+            },
+            {
+              "value": "unconfirmed",
+              "label": "unconfirmed"
+            }
+          ]
+        },
+        {
+          "key": "attendee_email",
+          "label": "Attendee email",
+          "type": "string"
+        },
+        {
+          "key": "event_type_id",
+          "label": "Event type ID",
+          "type": "string"
+        },
+        {
+          "key": "after_start",
+          "label": "Starts after",
+          "type": "string",
+          "placeholder": "2026-10-12T00:00:00Z"
+        },
+        {
+          "key": "before_end",
+          "label": "Ends before",
+          "type": "string"
+        },
+        {
+          "key": "limit",
+          "label": "Max results",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    },
+    {
+      "key": "get_booking",
+      "name": "Get booking",
+      "method": "GET",
+      "endpoint": "/bookings/{{ inputs.booking_uid }}",
+      "headers": {
+        "cal-api-version": "2026-02-25"
+      },
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "booking_uid",
+          "label": "Booking UID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "create_booking",
+      "name": "Create booking",
+      "method": "POST",
+      "endpoint": "/bookings",
+      "headers": {
+        "cal-api-version": "2026-02-25"
+      },
+      "body": {
+        "start": "{{ inputs.start }}",
+        "eventTypeId": "{{ inputs.event_type_id }}",
+        "attendee": {
+          "name": "{{ inputs.name }}",
+          "email": "{{ inputs.email }}",
+          "timeZone": "{{ inputs.time_zone }}"
+        }
+      },
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "event_type_id",
+          "label": "Event type ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "start",
+          "label": "Start (UTC)",
+          "type": "string",
+          "required": true,
+          "placeholder": "2026-10-12T09:00:00Z"
+        },
+        {
+          "key": "name",
+          "label": "Attendee name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "email",
+          "label": "Attendee email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "time_zone",
+          "label": "Attendee time zone",
+          "type": "string",
+          "required": true,
+          "default": "UTC",
+          "placeholder": "Europe/London"
+        }
+      ]
+    },
+    {
+      "key": "cancel_booking",
+      "name": "Cancel booking",
+      "method": "POST",
+      "endpoint": "/bookings/{{ inputs.booking_uid }}/cancel",
+      "headers": {
+        "cal-api-version": "2026-02-25"
+      },
+      "body": {
+        "cancellationReason": "{{ inputs.reason }}"
+      },
+      "inputs": [
+        {
+          "key": "booking_uid",
+          "label": "Booking UID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "reason",
+          "label": "Reason",
+          "type": "string"
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_booking",
+      "name": "New booking",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/bookings",
+      "query": {
+        "sortCreated": "desc",
+        "limit": 50
+      },
+      "items_path": "data",
+      "id_field": "uid",
+      "headers": {
+        "cal-api-version": "2026-05-01"
+      },
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    },
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Add this URL under Settings > Developer > Webhooks.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,63 @@
+{
+  "key": "securitytrails",
+  "name": "SecurityTrails",
+  "category": "Security & IT",
+  "description": "Get current and historical DNS, subdomains and WHOIS for a domain.",
+  "brand": "securitytrails",
+  "website": "https://securitytrails.com",
+  "docs_url": "https://docs.securitytrails.com/reference/ping",
+  "base_url": "https://api.securitytrails.com/v1",
+  "auth": { "type": "api_key", "in": "header", "name": "APIKEY", "fields": [
+    { "key": "api_key", "label": "API key", "type": "password", "required": true, "help": "Account → Credentials." }
+  ] },
+  "actions": [
+    {
+      "key": "get_domain",
+      "name": "Get domain details",
+      "method": "GET",
+      "endpoint": "/domain/{{ inputs.hostname }}",
+      "inputs": [{ "key": "hostname", "label": "Domain or hostname", "type": "string", "required": true }]
+    },
+    {
+      "key": "list_subdomains",
+      "name": "List subdomains",
+      "method": "GET",
+      "endpoint": "/domain/{{ inputs.hostname }}/subdomains",
+      "query": { "children_only": "{{ inputs.children_only }}", "include_inactive": "{{ inputs.include_inactive }}" },
+      "inputs": [
+        { "key": "hostname", "label": "Domain", "type": "string", "required": true },
+        { "key": "children_only", "label": "Direct children only", "type": "boolean" },
+        { "key": "include_inactive", "label": "Include inactive subdomains", "type": "boolean" }
+      ]
+    },
+    {
+      "key": "dns_history",
+      "name": "Get DNS history",
+      "method": "GET",
+      "endpoint": "/history/{{ inputs.hostname }}/dns/{{ inputs.type }}",
+      "query": { "page": "{{ inputs.page }}" },
+      "inputs": [
+        { "key": "hostname", "label": "Domain or hostname", "type": "string", "required": true },
+        { "key": "type", "label": "Record type", "type": "select", "required": true, "default": "a", "options": [
+          { "value": "a", "label": "A" }, { "value": "aaaa", "label": "AAAA" }, { "value": "mx", "label": "MX" },
+          { "value": "ns", "label": "NS" }, { "value": "soa", "label": "SOA" }, { "value": "txt", "label": "TXT" }
+        ] },
+        { "key": "page", "label": "Page", "type": "number" }
+      ]
+    },
+    {
+      "key": "get_whois",
+      "name": "Get WHOIS",
+      "method": "GET",
+      "endpoint": "/domain/{{ inputs.hostname }}/whois",
+      "inputs": [{ "key": "hostname", "label": "Domain", "type": "string", "required": true }]
+    },
+    {
+      "key": "ping",
+      "name": "Test credentials (ping)",
+      "method": "GET",
+      "endpoint": "/ping",
+      "inputs": []
+    }
+  ]
+}

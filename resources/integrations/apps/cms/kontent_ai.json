@@ -1,0 +1,162 @@
+{
+  "key": "kontent_ai",
+  "name": "Kontent.ai",
+  "category": "CMS & Websites",
+  "description": "Create content items, fill their language variants and publish them.",
+  "brand": "kontentai",
+  "website": "https://kontent.ai",
+  "docs_url": "https://kontent.ai/learn/docs/apis/openapi/management-api-v2/",
+  "base_url": "https://manage.kontent.ai/v2/projects/{{ credentials.environment_id }}",
+  "auth": [
+    {
+      "type": "bearer",
+      "fields": [
+        {
+          "key": "token",
+          "label": "Management API key",
+          "type": "password",
+          "required": true
+        },
+        {
+          "key": "environment_id",
+          "label": "Environment ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_items",
+      "name": "List content items",
+      "method": "GET",
+      "endpoint": "/items",
+      "output_path": "items",
+      "inputs": []
+    },
+    {
+      "key": "create_item",
+      "name": "Create content item",
+      "method": "POST",
+      "endpoint": "/items",
+      "body": {
+        "name": "{{ inputs.name }}",
+        "codename": "{{ inputs.codename }}",
+        "type": {
+          "codename": "{{ inputs.type }}"
+        }
+      },
+      "inputs": [
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "type",
+          "label": "Content type codename",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "codename",
+          "label": "Codename",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "get_variant",
+      "name": "Get language variant",
+      "method": "GET",
+      "endpoint": "/items/{{ inputs.item_id }}/variants/codename/{{ inputs.language }}",
+      "inputs": [
+        {
+          "key": "item_id",
+          "label": "Item ID",
+          "type": "string",
+          "required": true,
+          "help": "Content item id (GUID)."
+        },
+        {
+          "key": "language",
+          "label": "Language codename",
+          "type": "string",
+          "required": true,
+          "default": "default"
+        }
+      ]
+    },
+    {
+      "key": "upsert_variant",
+      "name": "Upsert language variant",
+      "method": "PUT",
+      "endpoint": "/items/{{ inputs.item_id }}/variants/codename/{{ inputs.language }}",
+      "body": {
+        "elements": "{{ inputs.elements }}"
+      },
+      "inputs": [
+        {
+          "key": "item_id",
+          "label": "Item ID",
+          "type": "string",
+          "required": true,
+          "help": "Content item id (GUID)."
+        },
+        {
+          "key": "language",
+          "label": "Language codename",
+          "type": "string",
+          "required": true,
+          "default": "default"
+        },
+        {
+          "key": "elements",
+          "label": "Elements (JSON)",
+          "type": "json",
+          "required": true,
+          "placeholder": "[{ \"element\": { \"codename\": \"title\" }, \"value\": \"Hello\" }]"
+        }
+      ]
+    },
+    {
+      "key": "publish_variant",
+      "name": "Publish language variant",
+      "method": "PUT",
+      "endpoint": "/items/{{ inputs.item_id }}/variants/codename/{{ inputs.language }}/publish",
+      "inputs": [
+        {
+          "key": "item_id",
+          "label": "Item ID",
+          "type": "string",
+          "required": true,
+          "help": "Content item id (GUID)."
+        },
+        {
+          "key": "language",
+          "label": "Language codename",
+          "type": "string",
+          "required": true,
+          "default": "default"
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Kontent.ai webhooks (content item published, changed, ...).",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

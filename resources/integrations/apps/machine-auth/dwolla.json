@@ -1,0 +1,127 @@
+{
+  "key": "dwolla",
+  "name": "Dwolla",
+  "category": "Payments & Finance",
+  "brand": "dwolla",
+  "description": "Create customers and look up transfers with Dwolla's ACH API.",
+  "website": "https://www.dwolla.com",
+  "docs_url": "https://developers.dwolla.com/docs/balance/api-reference",
+  "base_url": "https://{{ credentials.host }}",
+  "headers": {
+    "Accept": "application/vnd.dwolla.v1.hal+json",
+    "Content-Type": "application/vnd.dwolla.v1.hal+json"
+  },
+  "auth": {
+    "type": "oauth2_client_credentials",
+    "token_url": "https://{{ credentials.host }}/token",
+    "client_auth": "basic",
+    "fields": [
+      {
+        "key": "host",
+        "label": "Environment",
+        "type": "select",
+        "required": true,
+        "default": "api-sandbox.dwolla.com",
+        "options": [
+          {
+            "value": "api.dwolla.com",
+            "label": "Production"
+          },
+          {
+            "value": "api-sandbox.dwolla.com",
+            "label": "Sandbox"
+          }
+        ]
+      },
+      {
+        "key": "client_id",
+        "label": "Key",
+        "type": "string",
+        "required": true
+      },
+      {
+        "key": "client_secret",
+        "label": "Secret",
+        "type": "password",
+        "required": true
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_customers",
+      "name": "List customers",
+      "method": "GET",
+      "endpoint": "/customers",
+      "query": {
+        "search": "{{ inputs.search }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "inputs": [
+        {
+          "key": "search",
+          "label": "Search (name or email)",
+          "type": "string"
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 25
+        }
+      ]
+    },
+    {
+      "key": "create_customer",
+      "name": "Create receive-only customer",
+      "method": "POST",
+      "endpoint": "/customers",
+      "body": {
+        "firstName": "{{ inputs.first_name }}",
+        "lastName": "{{ inputs.last_name }}",
+        "email": "{{ inputs.email }}",
+        "type": "receive-only",
+        "businessName": "{{ inputs.business_name }}"
+      },
+      "inputs": [
+        {
+          "key": "first_name",
+          "label": "First name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "business_name",
+          "label": "Business name",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "get_transfer",
+      "name": "Get transfer",
+      "method": "GET",
+      "endpoint": "/transfers/{{ inputs.transfer_id }}",
+      "inputs": [
+        {
+          "key": "transfer_id",
+          "label": "Transfer ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,115 @@
+{
+  "key": "lemmy",
+  "name": "Lemmy",
+  "category": "Social Media",
+  "description": "Create posts and comments, search and watch communities on any Lemmy instance.",
+  "brand": "lemmy",
+  "website": "https://join-lemmy.org",
+  "docs_url": "https://join-lemmy.org/api/",
+  "base_url": "{{ credentials.instance_url }}/api/v3",
+  "auth": { "type": "bearer", "fields": [
+    { "key": "instance_url", "label": "Instance URL", "type": "string", "required": true, "placeholder": "https://lemmy.world" },
+    { "key": "token", "label": "JWT", "type": "password", "required": true, "help": "Returned as \"jwt\" by POST /api/v3/user/login (username_or_email, password)." }
+  ] },
+  "actions": [
+    {
+      "key": "create_post",
+      "name": "Create post",
+      "method": "POST",
+      "endpoint": "/post",
+      "output_path": "post_view",
+      "body": { "community_id": "{{ inputs.community_id }}", "name": "{{ inputs.title }}", "url": "{{ inputs.url }}", "body": "{{ inputs.body }}", "nsfw": "{{ inputs.nsfw }}" },
+      "inputs": [
+        { "key": "community_id", "label": "Community ID", "type": "number", "required": true, "help": "Get community returns community_view.community.id." },
+        { "key": "title", "label": "Title", "type": "string", "required": true },
+        { "key": "url", "label": "Link URL", "type": "string" },
+        { "key": "body", "label": "Body (Markdown)", "type": "text" },
+        { "key": "nsfw", "label": "NSFW", "type": "boolean" }
+      ]
+    },
+    {
+      "key": "create_comment",
+      "name": "Create comment",
+      "method": "POST",
+      "endpoint": "/comment",
+      "output_path": "comment_view",
+      "body": { "post_id": "{{ inputs.post_id }}", "content": "{{ inputs.content }}", "parent_id": "{{ inputs.parent_id }}" },
+      "inputs": [
+        { "key": "post_id", "label": "Post ID", "type": "number", "required": true },
+        { "key": "content", "label": "Comment (Markdown)", "type": "text", "required": true },
+        { "key": "parent_id", "label": "Reply to comment ID", "type": "number" }
+      ]
+    },
+    {
+      "key": "list_posts",
+      "name": "List posts",
+      "method": "GET",
+      "endpoint": "/post/list",
+      "output_path": "posts",
+      "query": { "community_name": "{{ inputs.community_name }}", "sort": "{{ inputs.sort }}", "limit": "{{ inputs.limit }}", "page": "{{ inputs.page }}" },
+      "inputs": [
+        { "key": "community_name", "label": "Community name", "type": "string", "placeholder": "technology@lemmy.world" },
+        { "key": "sort", "label": "Sort", "type": "select", "default": "New", "options": [
+          { "value": "New", "label": "New" }, { "value": "Hot", "label": "Hot" }, { "value": "Active", "label": "Active" }, { "value": "TopDay", "label": "Top (day)" }, { "value": "TopWeek", "label": "Top (week)" }
+        ] },
+        { "key": "limit", "label": "Limit (max 50)", "type": "number", "default": 20 },
+        { "key": "page", "label": "Page", "type": "number" }
+      ]
+    },
+    {
+      "key": "get_community",
+      "name": "Get community",
+      "method": "GET",
+      "endpoint": "/community",
+      "output_path": "community_view",
+      "query": { "name": "{{ inputs.name }}" },
+      "inputs": [{ "key": "name", "label": "Community name", "type": "string", "required": true, "placeholder": "technology@lemmy.world" }]
+    },
+    {
+      "key": "search",
+      "name": "Search",
+      "method": "GET",
+      "endpoint": "/search",
+      "query": { "q": "{{ inputs.q }}", "type_": "{{ inputs.type }}", "sort": "{{ inputs.sort }}", "limit": "{{ inputs.limit }}" },
+      "inputs": [
+        { "key": "q", "label": "Query", "type": "string", "required": true },
+        { "key": "type", "label": "Type", "type": "select", "default": "All", "options": [
+          { "value": "All", "label": "All" }, { "value": "Posts", "label": "Posts" }, { "value": "Comments", "label": "Comments" }, { "value": "Communities", "label": "Communities" }, { "value": "Users", "label": "Users" }
+        ] },
+        { "key": "sort", "label": "Sort", "type": "select", "default": "New", "options": [
+          { "value": "New", "label": "New" }, { "value": "TopAll", "label": "Top" }, { "value": "Hot", "label": "Hot" }
+        ] },
+        { "key": "limit", "label": "Limit", "type": "number", "default": 20 }
+      ]
+    },
+    {
+      "key": "vote_post",
+      "name": "Vote on post",
+      "method": "POST",
+      "endpoint": "/post/like",
+      "body": { "post_id": "{{ inputs.post_id }}", "score": "{{ inputs.score }}" },
+      "inputs": [
+        { "key": "post_id", "label": "Post ID", "type": "number", "required": true },
+        { "key": "score", "label": "Vote", "type": "select", "default": "1", "options": [
+          { "value": "1", "label": "Upvote" }, { "value": "-1", "label": "Downvote" }, { "value": "0", "label": "Remove vote" }
+        ] }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_post",
+      "name": "New post in community",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/post/list",
+      "query": { "community_name": "{{ inputs.community_name }}", "sort": "New", "limit": 20 },
+      "items_path": "posts",
+      "id_field": "post.id",
+      "inputs": [
+        { "key": "community_name", "label": "Community name", "type": "string", "required": true, "placeholder": "technology@lemmy.world" },
+        { "key": "poll_interval", "label": "Check every (minutes)", "type": "number", "default": 5 }
+      ]
+    }
+  ]
+}

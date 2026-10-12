@@ -1,0 +1,81 @@
+{
+  "key": "rudderstack",
+  "name": "RudderStack",
+  "category": "Analytics",
+  "description": "Send identify, track, page, group and alias calls to a RudderStack source.",
+  "brand": "rudderstack",
+  "website": "https://www.rudderstack.com",
+  "docs_url": "https://www.rudderstack.com/docs/api/http-api/",
+  "base_url": "{{ credentials.data_plane_url }}/v1",
+  "auth": { "type": "basic", "fields": [
+    { "key": "data_plane_url", "label": "Data plane URL", "type": "string", "required": true, "placeholder": "https://yourcompanyxyz.dataplane.rudderstack.com", "help": "Shown at the top of the Connections page. No trailing slash." },
+    { "key": "username", "label": "Source write key", "type": "password", "required": true, "help": "From your HTTP source's Setup tab." },
+    { "key": "password", "label": "Password", "type": "password", "required": false, "default": "", "help": "Leave empty; RudderStack uses only the write key." }
+  ] },
+  "actions": [
+    {
+      "key": "track",
+      "name": "Track event",
+      "method": "POST",
+      "endpoint": "/track",
+      "body": { "userId": "{{ inputs.user_id }}", "anonymousId": "{{ inputs.anonymous_id }}", "event": "{{ inputs.event }}", "properties": "{{ inputs.properties }}", "timestamp": "{{ inputs.timestamp }}" },
+      "inputs": [
+        { "key": "event", "label": "Event name", "type": "string", "required": true },
+        { "key": "user_id", "label": "User ID", "type": "string", "help": "User ID or anonymous ID is required." },
+        { "key": "anonymous_id", "label": "Anonymous ID", "type": "string" },
+        { "key": "properties", "label": "Properties", "type": "json", "placeholder": "{ \"plan\": \"pro\", \"revenue\": 49 }" },
+        { "key": "timestamp", "label": "Timestamp (ISO 8601)", "type": "string" }
+      ]
+    },
+    {
+      "key": "identify",
+      "name": "Identify user",
+      "method": "POST",
+      "endpoint": "/identify",
+      "body": { "userId": "{{ inputs.user_id }}", "anonymousId": "{{ inputs.anonymous_id }}", "traits": "{{ inputs.traits }}", "timestamp": "{{ inputs.timestamp }}" },
+      "inputs": [
+        { "key": "user_id", "label": "User ID", "type": "string" },
+        { "key": "anonymous_id", "label": "Anonymous ID", "type": "string" },
+        { "key": "traits", "label": "Traits", "type": "json", "placeholder": "{ \"email\": \"ada@example.com\", \"name\": \"Ada\" }" },
+        { "key": "timestamp", "label": "Timestamp (ISO 8601)", "type": "string" }
+      ]
+    },
+    {
+      "key": "page",
+      "name": "Page view",
+      "method": "POST",
+      "endpoint": "/page",
+      "body": { "userId": "{{ inputs.user_id }}", "anonymousId": "{{ inputs.anonymous_id }}", "name": "{{ inputs.name }}", "properties": "{{ inputs.properties }}" },
+      "inputs": [
+        { "key": "name", "label": "Page name", "type": "string" },
+        { "key": "user_id", "label": "User ID", "type": "string" },
+        { "key": "anonymous_id", "label": "Anonymous ID", "type": "string" },
+        { "key": "properties", "label": "Properties", "type": "json", "placeholder": "{ \"url\": \"https://example.com/pricing\" }" }
+      ]
+    },
+    {
+      "key": "group",
+      "name": "Group user",
+      "method": "POST",
+      "endpoint": "/group",
+      "body": { "userId": "{{ inputs.user_id }}", "anonymousId": "{{ inputs.anonymous_id }}", "groupId": "{{ inputs.group_id }}", "traits": "{{ inputs.traits }}" },
+      "inputs": [
+        { "key": "group_id", "label": "Group ID", "type": "string", "required": true },
+        { "key": "user_id", "label": "User ID", "type": "string" },
+        { "key": "anonymous_id", "label": "Anonymous ID", "type": "string" },
+        { "key": "traits", "label": "Group traits", "type": "json" }
+      ]
+    },
+    {
+      "key": "alias",
+      "name": "Alias user",
+      "method": "POST",
+      "endpoint": "/alias",
+      "body": { "userId": "{{ inputs.user_id }}", "previousId": "{{ inputs.previous_id }}" },
+      "inputs": [
+        { "key": "user_id", "label": "New user ID", "type": "string", "required": true },
+        { "key": "previous_id", "label": "Previous ID", "type": "string", "required": true }
+      ]
+    }
+  ]
+}

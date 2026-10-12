@@ -1,0 +1,86 @@
+{
+  "key": "shutterstock",
+  "name": "Shutterstock",
+  "category": "Video & Media",
+  "description": "Search Shutterstock images, footage and music, and look up image details.",
+  "brand": "shutterstock",
+  "website": "https://www.shutterstock.com",
+  "docs_url": "https://api-reference.shutterstock.com",
+  "base_url": "https://api.shutterstock.com/v2",
+  "auth": [
+    { "type": "bearer", "fields": [{ "key": "token", "label": "Access token", "type": "password", "required": true, "help": "From your app at shutterstock.com/account/developers/apps." }] },
+    { "type": "basic", "fields": [
+      { "key": "username", "label": "Consumer key", "type": "string", "required": true },
+      { "key": "password", "label": "Consumer secret", "type": "password", "required": true }
+    ] },
+    { "type": "oauth2", "authorize_url": "https://accounts.shutterstock.com/oauth/authorize", "token_url": "https://api.shutterstock.com/v2/oauth/access_token",
+      "scopes": ["user.view", "licenses.view", "licenses.create", "purchases.view"] }
+  ],
+  "actions": [
+    {
+      "key": "search_images",
+      "name": "Search images",
+      "method": "GET",
+      "endpoint": "/images/search",
+      "output_path": "data",
+      "query": { "query": "{{ inputs.query }}", "image_type": "{{ inputs.image_type }}", "orientation": "{{ inputs.orientation }}", "sort": "{{ inputs.sort }}", "per_page": "{{ inputs.per_page }}", "page": "{{ inputs.page }}" },
+      "inputs": [
+        { "key": "query", "label": "Search", "type": "string", "required": true },
+        { "key": "image_type", "label": "Image type", "type": "select", "options": [
+          { "value": "", "label": "Any" }, { "value": "photo", "label": "Photo" }, { "value": "illustration", "label": "Illustration" }, { "value": "vector", "label": "Vector" }
+        ] },
+        { "key": "orientation", "label": "Orientation", "type": "select", "options": [
+          { "value": "", "label": "Any" }, { "value": "horizontal", "label": "Horizontal" }, { "value": "vertical", "label": "Vertical" }
+        ] },
+        { "key": "sort", "label": "Sort", "type": "select", "options": [
+          { "value": "", "label": "Popular" }, { "value": "newest", "label": "Newest" }, { "value": "relevance", "label": "Relevance" }, { "value": "random", "label": "Random" }
+        ] },
+        { "key": "per_page", "label": "Per page", "type": "number", "default": 20 },
+        { "key": "page", "label": "Page", "type": "number" }
+      ]
+    },
+    {
+      "key": "get_image",
+      "name": "Get image",
+      "method": "GET",
+      "endpoint": "/images/{{ inputs.image_id }}",
+      "inputs": [{ "key": "image_id", "label": "Image ID", "type": "string", "required": true }]
+    },
+    {
+      "key": "search_videos",
+      "name": "Search footage",
+      "method": "GET",
+      "endpoint": "/videos/search",
+      "output_path": "data",
+      "query": { "query": "{{ inputs.query }}", "sort": "{{ inputs.sort }}", "per_page": "{{ inputs.per_page }}" },
+      "inputs": [
+        { "key": "query", "label": "Search", "type": "string", "required": true },
+        { "key": "sort", "label": "Sort", "type": "select", "options": [
+          { "value": "", "label": "Popular" }, { "value": "newest", "label": "Newest" }, { "value": "relevance", "label": "Relevance" }, { "value": "random", "label": "Random" }
+        ] },
+        { "key": "per_page", "label": "Per page", "type": "number", "default": 20 }
+      ]
+    },
+    {
+      "key": "search_audio",
+      "name": "Search music",
+      "method": "GET",
+      "endpoint": "/audio/search",
+      "output_path": "data",
+      "query": { "query": "{{ inputs.query }}", "per_page": "{{ inputs.per_page }}" },
+      "inputs": [
+        { "key": "query", "label": "Search", "type": "string", "required": true },
+        { "key": "per_page", "label": "Per page", "type": "number", "default": 20 }
+      ]
+    },
+    {
+      "key": "list_subscriptions",
+      "name": "List my subscriptions",
+      "description": "Needs a user access token (not consumer key/secret).",
+      "method": "GET",
+      "endpoint": "/user/subscriptions",
+      "output_path": "data",
+      "inputs": []
+    }
+  ]
+}

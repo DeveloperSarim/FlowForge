@@ -1,0 +1,218 @@
+{
+  "key": "pcloud",
+  "name": "pCloud",
+  "category": "Files & Documents",
+  "description": "List folders, create folders, share links and save files from URLs.",
+  "brand": "pcloud",
+  "website": "https://www.pcloud.com",
+  "docs_url": "https://docs.pcloud.com/",
+  "popular": true,
+  "base_url": "https://{{ credentials.host }}",
+  "auth": [
+    {
+      "type": "oauth2",
+      "authorize_url": "https://my.pcloud.com/oauth2/authorize",
+      "token_url": "https://{{ credentials.host }}/oauth2_token",
+      "scopes": [],
+      "fields": [
+        {
+          "key": "host",
+          "label": "Data region",
+          "type": "select",
+          "required": true,
+          "default": "api.pcloud.com",
+          "options": [
+            {
+              "value": "api.pcloud.com",
+              "label": "United States"
+            },
+            {
+              "value": "eapi.pcloud.com",
+              "label": "Europe"
+            }
+          ],
+          "help": "Where your pCloud account stores data."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_folder",
+      "name": "List folder",
+      "method": "GET",
+      "endpoint": "/listfolder",
+      "query": {
+        "folderid": "{{ inputs.folder_id }}",
+        "path": "{{ inputs.path }}",
+        "recursive": "{{ inputs.recursive }}"
+      },
+      "output_path": "metadata",
+      "error_path": "error",
+      "inputs": [
+        {
+          "key": "folder_id",
+          "label": "Folder ID",
+          "type": "number",
+          "help": "0 is the root folder. Use this or Path."
+        },
+        {
+          "key": "path",
+          "label": "Path",
+          "type": "string",
+          "placeholder": "/Documents"
+        },
+        {
+          "key": "recursive",
+          "label": "Include subfolders",
+          "type": "select",
+          "options": [
+            {
+              "value": "1",
+              "label": "Yes"
+            }
+          ],
+          "help": "Leave empty to list only this folder."
+        }
+      ]
+    },
+    {
+      "key": "create_folder",
+      "name": "Create folder",
+      "description": "Creates a folder, or returns it if it already exists.",
+      "method": "GET",
+      "endpoint": "/createfolderifnotexists",
+      "query": {
+        "path": "{{ inputs.path }}",
+        "folderid": "{{ inputs.folder_id }}",
+        "name": "{{ inputs.name }}"
+      },
+      "output_path": "metadata",
+      "error_path": "error",
+      "inputs": [
+        {
+          "key": "path",
+          "label": "Full path",
+          "type": "string",
+          "placeholder": "/Invoices/2026",
+          "help": "Use this, or Parent folder ID + Name."
+        },
+        {
+          "key": "folder_id",
+          "label": "Parent folder ID",
+          "type": "number"
+        },
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "save_from_url",
+      "name": "Save file from URL",
+      "description": "Downloads files from public URLs into your pCloud.",
+      "method": "GET",
+      "endpoint": "/downloadfile",
+      "query": {
+        "url": "{{ inputs.url }}",
+        "folderid": "{{ inputs.folder_id }}",
+        "path": "{{ inputs.path }}"
+      },
+      "error_path": "error",
+      "inputs": [
+        {
+          "key": "url",
+          "label": "File URL(s)",
+          "type": "string",
+          "required": true,
+          "help": "Separate several URLs with spaces."
+        },
+        {
+          "key": "folder_id",
+          "label": "Destination folder ID",
+          "type": "number"
+        },
+        {
+          "key": "path",
+          "label": "Destination path",
+          "type": "string",
+          "placeholder": "/Downloads"
+        }
+      ]
+    },
+    {
+      "key": "get_file_link",
+      "name": "Get download link",
+      "description": "Returns hosts and a path that form a temporary download URL.",
+      "method": "GET",
+      "endpoint": "/getfilelink",
+      "query": {
+        "fileid": "{{ inputs.file_id }}",
+        "path": "{{ inputs.path }}"
+      },
+      "error_path": "error",
+      "inputs": [
+        {
+          "key": "file_id",
+          "label": "File ID",
+          "type": "number"
+        },
+        {
+          "key": "path",
+          "label": "File path",
+          "type": "string",
+          "placeholder": "/Documents/report.pdf"
+        }
+      ]
+    },
+    {
+      "key": "create_public_link",
+      "name": "Create public link",
+      "method": "GET",
+      "endpoint": "/getfilepublink",
+      "query": {
+        "fileid": "{{ inputs.file_id }}",
+        "path": "{{ inputs.path }}"
+      },
+      "error_path": "error",
+      "inputs": [
+        {
+          "key": "file_id",
+          "label": "File ID",
+          "type": "number"
+        },
+        {
+          "key": "path",
+          "label": "File path",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "delete_file",
+      "name": "Delete file",
+      "method": "GET",
+      "endpoint": "/deletefile",
+      "query": {
+        "fileid": "{{ inputs.file_id }}",
+        "path": "{{ inputs.path }}"
+      },
+      "output_path": "metadata",
+      "error_path": "error",
+      "inputs": [
+        {
+          "key": "file_id",
+          "label": "File ID",
+          "type": "number"
+        },
+        {
+          "key": "path",
+          "label": "File path",
+          "type": "string"
+        }
+      ]
+    }
+  ]
+}

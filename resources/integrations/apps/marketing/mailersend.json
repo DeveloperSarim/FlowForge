@@ -1,0 +1,130 @@
+{
+  "key": "mailersend",
+  "name": "MailerSend",
+  "category": "Marketing & Email",
+  "description": "Send transactional email and add unsubscribes.",
+  "brand": "mailersend",
+  "website": "https://www.mailersend.com",
+  "docs_url": "https://developers.mailersend.com/",
+  "base_url": "https://api.mailersend.com/v1",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "API token",
+        "type": "password",
+        "required": true
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "send_email",
+      "name": "Send email",
+      "description": "Returns 202; the message ID is in the X-Message-Id header.",
+      "method": "POST",
+      "endpoint": "/email",
+      "body": {
+        "from": {
+          "email": "{{ inputs.from_email }}",
+          "name": "{{ inputs.from_name }}"
+        },
+        "to": [
+          {
+            "email": "{{ inputs.to }}",
+            "name": "{{ inputs.to_name }}"
+          }
+        ],
+        "subject": "{{ inputs.subject }}",
+        "html": "{{ inputs.html }}",
+        "text": "{{ inputs.text }}",
+        "template_id": "{{ inputs.template_id }}"
+      },
+      "inputs": [
+        {
+          "key": "from_email",
+          "label": "From email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "from_name",
+          "label": "From name",
+          "type": "string"
+        },
+        {
+          "key": "to",
+          "label": "To",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "to_name",
+          "label": "To name",
+          "type": "string"
+        },
+        {
+          "key": "subject",
+          "label": "Subject",
+          "type": "string"
+        },
+        {
+          "key": "html",
+          "label": "HTML",
+          "type": "text"
+        },
+        {
+          "key": "text",
+          "label": "Text",
+          "type": "text"
+        },
+        {
+          "key": "template_id",
+          "label": "Template ID",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "add_unsubscribe",
+      "name": "Add to unsubscribes",
+      "method": "POST",
+      "endpoint": "/suppressions/unsubscribes",
+      "body": {
+        "domain_id": "{{ inputs.domain_id }}",
+        "recipients": "{{ inputs.recipients }}"
+      },
+      "inputs": [
+        {
+          "key": "domain_id",
+          "label": "Domain ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "recipients",
+          "label": "Emails",
+          "type": "list",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Domains → Webhooks (activity.sent, activity.opened…).",
+      "data_path": "data",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

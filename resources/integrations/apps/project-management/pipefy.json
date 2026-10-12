@@ -1,0 +1,197 @@
+{
+  "key": "pipefy",
+  "name": "Pipefy",
+  "category": "Project Management",
+  "description": "Create, move and update cards in Pipefy pipes.",
+  "brand": "pipefy",
+  "website": "https://www.pipefy.com",
+  "docs_url": "https://developers.pipefy.com/graphql",
+  "base_url": "https://api.pipefy.com",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "Personal access token",
+        "type": "password",
+        "required": true,
+        "help": "Account preferences > Personal access tokens."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "create_card",
+      "name": "Create card",
+      "method": "POST",
+      "endpoint": "/graphql",
+      "body": {
+        "query": "mutation ($input: CreateCardInput!) { createCard(input: $input) { card { id title url current_phase { id name } } } }",
+        "variables": {
+          "input": {
+            "pipe_id": "{{ inputs.pipe_id }}",
+            "title": "{{ inputs.title }}",
+            "phase_id": "{{ inputs.phase_id }}",
+            "due_date": "{{ inputs.due_date }}",
+            "fields_attributes": "{{ inputs.fields }}"
+          }
+        }
+      },
+      "error_path": "errors",
+      "output_path": "data.createCard.card",
+      "inputs": [
+        {
+          "key": "pipe_id",
+          "label": "Pipe ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "string"
+        },
+        {
+          "key": "phase_id",
+          "label": "Phase ID",
+          "type": "string",
+          "help": "Empty = start form phase."
+        },
+        {
+          "key": "due_date",
+          "label": "Due date",
+          "type": "string",
+          "placeholder": "2026-10-12T17:00:00Z"
+        },
+        {
+          "key": "fields",
+          "label": "Fields (JSON)",
+          "type": "json",
+          "placeholder": "[{ \"field_id\": \"email\", \"field_value\": \"ada@example.com\" }]"
+        }
+      ]
+    },
+    {
+      "key": "move_card",
+      "name": "Move card to phase",
+      "method": "POST",
+      "endpoint": "/graphql",
+      "body": {
+        "query": "mutation ($input: MoveCardToPhaseInput!) { moveCardToPhase(input: $input) { card { id current_phase { id name } } } }",
+        "variables": {
+          "input": {
+            "card_id": "{{ inputs.card_id }}",
+            "destination_phase_id": "{{ inputs.phase_id }}"
+          }
+        }
+      },
+      "error_path": "errors",
+      "output_path": "data.moveCardToPhase.card",
+      "inputs": [
+        {
+          "key": "card_id",
+          "label": "Card ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "phase_id",
+          "label": "Destination phase ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "update_card_field",
+      "name": "Update card field",
+      "method": "POST",
+      "endpoint": "/graphql",
+      "body": {
+        "query": "mutation ($input: UpdateCardFieldInput!) { updateCardField(input: $input) { success card { id } } }",
+        "variables": {
+          "input": {
+            "card_id": "{{ inputs.card_id }}",
+            "field_id": "{{ inputs.field_id }}",
+            "new_value": "{{ inputs.value }}"
+          }
+        }
+      },
+      "error_path": "errors",
+      "output_path": "data.updateCardField",
+      "inputs": [
+        {
+          "key": "card_id",
+          "label": "Card ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "field_id",
+          "label": "Field ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "value",
+          "label": "New value",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "add_comment",
+      "name": "Add comment",
+      "method": "POST",
+      "endpoint": "/graphql",
+      "body": {
+        "query": "mutation ($input: CreateCommentInput!) { createComment(input: $input) { comment { id text } } }",
+        "variables": {
+          "input": {
+            "card_id": "{{ inputs.card_id }}",
+            "text": "{{ inputs.text }}"
+          }
+        }
+      },
+      "error_path": "errors",
+      "output_path": "data.createComment.comment",
+      "inputs": [
+        {
+          "key": "card_id",
+          "label": "Card ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "text",
+          "label": "Comment",
+          "type": "text",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "get_card",
+      "name": "Get card",
+      "method": "POST",
+      "endpoint": "/graphql",
+      "body": {
+        "query": "query ($id: ID!) { card(id: $id) { id title url due_date current_phase { id name } assignees { id name email } fields { field { id } name value } } }",
+        "variables": {
+          "id": "{{ inputs.card_id }}"
+        }
+      },
+      "error_path": "errors",
+      "output_path": "data.card",
+      "inputs": [
+        {
+          "key": "card_id",
+          "label": "Card ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ]
+}

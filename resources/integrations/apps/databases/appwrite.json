@@ -1,0 +1,85 @@
+{
+  "key": "appwrite",
+  "name": "Appwrite",
+  "category": "Databases",
+  "description": "Create, get, list, update and delete documents in Appwrite databases.",
+  "brand": "appwrite",
+  "website": "https://appwrite.io",
+  "docs_url": "https://appwrite.io/docs/references/cloud/server-rest/databases",
+  "base_url": "{{ credentials.endpoint }}",
+  "headers": { "X-Appwrite-Project": "{{ credentials.project_id }}" },
+  "auth": { "type": "api_key", "in": "header", "name": "X-Appwrite-Key", "fields": [
+    { "key": "endpoint", "label": "API endpoint", "type": "string", "required": true, "default": "https://cloud.appwrite.io/v1", "help": "Project settings → API endpoint, e.g. https://fra.cloud.appwrite.io/v1 or https://appwrite.example.com/v1." },
+    { "key": "project_id", "label": "Project ID", "type": "string", "required": true },
+    { "key": "api_key", "label": "API key", "type": "password", "required": true, "help": "Overview → API keys, with databases scopes." }
+  ] },
+  "actions": [
+    {
+      "key": "create_document",
+      "name": "Create document",
+      "method": "POST",
+      "endpoint": "/databases/{{ inputs.database_id }}/collections/{{ inputs.collection_id }}/documents",
+      "body": { "documentId": "{{ inputs.document_id }}", "data": "{{ inputs.data }}" },
+      "inputs": [
+        { "key": "database_id", "label": "Database ID", "type": "string", "required": true },
+        { "key": "collection_id", "label": "Collection ID", "type": "string", "required": true },
+        { "key": "document_id", "label": "Document ID", "type": "string", "required": true, "default": "unique()", "help": "unique() generates one." },
+        { "key": "data", "label": "Data (JSON)", "type": "json", "required": true, "placeholder": "{ \"title\": \"Hello\" }" }
+      ]
+    },
+    {
+      "key": "get_document",
+      "name": "Get document",
+      "method": "GET",
+      "endpoint": "/databases/{{ inputs.database_id }}/collections/{{ inputs.collection_id }}/documents/{{ inputs.document_id }}",
+      "inputs": [
+        { "key": "database_id", "label": "Database ID", "type": "string", "required": true },
+        { "key": "collection_id", "label": "Collection ID", "type": "string", "required": true },
+        { "key": "document_id", "label": "Document ID", "type": "string", "required": true }
+      ]
+    },
+    {
+      "key": "list_documents",
+      "name": "List documents",
+      "method": "GET",
+      "endpoint": "/databases/{{ inputs.database_id }}/collections/{{ inputs.collection_id }}/documents",
+      "output_path": "documents",
+      "inputs": [
+        { "key": "database_id", "label": "Database ID", "type": "string", "required": true },
+        { "key": "collection_id", "label": "Collection ID", "type": "string", "required": true }
+      ]
+    },
+    {
+      "key": "update_document",
+      "name": "Update document",
+      "method": "PATCH",
+      "endpoint": "/databases/{{ inputs.database_id }}/collections/{{ inputs.collection_id }}/documents/{{ inputs.document_id }}",
+      "body": { "data": "{{ inputs.data }}" },
+      "inputs": [
+        { "key": "database_id", "label": "Database ID", "type": "string", "required": true },
+        { "key": "collection_id", "label": "Collection ID", "type": "string", "required": true },
+        { "key": "document_id", "label": "Document ID", "type": "string", "required": true },
+        { "key": "data", "label": "Fields to change (JSON)", "type": "json", "required": true }
+      ]
+    },
+    {
+      "key": "delete_document",
+      "name": "Delete document",
+      "method": "DELETE",
+      "endpoint": "/databases/{{ inputs.database_id }}/collections/{{ inputs.collection_id }}/documents/{{ inputs.document_id }}",
+      "inputs": [
+        { "key": "database_id", "label": "Database ID", "type": "string", "required": true },
+        { "key": "collection_id", "label": "Collection ID", "type": "string", "required": true },
+        { "key": "document_id", "label": "Document ID", "type": "string", "required": true }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "inputs": [{ "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }]
+    }
+  ]
+}

@@ -1,0 +1,71 @@
+{
+  "key": "better_stack",
+  "name": "Better Stack",
+  "category": "Developer Tools",
+  "description": "Create, list and pause Better Stack Uptime monitors.",
+  "brand": "betterstack",
+  "website": "https://betterstack.com",
+  "docs_url": "https://betterstack.com/docs/uptime/api/getting-started-with-uptime-api/",
+  "base_url": "https://uptime.betterstack.com/api/v2",
+  "auth": { "type": "bearer", "fields": [{ "key": "token", "label": "Uptime API token", "type": "password", "required": true, "help": "Settings → API tokens (team token)." }] },
+  "actions": [
+    {
+      "key": "list_monitors",
+      "name": "List monitors",
+      "method": "GET",
+      "endpoint": "/monitors",
+      "query": { "url": "{{ inputs.url }}", "pronounceable_name": "{{ inputs.name }}" },
+      "output_path": "data",
+      "inputs": [
+        { "key": "url", "label": "URL", "type": "string" },
+        { "key": "name", "label": "Name", "type": "string" }
+      ]
+    },
+    {
+      "key": "get_monitor",
+      "name": "Get monitor",
+      "method": "GET",
+      "endpoint": "/monitors/{{ inputs.monitor_id }}",
+      "output_path": "data",
+      "inputs": [{ "key": "monitor_id", "label": "Monitor ID", "type": "string", "required": true }]
+    },
+    {
+      "key": "create_monitor",
+      "name": "Create monitor",
+      "method": "POST",
+      "endpoint": "/monitors",
+      "output_path": "data",
+      "body": { "monitor_type": "{{ inputs.monitor_type }}", "url": "{{ inputs.url }}", "pronounceable_name": "{{ inputs.name }}", "check_frequency": "{{ inputs.check_frequency }}", "required_keyword": "{{ inputs.keyword }}" },
+      "inputs": [
+        { "key": "monitor_type", "label": "Type", "type": "select", "required": true, "default": "status", "options": [
+          { "value": "status", "label": "HTTP status 2xx" }, { "value": "keyword", "label": "Keyword present" }, { "value": "keyword_absence", "label": "Keyword absent" },
+          { "value": "ping", "label": "Ping" }, { "value": "tcp", "label": "TCP port" }
+        ] },
+        { "key": "url", "label": "URL or host", "type": "string", "required": true },
+        { "key": "name", "label": "Name", "type": "string" },
+        { "key": "check_frequency", "label": "Check every (seconds)", "type": "number", "default": 180 },
+        { "key": "keyword", "label": "Keyword", "type": "string", "help": "For keyword monitors." }
+      ]
+    },
+    {
+      "key": "pause_monitor",
+      "name": "Pause / resume monitor",
+      "method": "PATCH",
+      "endpoint": "/monitors/{{ inputs.monitor_id }}",
+      "output_path": "data",
+      "body": { "paused": "{{ inputs.paused }}" },
+      "inputs": [
+        { "key": "monitor_id", "label": "Monitor ID", "type": "string", "required": true },
+        { "key": "paused", "label": "Paused", "type": "boolean", "default": true, "help": "Off resumes the monitor." }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Incident webhook",
+      "type": "webhook",
+      "inputs": [{ "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }]
+    }
+  ]
+}

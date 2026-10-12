@@ -1,0 +1,102 @@
+{
+  "key": "google_merchant_center",
+  "name": "Google Merchant Center",
+  "category": "Ads & SEO",
+  "description": "List, add and delete products and run performance reports with the Merchant API.",
+  "brand": "google",
+  "website": "https://merchants.google.com",
+  "docs_url": "https://developers.google.com/merchant/api/overview",
+  "popular": true,
+  "base_url": "https://merchantapi.googleapis.com",
+  "auth": [
+    {
+      "type": "oauth2",
+      "authorize_url": "https://accounts.google.com/o/oauth2/v2/auth",
+      "token_url": "https://oauth2.googleapis.com/token",
+      "scopes": ["https://www.googleapis.com/auth/content"],
+      "authorize_params": { "access_type": "offline", "prompt": "consent" }
+    },
+    {
+      "type": "google_service_account",
+      "scopes": ["https://www.googleapis.com/auth/content"],
+      "fields": [{ "key": "service_account_json", "label": "Service Account JSON key", "type": "code", "required": true,
+        "help": "Add the service account email as a user of your Merchant Center account (Settings > People and access)." }]
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_products",
+      "name": "List products",
+      "description": "Processed products with their status.",
+      "method": "GET",
+      "endpoint": "/products/v1/accounts/{{ inputs.account_id }}/products",
+      "query": { "pageSize": "{{ inputs.page_size }}", "pageToken": "{{ inputs.page_token }}" },
+      "inputs": [
+        { "key": "account_id", "label": "Merchant Center account ID", "type": "string", "required": true },
+        { "key": "page_size", "label": "Page size (max 1000)", "type": "number", "default": 250 },
+        { "key": "page_token", "label": "Page token", "type": "string" }
+      ]
+    },
+    {
+      "key": "get_product",
+      "name": "Get product",
+      "method": "GET",
+      "endpoint": "/products/v1/accounts/{{ inputs.account_id }}/products/{{ inputs.product_id }}",
+      "inputs": [
+        { "key": "account_id", "label": "Merchant Center account ID", "type": "string", "required": true },
+        { "key": "product_id", "label": "Product ID", "type": "string", "required": true, "placeholder": "en~US~sku123",
+          "help": "contentLanguage~feedLabel~offerId, as returned in the product name by List products." }
+      ]
+    },
+    {
+      "key": "insert_product",
+      "name": "Add or update product",
+      "description": "Inserts a product input into an API data source (replaces it if the offer ID exists).",
+      "method": "POST",
+      "endpoint": "/products/v1/accounts/{{ inputs.account_id }}/productInputs:insert",
+      "query": { "dataSource": "accounts/{{ inputs.account_id }}/dataSources/{{ inputs.data_source_id }}" },
+      "body": {
+        "offerId": "{{ inputs.offer_id }}",
+        "contentLanguage": "{{ inputs.content_language }}",
+        "feedLabel": "{{ inputs.feed_label }}",
+        "productAttributes": "{{ inputs.attributes }}"
+      },
+      "inputs": [
+        { "key": "account_id", "label": "Merchant Center account ID", "type": "string", "required": true },
+        { "key": "data_source_id", "label": "Data source ID", "type": "string", "required": true, "help": "An API-type primary data source of the account." },
+        { "key": "offer_id", "label": "Offer ID (SKU)", "type": "string", "required": true },
+        { "key": "content_language", "label": "Content language", "type": "string", "required": true, "default": "en" },
+        { "key": "feed_label", "label": "Feed label", "type": "string", "required": true, "placeholder": "US" },
+        { "key": "attributes", "label": "Product attributes", "type": "json", "required": true,
+          "placeholder": "{ \"title\": \"Blue T-shirt\", \"link\": \"https://example.com/p/1\", \"imageLink\": \"https://example.com/p/1.jpg\", \"price\": { \"amountMicros\": \"19990000\", \"currencyCode\": \"USD\" } }" }
+      ]
+    },
+    {
+      "key": "delete_product",
+      "name": "Delete product",
+      "method": "DELETE",
+      "endpoint": "/products/v1/accounts/{{ inputs.account_id }}/productInputs/{{ inputs.product_id }}",
+      "query": { "dataSource": "accounts/{{ inputs.account_id }}/dataSources/{{ inputs.data_source_id }}" },
+      "inputs": [
+        { "key": "account_id", "label": "Merchant Center account ID", "type": "string", "required": true },
+        { "key": "product_id", "label": "Product ID", "type": "string", "required": true, "placeholder": "en~US~sku123" },
+        { "key": "data_source_id", "label": "Data source ID", "type": "string", "required": true }
+      ]
+    },
+    {
+      "key": "search_reports",
+      "name": "Run report query",
+      "description": "Merchant Reports Query Language, e.g. clicks and impressions per product.",
+      "method": "POST",
+      "endpoint": "/reports/v1/accounts/{{ inputs.account_id }}/reports:search",
+      "body": { "query": "{{ inputs.query }}", "pageSize": "{{ inputs.page_size }}" },
+      "output_path": "results",
+      "inputs": [
+        { "key": "account_id", "label": "Merchant Center account ID", "type": "string", "required": true },
+        { "key": "query", "label": "Query", "type": "code", "required": true,
+          "placeholder": "SELECT offer_id, title, clicks, impressions FROM product_performance_view WHERE date BETWEEN '2026-01-01' AND '2026-01-31'" },
+        { "key": "page_size", "label": "Page size", "type": "number", "default": 1000 }
+      ]
+    }
+  ]
+}

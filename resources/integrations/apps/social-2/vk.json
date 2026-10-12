@@ -1,0 +1,114 @@
+{
+  "key": "vk",
+  "name": "VK",
+  "category": "Social Media",
+  "description": "Post to VK walls, send community messages and read users, groups and walls.",
+  "brand": "vk",
+  "website": "https://vk.com",
+  "docs_url": "https://dev.vk.com/en/reference",
+  "base_url": "https://api.vk.com/method",
+  "auth": { "type": "bearer", "fields": [
+    { "key": "token", "label": "Access token", "type": "password", "required": true,
+      "help": "A user token (wall posts), a community token (messages, Manage community > API usage) or a service token (public reads)." }
+  ] },
+  "actions": [
+    {
+      "key": "wall_post",
+      "name": "Post to wall",
+      "method": "POST",
+      "endpoint": "/wall.post",
+      "body_format": "form",
+      "error_path": "error",
+      "output_path": "response",
+      "query": { "v": "5.199" },
+      "body": { "owner_id": "{{ inputs.owner_id }}", "message": "{{ inputs.message }}", "from_group": "{{ inputs.from_group }}", "attachments": "{{ inputs.attachments }}", "publish_date": "{{ inputs.publish_date }}" },
+      "inputs": [
+        { "key": "owner_id", "label": "Wall owner ID", "type": "string", "help": "Community IDs are negative (e.g. -123456). Empty = your own wall." },
+        { "key": "message", "label": "Text", "type": "text", "required": true },
+        { "key": "from_group", "label": "Post as the community", "type": "boolean" },
+        { "key": "attachments", "label": "Attachments", "type": "string", "placeholder": "https://example.com or photo123_456", "help": "Comma-separated objects or one link." },
+        { "key": "publish_date", "label": "Publish at (Unix time)", "type": "number" }
+      ]
+    },
+    {
+      "key": "send_message",
+      "name": "Send message (community)",
+      "method": "POST",
+      "endpoint": "/messages.send",
+      "body_format": "form",
+      "error_path": "error",
+      "output_path": "response",
+      "query": { "v": "5.199" },
+      "body": { "peer_id": "{{ inputs.peer_id }}", "message": "{{ inputs.message }}", "random_id": "{{ inputs.random_id }}" },
+      "inputs": [
+        { "key": "peer_id", "label": "Peer ID", "type": "string", "required": true },
+        { "key": "message", "label": "Text", "type": "text", "required": true },
+        { "key": "random_id", "label": "Random ID", "type": "number", "required": true, "help": "Unique per message to prevent duplicates, e.g. a timestamp." }
+      ]
+    },
+    {
+      "key": "wall_get",
+      "name": "Get wall posts",
+      "method": "GET",
+      "endpoint": "/wall.get",
+      "error_path": "error",
+      "output_path": "response.items",
+      "query": { "v": "5.199", "owner_id": "{{ inputs.owner_id }}", "domain": "{{ inputs.domain }}", "count": "{{ inputs.count }}", "offset": "{{ inputs.offset }}" },
+      "inputs": [
+        { "key": "owner_id", "label": "Wall owner ID", "type": "string" },
+        { "key": "domain", "label": "Or short name", "type": "string", "placeholder": "durov" },
+        { "key": "count", "label": "Count (max 100)", "type": "number", "default": 20 },
+        { "key": "offset", "label": "Offset", "type": "number" }
+      ]
+    },
+    {
+      "key": "get_users",
+      "name": "Get users",
+      "method": "GET",
+      "endpoint": "/users.get",
+      "error_path": "error",
+      "output_path": "response",
+      "query": { "v": "5.199", "user_ids": "{{ inputs.user_ids }}", "fields": "{{ inputs.fields }}" },
+      "inputs": [
+        { "key": "user_ids", "label": "User IDs or short names", "type": "string", "required": true, "placeholder": "1,durov" },
+        { "key": "fields", "label": "Extra fields", "type": "string", "placeholder": "photo_200,city,followers_count" }
+      ]
+    },
+    {
+      "key": "get_groups",
+      "name": "Get communities",
+      "method": "GET",
+      "endpoint": "/groups.getById",
+      "error_path": "error",
+      "output_path": "response",
+      "query": { "v": "5.199", "group_ids": "{{ inputs.group_ids }}", "fields": "{{ inputs.fields }}" },
+      "inputs": [
+        { "key": "group_ids", "label": "Community IDs or short names", "type": "string", "required": true },
+        { "key": "fields", "label": "Extra fields", "type": "string", "placeholder": "members_count,description" }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_wall_post",
+      "name": "New wall post",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/wall.get",
+      "query": { "v": "5.199", "owner_id": "{{ inputs.owner_id }}", "count": 20 },
+      "items_path": "response.items",
+      "id_field": "id",
+      "inputs": [
+        { "key": "owner_id", "label": "Wall owner ID", "type": "string", "required": true, "help": "Community IDs are negative." },
+        { "key": "poll_interval", "label": "Check every (minutes)", "type": "number", "default": 5 }
+      ]
+    },
+    {
+      "key": "callback_event",
+      "name": "Community event (Callback API)",
+      "description": "Manage community > API usage > Callback API. VK first sends a confirmation request that must return your confirmation code.",
+      "type": "webhook",
+      "inputs": [{ "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }]
+    }
+  ]
+}

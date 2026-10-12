@@ -1,0 +1,207 @@
+{
+  "key": "increase",
+  "name": "Increase",
+  "category": "Payments & Finance",
+  "description": "List accounts and transactions and send ACH or book transfers with Increase.",
+  "brand": "increase",
+  "website": "https://increase.com",
+  "docs_url": "https://increase.com/documentation/api",
+  "base_url": "{{ credentials.environment }}",
+  "auth": [
+    {
+      "type": "bearer",
+      "fields": [
+        {
+          "key": "token",
+          "label": "API key",
+          "type": "password",
+          "required": true,
+          "help": "Dashboard > Developers > API keys."
+        },
+        {
+          "key": "environment",
+          "label": "Environment",
+          "type": "select",
+          "required": true,
+          "options": [
+            {
+              "value": "https://api.increase.com",
+              "label": "Production"
+            },
+            {
+              "value": "https://sandbox.increase.com",
+              "label": "Sandbox"
+            }
+          ],
+          "default": "https://api.increase.com"
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_accounts",
+      "name": "List accounts",
+      "method": "GET",
+      "endpoint": "/accounts",
+      "output_path": "data",
+      "inputs": []
+    },
+    {
+      "key": "get_account",
+      "name": "Get account",
+      "method": "GET",
+      "endpoint": "/accounts/{{ inputs.account_id }}",
+      "inputs": [
+        {
+          "key": "account_id",
+          "label": "Account ID",
+          "type": "string",
+          "required": true,
+          "placeholder": "account_…"
+        }
+      ]
+    },
+    {
+      "key": "list_transactions",
+      "name": "List transactions",
+      "method": "GET",
+      "endpoint": "/transactions",
+      "query": {
+        "account_id": "{{ inputs.account_id }}",
+        "limit": "{{ inputs.limit }}",
+        "created_at.after": "{{ inputs.created_after }}"
+      },
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "account_id",
+          "label": "Account ID",
+          "type": "string"
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 50
+        },
+        {
+          "key": "created_after",
+          "label": "Created after",
+          "type": "string",
+          "placeholder": "2026-01-31T00:00:00Z"
+        }
+      ]
+    },
+    {
+      "key": "create_ach_transfer",
+      "name": "Send ACH transfer",
+      "method": "POST",
+      "endpoint": "/ach_transfers",
+      "body": {
+        "account_id": "{{ inputs.account_id }}",
+        "amount": "{{ inputs.amount }}",
+        "statement_descriptor": "{{ inputs.statement_descriptor }}",
+        "external_account_id": "{{ inputs.external_account_id }}",
+        "account_number": "{{ inputs.account_number }}",
+        "routing_number": "{{ inputs.routing_number }}",
+        "require_approval": "{{ inputs.require_approval }}"
+      },
+      "inputs": [
+        {
+          "key": "account_id",
+          "label": "From account ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "amount",
+          "label": "Amount (cents)",
+          "type": "number",
+          "required": true,
+          "help": "Negative pulls money in (debit)."
+        },
+        {
+          "key": "statement_descriptor",
+          "label": "Statement descriptor",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "external_account_id",
+          "label": "External account ID",
+          "type": "string",
+          "help": "Or give account + routing number."
+        },
+        {
+          "key": "account_number",
+          "label": "Account number",
+          "type": "string"
+        },
+        {
+          "key": "routing_number",
+          "label": "Routing number",
+          "type": "string"
+        },
+        {
+          "key": "require_approval",
+          "label": "Require approval",
+          "type": "boolean"
+        }
+      ]
+    },
+    {
+      "key": "create_account_transfer",
+      "name": "Move money between accounts",
+      "method": "POST",
+      "endpoint": "/account_transfers",
+      "body": {
+        "account_id": "{{ inputs.account_id }}",
+        "destination_account_id": "{{ inputs.destination_account_id }}",
+        "amount": "{{ inputs.amount }}",
+        "description": "{{ inputs.description }}"
+      },
+      "inputs": [
+        {
+          "key": "account_id",
+          "label": "From account ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "destination_account_id",
+          "label": "To account ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "amount",
+          "label": "Amount (cents)",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "description",
+          "label": "Description",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Dashboard > Developers > Webhooks (event subscriptions): add this URL.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

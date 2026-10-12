@@ -1,0 +1,65 @@
+{
+  "key": "whapi_cloud",
+  "name": "Whapi.Cloud",
+  "category": "Communication",
+  "description": "Send WhatsApp text and image messages and list chats through a Whapi.Cloud channel.",
+  "brand": "whapi",
+  "website": "https://whapi.cloud",
+  "docs_url": "https://whapi.readme.io/reference",
+  "base_url": "https://gate.whapi.cloud",
+  "auth": [
+    { "type": "bearer", "fields": [{ "key": "token", "label": "Channel API token", "type": "password", "required": true }] }
+  ],
+  "actions": [
+    {
+      "key": "send_text",
+      "name": "Send text message",
+      "method": "POST",
+      "endpoint": "/messages/text",
+      "body": { "to": "{{ inputs.to }}", "body": "{{ inputs.body }}" },
+      "inputs": [
+        { "key": "to", "label": "To", "type": "string", "required": true, "placeholder": "14155552671", "help": "Phone number with country code, or a chat ID (…@s.whatsapp.net / …@g.us)." },
+        { "key": "body", "label": "Message", "type": "text", "required": true }
+      ]
+    },
+    {
+      "key": "send_image",
+      "name": "Send image",
+      "method": "POST",
+      "endpoint": "/messages/image",
+      "body": { "to": "{{ inputs.to }}", "media": "{{ inputs.media }}", "caption": "{{ inputs.caption }}" },
+      "inputs": [
+        { "key": "to", "label": "To", "type": "string", "required": true },
+        { "key": "media", "label": "Image URL", "type": "string", "required": true },
+        { "key": "caption", "label": "Caption", "type": "text" }
+      ]
+    },
+    {
+      "key": "list_chats",
+      "name": "List chats",
+      "method": "GET",
+      "endpoint": "/chats",
+      "query": { "count": "{{ inputs.count }}" },
+      "output_path": "chats",
+      "inputs": [
+        { "key": "count", "label": "Max chats", "type": "number", "default": 50 }
+      ]
+    },
+    {
+      "key": "check_health",
+      "name": "Check channel health",
+      "method": "GET",
+      "endpoint": "/health",
+      "inputs": []
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "description": "Add this URL as a webhook in your channel settings.",
+      "type": "webhook",
+      "inputs": [{ "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }]
+    }
+  ]
+}

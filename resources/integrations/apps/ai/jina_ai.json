@@ -1,0 +1,141 @@
+{
+  "key": "jina_ai",
+  "name": "Jina AI",
+  "category": "AI",
+  "description": "Embed and rerank text, and read any web page as clean Markdown.",
+  "brand": "jina",
+  "website": "https://jina.ai",
+  "docs_url": "https://jina.ai/api-dashboard",
+  "base_url": "https://api.jina.ai/v1",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "API key",
+        "type": "password",
+        "required": true
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "create_embedding",
+      "name": "Create embedding",
+      "method": "POST",
+      "endpoint": "/embeddings",
+      "body": {
+        "model": "{{ inputs.model }}",
+        "input": [
+          "{{ inputs.input }}"
+        ],
+        "task": "{{ inputs.task }}"
+      },
+      "output_fields": {
+        "embedding": "data.0.embedding"
+      },
+      "inputs": [
+        {
+          "key": "model",
+          "label": "Model",
+          "type": "string",
+          "required": true,
+          "default": "jina-embeddings-v3"
+        },
+        {
+          "key": "input",
+          "label": "Text",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "task",
+          "label": "Task",
+          "type": "select",
+          "options": [
+            {
+              "value": "retrieval.passage",
+              "label": "Retrieval passage"
+            },
+            {
+              "value": "retrieval.query",
+              "label": "Retrieval query"
+            },
+            {
+              "value": "text-matching",
+              "label": "Text matching"
+            },
+            {
+              "value": "classification",
+              "label": "Classification"
+            },
+            {
+              "value": "separation",
+              "label": "Separation"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "rerank",
+      "name": "Rerank documents",
+      "method": "POST",
+      "endpoint": "/rerank",
+      "body": {
+        "model": "{{ inputs.model }}",
+        "query": "{{ inputs.query }}",
+        "documents": "{{ inputs.documents }}",
+        "top_n": "{{ inputs.top_n }}"
+      },
+      "inputs": [
+        {
+          "key": "model",
+          "label": "Model",
+          "type": "string",
+          "required": true,
+          "default": "jina-reranker-v2-base-multilingual"
+        },
+        {
+          "key": "query",
+          "label": "Query",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "documents",
+          "label": "Documents",
+          "type": "list",
+          "required": true
+        },
+        {
+          "key": "top_n",
+          "label": "Top N",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "read_url",
+      "name": "Read web page",
+      "description": "Fetch a URL as LLM-ready Markdown (Reader API).",
+      "method": "POST",
+      "endpoint": "https://r.jina.ai/",
+      "timeout": 120,
+      "body": {
+        "url": "{{ inputs.url }}"
+      },
+      "output_fields": {
+        "content": "data.content"
+      },
+      "inputs": [
+        {
+          "key": "url",
+          "label": "URL",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ]
+}

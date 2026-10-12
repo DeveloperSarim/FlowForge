@@ -1,0 +1,76 @@
+{
+  "key": "langflow",
+  "name": "Langflow",
+  "category": "AI",
+  "description": "Run Langflow flows and get the chat output.",
+  "brand": "langflow",
+  "website": "https://www.langflow.org",
+  "docs_url": "https://docs.langflow.org/api-flows-run",
+  "base_url": "{{ credentials.base_url }}/api/v1",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "x-api-key",
+    "fields": [
+      {
+        "key": "base_url",
+        "label": "Langflow URL",
+        "type": "string",
+        "required": true,
+        "default": "http://localhost:7860",
+        "help": "Your Langflow server URL, without a trailing slash."
+      },
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "run_flow",
+      "name": "Run flow",
+      "description": "The chat output is {{ steps.<id>.text }}.",
+      "method": "POST",
+      "endpoint": "/run/{{ inputs.flow_id }}",
+      "timeout": 300,
+      "body": {
+        "input_value": "{{ inputs.input_value }}",
+        "input_type": "chat",
+        "output_type": "chat",
+        "session_id": "{{ inputs.session_id }}",
+        "tweaks": "{{ inputs.tweaks }}"
+      },
+      "output_fields": {
+        "text": "outputs.0.outputs.0.results.message.text"
+      },
+      "inputs": [
+        {
+          "key": "flow_id",
+          "label": "Flow ID or name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "input_value",
+          "label": "Message",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "session_id",
+          "label": "Session ID",
+          "type": "string"
+        },
+        {
+          "key": "tweaks",
+          "label": "Tweaks (JSON)",
+          "type": "json",
+          "placeholder": "{\"OpenAIModel-abc12\": {\"temperature\": 0.2}}"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,108 @@
+{
+  "key": "zoho_people",
+  "name": "Zoho People",
+  "category": "HR & Recruiting",
+  "description": "Fetch and add employee records in Zoho People.",
+  "brand": "zoho",
+  "website": "https://www.zoho.com/people/",
+  "docs_url": "https://www.zoho.com/people/api/overview.html",
+  "base_url": "https://people.zoho.{{ credentials.dc }}/people/api",
+  "auth": [
+    {
+      "type": "oauth2",
+      "authorize_url": "https://accounts.zoho.{{ credentials.dc }}/oauth/v2/auth",
+      "token_url": "https://accounts.zoho.{{ credentials.dc }}/oauth/v2/token",
+      "token_type": "Zoho-oauthtoken",
+      "scopes": [
+        "ZOHOPEOPLE.forms.ALL"
+      ],
+      "scope_separator": ",",
+      "authorize_params": {
+        "access_type": "offline",
+        "prompt": "consent"
+      },
+      "fields": [
+        {
+          "key": "dc",
+          "label": "Data center",
+          "type": "select",
+          "required": true,
+          "default": "com",
+          "options": [
+            {
+              "value": "com",
+              "label": "US (.com)"
+            },
+            {
+              "value": "eu",
+              "label": "EU (.eu)"
+            },
+            {
+              "value": "in",
+              "label": "India (.in)"
+            },
+            {
+              "value": "com.au",
+              "label": "Australia (.com.au)"
+            },
+            {
+              "value": "jp",
+              "label": "Japan (.jp)"
+            }
+          ],
+          "help": "The domain your Zoho account lives on (zoho.com, zoho.eu, ...)."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "get_employees",
+      "name": "Get employees",
+      "description": "Each result is keyed by the record ID.",
+      "method": "GET",
+      "endpoint": "/forms/employee/getRecords",
+      "query": {
+        "sIndex": "{{ inputs.start_index }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_path": "response.result",
+      "inputs": [
+        {
+          "key": "start_index",
+          "label": "Start index",
+          "type": "number",
+          "default": 1
+        },
+        {
+          "key": "limit",
+          "label": "Max results",
+          "type": "number",
+          "default": 200,
+          "help": "Up to 200."
+        }
+      ]
+    },
+    {
+      "key": "add_employee",
+      "name": "Add employee",
+      "method": "POST",
+      "endpoint": "/forms/json/employee/insertRecord",
+      "body_format": "form",
+      "body": {
+        "inputData": "{{ inputs.input_data }}"
+      },
+      "output_path": "response",
+      "inputs": [
+        {
+          "key": "input_data",
+          "label": "Record (JSON)",
+          "type": "code",
+          "required": true,
+          "placeholder": "{\"EmployeeID\":\"E42\",\"FirstName\":\"Ada\",\"LastName\":\"Lovelace\",\"EmailID\":\"ada@example.com\"}",
+          "help": "Field link names of the Employee form."
+        }
+      ]
+    }
+  ]
+}

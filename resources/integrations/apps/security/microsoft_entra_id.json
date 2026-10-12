@@ -1,0 +1,155 @@
+{
+  "key": "microsoft_entra_id",
+  "name": "Microsoft Entra ID",
+  "category": "Security & IT",
+  "description": "Create, update, disable and delete users, revoke sessions and manage group members.",
+  "brand": "microsoftentraid",
+  "website": "https://www.microsoft.com/security/business/identity-access/microsoft-entra-id",
+  "docs_url": "https://learn.microsoft.com/graph/api/resources/users",
+  "base_url": "https://graph.microsoft.com/v1.0",
+  "auth": [
+    {
+      "type": "oauth2",
+      "authorize_url": "https://login.microsoftonline.com/common/oauth2/v2.0/authorize",
+      "token_url": "https://login.microsoftonline.com/common/oauth2/v2.0/token",
+      "scopes": ["offline_access", "User.ReadWrite.All", "Group.ReadWrite.All"]
+    }
+  ],
+  "actions": [
+    {
+      "key": "create_user",
+      "name": "Create user",
+      "method": "POST",
+      "endpoint": "/users",
+      "body": {
+        "accountEnabled": "{{ inputs.account_enabled }}",
+        "displayName": "{{ inputs.display_name }}",
+        "mailNickname": "{{ inputs.mail_nickname }}",
+        "userPrincipalName": "{{ inputs.user_principal_name }}",
+        "givenName": "{{ inputs.given_name }}",
+        "surname": "{{ inputs.surname }}",
+        "jobTitle": "{{ inputs.job_title }}",
+        "department": "{{ inputs.department }}",
+        "usageLocation": "{{ inputs.usage_location }}",
+        "passwordProfile": { "password": "{{ inputs.password }}", "forceChangePasswordNextSignIn": "{{ inputs.force_change_password }}" }
+      },
+      "inputs": [
+        { "key": "display_name", "label": "Display name", "type": "string", "required": true },
+        { "key": "user_principal_name", "label": "User principal name", "type": "string", "required": true, "placeholder": "ana@contoso.com" },
+        { "key": "mail_nickname", "label": "Mail nickname", "type": "string", "required": true, "placeholder": "ana" },
+        { "key": "password", "label": "Initial password", "type": "password", "required": true },
+        { "key": "force_change_password", "label": "Require password change at first sign-in", "type": "boolean", "default": true },
+        { "key": "account_enabled", "label": "Account enabled", "type": "boolean", "required": true, "default": true },
+        { "key": "given_name", "label": "First name", "type": "string" },
+        { "key": "surname", "label": "Last name", "type": "string" },
+        { "key": "job_title", "label": "Job title", "type": "string" },
+        { "key": "department", "label": "Department", "type": "string" },
+        { "key": "usage_location", "label": "Usage location", "type": "string", "placeholder": "US", "help": "Two-letter country code; needed before assigning licenses." }
+      ]
+    },
+    {
+      "key": "get_user",
+      "name": "Get user",
+      "method": "GET",
+      "endpoint": "/users/{{ inputs.user }}",
+      "query": { "$select": "{{ inputs.select }}" },
+      "inputs": [
+        { "key": "user", "label": "User ID or principal name", "type": "string", "required": true },
+        { "key": "select", "label": "Properties", "type": "string", "placeholder": "id,displayName,mail,accountEnabled" }
+      ]
+    },
+    {
+      "key": "list_users",
+      "name": "Find users",
+      "method": "GET",
+      "endpoint": "/users",
+      "query": { "$filter": "{{ inputs.filter }}", "$select": "{{ inputs.select }}", "$top": "{{ inputs.top }}" },
+      "output_path": "value",
+      "inputs": [
+        { "key": "filter", "label": "OData filter", "type": "string", "placeholder": "startswith(displayName,'Ana') or mail eq 'ana@contoso.com'" },
+        { "key": "select", "label": "Properties", "type": "string" },
+        { "key": "top", "label": "Limit", "type": "number", "default": 100 }
+      ]
+    },
+    {
+      "key": "update_user",
+      "name": "Update user",
+      "description": "Set Account enabled off to block sign-in.",
+      "method": "PATCH",
+      "endpoint": "/users/{{ inputs.user }}",
+      "body": { "accountEnabled": "{{ inputs.account_enabled }}", "displayName": "{{ inputs.display_name }}", "jobTitle": "{{ inputs.job_title }}", "department": "{{ inputs.department }}", "officeLocation": "{{ inputs.office_location }}", "mobilePhone": "{{ inputs.mobile_phone }}", "...": "{{ inputs.extra }}" },
+      "inputs": [
+        { "key": "user", "label": "User ID or principal name", "type": "string", "required": true },
+        { "key": "account_enabled", "label": "Account enabled", "type": "boolean" },
+        { "key": "display_name", "label": "Display name", "type": "string" },
+        { "key": "job_title", "label": "Job title", "type": "string" },
+        { "key": "department", "label": "Department", "type": "string" },
+        { "key": "office_location", "label": "Office location", "type": "string" },
+        { "key": "mobile_phone", "label": "Mobile phone", "type": "string" },
+        { "key": "extra", "label": "Other properties", "type": "keyvalue" }
+      ]
+    },
+    {
+      "key": "revoke_sessions",
+      "name": "Revoke sign-in sessions",
+      "method": "POST",
+      "endpoint": "/users/{{ inputs.user }}/revokeSignInSessions",
+      "inputs": [{ "key": "user", "label": "User ID or principal name", "type": "string", "required": true }]
+    },
+    {
+      "key": "delete_user",
+      "name": "Delete user",
+      "description": "Moves the user to deleted items for 30 days.",
+      "method": "DELETE",
+      "endpoint": "/users/{{ inputs.user }}",
+      "inputs": [{ "key": "user", "label": "User ID or principal name", "type": "string", "required": true }]
+    },
+    {
+      "key": "add_group_member",
+      "name": "Add member to group",
+      "method": "POST",
+      "endpoint": "/groups/{{ inputs.group_id }}/members/$ref",
+      "body": { "@odata.id": "https://graph.microsoft.com/v1.0/directoryObjects/{{ inputs.member_id }}" },
+      "inputs": [
+        { "key": "group_id", "label": "Group ID", "type": "string", "required": true },
+        { "key": "member_id", "label": "User (object) ID", "type": "string", "required": true }
+      ]
+    },
+    {
+      "key": "remove_group_member",
+      "name": "Remove member from group",
+      "method": "DELETE",
+      "endpoint": "/groups/{{ inputs.group_id }}/members/{{ inputs.member_id }}/$ref",
+      "inputs": [
+        { "key": "group_id", "label": "Group ID", "type": "string", "required": true },
+        { "key": "member_id", "label": "User (object) ID", "type": "string", "required": true }
+      ]
+    },
+    {
+      "key": "list_groups",
+      "name": "Find groups",
+      "method": "GET",
+      "endpoint": "/groups",
+      "query": { "$filter": "{{ inputs.filter }}", "$top": "{{ inputs.top }}" },
+      "output_path": "value",
+      "inputs": [
+        { "key": "filter", "label": "OData filter", "type": "string", "placeholder": "startswith(displayName,'Sales')" },
+        { "key": "top", "label": "Limit", "type": "number", "default": 100 }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_user",
+      "name": "New user (polling)",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/users",
+      "headers": { "ConsistencyLevel": "eventual" },
+      "query": { "$orderby": "createdDateTime desc", "$count": "true", "$top": 50 },
+      "items_path": "value",
+      "id_field": "id",
+      "inputs": [{ "key": "poll_interval", "label": "Check every (minutes)", "type": "number", "default": 5 }]
+    }
+  ]
+}

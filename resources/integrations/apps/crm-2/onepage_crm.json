@@ -1,0 +1,255 @@
+{
+  "key": "onepage_crm",
+  "name": "OnePageCRM",
+  "category": "CRM & Sales",
+  "description": "Create contacts, deals and notes in OnePageCRM.",
+  "brand": "onepagecrm",
+  "website": "https://www.onepagecrm.com",
+  "docs_url": "https://developer.onepagecrm.com/api/",
+  "base_url": "https://app.onepagecrm.com/api/v3",
+  "auth": {
+    "type": "basic",
+    "fields": [
+      {
+        "key": "username",
+        "label": "User ID",
+        "type": "string",
+        "required": true,
+        "help": "Apps & Integrations > Configuration > API (app.onepagecrm.com/app/api)"
+      },
+      {
+        "key": "password",
+        "label": "API key",
+        "type": "password",
+        "required": true
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "create_contact",
+      "name": "Create contact",
+      "method": "POST",
+      "endpoint": "/contacts",
+      "output_path": "data.contact",
+      "body": {
+        "first_name": "{{ inputs.first_name }}",
+        "last_name": "{{ inputs.last_name }}",
+        "company_name": "{{ inputs.company_name }}",
+        "job_title": "{{ inputs.job_title }}",
+        "emails": [
+          {
+            "type": "work",
+            "value": "{{ inputs.email }}"
+          }
+        ],
+        "phones": "{{ inputs.phones }}",
+        "tags": "{{ inputs.tags }}",
+        "background": "{{ inputs.background }}",
+        "owner_id": "{{ inputs.owner_id }}",
+        "next_action_name": "{{ inputs.next_action }}",
+        "custom_fields": "{{ inputs.custom_fields }}"
+      },
+      "inputs": [
+        {
+          "key": "first_name",
+          "label": "First name",
+          "type": "string"
+        },
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string",
+          "help": "Last name or company name is required."
+        },
+        {
+          "key": "company_name",
+          "label": "Company name",
+          "type": "string"
+        },
+        {
+          "key": "email",
+          "label": "Work email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "job_title",
+          "label": "Job title",
+          "type": "string"
+        },
+        {
+          "key": "phones",
+          "label": "Phones",
+          "type": "json",
+          "placeholder": "[{\"type\": \"work\", \"value\": \"+1 555 0100\"}]"
+        },
+        {
+          "key": "tags",
+          "label": "Tags",
+          "type": "list"
+        },
+        {
+          "key": "background",
+          "label": "Background",
+          "type": "text"
+        },
+        {
+          "key": "owner_id",
+          "label": "Owner user ID",
+          "type": "string"
+        },
+        {
+          "key": "next_action",
+          "label": "Next action",
+          "type": "string"
+        },
+        {
+          "key": "custom_fields",
+          "label": "Custom fields",
+          "type": "json",
+          "help": "Array in OnePageCRM custom_fields format (see API docs)."
+        }
+      ]
+    },
+    {
+      "key": "create_deal",
+      "name": "Create deal",
+      "method": "POST",
+      "endpoint": "/deals",
+      "output_path": "data",
+      "body": {
+        "contact_id": "{{ inputs.contact_id }}",
+        "name": "{{ inputs.name }}",
+        "amount": "{{ inputs.amount }}",
+        "status": "{{ inputs.status }}",
+        "stage": "{{ inputs.stage }}",
+        "expected_close_date": "{{ inputs.expected_close_date }}",
+        "text": "{{ inputs.text }}"
+      },
+      "inputs": [
+        {
+          "key": "contact_id",
+          "label": "Contact ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "name",
+          "label": "Deal name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "amount",
+          "label": "Amount",
+          "type": "number"
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "options": [
+            {
+              "value": "pending",
+              "label": "Pending"
+            },
+            {
+              "value": "won",
+              "label": "Won"
+            },
+            {
+              "value": "lost",
+              "label": "Lost"
+            }
+          ]
+        },
+        {
+          "key": "stage",
+          "label": "Stage (%)",
+          "type": "number",
+          "placeholder": "50"
+        },
+        {
+          "key": "expected_close_date",
+          "label": "Expected close date",
+          "type": "string",
+          "placeholder": "2026-12-31"
+        },
+        {
+          "key": "text",
+          "label": "Description",
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "key": "create_note",
+      "name": "Add note",
+      "method": "POST",
+      "endpoint": "/notes",
+      "output_path": "data",
+      "body": {
+        "contact_id": "{{ inputs.contact_id }}",
+        "text": "{{ inputs.text }}",
+        "linked_deal_id": "{{ inputs.deal_id }}"
+      },
+      "inputs": [
+        {
+          "key": "contact_id",
+          "label": "Contact ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "text",
+          "label": "Note",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "deal_id",
+          "label": "Linked deal ID",
+          "type": "string"
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_contact",
+      "name": "New contact",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/contacts",
+      "query": {
+        "sort_by": "created_at",
+        "order": "desc",
+        "per_page": 50
+      },
+      "items_path": "data.contacts",
+      "id_field": "contact.id",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    },
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Add this URL under Apps & Integrations > Webhooks.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

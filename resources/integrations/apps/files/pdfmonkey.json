@@ -1,0 +1,90 @@
+{
+  "key": "pdfmonkey",
+  "name": "PDFMonkey",
+  "category": "Files & Documents",
+  "description": "Generate PDFs from templates and fetch their download URL.",
+  "brand": "pdfmonkey",
+  "website": "https://www.pdfmonkey.io",
+  "docs_url": "https://docs.pdfmonkey.io/",
+  "base_url": "https://api.pdfmonkey.io/api/v1",
+  "auth": [
+    {
+      "type": "bearer",
+      "fields": [
+        {
+          "key": "token",
+          "label": "Secret API key",
+          "type": "password",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "generate_document",
+      "name": "Generate document",
+      "method": "POST",
+      "endpoint": "/documents",
+      "output_path": "document",
+      "body": {
+        "document": {
+          "document_template_id": "{{ inputs.template_id }}",
+          "status": "pending",
+          "payload": "{{ inputs.payload }}",
+          "meta": "{{ inputs.meta }}"
+        }
+      },
+      "inputs": [
+        {
+          "key": "template_id",
+          "label": "Template ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "payload",
+          "label": "Data (JSON)",
+          "type": "json",
+          "required": true
+        },
+        {
+          "key": "meta",
+          "label": "Meta (JSON)",
+          "type": "json",
+          "placeholder": "{ \"_filename\": \"invoice.pdf\" }"
+        }
+      ]
+    },
+    {
+      "key": "get_document",
+      "name": "Get document",
+      "method": "GET",
+      "endpoint": "/documents/{{ inputs.document_id }}",
+      "output_path": "document",
+      "inputs": [
+        {
+          "key": "document_id",
+          "label": "Document ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Document generation events.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

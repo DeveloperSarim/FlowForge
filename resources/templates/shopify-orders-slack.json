@@ -1,0 +1,52 @@
+{
+  "key": "shopify-orders-slack",
+  "name": "Post new Shopify orders to Slack",
+  "description": "Every order shows up in #orders with the customer and total.",
+  "category": "E-commerce",
+  "featured": false,
+  "graph": {
+    "nodes": [
+      {
+        "id": "trigger",
+        "type": "trigger",
+        "position": {
+          "x": 0,
+          "y": 200
+        },
+        "data": {
+          "integration": "shopify",
+          "trigger": "new_order",
+          "label": "New order",
+          "config": {
+            "poll_interval": 5
+          }
+        }
+      },
+      {
+        "id": "step_1",
+        "type": "action",
+        "position": {
+          "x": 240,
+          "y": 200
+        },
+        "data": {
+          "integration": "slack",
+          "action": "post_message",
+          "label": "Post to #orders",
+          "config": {
+            "channel": "#orders",
+            "text": "🛒 {{ steps.trigger.data.name }}: {{ steps.trigger.data.total_price }} {{ steps.trigger.data.currency }} from {{ steps.trigger.data.email }}"
+          }
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "e-trigger-step_1",
+        "source": "trigger",
+        "target": "step_1",
+        "sourceHandle": null
+      }
+    ]
+  }
+}

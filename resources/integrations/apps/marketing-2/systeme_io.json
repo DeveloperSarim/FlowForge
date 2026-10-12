@@ -1,0 +1,71 @@
+{
+  "key": "systeme_io",
+  "name": "systeme.io",
+  "category": "Marketing & Email",
+  "description": "Create contacts, tag them and list contacts and tags.",
+  "brand": "systemeio",
+  "website": "https://systeme.io",
+  "docs_url": "https://developer.systeme.io/reference",
+  "base_url": "https://api.systeme.io/api",
+  "auth": { "type": "api_key", "in": "header", "name": "X-API-Key", "fields": [{ "key": "api_key", "label": "Public API key", "type": "password", "required": true, "help": "Profile settings > Public API keys." }] },
+  "actions": [
+    {
+      "key": "create_contact",
+      "name": "Create contact",
+      "method": "POST",
+      "endpoint": "/contacts",
+      "body": { "email": "{{ inputs.email }}", "locale": "{{ inputs.locale }}", "fields": "{{ inputs.fields }}" },
+      "inputs": [
+        { "key": "email", "label": "Email", "type": "string", "required": true },
+        { "key": "locale", "label": "Locale", "type": "string", "placeholder": "en" },
+        { "key": "fields", "label": "Fields", "type": "json", "placeholder": "[{ \"slug\": \"first_name\", \"value\": \"Ada\" }]" }
+      ]
+    },
+    {
+      "key": "get_contact",
+      "name": "Get contact",
+      "method": "GET",
+      "endpoint": "/contacts/{{ inputs.contact_id }}",
+      "inputs": [{ "key": "contact_id", "label": "Contact ID", "type": "string", "required": true }]
+    },
+    {
+      "key": "list_contacts",
+      "name": "List contacts",
+      "method": "GET",
+      "endpoint": "/contacts",
+      "query": { "limit": "{{ inputs.limit }}", "startingAfter": "{{ inputs.starting_after }}" },
+      "output_path": "items",
+      "inputs": [
+        { "key": "limit", "label": "Limit (10-100)", "type": "number", "default": 50 },
+        { "key": "starting_after", "label": "Starting after contact ID", "type": "string" }
+      ]
+    },
+    {
+      "key": "add_tag",
+      "name": "Tag contact",
+      "method": "POST",
+      "endpoint": "/contacts/{{ inputs.contact_id }}/tags",
+      "body": { "tagId": "{{ inputs.tag_id }}" },
+      "inputs": [
+        { "key": "contact_id", "label": "Contact ID", "type": "string", "required": true },
+        { "key": "tag_id", "label": "Tag ID", "type": "number", "required": true }
+      ]
+    },
+    {
+      "key": "list_tags",
+      "name": "List tags",
+      "method": "GET",
+      "endpoint": "/tags",
+      "output_path": "items",
+      "inputs": []
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "inputs": [{ "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }]
+    }
+  ]
+}

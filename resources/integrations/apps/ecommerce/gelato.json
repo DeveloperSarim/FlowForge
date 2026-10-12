@@ -1,0 +1,129 @@
+{
+  "key": "gelato",
+  "name": "Gelato",
+  "category": "E-commerce",
+  "description": "Create, look up and cancel print-on-demand orders on Gelato.",
+  "brand": "gelato",
+  "website": "https://www.gelato.com",
+  "docs_url": "https://dashboard.gelato.com/docs/",
+  "base_url": "https://order.gelatoapis.com",
+  "auth": [
+    {
+      "type": "api_key",
+      "in": "header",
+      "name": "X-API-KEY",
+      "fields": [
+        {
+          "key": "api_key",
+          "label": "API key",
+          "type": "password",
+          "required": true,
+          "help": "Gelato dashboard > Developer > API keys."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "create_order",
+      "name": "Create order",
+      "method": "POST",
+      "endpoint": "/v4/orders",
+      "body": {
+        "orderType": "{{ inputs.order_type }}",
+        "orderReferenceId": "{{ inputs.order_reference_id }}",
+        "customerReferenceId": "{{ inputs.customer_reference_id }}",
+        "currency": "{{ inputs.currency }}",
+        "items": "{{ inputs.items }}",
+        "shippingAddress": "{{ inputs.shipping_address }}",
+        "shipmentMethodUid": "{{ inputs.shipment_method }}"
+      },
+      "inputs": [
+        {
+          "key": "order_type",
+          "label": "Order type",
+          "type": "select",
+          "options": [
+            {
+              "value": "order",
+              "label": "Order"
+            },
+            {
+              "value": "draft",
+              "label": "Draft"
+            }
+          ],
+          "default": "order"
+        },
+        {
+          "key": "order_reference_id",
+          "label": "Your order reference",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "customer_reference_id",
+          "label": "Your customer reference",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "currency",
+          "label": "Currency",
+          "type": "string",
+          "required": true,
+          "placeholder": "USD"
+        },
+        {
+          "key": "items",
+          "label": "Items",
+          "type": "json",
+          "required": true,
+          "placeholder": "[{\"itemReferenceId\": \"1\", \"productUid\": \"…\", \"files\": [{\"type\": \"default\", \"url\": \"https://…\"}], \"quantity\": 1}]"
+        },
+        {
+          "key": "shipping_address",
+          "label": "Shipping address",
+          "type": "json",
+          "required": true,
+          "placeholder": "{\"firstName\": \"Jane\", \"lastName\": \"Doe\", \"addressLine1\": \"…\", \"city\": \"…\", \"postCode\": \"…\", \"country\": \"US\", \"email\": \"…\"}"
+        },
+        {
+          "key": "shipment_method",
+          "label": "Shipment method UID",
+          "type": "string",
+          "placeholder": "normal"
+        }
+      ]
+    },
+    {
+      "key": "get_order",
+      "name": "Get order",
+      "method": "GET",
+      "endpoint": "/v4/orders/{{ inputs.order_id }}",
+      "inputs": [
+        {
+          "key": "order_id",
+          "label": "Order ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "cancel_order",
+      "name": "Cancel order",
+      "method": "POST",
+      "endpoint": "/v4/orders/{{ inputs.order_id }}:cancel",
+      "inputs": [
+        {
+          "key": "order_id",
+          "label": "Order ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": []
+}

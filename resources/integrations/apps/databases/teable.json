@@ -1,0 +1,75 @@
+{
+  "key": "teable",
+  "name": "Teable",
+  "category": "Databases",
+  "description": "List, get, create, update and delete records in Teable tables.",
+  "brand": "teable",
+  "website": "https://teable.io",
+  "docs_url": "https://help.teable.io/en/api-doc/overview",
+  "base_url": "{{ credentials.base_url }}/api",
+  "auth": { "type": "bearer", "fields": [
+    { "key": "base_url", "label": "Teable URL", "type": "string", "required": true, "default": "https://app.teable.io", "help": "https://app.teable.io or your self-hosted URL, without a trailing slash." },
+    { "key": "token", "label": "Personal access token", "type": "password", "required": true, "help": "Settings → Personal access tokens." }
+  ] },
+  "actions": [
+    {
+      "key": "list_records",
+      "name": "List records",
+      "method": "GET",
+      "endpoint": "/table/{{ inputs.table_id }}/record",
+      "query": { "fieldKeyType": "name", "viewId": "{{ inputs.view_id }}", "take": "{{ inputs.take }}", "skip": "{{ inputs.skip }}" },
+      "output_path": "records",
+      "inputs": [
+        { "key": "table_id", "label": "Table ID", "type": "string", "required": true, "placeholder": "tbl…" },
+        { "key": "view_id", "label": "View ID", "type": "string", "help": "Uses that view's filter and sort." },
+        { "key": "take", "label": "Limit", "type": "number", "default": 100 },
+        { "key": "skip", "label": "Offset", "type": "number" }
+      ]
+    },
+    {
+      "key": "get_record",
+      "name": "Get record",
+      "method": "GET",
+      "endpoint": "/table/{{ inputs.table_id }}/record/{{ inputs.record_id }}",
+      "query": { "fieldKeyType": "name" },
+      "inputs": [
+        { "key": "table_id", "label": "Table ID", "type": "string", "required": true },
+        { "key": "record_id", "label": "Record ID", "type": "string", "required": true, "placeholder": "rec…" }
+      ]
+    },
+    {
+      "key": "create_record",
+      "name": "Create record",
+      "method": "POST",
+      "endpoint": "/table/{{ inputs.table_id }}/record",
+      "body": { "fieldKeyType": "name", "typecast": true, "records": [{ "fields": "{{ inputs.fields }}" }] },
+      "output_path": "records.0",
+      "inputs": [
+        { "key": "table_id", "label": "Table ID", "type": "string", "required": true },
+        { "key": "fields", "label": "Fields (JSON)", "type": "json", "required": true, "placeholder": "{ \"Name\": \"Ada\", \"Status\": \"Open\" }", "help": "Keys are field names." }
+      ]
+    },
+    {
+      "key": "update_record",
+      "name": "Update record",
+      "method": "PATCH",
+      "endpoint": "/table/{{ inputs.table_id }}/record/{{ inputs.record_id }}",
+      "body": { "fieldKeyType": "name", "typecast": true, "record": { "fields": "{{ inputs.fields }}" } },
+      "inputs": [
+        { "key": "table_id", "label": "Table ID", "type": "string", "required": true },
+        { "key": "record_id", "label": "Record ID", "type": "string", "required": true },
+        { "key": "fields", "label": "Fields to change (JSON)", "type": "json", "required": true }
+      ]
+    },
+    {
+      "key": "delete_record",
+      "name": "Delete record",
+      "method": "DELETE",
+      "endpoint": "/table/{{ inputs.table_id }}/record/{{ inputs.record_id }}",
+      "inputs": [
+        { "key": "table_id", "label": "Table ID", "type": "string", "required": true },
+        { "key": "record_id", "label": "Record ID", "type": "string", "required": true }
+      ]
+    }
+  ]
+}

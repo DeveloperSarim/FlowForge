@@ -1,0 +1,211 @@
+{
+  "key": "cloudconvert",
+  "name": "CloudConvert",
+  "category": "Files & Documents",
+  "description": "Convert files between 200+ formats with conversion jobs.",
+  "brand": "cloudconvert",
+  "website": "https://cloudconvert.com",
+  "docs_url": "https://cloudconvert.com/api/v2",
+  "popular": true,
+  "base_url": "https://api.cloudconvert.com/v2",
+  "auth": [
+    {
+      "type": "bearer",
+      "fields": [
+        {
+          "key": "token",
+          "label": "API key",
+          "type": "password",
+          "required": true,
+          "help": "Dashboard > API Keys (scopes task.read, task.write)."
+        }
+      ]
+    },
+    {
+      "type": "oauth2",
+      "authorize_url": "https://cloudconvert.com/oauth/authorize",
+      "token_url": "https://cloudconvert.com/oauth/token",
+      "scopes": [
+        "user.read",
+        "task.read",
+        "task.write"
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "convert_file",
+      "name": "Convert file from URL",
+      "description": "Starts a job: import from URL, convert, export to a temporary URL.",
+      "method": "POST",
+      "endpoint": "/jobs",
+      "output_path": "data",
+      "body": {
+        "tag": "{{ inputs.tag }}",
+        "tasks": {
+          "import-file": {
+            "operation": "import/url",
+            "url": "{{ inputs.url }}",
+            "filename": "{{ inputs.filename }}"
+          },
+          "convert-file": {
+            "operation": "convert",
+            "input": "import-file",
+            "output_format": "{{ inputs.output_format }}"
+          },
+          "export-file": {
+            "operation": "export/url",
+            "input": "convert-file"
+          }
+        }
+      },
+      "inputs": [
+        {
+          "key": "url",
+          "label": "File URL",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "output_format",
+          "label": "Convert to",
+          "type": "string",
+          "required": true,
+          "placeholder": "pdf"
+        },
+        {
+          "key": "filename",
+          "label": "Input file name",
+          "type": "string",
+          "placeholder": "report.docx",
+          "help": "Helps detect the input format."
+        },
+        {
+          "key": "tag",
+          "label": "Tag",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "create_job",
+      "name": "Create job (JSON tasks)",
+      "method": "POST",
+      "endpoint": "/jobs",
+      "output_path": "data",
+      "body": {
+        "tasks": "{{ inputs.tasks }}",
+        "tag": "{{ inputs.tag }}"
+      },
+      "inputs": [
+        {
+          "key": "tasks",
+          "label": "Tasks (JSON)",
+          "type": "json",
+          "required": true
+        },
+        {
+          "key": "tag",
+          "label": "Tag",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "wait_for_job",
+      "name": "Wait for job",
+      "description": "Waits until the job finishes and returns the export URLs.",
+      "method": "GET",
+      "endpoint": "https://sync.api.cloudconvert.com/v2/jobs/{{ inputs.job_id }}",
+      "timeout": 300,
+      "output_path": "data",
+      "output_fields": {
+        "file_url": "tasks.*.result.files.*.url"
+      },
+      "inputs": [
+        {
+          "key": "job_id",
+          "label": "Job ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "get_job",
+      "name": "Get job",
+      "method": "GET",
+      "endpoint": "/jobs/{{ inputs.job_id }}",
+      "output_path": "data",
+      "output_fields": {
+        "file_url": "tasks.*.result.files.*.url"
+      },
+      "inputs": [
+        {
+          "key": "job_id",
+          "label": "Job ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_jobs",
+      "name": "List jobs",
+      "method": "GET",
+      "endpoint": "/jobs",
+      "output_path": "data",
+      "query": {
+        "filter[status]": "{{ inputs.status }}",
+        "per_page": "{{ inputs.per_page }}"
+      },
+      "inputs": [
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "options": [
+            {
+              "value": "waiting",
+              "label": "Waiting"
+            },
+            {
+              "value": "processing",
+              "label": "Processing"
+            },
+            {
+              "value": "finished",
+              "label": "Finished"
+            },
+            {
+              "value": "error",
+              "label": "Error"
+            }
+          ]
+        },
+        {
+          "key": "per_page",
+          "label": "Max results",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "job_event",
+      "name": "Job event",
+      "type": "webhook",
+      "description": "job.finished / job.failed webhooks.",
+      "data_path": "job",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

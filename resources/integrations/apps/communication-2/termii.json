@@ -1,0 +1,91 @@
+{
+  "key": "termii",
+  "name": "Termii",
+  "category": "Communication",
+  "description": "Send SMS and WhatsApp messages, send and verify OTPs, and check your Termii balance.",
+  "brand": "termii",
+  "website": "https://termii.com",
+  "docs_url": "https://developers.termii.com",
+  "base_url": "{{ credentials.base_url }}/api",
+  "auth": [
+    { "type": "api_key", "fields": [
+      { "key": "base_url", "label": "Base URL", "type": "string", "required": true, "placeholder": "https://api.ng.termii.com", "help": "Shown on your Termii dashboard (API settings). No trailing slash." },
+      { "key": "api_key", "label": "API key", "type": "password", "required": true }
+    ] }
+  ],
+  "actions": [
+    {
+      "key": "send_message",
+      "name": "Send message",
+      "method": "POST",
+      "endpoint": "/sms/send",
+      "body": {
+        "api_key": "{{ credentials.api_key }}",
+        "to": "{{ inputs.to }}",
+        "from": "{{ inputs.from }}",
+        "sms": "{{ inputs.sms }}",
+        "type": "plain",
+        "channel": "{{ inputs.channel }}"
+      },
+      "inputs": [
+        { "key": "to", "label": "To (international format, no +)", "type": "string", "required": true, "placeholder": "2347065250817" },
+        { "key": "from", "label": "Sender ID", "type": "string", "required": true, "help": "An approved sender ID, or your WhatsApp device name for the WhatsApp channel." },
+        { "key": "sms", "label": "Message", "type": "text", "required": true },
+        { "key": "channel", "label": "Route", "type": "select", "default": "generic", "options": [
+          { "value": "generic", "label": "Generic" }, { "value": "dnd", "label": "DND (transactional)" }, { "value": "whatsapp", "label": "WhatsApp" }
+        ] }
+      ]
+    },
+    {
+      "key": "send_otp",
+      "name": "Send OTP",
+      "description": "Returns a pinId to pass to Verify OTP.",
+      "method": "POST",
+      "endpoint": "/sms/otp/send",
+      "body": {
+        "api_key": "{{ credentials.api_key }}",
+        "message_type": "NUMERIC",
+        "pin_type": "NUMERIC",
+        "to": "{{ inputs.to }}",
+        "from": "{{ inputs.from }}",
+        "channel": "{{ inputs.channel }}",
+        "pin_attempts": "{{ inputs.pin_attempts }}",
+        "pin_time_to_live": "{{ inputs.pin_time_to_live }}",
+        "pin_length": "{{ inputs.pin_length }}",
+        "pin_placeholder": "{{ inputs.pin_placeholder }}",
+        "message_text": "{{ inputs.message_text }}"
+      },
+      "inputs": [
+        { "key": "to", "label": "To (international format, no +)", "type": "string", "required": true },
+        { "key": "from", "label": "Sender ID", "type": "string", "required": true },
+        { "key": "message_text", "label": "Message", "type": "text", "required": true, "placeholder": "Your login code is < 1234 >", "help": "Must contain the PIN placeholder." },
+        { "key": "pin_placeholder", "label": "PIN placeholder", "type": "string", "required": true, "default": "< 1234 >" },
+        { "key": "channel", "label": "Route", "type": "select", "default": "generic", "options": [
+          { "value": "generic", "label": "Generic" }, { "value": "dnd", "label": "DND (transactional)" }, { "value": "whatsapp", "label": "WhatsApp" }
+        ] },
+        { "key": "pin_length", "label": "PIN length (4-8)", "type": "number", "default": 6 },
+        { "key": "pin_attempts", "label": "Allowed attempts", "type": "number", "default": 3 },
+        { "key": "pin_time_to_live", "label": "Valid for (minutes, 0-60)", "type": "number", "default": 10 }
+      ]
+    },
+    {
+      "key": "verify_otp",
+      "name": "Verify OTP",
+      "method": "POST",
+      "endpoint": "/sms/otp/verify",
+      "body": { "api_key": "{{ credentials.api_key }}", "pin_id": "{{ inputs.pin_id }}", "pin": "{{ inputs.pin }}" },
+      "inputs": [
+        { "key": "pin_id", "label": "PIN ID", "type": "string", "required": true, "help": "pinId returned by Send OTP." },
+        { "key": "pin", "label": "PIN entered by the user", "type": "string", "required": true }
+      ]
+    },
+    {
+      "key": "get_balance",
+      "name": "Get balance",
+      "method": "GET",
+      "endpoint": "/get-balance",
+      "query": { "api_key": "{{ credentials.api_key }}" },
+      "inputs": []
+    }
+  ]
+}

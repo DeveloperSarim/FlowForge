@@ -1,0 +1,79 @@
+{
+  "key": "databricks",
+  "name": "Databricks",
+  "category": "Databases",
+  "description": "Run SQL on a SQL warehouse, trigger jobs and check their runs.",
+  "brand": "databricks",
+  "website": "https://www.databricks.com",
+  "docs_url": "https://docs.databricks.com/api/workspace/statementexecution",
+  "popular": true,
+  "base_url": "{{ credentials.workspace_url }}",
+  "auth": { "type": "bearer", "fields": [
+    { "key": "workspace_url", "label": "Workspace URL", "type": "string", "required": true, "placeholder": "https://dbc-a1b2c3d4-e5f6.cloud.databricks.com", "help": "No trailing slash." },
+    { "key": "token", "label": "Personal access token", "type": "password", "required": true, "help": "User Settings → Developer → Access tokens." }
+  ] },
+  "actions": [
+    {
+      "key": "execute_sql",
+      "name": "Execute SQL statement",
+      "description": "Waits up to the wait timeout for results, then returns a statement_id to poll.",
+      "method": "POST",
+      "endpoint": "/api/2.0/sql/statements",
+      "timeout": 90,
+      "body": { "statement": "{{ inputs.statement }}", "warehouse_id": "{{ inputs.warehouse_id }}", "catalog": "{{ inputs.catalog }}", "schema": "{{ inputs.schema }}", "parameters": "{{ inputs.parameters }}", "wait_timeout": "{{ inputs.wait_timeout }}", "format": "JSON_ARRAY", "disposition": "INLINE" },
+      "inputs": [
+        { "key": "statement", "label": "SQL", "type": "code", "required": true, "placeholder": "SELECT * FROM main.sales.orders WHERE region = :region LIMIT 100" },
+        { "key": "warehouse_id", "label": "SQL warehouse ID", "type": "string", "required": true },
+        { "key": "catalog", "label": "Catalog", "type": "string" },
+        { "key": "schema", "label": "Schema", "type": "string" },
+        { "key": "parameters", "label": "Parameters (JSON array)", "type": "json", "placeholder": "[{ \"name\": \"region\", \"value\": \"EMEA\" }]" },
+        { "key": "wait_timeout", "label": "Wait timeout", "type": "string", "default": "30s", "help": "0s, or 5s to 50s." }
+      ]
+    },
+    {
+      "key": "get_statement",
+      "name": "Get statement result",
+      "method": "GET",
+      "endpoint": "/api/2.0/sql/statements/{{ inputs.statement_id }}",
+      "inputs": [{ "key": "statement_id", "label": "Statement ID", "type": "string", "required": true }]
+    },
+    {
+      "key": "list_warehouses",
+      "name": "List SQL warehouses",
+      "method": "GET",
+      "endpoint": "/api/2.0/sql/warehouses",
+      "output_path": "warehouses",
+      "inputs": []
+    },
+    {
+      "key": "run_job",
+      "name": "Run job now",
+      "method": "POST",
+      "endpoint": "/api/2.2/jobs/run-now",
+      "body": { "job_id": "{{ inputs.job_id }}", "job_parameters": "{{ inputs.job_parameters }}" },
+      "inputs": [
+        { "key": "job_id", "label": "Job ID", "type": "number", "required": true },
+        { "key": "job_parameters", "label": "Job parameters", "type": "keyvalue" }
+      ]
+    },
+    {
+      "key": "get_run",
+      "name": "Get job run",
+      "method": "GET",
+      "endpoint": "/api/2.2/jobs/runs/get",
+      "query": { "run_id": "{{ inputs.run_id }}" },
+      "inputs": [{ "key": "run_id", "label": "Run ID", "type": "number", "required": true }]
+    },
+    {
+      "key": "list_jobs",
+      "name": "List jobs",
+      "method": "GET",
+      "endpoint": "/api/2.2/jobs/list",
+      "query": { "name": "{{ inputs.name }}", "limit": "{{ inputs.limit }}" },
+      "inputs": [
+        { "key": "name", "label": "Name (exact)", "type": "string" },
+        { "key": "limit", "label": "Limit (max 100)", "type": "number" }
+      ]
+    }
+  ]
+}

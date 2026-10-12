@@ -1,0 +1,121 @@
+{
+  "key": "matrix",
+  "name": "Matrix",
+  "category": "Communication",
+  "description": "Send messages, create rooms and invite users on any Matrix homeserver (Element etc.).",
+  "brand": "matrix",
+  "website": "https://matrix.org",
+  "docs_url": "https://spec.matrix.org/latest/client-server-api/",
+  "base_url": "{{ credentials.homeserver_url }}/_matrix/client/v3",
+  "auth": [
+    { "type": "bearer", "fields": [
+      { "key": "homeserver_url", "label": "Homeserver URL", "type": "string", "required": true, "placeholder": "https://matrix-client.matrix.org", "help": "The client API URL of your homeserver, no trailing slash." },
+      { "key": "token", "label": "Access token", "type": "password", "required": true, "help": "Element: Settings → Help & About → Access Token. Prefer a dedicated bot account." }
+    ] }
+  ],
+  "actions": [
+    {
+      "key": "send_message",
+      "name": "Send text message",
+      "method": "PUT",
+      "endpoint": "/rooms/{{ inputs.room_id }}/send/m.room.message/{{ inputs.txn_id }}",
+      "body": { "msgtype": "{{ inputs.msgtype }}", "body": "{{ inputs.body }}" },
+      "inputs": [
+        { "key": "room_id", "label": "Room ID", "type": "string", "required": true, "placeholder": "!abcdefg:matrix.org", "help": "Room settings → Advanced → Internal room ID. The account must have joined the room." },
+        { "key": "body", "label": "Message", "type": "text", "required": true },
+        { "key": "msgtype", "label": "Type", "type": "select", "default": "m.text", "options": [
+          { "value": "m.text", "label": "Text" }, { "value": "m.notice", "label": "Notice (bot message)" }
+        ] },
+        { "key": "txn_id", "label": "Transaction ID", "type": "string", "required": true, "default": "{{ execution.id }}-{{ now }}", "help": "Must be unique per message: a repeated ID returns the earlier event instead of sending. If one run sends several Matrix messages, add a different suffix to each." }
+      ]
+    },
+    {
+      "key": "send_html_message",
+      "name": "Send formatted (HTML) message",
+      "method": "PUT",
+      "endpoint": "/rooms/{{ inputs.room_id }}/send/m.room.message/{{ inputs.txn_id }}",
+      "body": { "msgtype": "m.text", "body": "{{ inputs.body }}", "format": "org.matrix.custom.html", "formatted_body": "{{ inputs.html }}" },
+      "inputs": [
+        { "key": "room_id", "label": "Room ID", "type": "string", "required": true, "placeholder": "!abcdefg:matrix.org" },
+        { "key": "html", "label": "HTML", "type": "text", "required": true, "placeholder": "<b>Build failed</b> on <code>main</code>" },
+        { "key": "body", "label": "Plain-text fallback", "type": "text", "required": true },
+        { "key": "txn_id", "label": "Transaction ID", "type": "string", "required": true, "default": "{{ execution.id }}-{{ now }}", "help": "Must be unique per message; add a suffix if one run sends several messages." }
+      ]
+    },
+    {
+      "key": "create_room",
+      "name": "Create room",
+      "method": "POST",
+      "endpoint": "/createRoom",
+      "body": {
+        "name": "{{ inputs.name }}",
+        "topic": "{{ inputs.topic }}",
+        "preset": "{{ inputs.preset }}",
+        "room_alias_name": "{{ inputs.alias }}",
+        "invite": "{{ inputs.invite }}",
+        "is_direct": "{{ inputs.is_direct }}"
+      },
+      "inputs": [
+        { "key": "name", "label": "Name", "type": "string" },
+        { "key": "topic", "label": "Topic", "type": "string" },
+        { "key": "preset", "label": "Preset", "type": "select", "default": "private_chat", "options": [
+          { "value": "private_chat", "label": "Private (invite only)" },
+          { "value": "trusted_private_chat", "label": "Trusted private (invitees are admins)" },
+          { "value": "public_chat", "label": "Public" }
+        ] },
+        { "key": "alias", "label": "Alias (local part)", "type": "string", "placeholder": "team-alerts" },
+        { "key": "invite", "label": "Invite user IDs", "type": "list", "placeholder": "@alice:matrix.org" },
+        { "key": "is_direct", "label": "Direct chat", "type": "boolean" }
+      ]
+    },
+    {
+      "key": "invite_user",
+      "name": "Invite user to room",
+      "method": "POST",
+      "endpoint": "/rooms/{{ inputs.room_id }}/invite",
+      "body": { "user_id": "{{ inputs.user_id }}", "reason": "{{ inputs.reason }}" },
+      "inputs": [
+        { "key": "room_id", "label": "Room ID", "type": "string", "required": true },
+        { "key": "user_id", "label": "User ID", "type": "string", "required": true, "placeholder": "@alice:matrix.org" },
+        { "key": "reason", "label": "Reason", "type": "string" }
+      ]
+    },
+    {
+      "key": "join_room",
+      "name": "Join room",
+      "method": "POST",
+      "endpoint": "/join/{{ inputs.room }}",
+      "inputs": [
+        { "key": "room", "label": "Room ID or alias", "type": "string", "required": true, "placeholder": "#general:matrix.org" }
+      ]
+    },
+    {
+      "key": "get_messages",
+      "name": "Get recent messages",
+      "method": "GET",
+      "endpoint": "/rooms/{{ inputs.room_id }}/messages",
+      "query": { "dir": "b", "limit": "{{ inputs.limit }}", "filter": "{\"types\":[\"m.room.message\"]}" },
+      "output_path": "chunk",
+      "inputs": [
+        { "key": "room_id", "label": "Room ID", "type": "string", "required": true },
+        { "key": "limit", "label": "Max messages", "type": "number", "default": 20 }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_message",
+      "name": "New message in room",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/rooms/{{ inputs.room_id }}/messages",
+      "query": { "dir": "b", "limit": 50, "filter": "{\"types\":[\"m.room.message\"]}" },
+      "items_path": "chunk",
+      "id_field": "event_id",
+      "inputs": [
+        { "key": "room_id", "label": "Room ID", "type": "string", "required": true },
+        { "key": "poll_interval", "label": "Check every (minutes)", "type": "number", "default": 5 }
+      ]
+    }
+  ]
+}

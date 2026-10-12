@@ -1,0 +1,244 @@
+{
+  "key": "instamojo",
+  "name": "Instamojo",
+  "category": "Payments & Finance",
+  "description": "Create payment requests, check payments and raise refunds with Instamojo.",
+  "brand": "instamojo",
+  "website": "https://www.instamojo.com",
+  "docs_url": "https://docs.instamojo.com/docs/payments-api",
+  "base_url": "{{ credentials.environment }}",
+  "headers": {
+    "X-Api-Key": "{{ credentials.api_key }}",
+    "X-Auth-Token": "{{ credentials.auth_token }}"
+  },
+  "auth": [
+    {
+      "type": "api_key",
+      "fields": [
+        {
+          "key": "api_key",
+          "label": "Private API key",
+          "type": "password",
+          "required": true,
+          "help": "Dashboard > API & Plugins."
+        },
+        {
+          "key": "auth_token",
+          "label": "Private auth token",
+          "type": "password",
+          "required": true
+        },
+        {
+          "key": "environment",
+          "label": "Environment",
+          "type": "select",
+          "required": true,
+          "options": [
+            {
+              "value": "https://www.instamojo.com/api/1.1",
+              "label": "Production"
+            },
+            {
+              "value": "https://test.instamojo.com/api/1.1",
+              "label": "Test"
+            }
+          ],
+          "default": "https://www.instamojo.com/api/1.1"
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "create_payment_request",
+      "name": "Create payment request",
+      "method": "POST",
+      "endpoint": "/payment-requests/",
+      "body": {
+        "purpose": "{{ inputs.purpose }}",
+        "amount": "{{ inputs.amount }}",
+        "buyer_name": "{{ inputs.buyer_name }}",
+        "email": "{{ inputs.email }}",
+        "phone": "{{ inputs.phone }}",
+        "redirect_url": "{{ inputs.redirect_url }}",
+        "webhook": "{{ inputs.webhook_url }}",
+        "send_email": "{{ inputs.send_email }}",
+        "send_sms": "{{ inputs.send_sms }}",
+        "allow_repeated_payments": "{{ inputs.allow_repeated_payments }}"
+      },
+      "body_format": "form",
+      "output_fields": {
+        "url": "payment_request.longurl"
+      },
+      "inputs": [
+        {
+          "key": "purpose",
+          "label": "Purpose",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "amount",
+          "label": "Amount (INR)",
+          "type": "number",
+          "required": true,
+          "help": "Minimum ₹9."
+        },
+        {
+          "key": "buyer_name",
+          "label": "Buyer name",
+          "type": "string"
+        },
+        {
+          "key": "email",
+          "label": "Buyer email",
+          "type": "string"
+        },
+        {
+          "key": "phone",
+          "label": "Buyer phone",
+          "type": "string"
+        },
+        {
+          "key": "redirect_url",
+          "label": "Redirect URL",
+          "type": "string"
+        },
+        {
+          "key": "webhook_url",
+          "label": "Webhook URL",
+          "type": "string",
+          "help": "Paste this app's webhook trigger URL to get notified."
+        },
+        {
+          "key": "send_email",
+          "label": "Email the buyer",
+          "type": "boolean"
+        },
+        {
+          "key": "send_sms",
+          "label": "SMS the buyer",
+          "type": "boolean"
+        },
+        {
+          "key": "allow_repeated_payments",
+          "label": "Allow repeated payments",
+          "type": "boolean"
+        }
+      ]
+    },
+    {
+      "key": "get_payment_request",
+      "name": "Get payment request",
+      "method": "GET",
+      "endpoint": "/payment-requests/{{ inputs.payment_request_id }}/",
+      "inputs": [
+        {
+          "key": "payment_request_id",
+          "label": "Payment request ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "get_payment",
+      "name": "Get payment",
+      "method": "GET",
+      "endpoint": "/payments/{{ inputs.payment_id }}/",
+      "inputs": [
+        {
+          "key": "payment_id",
+          "label": "Payment ID",
+          "type": "string",
+          "required": true,
+          "placeholder": "MOJO…"
+        }
+      ]
+    },
+    {
+      "key": "create_refund",
+      "name": "Create refund",
+      "method": "POST",
+      "endpoint": "/refunds/",
+      "body": {
+        "payment_id": "{{ inputs.payment_id }}",
+        "type": "{{ inputs.type }}",
+        "body": "{{ inputs.reason }}",
+        "refund_amount": "{{ inputs.amount }}"
+      },
+      "body_format": "form",
+      "inputs": [
+        {
+          "key": "payment_id",
+          "label": "Payment ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "type",
+          "label": "Reason code",
+          "type": "select",
+          "options": [
+            {
+              "value": "RFD",
+              "label": "Duplicate/delayed payment"
+            },
+            {
+              "value": "TNR",
+              "label": "Product/service not received"
+            },
+            {
+              "value": "QFL",
+              "label": "Quality not as expected"
+            },
+            {
+              "value": "QNR",
+              "label": "Not as described"
+            },
+            {
+              "value": "EWN",
+              "label": "Customer changed their mind"
+            },
+            {
+              "value": "TAN",
+              "label": "Event cancelled/unavailable"
+            },
+            {
+              "value": "PTH",
+              "label": "Other"
+            }
+          ],
+          "required": true
+        },
+        {
+          "key": "reason",
+          "label": "Explanation",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "amount",
+          "label": "Refund amount",
+          "type": "number",
+          "help": "Blank = full refund."
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Pass this URL as \"Webhook URL\" when creating a payment request; Instamojo posts the payment result to it.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

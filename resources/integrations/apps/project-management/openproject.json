@@ -1,0 +1,193 @@
+{
+  "key": "openproject",
+  "name": "OpenProject",
+  "category": "Project Management",
+  "description": "Create, comment on and list OpenProject work packages.",
+  "brand": "openproject",
+  "website": "https://www.openproject.org",
+  "docs_url": "https://www.openproject.org/docs/api/",
+  "base_url": "{{ credentials.url }}/api/v3",
+  "auth": {
+    "type": "basic",
+    "fields": [
+      {
+        "key": "url",
+        "label": "OpenProject URL",
+        "type": "string",
+        "required": true,
+        "placeholder": "https://yourteam.openproject.com"
+      },
+      {
+        "key": "username",
+        "label": "Username",
+        "type": "string",
+        "required": true,
+        "default": "apikey",
+        "help": "Keep the literal text apikey."
+      },
+      {
+        "key": "password",
+        "label": "API token",
+        "type": "password",
+        "required": true,
+        "help": "My account > Access tokens > API."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_projects",
+      "name": "List projects",
+      "method": "GET",
+      "endpoint": "/projects",
+      "output_path": "_embedded.elements",
+      "inputs": []
+    },
+    {
+      "key": "create_work_package",
+      "name": "Create work package",
+      "method": "POST",
+      "endpoint": "/projects/{{ inputs.project_id }}/work_packages",
+      "body": {
+        "subject": "{{ inputs.subject }}",
+        "description": {
+          "format": "markdown",
+          "raw": "{{ inputs.description }}"
+        },
+        "_links": {
+          "type": {
+            "href": "/api/v3/types/{{ inputs.type_id }}"
+          }
+        }
+      },
+      "inputs": [
+        {
+          "key": "project_id",
+          "label": "Project ID or identifier",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "subject",
+          "label": "Subject",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "description",
+          "label": "Description (Markdown)",
+          "type": "text"
+        },
+        {
+          "key": "type_id",
+          "label": "Type ID",
+          "type": "number",
+          "required": true,
+          "default": 1,
+          "help": "1 = Task on a default install; see /api/v3/types."
+        }
+      ]
+    },
+    {
+      "key": "get_work_package",
+      "name": "Get work package",
+      "method": "GET",
+      "endpoint": "/work_packages/{{ inputs.work_package_id }}",
+      "inputs": [
+        {
+          "key": "work_package_id",
+          "label": "Work package ID",
+          "type": "number",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "add_comment",
+      "name": "Add comment",
+      "method": "POST",
+      "endpoint": "/work_packages/{{ inputs.work_package_id }}/activities",
+      "body": {
+        "comment": {
+          "raw": "{{ inputs.comment }}"
+        }
+      },
+      "inputs": [
+        {
+          "key": "work_package_id",
+          "label": "Work package ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "comment",
+          "label": "Comment (Markdown)",
+          "type": "text",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_work_packages",
+      "name": "List work packages",
+      "method": "GET",
+      "endpoint": "/work_packages",
+      "query": {
+        "filters": "{{ inputs.filters }}",
+        "sortBy": "[[\"createdAt\",\"desc\"]]",
+        "pageSize": "{{ inputs.page_size }}"
+      },
+      "output_path": "_embedded.elements",
+      "inputs": [
+        {
+          "key": "filters",
+          "label": "Filters (JSON)",
+          "type": "string",
+          "placeholder": "[{\"status\":{\"operator\":\"o\",\"values\":[]}}]"
+        },
+        {
+          "key": "page_size",
+          "label": "Max results",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_work_package",
+      "name": "New work package",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/work_packages",
+      "query": {
+        "sortBy": "[[\"createdAt\",\"desc\"]]",
+        "pageSize": 50
+      },
+      "items_path": "_embedded.elements",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    },
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Add this URL under Administration > API and webhooks > Webhooks.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,52 @@
+{
+  "key": "pagerduty-to-slack",
+  "name": "Mirror PagerDuty incidents into Slack",
+  "description": "New incidents are posted to your incident channel.",
+  "category": "Monitoring",
+  "featured": false,
+  "graph": {
+    "nodes": [
+      {
+        "id": "trigger",
+        "type": "trigger",
+        "position": {
+          "x": 0,
+          "y": 200
+        },
+        "data": {
+          "integration": "pagerduty",
+          "trigger": "new_incident",
+          "label": "New incident",
+          "config": {
+            "poll_interval": 2
+          }
+        }
+      },
+      {
+        "id": "step_1",
+        "type": "action",
+        "position": {
+          "x": 240,
+          "y": 200
+        },
+        "data": {
+          "integration": "slack",
+          "action": "post_message",
+          "label": "Post to #incidents",
+          "config": {
+            "channel": "#incidents",
+            "text": "🚨 {{ steps.trigger.data.title }} ({{ steps.trigger.data.urgency }})\n{{ steps.trigger.data.html_url }}"
+          }
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "e-trigger-step_1",
+        "source": "trigger",
+        "target": "step_1",
+        "sourceHandle": null
+      }
+    ]
+  }
+}

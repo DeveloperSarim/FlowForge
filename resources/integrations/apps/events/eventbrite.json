@@ -1,0 +1,418 @@
+{
+  "key": "eventbrite",
+  "name": "Eventbrite",
+  "category": "Events & Webinars",
+  "description": "Create and publish events, list attendees and react to new orders.",
+  "brand": "eventbrite",
+  "website": "https://www.eventbrite.com",
+  "docs_url": "https://www.eventbrite.com/platform/api",
+  "popular": true,
+  "base_url": "https://www.eventbriteapi.com/v3",
+  "auth": [
+    {
+      "type": "bearer",
+      "fields": [
+        {
+          "key": "token",
+          "label": "Private token",
+          "type": "password",
+          "required": true,
+          "help": "Account settings > Developer links > API keys > Private token."
+        }
+      ]
+    },
+    {
+      "type": "oauth2",
+      "authorize_url": "https://www.eventbrite.com/oauth/authorize",
+      "token_url": "https://www.eventbrite.com/oauth/token"
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_organizations",
+      "name": "List my organizations",
+      "description": "Returns the organizations you belong to (their IDs are needed for events).",
+      "method": "GET",
+      "endpoint": "/users/me/organizations/",
+      "output_path": "organizations",
+      "inputs": []
+    },
+    {
+      "key": "list_events",
+      "name": "List organization events",
+      "method": "GET",
+      "endpoint": "/organizations/{{ inputs.organization_id }}/events/",
+      "query": {
+        "status": "{{ inputs.status }}",
+        "time_filter": "{{ inputs.time_filter }}",
+        "order_by": "{{ inputs.order_by }}",
+        "page_size": "{{ inputs.page_size }}"
+      },
+      "output_path": "events",
+      "inputs": [
+        {
+          "key": "organization_id",
+          "label": "Organization ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "options": [
+            {
+              "value": "draft",
+              "label": "Draft"
+            },
+            {
+              "value": "live",
+              "label": "Live"
+            },
+            {
+              "value": "started",
+              "label": "Started"
+            },
+            {
+              "value": "ended",
+              "label": "Ended"
+            },
+            {
+              "value": "completed",
+              "label": "Completed"
+            },
+            {
+              "value": "canceled",
+              "label": "Canceled"
+            },
+            {
+              "value": "all",
+              "label": "All"
+            }
+          ]
+        },
+        {
+          "key": "time_filter",
+          "label": "Time",
+          "type": "select",
+          "options": [
+            {
+              "value": "current_future",
+              "label": "Current and future"
+            },
+            {
+              "value": "past",
+              "label": "Past"
+            },
+            {
+              "value": "all",
+              "label": "All"
+            }
+          ]
+        },
+        {
+          "key": "order_by",
+          "label": "Order",
+          "type": "select",
+          "options": [
+            {
+              "value": "start_asc",
+              "label": "Start (oldest first)"
+            },
+            {
+              "value": "start_desc",
+              "label": "Start (newest first)"
+            },
+            {
+              "value": "created_asc",
+              "label": "Created (oldest first)"
+            },
+            {
+              "value": "created_desc",
+              "label": "Created (newest first)"
+            }
+          ]
+        },
+        {
+          "key": "page_size",
+          "label": "Max results",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    },
+    {
+      "key": "get_event",
+      "name": "Get event",
+      "method": "GET",
+      "endpoint": "/events/{{ inputs.event_id }}/",
+      "query": {
+        "expand": "{{ inputs.expand }}"
+      },
+      "inputs": [
+        {
+          "key": "event_id",
+          "label": "Event ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "expand",
+          "label": "Expand",
+          "type": "string",
+          "placeholder": "venue,ticket_classes,organizer"
+        }
+      ]
+    },
+    {
+      "key": "create_event",
+      "name": "Create event",
+      "description": "Creates a draft event. Add ticket classes, then publish it.",
+      "method": "POST",
+      "endpoint": "/organizations/{{ inputs.organization_id }}/events/",
+      "body": {
+        "event": {
+          "name": {
+            "html": "{{ inputs.name }}"
+          },
+          "description": {
+            "html": "{{ inputs.description }}"
+          },
+          "start": {
+            "timezone": "{{ inputs.timezone }}",
+            "utc": "{{ inputs.start_utc }}"
+          },
+          "end": {
+            "timezone": "{{ inputs.timezone }}",
+            "utc": "{{ inputs.end_utc }}"
+          },
+          "currency": "{{ inputs.currency }}",
+          "online_event": "{{ inputs.online_event }}",
+          "capacity": "{{ inputs.capacity }}"
+        }
+      },
+      "inputs": [
+        {
+          "key": "organization_id",
+          "label": "Organization ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "description",
+          "label": "Summary (HTML)",
+          "type": "text"
+        },
+        {
+          "key": "start_utc",
+          "label": "Start (UTC)",
+          "type": "string",
+          "required": true,
+          "placeholder": "2026-12-01T18:00:00Z",
+          "help": "Format YYYY-MM-DDThh:mm:ssZ, no milliseconds."
+        },
+        {
+          "key": "end_utc",
+          "label": "End (UTC)",
+          "type": "string",
+          "required": true,
+          "placeholder": "2026-12-01T21:00:00Z"
+        },
+        {
+          "key": "timezone",
+          "label": "Time zone",
+          "type": "string",
+          "required": true,
+          "placeholder": "Europe/London"
+        },
+        {
+          "key": "currency",
+          "label": "Currency",
+          "type": "string",
+          "required": true,
+          "placeholder": "USD"
+        },
+        {
+          "key": "online_event",
+          "label": "Online event",
+          "type": "boolean"
+        },
+        {
+          "key": "capacity",
+          "label": "Capacity",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "publish_event",
+      "name": "Publish event",
+      "description": "The event needs at least one ticket class first.",
+      "method": "POST",
+      "endpoint": "/events/{{ inputs.event_id }}/publish/",
+      "inputs": [
+        {
+          "key": "event_id",
+          "label": "Event ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_attendees",
+      "name": "List event attendees",
+      "method": "GET",
+      "endpoint": "/events/{{ inputs.event_id }}/attendees/",
+      "query": {
+        "status": "{{ inputs.status }}",
+        "changed_since": "{{ inputs.changed_since }}"
+      },
+      "output_path": "attendees",
+      "inputs": [
+        {
+          "key": "event_id",
+          "label": "Event ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "options": [
+            {
+              "value": "attending",
+              "label": "Attending"
+            },
+            {
+              "value": "not_attending",
+              "label": "Not attending"
+            },
+            {
+              "value": "unpaid",
+              "label": "Unpaid"
+            }
+          ]
+        },
+        {
+          "key": "changed_since",
+          "label": "Changed since (UTC)",
+          "type": "string",
+          "placeholder": "2026-10-01T00:00:00Z"
+        }
+      ]
+    },
+    {
+      "key": "get_order",
+      "name": "Get order",
+      "method": "GET",
+      "endpoint": "/orders/{{ inputs.order_id }}/",
+      "query": {
+        "expand": "{{ inputs.expand }}"
+      },
+      "inputs": [
+        {
+          "key": "order_id",
+          "label": "Order ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "expand",
+          "label": "Expand",
+          "type": "string",
+          "placeholder": "attendees,event"
+        }
+      ]
+    },
+    {
+      "key": "create_webhook",
+      "name": "Create webhook",
+      "method": "POST",
+      "endpoint": "/organizations/{{ inputs.organization_id }}/webhooks/",
+      "body": {
+        "endpoint_url": "{{ inputs.endpoint_url }}",
+        "actions": "{{ inputs.actions }}",
+        "event_id": "{{ inputs.event_id }}"
+      },
+      "inputs": [
+        {
+          "key": "organization_id",
+          "label": "Organization ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "endpoint_url",
+          "label": "Endpoint URL",
+          "type": "string",
+          "required": true,
+          "help": "Paste a workflow's Eventbrite webhook trigger URL."
+        },
+        {
+          "key": "actions",
+          "label": "Actions",
+          "type": "string",
+          "required": true,
+          "default": "order.placed",
+          "help": "Comma-separated, e.g. order.placed,attendee.updated,event.published."
+        },
+        {
+          "key": "event_id",
+          "label": "Only for event ID",
+          "type": "string"
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_event",
+      "name": "New event",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/organizations/{{ inputs.organization_id }}/events/",
+      "query": {
+        "order_by": "created_desc",
+        "status": "all",
+        "page_size": 50
+      },
+      "items_path": "events",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "organization_id",
+          "label": "Organization ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    },
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "order.placed, attendee.updated, event.published… Register the URL with Create webhook. The payload has an api_url to fetch the changed object.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

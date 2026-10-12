@@ -1,0 +1,80 @@
+{
+  "key": "poeditor",
+  "name": "POEditor",
+  "category": "Utilities",
+  "description": "List projects and terms, add terms and export translation files.",
+  "brand": "poeditor",
+  "website": "https://poeditor.com",
+  "docs_url": "https://poeditor.com/docs/api",
+  "base_url": "https://api.poeditor.com/v2",
+  "auth": { "type": "api_key", "fields": [
+    { "key": "api_key", "label": "API token", "type": "password", "required": true, "help": "Account settings → API Access. Sent as api_token in each form body." }
+  ] },
+  "actions": [
+    {
+      "key": "list_projects",
+      "name": "List projects",
+      "method": "POST",
+      "endpoint": "/projects/list",
+      "body_format": "form",
+      "body": { "api_token": "{{ credentials.api_key }}" },
+      "output_path": "result",
+      "inputs": []
+    },
+    {
+      "key": "list_languages",
+      "name": "List project languages",
+      "method": "POST",
+      "endpoint": "/languages/list",
+      "body_format": "form",
+      "body": { "api_token": "{{ credentials.api_key }}", "id": "{{ inputs.project_id }}" },
+      "output_path": "result",
+      "inputs": [{ "key": "project_id", "label": "Project ID", "type": "string", "required": true }]
+    },
+    {
+      "key": "list_terms",
+      "name": "List terms",
+      "method": "POST",
+      "endpoint": "/terms/list",
+      "body_format": "form",
+      "body": { "api_token": "{{ credentials.api_key }}", "id": "{{ inputs.project_id }}", "language": "{{ inputs.language }}" },
+      "output_path": "result",
+      "inputs": [
+        { "key": "project_id", "label": "Project ID", "type": "string", "required": true },
+        { "key": "language", "label": "Language code", "type": "string", "placeholder": "fr", "help": "Include translations in this language." }
+      ]
+    },
+    {
+      "key": "add_terms",
+      "name": "Add terms",
+      "method": "POST",
+      "endpoint": "/terms/add",
+      "body_format": "form",
+      "body": { "api_token": "{{ credentials.api_key }}", "id": "{{ inputs.project_id }}", "data": "{{ inputs.data }}" },
+      "output_path": "result",
+      "inputs": [
+        { "key": "project_id", "label": "Project ID", "type": "string", "required": true },
+        { "key": "data", "label": "Terms (JSON array)", "type": "code", "required": true, "placeholder": "[{\"term\": \"Add new list\", \"context\": \"\", \"reference\": \"\", \"tags\": [\"web\"]}]" }
+      ]
+    },
+    {
+      "key": "export_project",
+      "name": "Export translations",
+      "description": "Returns a temporary download URL for the file.",
+      "method": "POST",
+      "endpoint": "/projects/export",
+      "body_format": "form",
+      "body": { "api_token": "{{ credentials.api_key }}", "id": "{{ inputs.project_id }}", "language": "{{ inputs.language }}", "type": "{{ inputs.type }}" },
+      "output_path": "result",
+      "inputs": [
+        { "key": "project_id", "label": "Project ID", "type": "string", "required": true },
+        { "key": "language", "label": "Language code", "type": "string", "required": true },
+        { "key": "type", "label": "File type", "type": "select", "required": true, "default": "key_value_json", "options": [
+          { "value": "key_value_json", "label": "Key-value JSON" }, { "value": "json", "label": "JSON" }, { "value": "po", "label": "Gettext .po" },
+          { "value": "xliff", "label": "XLIFF" }, { "value": "android_strings", "label": "Android strings" }, { "value": "apple_strings", "label": "Apple strings" },
+          { "value": "yml", "label": "YAML" }, { "value": "csv", "label": "CSV" }, { "value": "xlsx", "label": "Excel" }, { "value": "properties", "label": "Java properties" }
+        ] }
+      ]
+    }
+  ]
+}

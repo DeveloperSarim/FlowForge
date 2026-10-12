@@ -1,0 +1,211 @@
+{
+  "key": "clover",
+  "name": "Clover",
+  "category": "E-commerce",
+  "description": "Read orders, items and payments and create customers in a Clover merchant.",
+  "brand": "clover",
+  "website": "https://www.clover.com",
+  "docs_url": "https://docs.clover.com/dev/reference/api-reference-overview",
+  "base_url": "{{ credentials.region }}/v3/merchants/{{ credentials.merchant_id }}",
+  "auth": [
+    {
+      "type": "bearer",
+      "fields": [
+        {
+          "key": "token",
+          "label": "API token",
+          "type": "password",
+          "required": true,
+          "help": "Merchant Dashboard > Account & Setup > API Tokens, or an OAuth access token."
+        },
+        {
+          "key": "merchant_id",
+          "label": "Merchant ID",
+          "type": "string",
+          "required": true,
+          "help": "13-character ID shown in the dashboard URL."
+        },
+        {
+          "key": "region",
+          "label": "Region",
+          "type": "select",
+          "required": true,
+          "options": [
+            {
+              "value": "https://api.clover.com",
+              "label": "North America"
+            },
+            {
+              "value": "https://api.eu.clover.com",
+              "label": "Europe"
+            },
+            {
+              "value": "https://api.la.clover.com",
+              "label": "Latin America"
+            },
+            {
+              "value": "https://apisandbox.dev.clover.com",
+              "label": "Sandbox"
+            }
+          ],
+          "default": "https://api.clover.com"
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_orders",
+      "name": "List orders",
+      "method": "GET",
+      "endpoint": "/orders",
+      "query": {
+        "limit": "{{ inputs.limit }}",
+        "filter": "{{ inputs.filter }}",
+        "expand": "{{ inputs.expand }}"
+      },
+      "output_path": "elements",
+      "inputs": [
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 50
+        },
+        {
+          "key": "filter",
+          "label": "Filter",
+          "type": "string",
+          "placeholder": "state=open"
+        },
+        {
+          "key": "expand",
+          "label": "Expand",
+          "type": "string",
+          "placeholder": "lineItems,payments"
+        }
+      ]
+    },
+    {
+      "key": "get_order",
+      "name": "Get order",
+      "method": "GET",
+      "endpoint": "/orders/{{ inputs.order_id }}",
+      "query": {
+        "expand": "{{ inputs.expand }}"
+      },
+      "inputs": [
+        {
+          "key": "order_id",
+          "label": "Order ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "expand",
+          "label": "Expand",
+          "type": "string",
+          "placeholder": "lineItems,payments"
+        }
+      ]
+    },
+    {
+      "key": "list_items",
+      "name": "List items",
+      "method": "GET",
+      "endpoint": "/items",
+      "query": {
+        "limit": "{{ inputs.limit }}",
+        "filter": "{{ inputs.filter }}"
+      },
+      "output_path": "elements",
+      "inputs": [
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 100
+        },
+        {
+          "key": "filter",
+          "label": "Filter",
+          "type": "string",
+          "placeholder": "sku=ABC-1"
+        }
+      ]
+    },
+    {
+      "key": "list_payments",
+      "name": "List payments",
+      "method": "GET",
+      "endpoint": "/payments",
+      "query": {
+        "limit": "{{ inputs.limit }}",
+        "filter": "{{ inputs.filter }}"
+      },
+      "output_path": "elements",
+      "inputs": [
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 50
+        },
+        {
+          "key": "filter",
+          "label": "Filter",
+          "type": "string",
+          "placeholder": "result=SUCCESS"
+        }
+      ]
+    },
+    {
+      "key": "create_customer",
+      "name": "Create customer",
+      "method": "POST",
+      "endpoint": "/customers",
+      "body": {
+        "firstName": "{{ inputs.first_name }}",
+        "lastName": "{{ inputs.last_name }}",
+        "emailAddresses": [
+          {
+            "emailAddress": "{{ inputs.email }}"
+          }
+        ]
+      },
+      "inputs": [
+        {
+          "key": "first_name",
+          "label": "First name",
+          "type": "string"
+        },
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string"
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Paste this URL in your Clover app (Developer Dashboard > App settings > Webhooks). Clover first posts a verificationCode, visible in the test payload.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

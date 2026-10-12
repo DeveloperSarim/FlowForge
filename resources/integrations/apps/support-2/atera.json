@@ -1,0 +1,68 @@
+{
+  "key": "atera",
+  "name": "Atera",
+  "category": "Customer Support",
+  "description": "Open and look up IT help desk tickets in Atera.",
+  "brand": "atera",
+  "website": "https://www.atera.com",
+  "docs_url": "https://app.atera.com/apidocs",
+  "base_url": "https://app.atera.com/api/v3",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "X-API-KEY",
+    "fields": [{ "key": "api_key", "label": "API key", "type": "password", "required": true, "help": "Admin > Data management > API" }]
+  },
+  "actions": [
+    {
+      "key": "create_ticket",
+      "name": "Create ticket",
+      "method": "POST",
+      "endpoint": "/tickets",
+      "body": {
+        "TicketTitle": "{{ inputs.title }}",
+        "Description": "{{ inputs.description }}",
+        "EndUserID": "{{ inputs.end_user_id }}",
+        "EndUserEmail": "{{ inputs.end_user_email }}",
+        "EndUserFirstName": "{{ inputs.end_user_first_name }}",
+        "EndUserLastName": "{{ inputs.end_user_last_name }}",
+        "TicketPriority": "{{ inputs.priority }}",
+        "TicketImpact": "{{ inputs.impact }}",
+        "TicketType": "{{ inputs.type }}",
+        "TechnicianContactID": "{{ inputs.technician_id }}"
+      },
+      "inputs": [
+        { "key": "title", "label": "Title", "type": "string", "required": true },
+        { "key": "description", "label": "Description", "type": "text", "required": true },
+        { "key": "end_user_id", "label": "End user (contact) ID", "type": "number", "help": "Or give an email below" },
+        { "key": "end_user_email", "label": "End user email", "type": "string" },
+        { "key": "end_user_first_name", "label": "End user first name", "type": "string", "help": "Used when the email is new" },
+        { "key": "end_user_last_name", "label": "End user last name", "type": "string" },
+        { "key": "priority", "label": "Priority", "type": "select", "options": [{ "value": "Low", "label": "Low" }, { "value": "Medium", "label": "Medium" }, { "value": "High", "label": "High" }, { "value": "Critical", "label": "Critical" }] },
+        { "key": "impact", "label": "Impact", "type": "select", "options": [{ "value": "NoImpact", "label": "No impact" }, { "value": "Minor", "label": "Minor" }, { "value": "Major", "label": "Major" }, { "value": "SiteDown", "label": "Site down" }, { "value": "ServerIssue", "label": "Server issue" }, { "value": "Crisis", "label": "Crisis" }] },
+        { "key": "type", "label": "Type", "type": "select", "options": [{ "value": "Problem", "label": "Problem" }, { "value": "Bug", "label": "Bug" }, { "value": "Request", "label": "Request" }, { "value": "Incident", "label": "Incident" }, { "value": "Change", "label": "Change" }, { "value": "Other", "label": "Other" }] },
+        { "key": "technician_id", "label": "Technician contact ID", "type": "number" }
+      ]
+    },
+    {
+      "key": "get_ticket",
+      "name": "Get ticket",
+      "method": "GET",
+      "endpoint": "/tickets/{{ inputs.ticket_id }}",
+      "inputs": [{ "key": "ticket_id", "label": "Ticket ID", "type": "number", "required": true }]
+    },
+    {
+      "key": "list_tickets",
+      "name": "List tickets",
+      "method": "GET",
+      "endpoint": "/tickets",
+      "output_path": "items",
+      "query": { "ticketStatus": "{{ inputs.status }}", "page": "{{ inputs.page }}", "itemsInPage": "{{ inputs.per_page }}" },
+      "inputs": [
+        { "key": "status", "label": "Status", "type": "select", "options": [{ "value": "Open", "label": "Open" }, { "value": "Pending", "label": "Pending" }, { "value": "Resolved", "label": "Resolved" }, { "value": "Closed", "label": "Closed" }] },
+        { "key": "page", "label": "Page", "type": "number", "default": 1 },
+        { "key": "per_page", "label": "Items per page", "type": "number", "default": 20 }
+      ]
+    }
+  ]
+}

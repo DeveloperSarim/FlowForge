@@ -1,0 +1,130 @@
+{
+  "key": "bitwarden",
+  "name": "Bitwarden (organization)",
+  "category": "Security & IT",
+  "brand": "bitwarden",
+  "description": "Manage organization members, groups and collections; read the event log.",
+  "website": "https://bitwarden.com",
+  "docs_url": "https://bitwarden.com/help/api/",
+  "base_url": "https://api.bitwarden.com/public",
+  "auth": {
+    "type": "oauth2_client_credentials",
+    "token_url": "https://identity.bitwarden.com/connect/token",
+    "scopes": [
+      "api.organization"
+    ],
+    "fields": [
+      {
+        "key": "client_id",
+        "label": "Client ID (organization.…)",
+        "type": "string",
+        "required": true,
+        "help": "Admin Console → Settings → Organization info → API key."
+      },
+      {
+        "key": "client_secret",
+        "label": "Client secret",
+        "type": "password",
+        "required": true
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_members",
+      "name": "List members",
+      "method": "GET",
+      "endpoint": "/members",
+      "inputs": []
+    },
+    {
+      "key": "invite_member",
+      "name": "Invite member",
+      "method": "POST",
+      "endpoint": "/members",
+      "body": {
+        "email": "{{ inputs.email }}",
+        "type": "{{ inputs.type }}",
+        "accessAll": false
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "type",
+          "label": "Role",
+          "type": "select",
+          "default": "2",
+          "options": [
+            {
+              "value": "2",
+              "label": "User"
+            },
+            {
+              "value": "1",
+              "label": "Admin"
+            },
+            {
+              "value": "0",
+              "label": "Owner"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "remove_member",
+      "name": "Remove member",
+      "method": "DELETE",
+      "endpoint": "/members/{{ inputs.member_id }}",
+      "inputs": [
+        {
+          "key": "member_id",
+          "label": "Member ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_groups",
+      "name": "List groups",
+      "method": "GET",
+      "endpoint": "/groups",
+      "inputs": []
+    },
+    {
+      "key": "list_collections",
+      "name": "List collections",
+      "method": "GET",
+      "endpoint": "/collections",
+      "inputs": []
+    },
+    {
+      "key": "list_events",
+      "name": "List events",
+      "method": "GET",
+      "endpoint": "/events",
+      "query": {
+        "start": "{{ inputs.start }}",
+        "end": "{{ inputs.end }}"
+      },
+      "inputs": [
+        {
+          "key": "start",
+          "label": "From (ISO date)",
+          "type": "string"
+        },
+        {
+          "key": "end",
+          "label": "To (ISO date)",
+          "type": "string"
+        }
+      ]
+    }
+  ]
+}

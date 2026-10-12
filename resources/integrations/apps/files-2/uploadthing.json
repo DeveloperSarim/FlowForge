@@ -1,0 +1,126 @@
+{
+  "key": "uploadthing",
+  "name": "UploadThing",
+  "category": "Files & Documents",
+  "description": "List, rename and delete files and get signed URLs in UploadThing.",
+  "brand": "uploadthing",
+  "website": "https://uploadthing.com",
+  "docs_url": "https://docs.uploadthing.com/api-reference/openapi-spec",
+  "base_url": "https://api.uploadthing.com",
+  "auth": [
+    {
+      "type": "api_key",
+      "in": "header",
+      "name": "x-uploadthing-api-key",
+      "fields": [
+        {
+          "key": "api_key",
+          "label": "Secret key",
+          "type": "password",
+          "required": true,
+          "help": "Dashboard > API Keys, the sk_live_... secret key."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_files",
+      "name": "List files",
+      "method": "POST",
+      "endpoint": "/v6/listFiles",
+      "body": {
+        "limit": "{{ inputs.limit }}",
+        "offset": "{{ inputs.offset }}"
+      },
+      "inputs": [
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number"
+        },
+        {
+          "key": "offset",
+          "label": "Offset",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "get_signed_url",
+      "name": "Get signed URL",
+      "description": "Returns a temporary URL for a private file.",
+      "method": "POST",
+      "endpoint": "/v6/requestFileAccess",
+      "body": {
+        "fileKey": "{{ inputs.file_key }}",
+        "expiresIn": "{{ inputs.expires_in }}"
+      },
+      "inputs": [
+        {
+          "key": "file_key",
+          "label": "File key",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "expires_in",
+          "label": "Expires in (seconds)",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "rename_file",
+      "name": "Rename file",
+      "method": "POST",
+      "endpoint": "/v6/renameFiles",
+      "body": {
+        "updates": [
+          {
+            "fileKey": "{{ inputs.file_key }}",
+            "newName": "{{ inputs.new_name }}"
+          }
+        ]
+      },
+      "inputs": [
+        {
+          "key": "file_key",
+          "label": "File key",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "new_name",
+          "label": "New name",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "delete_files",
+      "name": "Delete files",
+      "method": "POST",
+      "endpoint": "/v6/deleteFiles",
+      "body": {
+        "fileKeys": "{{ inputs.file_keys }}"
+      },
+      "inputs": [
+        {
+          "key": "file_keys",
+          "label": "File keys",
+          "type": "list",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "get_usage",
+      "name": "Get usage info",
+      "method": "POST",
+      "endpoint": "/v6/getUsageInfo",
+      "inputs": []
+    }
+  ]
+}

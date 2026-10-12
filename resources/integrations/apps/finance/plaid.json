@@ -1,0 +1,148 @@
+{
+  "key": "plaid",
+  "name": "Plaid",
+  "category": "Payments & Finance",
+  "description": "Read linked bank accounts, balances and transactions through Plaid.",
+  "brand": "plaid",
+  "website": "https://plaid.com",
+  "docs_url": "https://plaid.com/docs/api/",
+  "base_url": "https://{{ credentials.environment }}",
+  "headers": {
+    "PLAID-CLIENT-ID": "{{ credentials.client_id }}",
+    "PLAID-SECRET": "{{ credentials.api_key }}"
+  },
+  "auth": [
+    {
+      "type": "api_key",
+      "fields": [
+        {
+          "key": "environment",
+          "label": "Environment",
+          "type": "select",
+          "required": true,
+          "default": "production.plaid.com",
+          "options": [
+            {
+              "value": "production.plaid.com",
+              "label": "Production"
+            },
+            {
+              "value": "sandbox.plaid.com",
+              "label": "Sandbox"
+            }
+          ]
+        },
+        {
+          "key": "client_id",
+          "label": "Client ID",
+          "type": "string",
+          "required": true,
+          "help": "Dashboard > Developers > Keys."
+        },
+        {
+          "key": "api_key",
+          "label": "Secret",
+          "type": "password",
+          "required": true,
+          "help": "The secret for the selected environment."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "get_accounts",
+      "name": "Get accounts",
+      "method": "POST",
+      "endpoint": "/accounts/get",
+      "body": {
+        "access_token": "{{ inputs.access_token }}"
+      },
+      "inputs": [
+        {
+          "key": "access_token",
+          "label": "Item access token",
+          "type": "password",
+          "required": true,
+          "help": "access-… token from exchanging a Link public_token."
+        }
+      ]
+    },
+    {
+      "key": "get_balance",
+      "name": "Get real-time balance",
+      "method": "POST",
+      "endpoint": "/accounts/balance/get",
+      "body": {
+        "access_token": "{{ inputs.access_token }}"
+      },
+      "inputs": [
+        {
+          "key": "access_token",
+          "label": "Item access token",
+          "type": "password",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "sync_transactions",
+      "name": "Sync transactions",
+      "description": "Returns added/modified/removed transactions since the cursor.",
+      "method": "POST",
+      "endpoint": "/transactions/sync",
+      "body": {
+        "access_token": "{{ inputs.access_token }}",
+        "cursor": "{{ inputs.cursor }}",
+        "count": "{{ inputs.count }}"
+      },
+      "inputs": [
+        {
+          "key": "access_token",
+          "label": "Item access token",
+          "type": "password",
+          "required": true
+        },
+        {
+          "key": "cursor",
+          "label": "Cursor",
+          "type": "string",
+          "help": "next_cursor from the previous call; blank for full history."
+        },
+        {
+          "key": "count",
+          "label": "Count",
+          "type": "number",
+          "default": 100
+        }
+      ]
+    },
+    {
+      "key": "get_institution",
+      "name": "Get institution",
+      "method": "POST",
+      "endpoint": "/institutions/get_by_id",
+      "body": {
+        "institution_id": "{{ inputs.institution_id }}",
+        "country_codes": "{{ inputs.country_codes }}"
+      },
+      "inputs": [
+        {
+          "key": "institution_id",
+          "label": "Institution ID",
+          "type": "string",
+          "required": true,
+          "placeholder": "ins_109508"
+        },
+        {
+          "key": "country_codes",
+          "label": "Country codes",
+          "type": "list",
+          "required": true,
+          "placeholder": "US"
+        }
+      ]
+    }
+  ],
+  "triggers": []
+}

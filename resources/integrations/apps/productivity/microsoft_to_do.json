@@ -1,0 +1,157 @@
+{
+  "key": "microsoft_to_do",
+  "name": "Microsoft To Do",
+  "category": "Productivity",
+  "description": "Create, list and complete tasks in Microsoft To Do.",
+  "brand": "microsofttodo",
+  "website": "https://to-do.office.com",
+  "docs_url": "https://learn.microsoft.com/en-us/graph/api/resources/todo-overview",
+  "base_url": "https://graph.microsoft.com/v1.0",
+  "auth": [
+    {
+      "type": "oauth2",
+      "authorize_url": "https://login.microsoftonline.com/common/oauth2/v2.0/authorize",
+      "token_url": "https://login.microsoftonline.com/common/oauth2/v2.0/token",
+      "scopes": [
+        "offline_access",
+        "Tasks.ReadWrite"
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_task_lists",
+      "name": "List task lists",
+      "method": "GET",
+      "endpoint": "/me/todo/lists",
+      "output_path": "value",
+      "inputs": []
+    },
+    {
+      "key": "create_task",
+      "name": "Create task",
+      "method": "POST",
+      "endpoint": "/me/todo/lists/{{ inputs.list_id }}/tasks",
+      "body": {
+        "title": "{{ inputs.title }}",
+        "body": {
+          "content": "{{ inputs.note }}",
+          "contentType": "text"
+        },
+        "dueDateTime": {
+          "dateTime": "{{ inputs.due }}",
+          "timeZone": "{{ inputs.time_zone }}"
+        },
+        "importance": "{{ inputs.importance }}"
+      },
+      "inputs": [
+        {
+          "key": "list_id",
+          "label": "Task list ID",
+          "type": "string",
+          "required": true,
+          "help": "Get it from List task lists."
+        },
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "note",
+          "label": "Note",
+          "type": "text"
+        },
+        {
+          "key": "due",
+          "label": "Due date-time",
+          "type": "string",
+          "placeholder": "2026-10-12T17:00:00"
+        },
+        {
+          "key": "time_zone",
+          "label": "Time zone",
+          "type": "string",
+          "placeholder": "UTC",
+          "help": "Required when a due date is set."
+        },
+        {
+          "key": "importance",
+          "label": "Importance",
+          "type": "select",
+          "options": [
+            {
+              "value": "low",
+              "label": "Low"
+            },
+            {
+              "value": "normal",
+              "label": "Normal"
+            },
+            {
+              "value": "high",
+              "label": "High"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "list_tasks",
+      "name": "List tasks",
+      "method": "GET",
+      "endpoint": "/me/todo/lists/{{ inputs.list_id }}/tasks",
+      "query": {
+        "$filter": "{{ inputs.filter }}",
+        "$top": "{{ inputs.top }}"
+      },
+      "output_path": "value",
+      "inputs": [
+        {
+          "key": "list_id",
+          "label": "Task list ID",
+          "type": "string",
+          "required": true,
+          "help": "Get it from List task lists."
+        },
+        {
+          "key": "filter",
+          "label": "Filter ($filter)",
+          "type": "string",
+          "placeholder": "status ne 'completed'"
+        },
+        {
+          "key": "top",
+          "label": "Max results",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    },
+    {
+      "key": "complete_task",
+      "name": "Complete task",
+      "method": "PATCH",
+      "endpoint": "/me/todo/lists/{{ inputs.list_id }}/tasks/{{ inputs.task_id }}",
+      "body": {
+        "status": "completed"
+      },
+      "inputs": [
+        {
+          "key": "list_id",
+          "label": "Task list ID",
+          "type": "string",
+          "required": true,
+          "help": "Get it from List task lists."
+        },
+        {
+          "key": "task_id",
+          "label": "Task ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ]
+}

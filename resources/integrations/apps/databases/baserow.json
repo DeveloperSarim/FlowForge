@@ -1,0 +1,86 @@
+{
+  "key": "baserow",
+  "name": "Baserow",
+  "category": "Databases",
+  "description": "List, get, create, update and delete rows in Baserow tables.",
+  "brand": "baserow",
+  "website": "https://baserow.io",
+  "docs_url": "https://baserow.io/api-docs",
+  "popular": true,
+  "base_url": "{{ credentials.base_url }}/api",
+  "auth": { "type": "api_key", "in": "header", "name": "Authorization", "prefix": "Token ", "fields": [
+    { "key": "base_url", "label": "Baserow URL", "type": "string", "required": true, "default": "https://api.baserow.io", "help": "https://api.baserow.io for Baserow Cloud, or your self-hosted URL." },
+    { "key": "api_key", "label": "Database token", "type": "password", "required": true, "help": "Settings → Database tokens." }
+  ] },
+  "actions": [
+    {
+      "key": "list_rows",
+      "name": "List rows",
+      "method": "GET",
+      "endpoint": "/database/rows/table/{{ inputs.table_id }}/",
+      "query": { "user_field_names": "true", "search": "{{ inputs.search }}", "order_by": "{{ inputs.order_by }}", "filters": "{{ inputs.filters }}", "size": "{{ inputs.size }}" },
+      "output_path": "results",
+      "inputs": [
+        { "key": "table_id", "label": "Table ID", "type": "number", "required": true },
+        { "key": "search", "label": "Search", "type": "string" },
+        { "key": "order_by", "label": "Order by", "type": "string", "placeholder": "-Created", "help": "Field names, comma-separated; prefix - for descending." },
+        { "key": "filters", "label": "Filters (JSON)", "type": "code", "placeholder": "{\"filter_type\":\"AND\",\"filters\":[{\"type\":\"equal\",\"field\":\"Status\",\"value\":\"Open\"}]}" },
+        { "key": "size", "label": "Limit", "type": "number", "default": 100 }
+      ]
+    },
+    {
+      "key": "get_row",
+      "name": "Get row",
+      "method": "GET",
+      "endpoint": "/database/rows/table/{{ inputs.table_id }}/{{ inputs.row_id }}/",
+      "query": { "user_field_names": "true" },
+      "inputs": [
+        { "key": "table_id", "label": "Table ID", "type": "number", "required": true },
+        { "key": "row_id", "label": "Row ID", "type": "number", "required": true }
+      ]
+    },
+    {
+      "key": "create_row",
+      "name": "Create row",
+      "method": "POST",
+      "endpoint": "/database/rows/table/{{ inputs.table_id }}/",
+      "query": { "user_field_names": "true" },
+      "body": "{{ inputs.fields }}",
+      "inputs": [
+        { "key": "table_id", "label": "Table ID", "type": "number", "required": true },
+        { "key": "fields", "label": "Fields (JSON)", "type": "json", "required": true, "placeholder": "{ \"Name\": \"Ada\", \"Email\": \"ada@example.com\" }", "help": "Keys are field names." }
+      ]
+    },
+    {
+      "key": "update_row",
+      "name": "Update row",
+      "method": "PATCH",
+      "endpoint": "/database/rows/table/{{ inputs.table_id }}/{{ inputs.row_id }}/",
+      "query": { "user_field_names": "true" },
+      "body": "{{ inputs.fields }}",
+      "inputs": [
+        { "key": "table_id", "label": "Table ID", "type": "number", "required": true },
+        { "key": "row_id", "label": "Row ID", "type": "number", "required": true },
+        { "key": "fields", "label": "Fields to change (JSON)", "type": "json", "required": true }
+      ]
+    },
+    {
+      "key": "delete_row",
+      "name": "Delete row",
+      "method": "DELETE",
+      "endpoint": "/database/rows/table/{{ inputs.table_id }}/{{ inputs.row_id }}/",
+      "inputs": [
+        { "key": "table_id", "label": "Table ID", "type": "number", "required": true },
+        { "key": "row_id", "label": "Row ID", "type": "number", "required": true }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "table_webhook",
+      "name": "Table webhook (rows created / updated / deleted)",
+      "type": "webhook",
+      "inputs": [{ "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }]
+    }
+  ]
+}

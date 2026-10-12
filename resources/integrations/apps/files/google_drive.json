@@ -1,0 +1,343 @@
+{
+  "key": "google_drive",
+  "name": "Google Drive",
+  "category": "Files & Documents",
+  "description": "Search, organize, copy and share files and folders in Google Drive.",
+  "brand": "googledrive",
+  "website": "https://www.google.com/drive/",
+  "docs_url": "https://developers.google.com/drive/api/reference/rest/v3",
+  "popular": true,
+  "base_url": "https://www.googleapis.com/drive/v3",
+  "auth": [
+    {
+      "type": "oauth2",
+      "authorize_url": "https://accounts.google.com/o/oauth2/v2/auth",
+      "token_url": "https://oauth2.googleapis.com/token",
+      "scopes": [
+        "https://www.googleapis.com/auth/drive"
+      ],
+      "authorize_params": {
+        "access_type": "offline",
+        "prompt": "consent"
+      }
+    },
+    {
+      "type": "google_service_account",
+      "scopes": [
+        "https://www.googleapis.com/auth/drive"
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_files",
+      "name": "Search files",
+      "description": "Lists files matching a Drive search query.",
+      "method": "GET",
+      "endpoint": "/files",
+      "query": {
+        "q": "{{ inputs.q }}",
+        "pageSize": "{{ inputs.page_size }}",
+        "orderBy": "{{ inputs.order_by }}",
+        "fields": "nextPageToken,files(id,name,mimeType,parents,webViewLink,createdTime,modifiedTime,size)",
+        "supportsAllDrives": "true",
+        "includeItemsFromAllDrives": "true"
+      },
+      "inputs": [
+        {
+          "key": "q",
+          "label": "Search query",
+          "type": "string",
+          "placeholder": "name contains 'invoice' and trashed = false",
+          "help": "Drive query syntax. Files in a folder: 'FOLDER_ID' in parents"
+        },
+        {
+          "key": "page_size",
+          "label": "Max results",
+          "type": "number",
+          "default": 100
+        },
+        {
+          "key": "order_by",
+          "label": "Order by",
+          "type": "string",
+          "default": "modifiedTime desc"
+        }
+      ]
+    },
+    {
+      "key": "create_folder",
+      "name": "Create folder",
+      "method": "POST",
+      "endpoint": "/files",
+      "query": {
+        "supportsAllDrives": "true",
+        "fields": "id,name,mimeType,parents,webViewLink,createdTime,modifiedTime,size"
+      },
+      "body": {
+        "name": "{{ inputs.name }}",
+        "mimeType": "application/vnd.google-apps.folder",
+        "parents": "{{ inputs.parent_ids }}"
+      },
+      "inputs": [
+        {
+          "key": "name",
+          "label": "Folder name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "parent_ids",
+          "label": "Parent folder ID",
+          "type": "list",
+          "help": "Leave empty for My Drive root."
+        }
+      ]
+    },
+    {
+      "key": "create_google_file",
+      "name": "Create Google Doc / Sheet / Slides",
+      "description": "Creates an empty Google Docs, Sheets or Slides file.",
+      "method": "POST",
+      "endpoint": "/files",
+      "query": {
+        "supportsAllDrives": "true",
+        "fields": "id,name,mimeType,parents,webViewLink,createdTime,modifiedTime,size"
+      },
+      "body": {
+        "name": "{{ inputs.name }}",
+        "mimeType": "{{ inputs.mime_type }}",
+        "parents": "{{ inputs.parent_ids }}"
+      },
+      "inputs": [
+        {
+          "key": "name",
+          "label": "File name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "mime_type",
+          "label": "Type",
+          "type": "select",
+          "options": [
+            {
+              "value": "application/vnd.google-apps.document",
+              "label": "Google Doc"
+            },
+            {
+              "value": "application/vnd.google-apps.spreadsheet",
+              "label": "Google Sheet"
+            },
+            {
+              "value": "application/vnd.google-apps.presentation",
+              "label": "Google Slides"
+            }
+          ],
+          "required": true,
+          "default": "application/vnd.google-apps.document"
+        },
+        {
+          "key": "parent_ids",
+          "label": "Parent folder ID",
+          "type": "list",
+          "help": "Leave empty for My Drive root."
+        }
+      ]
+    },
+    {
+      "key": "copy_file",
+      "name": "Copy file",
+      "method": "POST",
+      "endpoint": "/files/{{ inputs.file_id }}/copy",
+      "query": {
+        "supportsAllDrives": "true",
+        "fields": "id,name,mimeType,parents,webViewLink,createdTime,modifiedTime,size"
+      },
+      "body": {
+        "name": "{{ inputs.name }}",
+        "parents": "{{ inputs.parent_ids }}"
+      },
+      "inputs": [
+        {
+          "key": "file_id",
+          "label": "File ID",
+          "type": "string",
+          "required": true,
+          "help": "The id in the file URL: /d/<ID>/"
+        },
+        {
+          "key": "name",
+          "label": "New name",
+          "type": "string"
+        },
+        {
+          "key": "parent_ids",
+          "label": "Parent folder ID",
+          "type": "list",
+          "help": "Leave empty for My Drive root."
+        }
+      ]
+    },
+    {
+      "key": "share_file",
+      "name": "Share file",
+      "description": "Gives a user, group, domain or anyone access to a file or folder.",
+      "method": "POST",
+      "endpoint": "/files/{{ inputs.file_id }}/permissions",
+      "query": {
+        "sendNotificationEmail": "{{ inputs.notify }}",
+        "emailMessage": "{{ inputs.message }}",
+        "supportsAllDrives": "true"
+      },
+      "body": {
+        "type": "{{ inputs.type }}",
+        "role": "{{ inputs.role }}",
+        "emailAddress": "{{ inputs.email }}",
+        "domain": "{{ inputs.domain }}"
+      },
+      "inputs": [
+        {
+          "key": "file_id",
+          "label": "File ID",
+          "type": "string",
+          "required": true,
+          "help": "The id in the file URL: /d/<ID>/"
+        },
+        {
+          "key": "type",
+          "label": "Share with",
+          "type": "select",
+          "options": [
+            {
+              "value": "user",
+              "label": "User"
+            },
+            {
+              "value": "group",
+              "label": "Group"
+            },
+            {
+              "value": "domain",
+              "label": "Domain"
+            },
+            {
+              "value": "anyone",
+              "label": "Anyone with the link"
+            }
+          ],
+          "required": true,
+          "default": "user"
+        },
+        {
+          "key": "role",
+          "label": "Role",
+          "type": "select",
+          "options": [
+            {
+              "value": "reader",
+              "label": "Viewer"
+            },
+            {
+              "value": "commenter",
+              "label": "Commenter"
+            },
+            {
+              "value": "writer",
+              "label": "Editor"
+            }
+          ],
+          "required": true,
+          "default": "reader"
+        },
+        {
+          "key": "email",
+          "label": "Email address",
+          "type": "string",
+          "help": "For user or group."
+        },
+        {
+          "key": "domain",
+          "label": "Domain",
+          "type": "string",
+          "placeholder": "example.com",
+          "help": "For domain."
+        },
+        {
+          "key": "notify",
+          "label": "Send notification email",
+          "type": "select",
+          "options": [
+            {
+              "value": "true",
+              "label": "Yes"
+            },
+            {
+              "value": "false",
+              "label": "No"
+            }
+          ],
+          "default": "true",
+          "help": "Only applies to users and groups."
+        },
+        {
+          "key": "message",
+          "label": "Email message",
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "key": "delete_file",
+      "name": "Delete file",
+      "description": "Permanently deletes a file or folder (skips the trash).",
+      "method": "DELETE",
+      "endpoint": "/files/{{ inputs.file_id }}",
+      "query": {
+        "supportsAllDrives": "true"
+      },
+      "inputs": [
+        {
+          "key": "file_id",
+          "label": "File ID",
+          "type": "string",
+          "required": true,
+          "help": "The id in the file URL: /d/<ID>/"
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_file",
+      "name": "New file",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/files",
+      "query": {
+        "q": "{{ inputs.q }}",
+        "orderBy": "createdTime desc",
+        "pageSize": 50,
+        "fields": "files(id,name,mimeType,parents,webViewLink,createdTime,modifiedTime,size)",
+        "supportsAllDrives": "true",
+        "includeItemsFromAllDrives": "true"
+      },
+      "items_path": "files",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "q",
+          "label": "Only files matching",
+          "type": "string",
+          "placeholder": "'FOLDER_ID' in parents and trashed = false"
+        },
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

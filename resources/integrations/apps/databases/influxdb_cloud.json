@@ -1,0 +1,54 @@
+{
+  "key": "influxdb_cloud",
+  "name": "InfluxDB Cloud",
+  "category": "Databases",
+  "description": "Write points in line protocol, run Flux queries and list buckets.",
+  "brand": "influxdb",
+  "website": "https://www.influxdata.com/products/influxdb-cloud/",
+  "docs_url": "https://docs.influxdata.com/influxdb/cloud/api/",
+  "base_url": "{{ credentials.base_url }}",
+  "auth": { "type": "api_key", "in": "header", "name": "Authorization", "prefix": "Token ", "fields": [
+    { "key": "base_url", "label": "Cloud region URL", "type": "string", "required": true, "placeholder": "https://us-east-1-1.aws.cloud2.influxdata.com", "help": "The host of your InfluxDB Cloud UI, without a trailing slash." },
+    { "key": "org", "label": "Organization name or ID", "type": "string", "required": true },
+    { "key": "api_key", "label": "API token", "type": "password", "required": true }
+  ] },
+  "actions": [
+    {
+      "key": "write_points",
+      "name": "Write points",
+      "method": "POST",
+      "endpoint": "/api/v2/write",
+      "query": { "org": "{{ credentials.org }}", "bucket": "{{ inputs.bucket }}", "precision": "{{ inputs.precision }}" },
+      "headers": { "Content-Type": "text/plain; charset=utf-8" },
+      "body": "{{ inputs.lines }}",
+      "inputs": [
+        { "key": "bucket", "label": "Bucket", "type": "string", "required": true },
+        { "key": "lines", "label": "Line protocol", "type": "code", "required": true, "placeholder": "temperature,room=kitchen value=21.5" },
+        { "key": "precision", "label": "Timestamp precision", "type": "select", "default": "ns", "options": [
+          { "value": "ns", "label": "Nanoseconds" }, { "value": "us", "label": "Microseconds" }, { "value": "ms", "label": "Milliseconds" }, { "value": "s", "label": "Seconds" }
+        ] }
+      ]
+    },
+    {
+      "key": "flux_query",
+      "name": "Run Flux query",
+      "description": "Returns annotated CSV. Not available on InfluxDB Cloud Serverless (v3).",
+      "method": "POST",
+      "endpoint": "/api/v2/query",
+      "query": { "org": "{{ credentials.org }}" },
+      "body": { "query": "{{ inputs.query }}", "type": "flux" },
+      "inputs": [
+        { "key": "query", "label": "Flux", "type": "code", "required": true, "placeholder": "from(bucket: \"sensors\") |> range(start: -1h)" }
+      ]
+    },
+    {
+      "key": "list_buckets",
+      "name": "List buckets",
+      "method": "GET",
+      "endpoint": "/api/v2/buckets",
+      "query": { "org": "{{ credentials.org }}", "name": "{{ inputs.name }}" },
+      "output_path": "buckets",
+      "inputs": [{ "key": "name", "label": "Name", "type": "string" }]
+    }
+  ]
+}

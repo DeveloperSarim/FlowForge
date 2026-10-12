@@ -1,0 +1,54 @@
+{
+  "key": "plausible",
+  "name": "Plausible Analytics",
+  "category": "Analytics",
+  "description": "Query site stats and record custom events (cloud or self-hosted).",
+  "brand": "plausibleanalytics",
+  "website": "https://plausible.io",
+  "docs_url": "https://plausible.io/docs/stats-api",
+  "popular": true,
+  "base_url": "{{ credentials.host }}",
+  "auth": { "type": "bearer", "fields": [
+    { "key": "host", "label": "Plausible URL", "type": "string", "required": true, "default": "https://plausible.io", "help": "Change only for self-hosted Plausible CE." },
+    { "key": "token", "label": "Stats API key", "type": "password", "required": true, "help": "Account settings > API keys." }
+  ] },
+  "actions": [
+    {
+      "key": "query",
+      "name": "Query stats",
+      "method": "POST",
+      "endpoint": "/api/v2/query",
+      "body": { "site_id": "{{ inputs.site_id }}", "metrics": "{{ inputs.metrics }}", "date_range": "{{ inputs.date_range }}", "dimensions": "{{ inputs.dimensions }}", "filters": "{{ inputs.filters }}" },
+      "output_path": "results",
+      "inputs": [
+        { "key": "site_id", "label": "Site domain", "type": "string", "required": true, "placeholder": "example.com" },
+        { "key": "metrics", "label": "Metrics", "type": "list", "required": true, "default": ["visitors", "pageviews"], "help": "visitors, visits, pageviews, views_per_visit, bounce_rate, visit_duration, events, conversion_rate" },
+        { "key": "date_range", "label": "Date range", "type": "select", "required": true, "default": "7d", "options": [
+          { "value": "day", "label": "Today" }, { "value": "24h", "label": "Last 24 hours" }, { "value": "7d", "label": "Last 7 days" }, { "value": "28d", "label": "Last 28 days" },
+          { "value": "30d", "label": "Last 30 days" }, { "value": "91d", "label": "Last 91 days" }, { "value": "month", "label": "This month" },
+          { "value": "6mo", "label": "Last 6 months" }, { "value": "12mo", "label": "Last 12 months" }, { "value": "year", "label": "This year" }, { "value": "all", "label": "All time" }
+        ] },
+        { "key": "dimensions", "label": "Group by", "type": "list", "placeholder": "visit:source", "help": "e.g. event:page, visit:source, visit:country_name, time:day" },
+        { "key": "filters", "label": "Filters", "type": "json", "placeholder": "[[\"is\", \"visit:country_name\", [\"Germany\"]]]" }
+      ]
+    },
+    {
+      "key": "send_event",
+      "name": "Record event",
+      "description": "Sends a pageview or custom event from your server.",
+      "method": "POST",
+      "endpoint": "/api/event",
+      "headers": { "User-Agent": "{{ inputs.user_agent }}", "X-Forwarded-For": "{{ inputs.ip }}" },
+      "body": { "domain": "{{ inputs.domain }}", "name": "{{ inputs.name }}", "url": "{{ inputs.url }}", "referrer": "{{ inputs.referrer }}", "props": "{{ inputs.props }}" },
+      "inputs": [
+        { "key": "domain", "label": "Site domain", "type": "string", "required": true },
+        { "key": "name", "label": "Event name", "type": "string", "required": true, "default": "pageview" },
+        { "key": "url", "label": "Page URL", "type": "string", "required": true },
+        { "key": "referrer", "label": "Referrer", "type": "string" },
+        { "key": "props", "label": "Custom properties", "type": "keyvalue" },
+        { "key": "user_agent", "label": "Visitor User-Agent", "type": "string", "help": "Used with the IP to count unique visitors." },
+        { "key": "ip", "label": "Visitor IP", "type": "string" }
+      ]
+    }
+  ]
+}

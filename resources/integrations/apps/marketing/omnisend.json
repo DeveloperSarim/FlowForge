@@ -1,0 +1,132 @@
+{
+  "key": "omnisend",
+  "name": "Omnisend",
+  "category": "Marketing & Email",
+  "description": "Create or update contacts and send custom events.",
+  "brand": "omnisend",
+  "website": "https://www.omnisend.com",
+  "docs_url": "https://api-docs.omnisend.com/reference",
+  "base_url": "https://api.omnisend.com/v5",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "X-API-KEY",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "upsert_contact",
+      "name": "Create or update contact",
+      "method": "POST",
+      "endpoint": "/contacts",
+      "body": {
+        "identifiers": [
+          {
+            "type": "email",
+            "id": "{{ inputs.email }}",
+            "channels": {
+              "email": {
+                "status": "{{ inputs.status }}",
+                "statusDate": "{{ inputs.status_date }}"
+              }
+            }
+          }
+        ],
+        "firstName": "{{ inputs.first_name }}",
+        "lastName": "{{ inputs.last_name }}",
+        "tags": "{{ inputs.tags }}"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "first_name",
+          "label": "First name",
+          "type": "string"
+        },
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string"
+        },
+        {
+          "key": "tags",
+          "label": "Tags",
+          "type": "list"
+        },
+        {
+          "key": "status",
+          "label": "Email status",
+          "type": "select",
+          "required": true,
+          "options": [
+            {
+              "value": "subscribed",
+              "label": "Subscribed"
+            },
+            {
+              "value": "nonSubscribed",
+              "label": "Non-subscribed"
+            },
+            {
+              "value": "unsubscribed",
+              "label": "Unsubscribed"
+            }
+          ],
+          "default": "subscribed"
+        },
+        {
+          "key": "status_date",
+          "label": "Status date (ISO 8601)",
+          "type": "string",
+          "placeholder": "2026-01-31T10:00:00Z"
+        }
+      ]
+    },
+    {
+      "key": "send_event",
+      "name": "Send custom event",
+      "description": "Triggers automations listening for this event.",
+      "method": "POST",
+      "endpoint": "/events",
+      "body": {
+        "eventName": "{{ inputs.event_name }}",
+        "origin": "api",
+        "contact": {
+          "email": "{{ inputs.email }}"
+        },
+        "properties": "{{ inputs.properties }}"
+      },
+      "inputs": [
+        {
+          "key": "event_name",
+          "label": "Event name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "properties",
+          "label": "Properties",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

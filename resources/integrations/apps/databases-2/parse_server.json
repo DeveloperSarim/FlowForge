@@ -1,0 +1,106 @@
+{
+  "key": "parse_server",
+  "name": "Parse Server",
+  "category": "Databases",
+  "description": "Query, create, update and delete objects and run Cloud Code on a self-hosted Parse Server.",
+  "brand": "parse",
+  "website": "https://parseplatform.org",
+  "docs_url": "https://docs.parseplatform.org/rest/guide/",
+  "base_url": "{{ credentials.server_url }}",
+  "headers": { "X-Parse-Application-Id": "{{ credentials.app_id }}" },
+  "auth": { "type": "api_key", "in": "header", "name": "X-Parse-Master-Key", "fields": [
+    { "key": "server_url", "label": "Server URL", "type": "string", "required": true, "placeholder": "https://example.com/parse", "help": "serverURL including the mount path, no trailing slash." },
+    { "key": "app_id", "label": "Application ID", "type": "string", "required": true },
+    { "key": "api_key", "label": "Master key", "type": "password", "required": true, "help": "Parse Server 6+ only accepts the master key from masterKeyIps; add FlowForge's IP there." }
+  ] },
+  "actions": [
+    {
+      "key": "query_objects",
+      "name": "Query objects",
+      "method": "GET",
+      "endpoint": "/classes/{{ inputs.class_name }}",
+      "query": { "where": "{{ inputs.where }}", "order": "{{ inputs.order }}", "keys": "{{ inputs.keys }}", "include": "{{ inputs.include }}", "limit": "{{ inputs.limit }}", "skip": "{{ inputs.skip }}" },
+      "output_path": "results",
+      "inputs": [
+        { "key": "class_name", "label": "Class", "type": "string", "required": true },
+        { "key": "where", "label": "Where (JSON)", "type": "string", "placeholder": "{\"status\": \"active\", \"score\": {\"$gte\": 10}}" },
+        { "key": "order", "label": "Order", "type": "string", "placeholder": "-createdAt" },
+        { "key": "keys", "label": "Fields", "type": "string" },
+        { "key": "include", "label": "Include pointers", "type": "string" },
+        { "key": "limit", "label": "Limit", "type": "number" },
+        { "key": "skip", "label": "Skip", "type": "number" }
+      ]
+    },
+    {
+      "key": "get_object",
+      "name": "Get object",
+      "method": "GET",
+      "endpoint": "/classes/{{ inputs.class_name }}/{{ inputs.object_id }}",
+      "inputs": [
+        { "key": "class_name", "label": "Class", "type": "string", "required": true },
+        { "key": "object_id", "label": "Object ID", "type": "string", "required": true }
+      ]
+    },
+    {
+      "key": "create_object",
+      "name": "Create object",
+      "method": "POST",
+      "endpoint": "/classes/{{ inputs.class_name }}",
+      "body": "{{ inputs.data }}",
+      "inputs": [
+        { "key": "class_name", "label": "Class", "type": "string", "required": true },
+        { "key": "data", "label": "Fields (JSON)", "type": "json", "required": true }
+      ]
+    },
+    {
+      "key": "update_object",
+      "name": "Update object",
+      "method": "PUT",
+      "endpoint": "/classes/{{ inputs.class_name }}/{{ inputs.object_id }}",
+      "body": "{{ inputs.data }}",
+      "inputs": [
+        { "key": "class_name", "label": "Class", "type": "string", "required": true },
+        { "key": "object_id", "label": "Object ID", "type": "string", "required": true },
+        { "key": "data", "label": "Fields to change (JSON)", "type": "json", "required": true }
+      ]
+    },
+    {
+      "key": "delete_object",
+      "name": "Delete object",
+      "method": "DELETE",
+      "endpoint": "/classes/{{ inputs.class_name }}/{{ inputs.object_id }}",
+      "inputs": [
+        { "key": "class_name", "label": "Class", "type": "string", "required": true },
+        { "key": "object_id", "label": "Object ID", "type": "string", "required": true }
+      ]
+    },
+    {
+      "key": "call_function",
+      "name": "Run Cloud Code function",
+      "method": "POST",
+      "endpoint": "/functions/{{ inputs.function }}",
+      "body": "{{ inputs.params }}",
+      "output_path": "result",
+      "inputs": [
+        { "key": "function", "label": "Function name", "type": "string", "required": true },
+        { "key": "params", "label": "Parameters (JSON)", "type": "json" }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_object",
+      "name": "New object",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/classes/{{ inputs.class_name }}",
+      "query": { "order": "-createdAt", "limit": 50 },
+      "items_path": "results",
+      "id_field": "objectId",
+      "inputs": [
+        { "key": "class_name", "label": "Class", "type": "string", "required": true },
+        { "key": "poll_interval", "label": "Check every (minutes)", "type": "number", "default": 5 }
+      ]
+    }
+  ]
+}

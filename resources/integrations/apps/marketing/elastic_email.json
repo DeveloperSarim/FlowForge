@@ -1,0 +1,160 @@
+{
+  "key": "elastic_email",
+  "name": "Elastic Email",
+  "category": "Marketing & Email",
+  "description": "Send transactional email and manage contacts and unsubscribes.",
+  "brand": "elasticemail",
+  "website": "https://elasticemail.com",
+  "docs_url": "https://elasticemail.com/developers/api-documentation/rest-api",
+  "base_url": "https://api.elasticemail.com/v4",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "X-ElasticEmail-ApiKey",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "send_email",
+      "name": "Send transactional email",
+      "method": "POST",
+      "endpoint": "/emails/transactional",
+      "body": {
+        "Recipients": {
+          "To": "{{ inputs.to }}"
+        },
+        "Content": {
+          "From": "{{ inputs.from }}",
+          "Subject": "{{ inputs.subject }}",
+          "Body": [
+            {
+              "ContentType": "HTML",
+              "Content": "{{ inputs.html }}",
+              "Charset": "utf-8"
+            }
+          ]
+        }
+      },
+      "inputs": [
+        {
+          "key": "to",
+          "label": "To",
+          "type": "list",
+          "required": true
+        },
+        {
+          "key": "from",
+          "label": "From",
+          "type": "string",
+          "required": true,
+          "placeholder": "Acme <hello@example.com>"
+        },
+        {
+          "key": "subject",
+          "label": "Subject",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "html",
+          "label": "HTML body",
+          "type": "text",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "add_contact",
+      "name": "Add contact",
+      "method": "POST",
+      "endpoint": "/contacts",
+      "query": {
+        "listnames": "{{ inputs.list_names }}"
+      },
+      "body": [
+        {
+          "Email": "{{ inputs.email }}",
+          "FirstName": "{{ inputs.first_name }}",
+          "LastName": "{{ inputs.last_name }}"
+        }
+      ],
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "first_name",
+          "label": "First name",
+          "type": "string"
+        },
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string"
+        },
+        {
+          "key": "list_names",
+          "label": "List names",
+          "type": "string",
+          "help": "Comma-separated, optional."
+        }
+      ]
+    },
+    {
+      "key": "get_contact",
+      "name": "Get contact",
+      "method": "GET",
+      "endpoint": "/contacts/{{ inputs.email }}",
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "unsubscribe",
+      "name": "Add to unsubscribes",
+      "method": "POST",
+      "endpoint": "/suppressions/unsubscribes",
+      "body": [
+        "{{ inputs.email }}"
+      ],
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Notification webhook",
+      "type": "webhook",
+      "description": "Settings → Notifications → Webhooks (sent, opened, clicked, bounced…).",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

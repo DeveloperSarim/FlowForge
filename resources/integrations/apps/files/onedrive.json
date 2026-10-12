@@ -1,0 +1,213 @@
+{
+  "key": "onedrive",
+  "name": "OneDrive",
+  "category": "Files & Documents",
+  "description": "Browse, search, upload and share files in OneDrive via Microsoft Graph.",
+  "brand": "microsoftonedrive",
+  "website": "https://www.microsoft.com/microsoft-365/onedrive/online-cloud-storage",
+  "docs_url": "https://learn.microsoft.com/graph/api/resources/onedrive",
+  "popular": true,
+  "base_url": "https://graph.microsoft.com/v1.0",
+  "auth": [
+    {
+      "type": "oauth2",
+      "authorize_url": "https://login.microsoftonline.com/common/oauth2/v2.0/authorize",
+      "token_url": "https://login.microsoftonline.com/common/oauth2/v2.0/token",
+      "scopes": [
+        "offline_access",
+        "User.Read",
+        "Files.ReadWrite.All"
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_children",
+      "name": "List folder",
+      "method": "GET",
+      "endpoint": "/me/drive/items/{{ inputs.folder_id }}/children",
+      "query": {
+        "$top": "{{ inputs.top }}"
+      },
+      "inputs": [
+        {
+          "key": "folder_id",
+          "label": "Folder ID",
+          "type": "string",
+          "required": true,
+          "default": "root",
+          "help": "root = top of your OneDrive."
+        },
+        {
+          "key": "top",
+          "label": "Max items",
+          "type": "number",
+          "default": 100
+        }
+      ]
+    },
+    {
+      "key": "search",
+      "name": "Search files",
+      "method": "GET",
+      "endpoint": "/me/drive/root/search(q='{{ inputs.query }}')",
+      "inputs": [
+        {
+          "key": "query",
+          "label": "Search text",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "get_item",
+      "name": "Get file info",
+      "method": "GET",
+      "endpoint": "/me/drive/items/{{ inputs.item_id }}",
+      "inputs": [
+        {
+          "key": "item_id",
+          "label": "Item ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "upload_text_file",
+      "name": "Upload text file",
+      "description": "Creates or replaces a small (< 4 MB) text, CSV, HTML or JSON file.",
+      "method": "PUT",
+      "endpoint": "/me/drive/items/{{ inputs.folder_id }}:/{{ inputs.file_name }}:/content",
+      "query": {
+        "@microsoft.graph.conflictBehavior": "{{ inputs.conflict }}"
+      },
+      "headers": {
+        "Content-Type": "{{ inputs.content_type }}"
+      },
+      "body": "{{ inputs.content }}",
+      "inputs": [
+        {
+          "key": "folder_id",
+          "label": "Folder ID",
+          "type": "string",
+          "required": true,
+          "default": "root"
+        },
+        {
+          "key": "file_name",
+          "label": "File name",
+          "type": "string",
+          "required": true,
+          "placeholder": "report.csv"
+        },
+        {
+          "key": "content",
+          "label": "Content",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "content_type",
+          "label": "Content type",
+          "type": "string",
+          "default": "text/plain",
+          "placeholder": "text/csv"
+        },
+        {
+          "key": "conflict",
+          "label": "If the file exists",
+          "type": "select",
+          "options": [
+            {
+              "value": "replace",
+              "label": "Replace it"
+            },
+            {
+              "value": "rename",
+              "label": "Keep both"
+            },
+            {
+              "value": "fail",
+              "label": "Fail"
+            }
+          ],
+          "default": "replace"
+        }
+      ]
+    },
+    {
+      "key": "create_link",
+      "name": "Create sharing link",
+      "method": "POST",
+      "endpoint": "/me/drive/items/{{ inputs.item_id }}/createLink",
+      "body": {
+        "type": "{{ inputs.type }}",
+        "scope": "{{ inputs.scope }}"
+      },
+      "output_fields": {
+        "url": "link.webUrl"
+      },
+      "inputs": [
+        {
+          "key": "item_id",
+          "label": "Item ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "type",
+          "label": "Link type",
+          "type": "select",
+          "options": [
+            {
+              "value": "view",
+              "label": "View"
+            },
+            {
+              "value": "edit",
+              "label": "Edit"
+            },
+            {
+              "value": "embed",
+              "label": "Embed"
+            }
+          ],
+          "required": true,
+          "default": "view"
+        },
+        {
+          "key": "scope",
+          "label": "Who can use it",
+          "type": "select",
+          "options": [
+            {
+              "value": "anonymous",
+              "label": "Anyone"
+            },
+            {
+              "value": "organization",
+              "label": "My organization"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "delete_item",
+      "name": "Delete item",
+      "description": "Moves a file or folder to the recycle bin.",
+      "method": "DELETE",
+      "endpoint": "/me/drive/items/{{ inputs.item_id }}",
+      "inputs": [
+        {
+          "key": "item_id",
+          "label": "Item ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ]
+}

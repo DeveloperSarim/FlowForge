@@ -1,0 +1,77 @@
+{
+  "key": "lead-to-hubspot-slack",
+  "name": "Capture leads in HubSpot and alert sales on Slack",
+  "description": "A website form posts to a webhook; the lead is created in HubSpot and the sales channel gets a heads-up.",
+  "category": "Sales & CRM",
+  "featured": true,
+  "graph": {
+    "nodes": [
+      {
+        "id": "trigger",
+        "type": "trigger",
+        "position": {
+          "x": 0,
+          "y": 200
+        },
+        "data": {
+          "integration": "webhook",
+          "trigger": "catch",
+          "label": "Website form",
+          "config": {
+            "method": "POST",
+            "sample_payload": "{\n  \"name\": \"Ada Lovelace\",\n  \"email\": \"ada@example.com\",\n  \"company\": \"Analytical Engines\",\n  \"message\": \"We would like a demo next week.\"\n}"
+          }
+        }
+      },
+      {
+        "id": "step_1",
+        "type": "action",
+        "position": {
+          "x": 240,
+          "y": 200
+        },
+        "data": {
+          "integration": "hubspot",
+          "action": "create_contact",
+          "label": "Create contact",
+          "config": {
+            "email": "{{ steps.trigger.data.email }}",
+            "first_name": "{{ steps.trigger.data.name }}",
+            "company": "{{ steps.trigger.data.company }}"
+          }
+        }
+      },
+      {
+        "id": "step_2",
+        "type": "action",
+        "position": {
+          "x": 480,
+          "y": 200
+        },
+        "data": {
+          "integration": "slack",
+          "action": "post_message",
+          "label": "Tell #sales",
+          "config": {
+            "channel": "#sales",
+            "text": "New lead: {{ steps.trigger.data.name }} ({{ steps.trigger.data.email }}) from {{ steps.trigger.data.company }}\n> {{ steps.trigger.data.message }}"
+          }
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "e-trigger-step_1",
+        "source": "trigger",
+        "target": "step_1",
+        "sourceHandle": null
+      },
+      {
+        "id": "e-step_1-step_2",
+        "source": "step_1",
+        "target": "step_2",
+        "sourceHandle": null
+      }
+    ]
+  }
+}

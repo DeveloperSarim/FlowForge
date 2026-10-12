@@ -1,0 +1,157 @@
+{
+  "key": "missive",
+  "name": "Missive",
+  "category": "Customer Support",
+  "description": "Send emails and post into Missive shared-inbox conversations.",
+  "brand": "missive",
+  "website": "https://missiveapp.com",
+  "docs_url": "https://missiveapp.com/help/api-documentation/rest-endpoints",
+  "base_url": "https://public.missiveapp.com/v1",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "API token",
+        "type": "password",
+        "required": true,
+        "help": "Preferences > API > Create a new token"
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "send_email",
+      "name": "Send email",
+      "method": "POST",
+      "endpoint": "/drafts",
+      "body": {
+        "drafts": {
+          "subject": "{{ inputs.subject }}",
+          "body": "{{ inputs.body }}",
+          "to_fields": [
+            {
+              "address": "{{ inputs.to }}"
+            }
+          ],
+          "from_field": {
+            "address": "{{ inputs.from }}",
+            "name": "{{ inputs.from_name }}"
+          },
+          "send": true
+        }
+      },
+      "inputs": [
+        {
+          "key": "from",
+          "label": "From address",
+          "type": "string",
+          "required": true,
+          "help": "An address or alias you can send from in Missive"
+        },
+        {
+          "key": "from_name",
+          "label": "From name",
+          "type": "string"
+        },
+        {
+          "key": "to",
+          "label": "To",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "subject",
+          "label": "Subject",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "body",
+          "label": "Body (HTML)",
+          "type": "text",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "create_post",
+      "name": "Create post",
+      "description": "Adds a post (integration message) to a conversation.",
+      "method": "POST",
+      "endpoint": "/posts",
+      "body": {
+        "posts": {
+          "conversation": "{{ inputs.conversation_id }}",
+          "username": "{{ inputs.username }}",
+          "markdown": "{{ inputs.markdown }}",
+          "notification": {
+            "title": "{{ inputs.title }}",
+            "body": "{{ inputs.notification_body }}"
+          }
+        }
+      },
+      "inputs": [
+        {
+          "key": "conversation_id",
+          "label": "Conversation ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "markdown",
+          "label": "Text (Markdown)",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "username",
+          "label": "Display name",
+          "type": "string",
+          "default": "FlowForge"
+        },
+        {
+          "key": "title",
+          "label": "Notification title",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "notification_body",
+          "label": "Notification text",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "get_conversation",
+      "name": "Get conversation",
+      "method": "GET",
+      "endpoint": "/conversations/{{ inputs.conversation_id }}",
+      "inputs": [
+        {
+          "key": "conversation_id",
+          "label": "Conversation ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Create a rule with a 'Webhook' action pointing at this URL.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,105 @@
+{
+  "key": "back4app",
+  "name": "Back4App",
+  "category": "Databases",
+  "description": "Query, create, update and delete Parse objects and run Cloud Code on Back4App.",
+  "brand": "back4app",
+  "website": "https://www.back4app.com",
+  "docs_url": "https://www.back4app.com/docs/platform/parse-server-rest-api",
+  "base_url": "https://parseapi.back4app.com",
+  "headers": { "X-Parse-Application-Id": "{{ credentials.app_id }}" },
+  "auth": { "type": "api_key", "in": "header", "name": "X-Parse-REST-API-Key", "fields": [
+    { "key": "app_id", "label": "Application ID", "type": "string", "required": true, "help": "App Settings → Security & Keys." },
+    { "key": "api_key", "label": "REST API key", "type": "password", "required": true }
+  ] },
+  "actions": [
+    {
+      "key": "query_objects",
+      "name": "Query objects",
+      "method": "GET",
+      "endpoint": "/classes/{{ inputs.class_name }}",
+      "query": { "where": "{{ inputs.where }}", "order": "{{ inputs.order }}", "keys": "{{ inputs.keys }}", "include": "{{ inputs.include }}", "limit": "{{ inputs.limit }}", "skip": "{{ inputs.skip }}" },
+      "output_path": "results",
+      "inputs": [
+        { "key": "class_name", "label": "Class", "type": "string", "required": true },
+        { "key": "where", "label": "Where (JSON)", "type": "string", "placeholder": "{\"status\": \"active\", \"score\": {\"$gte\": 10}}" },
+        { "key": "order", "label": "Order", "type": "string", "placeholder": "-createdAt" },
+        { "key": "keys", "label": "Fields", "type": "string", "placeholder": "name,email" },
+        { "key": "include", "label": "Include pointers", "type": "string" },
+        { "key": "limit", "label": "Limit", "type": "number" },
+        { "key": "skip", "label": "Skip", "type": "number" }
+      ]
+    },
+    {
+      "key": "get_object",
+      "name": "Get object",
+      "method": "GET",
+      "endpoint": "/classes/{{ inputs.class_name }}/{{ inputs.object_id }}",
+      "inputs": [
+        { "key": "class_name", "label": "Class", "type": "string", "required": true },
+        { "key": "object_id", "label": "Object ID", "type": "string", "required": true }
+      ]
+    },
+    {
+      "key": "create_object",
+      "name": "Create object",
+      "method": "POST",
+      "endpoint": "/classes/{{ inputs.class_name }}",
+      "body": "{{ inputs.data }}",
+      "inputs": [
+        { "key": "class_name", "label": "Class", "type": "string", "required": true },
+        { "key": "data", "label": "Fields (JSON)", "type": "json", "required": true }
+      ]
+    },
+    {
+      "key": "update_object",
+      "name": "Update object",
+      "method": "PUT",
+      "endpoint": "/classes/{{ inputs.class_name }}/{{ inputs.object_id }}",
+      "body": "{{ inputs.data }}",
+      "inputs": [
+        { "key": "class_name", "label": "Class", "type": "string", "required": true },
+        { "key": "object_id", "label": "Object ID", "type": "string", "required": true },
+        { "key": "data", "label": "Fields to change (JSON)", "type": "json", "required": true }
+      ]
+    },
+    {
+      "key": "delete_object",
+      "name": "Delete object",
+      "method": "DELETE",
+      "endpoint": "/classes/{{ inputs.class_name }}/{{ inputs.object_id }}",
+      "inputs": [
+        { "key": "class_name", "label": "Class", "type": "string", "required": true },
+        { "key": "object_id", "label": "Object ID", "type": "string", "required": true }
+      ]
+    },
+    {
+      "key": "call_function",
+      "name": "Run Cloud Code function",
+      "method": "POST",
+      "endpoint": "/functions/{{ inputs.function }}",
+      "body": "{{ inputs.params }}",
+      "output_path": "result",
+      "inputs": [
+        { "key": "function", "label": "Function name", "type": "string", "required": true },
+        { "key": "params", "label": "Parameters (JSON)", "type": "json" }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_object",
+      "name": "New object",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/classes/{{ inputs.class_name }}",
+      "query": { "order": "-createdAt", "limit": 50 },
+      "items_path": "results",
+      "id_field": "objectId",
+      "inputs": [
+        { "key": "class_name", "label": "Class", "type": "string", "required": true },
+        { "key": "poll_interval", "label": "Check every (minutes)", "type": "number", "default": 5 }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,143 @@
+{
+  "key": "hume_ai",
+  "name": "Hume AI",
+  "category": "AI",
+  "description": "Generate expressive speech with Hume Octave TTS.",
+  "brand": "hume",
+  "website": "https://www.hume.ai",
+  "docs_url": "https://dev.hume.ai/reference/text-to-speech-tts/synthesize-json",
+  "base_url": "https://api.hume.ai",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "X-Hume-Api-Key",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "text_to_speech",
+      "name": "Text to speech",
+      "description": "Audio comes back base64-encoded as {{ steps.<id>.audio_base64 }}.",
+      "method": "POST",
+      "endpoint": "/v0/tts",
+      "timeout": 120,
+      "body": {
+        "utterances": [
+          {
+            "text": "{{ inputs.text }}",
+            "description": "{{ inputs.description }}",
+            "voice": {
+              "name": "{{ inputs.voice_name }}",
+              "provider": "{{ inputs.provider }}"
+            }
+          }
+        ],
+        "format": {
+          "type": "{{ inputs.format }}"
+        }
+      },
+      "output_fields": {
+        "audio_base64": "generations.0.audio"
+      },
+      "inputs": [
+        {
+          "key": "text",
+          "label": "Text",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "description",
+          "label": "Voice description / acting instructions",
+          "type": "text",
+          "placeholder": "A warm, calm narrator"
+        },
+        {
+          "key": "voice_name",
+          "label": "Voice name",
+          "type": "string",
+          "help": "Leave empty to design a voice from the description."
+        },
+        {
+          "key": "provider",
+          "label": "Voice source",
+          "type": "select",
+          "options": [
+            {
+              "value": "HUME_AI",
+              "label": "Hume Voice Library"
+            },
+            {
+              "value": "CUSTOM_VOICE",
+              "label": "My custom voices"
+            }
+          ],
+          "help": "Used with Voice name. Defaults to your custom voices."
+        },
+        {
+          "key": "format",
+          "label": "Format",
+          "type": "select",
+          "required": true,
+          "default": "mp3",
+          "options": [
+            {
+              "value": "mp3",
+              "label": "MP3"
+            },
+            {
+              "value": "wav",
+              "label": "WAV"
+            },
+            {
+              "value": "pcm",
+              "label": "PCM"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "list_voices",
+      "name": "List voices",
+      "method": "GET",
+      "endpoint": "/v0/tts/voices",
+      "query": {
+        "provider": "{{ inputs.provider }}",
+        "page_size": "{{ inputs.page_size }}"
+      },
+      "inputs": [
+        {
+          "key": "provider",
+          "label": "Source",
+          "type": "select",
+          "required": true,
+          "default": "HUME_AI",
+          "options": [
+            {
+              "value": "HUME_AI",
+              "label": "Hume Voice Library"
+            },
+            {
+              "value": "CUSTOM_VOICE",
+              "label": "My custom voices"
+            }
+          ]
+        },
+        {
+          "key": "page_size",
+          "label": "Page size",
+          "type": "number",
+          "default": 100
+        }
+      ]
+    }
+  ]
+}

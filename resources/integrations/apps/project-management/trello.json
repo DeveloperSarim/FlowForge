@@ -1,0 +1,250 @@
+{
+  "key": "trello",
+  "name": "Trello",
+  "category": "Project Management",
+  "description": "Create and update cards, add comments and watch boards for new cards.",
+  "brand": "trello",
+  "website": "https://trello.com",
+  "docs_url": "https://developer.atlassian.com/cloud/trello/rest/",
+  "popular": true,
+  "base_url": "https://api.trello.com/1",
+  "headers": {
+    "Authorization": "OAuth oauth_consumer_key=\"{{ credentials.api_key }}\", oauth_token=\"{{ credentials.token }}\""
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "string",
+        "required": true,
+        "help": "trello.com/power-ups/admin > your Power-Up > API key."
+      },
+      {
+        "key": "token",
+        "label": "Token",
+        "type": "password",
+        "required": true,
+        "help": "Generate it from the Token link next to your API key."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "create_card",
+      "name": "Create card",
+      "method": "POST",
+      "endpoint": "/cards",
+      "body": {
+        "idList": "{{ inputs.list_id }}",
+        "name": "{{ inputs.name }}",
+        "desc": "{{ inputs.desc }}",
+        "due": "{{ inputs.due }}",
+        "pos": "{{ inputs.pos }}",
+        "idLabels": "{{ inputs.label_ids }}",
+        "idMembers": "{{ inputs.member_ids }}"
+      },
+      "inputs": [
+        {
+          "key": "list_id",
+          "label": "List ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "desc",
+          "label": "Description",
+          "type": "text"
+        },
+        {
+          "key": "due",
+          "label": "Due date",
+          "type": "string",
+          "placeholder": "2026-10-12T17:00:00Z"
+        },
+        {
+          "key": "pos",
+          "label": "Position",
+          "type": "select",
+          "default": "bottom",
+          "options": [
+            {
+              "value": "top",
+              "label": "top"
+            },
+            {
+              "value": "bottom",
+              "label": "bottom"
+            }
+          ]
+        },
+        {
+          "key": "label_ids",
+          "label": "Label IDs",
+          "type": "list"
+        },
+        {
+          "key": "member_ids",
+          "label": "Member IDs",
+          "type": "list"
+        }
+      ]
+    },
+    {
+      "key": "get_card",
+      "name": "Get card",
+      "method": "GET",
+      "endpoint": "/cards/{{ inputs.card_id }}",
+      "inputs": [
+        {
+          "key": "card_id",
+          "label": "Card ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "update_card",
+      "name": "Update card",
+      "description": "Changes only the fields you fill in.",
+      "method": "PUT",
+      "endpoint": "/cards/{{ inputs.card_id }}",
+      "body": {
+        "name": "{{ inputs.name }}",
+        "desc": "{{ inputs.desc }}",
+        "due": "{{ inputs.due }}",
+        "idList": "{{ inputs.list_id }}",
+        "pos": "{{ inputs.pos }}"
+      },
+      "inputs": [
+        {
+          "key": "card_id",
+          "label": "Card ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string"
+        },
+        {
+          "key": "desc",
+          "label": "Description",
+          "type": "text"
+        },
+        {
+          "key": "due",
+          "label": "Due date",
+          "type": "string"
+        },
+        {
+          "key": "list_id",
+          "label": "Move to list ID",
+          "type": "string"
+        },
+        {
+          "key": "pos",
+          "label": "Position",
+          "type": "select",
+          "options": [
+            {
+              "value": "top",
+              "label": "top"
+            },
+            {
+              "value": "bottom",
+              "label": "bottom"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "add_comment",
+      "name": "Add comment",
+      "method": "POST",
+      "endpoint": "/cards/{{ inputs.card_id }}/actions/comments",
+      "query": {
+        "text": "{{ inputs.text }}"
+      },
+      "inputs": [
+        {
+          "key": "card_id",
+          "label": "Card ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "text",
+          "label": "Comment",
+          "type": "text",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_boards",
+      "name": "List my boards",
+      "method": "GET",
+      "endpoint": "/members/me/boards",
+      "query": {
+        "filter": "open",
+        "fields": "name,url"
+      },
+      "inputs": []
+    },
+    {
+      "key": "list_lists",
+      "name": "List board lists",
+      "method": "GET",
+      "endpoint": "/boards/{{ inputs.board_id }}/lists",
+      "inputs": [
+        {
+          "key": "board_id",
+          "label": "Board ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_card",
+      "name": "New card on board",
+      "type": "polling",
+      "description": "Fires with the createCard action; the card is in data.card.",
+      "method": "GET",
+      "endpoint": "/boards/{{ inputs.board_id }}/actions",
+      "query": {
+        "filter": "createCard",
+        "limit": 50
+      },
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "board_id",
+          "label": "Board ID",
+          "type": "string",
+          "required": true,
+          "help": "From the board URL: trello.com/b/<ID>/…"
+        },
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

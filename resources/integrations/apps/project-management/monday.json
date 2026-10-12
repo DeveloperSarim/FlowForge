@@ -1,0 +1,225 @@
+{
+  "key": "monday",
+  "name": "monday.com",
+  "category": "Project Management",
+  "description": "Create and update items, post updates and read boards on monday.com.",
+  "brand": "monday",
+  "website": "https://monday.com",
+  "docs_url": "https://developer.monday.com/api-reference/docs",
+  "popular": true,
+  "base_url": "https://api.monday.com",
+  "auth": [
+    {
+      "type": "api_key",
+      "in": "header",
+      "name": "Authorization",
+      "fields": [
+        {
+          "key": "api_key",
+          "label": "API token",
+          "type": "password",
+          "required": true,
+          "help": "Avatar > Developers > My access tokens."
+        }
+      ]
+    },
+    {
+      "type": "oauth2",
+      "authorize_url": "https://auth.monday.com/oauth2/authorize",
+      "token_url": "https://auth.monday.com/oauth2/token",
+      "scopes": [
+        "me:read",
+        "boards:read",
+        "boards:write",
+        "updates:write"
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "create_item",
+      "name": "Create item",
+      "method": "POST",
+      "endpoint": "/v2",
+      "body": {
+        "query": "mutation ($boardId: ID!, $groupId: String, $itemName: String!, $columnValues: JSON) { create_item (board_id: $boardId, group_id: $groupId, item_name: $itemName, column_values: $columnValues) { id name url } }",
+        "variables": {
+          "boardId": "{{ inputs.board_id }}",
+          "groupId": "{{ inputs.group_id }}",
+          "itemName": "{{ inputs.item_name }}",
+          "columnValues": "{{ inputs.column_values }}"
+        }
+      },
+      "error_path": "errors",
+      "output_path": "data.create_item",
+      "inputs": [
+        {
+          "key": "board_id",
+          "label": "Board ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "item_name",
+          "label": "Item name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "group_id",
+          "label": "Group ID",
+          "type": "string",
+          "placeholder": "topics"
+        },
+        {
+          "key": "column_values",
+          "label": "Column values (JSON)",
+          "type": "text",
+          "placeholder": "{\"status\": {\"label\": \"Done\"}, \"date4\": {\"date\": \"2026-10-12\"}}",
+          "help": "Keys are column IDs."
+        }
+      ]
+    },
+    {
+      "key": "update_item_columns",
+      "name": "Update item columns",
+      "method": "POST",
+      "endpoint": "/v2",
+      "body": {
+        "query": "mutation ($boardId: ID!, $itemId: ID!, $columnValues: JSON!) { change_multiple_column_values (board_id: $boardId, item_id: $itemId, column_values: $columnValues) { id name } }",
+        "variables": {
+          "boardId": "{{ inputs.board_id }}",
+          "itemId": "{{ inputs.item_id }}",
+          "columnValues": "{{ inputs.column_values }}"
+        }
+      },
+      "error_path": "errors",
+      "output_path": "data.change_multiple_column_values",
+      "inputs": [
+        {
+          "key": "board_id",
+          "label": "Board ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "item_id",
+          "label": "Item ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "column_values",
+          "label": "Column values (JSON)",
+          "type": "text",
+          "required": true,
+          "placeholder": "{\"status\": {\"label\": \"Working on it\"}}"
+        }
+      ]
+    },
+    {
+      "key": "create_update",
+      "name": "Post update on item",
+      "method": "POST",
+      "endpoint": "/v2",
+      "body": {
+        "query": "mutation ($itemId: ID!, $body: String!) { create_update (item_id: $itemId, body: $body) { id } }",
+        "variables": {
+          "itemId": "{{ inputs.item_id }}",
+          "body": "{{ inputs.body }}"
+        }
+      },
+      "error_path": "errors",
+      "output_path": "data.create_update",
+      "inputs": [
+        {
+          "key": "item_id",
+          "label": "Item ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "body",
+          "label": "Update (HTML allowed)",
+          "type": "text",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "get_items",
+      "name": "Get items",
+      "method": "POST",
+      "endpoint": "/v2",
+      "body": {
+        "query": "query ($ids: [ID!]) { items (ids: $ids) { id name url state group { id title } board { id name } column_values { id text value } } }",
+        "variables": {
+          "ids": "{{ inputs.item_ids }}"
+        }
+      },
+      "error_path": "errors",
+      "output_path": "data.items",
+      "inputs": [
+        {
+          "key": "item_ids",
+          "label": "Item IDs",
+          "type": "list",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_board_items",
+      "name": "List board items",
+      "method": "POST",
+      "endpoint": "/v2",
+      "body": {
+        "query": "query ($boardId: [ID!], $limit: Int) { boards (ids: $boardId) { id name items_page (limit: $limit) { cursor items { id name group { id title } column_values { id text } } } } }",
+        "variables": {
+          "boardId": [
+            "{{ inputs.board_id }}"
+          ],
+          "limit": "{{ inputs.limit }}"
+        }
+      },
+      "error_path": "errors",
+      "output_path": "data.boards.0.items_page.items",
+      "inputs": [
+        {
+          "key": "board_id",
+          "label": "Board ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "limit",
+          "label": "Max items",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    },
+    {
+      "key": "list_boards",
+      "name": "List boards",
+      "method": "POST",
+      "endpoint": "/v2",
+      "body": {
+        "query": "query ($limit: Int) { boards (limit: $limit) { id name groups { id title } columns { id title type } } }",
+        "variables": {
+          "limit": "{{ inputs.limit }}"
+        }
+      },
+      "error_path": "errors",
+      "output_path": "data.boards",
+      "inputs": [
+        {
+          "key": "limit",
+          "label": "Max boards",
+          "type": "number",
+          "default": 25
+        }
+      ]
+    }
+  ]
+}

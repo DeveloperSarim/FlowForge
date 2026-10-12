@@ -1,0 +1,92 @@
+{
+  "key": "gitguardian",
+  "name": "GitGuardian",
+  "category": "Security & IT",
+  "description": "Scan text for leaked secrets and list, resolve or ignore secret incidents.",
+  "brand": "gitguardian",
+  "website": "https://www.gitguardian.com",
+  "docs_url": "https://api.gitguardian.com/docs",
+  "base_url": "{{ credentials.base_url }}/v1",
+  "auth": { "type": "api_key", "in": "header", "name": "Authorization", "prefix": "Token ", "fields": [
+    { "key": "base_url", "label": "API URL", "type": "string", "required": true, "default": "https://api.gitguardian.com", "help": "EU: https://api.eu1.gitguardian.com. Self-hosted: https://<dashboard>/exposed" },
+    { "key": "api_key", "label": "Personal access token or service account token", "type": "password", "required": true, "help": "API → Personal access tokens, with scan and incidents:read / incidents:write scopes." }
+  ] },
+  "actions": [
+    {
+      "key": "scan_content",
+      "name": "Scan content for secrets",
+      "method": "POST",
+      "endpoint": "/scan",
+      "body": { "document": "{{ inputs.document }}", "filename": "{{ inputs.filename }}" },
+      "inputs": [
+        { "key": "document", "label": "Content", "type": "text", "required": true, "help": "Up to 1 MB." },
+        { "key": "filename", "label": "File name", "type": "string", "placeholder": ".env" }
+      ]
+    },
+    {
+      "key": "list_incidents",
+      "name": "List secret incidents",
+      "method": "GET",
+      "endpoint": "/incidents/secrets",
+      "query": { "status": "{{ inputs.status }}", "severity": "{{ inputs.severity }}", "ordering": "-date", "per_page": "{{ inputs.per_page }}" },
+      "inputs": [
+        { "key": "status", "label": "Status", "type": "select", "options": [
+          { "value": "TRIGGERED", "label": "Triggered" }, { "value": "ASSIGNED", "label": "Assigned" }, { "value": "RESOLVED", "label": "Resolved" }, { "value": "IGNORED", "label": "Ignored" }
+        ] },
+        { "key": "severity", "label": "Severity", "type": "select", "options": [
+          { "value": "critical", "label": "Critical" }, { "value": "high", "label": "High" }, { "value": "medium", "label": "Medium" }, { "value": "low", "label": "Low" }, { "value": "info", "label": "Info" }, { "value": "unknown", "label": "Unknown" }
+        ] },
+        { "key": "per_page", "label": "Per page", "type": "number", "default": 20 }
+      ]
+    },
+    {
+      "key": "get_incident",
+      "name": "Get secret incident",
+      "method": "GET",
+      "endpoint": "/incidents/secrets/{{ inputs.incident_id }}",
+      "inputs": [{ "key": "incident_id", "label": "Incident ID", "type": "number", "required": true }]
+    },
+    {
+      "key": "resolve_incident",
+      "name": "Resolve secret incident",
+      "method": "POST",
+      "endpoint": "/incidents/secrets/{{ inputs.incident_id }}/resolve",
+      "body": { "secret_revoked": "{{ inputs.secret_revoked }}" },
+      "inputs": [
+        { "key": "incident_id", "label": "Incident ID", "type": "number", "required": true },
+        { "key": "secret_revoked", "label": "Secret was revoked", "type": "boolean", "required": true, "default": true }
+      ]
+    },
+    {
+      "key": "ignore_incident",
+      "name": "Ignore secret incident",
+      "method": "POST",
+      "endpoint": "/incidents/secrets/{{ inputs.incident_id }}/ignore",
+      "body": { "ignore_reason": "{{ inputs.reason }}" },
+      "inputs": [
+        { "key": "incident_id", "label": "Incident ID", "type": "number", "required": true },
+        { "key": "reason", "label": "Reason", "type": "select", "required": true, "default": "false_positive", "options": [
+          { "value": "false_positive", "label": "False positive" }, { "value": "test_credential", "label": "Test credential" }, { "value": "low_risk", "label": "Low risk" }
+        ] }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_incident",
+      "name": "New secret incident (polling)",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/incidents/secrets",
+      "query": { "ordering": "-date", "per_page": 50 },
+      "id_field": "id",
+      "inputs": [{ "key": "poll_interval", "label": "Check every (minutes)", "type": "number", "default": 5 }]
+    },
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "inputs": [{ "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }]
+    }
+  ]
+}

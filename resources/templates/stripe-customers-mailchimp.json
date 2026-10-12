@@ -1,0 +1,54 @@
+{
+  "key": "stripe-customers-mailchimp",
+  "name": "Add new Stripe customers to Mailchimp",
+  "description": "Keeps your newsletter audience in sync with paying customers.",
+  "category": "Marketing",
+  "featured": false,
+  "graph": {
+    "nodes": [
+      {
+        "id": "trigger",
+        "type": "trigger",
+        "position": {
+          "x": 0,
+          "y": 200
+        },
+        "data": {
+          "integration": "stripe",
+          "trigger": "new_customer",
+          "label": "New customer",
+          "config": {
+            "poll_interval": 10
+          }
+        }
+      },
+      {
+        "id": "step_1",
+        "type": "action",
+        "position": {
+          "x": 240,
+          "y": 200
+        },
+        "data": {
+          "integration": "mailchimp",
+          "action": "upsert_member",
+          "label": "Add to audience",
+          "config": {
+            "list_id": "",
+            "email": "{{ steps.trigger.data.email }}",
+            "status_if_new": "subscribed",
+            "first_name": "{{ steps.trigger.data.name }}"
+          }
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "e-trigger-step_1",
+        "source": "trigger",
+        "target": "step_1",
+        "sourceHandle": null
+      }
+    ]
+  }
+}

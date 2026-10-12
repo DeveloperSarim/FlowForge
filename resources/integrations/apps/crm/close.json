@@ -1,0 +1,259 @@
+{
+  "key": "close",
+  "name": "Close",
+  "category": "CRM & Sales",
+  "description": "Create leads, contacts, opportunities and tasks in Close.",
+  "brand": "close",
+  "website": "https://www.close.com",
+  "docs_url": "https://developer.close.com/",
+  "base_url": "https://api.close.com/api/v1",
+  "auth": [
+    {
+      "type": "basic",
+      "fields": [
+        {
+          "key": "username",
+          "label": "API key",
+          "type": "password",
+          "required": true,
+          "help": "Settings > Developer > API keys."
+        },
+        {
+          "key": "password",
+          "label": "Password",
+          "type": "password",
+          "required": false,
+          "default": "",
+          "help": "Leave empty."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "create_lead",
+      "name": "Create lead",
+      "method": "POST",
+      "endpoint": "/lead/",
+      "body": {
+        "name": "{{ inputs.name }}",
+        "url": "{{ inputs.url }}",
+        "description": "{{ inputs.description }}",
+        "status_id": "{{ inputs.status_id }}"
+      },
+      "inputs": [
+        {
+          "key": "name",
+          "label": "Company / lead name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "url",
+          "label": "Website",
+          "type": "string"
+        },
+        {
+          "key": "description",
+          "label": "Description",
+          "type": "text"
+        },
+        {
+          "key": "status_id",
+          "label": "Status ID",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "create_contact",
+      "name": "Create contact",
+      "method": "POST",
+      "endpoint": "/contact/",
+      "body": {
+        "lead_id": "{{ inputs.lead_id }}",
+        "name": "{{ inputs.name }}",
+        "title": "{{ inputs.title }}",
+        "emails": [
+          {
+            "email": "{{ inputs.email }}",
+            "type": "office"
+          }
+        ]
+      },
+      "inputs": [
+        {
+          "key": "lead_id",
+          "label": "Lead ID",
+          "type": "string",
+          "help": "Leave empty to create a new lead for this contact."
+        },
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "string"
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "update_lead",
+      "name": "Update lead",
+      "method": "PUT",
+      "endpoint": "/lead/{{ inputs.lead_id }}/",
+      "body": "{{ inputs.fields }}",
+      "inputs": [
+        {
+          "key": "lead_id",
+          "label": "Lead ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "fields",
+          "label": "Fields",
+          "type": "json",
+          "required": true,
+          "help": "e.g. {\"status_id\": \"stat_...\"}"
+        }
+      ]
+    },
+    {
+      "key": "search_leads",
+      "name": "Search leads",
+      "method": "GET",
+      "endpoint": "/lead/",
+      "query": {
+        "query": "{{ inputs.query }}",
+        "_limit": "{{ inputs.limit }}"
+      },
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "query",
+          "label": "Query",
+          "type": "string",
+          "required": true,
+          "placeholder": "email_address:\"jane@acme.com\""
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 10
+        }
+      ]
+    },
+    {
+      "key": "create_opportunity",
+      "name": "Create opportunity",
+      "method": "POST",
+      "endpoint": "/opportunity/",
+      "body": {
+        "lead_id": "{{ inputs.lead_id }}",
+        "value": "{{ inputs.value }}",
+        "value_period": "{{ inputs.value_period }}",
+        "confidence": "{{ inputs.confidence }}",
+        "status_id": "{{ inputs.status_id }}",
+        "note": "{{ inputs.note }}"
+      },
+      "inputs": [
+        {
+          "key": "lead_id",
+          "label": "Lead ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "value",
+          "label": "Value (cents)",
+          "type": "number"
+        },
+        {
+          "key": "value_period",
+          "label": "Value period",
+          "type": "select",
+          "options": [
+            {
+              "value": "one_time",
+              "label": "One time"
+            },
+            {
+              "value": "monthly",
+              "label": "Monthly"
+            },
+            {
+              "value": "annual",
+              "label": "Annual"
+            }
+          ],
+          "default": "one_time"
+        },
+        {
+          "key": "confidence",
+          "label": "Confidence (%)",
+          "type": "number"
+        },
+        {
+          "key": "status_id",
+          "label": "Status ID",
+          "type": "string"
+        },
+        {
+          "key": "note",
+          "label": "Note",
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "key": "create_task",
+      "name": "Create task",
+      "method": "POST",
+      "endpoint": "/task/",
+      "body": {
+        "_type": "lead",
+        "lead_id": "{{ inputs.lead_id }}",
+        "text": "{{ inputs.text }}",
+        "date": "{{ inputs.date }}",
+        "assigned_to": "{{ inputs.assigned_to }}"
+      },
+      "inputs": [
+        {
+          "key": "lead_id",
+          "label": "Lead ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "text",
+          "label": "Task",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "date",
+          "label": "Due date",
+          "type": "string",
+          "placeholder": "2026-12-31"
+        },
+        {
+          "key": "assigned_to",
+          "label": "Assignee user ID",
+          "type": "string"
+        }
+      ]
+    }
+  ]
+}

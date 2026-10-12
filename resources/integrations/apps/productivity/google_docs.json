@@ -1,0 +1,183 @@
+{
+  "key": "google_docs",
+  "name": "Google Docs",
+  "category": "Productivity",
+  "description": "Create documents, append text and replace placeholders.",
+  "brand": "googledocs",
+  "website": "https://docs.google.com",
+  "docs_url": "https://developers.google.com/docs/api/reference/rest",
+  "popular": true,
+  "base_url": "https://docs.googleapis.com/v1",
+  "auth": [
+    {
+      "type": "oauth2",
+      "authorize_url": "https://accounts.google.com/o/oauth2/v2/auth",
+      "token_url": "https://oauth2.googleapis.com/token",
+      "scopes": [
+        "https://www.googleapis.com/auth/documents"
+      ],
+      "authorize_params": {
+        "access_type": "offline",
+        "prompt": "consent"
+      }
+    },
+    {
+      "type": "google_service_account",
+      "scopes": [
+        "https://www.googleapis.com/auth/documents"
+      ],
+      "fields": [
+        {
+          "key": "service_account_json",
+          "label": "Service Account JSON key",
+          "type": "code",
+          "required": true,
+          "help": "Paste the full JSON key file. Share the document with the service account email."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "create_document",
+      "name": "Create document",
+      "description": "Creates a blank document.",
+      "method": "POST",
+      "endpoint": "/documents",
+      "body": {
+        "title": "{{ inputs.title }}"
+      },
+      "inputs": [
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "get_document",
+      "name": "Get document",
+      "method": "GET",
+      "endpoint": "/documents/{{ inputs.document_id }}",
+      "inputs": [
+        {
+          "key": "document_id",
+          "label": "Document ID",
+          "type": "string",
+          "required": true,
+          "help": "The long id in the doc URL: /document/d/<ID>/edit"
+        }
+      ]
+    },
+    {
+      "key": "append_text",
+      "name": "Append text",
+      "description": "Inserts text at the end of the document body.",
+      "method": "POST",
+      "endpoint": "/documents/{{ inputs.document_id }}:batchUpdate",
+      "body": {
+        "requests": [
+          {
+            "insertText": {
+              "endOfSegmentLocation": {
+                "segmentId": ""
+              },
+              "text": "{{ inputs.text }}"
+            }
+          }
+        ]
+      },
+      "inputs": [
+        {
+          "key": "document_id",
+          "label": "Document ID",
+          "type": "string",
+          "required": true,
+          "help": "The long id in the doc URL: /document/d/<ID>/edit"
+        },
+        {
+          "key": "text",
+          "label": "Text",
+          "type": "text",
+          "required": true,
+          "help": "Start with a line break to add it as a new paragraph."
+        }
+      ]
+    },
+    {
+      "key": "replace_text",
+      "name": "Replace text",
+      "description": "Replaces every occurrence of a text, e.g. template placeholders.",
+      "method": "POST",
+      "endpoint": "/documents/{{ inputs.document_id }}:batchUpdate",
+      "body": {
+        "requests": [
+          {
+            "replaceAllText": {
+              "containsText": {
+                "text": "{{ inputs.find }}",
+                "matchCase": "{{ inputs.match_case }}"
+              },
+              "replaceText": "{{ inputs.replace }}"
+            }
+          }
+        ]
+      },
+      "inputs": [
+        {
+          "key": "document_id",
+          "label": "Document ID",
+          "type": "string",
+          "required": true,
+          "help": "The long id in the doc URL: /document/d/<ID>/edit"
+        },
+        {
+          "key": "find",
+          "label": "Find",
+          "type": "string",
+          "required": true,
+          "placeholder": "{{name}}"
+        },
+        {
+          "key": "replace",
+          "label": "Replace with",
+          "type": "string"
+        },
+        {
+          "key": "match_case",
+          "label": "Match case",
+          "type": "boolean",
+          "default": true
+        }
+      ]
+    },
+    {
+      "key": "batch_update",
+      "name": "Batch update",
+      "description": "Sends raw documents.batchUpdate requests.",
+      "method": "POST",
+      "endpoint": "/documents/{{ inputs.document_id }}:batchUpdate",
+      "body": {
+        "requests": "{{ inputs.requests }}"
+      },
+      "inputs": [
+        {
+          "key": "document_id",
+          "label": "Document ID",
+          "type": "string",
+          "required": true,
+          "help": "The long id in the doc URL: /document/d/<ID>/edit"
+        },
+        {
+          "key": "requests",
+          "label": "Requests (JSON array)",
+          "type": "json",
+          "required": true,
+          "placeholder": "[{ \"insertText\": { \"location\": { \"index\": 1 }, \"text\": \"Hello\\n\" } }]"
+        }
+      ]
+    }
+  ]
+}

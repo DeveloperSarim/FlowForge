@@ -1,0 +1,340 @@
+{
+  "key": "luma",
+  "name": "Luma",
+  "category": "Events & Webinars",
+  "description": "Create Luma events, add guests and list events and registrations.",
+  "brand": "luma",
+  "website": "https://lu.ma",
+  "docs_url": "https://docs.luma.com",
+  "popular": true,
+  "base_url": "https://public-api.luma.com",
+  "auth": [
+    {
+      "type": "api_key",
+      "in": "header",
+      "name": "x-luma-api-key",
+      "fields": [
+        {
+          "key": "api_key",
+          "label": "API key",
+          "type": "password",
+          "required": true,
+          "help": "Calendar > Settings > Developer (needs Luma Plus)."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "get_self",
+      "name": "Get my user",
+      "method": "GET",
+      "endpoint": "/v1/users/get-self",
+      "inputs": []
+    },
+    {
+      "key": "list_events",
+      "name": "List calendar events",
+      "method": "GET",
+      "endpoint": "/v1/calendars/events/list",
+      "query": {
+        "after": "{{ inputs.after }}",
+        "before": "{{ inputs.before }}",
+        "sort_column": "start_at",
+        "sort_direction": "{{ inputs.sort_direction }}",
+        "pagination_limit": "{{ inputs.pagination_limit }}"
+      },
+      "output_path": "entries",
+      "inputs": [
+        {
+          "key": "after",
+          "label": "Starts after",
+          "type": "string",
+          "placeholder": "2026-10-01T00:00:00Z"
+        },
+        {
+          "key": "before",
+          "label": "Starts before",
+          "type": "string"
+        },
+        {
+          "key": "sort_direction",
+          "label": "Order",
+          "type": "select",
+          "options": [
+            {
+              "value": "asc",
+              "label": "Soonest first"
+            },
+            {
+              "value": "desc",
+              "label": "Latest first"
+            }
+          ]
+        },
+        {
+          "key": "pagination_limit",
+          "label": "Max results",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    },
+    {
+      "key": "get_event",
+      "name": "Get event",
+      "method": "GET",
+      "endpoint": "/v1/events/get",
+      "query": {
+        "event_id": "{{ inputs.event_id }}"
+      },
+      "inputs": [
+        {
+          "key": "event_id",
+          "label": "Event ID",
+          "type": "string",
+          "required": true,
+          "placeholder": "evt-…"
+        }
+      ]
+    },
+    {
+      "key": "list_guests",
+      "name": "List event guests",
+      "description": "Newest registrations first.",
+      "method": "GET",
+      "endpoint": "/v1/events/guests/list",
+      "query": {
+        "event_id": "{{ inputs.event_id }}",
+        "approval_status": "{{ inputs.approval_status }}",
+        "sort_column": "created_at",
+        "sort_direction": "desc",
+        "pagination_limit": "{{ inputs.pagination_limit }}"
+      },
+      "output_path": "entries",
+      "inputs": [
+        {
+          "key": "event_id",
+          "label": "Event ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "approval_status",
+          "label": "Approval status",
+          "type": "select",
+          "options": [
+            {
+              "value": "approved",
+              "label": "Approved"
+            },
+            {
+              "value": "pending_approval",
+              "label": "Pending approval"
+            },
+            {
+              "value": "waitlist",
+              "label": "Waitlist"
+            },
+            {
+              "value": "declined",
+              "label": "Declined"
+            },
+            {
+              "value": "invited",
+              "label": "Invited"
+            }
+          ]
+        },
+        {
+          "key": "pagination_limit",
+          "label": "Max results",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    },
+    {
+      "key": "create_event",
+      "name": "Create event",
+      "method": "POST",
+      "endpoint": "/v1/events/create",
+      "body": {
+        "name": "{{ inputs.name }}",
+        "start_at": "{{ inputs.start_at }}",
+        "timezone": "{{ inputs.timezone }}",
+        "end_at": "{{ inputs.end_at }}",
+        "description_md": "{{ inputs.description_md }}",
+        "meeting_url": "{{ inputs.meeting_url }}",
+        "max_capacity": "{{ inputs.max_capacity }}",
+        "visibility": "{{ inputs.visibility }}"
+      },
+      "inputs": [
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "start_at",
+          "label": "Start",
+          "type": "string",
+          "required": true,
+          "placeholder": "2026-12-01T18:00:00Z"
+        },
+        {
+          "key": "timezone",
+          "label": "Time zone",
+          "type": "string",
+          "required": true,
+          "placeholder": "America/New_York"
+        },
+        {
+          "key": "end_at",
+          "label": "End",
+          "type": "string",
+          "placeholder": "2026-12-01T20:00:00Z"
+        },
+        {
+          "key": "description_md",
+          "label": "Description (Markdown)",
+          "type": "text"
+        },
+        {
+          "key": "meeting_url",
+          "label": "Meeting URL",
+          "type": "string"
+        },
+        {
+          "key": "max_capacity",
+          "label": "Capacity",
+          "type": "number"
+        },
+        {
+          "key": "visibility",
+          "label": "Visibility",
+          "type": "select",
+          "options": [
+            {
+              "value": "public",
+              "label": "Public"
+            },
+            {
+              "value": "members-only",
+              "label": "Members only"
+            },
+            {
+              "value": "private",
+              "label": "Private"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "add_guest",
+      "name": "Add guest",
+      "method": "POST",
+      "endpoint": "/v1/events/guests/add",
+      "body": {
+        "event_id": "{{ inputs.event_id }}",
+        "guests": [
+          {
+            "email": "{{ inputs.email }}",
+            "name": "{{ inputs.name }}"
+          }
+        ],
+        "approval_status": "{{ inputs.approval_status }}",
+        "send_email": "{{ inputs.send_email }}"
+      },
+      "inputs": [
+        {
+          "key": "event_id",
+          "label": "Event ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string"
+        },
+        {
+          "key": "approval_status",
+          "label": "Approval status",
+          "type": "select",
+          "options": [
+            {
+              "value": "approved",
+              "label": "Approved"
+            },
+            {
+              "value": "pending_approval",
+              "label": "Pending approval"
+            },
+            {
+              "value": "invited",
+              "label": "Invited"
+            }
+          ]
+        },
+        {
+          "key": "send_email",
+          "label": "Send email",
+          "type": "boolean"
+        }
+      ]
+    },
+    {
+      "key": "create_webhook",
+      "name": "Create webhook",
+      "method": "POST",
+      "endpoint": "/v2/webhooks/create",
+      "body": {
+        "url": "{{ inputs.url }}",
+        "event_types": "{{ inputs.event_types }}"
+      },
+      "inputs": [
+        {
+          "key": "url",
+          "label": "URL",
+          "type": "string",
+          "required": true,
+          "help": "Paste a workflow's Luma webhook trigger URL."
+        },
+        {
+          "key": "event_types",
+          "label": "Event types",
+          "type": "list",
+          "required": true,
+          "default": [
+            "guest.registered"
+          ],
+          "help": "e.g. guest.registered, guest.updated, event.created, or * for all."
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "guest.registered, event.created… Register the URL with Create webhook.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

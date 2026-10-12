@@ -1,0 +1,242 @@
+{
+  "key": "xero",
+  "name": "Xero",
+  "category": "Payments & Finance",
+  "description": "Create contacts and invoices and look up invoices in Xero.",
+  "brand": "xero",
+  "website": "https://www.xero.com",
+  "docs_url": "https://developer.xero.com/documentation/api/accounting/overview",
+  "popular": true,
+  "base_url": "https://api.xero.com",
+  "headers": {
+    "Xero-tenant-id": "{{ credentials.tenant_id }}"
+  },
+  "auth": [
+    {
+      "type": "oauth2",
+      "authorize_url": "https://login.xero.com/identity/connect/authorize",
+      "token_url": "https://identity.xero.com/connect/token",
+      "client_auth": "basic",
+      "scopes": [
+        "offline_access",
+        "accounting.contacts",
+        "accounting.invoices"
+      ],
+      "fields": [
+        {
+          "key": "tenant_id",
+          "label": "Tenant ID",
+          "type": "string",
+          "required": false,
+          "help": "After connecting, run the \"List connected organisations\" action and copy tenantId here."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_connections",
+      "name": "List connected organisations",
+      "description": "Shows the tenantId of each organisation you connected.",
+      "method": "GET",
+      "endpoint": "/connections",
+      "inputs": []
+    },
+    {
+      "key": "create_contact",
+      "name": "Create contact",
+      "method": "POST",
+      "endpoint": "/api.xro/2.0/Contacts",
+      "output_path": "Contacts.0",
+      "body": {
+        "Name": "{{ inputs.name }}",
+        "FirstName": "{{ inputs.first_name }}",
+        "LastName": "{{ inputs.last_name }}",
+        "EmailAddress": "{{ inputs.email }}",
+        "AccountNumber": "{{ inputs.account_number }}"
+      },
+      "inputs": [
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string",
+          "required": true,
+          "help": "Must be unique."
+        },
+        {
+          "key": "first_name",
+          "label": "First name",
+          "type": "string"
+        },
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string"
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string"
+        },
+        {
+          "key": "account_number",
+          "label": "Account number",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "find_contacts",
+      "name": "Find contacts",
+      "method": "GET",
+      "endpoint": "/api.xro/2.0/Contacts",
+      "output_path": "Contacts",
+      "query": {
+        "searchTerm": "{{ inputs.search }}"
+      },
+      "inputs": [
+        {
+          "key": "search",
+          "label": "Search term",
+          "type": "string",
+          "required": true,
+          "help": "Matches name, first/last name, email or contact number."
+        }
+      ]
+    },
+    {
+      "key": "create_invoice",
+      "name": "Create invoice",
+      "method": "POST",
+      "endpoint": "/api.xro/2.0/Invoices",
+      "output_path": "Invoices.0",
+      "body": {
+        "Type": "{{ inputs.type }}",
+        "Contact": {
+          "ContactID": "{{ inputs.contact_id }}"
+        },
+        "LineItems": "{{ inputs.line_items }}",
+        "Date": "{{ inputs.date }}",
+        "DueDate": "{{ inputs.due_date }}",
+        "Reference": "{{ inputs.reference }}",
+        "Status": "{{ inputs.status }}"
+      },
+      "inputs": [
+        {
+          "key": "type",
+          "label": "Type",
+          "type": "select",
+          "options": [
+            {
+              "value": "ACCREC",
+              "label": "Sales invoice"
+            },
+            {
+              "value": "ACCPAY",
+              "label": "Bill"
+            }
+          ],
+          "default": "ACCREC",
+          "required": true
+        },
+        {
+          "key": "contact_id",
+          "label": "Contact ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "line_items",
+          "label": "Line items",
+          "type": "json",
+          "required": true,
+          "placeholder": "[{\"Description\": \"Consulting\", \"Quantity\": 1, \"UnitAmount\": 100, \"AccountCode\": \"200\"}]"
+        },
+        {
+          "key": "date",
+          "label": "Date",
+          "type": "string",
+          "placeholder": "2025-06-01"
+        },
+        {
+          "key": "due_date",
+          "label": "Due date",
+          "type": "string",
+          "placeholder": "2025-06-30"
+        },
+        {
+          "key": "reference",
+          "label": "Reference",
+          "type": "string"
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "options": [
+            {
+              "value": "DRAFT",
+              "label": "Draft"
+            },
+            {
+              "value": "SUBMITTED",
+              "label": "Awaiting approval"
+            },
+            {
+              "value": "AUTHORISED",
+              "label": "Approved"
+            }
+          ],
+          "default": "DRAFT"
+        }
+      ]
+    },
+    {
+      "key": "get_invoice",
+      "name": "Get invoice",
+      "method": "GET",
+      "endpoint": "/api.xro/2.0/Invoices/{{ inputs.invoice_id }}",
+      "output_path": "Invoices.0",
+      "inputs": [
+        {
+          "key": "invoice_id",
+          "label": "Invoice ID or number",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_invoices",
+      "name": "List invoices",
+      "method": "GET",
+      "endpoint": "/api.xro/2.0/Invoices",
+      "output_path": "Invoices",
+      "query": {
+        "Statuses": "{{ inputs.statuses }}",
+        "ContactIDs": "{{ inputs.contact_ids }}",
+        "page": "{{ inputs.page }}",
+        "order": "UpdatedDateUTC DESC"
+      },
+      "inputs": [
+        {
+          "key": "statuses",
+          "label": "Statuses",
+          "type": "string",
+          "placeholder": "DRAFT,AUTHORISED"
+        },
+        {
+          "key": "contact_ids",
+          "label": "Contact IDs (comma separated)",
+          "type": "string"
+        },
+        {
+          "key": "page",
+          "label": "Page",
+          "type": "number"
+        }
+      ]
+    }
+  ],
+  "triggers": []
+}

@@ -1,0 +1,72 @@
+{
+  "key": "imagga",
+  "name": "Imagga",
+  "category": "Video & Media",
+  "description": "Auto-tag, categorise, extract colours and smart-crop images by URL.",
+  "brand": "imagga",
+  "website": "https://imagga.com",
+  "docs_url": "https://docs.imagga.com",
+  "base_url": "https://api.imagga.com/v2",
+  "auth": { "type": "basic", "fields": [
+    { "key": "username", "label": "API key", "type": "string", "required": true },
+    { "key": "password", "label": "API secret", "type": "password", "required": true }
+  ] },
+  "actions": [
+    {
+      "key": "tag_image",
+      "name": "Tag image",
+      "method": "GET",
+      "endpoint": "/tags",
+      "output_path": "result.tags",
+      "query": { "image_url": "{{ inputs.image_url }}", "language": "{{ inputs.language }}", "limit": "{{ inputs.limit }}", "threshold": "{{ inputs.threshold }}" },
+      "inputs": [
+        { "key": "image_url", "label": "Image URL", "type": "string", "required": true },
+        { "key": "language", "label": "Language", "type": "string", "placeholder": "en" },
+        { "key": "limit", "label": "Max tags", "type": "number" },
+        { "key": "threshold", "label": "Min confidence (0-100)", "type": "number" }
+      ]
+    },
+    {
+      "key": "categorize_image",
+      "name": "Categorise image",
+      "method": "GET",
+      "endpoint": "/categories/{{ inputs.categorizer_id }}",
+      "output_path": "result.categories",
+      "query": { "image_url": "{{ inputs.image_url }}", "language": "{{ inputs.language }}" },
+      "inputs": [
+        { "key": "image_url", "label": "Image URL", "type": "string", "required": true },
+        { "key": "categorizer_id", "label": "Categorizer ID", "type": "string", "required": true, "placeholder": "personal_photos", "help": "GET /v2/categorizers lists the available ones." },
+        { "key": "language", "label": "Language", "type": "string", "placeholder": "en" }
+      ]
+    },
+    {
+      "key": "extract_colors",
+      "name": "Extract colours",
+      "method": "GET",
+      "endpoint": "/colors",
+      "output_path": "result.colors",
+      "query": { "image_url": "{{ inputs.image_url }}" },
+      "inputs": [{ "key": "image_url", "label": "Image URL", "type": "string", "required": true }]
+    },
+    {
+      "key": "smart_crop",
+      "name": "Smart crop suggestions",
+      "method": "GET",
+      "endpoint": "/croppings",
+      "output_path": "result.croppings",
+      "query": { "image_url": "{{ inputs.image_url }}", "resolution": "{{ inputs.resolution }}" },
+      "inputs": [
+        { "key": "image_url", "label": "Image URL", "type": "string", "required": true },
+        { "key": "resolution", "label": "Target sizes", "type": "string", "required": true, "placeholder": "400x400,1200x628" }
+      ]
+    },
+    {
+      "key": "get_usage",
+      "name": "Get usage",
+      "method": "GET",
+      "endpoint": "/usage",
+      "output_path": "result",
+      "inputs": []
+    }
+  ]
+}

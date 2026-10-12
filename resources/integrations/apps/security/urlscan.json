@@ -1,0 +1,53 @@
+{
+  "key": "urlscan",
+  "name": "urlscan.io",
+  "category": "Security & IT",
+  "description": "Submit URLs for scanning, fetch scan results and search past scans.",
+  "brand": "urlscan",
+  "website": "https://urlscan.io",
+  "docs_url": "https://urlscan.io/docs/api/",
+  "base_url": "https://urlscan.io/api/v1",
+  "auth": { "type": "api_key", "in": "header", "name": "API-Key", "fields": [
+    { "key": "api_key", "label": "API key", "type": "password", "required": true, "help": "Settings & API → New API key." }
+  ] },
+  "actions": [
+    {
+      "key": "submit_scan",
+      "name": "Submit URL scan",
+      "description": "Returns a uuid; the result is ready after ~10-30 seconds.",
+      "method": "POST",
+      "endpoint": "/scan/",
+      "body": { "url": "{{ inputs.url }}", "visibility": "{{ inputs.visibility }}", "tags": "{{ inputs.tags }}", "customagent": "{{ inputs.user_agent }}", "referer": "{{ inputs.referer }}", "country": "{{ inputs.country }}" },
+      "inputs": [
+        { "key": "url", "label": "URL", "type": "string", "required": true },
+        { "key": "visibility", "label": "Visibility", "type": "select", "required": true, "default": "unlisted", "options": [
+          { "value": "public", "label": "Public" }, { "value": "unlisted", "label": "Unlisted" }, { "value": "private", "label": "Private" }
+        ] },
+        { "key": "tags", "label": "Tags", "type": "list" },
+        { "key": "user_agent", "label": "User agent", "type": "string" },
+        { "key": "referer", "label": "Referer", "type": "string" },
+        { "key": "country", "label": "Scan from country", "type": "string", "placeholder": "de" }
+      ]
+    },
+    {
+      "key": "get_result",
+      "name": "Get scan result",
+      "description": "Fails with HTTP 404 while the scan is still running.",
+      "method": "GET",
+      "endpoint": "/result/{{ inputs.uuid }}/",
+      "inputs": [{ "key": "uuid", "label": "Scan UUID", "type": "string", "required": true }]
+    },
+    {
+      "key": "search",
+      "name": "Search scans",
+      "method": "GET",
+      "endpoint": "/search/",
+      "query": { "q": "{{ inputs.q }}", "size": "{{ inputs.size }}" },
+      "output_path": "results",
+      "inputs": [
+        { "key": "q", "label": "Query", "type": "string", "required": true, "placeholder": "domain:example.com AND date:>now-7d" },
+        { "key": "size", "label": "Results", "type": "number", "default": 100 }
+      ]
+    }
+  ]
+}

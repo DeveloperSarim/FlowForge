@@ -1,0 +1,75 @@
+{
+  "key": "novu",
+  "name": "Novu",
+  "category": "Communication",
+  "description": "Trigger Novu notification workflows and manage subscribers.",
+  "brand": "novu",
+  "website": "https://novu.co",
+  "docs_url": "https://docs.novu.co/api-reference/overview",
+  "base_url": "{{ credentials.api_url }}/v1",
+  "auth": [
+    {
+      "type": "api_key",
+      "in": "header",
+      "name": "Authorization",
+      "prefix": "ApiKey ",
+      "fields": [
+        { "key": "api_url", "label": "Region", "type": "select", "required": true, "default": "https://api.novu.co", "options": [
+          { "value": "https://api.novu.co", "label": "US" }, { "value": "https://eu.api.novu.co", "label": "EU" }
+        ] },
+        { "key": "api_key", "label": "Secret key", "type": "password", "required": true }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "trigger_event",
+      "name": "Trigger workflow",
+      "method": "POST",
+      "endpoint": "/events/trigger",
+      "body": {
+        "name": "{{ inputs.workflow_id }}",
+        "to": { "subscriberId": "{{ inputs.subscriber_id }}", "email": "{{ inputs.email }}", "phone": "{{ inputs.phone }}" },
+        "payload": "{{ inputs.payload }}"
+      },
+      "inputs": [
+        { "key": "workflow_id", "label": "Workflow identifier", "type": "string", "required": true },
+        { "key": "subscriber_id", "label": "Subscriber ID", "type": "string", "required": true },
+        { "key": "email", "label": "Email", "type": "string" },
+        { "key": "phone", "label": "Phone", "type": "string" },
+        { "key": "payload", "label": "Payload (JSON)", "type": "json" }
+      ]
+    },
+    {
+      "key": "broadcast_event",
+      "name": "Broadcast workflow to all subscribers",
+      "method": "POST",
+      "endpoint": "/events/trigger/broadcast",
+      "body": { "name": "{{ inputs.workflow_id }}", "payload": "{{ inputs.payload }}" },
+      "inputs": [
+        { "key": "workflow_id", "label": "Workflow identifier", "type": "string", "required": true },
+        { "key": "payload", "label": "Payload (JSON)", "type": "json" }
+      ]
+    },
+    {
+      "key": "create_subscriber",
+      "name": "Create or update subscriber",
+      "method": "POST",
+      "endpoint": "/subscribers",
+      "body": {
+        "subscriberId": "{{ inputs.subscriber_id }}",
+        "email": "{{ inputs.email }}",
+        "firstName": "{{ inputs.first_name }}",
+        "lastName": "{{ inputs.last_name }}",
+        "phone": "{{ inputs.phone }}"
+      },
+      "inputs": [
+        { "key": "subscriber_id", "label": "Subscriber ID", "type": "string", "required": true },
+        { "key": "email", "label": "Email", "type": "string" },
+        { "key": "first_name", "label": "First name", "type": "string" },
+        { "key": "last_name", "label": "Last name", "type": "string" },
+        { "key": "phone", "label": "Phone", "type": "string" }
+      ]
+    }
+  ]
+}

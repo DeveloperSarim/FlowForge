@@ -1,0 +1,51 @@
+{
+  "key": "httpsms",
+  "name": "httpSMS",
+  "category": "Communication",
+  "description": "Send SMS from your own Android phone and react to received messages with httpSMS.",
+  "brand": "httpsms",
+  "website": "https://httpsms.com",
+  "docs_url": "https://docs.httpsms.com",
+  "base_url": "https://api.httpsms.com/v1",
+  "auth": [
+    { "type": "api_key", "in": "header", "name": "x-api-key", "fields": [{ "key": "api_key", "label": "API key", "type": "password", "required": true, "help": "httpsms.com → Settings → API Key." }] }
+  ],
+  "actions": [
+    {
+      "key": "send_sms",
+      "name": "Send SMS",
+      "method": "POST",
+      "endpoint": "/messages/send",
+      "body": { "from": "{{ inputs.from }}", "to": "{{ inputs.to }}", "content": "{{ inputs.content }}" },
+      "output_path": "data",
+      "inputs": [
+        { "key": "from", "label": "From (your phone, E.164)", "type": "string", "required": true },
+        { "key": "to", "label": "To (E.164)", "type": "string", "required": true },
+        { "key": "content", "label": "Message", "type": "text", "required": true }
+      ]
+    },
+    {
+      "key": "list_messages",
+      "name": "List messages with a contact",
+      "method": "GET",
+      "endpoint": "/messages",
+      "query": { "owner": "{{ inputs.owner }}", "contact": "{{ inputs.contact }}", "limit": "{{ inputs.limit }}" },
+      "output_path": "data",
+      "inputs": [
+        { "key": "owner", "label": "Your phone (E.164)", "type": "string", "required": true },
+        { "key": "contact", "label": "Contact phone (E.164)", "type": "string", "required": true },
+        { "key": "limit", "label": "Max messages", "type": "number", "default": 20 }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "description": "Add this URL under Settings → Webhooks and pick events such as message.phone.received.",
+      "type": "webhook",
+      "data_path": "data",
+      "inputs": [{ "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }]
+    }
+  ]
+}

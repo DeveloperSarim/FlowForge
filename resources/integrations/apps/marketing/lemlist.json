@@ -1,0 +1,151 @@
+{
+  "key": "lemlist",
+  "name": "lemlist",
+  "category": "Marketing & Email",
+  "description": "Add leads to campaigns, look them up and unsubscribe them.",
+  "brand": "lemlist",
+  "website": "https://www.lemlist.com",
+  "docs_url": "https://developer.lemlist.com/",
+  "base_url": "https://api.lemlist.com/api",
+  "auth": {
+    "type": "basic",
+    "fields": [
+      {
+        "key": "username",
+        "label": "Username",
+        "type": "string",
+        "required": false,
+        "default": "",
+        "help": "Leave blank."
+      },
+      {
+        "key": "password",
+        "label": "API key",
+        "type": "password",
+        "required": true
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "add_lead",
+      "name": "Add lead to campaign",
+      "method": "POST",
+      "endpoint": "/campaigns/{{ inputs.campaign_id }}/leads/{{ inputs.email }}",
+      "query": {
+        "deduplicate": "{{ inputs.deduplicate }}"
+      },
+      "body": {
+        "firstName": "{{ inputs.first_name }}",
+        "lastName": "{{ inputs.last_name }}",
+        "companyName": "{{ inputs.company_name }}"
+      },
+      "inputs": [
+        {
+          "key": "campaign_id",
+          "label": "Campaign ID",
+          "type": "string",
+          "required": true,
+          "placeholder": "cam_…"
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "first_name",
+          "label": "First name",
+          "type": "string"
+        },
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string"
+        },
+        {
+          "key": "company_name",
+          "label": "Company",
+          "type": "string"
+        },
+        {
+          "key": "deduplicate",
+          "label": "Skip if in another campaign",
+          "type": "boolean",
+          "default": false
+        }
+      ]
+    },
+    {
+      "key": "remove_lead",
+      "name": "Remove lead from campaign",
+      "method": "DELETE",
+      "endpoint": "/campaigns/{{ inputs.campaign_id }}/leads/{{ inputs.email }}",
+      "inputs": [
+        {
+          "key": "campaign_id",
+          "label": "Campaign ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "get_lead",
+      "name": "Get lead by email",
+      "method": "GET",
+      "endpoint": "/leads/{{ inputs.email }}",
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "unsubscribe",
+      "name": "Unsubscribe email",
+      "method": "POST",
+      "endpoint": "/unsubscribes/{{ inputs.email }}",
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_campaigns",
+      "name": "List campaigns",
+      "method": "GET",
+      "endpoint": "/campaigns",
+      "inputs": []
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Settings → Integrations → Webhooks (emailsReplied, emailsOpened…).",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,132 @@
+{
+  "key": "mem0",
+  "name": "Mem0",
+  "category": "AI",
+  "description": "Add and search long-term memories for your AI agents.",
+  "brand": "mem0",
+  "website": "https://mem0.ai",
+  "docs_url": "https://docs.mem0.ai/api-reference",
+  "base_url": "https://api.mem0.ai",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "Authorization",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true
+      }
+    ],
+    "prefix": "Token "
+  },
+  "actions": [
+    {
+      "key": "add_memory",
+      "name": "Add memory",
+      "description": "Memories are extracted asynchronously.",
+      "method": "POST",
+      "endpoint": "/v3/memories/add/",
+      "body": {
+        "messages": [
+          {
+            "role": "{{ inputs.role }}",
+            "content": "{{ inputs.content }}"
+          }
+        ],
+        "user_id": "{{ inputs.user_id }}",
+        "agent_id": "{{ inputs.agent_id }}",
+        "metadata": "{{ inputs.metadata }}",
+        "infer": "{{ inputs.infer }}"
+      },
+      "inputs": [
+        {
+          "key": "content",
+          "label": "Message",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "role",
+          "label": "Role",
+          "type": "select",
+          "required": true,
+          "default": "user",
+          "options": [
+            {
+              "value": "user",
+              "label": "User"
+            },
+            {
+              "value": "assistant",
+              "label": "Assistant"
+            }
+          ]
+        },
+        {
+          "key": "user_id",
+          "label": "User ID",
+          "type": "string",
+          "help": "Set a user ID, an agent ID, or both."
+        },
+        {
+          "key": "agent_id",
+          "label": "Agent ID",
+          "type": "string"
+        },
+        {
+          "key": "metadata",
+          "label": "Metadata",
+          "type": "keyvalue"
+        },
+        {
+          "key": "infer",
+          "label": "Extract memories with AI",
+          "type": "boolean",
+          "help": "Off stores the message verbatim."
+        }
+      ]
+    },
+    {
+      "key": "search_memories",
+      "name": "Search memories",
+      "method": "POST",
+      "endpoint": "/v3/memories/search/",
+      "body": {
+        "query": "{{ inputs.query }}",
+        "filters": {
+          "user_id": "{{ inputs.user_id }}",
+          "agent_id": "{{ inputs.agent_id }}"
+        },
+        "top_k": "{{ inputs.top_k }}"
+      },
+      "output_path": "results",
+      "inputs": [
+        {
+          "key": "query",
+          "label": "Query",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "user_id",
+          "label": "User ID",
+          "type": "string",
+          "help": "Set a user ID, an agent ID, or both."
+        },
+        {
+          "key": "agent_id",
+          "label": "Agent ID",
+          "type": "string"
+        },
+        {
+          "key": "top_k",
+          "label": "Results",
+          "type": "number",
+          "default": 10
+        }
+      ]
+    }
+  ]
+}

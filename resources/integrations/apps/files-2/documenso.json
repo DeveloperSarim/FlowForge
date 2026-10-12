@@ -1,0 +1,268 @@
+{
+  "key": "documenso",
+  "name": "Documenso",
+  "category": "Files & Documents",
+  "description": "Create documents from templates, send them for signing and track them.",
+  "brand": "documenso",
+  "website": "https://documenso.com",
+  "docs_url": "https://docs.documenso.com/developers/public-api",
+  "popular": true,
+  "base_url": "{{ credentials.base_url }}/api/v2",
+  "auth": [
+    {
+      "type": "api_key",
+      "in": "header",
+      "name": "Authorization",
+      "fields": [
+        {
+          "key": "base_url",
+          "label": "Documenso URL",
+          "type": "string",
+          "required": true,
+          "default": "https://app.documenso.com",
+          "help": "Your own URL when self-hosted. No trailing slash."
+        },
+        {
+          "key": "api_key",
+          "label": "API token",
+          "type": "password",
+          "required": true,
+          "help": "Settings > API tokens (api_...)."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "create_from_template",
+      "name": "Create document from template",
+      "method": "POST",
+      "endpoint": "/template/use",
+      "body": {
+        "templateId": "{{ inputs.template_id }}",
+        "recipients": "{{ inputs.recipients }}",
+        "distributeDocument": "{{ inputs.distribute }}",
+        "externalId": "{{ inputs.external_id }}"
+      },
+      "inputs": [
+        {
+          "key": "template_id",
+          "label": "Template ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "recipients",
+          "label": "Recipients",
+          "type": "json",
+          "required": true,
+          "placeholder": "[{\"id\": 123, \"email\": \"jane@example.com\", \"name\": \"Jane Doe\"}]",
+          "help": "id is the template recipient ID (see Get template)."
+        },
+        {
+          "key": "distribute",
+          "label": "Send for signing now",
+          "type": "boolean"
+        },
+        {
+          "key": "external_id",
+          "label": "External ID",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "send_document",
+      "name": "Send document",
+      "description": "Sends a draft document to its recipients.",
+      "method": "POST",
+      "endpoint": "/document/distribute",
+      "body": {
+        "documentId": "{{ inputs.document_id }}",
+        "meta": {
+          "subject": "{{ inputs.subject }}",
+          "message": "{{ inputs.message }}"
+        }
+      },
+      "inputs": [
+        {
+          "key": "document_id",
+          "label": "Document ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "subject",
+          "label": "Email subject",
+          "type": "string"
+        },
+        {
+          "key": "message",
+          "label": "Email message",
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "key": "get_document",
+      "name": "Get document",
+      "method": "GET",
+      "endpoint": "/document/{{ inputs.document_id }}",
+      "inputs": [
+        {
+          "key": "document_id",
+          "label": "Document ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_documents",
+      "name": "List documents",
+      "method": "GET",
+      "endpoint": "/document",
+      "query": {
+        "query": "{{ inputs.query }}",
+        "status": "{{ inputs.status }}",
+        "perPage": "{{ inputs.per_page }}",
+        "page": "{{ inputs.page }}",
+        "orderByColumn": "createdAt",
+        "orderByDirection": "desc"
+      },
+      "inputs": [
+        {
+          "key": "query",
+          "label": "Search",
+          "type": "string"
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "options": [
+            {
+              "value": "DRAFT",
+              "label": "Draft"
+            },
+            {
+              "value": "PENDING",
+              "label": "Pending"
+            },
+            {
+              "value": "COMPLETED",
+              "label": "Completed"
+            },
+            {
+              "value": "REJECTED",
+              "label": "Rejected"
+            },
+            {
+              "value": "CANCELLED",
+              "label": "Cancelled"
+            }
+          ]
+        },
+        {
+          "key": "per_page",
+          "label": "Per page",
+          "type": "number"
+        },
+        {
+          "key": "page",
+          "label": "Page",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "list_templates",
+      "name": "List templates",
+      "method": "GET",
+      "endpoint": "/template",
+      "query": {
+        "query": "{{ inputs.query }}",
+        "perPage": "{{ inputs.per_page }}"
+      },
+      "inputs": [
+        {
+          "key": "query",
+          "label": "Search",
+          "type": "string"
+        },
+        {
+          "key": "per_page",
+          "label": "Per page",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "get_template",
+      "name": "Get template",
+      "method": "GET",
+      "endpoint": "/template/{{ inputs.template_id }}",
+      "inputs": [
+        {
+          "key": "template_id",
+          "label": "Template ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "delete_document",
+      "name": "Delete document",
+      "method": "POST",
+      "endpoint": "/document/delete",
+      "body": {
+        "documentId": "{{ inputs.document_id }}"
+      },
+      "inputs": [
+        {
+          "key": "document_id",
+          "label": "Document ID",
+          "type": "number",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_document",
+      "name": "New document",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/document",
+      "query": {
+        "orderByColumn": "createdAt",
+        "orderByDirection": "desc",
+        "perPage": 20
+      },
+      "items_path": "data",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    },
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,122 @@
+{
+  "key": "ollama",
+  "name": "Ollama",
+  "category": "AI",
+  "description": "Run prompts and embeddings on your self-hosted Ollama models.",
+  "brand": "ollama",
+  "website": "https://ollama.com",
+  "docs_url": "https://github.com/ollama/ollama/blob/main/docs/api.md",
+  "base_url": "{{ credentials.base_url }}",
+  "headers": {
+    "Authorization": "Bearer {{ credentials.api_key }}"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "key": "base_url",
+        "label": "Server URL",
+        "type": "string",
+        "required": true,
+        "default": "http://localhost:11434",
+        "help": "Where Ollama listens, e.g. http://localhost:11434."
+      },
+      {
+        "key": "api_key",
+        "label": "API key (optional)",
+        "type": "password",
+        "required": false,
+        "help": "Only needed when the server sits behind an authenticating proxy or cloud endpoint."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "generate",
+      "name": "Generate text",
+      "description": "Send a prompt and get the reply as {{ steps.<id>.text }}.",
+      "method": "POST",
+      "endpoint": "/api/generate",
+      "timeout": 300,
+      "body": {
+        "model": "{{ inputs.model }}",
+        "prompt": "{{ inputs.prompt }}",
+        "system": "{{ inputs.system }}",
+        "stream": false,
+        "options": {
+          "temperature": "{{ inputs.temperature }}",
+          "num_predict": "{{ inputs.max_tokens }}"
+        }
+      },
+      "output_fields": {
+        "text": "response"
+      },
+      "inputs": [
+        {
+          "key": "model",
+          "label": "Model",
+          "type": "string",
+          "required": true,
+          "default": "llama3.2"
+        },
+        {
+          "key": "prompt",
+          "label": "Prompt",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "system",
+          "label": "System prompt",
+          "type": "text"
+        },
+        {
+          "key": "temperature",
+          "label": "Temperature",
+          "type": "number",
+          "placeholder": "0.7"
+        },
+        {
+          "key": "max_tokens",
+          "label": "Max output tokens",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "create_embedding",
+      "name": "Create embedding",
+      "method": "POST",
+      "endpoint": "/api/embed",
+      "body": {
+        "model": "{{ inputs.model }}",
+        "input": "{{ inputs.input }}"
+      },
+      "output_fields": {
+        "embedding": "embeddings.0"
+      },
+      "inputs": [
+        {
+          "key": "model",
+          "label": "Model",
+          "type": "string",
+          "required": true,
+          "default": "nomic-embed-text"
+        },
+        {
+          "key": "input",
+          "label": "Text",
+          "type": "text",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_models",
+      "name": "List local models",
+      "method": "GET",
+      "endpoint": "/api/tags",
+      "inputs": []
+    }
+  ]
+}

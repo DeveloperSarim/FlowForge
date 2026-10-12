@@ -1,0 +1,59 @@
+{
+  "key": "shopify-orders-sheets",
+  "name": "Log Shopify orders in Google Sheets",
+  "description": "Each new order is appended to a sheet with its number, customer, total and date.",
+  "category": "E-commerce",
+  "featured": false,
+  "graph": {
+    "nodes": [
+      {
+        "id": "trigger",
+        "type": "trigger",
+        "position": {
+          "x": 0,
+          "y": 200
+        },
+        "data": {
+          "integration": "shopify",
+          "trigger": "new_order",
+          "label": "New order",
+          "config": {
+            "poll_interval": 5
+          }
+        }
+      },
+      {
+        "id": "step_1",
+        "type": "action",
+        "position": {
+          "x": 240,
+          "y": 200
+        },
+        "data": {
+          "integration": "google_sheets",
+          "action": "append_row",
+          "label": "Append order",
+          "config": {
+            "spreadsheet_id": "",
+            "range": "Orders",
+            "values": [
+              "{{ steps.trigger.data.name }}",
+              "{{ steps.trigger.data.email }}",
+              "{{ steps.trigger.data.total_price }}",
+              "{{ steps.trigger.data.currency }}",
+              "{{ steps.trigger.data.created_at }}"
+            ]
+          }
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "e-trigger-step_1",
+        "source": "trigger",
+        "target": "step_1",
+        "sourceHandle": null
+      }
+    ]
+  }
+}

@@ -1,0 +1,107 @@
+{
+  "key": "fal_ai",
+  "name": "fal",
+  "category": "AI",
+  "description": "Run image, video and audio models on fal's queue API.",
+  "brand": "fal",
+  "website": "https://fal.ai",
+  "docs_url": "https://docs.fal.ai/model-endpoints/queue",
+  "popular": true,
+  "base_url": "https://queue.fal.run",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "Authorization",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "fal dashboard → Keys."
+      }
+    ],
+    "prefix": "Key "
+  },
+  "actions": [
+    {
+      "key": "submit_request",
+      "name": "Submit request",
+      "description": "Queues a model run; use {{ steps.<id>.status_url }} / {{ steps.<id>.response_url }} afterwards.",
+      "method": "POST",
+      "endpoint": "{{ inputs.model_id }}",
+      "query": {
+        "fal_webhook": "{{ inputs.webhook_url }}"
+      },
+      "body": "{{ inputs.input }}",
+      "inputs": [
+        {
+          "key": "model_id",
+          "label": "Model endpoint ID",
+          "type": "string",
+          "required": true,
+          "placeholder": "fal-ai/flux/schnell"
+        },
+        {
+          "key": "input",
+          "label": "Model input (JSON)",
+          "type": "json",
+          "required": true,
+          "placeholder": "{\"prompt\": \"a red fox in the snow\"}"
+        },
+        {
+          "key": "webhook_url",
+          "label": "Webhook URL",
+          "type": "string",
+          "help": "fal posts the result here when the request finishes."
+        }
+      ]
+    },
+    {
+      "key": "get_status",
+      "name": "Get request status",
+      "method": "GET",
+      "endpoint": "{{ inputs.status_url }}",
+      "inputs": [
+        {
+          "key": "status_url",
+          "label": "Status URL",
+          "type": "string",
+          "required": true,
+          "placeholder": "{{ steps.submit.status_url }}"
+        }
+      ]
+    },
+    {
+      "key": "get_result",
+      "name": "Get request result",
+      "method": "GET",
+      "endpoint": "{{ inputs.response_url }}",
+      "timeout": 120,
+      "inputs": [
+        {
+          "key": "response_url",
+          "label": "Response URL",
+          "type": "string",
+          "required": true,
+          "placeholder": "{{ steps.submit.response_url }}"
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Request completed",
+      "type": "webhook",
+      "data_path": "payload",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

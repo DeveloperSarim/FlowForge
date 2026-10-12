@@ -1,0 +1,278 @@
+{
+  "key": "lexoffice",
+  "name": "Lexware Office",
+  "category": "Payments & Finance",
+  "description": "Find contacts, create invoices and list vouchers in Lexware Office (lexoffice).",
+  "brand": "lexoffice",
+  "website": "https://office.lexware.de",
+  "docs_url": "https://developers.lexware.io/docs/",
+  "base_url": "https://api.lexware.io/v1",
+  "auth": [
+    {
+      "type": "bearer",
+      "fields": [
+        {
+          "key": "token",
+          "label": "API key",
+          "type": "password",
+          "required": true,
+          "help": "app.lexware.de/addons/public-api: create a Public API key."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "get_profile",
+      "name": "Get profile",
+      "method": "GET",
+      "endpoint": "/profile",
+      "inputs": []
+    },
+    {
+      "key": "find_contacts",
+      "name": "Find contacts",
+      "method": "GET",
+      "endpoint": "/contacts",
+      "query": {
+        "email": "{{ inputs.email }}",
+        "name": "{{ inputs.name }}",
+        "number": "{{ inputs.number }}",
+        "customer": "{{ inputs.customer }}"
+      },
+      "output_path": "content",
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string"
+        },
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string",
+          "help": "At least 3 characters."
+        },
+        {
+          "key": "number",
+          "label": "Customer/vendor number",
+          "type": "number"
+        },
+        {
+          "key": "customer",
+          "label": "Role",
+          "type": "select",
+          "options": [
+            {
+              "value": "true",
+              "label": "Customers only"
+            },
+            {
+              "value": "false",
+              "label": "Non-customers only"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "create_invoice",
+      "name": "Create invoice",
+      "method": "POST",
+      "endpoint": "/invoices",
+      "query": {
+        "finalize": "{{ inputs.finalize }}"
+      },
+      "body": {
+        "voucherDate": "{{ inputs.voucher_date }}",
+        "address": {
+          "contactId": "{{ inputs.contact_id }}"
+        },
+        "lineItems": "{{ inputs.line_items }}",
+        "totalPrice": {
+          "currency": "{{ inputs.currency }}"
+        },
+        "taxConditions": {
+          "taxType": "{{ inputs.tax_type }}"
+        },
+        "shippingConditions": {
+          "shippingType": "{{ inputs.shipping_type }}",
+          "shippingDate": "{{ inputs.shipping_date }}"
+        },
+        "title": "{{ inputs.title }}",
+        "introduction": "{{ inputs.introduction }}",
+        "remark": "{{ inputs.remark }}"
+      },
+      "inputs": [
+        {
+          "key": "contact_id",
+          "label": "Contact ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "voucher_date",
+          "label": "Invoice date",
+          "type": "string",
+          "required": true,
+          "placeholder": "2026-01-31T00:00:00.000+01:00"
+        },
+        {
+          "key": "line_items",
+          "label": "Line items",
+          "type": "json",
+          "required": true,
+          "placeholder": "[{\"type\": \"custom\", \"name\": \"Beratung\", \"quantity\": 2, \"unitName\": \"Stunde\", \"unitPrice\": {\"currency\": \"EUR\", \"netAmount\": 90, \"taxRatePercentage\": 19}}]"
+        },
+        {
+          "key": "currency",
+          "label": "Currency",
+          "type": "string",
+          "required": true,
+          "default": "EUR"
+        },
+        {
+          "key": "tax_type",
+          "label": "Tax type",
+          "type": "select",
+          "options": [
+            {
+              "value": "net",
+              "label": "Net"
+            },
+            {
+              "value": "gross",
+              "label": "Gross"
+            },
+            {
+              "value": "vatfree",
+              "label": "VAT free (Kleinunternehmer)"
+            },
+            {
+              "value": "intraCommunitySupply",
+              "label": "Intra-community supply"
+            },
+            {
+              "value": "thirdPartyCountryService",
+              "label": "Service to non-EU country"
+            }
+          ],
+          "default": "net",
+          "required": true
+        },
+        {
+          "key": "shipping_type",
+          "label": "Delivery type",
+          "type": "select",
+          "options": [
+            {
+              "value": "service",
+              "label": "Service"
+            },
+            {
+              "value": "delivery",
+              "label": "Delivery"
+            },
+            {
+              "value": "serviceperiod",
+              "label": "Service period"
+            },
+            {
+              "value": "none",
+              "label": "None"
+            }
+          ],
+          "default": "service",
+          "required": true
+        },
+        {
+          "key": "shipping_date",
+          "label": "Delivery date",
+          "type": "string",
+          "placeholder": "2026-01-31T00:00:00.000+01:00"
+        },
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "string"
+        },
+        {
+          "key": "introduction",
+          "label": "Introduction",
+          "type": "text"
+        },
+        {
+          "key": "remark",
+          "label": "Closing remark",
+          "type": "text"
+        },
+        {
+          "key": "finalize",
+          "label": "Status",
+          "type": "select",
+          "options": [
+            {
+              "value": "false",
+              "label": "Save as draft"
+            },
+            {
+              "value": "true",
+              "label": "Finalize (open invoice)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "get_invoice",
+      "name": "Get invoice",
+      "method": "GET",
+      "endpoint": "/invoices/{{ inputs.invoice_id }}",
+      "inputs": [
+        {
+          "key": "invoice_id",
+          "label": "Invoice ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_vouchers",
+      "name": "List vouchers",
+      "method": "GET",
+      "endpoint": "/voucherlist",
+      "query": {
+        "voucherType": "{{ inputs.voucher_type }}",
+        "voucherStatus": "{{ inputs.voucher_status }}",
+        "sort": "voucherDate,DESC",
+        "size": "{{ inputs.size }}"
+      },
+      "output_path": "content",
+      "inputs": [
+        {
+          "key": "voucher_type",
+          "label": "Voucher type",
+          "type": "string",
+          "required": true,
+          "default": "invoice",
+          "placeholder": "invoice,creditnote"
+        },
+        {
+          "key": "voucher_status",
+          "label": "Status",
+          "type": "string",
+          "required": true,
+          "default": "open",
+          "placeholder": "open,paid,overdue"
+        },
+        {
+          "key": "size",
+          "label": "Page size",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    }
+  ]
+}

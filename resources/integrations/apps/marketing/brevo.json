@@ -1,0 +1,272 @@
+{
+  "key": "brevo",
+  "name": "Brevo",
+  "category": "Marketing & Email",
+  "description": "Manage contacts and lists, send transactional email, list campaigns.",
+  "brand": "brevo",
+  "website": "https://www.brevo.com",
+  "docs_url": "https://developers.brevo.com/reference",
+  "popular": true,
+  "base_url": "https://api.brevo.com/v3",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "api-key",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "API key (xkeysib-…)",
+        "type": "password",
+        "required": true
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "upsert_contact",
+      "name": "Create or update contact",
+      "method": "POST",
+      "endpoint": "/contacts",
+      "body": {
+        "email": "{{ inputs.email }}",
+        "attributes": {
+          "FIRSTNAME": "{{ inputs.first_name }}",
+          "LASTNAME": "{{ inputs.last_name }}",
+          "...": "{{ inputs.attributes }}"
+        },
+        "listIds": "{{ inputs.list_ids }}",
+        "updateEnabled": true
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "first_name",
+          "label": "First name",
+          "type": "string"
+        },
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string"
+        },
+        {
+          "key": "list_ids",
+          "label": "List IDs",
+          "type": "json",
+          "placeholder": "[2, 7]",
+          "help": "JSON array of numeric list IDs."
+        },
+        {
+          "key": "attributes",
+          "label": "Other attributes",
+          "type": "keyvalue",
+          "help": "Attribute name (uppercase) → value"
+        }
+      ]
+    },
+    {
+      "key": "get_contact",
+      "name": "Get contact",
+      "method": "GET",
+      "endpoint": "/contacts/{{ inputs.email }}",
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email or contact ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "add_to_list",
+      "name": "Add contacts to list",
+      "method": "POST",
+      "endpoint": "/contacts/lists/{{ inputs.list_id }}/contacts/add",
+      "body": {
+        "emails": "{{ inputs.emails }}"
+      },
+      "inputs": [
+        {
+          "key": "list_id",
+          "label": "List ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "emails",
+          "label": "Emails",
+          "type": "list",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "unsubscribe",
+      "name": "Unsubscribe (blocklist) contact",
+      "method": "PUT",
+      "endpoint": "/contacts/{{ inputs.email }}",
+      "body": {
+        "emailBlacklisted": true
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "send_email",
+      "name": "Send transactional email",
+      "description": "Send HTML content or a template (set Template ID).",
+      "method": "POST",
+      "endpoint": "/smtp/email",
+      "body": {
+        "sender": {
+          "email": "{{ inputs.sender_email }}",
+          "name": "{{ inputs.sender_name }}"
+        },
+        "to": [
+          {
+            "email": "{{ inputs.to }}",
+            "name": "{{ inputs.to_name }}"
+          }
+        ],
+        "subject": "{{ inputs.subject }}",
+        "htmlContent": "{{ inputs.html }}",
+        "templateId": "{{ inputs.template_id }}",
+        "params": "{{ inputs.params }}"
+      },
+      "inputs": [
+        {
+          "key": "to",
+          "label": "To",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "to_name",
+          "label": "To name",
+          "type": "string"
+        },
+        {
+          "key": "sender_email",
+          "label": "Sender email",
+          "type": "string",
+          "help": "Not needed with a template that has a sender."
+        },
+        {
+          "key": "sender_name",
+          "label": "Sender name",
+          "type": "string"
+        },
+        {
+          "key": "subject",
+          "label": "Subject",
+          "type": "string"
+        },
+        {
+          "key": "html",
+          "label": "HTML content",
+          "type": "text"
+        },
+        {
+          "key": "template_id",
+          "label": "Template ID",
+          "type": "number"
+        },
+        {
+          "key": "params",
+          "label": "Template params",
+          "type": "json",
+          "placeholder": "{\"FNAME\": \"Ada\"}"
+        }
+      ]
+    },
+    {
+      "key": "list_campaigns",
+      "name": "List email campaigns",
+      "method": "GET",
+      "endpoint": "/emailCampaigns",
+      "output_path": "campaigns",
+      "query": {
+        "limit": 50,
+        "sort": "desc",
+        "status": "{{ inputs.status }}"
+      },
+      "inputs": [
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "options": [
+            {
+              "value": "draft",
+              "label": "Draft"
+            },
+            {
+              "value": "sent",
+              "label": "Sent"
+            },
+            {
+              "value": "queued",
+              "label": "Queued"
+            },
+            {
+              "value": "suspended",
+              "label": "Suspended"
+            },
+            {
+              "value": "archive",
+              "label": "Archived"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_contact",
+      "name": "New contact",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/contacts",
+      "query": {
+        "limit": 50,
+        "sort": "desc"
+      },
+      "items_path": "contacts",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    },
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Transactional or marketing webhooks (delivered, opened, unsubscribed…).",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,183 @@
+{
+  "key": "pinpoint",
+  "name": "Pinpoint",
+  "category": "HR & Recruiting",
+  "description": "List jobs and applications and add applications in Pinpoint ATS.",
+  "brand": "pinpoint",
+  "website": "https://www.pinpointhq.com",
+  "docs_url": "https://developers.pinpointhq.com",
+  "base_url": "https://{{ credentials.subdomain }}.pinpointhq.com/api/v1",
+  "headers": {
+    "Accept": "application/vnd.api+json",
+    "Content-Type": "application/vnd.api+json"
+  },
+  "auth": [
+    {
+      "type": "api_key",
+      "in": "header",
+      "name": "X-API-KEY",
+      "fields": [
+        {
+          "key": "subdomain",
+          "label": "Subdomain",
+          "type": "string",
+          "required": true,
+          "placeholder": "acme",
+          "help": "The part before .pinpointhq.com."
+        },
+        {
+          "key": "api_key",
+          "label": "API key",
+          "type": "password",
+          "required": true,
+          "help": "Settings > Integrations > API keys."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_jobs",
+      "name": "List jobs",
+      "method": "GET",
+      "endpoint": "/jobs",
+      "query": {
+        "page[size]": "{{ inputs.page_size }}"
+      },
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "page_size",
+          "label": "Per page",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    },
+    {
+      "key": "list_applications",
+      "name": "List applications",
+      "description": "Newest first.",
+      "method": "GET",
+      "endpoint": "/applications",
+      "query": {
+        "sort": "-created_at",
+        "page[size]": "{{ inputs.page_size }}"
+      },
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "page_size",
+          "label": "Per page",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    },
+    {
+      "key": "create_application",
+      "name": "Create application",
+      "method": "POST",
+      "endpoint": "/applications",
+      "body": {
+        "data": {
+          "type": "applications",
+          "attributes": {
+            "first_name": "{{ inputs.first_name }}",
+            "last_name": "{{ inputs.last_name }}",
+            "email": "{{ inputs.email }}"
+          },
+          "relationships": {
+            "job": {
+              "data": {
+                "type": "jobs",
+                "id": "{{ inputs.job_id }}"
+              }
+            }
+          }
+        }
+      },
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "job_id",
+          "label": "Job ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "first_name",
+          "label": "First name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_candidates",
+      "name": "List candidates",
+      "method": "GET",
+      "endpoint": "/candidates",
+      "query": {
+        "page[size]": "{{ inputs.page_size }}"
+      },
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "page_size",
+          "label": "Per page",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_application",
+      "name": "New application",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/applications",
+      "query": {
+        "sort": "-created_at",
+        "page[size]": 50
+      },
+      "items_path": "data",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    },
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Settings > Integrations > Webhooks in Pinpoint (application created, stage changed, hired…).",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,169 @@
+{
+  "key": "accelo",
+  "name": "Accelo",
+  "category": "Project Management",
+  "description": "Create and search Accelo companies, projects (jobs) and tickets (issues).",
+  "brand": "accelo",
+  "website": "https://www.accelo.com",
+  "docs_url": "https://api.accelo.com/docs/",
+  "base_url": "https://{{ credentials.deployment }}.api.accelo.com/api/v0",
+  "auth": [
+    {
+      "type": "oauth2",
+      "authorize_url": "https://{{ credentials.deployment }}.api.accelo.com/oauth2/v0/authorize",
+      "token_url": "https://{{ credentials.deployment }}.api.accelo.com/oauth2/v0/token",
+      "scopes": [
+        "read(all)",
+        "write(all)"
+      ],
+      "scope_separator": ",",
+      "client_auth": "basic",
+      "fields": [
+        {
+          "key": "deployment",
+          "label": "Deployment",
+          "type": "string",
+          "required": true,
+          "placeholder": "yourcompany",
+          "help": "From https://yourcompany.accelo.com."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_companies",
+      "name": "Search companies",
+      "method": "GET",
+      "endpoint": "/companies",
+      "query": {
+        "_search": "{{ inputs.search }}",
+        "_limit": "{{ inputs.limit }}"
+      },
+      "output_path": "response",
+      "inputs": [
+        {
+          "key": "search",
+          "label": "Search text",
+          "type": "string"
+        },
+        {
+          "key": "limit",
+          "label": "Max results",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "get_company",
+      "name": "Get company",
+      "method": "GET",
+      "endpoint": "/companies/{{ inputs.company_id }}",
+      "output_path": "response",
+      "inputs": [
+        {
+          "key": "company_id",
+          "label": "Company ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "create_company",
+      "name": "Create company",
+      "method": "POST",
+      "endpoint": "/companies",
+      "body": {
+        "name": "{{ inputs.name }}",
+        "website": "{{ inputs.website }}",
+        "phone": "{{ inputs.phone }}",
+        "comments": "{{ inputs.comments }}"
+      },
+      "output_path": "response",
+      "inputs": [
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "website",
+          "label": "Website",
+          "type": "string"
+        },
+        {
+          "key": "phone",
+          "label": "Phone",
+          "type": "string"
+        },
+        {
+          "key": "comments",
+          "label": "Comments",
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "key": "list_jobs",
+      "name": "Search projects (jobs)",
+      "method": "GET",
+      "endpoint": "/jobs",
+      "query": {
+        "_search": "{{ inputs.search }}",
+        "_limit": "{{ inputs.limit }}"
+      },
+      "output_path": "response",
+      "inputs": [
+        {
+          "key": "search",
+          "label": "Search text",
+          "type": "string"
+        },
+        {
+          "key": "limit",
+          "label": "Max results",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "list_issues",
+      "name": "Search tickets (issues)",
+      "method": "GET",
+      "endpoint": "/issues",
+      "query": {
+        "_search": "{{ inputs.search }}",
+        "_limit": "{{ inputs.limit }}"
+      },
+      "output_path": "response",
+      "inputs": [
+        {
+          "key": "search",
+          "label": "Search text",
+          "type": "string"
+        },
+        {
+          "key": "limit",
+          "label": "Max results",
+          "type": "number"
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

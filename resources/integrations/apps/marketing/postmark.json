@@ -1,0 +1,214 @@
+{
+  "key": "postmark",
+  "name": "Postmark",
+  "category": "Marketing & Email",
+  "description": "Send transactional email and templates, manage suppressions.",
+  "brand": "postmark",
+  "website": "https://postmarkapp.com",
+  "docs_url": "https://postmarkapp.com/developer",
+  "base_url": "https://api.postmarkapp.com",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "X-Postmark-Server-Token",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "Server API token",
+        "type": "password",
+        "required": true
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "send_email",
+      "name": "Send email",
+      "method": "POST",
+      "endpoint": "/email",
+      "body": {
+        "From": "{{ inputs.from }}",
+        "To": "{{ inputs.to }}",
+        "Cc": "{{ inputs.cc }}",
+        "Bcc": "{{ inputs.bcc }}",
+        "Subject": "{{ inputs.subject }}",
+        "HtmlBody": "{{ inputs.html_body }}",
+        "TextBody": "{{ inputs.text_body }}",
+        "ReplyTo": "{{ inputs.reply_to }}",
+        "Tag": "{{ inputs.tag }}",
+        "MessageStream": "{{ inputs.message_stream }}"
+      },
+      "inputs": [
+        {
+          "key": "from",
+          "label": "From",
+          "type": "string",
+          "required": true,
+          "help": "A confirmed sender signature."
+        },
+        {
+          "key": "to",
+          "label": "To",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "cc",
+          "label": "Cc",
+          "type": "string"
+        },
+        {
+          "key": "bcc",
+          "label": "Bcc",
+          "type": "string"
+        },
+        {
+          "key": "subject",
+          "label": "Subject",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "html_body",
+          "label": "HTML body",
+          "type": "text"
+        },
+        {
+          "key": "text_body",
+          "label": "Text body",
+          "type": "text"
+        },
+        {
+          "key": "reply_to",
+          "label": "Reply-to",
+          "type": "string"
+        },
+        {
+          "key": "tag",
+          "label": "Tag",
+          "type": "string"
+        },
+        {
+          "key": "message_stream",
+          "label": "Message stream",
+          "type": "string",
+          "default": "outbound"
+        }
+      ]
+    },
+    {
+      "key": "send_template",
+      "name": "Send email with template",
+      "method": "POST",
+      "endpoint": "/email/withTemplate",
+      "body": {
+        "From": "{{ inputs.from }}",
+        "To": "{{ inputs.to }}",
+        "TemplateAlias": "{{ inputs.template_alias }}",
+        "TemplateModel": "{{ inputs.template_model }}",
+        "MessageStream": "{{ inputs.message_stream }}"
+      },
+      "inputs": [
+        {
+          "key": "from",
+          "label": "From",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "to",
+          "label": "To",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "template_alias",
+          "label": "Template alias",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "template_model",
+          "label": "Template model",
+          "type": "json",
+          "placeholder": "{\"name\": \"Ada\"}"
+        },
+        {
+          "key": "message_stream",
+          "label": "Message stream",
+          "type": "string",
+          "default": "outbound"
+        }
+      ]
+    },
+    {
+      "key": "list_outbound",
+      "name": "Search sent messages",
+      "method": "GET",
+      "endpoint": "/messages/outbound",
+      "output_path": "Messages",
+      "query": {
+        "count": 50,
+        "offset": 0,
+        "recipient": "{{ inputs.recipient }}",
+        "tag": "{{ inputs.tag }}"
+      },
+      "inputs": [
+        {
+          "key": "recipient",
+          "label": "Recipient",
+          "type": "string"
+        },
+        {
+          "key": "tag",
+          "label": "Tag",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "suppress",
+      "name": "Suppress recipient",
+      "description": "Stops sending to an address on a message stream.",
+      "method": "POST",
+      "endpoint": "/message-streams/{{ inputs.message_stream }}/suppressions",
+      "body": {
+        "Suppressions": [
+          {
+            "EmailAddress": "{{ inputs.email }}"
+          }
+        ]
+      },
+      "inputs": [
+        {
+          "key": "message_stream",
+          "label": "Message stream",
+          "type": "string",
+          "required": true,
+          "default": "outbound"
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Server → Webhooks (delivery, bounce, open, click, spam complaint).",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

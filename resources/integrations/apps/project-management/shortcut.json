@@ -1,0 +1,242 @@
+{
+  "key": "shortcut",
+  "name": "Shortcut",
+  "category": "Project Management",
+  "description": "Create, update, comment on and search Shortcut stories.",
+  "brand": "shortcut",
+  "website": "https://www.shortcut.com",
+  "docs_url": "https://developer.shortcut.com/api/rest/v3",
+  "base_url": "https://api.app.shortcut.com/api/v3",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "Shortcut-Token",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "API token",
+        "type": "password",
+        "required": true,
+        "help": "Settings > API Tokens."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "create_story",
+      "name": "Create story",
+      "method": "POST",
+      "endpoint": "/stories",
+      "body": {
+        "name": "{{ inputs.name }}",
+        "description": "{{ inputs.description }}",
+        "story_type": "{{ inputs.story_type }}",
+        "workflow_state_id": "{{ inputs.workflow_state_id }}",
+        "group_id": "{{ inputs.group_id }}",
+        "owner_ids": "{{ inputs.owner_ids }}",
+        "labels": "{{ inputs.labels }}",
+        "estimate": "{{ inputs.estimate }}",
+        "deadline": "{{ inputs.deadline }}"
+      },
+      "inputs": [
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "description",
+          "label": "Description (Markdown)",
+          "type": "text"
+        },
+        {
+          "key": "story_type",
+          "label": "Type",
+          "type": "select",
+          "default": "feature",
+          "options": [
+            {
+              "value": "feature",
+              "label": "feature"
+            },
+            {
+              "value": "bug",
+              "label": "bug"
+            },
+            {
+              "value": "chore",
+              "label": "chore"
+            }
+          ]
+        },
+        {
+          "key": "workflow_state_id",
+          "label": "Workflow state ID",
+          "type": "number",
+          "help": "From List workflows."
+        },
+        {
+          "key": "group_id",
+          "label": "Team (group) ID",
+          "type": "string"
+        },
+        {
+          "key": "owner_ids",
+          "label": "Owner member IDs",
+          "type": "list"
+        },
+        {
+          "key": "labels",
+          "label": "Labels",
+          "type": "json",
+          "placeholder": "[{ \"name\": \"backend\" }]"
+        },
+        {
+          "key": "estimate",
+          "label": "Estimate",
+          "type": "number"
+        },
+        {
+          "key": "deadline",
+          "label": "Due date",
+          "type": "string",
+          "placeholder": "2026-10-12T00:00:00Z"
+        }
+      ]
+    },
+    {
+      "key": "get_story",
+      "name": "Get story",
+      "method": "GET",
+      "endpoint": "/stories/{{ inputs.story_id }}",
+      "inputs": [
+        {
+          "key": "story_id",
+          "label": "Story ID",
+          "type": "number",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "update_story",
+      "name": "Update story",
+      "description": "Changes only the fields you fill in.",
+      "method": "PUT",
+      "endpoint": "/stories/{{ inputs.story_id }}",
+      "body": {
+        "name": "{{ inputs.name }}",
+        "description": "{{ inputs.description }}",
+        "workflow_state_id": "{{ inputs.workflow_state_id }}",
+        "owner_ids": "{{ inputs.owner_ids }}",
+        "deadline": "{{ inputs.deadline }}"
+      },
+      "inputs": [
+        {
+          "key": "story_id",
+          "label": "Story ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string"
+        },
+        {
+          "key": "description",
+          "label": "Description",
+          "type": "text"
+        },
+        {
+          "key": "workflow_state_id",
+          "label": "Workflow state ID",
+          "type": "number"
+        },
+        {
+          "key": "owner_ids",
+          "label": "Owner member IDs",
+          "type": "list"
+        },
+        {
+          "key": "deadline",
+          "label": "Due date",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "add_comment",
+      "name": "Add comment",
+      "method": "POST",
+      "endpoint": "/stories/{{ inputs.story_id }}/comments",
+      "body": {
+        "text": "{{ inputs.text }}"
+      },
+      "inputs": [
+        {
+          "key": "story_id",
+          "label": "Story ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "text",
+          "label": "Comment (Markdown)",
+          "type": "text",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "search_stories",
+      "name": "Search stories",
+      "method": "GET",
+      "endpoint": "/search/stories",
+      "query": {
+        "query": "{{ inputs.query }}",
+        "page_size": "{{ inputs.page_size }}"
+      },
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "query",
+          "label": "Query",
+          "type": "string",
+          "required": true,
+          "placeholder": "state:\"In Progress\" owner:ada"
+        },
+        {
+          "key": "page_size",
+          "label": "Max results",
+          "type": "number",
+          "default": 25
+        }
+      ]
+    },
+    {
+      "key": "list_workflows",
+      "name": "List workflows",
+      "description": "Workflow states and their IDs.",
+      "method": "GET",
+      "endpoint": "/workflows",
+      "inputs": []
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Add this URL under Settings > Integrations > Webhooks.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

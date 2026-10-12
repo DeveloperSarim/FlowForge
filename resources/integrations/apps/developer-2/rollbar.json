@@ -1,0 +1,102 @@
+{
+  "key": "rollbar",
+  "name": "Rollbar",
+  "category": "Developer Tools",
+  "description": "Report errors, resolve or mute items, list active items and record deploys.",
+  "brand": "rollbar",
+  "website": "https://rollbar.com",
+  "docs_url": "https://docs.rollbar.com/reference",
+  "popular": true,
+  "base_url": "https://api.rollbar.com/api/1",
+  "auth": { "type": "api_key", "in": "header", "name": "X-Rollbar-Access-Token", "fields": [
+    { "key": "api_key", "label": "Project access token", "type": "password", "required": true, "help": "Project settings → Project access tokens. Needs read + write scopes (post_server_item to report errors)." }
+  ] },
+  "actions": [
+    {
+      "key": "report_error",
+      "name": "Report message",
+      "description": "Sends an occurrence to Rollbar.",
+      "method": "POST",
+      "endpoint": "/item/",
+      "body": { "data": { "environment": "{{ inputs.environment }}", "level": "{{ inputs.level }}", "title": "{{ inputs.title }}", "body": { "message": { "body": "{{ inputs.message }}" } }, "custom": "{{ inputs.custom }}" } },
+      "output_path": "result",
+      "inputs": [
+        { "key": "environment", "label": "Environment", "type": "string", "required": true, "default": "production" },
+        { "key": "level", "label": "Level", "type": "select", "required": true, "default": "error", "options": [
+          { "value": "critical", "label": "Critical" }, { "value": "error", "label": "Error" }, { "value": "warning", "label": "Warning" },
+          { "value": "info", "label": "Info" }, { "value": "debug", "label": "Debug" }
+        ] },
+        { "key": "message", "label": "Message", "type": "text", "required": true },
+        { "key": "title", "label": "Title", "type": "string" },
+        { "key": "custom", "label": "Custom data", "type": "keyvalue" }
+      ]
+    },
+    {
+      "key": "list_items",
+      "name": "List items",
+      "method": "GET",
+      "endpoint": "/items/",
+      "query": { "status": "{{ inputs.status }}", "level": "{{ inputs.level }}", "environment": "{{ inputs.environment }}", "page": "{{ inputs.page }}" },
+      "output_path": "result.items",
+      "inputs": [
+        { "key": "status", "label": "Status", "type": "select", "options": [
+          { "value": "active", "label": "Active" }, { "value": "resolved", "label": "Resolved" }, { "value": "muted", "label": "Muted" }
+        ] },
+        { "key": "level", "label": "Level", "type": "string", "placeholder": "error" },
+        { "key": "environment", "label": "Environment", "type": "string" },
+        { "key": "page", "label": "Page", "type": "number" }
+      ]
+    },
+    {
+      "key": "get_item",
+      "name": "Get item",
+      "method": "GET",
+      "endpoint": "/item/{{ inputs.item_id }}",
+      "output_path": "result",
+      "inputs": [{ "key": "item_id", "label": "Item ID", "type": "string", "required": true, "help": "The internal item ID, not the project counter." }]
+    },
+    {
+      "key": "update_item",
+      "name": "Update item",
+      "description": "Resolve, mute or reactivate an item, or change its level.",
+      "method": "PATCH",
+      "endpoint": "/item/{{ inputs.item_id }}",
+      "body": { "status": "{{ inputs.status }}", "level": "{{ inputs.level }}", "resolved_in_version": "{{ inputs.resolved_in_version }}", "assigned_user_id": "{{ inputs.assigned_user_id }}" },
+      "output_path": "result",
+      "inputs": [
+        { "key": "item_id", "label": "Item ID", "type": "string", "required": true },
+        { "key": "status", "label": "Status", "type": "select", "options": [
+          { "value": "resolved", "label": "Resolved" }, { "value": "active", "label": "Active" }, { "value": "muted", "label": "Muted" }
+        ] },
+        { "key": "level", "label": "Level", "type": "string" },
+        { "key": "resolved_in_version", "label": "Resolved in version", "type": "string" },
+        { "key": "assigned_user_id", "label": "Assigned user ID", "type": "number" }
+      ]
+    },
+    {
+      "key": "create_deploy",
+      "name": "Record deploy",
+      "method": "POST",
+      "endpoint": "/deploy",
+      "body": { "environment": "{{ inputs.environment }}", "revision": "{{ inputs.revision }}", "local_username": "{{ inputs.local_username }}", "comment": "{{ inputs.comment }}", "status": "{{ inputs.status }}" },
+      "inputs": [
+        { "key": "environment", "label": "Environment", "type": "string", "required": true, "default": "production" },
+        { "key": "revision", "label": "Revision", "type": "string", "required": true, "placeholder": "Git SHA" },
+        { "key": "local_username", "label": "Deployed by", "type": "string" },
+        { "key": "comment", "label": "Comment", "type": "string" },
+        { "key": "status", "label": "Status", "type": "select", "options": [
+          { "value": "started", "label": "Started" }, { "value": "succeeded", "label": "Succeeded" }, { "value": "failed", "label": "Failed" }, { "value": "timed_out", "label": "Timed out" }
+        ] }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook notification",
+      "type": "webhook",
+      "data_path": "data",
+      "inputs": [{ "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }]
+    }
+  ]
+}

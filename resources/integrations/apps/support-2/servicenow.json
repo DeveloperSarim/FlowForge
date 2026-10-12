@@ -1,0 +1,146 @@
+{
+  "key": "servicenow",
+  "name": "ServiceNow",
+  "category": "Customer Support",
+  "description": "Create, update and search incidents and any table record in ServiceNow.",
+  "brand": "servicenow",
+  "website": "https://www.servicenow.com",
+  "docs_url": "https://developer.servicenow.com/dev.do#!/reference/api/latest/rest/c_TableAPI",
+  "popular": true,
+  "base_url": "https://{{ credentials.instance }}.service-now.com/api/now",
+  "headers": { "Accept": "application/json" },
+  "auth": [
+    {
+      "type": "basic",
+      "fields": [
+        { "key": "instance", "label": "Instance name", "type": "string", "required": true, "placeholder": "dev12345", "help": "The part before .service-now.com" },
+        { "key": "username", "label": "Username", "type": "string", "required": true },
+        { "key": "password", "label": "Password", "type": "password", "required": true }
+      ]
+    },
+    {
+      "type": "oauth2",
+      "authorize_url": "https://{{ credentials.instance }}.service-now.com/oauth_auth.do",
+      "token_url": "https://{{ credentials.instance }}.service-now.com/oauth_token.do",
+      "scopes": ["useraccount"],
+      "fields": [
+        { "key": "instance", "label": "Instance name", "type": "string", "required": true, "placeholder": "dev12345", "help": "The part before .service-now.com. Create the client in System OAuth > Application Registry." }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "create_incident",
+      "name": "Create incident",
+      "method": "POST",
+      "endpoint": "/table/incident",
+      "output_path": "result",
+      "body": {
+        "short_description": "{{ inputs.short_description }}",
+        "description": "{{ inputs.description }}",
+        "caller_id": "{{ inputs.caller_id }}",
+        "urgency": "{{ inputs.urgency }}",
+        "impact": "{{ inputs.impact }}",
+        "category": "{{ inputs.category }}",
+        "assignment_group": "{{ inputs.assignment_group }}",
+        "...": "{{ inputs.extra }}"
+      },
+      "inputs": [
+        { "key": "short_description", "label": "Short description", "type": "string", "required": true },
+        { "key": "description", "label": "Description", "type": "text" },
+        { "key": "caller_id", "label": "Caller", "type": "string", "help": "User sys_id or user name" },
+        { "key": "urgency", "label": "Urgency", "type": "select", "options": [{ "value": "1", "label": "1 - High" }, { "value": "2", "label": "2 - Medium" }, { "value": "3", "label": "3 - Low" }] },
+        { "key": "impact", "label": "Impact", "type": "select", "options": [{ "value": "1", "label": "1 - High" }, { "value": "2", "label": "2 - Medium" }, { "value": "3", "label": "3 - Low" }] },
+        { "key": "category", "label": "Category", "type": "string", "placeholder": "inquiry" },
+        { "key": "assignment_group", "label": "Assignment group", "type": "string", "help": "Group sys_id or name" },
+        { "key": "extra", "label": "Other fields", "type": "keyvalue", "help": "Any incident column, e.g. cmdb_ci, contact_type" }
+      ]
+    },
+    {
+      "key": "update_incident",
+      "name": "Update incident",
+      "method": "PATCH",
+      "endpoint": "/table/incident/{{ inputs.sys_id }}",
+      "output_path": "result",
+      "body": {
+        "state": "{{ inputs.state }}",
+        "assigned_to": "{{ inputs.assigned_to }}",
+        "comments": "{{ inputs.comments }}",
+        "work_notes": "{{ inputs.work_notes }}",
+        "...": "{{ inputs.extra }}"
+      },
+      "inputs": [
+        { "key": "sys_id", "label": "Incident sys_id", "type": "string", "required": true },
+        { "key": "state", "label": "State", "type": "select", "options": [{ "value": "1", "label": "New" }, { "value": "2", "label": "In Progress" }, { "value": "3", "label": "On Hold" }, { "value": "6", "label": "Resolved" }, { "value": "7", "label": "Closed" }, { "value": "8", "label": "Canceled" }], "help": "Resolving usually also needs close_code and close_notes (add them under Other fields)." },
+        { "key": "assigned_to", "label": "Assigned to", "type": "string", "help": "User sys_id or user name" },
+        { "key": "comments", "label": "Additional comment (customer visible)", "type": "text" },
+        { "key": "work_notes", "label": "Work note (internal)", "type": "text" },
+        { "key": "extra", "label": "Other fields", "type": "keyvalue" }
+      ]
+    },
+    {
+      "key": "get_incident",
+      "name": "Get incident",
+      "method": "GET",
+      "endpoint": "/table/incident/{{ inputs.sys_id }}",
+      "output_path": "result",
+      "query": { "sysparm_display_value": "{{ inputs.display_value }}" },
+      "inputs": [
+        { "key": "sys_id", "label": "Incident sys_id", "type": "string", "required": true },
+        { "key": "display_value", "label": "Return display values", "type": "select", "options": [{ "value": "false", "label": "No (raw values)" }, { "value": "true", "label": "Yes" }, { "value": "all", "label": "Both" }] }
+      ]
+    },
+    {
+      "key": "search_records",
+      "name": "Search records",
+      "description": "Query any table with an encoded query.",
+      "method": "GET",
+      "endpoint": "/table/{{ inputs.table }}",
+      "output_path": "result",
+      "query": {
+        "sysparm_query": "{{ inputs.query }}",
+        "sysparm_fields": "{{ inputs.fields }}",
+        "sysparm_limit": "{{ inputs.limit }}"
+      },
+      "inputs": [
+        { "key": "table", "label": "Table", "type": "string", "required": true, "default": "incident" },
+        { "key": "query", "label": "Encoded query", "type": "string", "placeholder": "active=true^priority=1^ORDERBYDESCsys_created_on" },
+        { "key": "fields", "label": "Fields", "type": "string", "placeholder": "number,short_description,state" },
+        { "key": "limit", "label": "Limit", "type": "number", "default": 20 }
+      ]
+    },
+    {
+      "key": "create_record",
+      "name": "Create record",
+      "description": "Insert a record into any table.",
+      "method": "POST",
+      "endpoint": "/table/{{ inputs.table }}",
+      "output_path": "result",
+      "body": "{{ inputs.fields }}",
+      "inputs": [
+        { "key": "table", "label": "Table", "type": "string", "required": true, "placeholder": "sc_task" },
+        { "key": "fields", "label": "Fields", "type": "keyvalue", "required": true }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_incident",
+      "name": "New incident",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/table/incident",
+      "query": { "sysparm_query": "ORDERBYDESCsys_created_on", "sysparm_limit": 50 },
+      "items_path": "result",
+      "id_field": "sys_id",
+      "inputs": [{ "key": "poll_interval", "label": "Check every (minutes)", "type": "number", "default": 5 }]
+    },
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Send a REST message from a business rule or Flow Designer to this URL.",
+      "inputs": [{ "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }]
+    }
+  ]
+}

@@ -1,0 +1,116 @@
+{
+  "key": "youtube",
+  "name": "YouTube",
+  "category": "Social Media",
+  "description": "Search videos, read channel stats, comment and manage playlists.",
+  "brand": "youtube",
+  "website": "https://www.youtube.com",
+  "docs_url": "https://developers.google.com/youtube/v3/docs",
+  "popular": true,
+  "base_url": "https://www.googleapis.com/youtube/v3",
+  "auth": [
+    {
+      "type": "oauth2",
+      "authorize_url": "https://accounts.google.com/o/oauth2/v2/auth",
+      "token_url": "https://oauth2.googleapis.com/token",
+      "scopes": ["https://www.googleapis.com/auth/youtube.force-ssl"],
+      "authorize_params": { "access_type": "offline", "prompt": "consent" }
+    },
+    { "type": "api_key", "in": "query", "name": "key", "fields": [{ "key": "api_key", "label": "API key (public data only)", "type": "password", "required": true }] }
+  ],
+  "actions": [
+    {
+      "key": "search",
+      "name": "Search",
+      "method": "GET",
+      "endpoint": "/search",
+      "query": { "part": "snippet", "q": "{{ inputs.q }}", "type": "{{ inputs.type }}", "channelId": "{{ inputs.channel_id }}", "order": "{{ inputs.order }}", "maxResults": "{{ inputs.max_results }}" },
+      "output_path": "items",
+      "inputs": [
+        { "key": "q", "label": "Search query", "type": "string" },
+        { "key": "type", "label": "Type", "type": "select", "default": "video", "options": [
+          { "value": "video", "label": "Video" }, { "value": "channel", "label": "Channel" }, { "value": "playlist", "label": "Playlist" }
+        ] },
+        { "key": "channel_id", "label": "Channel ID", "type": "string" },
+        { "key": "order", "label": "Order", "type": "select", "default": "relevance", "options": [
+          { "value": "relevance", "label": "Relevance" }, { "value": "date", "label": "Newest" }, { "value": "viewCount", "label": "Views" }, { "value": "rating", "label": "Rating" }
+        ] },
+        { "key": "max_results", "label": "Max results (0-50)", "type": "number", "default": 10 }
+      ]
+    },
+    {
+      "key": "get_video",
+      "name": "Get video",
+      "method": "GET",
+      "endpoint": "/videos",
+      "query": { "part": "snippet,statistics,contentDetails", "id": "{{ inputs.video_id }}" },
+      "output_path": "items.0",
+      "inputs": [{ "key": "video_id", "label": "Video ID", "type": "string", "required": true }]
+    },
+    {
+      "key": "get_channel",
+      "name": "Get channel",
+      "method": "GET",
+      "endpoint": "/channels",
+      "query": { "part": "snippet,statistics,contentDetails", "id": "{{ inputs.channel_id }}", "forHandle": "{{ inputs.handle }}" },
+      "output_path": "items.0",
+      "inputs": [
+        { "key": "channel_id", "label": "Channel ID", "type": "string", "help": "Fill this or the handle." },
+        { "key": "handle", "label": "Handle", "type": "string", "placeholder": "@GoogleDevelopers" }
+      ]
+    },
+    {
+      "key": "list_playlist_items",
+      "name": "List playlist items",
+      "method": "GET",
+      "endpoint": "/playlistItems",
+      "query": { "part": "snippet,contentDetails", "playlistId": "{{ inputs.playlist_id }}", "maxResults": "{{ inputs.max_results }}" },
+      "output_path": "items",
+      "inputs": [
+        { "key": "playlist_id", "label": "Playlist ID", "type": "string", "required": true, "help": "A channel's uploads playlist is its channel ID with UC replaced by UU." },
+        { "key": "max_results", "label": "Max results (0-50)", "type": "number", "default": 25 }
+      ]
+    },
+    {
+      "key": "add_comment",
+      "name": "Comment on video",
+      "method": "POST",
+      "endpoint": "/commentThreads",
+      "query": { "part": "snippet" },
+      "body": { "snippet": { "videoId": "{{ inputs.video_id }}", "topLevelComment": { "snippet": { "textOriginal": "{{ inputs.text }}" } } } },
+      "inputs": [
+        { "key": "video_id", "label": "Video ID", "type": "string", "required": true },
+        { "key": "text", "label": "Comment", "type": "text", "required": true }
+      ]
+    },
+    {
+      "key": "add_to_playlist",
+      "name": "Add video to playlist",
+      "method": "POST",
+      "endpoint": "/playlistItems",
+      "query": { "part": "snippet" },
+      "body": { "snippet": { "playlistId": "{{ inputs.playlist_id }}", "resourceId": { "kind": "youtube#video", "videoId": "{{ inputs.video_id }}" } } },
+      "inputs": [
+        { "key": "playlist_id", "label": "Playlist ID", "type": "string", "required": true },
+        { "key": "video_id", "label": "Video ID", "type": "string", "required": true }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_video",
+      "name": "New video on channel",
+      "description": "Watches a channel's uploads playlist (1 quota unit per check).",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/playlistItems",
+      "query": { "part": "snippet,contentDetails", "playlistId": "{{ inputs.uploads_playlist_id }}", "maxResults": 10 },
+      "items_path": "items",
+      "id_field": "contentDetails.videoId",
+      "inputs": [
+        { "key": "uploads_playlist_id", "label": "Uploads playlist ID", "type": "string", "required": true, "placeholder": "UU...", "help": "Channel ID with the leading UC changed to UU." },
+        { "key": "poll_interval", "label": "Check every (minutes)", "type": "number", "default": 5 }
+      ]
+    }
+  ]
+}

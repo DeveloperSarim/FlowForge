@@ -1,0 +1,107 @@
+{
+  "key": "voyage_ai",
+  "name": "Voyage AI",
+  "category": "AI",
+  "description": "Create embeddings and rerank documents for retrieval.",
+  "brand": "voyageai",
+  "website": "https://www.voyageai.com",
+  "docs_url": "https://docs.voyageai.com/reference/embeddings-api",
+  "base_url": "https://api.voyageai.com/v1",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "API key",
+        "type": "password",
+        "required": true
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "create_embedding",
+      "name": "Create embedding",
+      "method": "POST",
+      "endpoint": "/embeddings",
+      "body": {
+        "model": "{{ inputs.model }}",
+        "input": [
+          "{{ inputs.input }}"
+        ],
+        "input_type": "{{ inputs.input_type }}"
+      },
+      "output_fields": {
+        "embedding": "data.0.embedding"
+      },
+      "inputs": [
+        {
+          "key": "model",
+          "label": "Model",
+          "type": "string",
+          "required": true,
+          "default": "voyage-3.5"
+        },
+        {
+          "key": "input",
+          "label": "Text",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "input_type",
+          "label": "Input type",
+          "type": "select",
+          "options": [
+            {
+              "value": "document",
+              "label": "Document"
+            },
+            {
+              "value": "query",
+              "label": "Query"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "rerank",
+      "name": "Rerank documents",
+      "method": "POST",
+      "endpoint": "/rerank",
+      "body": {
+        "model": "{{ inputs.model }}",
+        "query": "{{ inputs.query }}",
+        "documents": "{{ inputs.documents }}",
+        "top_k": "{{ inputs.top_k }}"
+      },
+      "inputs": [
+        {
+          "key": "model",
+          "label": "Model",
+          "type": "string",
+          "required": true,
+          "default": "rerank-2.5"
+        },
+        {
+          "key": "query",
+          "label": "Query",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "documents",
+          "label": "Documents",
+          "type": "list",
+          "required": true
+        },
+        {
+          "key": "top_k",
+          "label": "Top K",
+          "type": "number"
+        }
+      ]
+    }
+  ]
+}

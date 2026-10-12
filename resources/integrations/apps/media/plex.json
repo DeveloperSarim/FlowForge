@@ -1,0 +1,69 @@
+{
+  "key": "plex",
+  "name": "Plex Media Server",
+  "category": "Video & Media",
+  "description": "Scan libraries, list recently added media and active sessions on your Plex server.",
+  "brand": "plex",
+  "website": "https://www.plex.tv",
+  "docs_url": "https://plexapi.dev",
+  "base_url": "{{ credentials.server_url }}",
+  "auth": { "type": "api_key", "in": "header", "name": "X-Plex-Token", "fields": [
+    { "key": "server_url", "label": "Server URL", "type": "string", "required": true, "placeholder": "http://192.168.1.10:32400" },
+    { "key": "api_key", "label": "Plex token", "type": "password", "required": true, "help": "Get Info > View XML on any item shows X-Plex-Token in the URL." }
+  ] },
+  "actions": [
+    {
+      "key": "list_libraries",
+      "name": "List libraries",
+      "method": "GET",
+      "endpoint": "/library/sections",
+      "output_path": "MediaContainer.Directory",
+      "inputs": []
+    },
+    {
+      "key": "refresh_library",
+      "name": "Scan library",
+      "description": "Scans a library section for new files.",
+      "method": "GET",
+      "endpoint": "/library/sections/{{ inputs.section_id }}/refresh",
+      "inputs": [{ "key": "section_id", "label": "Library section ID", "type": "string", "required": true }]
+    },
+    {
+      "key": "list_library_items",
+      "name": "List library items",
+      "method": "GET",
+      "endpoint": "/library/sections/{{ inputs.section_id }}/all",
+      "output_path": "MediaContainer.Metadata",
+      "inputs": [{ "key": "section_id", "label": "Library section ID", "type": "string", "required": true }]
+    },
+    {
+      "key": "recently_added",
+      "name": "Recently added",
+      "method": "GET",
+      "endpoint": "/library/recentlyAdded",
+      "output_path": "MediaContainer.Metadata",
+      "inputs": []
+    },
+    {
+      "key": "active_sessions",
+      "name": "Active sessions",
+      "description": "What is playing right now.",
+      "method": "GET",
+      "endpoint": "/status/sessions",
+      "output_path": "MediaContainer",
+      "inputs": []
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_media",
+      "name": "New media added",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/library/recentlyAdded",
+      "items_path": "MediaContainer.Metadata",
+      "id_field": "ratingKey",
+      "inputs": [{ "key": "poll_interval", "label": "Check every (minutes)", "type": "number", "default": 15 }]
+    }
+  ]
+}

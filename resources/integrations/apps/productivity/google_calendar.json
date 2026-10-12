@@ -1,0 +1,395 @@
+{
+  "key": "google_calendar",
+  "name": "Google Calendar",
+  "category": "Productivity",
+  "description": "Create, update, list and delete calendar events.",
+  "brand": "googlecalendar",
+  "website": "https://calendar.google.com",
+  "docs_url": "https://developers.google.com/calendar/api/v3/reference",
+  "popular": true,
+  "base_url": "https://www.googleapis.com/calendar/v3",
+  "auth": [
+    {
+      "type": "oauth2",
+      "authorize_url": "https://accounts.google.com/o/oauth2/v2/auth",
+      "token_url": "https://oauth2.googleapis.com/token",
+      "scopes": [
+        "https://www.googleapis.com/auth/calendar"
+      ],
+      "authorize_params": {
+        "access_type": "offline",
+        "prompt": "consent"
+      }
+    },
+    {
+      "type": "google_service_account",
+      "scopes": [
+        "https://www.googleapis.com/auth/calendar"
+      ],
+      "fields": [
+        {
+          "key": "service_account_json",
+          "label": "Service Account JSON key",
+          "type": "code",
+          "required": true,
+          "help": "Paste the full JSON key file. Share the calendar with the service account email (\"Make changes to events\")."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "create_event",
+      "name": "Create event",
+      "description": "Adds an event to a calendar.",
+      "method": "POST",
+      "endpoint": "/calendars/{{ inputs.calendar_id }}/events",
+      "query": {
+        "sendUpdates": "{{ inputs.send_updates }}"
+      },
+      "body": {
+        "summary": "{{ inputs.summary }}",
+        "description": "{{ inputs.description }}",
+        "location": "{{ inputs.location }}",
+        "start": {
+          "dateTime": "{{ inputs.start }}",
+          "timeZone": "{{ inputs.time_zone }}"
+        },
+        "end": {
+          "dateTime": "{{ inputs.end }}",
+          "timeZone": "{{ inputs.time_zone }}"
+        },
+        "attendees": "{{ inputs.attendees }}"
+      },
+      "inputs": [
+        {
+          "key": "calendar_id",
+          "label": "Calendar ID",
+          "type": "string",
+          "required": true,
+          "default": "primary",
+          "help": "\"primary\" or the calendar's ID (Settings > Integrate calendar)."
+        },
+        {
+          "key": "summary",
+          "label": "Title",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "start",
+          "label": "Start",
+          "type": "string",
+          "required": true,
+          "placeholder": "2026-10-12T09:00:00",
+          "help": "RFC 3339 date-time. Include an offset (…+02:00) or set a time zone below."
+        },
+        {
+          "key": "end",
+          "label": "End",
+          "type": "string",
+          "required": true,
+          "placeholder": "2026-10-12T10:00:00"
+        },
+        {
+          "key": "time_zone",
+          "label": "Time zone",
+          "type": "string",
+          "placeholder": "Europe/London",
+          "help": "IANA time zone name."
+        },
+        {
+          "key": "description",
+          "label": "Description",
+          "type": "text"
+        },
+        {
+          "key": "location",
+          "label": "Location",
+          "type": "string"
+        },
+        {
+          "key": "attendees",
+          "label": "Attendees",
+          "type": "json",
+          "placeholder": "[{ \"email\": \"guest@example.com\" }]"
+        },
+        {
+          "key": "send_updates",
+          "label": "Notify guests",
+          "type": "select",
+          "default": "none",
+          "options": [
+            {
+              "value": "all",
+              "label": "All guests"
+            },
+            {
+              "value": "externalOnly",
+              "label": "Only non-Google guests"
+            },
+            {
+              "value": "none",
+              "label": "Nobody"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "quick_add_event",
+      "name": "Quick add event",
+      "description": "Creates an event from a plain-language sentence.",
+      "method": "POST",
+      "endpoint": "/calendars/{{ inputs.calendar_id }}/events/quickAdd",
+      "query": {
+        "text": "{{ inputs.text }}",
+        "sendUpdates": "{{ inputs.send_updates }}"
+      },
+      "inputs": [
+        {
+          "key": "calendar_id",
+          "label": "Calendar ID",
+          "type": "string",
+          "required": true,
+          "default": "primary",
+          "help": "\"primary\" or the calendar's ID (Settings > Integrate calendar)."
+        },
+        {
+          "key": "text",
+          "label": "Text",
+          "type": "string",
+          "required": true,
+          "placeholder": "Lunch with Ada tomorrow at 1pm"
+        },
+        {
+          "key": "send_updates",
+          "label": "Notify guests",
+          "type": "select",
+          "default": "none",
+          "options": [
+            {
+              "value": "all",
+              "label": "All guests"
+            },
+            {
+              "value": "externalOnly",
+              "label": "Only non-Google guests"
+            },
+            {
+              "value": "none",
+              "label": "Nobody"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "list_events",
+      "name": "List events",
+      "description": "Lists events in start-time order (recurring events expanded).",
+      "method": "GET",
+      "endpoint": "/calendars/{{ inputs.calendar_id }}/events",
+      "query": {
+        "timeMin": "{{ inputs.time_min }}",
+        "timeMax": "{{ inputs.time_max }}",
+        "q": "{{ inputs.q }}",
+        "singleEvents": "true",
+        "orderBy": "startTime",
+        "maxResults": "{{ inputs.max_results }}"
+      },
+      "output_path": "items",
+      "inputs": [
+        {
+          "key": "calendar_id",
+          "label": "Calendar ID",
+          "type": "string",
+          "required": true,
+          "default": "primary",
+          "help": "\"primary\" or the calendar's ID (Settings > Integrate calendar)."
+        },
+        {
+          "key": "time_min",
+          "label": "From",
+          "type": "string",
+          "placeholder": "2026-10-12T00:00:00Z",
+          "help": "RFC 3339 with offset."
+        },
+        {
+          "key": "time_max",
+          "label": "Until",
+          "type": "string",
+          "placeholder": "2026-10-19T00:00:00Z"
+        },
+        {
+          "key": "q",
+          "label": "Search text",
+          "type": "string"
+        },
+        {
+          "key": "max_results",
+          "label": "Max results",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    },
+    {
+      "key": "get_event",
+      "name": "Get event",
+      "method": "GET",
+      "endpoint": "/calendars/{{ inputs.calendar_id }}/events/{{ inputs.event_id }}",
+      "inputs": [
+        {
+          "key": "calendar_id",
+          "label": "Calendar ID",
+          "type": "string",
+          "required": true,
+          "default": "primary",
+          "help": "\"primary\" or the calendar's ID (Settings > Integrate calendar)."
+        },
+        {
+          "key": "event_id",
+          "label": "Event ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "update_event",
+      "name": "Update event",
+      "description": "Changes only the fields you fill in.",
+      "method": "PATCH",
+      "endpoint": "/calendars/{{ inputs.calendar_id }}/events/{{ inputs.event_id }}",
+      "query": {
+        "sendUpdates": "{{ inputs.send_updates }}"
+      },
+      "body": {
+        "summary": "{{ inputs.summary }}",
+        "description": "{{ inputs.description }}",
+        "location": "{{ inputs.location }}",
+        "start": {
+          "dateTime": "{{ inputs.start }}",
+          "timeZone": "{{ inputs.time_zone }}"
+        },
+        "end": {
+          "dateTime": "{{ inputs.end }}",
+          "timeZone": "{{ inputs.time_zone }}"
+        }
+      },
+      "inputs": [
+        {
+          "key": "calendar_id",
+          "label": "Calendar ID",
+          "type": "string",
+          "required": true,
+          "default": "primary",
+          "help": "\"primary\" or the calendar's ID (Settings > Integrate calendar)."
+        },
+        {
+          "key": "event_id",
+          "label": "Event ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "summary",
+          "label": "Title",
+          "type": "string"
+        },
+        {
+          "key": "start",
+          "label": "New start",
+          "type": "string"
+        },
+        {
+          "key": "end",
+          "label": "New end",
+          "type": "string"
+        },
+        {
+          "key": "time_zone",
+          "label": "Time zone",
+          "type": "string",
+          "help": "Only used together with a new start/end."
+        },
+        {
+          "key": "description",
+          "label": "Description",
+          "type": "text"
+        },
+        {
+          "key": "location",
+          "label": "Location",
+          "type": "string"
+        },
+        {
+          "key": "send_updates",
+          "label": "Notify guests",
+          "type": "select",
+          "default": "none",
+          "options": [
+            {
+              "value": "all",
+              "label": "All guests"
+            },
+            {
+              "value": "externalOnly",
+              "label": "Only non-Google guests"
+            },
+            {
+              "value": "none",
+              "label": "Nobody"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "delete_event",
+      "name": "Delete event",
+      "method": "DELETE",
+      "endpoint": "/calendars/{{ inputs.calendar_id }}/events/{{ inputs.event_id }}",
+      "query": {
+        "sendUpdates": "{{ inputs.send_updates }}"
+      },
+      "inputs": [
+        {
+          "key": "calendar_id",
+          "label": "Calendar ID",
+          "type": "string",
+          "required": true,
+          "default": "primary",
+          "help": "\"primary\" or the calendar's ID (Settings > Integrate calendar)."
+        },
+        {
+          "key": "event_id",
+          "label": "Event ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "send_updates",
+          "label": "Notify guests",
+          "type": "select",
+          "default": "none",
+          "options": [
+            {
+              "value": "all",
+              "label": "All guests"
+            },
+            {
+              "value": "externalOnly",
+              "label": "Only non-Google guests"
+            },
+            {
+              "value": "none",
+              "label": "Nobody"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

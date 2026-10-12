@@ -1,0 +1,206 @@
+{
+  "key": "activecampaign",
+  "name": "ActiveCampaign",
+  "category": "Marketing & Email",
+  "description": "Sync contacts, tag them and subscribe or unsubscribe them from lists.",
+  "brand": "activecampaign",
+  "website": "https://www.activecampaign.com",
+  "docs_url": "https://developers.activecampaign.com/reference/overview",
+  "base_url": "{{ credentials.account_url }}/api/3",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "Api-Token",
+    "fields": [
+      {
+        "key": "account_url",
+        "label": "API URL",
+        "type": "string",
+        "required": true,
+        "placeholder": "https://youraccount.api-us1.com",
+        "help": "Settings → Developer. No trailing slash."
+      },
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "sync_contact",
+      "name": "Create or update contact",
+      "method": "POST",
+      "endpoint": "/contact/sync",
+      "output_path": "contact",
+      "body": {
+        "contact": {
+          "email": "{{ inputs.email }}",
+          "firstName": "{{ inputs.first_name }}",
+          "lastName": "{{ inputs.last_name }}",
+          "phone": "{{ inputs.phone }}"
+        }
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "first_name",
+          "label": "First name",
+          "type": "string"
+        },
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string"
+        },
+        {
+          "key": "phone",
+          "label": "Phone",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "find_contact",
+      "name": "Find contact by email",
+      "method": "GET",
+      "endpoint": "/contacts",
+      "query": {
+        "email": "{{ inputs.email }}"
+      },
+      "output_path": "contacts",
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "update_list_status",
+      "name": "Subscribe / unsubscribe from list",
+      "method": "POST",
+      "endpoint": "/contactLists",
+      "body": {
+        "contactList": {
+          "list": "{{ inputs.list_id }}",
+          "contact": "{{ inputs.contact_id }}",
+          "status": "{{ inputs.status }}"
+        }
+      },
+      "inputs": [
+        {
+          "key": "contact_id",
+          "label": "Contact ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "list_id",
+          "label": "List ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "required": true,
+          "options": [
+            {
+              "value": "1",
+              "label": "Subscribe"
+            },
+            {
+              "value": "2",
+              "label": "Unsubscribe"
+            }
+          ],
+          "default": "1"
+        }
+      ]
+    },
+    {
+      "key": "add_tag",
+      "name": "Add tag to contact",
+      "method": "POST",
+      "endpoint": "/contactTags",
+      "body": {
+        "contactTag": {
+          "contact": "{{ inputs.contact_id }}",
+          "tag": "{{ inputs.tag_id }}"
+        }
+      },
+      "inputs": [
+        {
+          "key": "contact_id",
+          "label": "Contact ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "tag_id",
+          "label": "Tag ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_lists",
+      "name": "List lists",
+      "method": "GET",
+      "endpoint": "/lists",
+      "query": {
+        "limit": 100
+      },
+      "output_path": "lists",
+      "inputs": []
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_contact",
+      "name": "New contact",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/contacts",
+      "query": {
+        "orders[cdate]": "DESC",
+        "limit": 50
+      },
+      "items_path": "contacts",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    },
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Settings → Developer → Webhooks. Sent form-encoded.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

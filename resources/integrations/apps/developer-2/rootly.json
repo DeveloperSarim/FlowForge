@@ -1,0 +1,93 @@
+{
+  "key": "rootly",
+  "name": "Rootly",
+  "category": "Developer Tools",
+  "description": "Create, resolve and list incidents and look up severities.",
+  "brand": "rootly",
+  "website": "https://rootly.com",
+  "docs_url": "https://docs.rootly.com/api-reference/overview",
+  "base_url": "https://api.rootly.com/v1",
+  "headers": { "Content-Type": "application/vnd.api+json" },
+  "auth": { "type": "bearer", "fields": [{ "key": "token", "label": "API key", "type": "password", "required": true, "help": "Organization settings → API keys." }] },
+  "actions": [
+    {
+      "key": "create_incident",
+      "name": "Create incident",
+      "method": "POST",
+      "endpoint": "/incidents",
+      "body": { "data": { "type": "incidents", "attributes": { "title": "{{ inputs.title }}", "summary": "{{ inputs.summary }}", "severity_id": "{{ inputs.severity_id }}", "kind": "{{ inputs.kind }}", "labels": "{{ inputs.labels }}" } } },
+      "output_path": "data",
+      "inputs": [
+        { "key": "title", "label": "Title", "type": "string", "required": true },
+        { "key": "summary", "label": "Summary", "type": "text" },
+        { "key": "severity_id", "label": "Severity ID", "type": "string" },
+        { "key": "kind", "label": "Kind", "type": "select", "options": [
+          { "value": "normal", "label": "Normal" }, { "value": "test", "label": "Test" }, { "value": "example", "label": "Example" }, { "value": "backfilled", "label": "Backfilled" }, { "value": "scheduled", "label": "Scheduled maintenance" }
+        ] },
+        { "key": "labels", "label": "Labels", "type": "keyvalue" }
+      ]
+    },
+    {
+      "key": "resolve_incident",
+      "name": "Resolve incident",
+      "method": "PUT",
+      "endpoint": "/incidents/{{ inputs.incident_id }}/resolve",
+      "body": { "data": { "type": "incidents", "attributes": { "resolution_message": "{{ inputs.message }}" } } },
+      "output_path": "data",
+      "inputs": [
+        { "key": "incident_id", "label": "Incident ID", "type": "string", "required": true },
+        { "key": "message", "label": "Resolution message", "type": "text" }
+      ]
+    },
+    {
+      "key": "get_incident",
+      "name": "Get incident",
+      "method": "GET",
+      "endpoint": "/incidents/{{ inputs.incident_id }}",
+      "output_path": "data",
+      "inputs": [{ "key": "incident_id", "label": "Incident ID", "type": "string", "required": true }]
+    },
+    {
+      "key": "list_incidents",
+      "name": "List incidents",
+      "method": "GET",
+      "endpoint": "/incidents",
+      "query": { "sort": "-created_at", "filter[status]": "{{ inputs.status }}", "page[size]": "{{ inputs.page_size }}" },
+      "output_path": "data",
+      "inputs": [
+        { "key": "status", "label": "Status", "type": "select", "options": [
+          { "value": "started", "label": "Started" }, { "value": "mitigated", "label": "Mitigated" }, { "value": "resolved", "label": "Resolved" }, { "value": "cancelled", "label": "Cancelled" }
+        ] },
+        { "key": "page_size", "label": "Page size", "type": "number", "default": 25 }
+      ]
+    },
+    {
+      "key": "list_severities",
+      "name": "List severities",
+      "method": "GET",
+      "endpoint": "/severities",
+      "output_path": "data",
+      "inputs": []
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_incident",
+      "name": "New incident (polling)",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/incidents",
+      "query": { "sort": "-created_at", "page[size]": 25 },
+      "items_path": "data",
+      "id_field": "id",
+      "inputs": [{ "key": "poll_interval", "label": "Check every (minutes)", "type": "number", "default": 5 }]
+    },
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "data_path": "data",
+      "inputs": [{ "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }]
+    }
+  ]
+}

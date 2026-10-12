@@ -1,0 +1,85 @@
+{
+  "key": "frill",
+  "name": "Frill",
+  "category": "Customer Support",
+  "description": "Create, update and fetch feedback ideas in Frill.",
+  "brand": "frill",
+  "website": "https://frill.co",
+  "docs_url": "https://api.frill.co/docs",
+  "base_url": "https://api.frill.co/v1",
+  "auth": {
+    "type": "bearer",
+    "fields": [{ "key": "token", "label": "API key", "type": "password", "required": true }]
+  },
+  "actions": [
+    {
+      "key": "create_idea",
+      "name": "Create idea",
+      "method": "POST",
+      "endpoint": "/ideas",
+      "output_path": "data",
+      "body": {
+        "author_idx": "{{ inputs.author_idx }}",
+        "name": "{{ inputs.name }}",
+        "description": "{{ inputs.description }}",
+        "status_idx": "{{ inputs.status_idx }}",
+        "topic_idxs": "{{ inputs.topic_idxs }}"
+      },
+      "inputs": [
+        { "key": "author_idx", "label": "Author (follower) idx", "type": "string", "required": true },
+        { "key": "name", "label": "Title", "type": "string", "required": true },
+        { "key": "description", "label": "Description", "type": "text", "required": true },
+        { "key": "status_idx", "label": "Status idx", "type": "string" },
+        { "key": "topic_idxs", "label": "Topic idxs", "type": "list" }
+      ]
+    },
+    {
+      "key": "update_idea",
+      "name": "Update idea",
+      "method": "POST",
+      "endpoint": "/ideas/{{ inputs.idea_idx }}",
+      "output_path": "data",
+      "body": {
+        "name": "{{ inputs.name }}",
+        "description": "{{ inputs.description }}",
+        "status_idx": "{{ inputs.status_idx }}",
+        "topic_idxs": "{{ inputs.topic_idxs }}"
+      },
+      "inputs": [
+        { "key": "idea_idx", "label": "Idea idx", "type": "string", "required": true },
+        { "key": "name", "label": "Title", "type": "string" },
+        { "key": "description", "label": "Description", "type": "text" },
+        { "key": "status_idx", "label": "Status idx", "type": "string" },
+        { "key": "topic_idxs", "label": "Topic idxs", "type": "list" }
+      ]
+    },
+    {
+      "key": "get_idea",
+      "name": "Get idea",
+      "method": "GET",
+      "endpoint": "/ideas/{{ inputs.idea }}",
+      "output_path": "data",
+      "inputs": [{ "key": "idea", "label": "Idea idx or slug", "type": "string", "required": true }]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_idea",
+      "name": "New idea",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/ideas",
+      "query": { "sortBy": "created_at", "sort": "DESC", "limit": 50 },
+      "items_path": "data",
+      "id_field": "idx",
+      "inputs": [{ "key": "poll_interval", "label": "Check every (minutes)", "type": "number", "default": 5 }]
+    },
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Add this URL as a webhook in Frill (e.g. idea.created).",
+      "inputs": [{ "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }]
+    }
+  ]
+}

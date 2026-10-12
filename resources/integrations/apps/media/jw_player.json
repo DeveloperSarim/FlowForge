@@ -1,0 +1,80 @@
+{
+  "key": "jw_player",
+  "name": "JW Player",
+  "category": "Video & Media",
+  "description": "Create media from URLs and manage media metadata on a JW Player property.",
+  "brand": "jwplayer",
+  "website": "https://jwplayer.com",
+  "docs_url": "https://docs.jwplayer.com/platform/reference",
+  "base_url": "https://api.jwplayer.com/v2/sites/{{ credentials.site_id }}",
+  "auth": { "type": "bearer", "fields": [
+    { "key": "site_id", "label": "Property (site) ID", "type": "string", "required": true },
+    { "key": "token", "label": "v2 API secret", "type": "password", "required": true, "help": "Dashboard > Settings > API Credentials (v2)." }
+  ] },
+  "actions": [
+    {
+      "key": "create_media_from_url",
+      "name": "Create media from URL",
+      "description": "JW Player fetches the file from the URL and starts transcoding.",
+      "method": "POST",
+      "endpoint": "/media/",
+      "body": {
+        "upload": { "method": "fetch", "download_url": "{{ inputs.download_url }}" },
+        "metadata": { "title": "{{ inputs.title }}", "description": "{{ inputs.description }}", "tags": "{{ inputs.tags }}" }
+      },
+      "inputs": [
+        { "key": "download_url", "label": "File URL", "type": "string", "required": true, "placeholder": "https://example.com/video.mp4" },
+        { "key": "title", "label": "Title", "type": "string" },
+        { "key": "description", "label": "Description", "type": "text" },
+        { "key": "tags", "label": "Tags", "type": "list" }
+      ]
+    },
+    {
+      "key": "list_media",
+      "name": "List media",
+      "method": "GET",
+      "endpoint": "/media/",
+      "query": { "page": "{{ inputs.page }}", "page_length": "{{ inputs.page_length }}" },
+      "inputs": [
+        { "key": "page", "label": "Page", "type": "number", "default": 1 },
+        { "key": "page_length", "label": "Page length", "type": "number", "default": 10 }
+      ]
+    },
+    {
+      "key": "get_media",
+      "name": "Get media",
+      "method": "GET",
+      "endpoint": "/media/{{ inputs.media_id }}/",
+      "inputs": [{ "key": "media_id", "label": "Media ID", "type": "string", "required": true }]
+    },
+    {
+      "key": "update_media",
+      "name": "Update media metadata",
+      "method": "PATCH",
+      "endpoint": "/media/{{ inputs.media_id }}/",
+      "body": { "metadata": { "title": "{{ inputs.title }}", "description": "{{ inputs.description }}", "tags": "{{ inputs.tags }}" } },
+      "inputs": [
+        { "key": "media_id", "label": "Media ID", "type": "string", "required": true },
+        { "key": "title", "label": "Title", "type": "string" },
+        { "key": "description", "label": "Description", "type": "text" },
+        { "key": "tags", "label": "Tags", "type": "list" }
+      ]
+    },
+    {
+      "key": "delete_media",
+      "name": "Delete media",
+      "method": "DELETE",
+      "endpoint": "/media/{{ inputs.media_id }}/",
+      "inputs": [{ "key": "media_id", "label": "Media ID", "type": "string", "required": true }]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "description": "Create a webhook (e.g. media_available) pointing at this URL.",
+      "type": "webhook",
+      "inputs": [{ "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }]
+    }
+  ]
+}

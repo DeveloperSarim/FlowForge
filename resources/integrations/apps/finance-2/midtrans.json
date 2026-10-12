@@ -1,0 +1,207 @@
+{
+  "key": "midtrans",
+  "name": "Midtrans",
+  "category": "Payments & Finance",
+  "description": "Create Snap payment pages and check, cancel or refund Midtrans transactions.",
+  "brand": "midtrans",
+  "website": "https://midtrans.com",
+  "docs_url": "https://docs.midtrans.com",
+  "base_url": "https://api.{{ credentials.environment }}",
+  "auth": [
+    {
+      "type": "basic",
+      "fields": [
+        {
+          "key": "username",
+          "label": "Server key",
+          "type": "password",
+          "required": true,
+          "help": "Dashboard > Settings > Access keys."
+        },
+        {
+          "key": "password",
+          "label": "Password",
+          "type": "password",
+          "required": false,
+          "default": "",
+          "help": "Leave blank."
+        },
+        {
+          "key": "environment",
+          "label": "Environment",
+          "type": "select",
+          "required": true,
+          "options": [
+            {
+              "value": "midtrans.com",
+              "label": "Production"
+            },
+            {
+              "value": "sandbox.midtrans.com",
+              "label": "Sandbox"
+            }
+          ],
+          "default": "midtrans.com"
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "create_snap_transaction",
+      "name": "Create Snap payment page",
+      "method": "POST",
+      "endpoint": "https://app.{{ credentials.environment }}/snap/v1/transactions",
+      "body": {
+        "transaction_details": {
+          "order_id": "{{ inputs.order_id }}",
+          "gross_amount": "{{ inputs.amount }}"
+        },
+        "customer_details": {
+          "first_name": "{{ inputs.first_name }}",
+          "last_name": "{{ inputs.last_name }}",
+          "email": "{{ inputs.email }}",
+          "phone": "{{ inputs.phone }}"
+        },
+        "item_details": "{{ inputs.items }}"
+      },
+      "output_fields": {
+        "url": "redirect_url"
+      },
+      "inputs": [
+        {
+          "key": "order_id",
+          "label": "Order ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "amount",
+          "label": "Gross amount (IDR)",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "first_name",
+          "label": "First name",
+          "type": "string"
+        },
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string"
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string"
+        },
+        {
+          "key": "phone",
+          "label": "Phone",
+          "type": "string"
+        },
+        {
+          "key": "items",
+          "label": "Items",
+          "type": "json",
+          "placeholder": "[{\"id\": \"SKU-1\", \"price\": 50000, \"quantity\": 1, \"name\": \"T-shirt\"}]",
+          "help": "Item totals must add up to the gross amount."
+        }
+      ]
+    },
+    {
+      "key": "get_status",
+      "name": "Get transaction status",
+      "method": "GET",
+      "endpoint": "/v2/{{ inputs.order_id }}/status",
+      "inputs": [
+        {
+          "key": "order_id",
+          "label": "Order or transaction ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "cancel_transaction",
+      "name": "Cancel transaction",
+      "method": "POST",
+      "endpoint": "/v2/{{ inputs.order_id }}/cancel",
+      "inputs": [
+        {
+          "key": "order_id",
+          "label": "Order or transaction ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "expire_transaction",
+      "name": "Expire pending transaction",
+      "method": "POST",
+      "endpoint": "/v2/{{ inputs.order_id }}/expire",
+      "inputs": [
+        {
+          "key": "order_id",
+          "label": "Order or transaction ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "refund_transaction",
+      "name": "Refund transaction",
+      "method": "POST",
+      "endpoint": "/v2/{{ inputs.order_id }}/refund",
+      "body": {
+        "refund_key": "{{ inputs.refund_key }}",
+        "amount": "{{ inputs.amount }}",
+        "reason": "{{ inputs.reason }}"
+      },
+      "inputs": [
+        {
+          "key": "order_id",
+          "label": "Order or transaction ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "refund_key",
+          "label": "Refund key",
+          "type": "string",
+          "help": "Your unique ID for this refund."
+        },
+        {
+          "key": "amount",
+          "label": "Amount",
+          "type": "number",
+          "help": "Blank = full refund."
+        },
+        {
+          "key": "reason",
+          "label": "Reason",
+          "type": "string"
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Dashboard > Settings > Payment > Notification URL: paste this URL.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

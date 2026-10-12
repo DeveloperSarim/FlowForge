@@ -1,0 +1,75 @@
+{
+  "key": "sms-ai-autoreply",
+  "name": "AI auto-reply to incoming SMS",
+  "description": "Incoming Twilio SMS are answered by Gemini with a short, friendly reply.",
+  "category": "AI",
+  "featured": false,
+  "graph": {
+    "nodes": [
+      {
+        "id": "trigger",
+        "type": "trigger",
+        "position": {
+          "x": 0,
+          "y": 200
+        },
+        "data": {
+          "integration": "twilio",
+          "trigger": "incoming_webhook",
+          "label": "Incoming SMS",
+          "config": {}
+        }
+      },
+      {
+        "id": "step_1",
+        "type": "action",
+        "position": {
+          "x": 240,
+          "y": 200
+        },
+        "data": {
+          "integration": "google_gemini",
+          "action": "generate_content",
+          "label": "Write a reply",
+          "config": {
+            "model": "gemini-2.5-flash",
+            "system": "You are a helpful assistant for a small bakery. Reply in under 300 characters.",
+            "prompt": "{{ steps.trigger.data.Body }}"
+          }
+        }
+      },
+      {
+        "id": "step_2",
+        "type": "action",
+        "position": {
+          "x": 480,
+          "y": 200
+        },
+        "data": {
+          "integration": "twilio",
+          "action": "send_sms",
+          "label": "Send reply",
+          "config": {
+            "to": "{{ steps.trigger.data.From }}",
+            "from": "{{ steps.trigger.data.To }}",
+            "body": "{{ steps.step_1.text }}"
+          }
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "e-trigger-step_1",
+        "source": "trigger",
+        "target": "step_1",
+        "sourceHandle": null
+      },
+      {
+        "id": "e-step_1-step_2",
+        "source": "step_1",
+        "target": "step_2",
+        "sourceHandle": null
+      }
+    ]
+  }
+}

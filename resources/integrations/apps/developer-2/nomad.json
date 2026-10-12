@@ -1,0 +1,86 @@
+{
+  "key": "nomad",
+  "name": "HashiCorp Nomad",
+  "category": "Developer Tools",
+  "description": "List and inspect jobs, dispatch parameterized jobs and force periodic runs.",
+  "brand": "nomad",
+  "website": "https://www.nomadproject.io",
+  "docs_url": "https://developer.hashicorp.com/nomad/api-docs",
+  "base_url": "{{ credentials.base_url }}/v1",
+  "auth": { "type": "api_key", "in": "header", "name": "X-Nomad-Token", "fields": [
+    { "key": "base_url", "label": "Nomad address", "type": "string", "required": true, "placeholder": "https://nomad.example.com:4646", "help": "Without a trailing slash." },
+    { "key": "api_key", "label": "ACL token (secret ID)", "type": "password", "required": true }
+  ] },
+  "actions": [
+    {
+      "key": "list_jobs",
+      "name": "List jobs",
+      "method": "GET",
+      "endpoint": "/jobs",
+      "query": { "prefix": "{{ inputs.prefix }}", "namespace": "{{ inputs.namespace }}" },
+      "inputs": [
+        { "key": "prefix", "label": "Job ID prefix", "type": "string" },
+        { "key": "namespace", "label": "Namespace", "type": "string", "help": "Use * for all namespaces." }
+      ]
+    },
+    {
+      "key": "get_job",
+      "name": "Get job",
+      "method": "GET",
+      "endpoint": "/job/{{ inputs.job_id }}",
+      "query": { "namespace": "{{ inputs.namespace }}" },
+      "inputs": [
+        { "key": "job_id", "label": "Job ID", "type": "string", "required": true },
+        { "key": "namespace", "label": "Namespace", "type": "string" }
+      ]
+    },
+    {
+      "key": "dispatch_job",
+      "name": "Dispatch parameterized job",
+      "method": "POST",
+      "endpoint": "/job/{{ inputs.job_id }}/dispatch",
+      "query": { "namespace": "{{ inputs.namespace }}" },
+      "body": { "Meta": "{{ inputs.meta }}", "Payload": "{{ inputs.payload }}" },
+      "inputs": [
+        { "key": "job_id", "label": "Job ID", "type": "string", "required": true },
+        { "key": "meta", "label": "Meta", "type": "keyvalue" },
+        { "key": "payload", "label": "Payload (base64)", "type": "string" },
+        { "key": "namespace", "label": "Namespace", "type": "string" }
+      ]
+    },
+    {
+      "key": "force_periodic",
+      "name": "Force periodic run",
+      "method": "POST",
+      "endpoint": "/job/{{ inputs.job_id }}/periodic/force",
+      "query": { "namespace": "{{ inputs.namespace }}" },
+      "inputs": [
+        { "key": "job_id", "label": "Job ID", "type": "string", "required": true },
+        { "key": "namespace", "label": "Namespace", "type": "string" }
+      ]
+    },
+    {
+      "key": "list_job_allocations",
+      "name": "List job allocations",
+      "method": "GET",
+      "endpoint": "/job/{{ inputs.job_id }}/allocations",
+      "query": { "namespace": "{{ inputs.namespace }}" },
+      "inputs": [
+        { "key": "job_id", "label": "Job ID", "type": "string", "required": true },
+        { "key": "namespace", "label": "Namespace", "type": "string" }
+      ]
+    },
+    {
+      "key": "stop_job",
+      "name": "Stop job",
+      "method": "DELETE",
+      "endpoint": "/job/{{ inputs.job_id }}",
+      "query": { "purge": "{{ inputs.purge }}", "namespace": "{{ inputs.namespace }}" },
+      "inputs": [
+        { "key": "job_id", "label": "Job ID", "type": "string", "required": true },
+        { "key": "purge", "label": "Purge (remove from state)", "type": "boolean" },
+        { "key": "namespace", "label": "Namespace", "type": "string" }
+      ]
+    }
+  ]
+}

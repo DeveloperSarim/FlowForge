@@ -1,0 +1,252 @@
+{
+  "key": "kanboard",
+  "name": "Kanboard",
+  "category": "Project Management",
+  "description": "Create, search, close and comment on tasks in self-hosted Kanboard.",
+  "brand": "kanboard",
+  "website": "https://kanboard.org",
+  "docs_url": "https://docs.kanboard.org/v1/api/",
+  "base_url": "{{ credentials.url }}",
+  "auth": [
+    {
+      "type": "basic",
+      "fields": [
+        {
+          "key": "url",
+          "label": "Kanboard URL",
+          "type": "string",
+          "required": true,
+          "placeholder": "https://kanboard.example.com",
+          "help": "Base URL without a trailing slash."
+        },
+        {
+          "key": "username",
+          "label": "Username",
+          "type": "string",
+          "required": true,
+          "default": "jsonrpc",
+          "help": "Keep \"jsonrpc\" with the application token, or use your username with a personal token."
+        },
+        {
+          "key": "password",
+          "label": "API token",
+          "type": "password",
+          "required": true,
+          "help": "Settings > API (application token) or My profile > API (personal token)."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_projects",
+      "name": "List projects",
+      "method": "POST",
+      "endpoint": "/jsonrpc.php",
+      "body": {
+        "jsonrpc": "2.0",
+        "method": "getAllProjects",
+        "id": 1,
+        "params": {}
+      },
+      "error_path": "error",
+      "output_path": "result",
+      "inputs": []
+    },
+    {
+      "key": "create_task",
+      "name": "Create task",
+      "method": "POST",
+      "endpoint": "/jsonrpc.php",
+      "body": {
+        "jsonrpc": "2.0",
+        "method": "createTask",
+        "id": 1,
+        "params": {
+          "project_id": "{{ inputs.project_id }}",
+          "title": "{{ inputs.title }}",
+          "description": "{{ inputs.description }}",
+          "column_id": "{{ inputs.column_id }}",
+          "owner_id": "{{ inputs.owner_id }}",
+          "date_due": "{{ inputs.date_due }}",
+          "tags": "{{ inputs.tags }}"
+        }
+      },
+      "error_path": "error",
+      "output_path": "result",
+      "description": "Returns the new task ID.",
+      "inputs": [
+        {
+          "key": "project_id",
+          "label": "Project ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "description",
+          "label": "Description (Markdown)",
+          "type": "text"
+        },
+        {
+          "key": "column_id",
+          "label": "Column ID",
+          "type": "number"
+        },
+        {
+          "key": "owner_id",
+          "label": "Assignee user ID",
+          "type": "number"
+        },
+        {
+          "key": "date_due",
+          "label": "Due date",
+          "type": "string",
+          "placeholder": "2026-10-20"
+        },
+        {
+          "key": "tags",
+          "label": "Tags",
+          "type": "list"
+        }
+      ]
+    },
+    {
+      "key": "get_task",
+      "name": "Get task",
+      "method": "POST",
+      "endpoint": "/jsonrpc.php",
+      "body": {
+        "jsonrpc": "2.0",
+        "method": "getTask",
+        "id": 1,
+        "params": {
+          "task_id": "{{ inputs.task_id }}"
+        }
+      },
+      "error_path": "error",
+      "output_path": "result",
+      "inputs": [
+        {
+          "key": "task_id",
+          "label": "Task ID",
+          "type": "number",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "search_tasks",
+      "name": "Search tasks",
+      "method": "POST",
+      "endpoint": "/jsonrpc.php",
+      "body": {
+        "jsonrpc": "2.0",
+        "method": "searchTasks",
+        "id": 1,
+        "params": {
+          "project_id": "{{ inputs.project_id }}",
+          "query": "{{ inputs.query }}"
+        }
+      },
+      "error_path": "error",
+      "output_path": "result",
+      "inputs": [
+        {
+          "key": "project_id",
+          "label": "Project ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "query",
+          "label": "Query",
+          "type": "string",
+          "required": true,
+          "placeholder": "assignee:me due:tomorrow"
+        }
+      ]
+    },
+    {
+      "key": "close_task",
+      "name": "Close task",
+      "method": "POST",
+      "endpoint": "/jsonrpc.php",
+      "body": {
+        "jsonrpc": "2.0",
+        "method": "closeTask",
+        "id": 1,
+        "params": {
+          "task_id": "{{ inputs.task_id }}"
+        }
+      },
+      "error_path": "error",
+      "output_path": "result",
+      "inputs": [
+        {
+          "key": "task_id",
+          "label": "Task ID",
+          "type": "number",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "add_comment",
+      "name": "Add comment",
+      "method": "POST",
+      "endpoint": "/jsonrpc.php",
+      "body": {
+        "jsonrpc": "2.0",
+        "method": "createComment",
+        "id": 1,
+        "params": {
+          "task_id": "{{ inputs.task_id }}",
+          "user_id": "{{ inputs.user_id }}",
+          "content": "{{ inputs.content }}"
+        }
+      },
+      "error_path": "error",
+      "output_path": "result",
+      "inputs": [
+        {
+          "key": "task_id",
+          "label": "Task ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "user_id",
+          "label": "Author user ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "content",
+          "label": "Comment (Markdown)",
+          "type": "text",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,76 @@
+{
+  "key": "meta_ads",
+  "name": "Meta Ads",
+  "category": "Social Media",
+  "description": "Read campaigns and insights, pause or resume ads, and send Conversions API events.",
+  "brand": "meta",
+  "website": "https://www.facebook.com/business/ads",
+  "docs_url": "https://developers.facebook.com/docs/marketing-api",
+  "base_url": "https://graph.facebook.com/v25.0",
+  "auth": { "type": "bearer", "fields": [{ "key": "token", "label": "Access token", "type": "password", "required": true,
+    "help": "A System User token (Business Settings) with ads_read / ads_management." }] },
+  "actions": [
+    {
+      "key": "list_campaigns",
+      "name": "List campaigns",
+      "method": "GET",
+      "endpoint": "/act_{{ inputs.ad_account_id }}/campaigns",
+      "query": { "fields": "{{ inputs.fields }}", "limit": "{{ inputs.limit }}" },
+      "output_path": "data",
+      "inputs": [
+        { "key": "ad_account_id", "label": "Ad account ID (without act_)", "type": "string", "required": true },
+        { "key": "fields", "label": "Fields", "type": "string", "default": "id,name,status,effective_status,objective,daily_budget,lifetime_budget" },
+        { "key": "limit", "label": "Limit", "type": "number", "default": 50 }
+      ]
+    },
+    {
+      "key": "get_insights",
+      "name": "Get insights",
+      "description": "Performance metrics for an ad account, campaign, ad set or ad.",
+      "method": "GET",
+      "endpoint": "/{{ inputs.object_id }}/insights",
+      "query": { "fields": "{{ inputs.fields }}", "date_preset": "{{ inputs.date_preset }}", "level": "{{ inputs.level }}", "time_increment": "{{ inputs.time_increment }}" },
+      "output_path": "data",
+      "inputs": [
+        { "key": "object_id", "label": "Object ID", "type": "string", "required": true, "placeholder": "act_123456 or a campaign ID" },
+        { "key": "fields", "label": "Fields", "type": "string", "default": "campaign_name,impressions,clicks,spend,ctr,cpc,actions" },
+        { "key": "date_preset", "label": "Date range", "type": "select", "default": "last_7d", "options": [
+          { "value": "today", "label": "Today" }, { "value": "yesterday", "label": "Yesterday" }, { "value": "last_7d", "label": "Last 7 days" },
+          { "value": "last_30d", "label": "Last 30 days" }, { "value": "this_month", "label": "This month" }, { "value": "last_month", "label": "Last month" }, { "value": "maximum", "label": "Lifetime" }
+        ] },
+        { "key": "level", "label": "Level", "type": "select", "options": [
+          { "value": "account", "label": "Account" }, { "value": "campaign", "label": "Campaign" }, { "value": "adset", "label": "Ad set" }, { "value": "ad", "label": "Ad" }
+        ] },
+        { "key": "time_increment", "label": "Time increment", "type": "string", "placeholder": "1 (daily), monthly or all_days" }
+      ]
+    },
+    {
+      "key": "update_status",
+      "name": "Pause or resume",
+      "description": "Sets the status of a campaign, ad set or ad.",
+      "method": "POST",
+      "endpoint": "/{{ inputs.object_id }}",
+      "body_format": "form",
+      "body": { "status": "{{ inputs.status }}" },
+      "inputs": [
+        { "key": "object_id", "label": "Campaign / ad set / ad ID", "type": "string", "required": true },
+        { "key": "status", "label": "Status", "type": "select", "required": true, "options": [
+          { "value": "ACTIVE", "label": "Active" }, { "value": "PAUSED", "label": "Paused" }
+        ] }
+      ]
+    },
+    {
+      "key": "send_conversion_events",
+      "name": "Send Conversions API events",
+      "method": "POST",
+      "endpoint": "/{{ inputs.pixel_id }}/events",
+      "body": { "data": "{{ inputs.data }}", "test_event_code": "{{ inputs.test_event_code }}" },
+      "inputs": [
+        { "key": "pixel_id", "label": "Pixel / dataset ID", "type": "string", "required": true },
+        { "key": "data", "label": "Events (JSON array)", "type": "json", "required": true,
+          "placeholder": "[{ \"event_name\": \"Purchase\", \"event_time\": 1700000000, \"action_source\": \"website\", \"user_data\": { \"em\": [\"<sha256 email>\"] }, \"custom_data\": { \"currency\": \"USD\", \"value\": 49.99 } }]" },
+        { "key": "test_event_code", "label": "Test event code", "type": "string", "help": "From Events Manager > Test events." }
+      ]
+    }
+  ]
+}

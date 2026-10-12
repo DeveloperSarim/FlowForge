@@ -1,0 +1,291 @@
+{
+  "key": "moneybird",
+  "name": "Moneybird",
+  "category": "Payments & Finance",
+  "description": "Create contacts and sales invoices, send them and list invoices in Moneybird.",
+  "brand": "moneybird",
+  "website": "https://www.moneybird.com",
+  "docs_url": "https://developer.moneybird.com",
+  "base_url": "https://moneybird.com/api/v2",
+  "auth": [
+    {
+      "type": "bearer",
+      "fields": [
+        {
+          "key": "token",
+          "label": "API token",
+          "type": "password",
+          "required": true,
+          "help": "Moneybird > Settings > External applications > API token."
+        },
+        {
+          "key": "administration_id",
+          "label": "Administration ID",
+          "type": "string",
+          "required": true,
+          "help": "The number in your Moneybird URL: moneybird.com/<administration_id>/…"
+        }
+      ]
+    },
+    {
+      "type": "oauth2",
+      "authorize_url": "https://moneybird.com/oauth/authorize",
+      "token_url": "https://moneybird.com/oauth/token",
+      "scopes": [
+        "sales_invoices",
+        "documents",
+        "settings"
+      ],
+      "fields": [
+        {
+          "key": "administration_id",
+          "label": "Administration ID",
+          "type": "string",
+          "required": true,
+          "help": "The number in your Moneybird URL: moneybird.com/<administration_id>/…"
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_administrations",
+      "name": "List administrations",
+      "method": "GET",
+      "endpoint": "/administrations.json",
+      "inputs": []
+    },
+    {
+      "key": "find_contacts",
+      "name": "Find contacts",
+      "method": "GET",
+      "endpoint": "/{{ credentials.administration_id }}/contacts.json",
+      "query": {
+        "query": "{{ inputs.query }}",
+        "per_page": "{{ inputs.per_page }}"
+      },
+      "inputs": [
+        {
+          "key": "query",
+          "label": "Search",
+          "type": "string"
+        },
+        {
+          "key": "per_page",
+          "label": "Per page",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    },
+    {
+      "key": "create_contact",
+      "name": "Create contact",
+      "method": "POST",
+      "endpoint": "/{{ credentials.administration_id }}/contacts.json",
+      "body": {
+        "contact": {
+          "company_name": "{{ inputs.company_name }}",
+          "firstname": "{{ inputs.first_name }}",
+          "lastname": "{{ inputs.last_name }}",
+          "send_invoices_to_email": "{{ inputs.email }}",
+          "phone": "{{ inputs.phone }}",
+          "address1": "{{ inputs.address1 }}",
+          "zipcode": "{{ inputs.zipcode }}",
+          "city": "{{ inputs.city }}",
+          "country": "{{ inputs.country }}",
+          "chamber_of_commerce": "{{ inputs.chamber_of_commerce }}",
+          "tax_number": "{{ inputs.tax_number }}"
+        }
+      },
+      "inputs": [
+        {
+          "key": "company_name",
+          "label": "Company name",
+          "type": "string",
+          "help": "Give a company name or a first + last name."
+        },
+        {
+          "key": "first_name",
+          "label": "First name",
+          "type": "string"
+        },
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string"
+        },
+        {
+          "key": "email",
+          "label": "Invoice email",
+          "type": "string"
+        },
+        {
+          "key": "phone",
+          "label": "Phone",
+          "type": "string"
+        },
+        {
+          "key": "address1",
+          "label": "Address",
+          "type": "string"
+        },
+        {
+          "key": "zipcode",
+          "label": "Postcode",
+          "type": "string"
+        },
+        {
+          "key": "city",
+          "label": "City",
+          "type": "string"
+        },
+        {
+          "key": "country",
+          "label": "Country code",
+          "type": "string",
+          "placeholder": "NL"
+        },
+        {
+          "key": "chamber_of_commerce",
+          "label": "Chamber of commerce no.",
+          "type": "string"
+        },
+        {
+          "key": "tax_number",
+          "label": "VAT number",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "list_sales_invoices",
+      "name": "List sales invoices",
+      "method": "GET",
+      "endpoint": "/{{ credentials.administration_id }}/sales_invoices.json",
+      "query": {
+        "filter": "{{ inputs.filter }}",
+        "per_page": "{{ inputs.per_page }}"
+      },
+      "inputs": [
+        {
+          "key": "filter",
+          "label": "Filter",
+          "type": "string",
+          "placeholder": "state:open"
+        },
+        {
+          "key": "per_page",
+          "label": "Per page",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    },
+    {
+      "key": "create_sales_invoice",
+      "name": "Create sales invoice",
+      "method": "POST",
+      "endpoint": "/{{ credentials.administration_id }}/sales_invoices.json",
+      "body": {
+        "sales_invoice": {
+          "contact_id": "{{ inputs.contact_id }}",
+          "reference": "{{ inputs.reference }}",
+          "invoice_date": "{{ inputs.invoice_date }}",
+          "currency": "{{ inputs.currency }}",
+          "prices_are_incl_tax": "{{ inputs.prices_incl_tax }}",
+          "details_attributes": "{{ inputs.details }}"
+        }
+      },
+      "inputs": [
+        {
+          "key": "contact_id",
+          "label": "Contact ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "reference",
+          "label": "Reference",
+          "type": "string"
+        },
+        {
+          "key": "invoice_date",
+          "label": "Invoice date",
+          "type": "string",
+          "placeholder": "2026-01-31"
+        },
+        {
+          "key": "currency",
+          "label": "Currency",
+          "type": "string",
+          "placeholder": "EUR"
+        },
+        {
+          "key": "prices_incl_tax",
+          "label": "Prices include VAT",
+          "type": "boolean"
+        },
+        {
+          "key": "details",
+          "label": "Lines",
+          "type": "json",
+          "required": true,
+          "placeholder": "[{\"description\": \"Consulting\", \"price\": \"100.00\", \"amount\": \"2\"}]"
+        }
+      ]
+    },
+    {
+      "key": "send_sales_invoice",
+      "name": "Send sales invoice",
+      "method": "PATCH",
+      "endpoint": "/{{ credentials.administration_id }}/sales_invoices/{{ inputs.invoice_id }}/send_invoice.json",
+      "body": {
+        "sales_invoice_sending": {
+          "delivery_method": "{{ inputs.delivery_method }}",
+          "email_address": "{{ inputs.email }}",
+          "email_message": "{{ inputs.message }}"
+        }
+      },
+      "inputs": [
+        {
+          "key": "invoice_id",
+          "label": "Sales invoice ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "delivery_method",
+          "label": "Delivery method",
+          "type": "select",
+          "options": [
+            {
+              "value": "Email",
+              "label": "Email"
+            },
+            {
+              "value": "Simplerinvoicing",
+              "label": "Peppol / Simplerinvoicing"
+            },
+            {
+              "value": "Manual",
+              "label": "Manual (mark as sent)"
+            }
+          ],
+          "default": "Email",
+          "required": true
+        },
+        {
+          "key": "email",
+          "label": "Send to (overrides contact)",
+          "type": "string"
+        },
+        {
+          "key": "message",
+          "label": "Message",
+          "type": "text"
+        }
+      ]
+    }
+  ]
+}

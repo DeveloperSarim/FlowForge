@@ -1,0 +1,194 @@
+{
+  "key": "microsoft_excel",
+  "name": "Microsoft Excel",
+  "category": "Productivity",
+  "description": "Add table rows and read or write ranges in Excel workbooks on OneDrive.",
+  "brand": "microsoftexcel",
+  "website": "https://www.microsoft.com/microsoft-365/excel",
+  "docs_url": "https://learn.microsoft.com/en-us/graph/api/resources/excel",
+  "popular": true,
+  "base_url": "https://graph.microsoft.com/v1.0",
+  "auth": [
+    {
+      "type": "oauth2",
+      "authorize_url": "https://login.microsoftonline.com/common/oauth2/v2.0/authorize",
+      "token_url": "https://login.microsoftonline.com/common/oauth2/v2.0/token",
+      "scopes": [
+        "offline_access",
+        "Files.ReadWrite"
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "add_table_row",
+      "name": "Add table row",
+      "description": "Appends a row to an Excel table.",
+      "method": "POST",
+      "endpoint": "/me/drive/items/{{ inputs.item_id }}/workbook/tables/{{ inputs.table }}/rows",
+      "body": {
+        "values": [
+          "{{ inputs.values }}"
+        ]
+      },
+      "inputs": [
+        {
+          "key": "item_id",
+          "label": "Workbook (drive item ID)",
+          "type": "string",
+          "required": true,
+          "help": "OneDrive item id of the .xlsx file (from the file's details or the Graph /me/drive API)."
+        },
+        {
+          "key": "table",
+          "label": "Table name or ID",
+          "type": "string",
+          "required": true,
+          "default": "Table1"
+        },
+        {
+          "key": "values",
+          "label": "Cell values (left to right)",
+          "type": "list",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_table_rows",
+      "name": "List table rows",
+      "method": "GET",
+      "endpoint": "/me/drive/items/{{ inputs.item_id }}/workbook/tables/{{ inputs.table }}/rows",
+      "query": {
+        "$top": "{{ inputs.top }}"
+      },
+      "output_path": "value",
+      "inputs": [
+        {
+          "key": "item_id",
+          "label": "Workbook (drive item ID)",
+          "type": "string",
+          "required": true,
+          "help": "OneDrive item id of the .xlsx file (from the file's details or the Graph /me/drive API)."
+        },
+        {
+          "key": "table",
+          "label": "Table name or ID",
+          "type": "string",
+          "required": true,
+          "default": "Table1"
+        },
+        {
+          "key": "top",
+          "label": "Max rows",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "get_range",
+      "name": "Get range",
+      "description": "Reads values, text and formulas of a range.",
+      "method": "GET",
+      "endpoint": "/me/drive/items/{{ inputs.item_id }}/workbook/worksheets/{{ inputs.worksheet }}/range(address='{{ inputs.address }}')",
+      "output_fields": {
+        "rows": "values"
+      },
+      "inputs": [
+        {
+          "key": "item_id",
+          "label": "Workbook (drive item ID)",
+          "type": "string",
+          "required": true,
+          "help": "OneDrive item id of the .xlsx file (from the file's details or the Graph /me/drive API)."
+        },
+        {
+          "key": "worksheet",
+          "label": "Worksheet",
+          "type": "string",
+          "required": true,
+          "default": "Sheet1"
+        },
+        {
+          "key": "address",
+          "label": "Range",
+          "type": "string",
+          "required": true,
+          "placeholder": "A1:D20"
+        }
+      ]
+    },
+    {
+      "key": "update_range",
+      "name": "Update range",
+      "method": "PATCH",
+      "endpoint": "/me/drive/items/{{ inputs.item_id }}/workbook/worksheets/{{ inputs.worksheet }}/range(address='{{ inputs.address }}')",
+      "body": {
+        "values": "{{ inputs.values }}"
+      },
+      "inputs": [
+        {
+          "key": "item_id",
+          "label": "Workbook (drive item ID)",
+          "type": "string",
+          "required": true,
+          "help": "OneDrive item id of the .xlsx file (from the file's details or the Graph /me/drive API)."
+        },
+        {
+          "key": "worksheet",
+          "label": "Worksheet",
+          "type": "string",
+          "required": true,
+          "default": "Sheet1"
+        },
+        {
+          "key": "address",
+          "label": "Range",
+          "type": "string",
+          "required": true,
+          "placeholder": "A2:C2",
+          "help": "Must match the shape of the values."
+        },
+        {
+          "key": "values",
+          "label": "Values (2-D JSON array)",
+          "type": "json",
+          "required": true,
+          "placeholder": "[[\"Ada\", \"Lovelace\", 36]]"
+        }
+      ]
+    },
+    {
+      "key": "list_worksheets",
+      "name": "List worksheets",
+      "method": "GET",
+      "endpoint": "/me/drive/items/{{ inputs.item_id }}/workbook/worksheets",
+      "output_path": "value",
+      "inputs": [
+        {
+          "key": "item_id",
+          "label": "Workbook (drive item ID)",
+          "type": "string",
+          "required": true,
+          "help": "OneDrive item id of the .xlsx file (from the file's details or the Graph /me/drive API)."
+        }
+      ]
+    },
+    {
+      "key": "list_tables",
+      "name": "List tables",
+      "method": "GET",
+      "endpoint": "/me/drive/items/{{ inputs.item_id }}/workbook/tables",
+      "output_path": "value",
+      "inputs": [
+        {
+          "key": "item_id",
+          "label": "Workbook (drive item ID)",
+          "type": "string",
+          "required": true,
+          "help": "OneDrive item id of the .xlsx file (from the file's details or the Graph /me/drive API)."
+        }
+      ]
+    }
+  ]
+}

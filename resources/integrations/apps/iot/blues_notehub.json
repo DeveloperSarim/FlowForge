@@ -1,0 +1,71 @@
+{
+  "key": "blues_notehub",
+  "name": "Blues Notehub",
+  "category": "IoT & Smart Home",
+  "description": "List Notecard devices and events, and send notes to devices via Notehub.",
+  "brand": "blues",
+  "website": "https://blues.com",
+  "docs_url": "https://dev.blues.io/api-reference/notehub-api/",
+  "base_url": "https://api.notefile.net",
+  "auth": [
+    {
+      "type": "bearer",
+      "fields": [
+        { "key": "token", "label": "Personal access token", "type": "password", "required": true, "help": "Notehub > your account > Personal access tokens." }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_devices",
+      "name": "List devices",
+      "method": "GET",
+      "endpoint": "/v1/projects/{{ inputs.project_uid }}/devices",
+      "query": { "pageSize": "{{ inputs.page_size }}", "pageNum": "{{ inputs.page_num }}" },
+      "inputs": [
+        { "key": "project_uid", "label": "Project UID", "type": "string", "required": true, "placeholder": "app:2606f411-dea6-44a0-9743-1130f57d77d8" },
+        { "key": "page_size", "label": "Page size", "type": "number", "default": 50 },
+        { "key": "page_num", "label": "Page", "type": "number" }
+      ]
+    },
+    {
+      "key": "list_events",
+      "name": "List events",
+      "method": "GET",
+      "endpoint": "/v1/projects/{{ inputs.project_uid }}/events",
+      "query": { "pageSize": "{{ inputs.page_size }}", "pageNum": "{{ inputs.page_num }}", "startDate": "{{ inputs.start_date }}", "endDate": "{{ inputs.end_date }}" },
+      "inputs": [
+        { "key": "project_uid", "label": "Project UID", "type": "string", "required": true },
+        { "key": "page_size", "label": "Page size", "type": "number", "default": 50 },
+        { "key": "page_num", "label": "Page", "type": "number" },
+        { "key": "start_date", "label": "From (Unix time)", "type": "number" },
+        { "key": "end_date", "label": "To (Unix time)", "type": "number" }
+      ]
+    },
+    {
+      "key": "add_note",
+      "name": "Send note to device",
+      "description": "Adds a note to an inbound Notefile (e.g. data.qi) that the Notecard picks up on its next sync.",
+      "method": "POST",
+      "endpoint": "/v1/projects/{{ inputs.project_uid }}/devices/{{ inputs.device_uid }}/notes/{{ inputs.file }}",
+      "body": { "body": "{{ inputs.note_body }}" },
+      "inputs": [
+        { "key": "project_uid", "label": "Project UID", "type": "string", "required": true },
+        { "key": "device_uid", "label": "Device UID", "type": "string", "required": true, "placeholder": "dev:000000000000000" },
+        { "key": "file", "label": "Notefile", "type": "string", "required": true, "placeholder": "data.qi" },
+        { "key": "note_body", "label": "Body", "type": "json", "required": true }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "route_event",
+      "name": "Route event",
+      "type": "webhook",
+      "description": "Create a General HTTP/HTTPS route in Notehub pointing at this URL.",
+      "inputs": [
+        { "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }
+      ]
+    }
+  ]
+}

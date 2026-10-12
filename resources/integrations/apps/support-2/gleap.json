@@ -1,0 +1,91 @@
+{
+  "key": "gleap",
+  "name": "Gleap",
+  "category": "Customer Support",
+  "description": "Create, update and fetch bug reports, feature requests and support tickets in Gleap.",
+  "brand": "gleap",
+  "website": "https://www.gleap.io",
+  "docs_url": "https://docs.gleap.io/server/rest-api",
+  "base_url": "https://api.gleap.io/v3",
+  "headers": { "project": "{{ credentials.project_id }}" },
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      { "key": "token", "label": "API key", "type": "password", "required": true, "help": "Project > Settings > Security" },
+      { "key": "project_id", "label": "Project ID", "type": "string", "required": true }
+    ]
+  },
+  "actions": [
+    {
+      "key": "create_ticket",
+      "name": "Create ticket",
+      "method": "POST",
+      "endpoint": "/tickets",
+      "body": {
+        "title": "{{ inputs.title }}",
+        "description": "{{ inputs.description }}",
+        "type": "{{ inputs.type }}",
+        "priority": "{{ inputs.priority }}",
+        "tags": "{{ inputs.tags }}",
+        "customData": "{{ inputs.custom_data }}"
+      },
+      "inputs": [
+        { "key": "title", "label": "Title", "type": "string", "required": true },
+        { "key": "description", "label": "Description", "type": "text" },
+        { "key": "type", "label": "Type", "type": "string", "placeholder": "BUG", "help": "e.g. BUG, FEATURE_REQUEST, INQUIRY" },
+        { "key": "priority", "label": "Priority", "type": "string", "placeholder": "MEDIUM" },
+        { "key": "tags", "label": "Tags", "type": "list" },
+        { "key": "custom_data", "label": "Custom data", "type": "keyvalue" }
+      ]
+    },
+    {
+      "key": "update_ticket",
+      "name": "Update ticket",
+      "method": "PUT",
+      "endpoint": "/tickets/{{ inputs.ticket_id }}",
+      "body": {
+        "title": "{{ inputs.title }}",
+        "status": "{{ inputs.status }}",
+        "priority": "{{ inputs.priority }}",
+        "tags": "{{ inputs.tags }}"
+      },
+      "inputs": [
+        { "key": "ticket_id", "label": "Ticket ID", "type": "string", "required": true },
+        { "key": "title", "label": "Title", "type": "string" },
+        { "key": "status", "label": "Status", "type": "string", "placeholder": "DONE" },
+        { "key": "priority", "label": "Priority", "type": "string", "placeholder": "HIGH" },
+        { "key": "tags", "label": "Tags", "type": "list" }
+      ]
+    },
+    {
+      "key": "get_ticket",
+      "name": "Get ticket",
+      "method": "GET",
+      "endpoint": "/tickets/{{ inputs.ticket_id }}",
+      "inputs": [{ "key": "ticket_id", "label": "Ticket ID", "type": "string", "required": true }]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_ticket",
+      "name": "New ticket",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/tickets",
+      "query": { "sort": "-createdAt", "limit": 50, "type": "{{ inputs.type }}" },
+      "items_path": "tickets",
+      "id_field": "id",
+      "inputs": [
+        { "key": "type", "label": "Only type", "type": "string", "placeholder": "BUG" },
+        { "key": "poll_interval", "label": "Check every (minutes)", "type": "number", "default": 5 }
+      ]
+    },
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Add this URL under Project > Integrations > Webhooks.",
+      "inputs": [{ "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }]
+    }
+  ]
+}

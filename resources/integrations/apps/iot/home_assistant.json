@@ -1,0 +1,99 @@
+{
+  "key": "home_assistant",
+  "name": "Home Assistant",
+  "category": "IoT & Smart Home",
+  "description": "Read entity states, call services and fire events on your Home Assistant.",
+  "brand": "homeassistant",
+  "website": "https://www.home-assistant.io",
+  "docs_url": "https://developers.home-assistant.io/docs/api/rest/",
+  "popular": true,
+  "base_url": "{{ credentials.url }}/api",
+  "auth": [
+    {
+      "type": "bearer",
+      "fields": [
+        { "key": "url", "label": "Home Assistant URL", "type": "string", "required": true, "placeholder": "http://homeassistant.local:8123", "help": "The address you open Home Assistant at, without /api. Must be reachable from FlowForge." },
+        { "key": "token", "label": "Long-lived access token", "type": "password", "required": true, "help": "Your profile > Security > Long-lived access tokens > Create token." }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_states",
+      "name": "List entity states",
+      "description": "Returns the current state of every entity.",
+      "method": "GET",
+      "endpoint": "/states",
+      "inputs": []
+    },
+    {
+      "key": "get_state",
+      "name": "Get entity state",
+      "method": "GET",
+      "endpoint": "/states/{{ inputs.entity_id }}",
+      "inputs": [
+        { "key": "entity_id", "label": "Entity ID", "type": "string", "required": true, "placeholder": "sensor.living_room_temperature" }
+      ]
+    },
+    {
+      "key": "call_service",
+      "name": "Call service",
+      "description": "Runs a service such as light.turn_on, switch.toggle or script.turn_on.",
+      "method": "POST",
+      "endpoint": "/services/{{ inputs.domain }}/{{ inputs.service }}",
+      "body": { "entity_id": "{{ inputs.entity_id }}", "...": "{{ inputs.service_data }}" },
+      "inputs": [
+        { "key": "domain", "label": "Domain", "type": "string", "required": true, "placeholder": "light" },
+        { "key": "service", "label": "Service", "type": "string", "required": true, "placeholder": "turn_on" },
+        { "key": "entity_id", "label": "Entity ID", "type": "string", "placeholder": "light.kitchen" },
+        { "key": "service_data", "label": "Service data", "type": "keyvalue", "help": "Extra fields, e.g. brightness_pct = 60." }
+      ]
+    },
+    {
+      "key": "set_state",
+      "name": "Set entity state",
+      "description": "Creates or updates a state in Home Assistant (does not control the device).",
+      "method": "POST",
+      "endpoint": "/states/{{ inputs.entity_id }}",
+      "body": { "state": "{{ inputs.state }}", "attributes": "{{ inputs.attributes }}" },
+      "inputs": [
+        { "key": "entity_id", "label": "Entity ID", "type": "string", "required": true, "placeholder": "sensor.flowforge_status" },
+        { "key": "state", "label": "State", "type": "string", "required": true },
+        { "key": "attributes", "label": "Attributes", "type": "keyvalue" }
+      ]
+    },
+    {
+      "key": "fire_event",
+      "name": "Fire event",
+      "method": "POST",
+      "endpoint": "/events/{{ inputs.event_type }}",
+      "body": "{{ inputs.event_data }}",
+      "inputs": [
+        { "key": "event_type", "label": "Event type", "type": "string", "required": true, "placeholder": "flowforge_event" },
+        { "key": "event_data", "label": "Event data", "type": "keyvalue" }
+      ]
+    },
+    {
+      "key": "render_template",
+      "name": "Render template",
+      "description": "Renders a Jinja template, e.g. to compute a value from several entities.",
+      "method": "POST",
+      "endpoint": "/template",
+      "body": { "template": "{{ inputs.template }}" },
+      "inputs": [
+        { "key": "template", "label": "Template", "type": "text", "required": true, "placeholder": "{% if is_state('sun.sun', 'above_horizon') %}day{% else %}night{% endif %}" }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Automation webhook",
+      "type": "webhook",
+      "description": "Send data here from an automation with a rest_command or the RESTful notify integration.",
+      "inputs": [
+        { "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }
+      ]
+    }
+  ]
+}

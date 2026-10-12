@@ -1,0 +1,125 @@
+{
+  "key": "okta",
+  "name": "Okta",
+  "category": "Security & IT",
+  "description": "Create, find, suspend and deactivate users and manage group membership.",
+  "brand": "okta",
+  "website": "https://www.okta.com",
+  "docs_url": "https://developer.okta.com/docs/api/",
+  "popular": true,
+  "base_url": "https://{{ credentials.domain }}/api/v1",
+  "auth": { "type": "api_key", "in": "header", "name": "Authorization", "prefix": "SSWS ", "fields": [
+    { "key": "domain", "label": "Okta domain", "type": "string", "required": true, "placeholder": "acme.okta.com", "help": "Your org domain without https://." },
+    { "key": "api_key", "label": "API token", "type": "password", "required": true, "help": "Admin console → Security → API → Tokens. The token has its creator's admin permissions." }
+  ] },
+  "actions": [
+    {
+      "key": "create_user",
+      "name": "Create user",
+      "method": "POST",
+      "endpoint": "/users",
+      "query": { "activate": "{{ inputs.activate }}" },
+      "body": { "profile": { "firstName": "{{ inputs.first_name }}", "lastName": "{{ inputs.last_name }}", "email": "{{ inputs.email }}", "login": "{{ inputs.login }}", "mobilePhone": "{{ inputs.mobile_phone }}", "...": "{{ inputs.profile }}" }, "groupIds": "{{ inputs.group_ids }}" },
+      "inputs": [
+        { "key": "email", "label": "Email", "type": "string", "required": true },
+        { "key": "login", "label": "Login", "type": "string", "required": true, "help": "Usually the email address." },
+        { "key": "first_name", "label": "First name", "type": "string", "required": true },
+        { "key": "last_name", "label": "Last name", "type": "string", "required": true },
+        { "key": "mobile_phone", "label": "Mobile phone", "type": "string" },
+        { "key": "group_ids", "label": "Group IDs", "type": "list" },
+        { "key": "profile", "label": "Other profile attributes", "type": "keyvalue" },
+        { "key": "activate", "label": "Activate and send the activation email", "type": "boolean", "default": true }
+      ]
+    },
+    {
+      "key": "get_user",
+      "name": "Get user",
+      "method": "GET",
+      "endpoint": "/users/{{ inputs.user }}",
+      "inputs": [{ "key": "user", "label": "User ID or login", "type": "string", "required": true }]
+    },
+    {
+      "key": "search_users",
+      "name": "Search users",
+      "method": "GET",
+      "endpoint": "/users",
+      "query": { "search": "{{ inputs.search }}", "q": "{{ inputs.q }}", "limit": "{{ inputs.limit }}" },
+      "inputs": [
+        { "key": "search", "label": "Search expression", "type": "string", "placeholder": "profile.department eq \"Sales\" and status eq \"ACTIVE\"" },
+        { "key": "q", "label": "Name / email starts with", "type": "string" },
+        { "key": "limit", "label": "Limit", "type": "number", "default": 200 }
+      ]
+    },
+    {
+      "key": "update_user",
+      "name": "Update user profile",
+      "description": "Changes only the attributes you set.",
+      "method": "POST",
+      "endpoint": "/users/{{ inputs.user }}",
+      "body": { "profile": "{{ inputs.profile }}" },
+      "inputs": [
+        { "key": "user", "label": "User ID or login", "type": "string", "required": true },
+        { "key": "profile", "label": "Profile attributes", "type": "keyvalue", "required": true, "help": "e.g. title, department, mobilePhone." }
+      ]
+    },
+    {
+      "key": "user_lifecycle",
+      "name": "Change user status",
+      "method": "POST",
+      "endpoint": "/users/{{ inputs.user }}/lifecycle/{{ inputs.operation }}",
+      "inputs": [
+        { "key": "user", "label": "User ID or login", "type": "string", "required": true },
+        { "key": "operation", "label": "Operation", "type": "select", "required": true, "default": "suspend", "options": [
+          { "value": "suspend", "label": "Suspend" }, { "value": "unsuspend", "label": "Unsuspend" }, { "value": "deactivate", "label": "Deactivate" },
+          { "value": "activate", "label": "Activate" }, { "value": "unlock", "label": "Unlock" }, { "value": "reset_factors", "label": "Reset MFA factors" }
+        ] }
+      ]
+    },
+    {
+      "key": "add_user_to_group",
+      "name": "Add user to group",
+      "method": "PUT",
+      "endpoint": "/groups/{{ inputs.group_id }}/users/{{ inputs.user_id }}",
+      "inputs": [
+        { "key": "group_id", "label": "Group ID", "type": "string", "required": true },
+        { "key": "user_id", "label": "User ID", "type": "string", "required": true }
+      ]
+    },
+    {
+      "key": "remove_user_from_group",
+      "name": "Remove user from group",
+      "method": "DELETE",
+      "endpoint": "/groups/{{ inputs.group_id }}/users/{{ inputs.user_id }}",
+      "inputs": [
+        { "key": "group_id", "label": "Group ID", "type": "string", "required": true },
+        { "key": "user_id", "label": "User ID", "type": "string", "required": true }
+      ]
+    },
+    {
+      "key": "list_groups",
+      "name": "List groups",
+      "method": "GET",
+      "endpoint": "/groups",
+      "query": { "q": "{{ inputs.q }}", "limit": "{{ inputs.limit }}" },
+      "inputs": [
+        { "key": "q", "label": "Name starts with", "type": "string" },
+        { "key": "limit", "label": "Limit", "type": "number" }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "system_log_event",
+      "name": "New System Log event (polling)",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/logs",
+      "query": { "filter": "{{ inputs.filter }}", "sortOrder": "DESCENDING", "limit": 100 },
+      "id_field": "uuid",
+      "inputs": [
+        { "key": "filter", "label": "Filter", "type": "string", "placeholder": "eventType eq \"user.session.start\" and outcome.result eq \"FAILURE\"" },
+        { "key": "poll_interval", "label": "Check every (minutes)", "type": "number", "default": 5 }
+      ]
+    }
+  ]
+}

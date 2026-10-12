@@ -1,0 +1,57 @@
+{
+  "key": "chatwork",
+  "name": "Chatwork",
+  "category": "Communication",
+  "description": "Post messages, create tasks and list rooms in Chatwork.",
+  "brand": "chatwork",
+  "website": "https://go.chatwork.com",
+  "docs_url": "https://developer.chatwork.com/reference",
+  "base_url": "https://api.chatwork.com/v2",
+  "auth": [
+    { "type": "api_key", "in": "header", "name": "X-ChatWorkToken", "fields": [{ "key": "api_key", "label": "API token", "type": "password", "required": true }] }
+  ],
+  "actions": [
+    {
+      "key": "send_message",
+      "name": "Send message",
+      "method": "POST",
+      "endpoint": "/rooms/{{ inputs.room_id }}/messages",
+      "body_format": "form",
+      "body": { "body": "{{ inputs.body }}" },
+      "inputs": [
+        { "key": "room_id", "label": "Room ID", "type": "string", "required": true },
+        { "key": "body", "label": "Message", "type": "text", "required": true }
+      ]
+    },
+    {
+      "key": "create_task",
+      "name": "Create task",
+      "method": "POST",
+      "endpoint": "/rooms/{{ inputs.room_id }}/tasks",
+      "body_format": "form",
+      "body": { "body": "{{ inputs.body }}", "to_ids": "{{ inputs.to_ids }}", "limit": "{{ inputs.limit }}" },
+      "inputs": [
+        { "key": "room_id", "label": "Room ID", "type": "string", "required": true },
+        { "key": "body", "label": "Task", "type": "text", "required": true },
+        { "key": "to_ids", "label": "Assignee account IDs", "type": "string", "required": true, "placeholder": "123,456", "help": "Comma-separated." },
+        { "key": "limit", "label": "Due (Unix timestamp)", "type": "number" }
+      ]
+    },
+    {
+      "key": "list_rooms",
+      "name": "List rooms",
+      "method": "GET",
+      "endpoint": "/rooms",
+      "inputs": []
+    },
+    {
+      "key": "get_messages",
+      "name": "Get room messages",
+      "description": "Latest 100 messages.",
+      "method": "GET",
+      "endpoint": "/rooms/{{ inputs.room_id }}/messages",
+      "query": { "force": 1 },
+      "inputs": [{ "key": "room_id", "label": "Room ID", "type": "string", "required": true }]
+    }
+  ]
+}

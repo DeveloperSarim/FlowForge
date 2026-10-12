@@ -1,0 +1,274 @@
+{
+  "key": "github_projects",
+  "name": "GitHub Projects",
+  "category": "Project Management",
+  "description": "Add issues, PRs and draft issues to GitHub Projects and set fields.",
+  "brand": "github",
+  "website": "https://docs.github.com/issues/planning-and-tracking-with-projects",
+  "docs_url": "https://docs.github.com/issues/planning-and-tracking-with-projects/automating-your-project/using-the-api-to-manage-projects",
+  "base_url": "https://api.github.com",
+  "auth": [
+    {
+      "type": "bearer",
+      "fields": [
+        {
+          "key": "token",
+          "label": "Personal access token",
+          "type": "password",
+          "required": true,
+          "help": "Classic token with the project (and repo) scope."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_org_projects",
+      "name": "List organization projects",
+      "method": "POST",
+      "endpoint": "/graphql",
+      "body": {
+        "query": "query ($login: String!, $first: Int!) { organization(login: $login) { projectsV2(first: $first, orderBy: {field: UPDATED_AT, direction: DESC}) { nodes { id number title url closed updatedAt } } } }",
+        "variables": {
+          "login": "{{ inputs.login }}",
+          "first": "{{ inputs.first }}"
+        }
+      },
+      "error_path": "errors",
+      "inputs": [
+        {
+          "key": "login",
+          "label": "Organization login",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "first",
+          "label": "Max results",
+          "type": "number",
+          "required": true,
+          "default": 20
+        }
+      ],
+      "output_path": "data.organization.projectsV2.nodes"
+    },
+    {
+      "key": "list_user_projects",
+      "name": "List user projects",
+      "method": "POST",
+      "endpoint": "/graphql",
+      "body": {
+        "query": "query ($login: String!, $first: Int!) { user(login: $login) { projectsV2(first: $first, orderBy: {field: UPDATED_AT, direction: DESC}) { nodes { id number title url closed updatedAt } } } }",
+        "variables": {
+          "login": "{{ inputs.login }}",
+          "first": "{{ inputs.first }}"
+        }
+      },
+      "error_path": "errors",
+      "inputs": [
+        {
+          "key": "login",
+          "label": "Username",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "first",
+          "label": "Max results",
+          "type": "number",
+          "required": true,
+          "default": 20
+        }
+      ],
+      "output_path": "data.user.projectsV2.nodes"
+    },
+    {
+      "key": "get_issue_node_id",
+      "name": "Get issue / PR node ID",
+      "method": "POST",
+      "endpoint": "/graphql",
+      "body": {
+        "query": "query ($owner: String!, $repo: String!, $number: Int!) { repository(owner: $owner, name: $repo) { issueOrPullRequest(number: $number) { ... on Issue { id title url } ... on PullRequest { id title url } } } }",
+        "variables": {
+          "owner": "{{ inputs.owner }}",
+          "repo": "{{ inputs.repo }}",
+          "number": "{{ inputs.number }}"
+        }
+      },
+      "error_path": "errors",
+      "inputs": [
+        {
+          "key": "owner",
+          "label": "Owner",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "repo",
+          "label": "Repository",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "number",
+          "label": "Issue / PR number",
+          "type": "number",
+          "required": true
+        }
+      ],
+      "output_path": "data.repository.issueOrPullRequest",
+      "description": "Looks up the node ID that Add item to project needs."
+    },
+    {
+      "key": "add_item",
+      "name": "Add item to project",
+      "method": "POST",
+      "endpoint": "/graphql",
+      "body": {
+        "query": "mutation ($projectId: ID!, $contentId: ID!) { addProjectV2ItemById(input: {projectId: $projectId, contentId: $contentId}) { item { id } } }",
+        "variables": {
+          "projectId": "{{ inputs.project_id }}",
+          "contentId": "{{ inputs.content_id }}"
+        }
+      },
+      "error_path": "errors",
+      "inputs": [
+        {
+          "key": "project_id",
+          "label": "Project node ID",
+          "type": "string",
+          "required": true,
+          "placeholder": "PVT_…"
+        },
+        {
+          "key": "content_id",
+          "label": "Issue / PR node ID",
+          "type": "string",
+          "required": true,
+          "placeholder": "I_…"
+        }
+      ],
+      "output_path": "data.addProjectV2ItemById.item"
+    },
+    {
+      "key": "add_draft_issue",
+      "name": "Add draft issue",
+      "method": "POST",
+      "endpoint": "/graphql",
+      "body": {
+        "query": "mutation ($projectId: ID!, $title: String!, $body: String) { addProjectV2DraftIssue(input: {projectId: $projectId, title: $title, body: $body}) { projectItem { id } } }",
+        "variables": {
+          "projectId": "{{ inputs.project_id }}",
+          "title": "{{ inputs.title }}",
+          "body": "{{ inputs.body }}"
+        }
+      },
+      "error_path": "errors",
+      "inputs": [
+        {
+          "key": "project_id",
+          "label": "Project node ID",
+          "type": "string",
+          "required": true,
+          "placeholder": "PVT_…"
+        },
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "body",
+          "label": "Body (Markdown)",
+          "type": "text"
+        }
+      ],
+      "output_path": "data.addProjectV2DraftIssue.projectItem"
+    },
+    {
+      "key": "set_field_value",
+      "name": "Set item field value",
+      "method": "POST",
+      "endpoint": "/graphql",
+      "body": {
+        "query": "mutation ($projectId: ID!, $itemId: ID!, $fieldId: ID!, $value: ProjectV2FieldValue!) { updateProjectV2ItemFieldValue(input: {projectId: $projectId, itemId: $itemId, fieldId: $fieldId, value: $value}) { projectV2Item { id } } }",
+        "variables": {
+          "projectId": "{{ inputs.project_id }}",
+          "itemId": "{{ inputs.item_id }}",
+          "fieldId": "{{ inputs.field_id }}",
+          "value": "{{ inputs.value }}"
+        }
+      },
+      "error_path": "errors",
+      "inputs": [
+        {
+          "key": "project_id",
+          "label": "Project node ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "item_id",
+          "label": "Item ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "field_id",
+          "label": "Field ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "value",
+          "label": "Value",
+          "type": "json",
+          "required": true,
+          "placeholder": "{\"singleSelectOptionId\": \"47fc9ee4\"}",
+          "help": "One of text, number, date, singleSelectOptionId or iterationId."
+        }
+      ],
+      "output_path": "data.updateProjectV2ItemFieldValue.projectV2Item"
+    },
+    {
+      "key": "run_graphql",
+      "name": "Run GraphQL query",
+      "method": "POST",
+      "endpoint": "/graphql",
+      "description": "Runs any query or mutation against the GraphQL API.",
+      "body": {
+        "query": "{{ inputs.query }}",
+        "variables": "{{ inputs.variables }}"
+      },
+      "error_path": "errors",
+      "inputs": [
+        {
+          "key": "query",
+          "label": "Query or mutation",
+          "type": "code",
+          "required": true
+        },
+        {
+          "key": "variables",
+          "label": "Variables",
+          "type": "json"
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Project item event (webhook)",
+      "type": "webhook",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

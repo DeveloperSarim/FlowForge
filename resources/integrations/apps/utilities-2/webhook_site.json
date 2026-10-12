@@ -1,0 +1,68 @@
+{
+  "key": "webhook_site",
+  "name": "Webhook.site",
+  "category": "Utilities",
+  "description": "Create test URLs and read the HTTP requests, emails and DNS lookups they receive.",
+  "brand": "webhooksite",
+  "website": "https://webhook.site",
+  "docs_url": "https://docs.webhook.site/api/tokens.html",
+  "base_url": "https://webhook.site",
+  "auth": [
+    { "type": "none" },
+    { "type": "api_key", "in": "header", "name": "Api-Key", "fields": [
+      { "key": "api_key", "label": "API key", "type": "password", "required": true, "help": "Webhook.site Pro: Control Panel → API. Free URLs work without a key." }
+    ] }
+  ],
+  "actions": [
+    {
+      "key": "create_url",
+      "name": "Create URL (token)",
+      "description": "The new URL is https://webhook.site/<uuid> from the response.",
+      "method": "POST",
+      "endpoint": "/token",
+      "body": { "default_status": "{{ inputs.default_status }}", "default_content": "{{ inputs.default_content }}", "default_content_type": "{{ inputs.default_content_type }}", "cors": "{{ inputs.cors }}" },
+      "inputs": [
+        { "key": "default_status", "label": "Response status", "type": "number" },
+        { "key": "default_content", "label": "Response body", "type": "text" },
+        { "key": "default_content_type", "label": "Response content type", "type": "string", "placeholder": "application/json" },
+        { "key": "cors", "label": "Add CORS headers", "type": "boolean" }
+      ]
+    },
+    {
+      "key": "list_requests",
+      "name": "List received requests",
+      "method": "GET",
+      "endpoint": "/token/{{ inputs.token_id }}/requests",
+      "query": { "sorting": "{{ inputs.sorting }}", "per_page": "{{ inputs.per_page }}", "query": "{{ inputs.search }}" },
+      "inputs": [
+        { "key": "token_id", "label": "Token UUID", "type": "string", "required": true, "help": "The UUID part of your webhook.site URL." },
+        { "key": "sorting", "label": "Order", "type": "select", "default": "newest", "options": [{ "value": "newest", "label": "Newest first" }, { "value": "oldest", "label": "Oldest first" }] },
+        { "key": "per_page", "label": "Per page", "type": "number" },
+        { "key": "search", "label": "Search query", "type": "string" }
+      ]
+    },
+    {
+      "key": "latest_request",
+      "name": "Get latest request",
+      "method": "GET",
+      "endpoint": "/token/{{ inputs.token_id }}/request/latest",
+      "inputs": [{ "key": "token_id", "label": "Token UUID", "type": "string", "required": true }]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_request",
+      "name": "New request received",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/token/{{ inputs.token_id }}/requests",
+      "query": { "sorting": "newest", "per_page": 50 },
+      "items_path": "data",
+      "id_field": "uuid",
+      "inputs": [
+        { "key": "token_id", "label": "Token UUID", "type": "string", "required": true },
+        { "key": "poll_interval", "label": "Check every (minutes)", "type": "number", "default": 5 }
+      ]
+    }
+  ]
+}

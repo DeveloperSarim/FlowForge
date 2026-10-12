@@ -1,0 +1,52 @@
+{
+  "key": "lark_feishu",
+  "name": "Lark / Feishu",
+  "category": "Communication",
+  "description": "Post text, rich text and card messages to a Lark or Feishu group via a custom bot.",
+  "brand": "lark",
+  "website": "https://www.larksuite.com",
+  "docs_url": "https://open.larksuite.com/document/client-docs/bot-v3/add-custom-bot",
+  "popular": true,
+  "actions": [
+    {
+      "key": "send_text",
+      "name": "Send text message",
+      "method": "POST",
+      "endpoint": "{{ inputs.webhook_url }}",
+      "error_path": "code",
+      "body": { "msg_type": "text", "content": { "text": "{{ inputs.text }}" } },
+      "inputs": [
+        { "key": "webhook_url", "label": "Custom bot webhook URL", "type": "password", "required": true, "placeholder": "https://open.larksuite.com/open-apis/bot/v2/hook/…", "help": "Group settings → Bots → Add Bot → Custom Bot. Feishu URLs use open.feishu.cn. Use keyword or IP allowlist security; signature verification is not supported." },
+        { "key": "text", "label": "Message", "type": "text", "required": true, "help": "Mention everyone with <at user_id=\"all\">All</at>." }
+      ]
+    },
+    {
+      "key": "send_rich_text",
+      "name": "Send rich text (post) message",
+      "method": "POST",
+      "endpoint": "{{ inputs.webhook_url }}",
+      "error_path": "code",
+      "body": {
+        "msg_type": "post",
+        "content": { "post": { "en_us": { "title": "{{ inputs.title }}", "content": [[{ "tag": "text", "text": "{{ inputs.text }}" }]] } } }
+      },
+      "inputs": [
+        { "key": "webhook_url", "label": "Custom bot webhook URL", "type": "password", "required": true },
+        { "key": "title", "label": "Title", "type": "string", "required": true },
+        { "key": "text", "label": "Body", "type": "text", "required": true }
+      ]
+    },
+    {
+      "key": "send_card",
+      "name": "Send interactive card",
+      "method": "POST",
+      "endpoint": "{{ inputs.webhook_url }}",
+      "error_path": "code",
+      "body": { "msg_type": "interactive", "card": "{{ inputs.card }}" },
+      "inputs": [
+        { "key": "webhook_url", "label": "Custom bot webhook URL", "type": "password", "required": true },
+        { "key": "card", "label": "Card (JSON)", "type": "json", "required": true, "placeholder": "{\"header\":{\"title\":{\"tag\":\"plain_text\",\"content\":\"Alert\"}},\"elements\":[{\"tag\":\"div\",\"text\":{\"tag\":\"lark_md\",\"content\":\"**CPU** above 90%\"}}]}", "help": "Build one in the Card Builder and paste its JSON." }
+      ]
+    }
+  ]
+}

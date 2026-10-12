@@ -1,0 +1,70 @@
+{
+  "key": "green_api",
+  "name": "GREEN-API",
+  "category": "Communication",
+  "description": "Send WhatsApp messages and files, and check numbers through a GREEN-API instance.",
+  "brand": "greenapi",
+  "website": "https://green-api.com/en/",
+  "docs_url": "https://green-api.com/en/docs/api/",
+  "base_url": "{{ credentials.api_url }}/waInstance{{ credentials.instance_id }}",
+  "auth": [
+    { "type": "api_key", "fields": [
+      { "key": "api_url", "label": "API URL", "type": "string", "required": true, "placeholder": "https://7103.api.greenapi.com", "help": "apiUrl shown on your instance in the console. No trailing slash." },
+      { "key": "instance_id", "label": "Instance ID (idInstance)", "type": "string", "required": true },
+      { "key": "api_key", "label": "API token (apiTokenInstance)", "type": "password", "required": true }
+    ] }
+  ],
+  "actions": [
+    {
+      "key": "send_message",
+      "name": "Send text message",
+      "method": "POST",
+      "endpoint": "/sendMessage/{{ credentials.api_key }}",
+      "body": { "chatId": "{{ inputs.chat_id }}", "message": "{{ inputs.message }}", "quotedMessageId": "{{ inputs.quoted_message_id }}" },
+      "inputs": [
+        { "key": "chat_id", "label": "Chat ID", "type": "string", "required": true, "placeholder": "79001234567@c.us", "help": "Number with country code + @c.us, or a group ID ending in @g.us." },
+        { "key": "message", "label": "Message", "type": "text", "required": true },
+        { "key": "quoted_message_id", "label": "Quote message ID", "type": "string" }
+      ]
+    },
+    {
+      "key": "send_file_by_url",
+      "name": "Send file by URL",
+      "method": "POST",
+      "endpoint": "/sendFileByUrl/{{ credentials.api_key }}",
+      "body": { "chatId": "{{ inputs.chat_id }}", "urlFile": "{{ inputs.url_file }}", "fileName": "{{ inputs.file_name }}", "caption": "{{ inputs.caption }}" },
+      "inputs": [
+        { "key": "chat_id", "label": "Chat ID", "type": "string", "required": true, "placeholder": "79001234567@c.us" },
+        { "key": "url_file", "label": "File URL", "type": "string", "required": true },
+        { "key": "file_name", "label": "File name (with extension)", "type": "string", "required": true, "placeholder": "report.pdf" },
+        { "key": "caption", "label": "Caption", "type": "text" }
+      ]
+    },
+    {
+      "key": "check_whatsapp",
+      "name": "Check if number has WhatsApp",
+      "method": "POST",
+      "endpoint": "/checkWhatsapp/{{ credentials.api_key }}",
+      "body": { "phoneNumber": "{{ inputs.phone_number }}" },
+      "inputs": [
+        { "key": "phone_number", "label": "Phone number (digits only)", "type": "number", "required": true }
+      ]
+    },
+    {
+      "key": "get_state",
+      "name": "Get instance state",
+      "method": "GET",
+      "endpoint": "/getStateInstance/{{ credentials.api_key }}",
+      "inputs": []
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Incoming notification",
+      "description": "Set this URL as the webhook URL in the instance settings of the GREEN-API console.",
+      "type": "webhook",
+      "inputs": [{ "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }]
+    }
+  ]
+}

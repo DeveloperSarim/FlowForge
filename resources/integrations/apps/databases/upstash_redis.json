@@ -1,0 +1,86 @@
+{
+  "key": "upstash_redis",
+  "name": "Upstash Redis",
+  "category": "Databases",
+  "description": "Get, set, increment and delete keys, or run any Redis command over REST.",
+  "brand": "upstash",
+  "website": "https://upstash.com/redis",
+  "docs_url": "https://upstash.com/docs/redis/features/restapi",
+  "base_url": "{{ credentials.rest_url }}",
+  "auth": { "type": "bearer", "fields": [
+    { "key": "rest_url", "label": "REST URL", "type": "string", "required": true, "placeholder": "https://eu1-sharp-cat-12345.upstash.io", "help": "Database page → REST API → UPSTASH_REDIS_REST_URL." },
+    { "key": "token", "label": "REST token", "type": "password", "required": true, "help": "UPSTASH_REDIS_REST_TOKEN." }
+  ] },
+  "actions": [
+    {
+      "key": "get",
+      "name": "Get value",
+      "method": "POST",
+      "endpoint": "/",
+      "error_path": "error",
+      "output_path": "result",
+      "body": ["GET", "{{ inputs.key }}"],
+      "inputs": [{ "key": "key", "label": "Key", "type": "string", "required": true }]
+    },
+    {
+      "key": "set",
+      "name": "Set value",
+      "method": "POST",
+      "endpoint": "/",
+      "error_path": "error",
+      "output_path": "result",
+      "body": ["SET", "{{ inputs.key }}", "{{ inputs.value }}"],
+      "inputs": [
+        { "key": "key", "label": "Key", "type": "string", "required": true },
+        { "key": "value", "label": "Value", "type": "text", "required": true }
+      ]
+    },
+    {
+      "key": "set_with_expiry",
+      "name": "Set value with expiry",
+      "method": "POST",
+      "endpoint": "/",
+      "error_path": "error",
+      "output_path": "result",
+      "body": ["SET", "{{ inputs.key }}", "{{ inputs.value }}", "EX", "{{ inputs.seconds }}"],
+      "inputs": [
+        { "key": "key", "label": "Key", "type": "string", "required": true },
+        { "key": "value", "label": "Value", "type": "text", "required": true },
+        { "key": "seconds", "label": "Expire after (seconds)", "type": "number", "required": true, "default": 3600 }
+      ]
+    },
+    {
+      "key": "increment",
+      "name": "Increment",
+      "method": "POST",
+      "endpoint": "/",
+      "error_path": "error",
+      "output_path": "result",
+      "body": ["INCRBY", "{{ inputs.key }}", "{{ inputs.by }}"],
+      "inputs": [
+        { "key": "key", "label": "Key", "type": "string", "required": true },
+        { "key": "by", "label": "By", "type": "number", "required": true, "default": 1 }
+      ]
+    },
+    {
+      "key": "delete",
+      "name": "Delete key",
+      "method": "POST",
+      "endpoint": "/",
+      "error_path": "error",
+      "output_path": "result",
+      "body": ["DEL", "{{ inputs.key }}"],
+      "inputs": [{ "key": "key", "label": "Key", "type": "string", "required": true }]
+    },
+    {
+      "key": "run_command",
+      "name": "Run command",
+      "method": "POST",
+      "endpoint": "/",
+      "error_path": "error",
+      "output_path": "result",
+      "body": "{{ inputs.command }}",
+      "inputs": [{ "key": "command", "label": "Command and arguments", "type": "list", "required": true, "placeholder": "LPUSH", "help": "One item per word, e.g. LPUSH · queue · job-1." }]
+    }
+  ]
+}

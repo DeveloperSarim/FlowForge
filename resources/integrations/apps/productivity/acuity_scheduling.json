@@ -1,0 +1,265 @@
+{
+  "key": "acuity_scheduling",
+  "name": "Acuity Scheduling",
+  "category": "Productivity",
+  "description": "Book, reschedule, cancel and list Acuity appointments.",
+  "brand": "acuityscheduling",
+  "website": "https://acuityscheduling.com",
+  "docs_url": "https://developers.acuityscheduling.com/reference",
+  "base_url": "https://acuityscheduling.com/api/v1",
+  "auth": [
+    {
+      "type": "basic",
+      "fields": [
+        {
+          "key": "username",
+          "label": "User ID",
+          "type": "string",
+          "required": true,
+          "help": "Integrations > API > View credentials."
+        },
+        {
+          "key": "password",
+          "label": "API key",
+          "type": "password",
+          "required": true
+        }
+      ]
+    },
+    {
+      "type": "oauth2",
+      "authorize_url": "https://acuityscheduling.com/oauth2/authorize",
+      "token_url": "https://acuityscheduling.com/oauth2/token",
+      "scopes": [
+        "api-v1"
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_appointments",
+      "name": "List appointments",
+      "method": "GET",
+      "endpoint": "/appointments",
+      "query": {
+        "minDate": "{{ inputs.min_date }}",
+        "maxDate": "{{ inputs.max_date }}",
+        "appointmentTypeID": "{{ inputs.appointment_type_id }}",
+        "calendarID": "{{ inputs.calendar_id }}",
+        "email": "{{ inputs.email }}",
+        "max": "{{ inputs.max }}"
+      },
+      "inputs": [
+        {
+          "key": "min_date",
+          "label": "From date",
+          "type": "string",
+          "placeholder": "2026-10-12"
+        },
+        {
+          "key": "max_date",
+          "label": "To date",
+          "type": "string"
+        },
+        {
+          "key": "appointment_type_id",
+          "label": "Appointment type ID",
+          "type": "string"
+        },
+        {
+          "key": "calendar_id",
+          "label": "Calendar ID",
+          "type": "string"
+        },
+        {
+          "key": "email",
+          "label": "Client email",
+          "type": "string"
+        },
+        {
+          "key": "max",
+          "label": "Max results",
+          "type": "number",
+          "default": 100
+        }
+      ]
+    },
+    {
+      "key": "get_appointment",
+      "name": "Get appointment",
+      "method": "GET",
+      "endpoint": "/appointments/{{ inputs.appointment_id }}",
+      "inputs": [
+        {
+          "key": "appointment_id",
+          "label": "Appointment ID",
+          "type": "number",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "create_appointment",
+      "name": "Create appointment",
+      "description": "Books a time that must be available (use Get available times).",
+      "method": "POST",
+      "endpoint": "/appointments",
+      "body": {
+        "datetime": "{{ inputs.datetime }}",
+        "appointmentTypeID": "{{ inputs.appointment_type_id }}",
+        "firstName": "{{ inputs.first_name }}",
+        "lastName": "{{ inputs.last_name }}",
+        "email": "{{ inputs.email }}",
+        "phone": "{{ inputs.phone }}",
+        "calendarID": "{{ inputs.calendar_id }}",
+        "notes": "{{ inputs.notes }}"
+      },
+      "inputs": [
+        {
+          "key": "datetime",
+          "label": "Date & time",
+          "type": "string",
+          "required": true,
+          "placeholder": "2026-10-12T09:00:00-0400"
+        },
+        {
+          "key": "appointment_type_id",
+          "label": "Appointment type ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "first_name",
+          "label": "First name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "phone",
+          "label": "Phone",
+          "type": "string"
+        },
+        {
+          "key": "calendar_id",
+          "label": "Calendar ID",
+          "type": "number"
+        },
+        {
+          "key": "notes",
+          "label": "Notes",
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "key": "reschedule_appointment",
+      "name": "Reschedule appointment",
+      "method": "PUT",
+      "endpoint": "/appointments/{{ inputs.appointment_id }}/reschedule",
+      "body": {
+        "datetime": "{{ inputs.datetime }}"
+      },
+      "inputs": [
+        {
+          "key": "appointment_id",
+          "label": "Appointment ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "datetime",
+          "label": "New date & time",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "cancel_appointment",
+      "name": "Cancel appointment",
+      "method": "PUT",
+      "endpoint": "/appointments/{{ inputs.appointment_id }}/cancel",
+      "body": {
+        "cancelNote": "{{ inputs.cancel_note }}"
+      },
+      "inputs": [
+        {
+          "key": "appointment_id",
+          "label": "Appointment ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "cancel_note",
+          "label": "Cancellation note",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "available_times",
+      "name": "Get available times",
+      "method": "GET",
+      "endpoint": "/availability/times",
+      "query": {
+        "appointmentTypeID": "{{ inputs.appointment_type_id }}",
+        "date": "{{ inputs.date }}",
+        "calendarID": "{{ inputs.calendar_id }}",
+        "timezone": "{{ inputs.timezone }}"
+      },
+      "inputs": [
+        {
+          "key": "appointment_type_id",
+          "label": "Appointment type ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "date",
+          "label": "Date",
+          "type": "string",
+          "required": true,
+          "placeholder": "2026-10-12"
+        },
+        {
+          "key": "calendar_id",
+          "label": "Calendar ID",
+          "type": "string"
+        },
+        {
+          "key": "timezone",
+          "label": "Time zone",
+          "type": "string",
+          "placeholder": "America/New_York"
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Appointment event (webhook)",
+      "type": "webhook",
+      "description": "Add this URL under Integrations > Webhooks. Sends action, id, calendarID.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

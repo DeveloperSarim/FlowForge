@@ -1,0 +1,131 @@
+{
+  "key": "gitbook",
+  "name": "GitBook",
+  "category": "Productivity",
+  "description": "Search GitBook spaces, list pages and ask GitBook AI questions.",
+  "brand": "gitbook",
+  "website": "https://www.gitbook.com",
+  "docs_url": "https://gitbook.com/docs/developers/gitbook-api/api-reference",
+  "popular": true,
+  "base_url": "https://api.gitbook.com/v1",
+  "auth": [
+    {
+      "type": "bearer",
+      "fields": [
+        {
+          "key": "token",
+          "label": "Personal access token",
+          "type": "password",
+          "required": true,
+          "help": "Settings > Developer settings > Personal access tokens."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "get_current_user",
+      "name": "Get current user",
+      "method": "GET",
+      "endpoint": "/user",
+      "inputs": []
+    },
+    {
+      "key": "list_organizations",
+      "name": "List organizations",
+      "method": "GET",
+      "endpoint": "/orgs",
+      "output_path": "items",
+      "inputs": []
+    },
+    {
+      "key": "list_spaces",
+      "name": "List spaces",
+      "method": "GET",
+      "endpoint": "/orgs/{{ inputs.organization_id }}/spaces",
+      "output_path": "items",
+      "inputs": [
+        {
+          "key": "organization_id",
+          "label": "Organization ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "search_space",
+      "name": "Search a space",
+      "method": "GET",
+      "endpoint": "/spaces/{{ inputs.space_id }}/search",
+      "query": {
+        "query": "{{ inputs.query }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_path": "items",
+      "inputs": [
+        {
+          "key": "space_id",
+          "label": "Space ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "query",
+          "label": "Search text",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "limit",
+          "label": "Max results",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "list_pages",
+      "name": "List pages in a space",
+      "method": "GET",
+      "endpoint": "/spaces/{{ inputs.space_id }}/content/pages",
+      "output_path": "pages",
+      "inputs": [
+        {
+          "key": "space_id",
+          "label": "Space ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "ask",
+      "name": "Ask a question",
+      "method": "POST",
+      "endpoint": "/orgs/{{ inputs.organization_id }}/ask",
+      "description": "Answers a question from your organization's content with GitBook AI.",
+      "query": {
+        "format": "markdown"
+      },
+      "body": {
+        "query": "{{ inputs.question }}"
+      },
+      "output_path": "answer",
+      "timeout": 120,
+      "inputs": [
+        {
+          "key": "organization_id",
+          "label": "Organization ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "question",
+          "label": "Question",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ]
+}

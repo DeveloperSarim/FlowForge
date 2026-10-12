@@ -1,0 +1,75 @@
+{
+  "key": "linode",
+  "name": "Linode",
+  "category": "Developer Tools",
+  "description": "Create, boot, reboot and shut down Linodes, and add DNS records (Akamai Cloud).",
+  "brand": "linode",
+  "website": "https://www.linode.com",
+  "docs_url": "https://techdocs.akamai.com/linode-api/reference/api",
+  "base_url": "https://api.linode.com/v4",
+  "auth": { "type": "bearer", "fields": [{ "key": "token", "label": "Personal access token", "type": "password", "required": true, "help": "Cloud Manager → API Tokens." }] },
+  "actions": [
+    {
+      "key": "list_linodes",
+      "name": "List Linodes",
+      "method": "GET",
+      "endpoint": "/linode/instances",
+      "query": { "page_size": 100 },
+      "output_path": "data",
+      "inputs": []
+    },
+    {
+      "key": "create_linode",
+      "name": "Create Linode",
+      "method": "POST",
+      "endpoint": "/linode/instances",
+      "body": { "label": "{{ inputs.label }}", "region": "{{ inputs.region }}", "type": "{{ inputs.type }}", "image": "{{ inputs.image }}", "root_pass": "{{ inputs.root_pass }}", "authorized_keys": "{{ inputs.authorized_keys }}", "tags": "{{ inputs.tags }}" },
+      "inputs": [
+        { "key": "label", "label": "Label", "type": "string" },
+        { "key": "region", "label": "Region", "type": "string", "required": true, "placeholder": "us-east" },
+        { "key": "type", "label": "Plan type", "type": "string", "required": true, "placeholder": "g6-nanode-1" },
+        { "key": "image", "label": "Image", "type": "string", "placeholder": "linode/ubuntu24.04" },
+        { "key": "root_pass", "label": "Root password", "type": "password", "help": "Required when an image is set." },
+        { "key": "authorized_keys", "label": "SSH public keys", "type": "list" },
+        { "key": "tags", "label": "Tags", "type": "list" }
+      ]
+    },
+    {
+      "key": "power_action",
+      "name": "Boot / reboot / shut down Linode",
+      "method": "POST",
+      "endpoint": "/linode/instances/{{ inputs.linode_id }}/{{ inputs.action }}",
+      "inputs": [
+        { "key": "linode_id", "label": "Linode ID", "type": "number", "required": true },
+        { "key": "action", "label": "Action", "type": "select", "required": true, "default": "reboot", "options": [
+          { "value": "boot", "label": "Boot" }, { "value": "reboot", "label": "Reboot" }, { "value": "shutdown", "label": "Shut down" }
+        ] }
+      ]
+    },
+    {
+      "key": "delete_linode",
+      "name": "Delete Linode",
+      "method": "DELETE",
+      "endpoint": "/linode/instances/{{ inputs.linode_id }}",
+      "inputs": [{ "key": "linode_id", "label": "Linode ID", "type": "number", "required": true }]
+    },
+    {
+      "key": "create_domain_record",
+      "name": "Create DNS record",
+      "method": "POST",
+      "endpoint": "/domains/{{ inputs.domain_id }}/records",
+      "body": { "type": "{{ inputs.type }}", "name": "{{ inputs.name }}", "target": "{{ inputs.target }}", "ttl_sec": "{{ inputs.ttl_sec }}", "priority": "{{ inputs.priority }}" },
+      "inputs": [
+        { "key": "domain_id", "label": "Domain ID", "type": "number", "required": true },
+        { "key": "type", "label": "Type", "type": "select", "required": true, "default": "A", "options": [
+          { "value": "A", "label": "A" }, { "value": "AAAA", "label": "AAAA" }, { "value": "CNAME", "label": "CNAME" }, { "value": "TXT", "label": "TXT" },
+          { "value": "MX", "label": "MX" }, { "value": "SRV", "label": "SRV" }, { "value": "CAA", "label": "CAA" }
+        ] },
+        { "key": "name", "label": "Name", "type": "string", "placeholder": "www" },
+        { "key": "target", "label": "Target", "type": "string", "required": true },
+        { "key": "ttl_sec", "label": "TTL (seconds)", "type": "number" },
+        { "key": "priority", "label": "Priority (MX/SRV)", "type": "number" }
+      ]
+    }
+  ]
+}

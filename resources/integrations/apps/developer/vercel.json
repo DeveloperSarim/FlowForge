@@ -1,0 +1,109 @@
+{
+  "key": "vercel",
+  "name": "Vercel",
+  "category": "Developer Tools",
+  "description": "List, redeploy and cancel deployments, and set project environment variables.",
+  "brand": "vercel",
+  "website": "https://vercel.com",
+  "docs_url": "https://vercel.com/docs/rest-api",
+  "popular": true,
+  "base_url": "https://api.vercel.com",
+  "auth": { "type": "bearer", "fields": [{ "key": "token", "label": "Access token", "type": "password", "required": true, "help": "Account settings → Tokens." }] },
+  "actions": [
+    {
+      "key": "list_deployments",
+      "name": "List deployments",
+      "method": "GET",
+      "endpoint": "/v6/deployments",
+      "query": { "projectId": "{{ inputs.project_id }}", "target": "{{ inputs.target }}", "state": "{{ inputs.state }}", "limit": "{{ inputs.limit }}", "teamId": "{{ inputs.team_id }}" },
+      "output_path": "deployments",
+      "inputs": [
+        { "key": "project_id", "label": "Project ID or name", "type": "string" },
+        { "key": "target", "label": "Environment", "type": "select", "options": [{ "value": "production", "label": "Production" }, { "value": "preview", "label": "Preview" }] },
+        { "key": "state", "label": "State", "type": "string", "placeholder": "READY,ERROR", "help": "Comma-separated: BUILDING, ERROR, INITIALIZING, QUEUED, READY, CANCELED." },
+        { "key": "limit", "label": "Limit", "type": "number", "default": 20 },
+        { "key": "team_id", "label": "Team ID", "type": "string", "help": "Only for team-owned projects." }
+      ]
+    },
+    {
+      "key": "get_deployment",
+      "name": "Get deployment",
+      "method": "GET",
+      "endpoint": "/v13/deployments/{{ inputs.deployment }}",
+      "query": { "teamId": "{{ inputs.team_id }}" },
+      "inputs": [
+        { "key": "deployment", "label": "Deployment ID or URL", "type": "string", "required": true, "placeholder": "dpl_… or my-app-abc123.vercel.app" },
+        { "key": "team_id", "label": "Team ID", "type": "string" }
+      ]
+    },
+    {
+      "key": "redeploy",
+      "name": "Redeploy",
+      "description": "Creates a new deployment from an existing one.",
+      "method": "POST",
+      "endpoint": "/v13/deployments",
+      "query": { "teamId": "{{ inputs.team_id }}" },
+      "body": { "name": "{{ inputs.project }}", "deploymentId": "{{ inputs.deployment_id }}", "target": "{{ inputs.target }}" },
+      "inputs": [
+        { "key": "project", "label": "Project name", "type": "string", "required": true },
+        { "key": "deployment_id", "label": "Deployment ID to redeploy", "type": "string", "required": true },
+        { "key": "target", "label": "Target", "type": "select", "options": [{ "value": "production", "label": "Production" }, { "value": "staging", "label": "Staging" }], "help": "Leave empty for a preview deployment." },
+        { "key": "team_id", "label": "Team ID", "type": "string" }
+      ]
+    },
+    {
+      "key": "cancel_deployment",
+      "name": "Cancel deployment",
+      "method": "PATCH",
+      "endpoint": "/v12/deployments/{{ inputs.deployment_id }}/cancel",
+      "query": { "teamId": "{{ inputs.team_id }}" },
+      "inputs": [
+        { "key": "deployment_id", "label": "Deployment ID", "type": "string", "required": true },
+        { "key": "team_id", "label": "Team ID", "type": "string" }
+      ]
+    },
+    {
+      "key": "set_env_var",
+      "name": "Set environment variable",
+      "description": "Creates the variable, or overwrites it if it exists.",
+      "method": "POST",
+      "endpoint": "/v10/projects/{{ inputs.project }}/env",
+      "query": { "upsert": "true", "teamId": "{{ inputs.team_id }}" },
+      "body": { "key": "{{ inputs.key }}", "value": "{{ inputs.value }}", "type": "{{ inputs.type }}", "target": "{{ inputs.targets }}" },
+      "inputs": [
+        { "key": "project", "label": "Project ID or name", "type": "string", "required": true },
+        { "key": "key", "label": "Name", "type": "string", "required": true },
+        { "key": "value", "label": "Value", "type": "password", "required": true },
+        { "key": "type", "label": "Type", "type": "select", "default": "encrypted", "options": [
+          { "value": "encrypted", "label": "Encrypted" }, { "value": "sensitive", "label": "Sensitive" }, { "value": "plain", "label": "Plain" }
+        ] },
+        { "key": "targets", "label": "Environments", "type": "list", "required": true, "default": ["production", "preview", "development"] },
+        { "key": "team_id", "label": "Team ID", "type": "string" }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_deployment",
+      "name": "New deployment (polling)",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/v6/deployments",
+      "query": { "projectId": "{{ inputs.project_id }}", "teamId": "{{ inputs.team_id }}", "limit": 20 },
+      "items_path": "deployments",
+      "id_field": "uid",
+      "inputs": [
+        { "key": "project_id", "label": "Project ID or name", "type": "string" },
+        { "key": "team_id", "label": "Team ID", "type": "string" },
+        { "key": "poll_interval", "label": "Check every (minutes)", "type": "number", "default": 5 }
+      ]
+    },
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "data_path": "payload",
+      "inputs": [{ "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }]
+    }
+  ]
+}

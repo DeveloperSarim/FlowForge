@@ -1,0 +1,159 @@
+{
+  "key": "crisp",
+  "name": "Crisp",
+  "category": "Customer Support",
+  "description": "Send chat messages, read conversations and add contacts in Crisp.",
+  "brand": "crisp",
+  "website": "https://crisp.chat",
+  "docs_url": "https://docs.crisp.chat/references/rest-api/v1/",
+  "base_url": "https://api.crisp.chat/v1",
+  "headers": {
+    "X-Crisp-Tier": "plugin"
+  },
+  "auth": {
+    "type": "basic",
+    "fields": [
+      {
+        "key": "username",
+        "label": "Token identifier",
+        "type": "string",
+        "required": true,
+        "help": "From the Crisp Marketplace > your plugin > Tokens"
+      },
+      {
+        "key": "password",
+        "label": "Token key",
+        "type": "password",
+        "required": true
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "send_message",
+      "name": "Send message",
+      "description": "Sends a text message as an operator.",
+      "method": "POST",
+      "endpoint": "/website/{{ inputs.website_id }}/conversation/{{ inputs.session_id }}/message",
+      "body": {
+        "type": "text",
+        "from": "operator",
+        "origin": "chat",
+        "content": "{{ inputs.content }}"
+      },
+      "inputs": [
+        {
+          "key": "website_id",
+          "label": "Website ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "session_id",
+          "label": "Session ID",
+          "type": "string",
+          "required": true,
+          "placeholder": "session_…"
+        },
+        {
+          "key": "content",
+          "label": "Message",
+          "type": "text",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "get_conversation",
+      "name": "Get conversation",
+      "method": "GET",
+      "endpoint": "/website/{{ inputs.website_id }}/conversation/{{ inputs.session_id }}",
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "website_id",
+          "label": "Website ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "session_id",
+          "label": "Session ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_conversations",
+      "name": "List conversations",
+      "method": "GET",
+      "endpoint": "/website/{{ inputs.website_id }}/conversations/{{ inputs.page }}",
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "website_id",
+          "label": "Website ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "page",
+          "label": "Page",
+          "type": "number",
+          "required": true,
+          "default": 1
+        }
+      ]
+    },
+    {
+      "key": "add_contact",
+      "name": "Add contact",
+      "method": "POST",
+      "endpoint": "/website/{{ inputs.website_id }}/people/profile",
+      "output_path": "data",
+      "body": {
+        "email": "{{ inputs.email }}",
+        "person": {
+          "nickname": "{{ inputs.nickname }}"
+        }
+      },
+      "inputs": [
+        {
+          "key": "website_id",
+          "label": "Website ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "nickname",
+          "label": "Name",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Add this URL as a Web Hook in Settings > Website > Advanced.",
+      "data_path": "data",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

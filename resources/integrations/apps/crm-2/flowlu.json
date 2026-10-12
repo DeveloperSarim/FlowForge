@@ -1,0 +1,275 @@
+{
+  "key": "flowlu",
+  "name": "Flowlu",
+  "category": "CRM & Sales",
+  "description": "Create and update contacts, organizations and opportunities in Flowlu CRM.",
+  "brand": "flowlu",
+  "website": "https://www.flowlu.com",
+  "docs_url": "https://www.flowlu.com/api/",
+  "base_url": "https://{{ credentials.subdomain }}.flowlu.com/api/v1/module",
+  "auth": {
+    "type": "api_key",
+    "in": "query",
+    "name": "api_key",
+    "fields": [
+      {
+        "key": "subdomain",
+        "label": "Account subdomain",
+        "type": "string",
+        "required": true,
+        "placeholder": "yourcompany",
+        "help": "The part before .flowlu.com"
+      },
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "create_account",
+      "name": "Create contact or organization",
+      "method": "POST",
+      "endpoint": "/crm/account/create",
+      "body_format": "form",
+      "output_path": "response",
+      "body": {
+        "type": "{{ inputs.type }}",
+        "name": "{{ inputs.name }}",
+        "first_name": "{{ inputs.first_name }}",
+        "last_name": "{{ inputs.last_name }}",
+        "email": "{{ inputs.email }}",
+        "phone": "{{ inputs.phone }}",
+        "web": "{{ inputs.web }}",
+        "description": "{{ inputs.description }}",
+        "owner_id": "{{ inputs.owner_id }}"
+      },
+      "inputs": [
+        {
+          "key": "type",
+          "label": "Type",
+          "type": "select",
+          "required": true,
+          "default": "2",
+          "options": [
+            {
+              "value": "2",
+              "label": "Contact"
+            },
+            {
+              "value": "1",
+              "label": "Organization"
+            }
+          ]
+        },
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string",
+          "help": "Organization name (or full name for a contact)"
+        },
+        {
+          "key": "first_name",
+          "label": "First name",
+          "type": "string"
+        },
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string"
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string"
+        },
+        {
+          "key": "phone",
+          "label": "Phone",
+          "type": "string"
+        },
+        {
+          "key": "web",
+          "label": "Website",
+          "type": "string"
+        },
+        {
+          "key": "description",
+          "label": "Description",
+          "type": "text"
+        },
+        {
+          "key": "owner_id",
+          "label": "Owner user ID",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "update_account",
+      "name": "Update contact or organization",
+      "method": "POST",
+      "endpoint": "/crm/account/update/{{ inputs.account_id }}",
+      "body_format": "form",
+      "output_path": "response",
+      "body": "{{ inputs.fields }}",
+      "inputs": [
+        {
+          "key": "account_id",
+          "label": "Account ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "fields",
+          "label": "Fields",
+          "type": "keyvalue",
+          "required": true,
+          "help": "e.g. email, phone, description"
+        }
+      ]
+    },
+    {
+      "key": "get_account",
+      "name": "Get contact or organization",
+      "method": "GET",
+      "endpoint": "/crm/account/get/{{ inputs.account_id }}",
+      "output_path": "response",
+      "inputs": [
+        {
+          "key": "account_id",
+          "label": "Account ID",
+          "type": "number",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "create_opportunity",
+      "name": "Create opportunity",
+      "method": "POST",
+      "endpoint": "/crm/lead/create",
+      "body_format": "form",
+      "output_path": "response",
+      "body": {
+        "name": "{{ inputs.name }}",
+        "pipeline_id": "{{ inputs.pipeline_id }}",
+        "pipeline_stage_id": "{{ inputs.pipeline_stage_id }}",
+        "budget": "{{ inputs.budget }}",
+        "assignee_id": "{{ inputs.assignee_id }}",
+        "contact_name": "{{ inputs.contact_name }}",
+        "contact_email": "{{ inputs.contact_email }}",
+        "contact_phone": "{{ inputs.contact_phone }}",
+        "contact_company": "{{ inputs.contact_company }}"
+      },
+      "inputs": [
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "pipeline_id",
+          "label": "Pipeline ID",
+          "type": "number"
+        },
+        {
+          "key": "pipeline_stage_id",
+          "label": "Stage ID",
+          "type": "number"
+        },
+        {
+          "key": "budget",
+          "label": "Budget",
+          "type": "number"
+        },
+        {
+          "key": "assignee_id",
+          "label": "Assignee user ID",
+          "type": "number"
+        },
+        {
+          "key": "contact_name",
+          "label": "Contact name",
+          "type": "string"
+        },
+        {
+          "key": "contact_email",
+          "label": "Contact email",
+          "type": "string"
+        },
+        {
+          "key": "contact_phone",
+          "label": "Contact phone",
+          "type": "string"
+        },
+        {
+          "key": "contact_company",
+          "label": "Contact company",
+          "type": "string"
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_account",
+      "name": "New contact or organization",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/crm/account/list",
+      "query": {
+        "order_by[desc][]": "id",
+        "limit": 50
+      },
+      "items_path": "response.items",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    },
+    {
+      "key": "new_opportunity",
+      "name": "New opportunity",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/crm/lead/list",
+      "query": {
+        "order_by[desc][]": "id",
+        "limit": 50
+      },
+      "items_path": "response.items",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    },
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Add this URL under System settings > Webhooks.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,139 @@
+{
+  "key": "cloudflare",
+  "name": "Cloudflare",
+  "category": "Developer Tools",
+  "description": "Manage DNS records, purge the cache and read or write Workers KV values.",
+  "brand": "cloudflare",
+  "website": "https://www.cloudflare.com",
+  "docs_url": "https://developers.cloudflare.com/api/",
+  "popular": true,
+  "base_url": "https://api.cloudflare.com/client/v4",
+  "auth": { "type": "bearer", "fields": [{ "key": "token", "label": "API token", "type": "password", "required": true, "help": "My Profile → API Tokens. Give it only the permissions your workflows need." }] },
+  "actions": [
+    {
+      "key": "list_dns_records",
+      "name": "List DNS records",
+      "method": "GET",
+      "endpoint": "/zones/{{ inputs.zone_id }}/dns_records",
+      "query": { "name": "{{ inputs.name }}", "type": "{{ inputs.type }}", "per_page": 100 },
+      "output_path": "result",
+      "inputs": [
+        { "key": "zone_id", "label": "Zone ID", "type": "string", "required": true, "help": "Domain overview page → API → Zone ID." },
+        { "key": "name", "label": "Exact name", "type": "string", "placeholder": "www.example.com" },
+        { "key": "type", "label": "Type", "type": "string", "placeholder": "A" }
+      ]
+    },
+    {
+      "key": "create_dns_record",
+      "name": "Create DNS record",
+      "method": "POST",
+      "endpoint": "/zones/{{ inputs.zone_id }}/dns_records",
+      "output_path": "result",
+      "body": { "type": "{{ inputs.type }}", "name": "{{ inputs.name }}", "content": "{{ inputs.content }}", "ttl": "{{ inputs.ttl }}", "proxied": "{{ inputs.proxied }}", "priority": "{{ inputs.priority }}", "comment": "{{ inputs.comment }}" },
+      "inputs": [
+        { "key": "zone_id", "label": "Zone ID", "type": "string", "required": true },
+        { "key": "type", "label": "Type", "type": "select", "required": true, "default": "A", "options": [
+          { "value": "A", "label": "A" }, { "value": "AAAA", "label": "AAAA" }, { "value": "CNAME", "label": "CNAME" }, { "value": "TXT", "label": "TXT" },
+          { "value": "MX", "label": "MX" }, { "value": "NS", "label": "NS" }, { "value": "SRV", "label": "SRV" }, { "value": "CAA", "label": "CAA" }
+        ] },
+        { "key": "name", "label": "Name", "type": "string", "required": true, "placeholder": "www.example.com" },
+        { "key": "content", "label": "Content", "type": "string", "required": true, "placeholder": "192.0.2.1" },
+        { "key": "ttl", "label": "TTL (seconds, 1 = auto)", "type": "number", "default": 1 },
+        { "key": "proxied", "label": "Proxied through Cloudflare", "type": "boolean", "default": false },
+        { "key": "priority", "label": "Priority (MX)", "type": "number" },
+        { "key": "comment", "label": "Comment", "type": "string" }
+      ]
+    },
+    {
+      "key": "update_dns_record",
+      "name": "Update DNS record",
+      "method": "PATCH",
+      "endpoint": "/zones/{{ inputs.zone_id }}/dns_records/{{ inputs.record_id }}",
+      "output_path": "result",
+      "body": { "name": "{{ inputs.name }}", "content": "{{ inputs.content }}", "ttl": "{{ inputs.ttl }}", "comment": "{{ inputs.comment }}" },
+      "inputs": [
+        { "key": "zone_id", "label": "Zone ID", "type": "string", "required": true },
+        { "key": "record_id", "label": "Record ID", "type": "string", "required": true },
+        { "key": "content", "label": "Content", "type": "string" },
+        { "key": "name", "label": "Name", "type": "string" },
+        { "key": "ttl", "label": "TTL (seconds, 1 = auto)", "type": "number" },
+        { "key": "comment", "label": "Comment", "type": "string" }
+      ]
+    },
+    {
+      "key": "delete_dns_record",
+      "name": "Delete DNS record",
+      "method": "DELETE",
+      "endpoint": "/zones/{{ inputs.zone_id }}/dns_records/{{ inputs.record_id }}",
+      "inputs": [
+        { "key": "zone_id", "label": "Zone ID", "type": "string", "required": true },
+        { "key": "record_id", "label": "Record ID", "type": "string", "required": true }
+      ]
+    },
+    {
+      "key": "purge_everything",
+      "name": "Purge entire cache",
+      "method": "POST",
+      "endpoint": "/zones/{{ inputs.zone_id }}/purge_cache",
+      "body": { "purge_everything": true },
+      "inputs": [{ "key": "zone_id", "label": "Zone ID", "type": "string", "required": true }]
+    },
+    {
+      "key": "purge_urls",
+      "name": "Purge cached URLs",
+      "method": "POST",
+      "endpoint": "/zones/{{ inputs.zone_id }}/purge_cache",
+      "body": { "files": "{{ inputs.urls }}" },
+      "inputs": [
+        { "key": "zone_id", "label": "Zone ID", "type": "string", "required": true },
+        { "key": "urls", "label": "URLs", "type": "list", "required": true, "help": "Full URLs, e.g. https://example.com/styles.css" }
+      ]
+    },
+    {
+      "key": "kv_write",
+      "name": "Write Workers KV value",
+      "method": "PUT",
+      "endpoint": "/accounts/{{ inputs.account_id }}/storage/kv/namespaces/{{ inputs.namespace_id }}/values/{{ inputs.key }}",
+      "query": { "expiration_ttl": "{{ inputs.expiration_ttl }}" },
+      "headers": { "Content-Type": "text/plain" },
+      "body": "{{ inputs.value }}",
+      "inputs": [
+        { "key": "account_id", "label": "Account ID", "type": "string", "required": true },
+        { "key": "namespace_id", "label": "Namespace ID", "type": "string", "required": true },
+        { "key": "key", "label": "Key", "type": "string", "required": true },
+        { "key": "value", "label": "Value", "type": "text", "required": true },
+        { "key": "expiration_ttl", "label": "Expire after (seconds)", "type": "number", "help": "Minimum 60. Leave empty to keep forever." }
+      ]
+    },
+    {
+      "key": "kv_read",
+      "name": "Read Workers KV value",
+      "method": "GET",
+      "endpoint": "/accounts/{{ inputs.account_id }}/storage/kv/namespaces/{{ inputs.namespace_id }}/values/{{ inputs.key }}",
+      "inputs": [
+        { "key": "account_id", "label": "Account ID", "type": "string", "required": true },
+        { "key": "namespace_id", "label": "Namespace ID", "type": "string", "required": true },
+        { "key": "key", "label": "Key", "type": "string", "required": true }
+      ]
+    },
+    {
+      "key": "kv_delete",
+      "name": "Delete Workers KV value",
+      "method": "DELETE",
+      "endpoint": "/accounts/{{ inputs.account_id }}/storage/kv/namespaces/{{ inputs.namespace_id }}/values/{{ inputs.key }}",
+      "inputs": [
+        { "key": "account_id", "label": "Account ID", "type": "string", "required": true },
+        { "key": "namespace_id", "label": "Namespace ID", "type": "string", "required": true },
+        { "key": "key", "label": "Key", "type": "string", "required": true }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "notification",
+      "name": "Notification (webhook)",
+      "type": "webhook",
+      "inputs": [{ "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }]
+    }
+  ]
+}

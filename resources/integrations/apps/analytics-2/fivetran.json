@@ -1,0 +1,85 @@
+{
+  "key": "fivetran",
+  "name": "Fivetran",
+  "category": "Analytics",
+  "description": "Trigger connection syncs, pause or resume connections and react to sync events.",
+  "brand": "fivetran",
+  "website": "https://www.fivetran.com",
+  "docs_url": "https://fivetran.com/docs/rest-api",
+  "popular": true,
+  "base_url": "https://api.fivetran.com/v1",
+  "headers": { "Accept": "application/json;version=2" },
+  "auth": { "type": "basic", "fields": [
+    { "key": "username", "label": "API key", "type": "string", "required": true, "help": "Account settings → API Config (or a system key)." },
+    { "key": "password", "label": "API secret", "type": "password", "required": true }
+  ] },
+  "actions": [
+    {
+      "key": "list_groups",
+      "name": "List groups (destinations)",
+      "method": "GET",
+      "endpoint": "/groups",
+      "output_path": "data.items",
+      "inputs": []
+    },
+    {
+      "key": "list_connections",
+      "name": "List connections",
+      "method": "GET",
+      "endpoint": "/connections",
+      "query": { "group_id": "{{ inputs.group_id }}", "limit": "{{ inputs.limit }}" },
+      "output_path": "data.items",
+      "inputs": [
+        { "key": "group_id", "label": "Group ID", "type": "string" },
+        { "key": "limit", "label": "Limit", "type": "number" }
+      ]
+    },
+    {
+      "key": "get_connection",
+      "name": "Get connection",
+      "method": "GET",
+      "endpoint": "/connections/{{ inputs.connection_id }}",
+      "output_path": "data",
+      "inputs": [{ "key": "connection_id", "label": "Connection ID", "type": "string", "required": true }]
+    },
+    {
+      "key": "sync_connection",
+      "name": "Sync connection now",
+      "method": "POST",
+      "endpoint": "/connections/{{ inputs.connection_id }}/sync",
+      "body": { "force": "{{ inputs.force }}" },
+      "inputs": [
+        { "key": "connection_id", "label": "Connection ID", "type": "string", "required": true },
+        { "key": "force", "label": "Restart a running sync", "type": "boolean" }
+      ]
+    },
+    {
+      "key": "resync_connection",
+      "name": "Historical re-sync",
+      "method": "POST",
+      "endpoint": "/connections/{{ inputs.connection_id }}/resync",
+      "inputs": [{ "key": "connection_id", "label": "Connection ID", "type": "string", "required": true }]
+    },
+    {
+      "key": "pause_connection",
+      "name": "Pause / resume connection",
+      "method": "PATCH",
+      "endpoint": "/connections/{{ inputs.connection_id }}",
+      "body": { "paused": "{{ inputs.paused }}" },
+      "output_path": "data",
+      "inputs": [
+        { "key": "connection_id", "label": "Connection ID", "type": "string", "required": true },
+        { "key": "paused", "label": "Paused", "type": "boolean", "required": true }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Fivetran webhook",
+      "description": "Create a webhook (API or dashboard) pointing here for sync_start, sync_end and other events.",
+      "type": "webhook",
+      "inputs": [{ "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }]
+    }
+  ]
+}

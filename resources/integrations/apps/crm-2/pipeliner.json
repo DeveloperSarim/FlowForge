@@ -1,0 +1,113 @@
+{
+  "key": "pipeliner",
+  "name": "Pipeliner CRM",
+  "category": "CRM & Sales",
+  "description": "Create contacts, accounts and opportunities in Pipeliner CRM.",
+  "brand": "pipeliner",
+  "website": "https://www.pipelinersales.com",
+  "docs_url": "https://developers.pipelinersales.com/api-docs/",
+  "base_url": "https://{{ credentials.service_url }}/api/v100/rest/spaces/{{ credentials.space_id }}",
+  "auth": {
+    "type": "basic",
+    "fields": [
+      { "key": "service_url", "label": "Service URL host", "type": "string", "required": true, "placeholder": "us-east.pipelinersales.com", "help": "Admin > Applications > Show API Access (host only, no https://)" },
+      { "key": "space_id", "label": "Space ID", "type": "string", "required": true },
+      { "key": "username", "label": "API username", "type": "string", "required": true },
+      { "key": "password", "label": "API password", "type": "password", "required": true }
+    ]
+  },
+  "actions": [
+    {
+      "key": "create_contact",
+      "name": "Create contact",
+      "method": "POST",
+      "endpoint": "/entities/Contacts",
+      "output_path": "data",
+      "body": {
+        "owner_id": "{{ inputs.owner_id }}",
+        "first_name": "{{ inputs.first_name }}",
+        "last_name": "{{ inputs.last_name }}",
+        "email1": "{{ inputs.email }}",
+        "phone1": "{{ inputs.phone }}",
+        "position": "{{ inputs.position }}",
+        "...": "{{ inputs.extra }}"
+      },
+      "inputs": [
+        { "key": "owner_id", "label": "Owner (client) ID", "type": "string", "required": true, "help": "Use Find user by email to get it." },
+        { "key": "first_name", "label": "First name", "type": "string" },
+        { "key": "last_name", "label": "Last name", "type": "string", "required": true },
+        { "key": "email", "label": "Email", "type": "string" },
+        { "key": "phone", "label": "Phone", "type": "string" },
+        { "key": "position", "label": "Position", "type": "string" },
+        { "key": "extra", "label": "Other fields", "type": "json", "placeholder": "{\"account_relations\": [{\"account_id\": \"<id>\", \"is_primary\": true}]}" }
+      ]
+    },
+    {
+      "key": "create_account",
+      "name": "Create account",
+      "method": "POST",
+      "endpoint": "/entities/Accounts",
+      "output_path": "data",
+      "body": { "name": "{{ inputs.name }}", "owner_id": "{{ inputs.owner_id }}", "...": "{{ inputs.extra }}" },
+      "inputs": [
+        { "key": "name", "label": "Account name", "type": "string", "required": true },
+        { "key": "owner_id", "label": "Owner (client) ID", "type": "string", "required": true },
+        { "key": "extra", "label": "Other fields", "type": "json" }
+      ]
+    },
+    {
+      "key": "create_opportunity",
+      "name": "Create opportunity",
+      "method": "POST",
+      "endpoint": "/entities/Opportunities",
+      "output_path": "data",
+      "body": {
+        "name": "{{ inputs.name }}",
+        "owner_id": "{{ inputs.owner_id }}",
+        "step_id": "{{ inputs.step_id }}",
+        "closing_date": "{{ inputs.closing_date }}",
+        "value": { "base_value": "{{ inputs.value }}", "currency_id": "{{ inputs.currency_id }}" },
+        "...": "{{ inputs.extra }}"
+      },
+      "inputs": [
+        { "key": "name", "label": "Name", "type": "string", "required": true },
+        { "key": "owner_id", "label": "Owner (client) ID", "type": "string", "required": true },
+        { "key": "step_id", "label": "Pipeline step ID", "type": "string", "required": true },
+        { "key": "closing_date", "label": "Closing date", "type": "string", "required": true, "placeholder": "2026-12-31" },
+        { "key": "value", "label": "Value", "type": "number", "required": true },
+        { "key": "currency_id", "label": "Currency ID", "type": "string", "required": true },
+        { "key": "extra", "label": "Other fields", "type": "json", "placeholder": "{\"contact_relations\": [{\"contact_id\": \"<id>\", \"is_primary\": true}]}" }
+      ]
+    },
+    {
+      "key": "find_user",
+      "name": "Find user by email",
+      "description": "Looks up a Pipeliner user (client) to use as an owner.",
+      "method": "GET",
+      "endpoint": "/entities/Clients",
+      "output_path": "data",
+      "query": { "filter[email]": "{{ inputs.email }}", "load-only": "id,name,email,default_unit_id" },
+      "inputs": [{ "key": "email", "label": "User email", "type": "string", "required": true }]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_contact",
+      "name": "New contact",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/entities/Contacts",
+      "query": { "order-by": "-created", "first": 50 },
+      "items_path": "data",
+      "id_field": "id",
+      "inputs": [{ "key": "poll_interval", "label": "Check every (minutes)", "type": "number", "default": 5 }]
+    },
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Register this URL with POST /entities/Webhooks (use Make an API call), e.g. events [\"Contact.Create\"].",
+      "inputs": [{ "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }]
+    }
+  ]
+}

@@ -1,0 +1,104 @@
+{
+  "key": "vidyard",
+  "name": "Vidyard",
+  "category": "CRM & Sales",
+  "description": "List and look up sales videos and players in Vidyard.",
+  "brand": "vidyard",
+  "website": "https://www.vidyard.com",
+  "docs_url": "https://developer.vidyard.com/",
+  "base_url": "https://api.vidyard.com/dashboard/v1",
+  "auth": {
+    "type": "api_key",
+    "in": "query",
+    "name": "auth_token",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "API token",
+        "type": "password",
+        "required": true
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_videos",
+      "name": "List videos",
+      "method": "GET",
+      "endpoint": "/videos",
+      "output_path": "videos",
+      "query": {
+        "order_by": "created_at",
+        "direction": "desc",
+        "per_page": "{{ inputs.per_page }}",
+        "page": "{{ inputs.page }}"
+      },
+      "inputs": [
+        {
+          "key": "per_page",
+          "label": "Per page",
+          "type": "number",
+          "default": 50
+        },
+        {
+          "key": "page",
+          "label": "Page",
+          "type": "number",
+          "default": 1
+        }
+      ]
+    },
+    {
+      "key": "get_video",
+      "name": "Get video",
+      "method": "GET",
+      "endpoint": "/videos/{{ inputs.video_id }}",
+      "inputs": [
+        {
+          "key": "video_id",
+          "label": "Video ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "get_player",
+      "name": "Get player",
+      "method": "GET",
+      "endpoint": "/players/{{ inputs.player_id }}",
+      "inputs": [
+        {
+          "key": "player_id",
+          "label": "Player ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_video",
+      "name": "New video",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/videos",
+      "query": {
+        "order_by": "created_at",
+        "direction": "desc",
+        "per_page": 50
+      },
+      "items_path": "videos",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,142 @@
+{
+  "key": "lead-scoring-branch",
+  "name": "Score inbound leads and route them",
+  "description": "Leads from a company email go to HubSpot and the sales team; free-mail leads get a nurture email via SendGrid.",
+  "category": "Sales & CRM",
+  "featured": true,
+  "graph": {
+    "nodes": [
+      {
+        "id": "trigger",
+        "type": "trigger",
+        "position": {
+          "x": 0,
+          "y": 200
+        },
+        "data": {
+          "integration": "webhook",
+          "trigger": "catch",
+          "label": "Inbound lead",
+          "config": {
+            "method": "POST",
+            "sample_payload": "{\n  \"name\": \"Ada Lovelace\",\n  \"email\": \"ada@example.com\",\n  \"company\": \"Analytical Engines\",\n  \"message\": \"We would like a demo next week.\"\n}"
+          }
+        }
+      },
+      {
+        "id": "step_1",
+        "type": "branch",
+        "position": {
+          "x": 240,
+          "y": 200
+        },
+        "data": {
+          "integration": "logic",
+          "action": "if",
+          "label": "Free email domain?",
+          "config": {
+            "combinator": "any",
+            "conditions": [
+              {
+                "left": "{{ steps.trigger.data.email }}",
+                "operator": "ends_with",
+                "right": "@gmail.com"
+              },
+              {
+                "left": "{{ steps.trigger.data.email }}",
+                "operator": "ends_with",
+                "right": "@yahoo.com"
+              },
+              {
+                "left": "{{ steps.trigger.data.email }}",
+                "operator": "ends_with",
+                "right": "@outlook.com"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "id": "step_2",
+        "type": "action",
+        "position": {
+          "x": 480,
+          "y": 60
+        },
+        "data": {
+          "integration": "sendgrid",
+          "action": "send_email",
+          "label": "Nurture email",
+          "config": {
+            "to": "{{ steps.trigger.data.email }}",
+            "from_email": "hello@yourdomain.com",
+            "subject": "Thanks for reaching out",
+            "content_type": "text/plain",
+            "content": "Hi {{ steps.trigger.data.name }}, here are a few resources to get started."
+          }
+        }
+      },
+      {
+        "id": "step_3",
+        "type": "action",
+        "position": {
+          "x": 480,
+          "y": 340
+        },
+        "data": {
+          "integration": "hubspot",
+          "action": "create_contact",
+          "label": "Create contact",
+          "config": {
+            "email": "{{ steps.trigger.data.email }}",
+            "first_name": "{{ steps.trigger.data.name }}",
+            "company": "{{ steps.trigger.data.company }}"
+          }
+        }
+      },
+      {
+        "id": "step_4",
+        "type": "action",
+        "position": {
+          "x": 720,
+          "y": 340
+        },
+        "data": {
+          "integration": "slack",
+          "action": "post_message",
+          "label": "Alert sales",
+          "config": {
+            "channel": "#sales",
+            "text": "Qualified lead: {{ steps.trigger.data.name }} at {{ steps.trigger.data.company }}"
+          }
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "e-trigger-step_1-out",
+        "source": "trigger",
+        "target": "step_1",
+        "sourceHandle": null
+      },
+      {
+        "id": "e-step_1-step_2-true",
+        "source": "step_1",
+        "target": "step_2",
+        "sourceHandle": "true"
+      },
+      {
+        "id": "e-step_1-step_3-false",
+        "source": "step_1",
+        "target": "step_3",
+        "sourceHandle": "false"
+      },
+      {
+        "id": "e-step_3-step_4-out",
+        "source": "step_3",
+        "target": "step_4",
+        "sourceHandle": null
+      }
+    ]
+  }
+}

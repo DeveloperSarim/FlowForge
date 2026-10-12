@@ -1,0 +1,60 @@
+{
+  "key": "google_meet",
+  "name": "Google Meet",
+  "category": "Communication",
+  "description": "Create Meet meeting spaces, end calls and list past conferences.",
+  "brand": "googlemeet",
+  "website": "https://meet.google.com",
+  "docs_url": "https://developers.google.com/workspace/meet/api/reference/rest/v2",
+  "base_url": "https://meet.googleapis.com/v2",
+  "auth": [
+    {
+      "type": "oauth2",
+      "authorize_url": "https://accounts.google.com/o/oauth2/v2/auth",
+      "token_url": "https://oauth2.googleapis.com/token",
+      "scopes": ["https://www.googleapis.com/auth/meetings.space.created", "https://www.googleapis.com/auth/meetings.space.readonly"],
+      "authorize_params": { "access_type": "offline", "prompt": "consent" }
+    }
+  ],
+  "actions": [
+    {
+      "key": "create_space",
+      "name": "Create meeting space",
+      "description": "Returns meetingUri (the join link) and meetingCode.",
+      "method": "POST",
+      "endpoint": "/spaces",
+      "body": { "config": { "accessType": "{{ inputs.access_type }}" } },
+      "inputs": [
+        { "key": "access_type", "label": "Who can join without knocking", "type": "select", "default": "TRUSTED", "options": [
+          { "value": "OPEN", "label": "Anyone with the link" }, { "value": "TRUSTED", "label": "Your organization + invitees" }, { "value": "RESTRICTED", "label": "Invitees only" }
+        ] }
+      ]
+    },
+    {
+      "key": "get_space",
+      "name": "Get meeting space",
+      "method": "GET",
+      "endpoint": "/spaces/{{ inputs.space_id }}",
+      "inputs": [{ "key": "space_id", "label": "Space ID or meeting code", "type": "string", "required": true, "placeholder": "abc-mnop-xyz" }]
+    },
+    {
+      "key": "end_active_conference",
+      "name": "End active call",
+      "method": "POST",
+      "endpoint": "/spaces/{{ inputs.space_id }}:endActiveConference",
+      "inputs": [{ "key": "space_id", "label": "Space ID", "type": "string", "required": true, "help": "The part after spaces/ in the space name." }]
+    },
+    {
+      "key": "list_conference_records",
+      "name": "List past conferences",
+      "method": "GET",
+      "endpoint": "/conferenceRecords",
+      "query": { "pageSize": "{{ inputs.page_size }}", "filter": "{{ inputs.filter }}" },
+      "output_path": "conferenceRecords",
+      "inputs": [
+        { "key": "page_size", "label": "Max results", "type": "number", "default": 25 },
+        { "key": "filter", "label": "Filter", "type": "string", "placeholder": "space.meeting_code = \"abc-mnop-xyz\"" }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,59 @@
+{
+  "key": "africas_talking",
+  "name": "Africa's Talking",
+  "category": "Communication",
+  "description": "Send SMS, fetch inbound messages and check your balance.",
+  "brand": "africastalking",
+  "website": "https://africastalking.com",
+  "docs_url": "https://developers.africastalking.com/docs/sms/overview",
+  "base_url": "https://{{ credentials.host }}/version1",
+  "headers": { "Accept": "application/json" },
+  "auth": [
+    {
+      "type": "api_key",
+      "in": "header",
+      "name": "apiKey",
+      "fields": [
+        { "key": "host", "label": "Environment", "type": "select", "required": true, "default": "api.africastalking.com", "options": [
+          { "value": "api.africastalking.com", "label": "Live" }, { "value": "api.sandbox.africastalking.com", "label": "Sandbox" }
+        ] },
+        { "key": "username", "label": "Username", "type": "string", "required": true, "help": "Use \"sandbox\" for the sandbox environment." },
+        { "key": "api_key", "label": "API key", "type": "password", "required": true }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "send_sms",
+      "name": "Send SMS",
+      "method": "POST",
+      "endpoint": "/messaging",
+      "body_format": "form",
+      "body": { "username": "{{ credentials.username }}", "to": "{{ inputs.to }}", "message": "{{ inputs.message }}", "from": "{{ inputs.from }}" },
+      "output_path": "SMSMessageData",
+      "inputs": [
+        { "key": "to", "label": "To", "type": "string", "required": true, "placeholder": "+254711XXXYYY", "help": "Comma-separate several numbers." },
+        { "key": "message", "label": "Message", "type": "text", "required": true },
+        { "key": "from", "label": "From (shortcode or sender ID)", "type": "string" }
+      ]
+    },
+    {
+      "key": "fetch_messages",
+      "name": "Fetch inbound messages",
+      "method": "GET",
+      "endpoint": "/messaging",
+      "query": { "username": "{{ credentials.username }}", "lastReceivedId": "{{ inputs.last_received_id }}" },
+      "output_path": "SMSMessageData.Messages",
+      "inputs": [{ "key": "last_received_id", "label": "After message ID", "type": "number", "default": 0 }]
+    },
+    {
+      "key": "get_balance",
+      "name": "Get account balance",
+      "method": "GET",
+      "endpoint": "/user",
+      "query": { "username": "{{ credentials.username }}" },
+      "output_path": "UserData",
+      "inputs": []
+    }
+  ]
+}

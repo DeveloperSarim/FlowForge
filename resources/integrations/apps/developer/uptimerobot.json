@@ -1,0 +1,75 @@
+{
+  "key": "uptimerobot",
+  "name": "UptimeRobot",
+  "category": "Developer Tools",
+  "description": "List, create, pause, resume and delete uptime monitors.",
+  "brand": "uptimerobot",
+  "website": "https://uptimerobot.com",
+  "docs_url": "https://uptimerobot.com/api/legacy/",
+  "base_url": "https://api.uptimerobot.com/v2",
+  "auth": { "type": "api_key", "fields": [{ "key": "api_key", "label": "Main API key", "type": "password", "required": true, "help": "Integrations & API → API. With Make an API call, add api_key to the body yourself." }] },
+  "actions": [
+    {
+      "key": "get_monitors",
+      "name": "List monitors",
+      "method": "POST",
+      "endpoint": "/getMonitors",
+      "body_format": "form",
+      "error_path": "error",
+      "output_path": "monitors",
+      "body": { "api_key": "{{ credentials.api_key }}", "format": "json", "monitors": "{{ inputs.monitor_ids }}", "search": "{{ inputs.search }}" },
+      "inputs": [
+        { "key": "monitor_ids", "label": "Monitor IDs", "type": "string", "placeholder": "15830-32696", "help": "Dash-separated; leave empty for all." },
+        { "key": "search", "label": "Search (URL or name)", "type": "string" }
+      ]
+    },
+    {
+      "key": "new_monitor",
+      "name": "Create monitor",
+      "method": "POST",
+      "endpoint": "/newMonitor",
+      "body_format": "form",
+      "error_path": "error",
+      "body": { "api_key": "{{ credentials.api_key }}", "format": "json", "type": "{{ inputs.type }}", "url": "{{ inputs.url }}", "friendly_name": "{{ inputs.friendly_name }}", "interval": "{{ inputs.interval }}" },
+      "inputs": [
+        { "key": "type", "label": "Type", "type": "select", "required": true, "default": "1", "options": [
+          { "value": "1", "label": "HTTP(s)" }, { "value": "2", "label": "Keyword" }, { "value": "3", "label": "Ping" }, { "value": "4", "label": "Port" }
+        ] },
+        { "key": "url", "label": "URL or IP", "type": "string", "required": true },
+        { "key": "friendly_name", "label": "Name", "type": "string", "required": true },
+        { "key": "interval", "label": "Interval (seconds)", "type": "number", "default": 300 }
+      ]
+    },
+    {
+      "key": "set_monitor_status",
+      "name": "Pause / resume monitor",
+      "method": "POST",
+      "endpoint": "/editMonitor",
+      "body_format": "form",
+      "error_path": "error",
+      "body": { "api_key": "{{ credentials.api_key }}", "format": "json", "id": "{{ inputs.id }}", "status": "{{ inputs.status }}" },
+      "inputs": [
+        { "key": "id", "label": "Monitor ID", "type": "string", "required": true },
+        { "key": "status", "label": "Status", "type": "select", "required": true, "default": "0", "options": [{ "value": "0", "label": "Pause" }, { "value": "1", "label": "Resume" }] }
+      ]
+    },
+    {
+      "key": "delete_monitor",
+      "name": "Delete monitor",
+      "method": "POST",
+      "endpoint": "/deleteMonitor",
+      "body_format": "form",
+      "error_path": "error",
+      "body": { "api_key": "{{ credentials.api_key }}", "format": "json", "id": "{{ inputs.id }}" },
+      "inputs": [{ "key": "id", "label": "Monitor ID", "type": "string", "required": true }]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "alert_webhook",
+      "name": "Alert contact webhook",
+      "type": "webhook",
+      "inputs": [{ "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }]
+    }
+  ]
+}

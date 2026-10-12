@@ -1,0 +1,190 @@
+{
+  "key": "zoho_sign",
+  "name": "Zoho Sign",
+  "category": "Files & Documents",
+  "description": "Send documents from templates, track requests and send reminders.",
+  "brand": "zoho",
+  "website": "https://www.zoho.com/sign/",
+  "docs_url": "https://www.zoho.com/sign/api/",
+  "popular": true,
+  "base_url": "https://sign.zoho.{{ credentials.dc }}/api/v1",
+  "auth": [
+    {
+      "type": "oauth2",
+      "authorize_url": "https://accounts.zoho.{{ credentials.dc }}/oauth/v2/auth",
+      "token_url": "https://accounts.zoho.{{ credentials.dc }}/oauth/v2/token",
+      "scopes": [
+        "ZohoSign.documents.ALL",
+        "ZohoSign.templates.ALL",
+        "ZohoSign.account.READ"
+      ],
+      "scope_separator": ",",
+      "authorize_params": {
+        "access_type": "offline",
+        "prompt": "consent"
+      },
+      "token_type": "Zoho-oauthtoken",
+      "fields": [
+        {
+          "key": "dc",
+          "label": "Data center",
+          "type": "select",
+          "required": true,
+          "default": "com",
+          "options": [
+            {
+              "value": "com",
+              "label": "US (.com)"
+            },
+            {
+              "value": "eu",
+              "label": "EU (.eu)"
+            },
+            {
+              "value": "in",
+              "label": "India (.in)"
+            },
+            {
+              "value": "com.au",
+              "label": "Australia (.com.au)"
+            },
+            {
+              "value": "jp",
+              "label": "Japan (.jp)"
+            }
+          ],
+          "help": "The domain your Zoho account lives on (zoho.com, zoho.eu, ...)."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "send_from_template",
+      "name": "Send document from template",
+      "description": "Creates a request from a template and sends it right away.",
+      "method": "POST",
+      "endpoint": "/templates/{{ inputs.template_id }}/createdocument",
+      "body_format": "form",
+      "body": {
+        "data": "{{ inputs.data }}",
+        "is_quicksend": "true"
+      },
+      "inputs": [
+        {
+          "key": "template_id",
+          "label": "Template ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "data",
+          "label": "Data (JSON)",
+          "type": "code",
+          "required": true,
+          "placeholder": "{\"templates\": {\"field_data\": {\"field_text_data\": {\"Name\": \"Jane\"}}, \"actions\": [{\"action_id\": \"123\", \"action_type\": \"SIGN\", \"recipient_name\": \"Jane\", \"recipient_email\": \"jane@example.com\", \"verify_recipient\": false}]}}",
+          "help": "Get action IDs from Get template."
+        }
+      ]
+    },
+    {
+      "key": "list_requests",
+      "name": "List requests",
+      "method": "GET",
+      "endpoint": "/requests",
+      "query": {
+        "data": "{\"page_context\":{\"row_count\":{{ inputs.limit }},\"start_index\":1,\"sort_column\":\"created_time\",\"sort_order\":\"DESC\"}}"
+      },
+      "output_path": "requests",
+      "inputs": [
+        {
+          "key": "limit",
+          "label": "Max results",
+          "type": "number",
+          "required": true,
+          "default": 25
+        }
+      ]
+    },
+    {
+      "key": "get_request",
+      "name": "Get request",
+      "method": "GET",
+      "endpoint": "/requests/{{ inputs.request_id }}",
+      "output_path": "requests",
+      "inputs": [
+        {
+          "key": "request_id",
+          "label": "Request ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "remind_recipients",
+      "name": "Remind recipients",
+      "method": "POST",
+      "endpoint": "/requests/{{ inputs.request_id }}/remind",
+      "inputs": [
+        {
+          "key": "request_id",
+          "label": "Request ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "recall_request",
+      "name": "Recall request",
+      "method": "POST",
+      "endpoint": "/requests/{{ inputs.request_id }}/recall",
+      "inputs": [
+        {
+          "key": "request_id",
+          "label": "Request ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_templates",
+      "name": "List templates",
+      "method": "GET",
+      "endpoint": "/templates",
+      "output_path": "templates",
+      "inputs": []
+    },
+    {
+      "key": "get_template",
+      "name": "Get template",
+      "method": "GET",
+      "endpoint": "/templates/{{ inputs.template_id }}",
+      "output_path": "templates",
+      "inputs": [
+        {
+          "key": "template_id",
+          "label": "Template ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

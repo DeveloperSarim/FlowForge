@@ -1,0 +1,202 @@
+{
+  "key": "bigin",
+  "name": "Bigin by Zoho CRM",
+  "category": "CRM & Sales",
+  "description": "Create, update and search contacts, companies and pipelines in Bigin.",
+  "brand": "zoho",
+  "website": "https://www.bigin.com",
+  "docs_url": "https://www.bigin.com/developer/docs/apis/v2/",
+  "base_url": "https://www.zohoapis.{{ credentials.dc }}/bigin/v2",
+  "auth": [
+    {
+      "type": "oauth2",
+      "authorize_url": "https://accounts.zoho.{{ credentials.dc }}/oauth/v2/auth",
+      "token_url": "https://accounts.zoho.{{ credentials.dc }}/oauth/v2/token",
+      "scopes": [
+        "ZohoBigin.modules.ALL",
+        "ZohoBigin.settings.READ"
+      ],
+      "scope_separator": ",",
+      "authorize_params": {
+        "access_type": "offline",
+        "prompt": "consent"
+      },
+      "fields": [
+        {
+          "key": "dc",
+          "label": "Data center",
+          "type": "select",
+          "required": true,
+          "default": "com",
+          "options": [
+            {
+              "value": "com",
+              "label": "US (.com)"
+            },
+            {
+              "value": "eu",
+              "label": "EU (.eu)"
+            },
+            {
+              "value": "in",
+              "label": "India (.in)"
+            },
+            {
+              "value": "com.au",
+              "label": "Australia (.com.au)"
+            },
+            {
+              "value": "jp",
+              "label": "Japan (.jp)"
+            },
+            {
+              "value": "ca",
+              "label": "Canada (.ca)"
+            },
+            {
+              "value": "com.cn",
+              "label": "China (.com.cn)"
+            },
+            {
+              "value": "sa",
+              "label": "Saudi Arabia (.sa)"
+            }
+          ],
+          "help": "The domain your Zoho account lives on (zoho.com, zoho.eu, ...)."
+        }
+      ],
+      "token_type": "Zoho-oauthtoken"
+    }
+  ],
+  "actions": [
+    {
+      "key": "create_record",
+      "name": "Create record",
+      "method": "POST",
+      "endpoint": "/{{ inputs.module }}",
+      "body": {
+        "data": [
+          "{{ inputs.record }}"
+        ]
+      },
+      "inputs": [
+        {
+          "key": "module",
+          "label": "Module",
+          "type": "string",
+          "required": true,
+          "default": "Contacts",
+          "help": "API name of the module."
+        },
+        {
+          "key": "record",
+          "label": "Record fields",
+          "type": "json",
+          "required": true,
+          "help": "Field API names, e.g. {\"First_Name\": \"Jane\", \"Email\": \"a@b.com\"}. Modules: Contacts, Accounts, Pipelines."
+        }
+      ]
+    },
+    {
+      "key": "update_record",
+      "name": "Update record",
+      "method": "PUT",
+      "endpoint": "/{{ inputs.module }}/{{ inputs.record_id }}",
+      "body": {
+        "data": [
+          "{{ inputs.record }}"
+        ]
+      },
+      "inputs": [
+        {
+          "key": "module",
+          "label": "Module",
+          "type": "string",
+          "required": true,
+          "default": "Contacts",
+          "help": "API name of the module."
+        },
+        {
+          "key": "record_id",
+          "label": "Record ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "record",
+          "label": "Record fields",
+          "type": "json",
+          "required": true,
+          "help": "Field API names, e.g. {\"First_Name\": \"Jane\", \"Email\": \"a@b.com\"}. Modules: Contacts, Accounts, Pipelines."
+        }
+      ]
+    },
+    {
+      "key": "get_record",
+      "name": "Get record",
+      "method": "GET",
+      "endpoint": "/{{ inputs.module }}/{{ inputs.record_id }}",
+      "output_path": "data.0",
+      "inputs": [
+        {
+          "key": "module",
+          "label": "Module",
+          "type": "string",
+          "required": true,
+          "default": "Contacts",
+          "help": "API name of the module."
+        },
+        {
+          "key": "record_id",
+          "label": "Record ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "search_records",
+      "name": "Search records",
+      "method": "GET",
+      "endpoint": "/{{ inputs.module }}/search",
+      "query": {
+        "email": "{{ inputs.email }}",
+        "phone": "{{ inputs.phone }}",
+        "word": "{{ inputs.word }}",
+        "criteria": "{{ inputs.criteria }}"
+      },
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "module",
+          "label": "Module",
+          "type": "string",
+          "required": true,
+          "default": "Contacts",
+          "help": "API name of the module."
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string"
+        },
+        {
+          "key": "phone",
+          "label": "Phone",
+          "type": "string"
+        },
+        {
+          "key": "word",
+          "label": "Keyword",
+          "type": "string"
+        },
+        {
+          "key": "criteria",
+          "label": "Criteria",
+          "type": "string",
+          "placeholder": "(Last_Name:equals:Smith)"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,82 @@
+{
+  "key": "microsoft_translator",
+  "name": "Microsoft Translator",
+  "category": "Utilities",
+  "description": "Translate, detect language, transliterate and look up dictionary entries (Azure AI).",
+  "brand": "microsofttranslator",
+  "website": "https://azure.microsoft.com/products/ai-services/ai-translator",
+  "docs_url": "https://learn.microsoft.com/azure/ai-services/translator/text-translation/reference/v3/reference",
+  "base_url": "https://api.cognitive.microsofttranslator.com",
+  "headers": { "Ocp-Apim-Subscription-Region": "{{ credentials.region }}" },
+  "auth": { "type": "api_key", "in": "header", "name": "Ocp-Apim-Subscription-Key", "fields": [
+    { "key": "api_key", "label": "Key", "type": "password", "required": true, "help": "Azure portal → your Translator resource → Keys and Endpoint." },
+    { "key": "region", "label": "Location / region", "type": "string", "required": true, "placeholder": "westeurope", "help": "Shown next to the keys. Use global for a global Translator resource." }
+  ] },
+  "actions": [
+    {
+      "key": "translate",
+      "name": "Translate text",
+      "method": "POST",
+      "endpoint": "/translate",
+      "query": { "api-version": "3.0", "to": "{{ inputs.to }}", "from": "{{ inputs.from }}", "textType": "{{ inputs.text_type }}" },
+      "body": [{ "Text": "{{ inputs.text }}" }],
+      "output_fields": { "translation": "0.translations.0.text", "detected_language": "0.detectedLanguage.language" },
+      "inputs": [
+        { "key": "text", "label": "Text", "type": "text", "required": true },
+        { "key": "to", "label": "Target language", "type": "string", "required": true, "placeholder": "de" },
+        { "key": "from", "label": "Source language", "type": "string", "help": "Leave empty to auto-detect." },
+        { "key": "text_type", "label": "Text type", "type": "select", "options": [{ "value": "plain", "label": "Plain text" }, { "value": "html", "label": "HTML" }] }
+      ]
+    },
+    {
+      "key": "detect",
+      "name": "Detect language",
+      "method": "POST",
+      "endpoint": "/detect",
+      "query": { "api-version": "3.0" },
+      "body": [{ "Text": "{{ inputs.text }}" }],
+      "output_fields": { "language": "0.language" },
+      "inputs": [{ "key": "text", "label": "Text", "type": "text", "required": true }]
+    },
+    {
+      "key": "transliterate",
+      "name": "Transliterate text",
+      "method": "POST",
+      "endpoint": "/transliterate",
+      "query": { "api-version": "3.0", "language": "{{ inputs.language }}", "fromScript": "{{ inputs.from_script }}", "toScript": "{{ inputs.to_script }}" },
+      "body": [{ "Text": "{{ inputs.text }}" }],
+      "inputs": [
+        { "key": "text", "label": "Text", "type": "text", "required": true },
+        { "key": "language", "label": "Language", "type": "string", "required": true, "placeholder": "ja" },
+        { "key": "from_script", "label": "From script", "type": "string", "required": true, "placeholder": "Jpan" },
+        { "key": "to_script", "label": "To script", "type": "string", "required": true, "placeholder": "Latn" }
+      ]
+    },
+    {
+      "key": "dictionary_lookup",
+      "name": "Dictionary lookup",
+      "description": "Alternative translations for a word or short phrase.",
+      "method": "POST",
+      "endpoint": "/dictionary/lookup",
+      "query": { "api-version": "3.0", "from": "{{ inputs.from }}", "to": "{{ inputs.to }}" },
+      "body": [{ "Text": "{{ inputs.text }}" }],
+      "inputs": [
+        { "key": "text", "label": "Word or phrase", "type": "string", "required": true },
+        { "key": "from", "label": "Source language", "type": "string", "required": true, "placeholder": "en" },
+        { "key": "to", "label": "Target language", "type": "string", "required": true, "placeholder": "es" }
+      ]
+    },
+    {
+      "key": "list_languages",
+      "name": "List languages",
+      "method": "GET",
+      "endpoint": "/languages",
+      "query": { "api-version": "3.0", "scope": "{{ inputs.scope }}" },
+      "inputs": [
+        { "key": "scope", "label": "Scope", "type": "select", "options": [
+          { "value": "translation", "label": "Translation" }, { "value": "transliteration", "label": "Transliteration" }, { "value": "dictionary", "label": "Dictionary" }
+        ] }
+      ]
+    }
+  ]
+}

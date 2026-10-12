@@ -1,0 +1,104 @@
+{
+  "key": "sentry",
+  "name": "Sentry",
+  "category": "Developer Tools",
+  "description": "Find, resolve and assign issues, and create releases.",
+  "brand": "sentry",
+  "website": "https://sentry.io",
+  "docs_url": "https://docs.sentry.io/api/",
+  "popular": true,
+  "base_url": "{{ credentials.base_url }}/api/0",
+  "auth": { "type": "bearer", "fields": [
+    { "key": "base_url", "label": "Sentry URL", "type": "string", "required": true, "default": "https://sentry.io", "help": "https://sentry.io (US), https://de.sentry.io (EU) or your self-hosted URL." },
+    { "key": "token", "label": "Auth token", "type": "password", "required": true, "help": "Organization or personal token with event:read, event:write, project:read (and project:releases for releases)." }
+  ] },
+  "actions": [
+    {
+      "key": "list_issues",
+      "name": "Search issues",
+      "method": "GET",
+      "endpoint": "/organizations/{{ inputs.organization }}/issues/",
+      "query": { "project": "{{ inputs.project_id }}", "query": "{{ inputs.query }}", "sort": "{{ inputs.sort }}", "statsPeriod": "{{ inputs.period }}", "limit": "{{ inputs.limit }}" },
+      "inputs": [
+        { "key": "organization", "label": "Organization slug", "type": "string", "required": true },
+        { "key": "project_id", "label": "Project ID (numeric)", "type": "string" },
+        { "key": "query", "label": "Search query", "type": "string", "default": "is:unresolved" },
+        { "key": "sort", "label": "Sort", "type": "select", "default": "date", "options": [
+          { "value": "date", "label": "Last seen" }, { "value": "new", "label": "First seen" }, { "value": "freq", "label": "Events" }, { "value": "user", "label": "Users" }
+        ] },
+        { "key": "period", "label": "Time range", "type": "string", "default": "14d", "placeholder": "24h, 14d" },
+        { "key": "limit", "label": "Limit", "type": "number", "default": 25 }
+      ]
+    },
+    {
+      "key": "get_issue",
+      "name": "Get issue",
+      "method": "GET",
+      "endpoint": "/organizations/{{ inputs.organization }}/issues/{{ inputs.issue_id }}/",
+      "inputs": [
+        { "key": "organization", "label": "Organization slug", "type": "string", "required": true },
+        { "key": "issue_id", "label": "Issue ID", "type": "string", "required": true }
+      ]
+    },
+    {
+      "key": "update_issue",
+      "name": "Update issue",
+      "description": "Resolve, ignore, reopen or assign an issue.",
+      "method": "PUT",
+      "endpoint": "/organizations/{{ inputs.organization }}/issues/{{ inputs.issue_id }}/",
+      "body": { "status": "{{ inputs.status }}", "assignedTo": "{{ inputs.assigned_to }}" },
+      "inputs": [
+        { "key": "organization", "label": "Organization slug", "type": "string", "required": true },
+        { "key": "issue_id", "label": "Issue ID", "type": "string", "required": true },
+        { "key": "status", "label": "Status", "type": "select", "options": [
+          { "value": "resolved", "label": "Resolved" }, { "value": "unresolved", "label": "Unresolved" }, { "value": "ignored", "label": "Ignored" }
+        ] },
+        { "key": "assigned_to", "label": "Assign to", "type": "string", "placeholder": "user@example.com or team:backend" }
+      ]
+    },
+    {
+      "key": "list_projects",
+      "name": "List projects",
+      "method": "GET",
+      "endpoint": "/organizations/{{ inputs.organization }}/projects/",
+      "inputs": [{ "key": "organization", "label": "Organization slug", "type": "string", "required": true }]
+    },
+    {
+      "key": "create_release",
+      "name": "Create release",
+      "method": "POST",
+      "endpoint": "/organizations/{{ inputs.organization }}/releases/",
+      "body": { "version": "{{ inputs.version }}", "projects": "{{ inputs.projects }}", "ref": "{{ inputs.ref }}" },
+      "inputs": [
+        { "key": "organization", "label": "Organization slug", "type": "string", "required": true },
+        { "key": "version", "label": "Version", "type": "string", "required": true, "placeholder": "my-app@1.2.0" },
+        { "key": "projects", "label": "Project slugs", "type": "list", "required": true },
+        { "key": "ref", "label": "Commit ref", "type": "string" }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_issue",
+      "name": "New issue (polling)",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/organizations/{{ inputs.organization }}/issues/",
+      "query": { "project": "{{ inputs.project_id }}", "query": "{{ inputs.query }}", "sort": "new", "statsPeriod": "24h", "limit": 25 },
+      "id_field": "id",
+      "inputs": [
+        { "key": "organization", "label": "Organization slug", "type": "string", "required": true },
+        { "key": "project_id", "label": "Project ID (numeric)", "type": "string" },
+        { "key": "query", "label": "Search query", "type": "string", "default": "is:unresolved" },
+        { "key": "poll_interval", "label": "Check every (minutes)", "type": "number", "default": 5 }
+      ]
+    },
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "data_path": "data",
+      "inputs": [{ "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }]
+    }
+  ]
+}

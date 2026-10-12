@@ -1,0 +1,169 @@
+{
+  "key": "teamwork",
+  "name": "Teamwork.com",
+  "category": "Project Management",
+  "description": "Create and list Teamwork.com tasks and projects.",
+  "brand": "teamwork",
+  "website": "https://www.teamwork.com",
+  "docs_url": "https://apidocs.teamwork.com/docs/teamwork",
+  "base_url": "https://{{ credentials.subdomain }}.teamwork.com",
+  "auth": {
+    "type": "basic",
+    "fields": [
+      {
+        "key": "subdomain",
+        "label": "Site",
+        "type": "string",
+        "required": true,
+        "placeholder": "yourcompany",
+        "help": "The part before .teamwork.com"
+      },
+      {
+        "key": "username",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "Profile > Edit my details > API & Mobile."
+      },
+      {
+        "key": "password",
+        "label": "Password",
+        "type": "string",
+        "required": true,
+        "default": "x",
+        "help": "Any text, e.g. x."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_projects",
+      "name": "List projects",
+      "method": "GET",
+      "endpoint": "/projects/api/v3/projects.json",
+      "output_path": "projects",
+      "inputs": []
+    },
+    {
+      "key": "create_task",
+      "name": "Create task",
+      "method": "POST",
+      "endpoint": "/projects/api/v3/tasklists/{{ inputs.tasklist_id }}/tasks.json",
+      "body": {
+        "task": {
+          "name": "{{ inputs.name }}",
+          "description": "{{ inputs.description }}",
+          "dueAt": "{{ inputs.due_at }}",
+          "priority": "{{ inputs.priority }}",
+          "assignees": {
+            "userIds": "{{ inputs.assignee_ids }}"
+          }
+        }
+      },
+      "inputs": [
+        {
+          "key": "tasklist_id",
+          "label": "Task list ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "description",
+          "label": "Description",
+          "type": "text"
+        },
+        {
+          "key": "due_at",
+          "label": "Due date",
+          "type": "string",
+          "placeholder": "2026-10-12"
+        },
+        {
+          "key": "priority",
+          "label": "Priority",
+          "type": "select",
+          "options": [
+            {
+              "value": "low",
+              "label": "low"
+            },
+            {
+              "value": "medium",
+              "label": "medium"
+            },
+            {
+              "value": "high",
+              "label": "high"
+            }
+          ]
+        },
+        {
+          "key": "assignee_ids",
+          "label": "Assignee user IDs",
+          "type": "json",
+          "placeholder": "[123, 456]"
+        }
+      ]
+    },
+    {
+      "key": "get_task",
+      "name": "Get task",
+      "method": "GET",
+      "endpoint": "/projects/api/v3/tasks/{{ inputs.task_id }}.json",
+      "inputs": [
+        {
+          "key": "task_id",
+          "label": "Task ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_tasks",
+      "name": "List tasks",
+      "method": "GET",
+      "endpoint": "/projects/api/v3/tasks.json",
+      "query": {
+        "projectIds": "{{ inputs.project_ids }}",
+        "pageSize": "{{ inputs.page_size }}"
+      },
+      "output_path": "tasks",
+      "inputs": [
+        {
+          "key": "project_ids",
+          "label": "Project IDs",
+          "type": "string",
+          "placeholder": "123,456"
+        },
+        {
+          "key": "page_size",
+          "label": "Max results",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Add this URL under Settings > Webhooks.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

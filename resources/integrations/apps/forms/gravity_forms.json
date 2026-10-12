@@ -1,0 +1,166 @@
+{
+  "key": "gravity_forms",
+  "name": "Gravity Forms",
+  "category": "Forms & Surveys",
+  "description": "Get new Gravity Forms entries, read forms and create entries.",
+  "brand": "gravityforms",
+  "website": "https://www.gravityforms.com",
+  "docs_url": "https://docs.gravityforms.com/rest-api-v2/",
+  "base_url": "{{ credentials.site_url }}/wp-json/gf/v2",
+  "auth": {
+    "type": "basic",
+    "fields": [
+      {
+        "key": "site_url",
+        "label": "WordPress site URL",
+        "type": "string",
+        "required": true,
+        "placeholder": "https://example.com",
+        "help": "Without a trailing slash"
+      },
+      {
+        "key": "username",
+        "label": "Consumer key",
+        "type": "string",
+        "required": true,
+        "help": "Forms > Settings > REST API > Add key (or a WordPress username)"
+      },
+      {
+        "key": "password",
+        "label": "Consumer secret",
+        "type": "password",
+        "required": true,
+        "help": "Or a WordPress application password"
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_forms",
+      "name": "List forms",
+      "method": "GET",
+      "endpoint": "/forms",
+      "inputs": []
+    },
+    {
+      "key": "get_form",
+      "name": "Get form",
+      "method": "GET",
+      "endpoint": "/forms/{{ inputs.form_id }}",
+      "inputs": [
+        {
+          "key": "form_id",
+          "label": "Form ID",
+          "type": "number",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_entries",
+      "name": "List entries",
+      "description": "Newest first.",
+      "method": "GET",
+      "endpoint": "/forms/{{ inputs.form_id }}/entries",
+      "output_path": "entries",
+      "query": {
+        "sorting[key]": "id",
+        "sorting[direction]": "DESC",
+        "paging[page_size]": "{{ inputs.page_size }}"
+      },
+      "inputs": [
+        {
+          "key": "form_id",
+          "label": "Form ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "page_size",
+          "label": "Page size",
+          "type": "number",
+          "default": 20
+        }
+      ]
+    },
+    {
+      "key": "get_entry",
+      "name": "Get entry",
+      "method": "GET",
+      "endpoint": "/entries/{{ inputs.entry_id }}",
+      "inputs": [
+        {
+          "key": "entry_id",
+          "label": "Entry ID",
+          "type": "number",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "create_entry",
+      "name": "Create entry",
+      "method": "POST",
+      "endpoint": "/forms/{{ inputs.form_id }}/entries",
+      "body": "{{ inputs.fields }}",
+      "inputs": [
+        {
+          "key": "form_id",
+          "label": "Form ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "fields",
+          "label": "Field values",
+          "type": "keyvalue",
+          "required": true,
+          "help": "Use field IDs as names, e.g. 1, 2, 3.1"
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_entry",
+      "name": "New entry (polling)",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/forms/{{ inputs.form_id }}/entries",
+      "query": {
+        "sorting[key]": "id",
+        "sorting[direction]": "DESC",
+        "paging[page_size]": 25
+      },
+      "items_path": "entries",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "form_id",
+          "label": "Form ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    },
+    {
+      "key": "new_entry_webhook",
+      "name": "New entry (webhook)",
+      "type": "webhook",
+      "description": "Needs the Webhooks Add-On: Form > Settings > Webhooks, paste this URL.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

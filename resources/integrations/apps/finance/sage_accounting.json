@@ -1,0 +1,170 @@
+{
+  "key": "sage_accounting",
+  "name": "Sage Accounting",
+  "category": "Payments & Finance",
+  "description": "Create contacts and sales invoices in Sage Business Cloud Accounting.",
+  "brand": "sage",
+  "website": "https://www.sage.com/en-gb/sage-business-cloud/accounting/",
+  "docs_url": "https://developer.sage.com/accounting/reference/",
+  "base_url": "https://api.accounting.sage.com/v3.1",
+  "headers": {
+    "X-Business": "{{ credentials.business_id }}"
+  },
+  "auth": [
+    {
+      "type": "oauth2",
+      "authorize_url": "https://www.sageone.com/oauth2/auth/central?filter=apiv3.1",
+      "token_url": "https://oauth.accounting.sage.com/token",
+      "scopes": [
+        "full_access"
+      ],
+      "fields": [
+        {
+          "key": "business_id",
+          "label": "Business ID",
+          "type": "string",
+          "required": false,
+          "help": "Only if your login has several businesses (GET /businesses lists them)."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "create_contact",
+      "name": "Create contact",
+      "method": "POST",
+      "endpoint": "/contacts",
+      "body": {
+        "contact": {
+          "name": "{{ inputs.name }}",
+          "contact_type_ids": [
+            "{{ inputs.contact_type }}"
+          ],
+          "email": "{{ inputs.email }}",
+          "reference": "{{ inputs.reference }}"
+        }
+      },
+      "inputs": [
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "contact_type",
+          "label": "Type",
+          "type": "select",
+          "options": [
+            {
+              "value": "CUSTOMER",
+              "label": "Customer"
+            },
+            {
+              "value": "VENDOR",
+              "label": "Supplier"
+            }
+          ],
+          "default": "CUSTOMER",
+          "required": true
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string"
+        },
+        {
+          "key": "reference",
+          "label": "Reference",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "find_contacts",
+      "name": "Find contacts",
+      "method": "GET",
+      "endpoint": "/contacts",
+      "output_path": "$items",
+      "query": {
+        "search": "{{ inputs.search }}",
+        "email": "{{ inputs.email }}"
+      },
+      "inputs": [
+        {
+          "key": "search",
+          "label": "Search (name or reference)",
+          "type": "string"
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "create_sales_invoice",
+      "name": "Create sales invoice",
+      "method": "POST",
+      "endpoint": "/sales_invoices",
+      "body": {
+        "sales_invoice": {
+          "contact_id": "{{ inputs.contact_id }}",
+          "date": "{{ inputs.date }}",
+          "due_date": "{{ inputs.due_date }}",
+          "reference": "{{ inputs.reference }}",
+          "invoice_lines": "{{ inputs.invoice_lines }}"
+        }
+      },
+      "inputs": [
+        {
+          "key": "contact_id",
+          "label": "Contact ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "date",
+          "label": "Date",
+          "type": "string",
+          "required": true,
+          "placeholder": "2025-06-01"
+        },
+        {
+          "key": "due_date",
+          "label": "Due date",
+          "type": "string"
+        },
+        {
+          "key": "reference",
+          "label": "Reference",
+          "type": "string"
+        },
+        {
+          "key": "invoice_lines",
+          "label": "Invoice lines",
+          "type": "json",
+          "required": true,
+          "placeholder": "[{\"description\": \"Consulting\", \"ledger_account_id\": \"…\", \"quantity\": 1, \"unit_price\": 100, \"tax_rate_id\": \"GB_STANDARD\"}]"
+        }
+      ]
+    },
+    {
+      "key": "get_sales_invoice",
+      "name": "Get sales invoice",
+      "method": "GET",
+      "endpoint": "/sales_invoices/{{ inputs.invoice_id }}",
+      "inputs": [
+        {
+          "key": "invoice_id",
+          "label": "Invoice ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": []
+}

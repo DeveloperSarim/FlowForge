@@ -1,0 +1,60 @@
+{
+  "key": "jsonbin",
+  "name": "JSONBin.io",
+  "category": "Utilities",
+  "description": "Store, read, update and delete JSON documents (bins) in the cloud.",
+  "brand": "jsonbin",
+  "website": "https://jsonbin.io",
+  "docs_url": "https://jsonbin.io/api-reference",
+  "base_url": "https://api.jsonbin.io/v3",
+  "auth": { "type": "api_key", "in": "header", "name": "X-Master-Key", "fields": [
+    { "key": "api_key", "label": "Master key", "type": "password", "required": true, "help": "API Keys page of your JSONBin dashboard." }
+  ] },
+  "actions": [
+    {
+      "key": "create_bin",
+      "name": "Create bin",
+      "method": "POST",
+      "endpoint": "/b",
+      "headers": { "X-Bin-Name": "{{ inputs.name }}", "X-Bin-Private": "{{ inputs.private }}", "X-Collection-Id": "{{ inputs.collection_id }}" },
+      "body": "{{ inputs.data }}",
+      "inputs": [
+        { "key": "data", "label": "JSON data", "type": "json", "required": true, "placeholder": "{ \"items\": [] }" },
+        { "key": "name", "label": "Bin name", "type": "string" },
+        { "key": "private", "label": "Private", "type": "select", "options": [{ "value": "true", "label": "Private" }, { "value": "false", "label": "Public" }] },
+        { "key": "collection_id", "label": "Collection ID", "type": "string" }
+      ]
+    },
+    {
+      "key": "read_bin",
+      "name": "Read bin",
+      "method": "GET",
+      "endpoint": "/b/{{ inputs.bin_id }}/{{ inputs.version }}",
+      "headers": { "X-Bin-Meta": "{{ inputs.meta }}" },
+      "inputs": [
+        { "key": "bin_id", "label": "Bin ID", "type": "string", "required": true },
+        { "key": "version", "label": "Version", "type": "string", "required": true, "default": "latest", "help": "\"latest\" or a version number." },
+        { "key": "meta", "label": "Include metadata", "type": "select", "options": [{ "value": "true", "label": "Yes (record + metadata)" }, { "value": "false", "label": "No (record only)" }] }
+      ]
+    },
+    {
+      "key": "update_bin",
+      "name": "Update bin",
+      "description": "Replaces the bin's content.",
+      "method": "PUT",
+      "endpoint": "/b/{{ inputs.bin_id }}",
+      "body": "{{ inputs.data }}",
+      "inputs": [
+        { "key": "bin_id", "label": "Bin ID", "type": "string", "required": true },
+        { "key": "data", "label": "JSON data", "type": "json", "required": true }
+      ]
+    },
+    {
+      "key": "delete_bin",
+      "name": "Delete bin",
+      "method": "DELETE",
+      "endpoint": "/b/{{ inputs.bin_id }}",
+      "inputs": [{ "key": "bin_id", "label": "Bin ID", "type": "string", "required": true }]
+    }
+  ]
+}

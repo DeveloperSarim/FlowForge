@@ -1,0 +1,141 @@
+{
+  "key": "nvidia_nim",
+  "name": "NVIDIA NIM",
+  "category": "AI",
+  "description": "Chat and embed text with models from the NVIDIA API catalog.",
+  "brand": "nvidia",
+  "website": "https://build.nvidia.com",
+  "docs_url": "https://docs.api.nvidia.com/nim/reference",
+  "base_url": "https://integrate.api.nvidia.com/v1",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "From build.nvidia.com (starts with nvapi-)."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "chat_completion",
+      "name": "Chat completion",
+      "description": "Send a prompt and get the reply as {{ steps.<id>.text }}.",
+      "method": "POST",
+      "endpoint": "/chat/completions",
+      "timeout": 300,
+      "body": {
+        "model": "{{ inputs.model }}",
+        "messages": [
+          {
+            "role": "system",
+            "content": "{{ inputs.system }}"
+          },
+          {
+            "role": "user",
+            "content": "{{ inputs.prompt }}"
+          }
+        ],
+        "temperature": "{{ inputs.temperature }}",
+        "max_tokens": "{{ inputs.max_tokens }}"
+      },
+      "output_fields": {
+        "text": "choices.0.message.content"
+      },
+      "inputs": [
+        {
+          "key": "model",
+          "label": "Model",
+          "type": "string",
+          "required": true,
+          "default": "meta/llama-3.3-70b-instruct"
+        },
+        {
+          "key": "prompt",
+          "label": "Prompt",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "system",
+          "label": "System prompt",
+          "type": "text",
+          "required": true,
+          "default": "You are a helpful assistant.",
+          "help": "Sent as the system message."
+        },
+        {
+          "key": "temperature",
+          "label": "Temperature",
+          "type": "number",
+          "placeholder": "0.7"
+        },
+        {
+          "key": "max_tokens",
+          "label": "Max output tokens",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "create_embedding",
+      "name": "Create embedding",
+      "description": "Turn text into a vector, available as {{ steps.<id>.embedding }}.",
+      "method": "POST",
+      "endpoint": "/embeddings",
+      "body": {
+        "model": "{{ inputs.model }}",
+        "input": [
+          "{{ inputs.input }}"
+        ],
+        "input_type": "{{ inputs.input_type }}",
+        "encoding_format": "float"
+      },
+      "output_fields": {
+        "embedding": "data.0.embedding"
+      },
+      "inputs": [
+        {
+          "key": "model",
+          "label": "Model",
+          "type": "string",
+          "required": true,
+          "default": "nvidia/nv-embedqa-e5-v5"
+        },
+        {
+          "key": "input",
+          "label": "Text",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "input_type",
+          "label": "Input type",
+          "type": "select",
+          "required": true,
+          "default": "query",
+          "options": [
+            {
+              "value": "query",
+              "label": "Query"
+            },
+            {
+              "value": "passage",
+              "label": "Passage"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "list_models",
+      "name": "List models",
+      "method": "GET",
+      "endpoint": "/models",
+      "inputs": []
+    }
+  ]
+}

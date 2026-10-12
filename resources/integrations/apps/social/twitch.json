@@ -1,0 +1,96 @@
+{
+  "key": "twitch",
+  "name": "Twitch",
+  "category": "Social Media",
+  "description": "Look up users and streams, send chat messages, create clips and track followers.",
+  "brand": "twitch",
+  "website": "https://www.twitch.tv",
+  "docs_url": "https://dev.twitch.tv/docs/api/reference",
+  "base_url": "https://api.twitch.tv/helix",
+  "headers": { "Client-Id": "{{ credentials.client_id }}" },
+  "auth": [
+    {
+      "type": "oauth2",
+      "authorize_url": "https://id.twitch.tv/oauth2/authorize",
+      "token_url": "https://id.twitch.tv/oauth2/token",
+      "scopes": ["user:write:chat", "clips:edit", "moderator:read:followers"]
+    },
+    {
+      "type": "bearer",
+      "fields": [
+        { "key": "client_id", "label": "Client ID", "type": "string", "required": true, "help": "The app the token was issued to (Client-Id header)." },
+        { "key": "token", "label": "User access token", "type": "password", "required": true }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "get_user",
+      "name": "Get user",
+      "method": "GET",
+      "endpoint": "/users",
+      "query": { "login": "{{ inputs.login }}" },
+      "output_path": "data.0",
+      "inputs": [{ "key": "login", "label": "Login name", "type": "string", "help": "Leave empty for the token owner." }]
+    },
+    {
+      "key": "get_stream",
+      "name": "Get live stream",
+      "description": "Returns nothing when the channel is offline.",
+      "method": "GET",
+      "endpoint": "/streams",
+      "query": { "user_login": "{{ inputs.login }}" },
+      "output_path": "data.0",
+      "inputs": [{ "key": "login", "label": "Channel login", "type": "string", "required": true }]
+    },
+    {
+      "key": "send_chat_message",
+      "name": "Send chat message",
+      "method": "POST",
+      "endpoint": "/chat/messages",
+      "body": { "broadcaster_id": "{{ inputs.broadcaster_id }}", "sender_id": "{{ inputs.sender_id }}", "message": "{{ inputs.message }}" },
+      "output_path": "data.0",
+      "inputs": [
+        { "key": "broadcaster_id", "label": "Channel (broadcaster) ID", "type": "string", "required": true },
+        { "key": "sender_id", "label": "Sender user ID", "type": "string", "required": true, "help": "Must match the token's user." },
+        { "key": "message", "label": "Message", "type": "text", "required": true }
+      ]
+    },
+    {
+      "key": "create_clip",
+      "name": "Create clip",
+      "method": "POST",
+      "endpoint": "/clips",
+      "query": { "broadcaster_id": "{{ inputs.broadcaster_id }}" },
+      "output_path": "data.0",
+      "inputs": [{ "key": "broadcaster_id", "label": "Channel (broadcaster) ID", "type": "string", "required": true }]
+    },
+    {
+      "key": "get_followers",
+      "name": "Get followers",
+      "method": "GET",
+      "endpoint": "/channels/followers",
+      "query": { "broadcaster_id": "{{ inputs.broadcaster_id }}", "first": "{{ inputs.first }}" },
+      "inputs": [
+        { "key": "broadcaster_id", "label": "Channel (broadcaster) ID", "type": "string", "required": true },
+        { "key": "first", "label": "Max results (1-100)", "type": "number", "default": 20 }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_follower",
+      "name": "New follower",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/channels/followers",
+      "query": { "broadcaster_id": "{{ inputs.broadcaster_id }}", "first": 50 },
+      "items_path": "data",
+      "id_field": "user_id",
+      "inputs": [
+        { "key": "broadcaster_id", "label": "Channel (broadcaster) ID", "type": "string", "required": true, "help": "Token must belong to the broadcaster or a moderator." },
+        { "key": "poll_interval", "label": "Check every (minutes)", "type": "number", "default": 5 }
+      ]
+    }
+  ]
+}

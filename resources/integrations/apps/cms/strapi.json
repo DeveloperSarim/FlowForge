@@ -1,0 +1,205 @@
+{
+  "key": "strapi",
+  "name": "Strapi",
+  "category": "CMS & Websites",
+  "description": "Create, update, find and delete entries in a self-hosted Strapi.",
+  "brand": "strapi",
+  "website": "https://strapi.io",
+  "docs_url": "https://docs.strapi.io/cms/api/rest",
+  "base_url": "{{ credentials.base_url }}/api",
+  "auth": [
+    {
+      "type": "bearer",
+      "fields": [
+        {
+          "key": "base_url",
+          "label": "Strapi URL",
+          "type": "string",
+          "required": true,
+          "placeholder": "https://cms.example.com",
+          "help": "No trailing slash."
+        },
+        {
+          "key": "token",
+          "label": "API token",
+          "type": "password",
+          "required": true,
+          "help": "Settings > API Tokens."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_entries",
+      "name": "Find entries",
+      "method": "GET",
+      "endpoint": "/{{ inputs.collection }}",
+      "query": {
+        "filters": "{{ inputs.filters }}",
+        "sort": "{{ inputs.sort }}",
+        "pagination[pageSize]": "{{ inputs.page_size }}",
+        "populate": "{{ inputs.populate }}"
+      },
+      "inputs": [
+        {
+          "key": "collection",
+          "label": "Collection (plural API ID)",
+          "type": "string",
+          "required": true,
+          "placeholder": "articles"
+        },
+        {
+          "key": "filters",
+          "label": "Filters (JSON)",
+          "type": "json",
+          "placeholder": "{ \"title\": { \"$contains\": \"news\" } }"
+        },
+        {
+          "key": "sort",
+          "label": "Sort",
+          "type": "string",
+          "placeholder": "createdAt:desc"
+        },
+        {
+          "key": "page_size",
+          "label": "Page size",
+          "type": "number",
+          "default": 25
+        },
+        {
+          "key": "populate",
+          "label": "Populate",
+          "type": "string",
+          "placeholder": "*"
+        }
+      ]
+    },
+    {
+      "key": "get_entry",
+      "name": "Get entry",
+      "method": "GET",
+      "endpoint": "/{{ inputs.collection }}/{{ inputs.id }}",
+      "query": {
+        "populate": "{{ inputs.populate }}"
+      },
+      "inputs": [
+        {
+          "key": "collection",
+          "label": "Collection (plural API ID)",
+          "type": "string",
+          "required": true,
+          "placeholder": "articles"
+        },
+        {
+          "key": "id",
+          "label": "Document ID",
+          "type": "string",
+          "required": true,
+          "help": "documentId in Strapi 5, numeric id in Strapi 4."
+        },
+        {
+          "key": "populate",
+          "label": "Populate",
+          "type": "string",
+          "placeholder": "*"
+        }
+      ]
+    },
+    {
+      "key": "create_entry",
+      "name": "Create entry",
+      "method": "POST",
+      "endpoint": "/{{ inputs.collection }}",
+      "body": {
+        "data": "{{ inputs.data }}"
+      },
+      "inputs": [
+        {
+          "key": "collection",
+          "label": "Collection (plural API ID)",
+          "type": "string",
+          "required": true,
+          "placeholder": "articles"
+        },
+        {
+          "key": "data",
+          "label": "Data (JSON)",
+          "type": "json",
+          "required": true,
+          "placeholder": "{ \"title\": \"Hello\" }"
+        }
+      ]
+    },
+    {
+      "key": "update_entry",
+      "name": "Update entry",
+      "method": "PUT",
+      "endpoint": "/{{ inputs.collection }}/{{ inputs.id }}",
+      "body": {
+        "data": "{{ inputs.data }}"
+      },
+      "inputs": [
+        {
+          "key": "collection",
+          "label": "Collection (plural API ID)",
+          "type": "string",
+          "required": true,
+          "placeholder": "articles"
+        },
+        {
+          "key": "id",
+          "label": "Document ID",
+          "type": "string",
+          "required": true,
+          "help": "documentId in Strapi 5, numeric id in Strapi 4."
+        },
+        {
+          "key": "data",
+          "label": "Data (JSON)",
+          "type": "json",
+          "required": true,
+          "placeholder": "{ \"title\": \"Hello\" }"
+        }
+      ]
+    },
+    {
+      "key": "delete_entry",
+      "name": "Delete entry",
+      "method": "DELETE",
+      "endpoint": "/{{ inputs.collection }}/{{ inputs.id }}",
+      "inputs": [
+        {
+          "key": "collection",
+          "label": "Collection (plural API ID)",
+          "type": "string",
+          "required": true,
+          "placeholder": "articles"
+        },
+        {
+          "key": "id",
+          "label": "Document ID",
+          "type": "string",
+          "required": true,
+          "help": "documentId in Strapi 5, numeric id in Strapi 4."
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Strapi webhooks (entry.create, entry.publish, ...).",
+      "data_path": "entry",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

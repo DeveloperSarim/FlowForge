@@ -1,0 +1,53 @@
+{
+  "key": "metabase",
+  "name": "Metabase",
+  "category": "Analytics",
+  "description": "Run saved questions or SQL queries on a self-hosted or cloud Metabase.",
+  "brand": "metabase",
+  "website": "https://www.metabase.com",
+  "docs_url": "https://www.metabase.com/docs/latest/api",
+  "base_url": "{{ credentials.url }}/api",
+  "auth": { "type": "api_key", "in": "header", "name": "x-api-key", "fields": [
+    { "key": "url", "label": "Metabase URL", "type": "string", "required": true, "placeholder": "https://metabase.example.com" },
+    { "key": "api_key", "label": "API key", "type": "password", "required": true, "help": "Admin settings > Authentication > API keys." }
+  ] },
+  "actions": [
+    {
+      "key": "run_question",
+      "name": "Run saved question",
+      "description": "Returns the question's rows as a JSON array.",
+      "method": "POST",
+      "endpoint": "/card/{{ inputs.card_id }}/query/json",
+      "timeout": 120,
+      "inputs": [{ "key": "card_id", "label": "Question ID", "type": "number", "required": true, "help": "The number in /question/<id>-… URLs." }]
+    },
+    {
+      "key": "run_sql",
+      "name": "Run SQL query",
+      "method": "POST",
+      "endpoint": "/dataset",
+      "body": { "database": "{{ inputs.database_id }}", "type": "native", "native": { "query": "{{ inputs.query }}" } },
+      "timeout": 120,
+      "output_path": "data",
+      "inputs": [
+        { "key": "database_id", "label": "Database ID", "type": "number", "required": true },
+        { "key": "query", "label": "SQL", "type": "code", "required": true }
+      ]
+    },
+    {
+      "key": "get_question",
+      "name": "Get question",
+      "method": "GET",
+      "endpoint": "/card/{{ inputs.card_id }}",
+      "inputs": [{ "key": "card_id", "label": "Question ID", "type": "number", "required": true }]
+    },
+    {
+      "key": "list_databases",
+      "name": "List databases",
+      "method": "GET",
+      "endpoint": "/database",
+      "output_path": "data",
+      "inputs": []
+    }
+  ]
+}

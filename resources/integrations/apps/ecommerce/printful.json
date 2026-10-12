@@ -1,0 +1,202 @@
+{
+  "key": "printful",
+  "name": "Printful",
+  "category": "E-commerce",
+  "description": "Create print-on-demand orders, list products and estimate shipping rates.",
+  "brand": "printful",
+  "website": "https://www.printful.com",
+  "docs_url": "https://developers.printful.com/docs/",
+  "base_url": "https://api.printful.com",
+  "headers": {
+    "X-PF-Store-Id": "{{ credentials.store_id }}"
+  },
+  "auth": [
+    {
+      "type": "bearer",
+      "fields": [
+        {
+          "key": "token",
+          "label": "Private token",
+          "type": "password",
+          "required": true,
+          "help": "Developer portal > Your tokens."
+        },
+        {
+          "key": "store_id",
+          "label": "Store ID",
+          "type": "string",
+          "required": false,
+          "help": "Only needed for account-level tokens that can access several stores."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_orders",
+      "name": "List orders",
+      "method": "GET",
+      "endpoint": "/orders",
+      "output_path": "result",
+      "query": {
+        "status": "{{ inputs.status }}",
+        "limit": "{{ inputs.limit }}",
+        "offset": "{{ inputs.offset }}"
+      },
+      "inputs": [
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "string",
+          "placeholder": "pending"
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 20,
+          "help": "Max 100."
+        },
+        {
+          "key": "offset",
+          "label": "Offset",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "get_order",
+      "name": "Get order",
+      "method": "GET",
+      "endpoint": "/orders/{{ inputs.order_id }}",
+      "output_path": "result",
+      "inputs": [
+        {
+          "key": "order_id",
+          "label": "Order ID",
+          "type": "string",
+          "required": true,
+          "help": "Printful ID, or @ followed by your external ID."
+        }
+      ]
+    },
+    {
+      "key": "create_order",
+      "name": "Create order",
+      "method": "POST",
+      "endpoint": "/orders",
+      "output_path": "result",
+      "query": {
+        "confirm": "{{ inputs.confirm }}"
+      },
+      "body": {
+        "external_id": "{{ inputs.external_id }}",
+        "shipping": "{{ inputs.shipping }}",
+        "recipient": "{{ inputs.recipient }}",
+        "items": "{{ inputs.items }}"
+      },
+      "inputs": [
+        {
+          "key": "external_id",
+          "label": "External ID",
+          "type": "string"
+        },
+        {
+          "key": "recipient",
+          "label": "Recipient",
+          "type": "json",
+          "required": true,
+          "placeholder": "{\"name\": \"Jane Doe\", \"address1\": \"19749 Dearborn St\", \"city\": \"Chatsworth\", \"state_code\": \"CA\", \"country_code\": \"US\", \"zip\": \"91311\"}"
+        },
+        {
+          "key": "items",
+          "label": "Items",
+          "type": "json",
+          "required": true,
+          "placeholder": "[{\"sync_variant_id\": 1, \"quantity\": 1}]"
+        },
+        {
+          "key": "shipping",
+          "label": "Shipping method",
+          "type": "string",
+          "placeholder": "STANDARD"
+        },
+        {
+          "key": "confirm",
+          "label": "Submit for fulfillment",
+          "type": "select",
+          "options": [
+            {
+              "value": "false",
+              "label": "No, save as draft"
+            },
+            {
+              "value": "true",
+              "label": "Yes"
+            }
+          ],
+          "default": "false"
+        }
+      ]
+    },
+    {
+      "key": "list_store_products",
+      "name": "List store products",
+      "method": "GET",
+      "endpoint": "/store/products",
+      "output_path": "result",
+      "query": {
+        "search": "{{ inputs.search }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "inputs": [
+        {
+          "key": "search",
+          "label": "Search",
+          "type": "string"
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 20
+        }
+      ]
+    },
+    {
+      "key": "estimate_shipping",
+      "name": "Calculate shipping rates",
+      "method": "POST",
+      "endpoint": "/shipping/rates",
+      "output_path": "result",
+      "body": {
+        "recipient": "{{ inputs.recipient }}",
+        "items": "{{ inputs.items }}",
+        "currency": "{{ inputs.currency }}"
+      },
+      "inputs": [
+        {
+          "key": "recipient",
+          "label": "Recipient",
+          "type": "json",
+          "required": true,
+          "placeholder": "{\"country_code\": \"US\", \"state_code\": \"CA\", \"zip\": \"91311\"}"
+        },
+        {
+          "key": "items",
+          "label": "Items",
+          "type": "json",
+          "required": true,
+          "placeholder": "[{\"variant_id\": \"4012\", \"quantity\": 1}]"
+        },
+        {
+          "key": "currency",
+          "label": "Currency",
+          "type": "string",
+          "placeholder": "USD"
+        }
+      ]
+    }
+  ],
+  "triggers": []
+}

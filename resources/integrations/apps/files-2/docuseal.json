@@ -1,0 +1,206 @@
+{
+  "key": "docuseal",
+  "name": "DocuSeal",
+  "category": "Files & Documents",
+  "description": "Send templates for signing and track submissions in DocuSeal.",
+  "brand": "docuseal",
+  "website": "https://www.docuseal.com",
+  "docs_url": "https://www.docuseal.com/docs/api",
+  "popular": true,
+  "base_url": "{{ credentials.base_url }}",
+  "auth": [
+    {
+      "type": "api_key",
+      "in": "header",
+      "name": "X-Auth-Token",
+      "fields": [
+        {
+          "key": "base_url",
+          "label": "API URL",
+          "type": "string",
+          "required": true,
+          "default": "https://api.docuseal.com",
+          "help": "https://api.docuseal.com, https://api.docuseal.eu, or https://your-docuseal-host/api when self-hosted."
+        },
+        {
+          "key": "api_key",
+          "label": "API key",
+          "type": "password",
+          "required": true,
+          "help": "Settings > API."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "create_submission",
+      "name": "Send template for signing",
+      "method": "POST",
+      "endpoint": "/submissions",
+      "body": {
+        "template_id": "{{ inputs.template_id }}",
+        "submitters": "{{ inputs.submitters }}",
+        "send_email": "{{ inputs.send_email }}",
+        "order": "{{ inputs.order }}",
+        "...": "{{ inputs.extra }}"
+      },
+      "inputs": [
+        {
+          "key": "template_id",
+          "label": "Template ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "submitters",
+          "label": "Submitters",
+          "type": "json",
+          "required": true,
+          "placeholder": "[{\"role\": \"First Party\", \"email\": \"jane@example.com\", \"values\": {\"Company\": \"Acme\"}}]"
+        },
+        {
+          "key": "send_email",
+          "label": "Send email",
+          "type": "boolean",
+          "default": true
+        },
+        {
+          "key": "order",
+          "label": "Signing order",
+          "type": "select",
+          "options": [
+            {
+              "value": "preserved",
+              "label": "In order"
+            },
+            {
+              "value": "random",
+              "label": "Any order"
+            }
+          ]
+        },
+        {
+          "key": "extra",
+          "label": "Other fields (JSON)",
+          "type": "json",
+          "placeholder": "{\"message\": {\"subject\": \"Please sign\", \"body\": \"...\"}}"
+        }
+      ]
+    },
+    {
+      "key": "list_submissions",
+      "name": "List submissions",
+      "method": "GET",
+      "endpoint": "/submissions",
+      "query": {
+        "template_id": "{{ inputs.template_id }}",
+        "status": "{{ inputs.status }}",
+        "q": "{{ inputs.q }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "inputs": [
+        {
+          "key": "template_id",
+          "label": "Template ID",
+          "type": "number"
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "string",
+          "placeholder": "completed"
+        },
+        {
+          "key": "q",
+          "label": "Search",
+          "type": "string"
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "get_submission",
+      "name": "Get submission",
+      "method": "GET",
+      "endpoint": "/submissions/{{ inputs.submission_id }}",
+      "inputs": [
+        {
+          "key": "submission_id",
+          "label": "Submission ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "archive_submission",
+      "name": "Archive submission",
+      "method": "DELETE",
+      "endpoint": "/submissions/{{ inputs.submission_id }}",
+      "inputs": [
+        {
+          "key": "submission_id",
+          "label": "Submission ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_templates",
+      "name": "List templates",
+      "method": "GET",
+      "endpoint": "/templates",
+      "query": {
+        "q": "{{ inputs.q }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "inputs": [
+        {
+          "key": "q",
+          "label": "Search",
+          "type": "string"
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "get_template",
+      "name": "Get template",
+      "method": "GET",
+      "endpoint": "/templates/{{ inputs.template_id }}",
+      "inputs": [
+        {
+          "key": "template_id",
+          "label": "Template ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "data_path": "data",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

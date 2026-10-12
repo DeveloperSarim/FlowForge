@@ -1,0 +1,56 @@
+{
+  "key": "calendar-from-webhook",
+  "name": "Book Google Calendar events from a webhook",
+  "description": "Creates a calendar event from any app that can send a webhook (booking forms, CRMs).",
+  "category": "Productivity",
+  "featured": false,
+  "graph": {
+    "nodes": [
+      {
+        "id": "trigger",
+        "type": "trigger",
+        "position": {
+          "x": 0,
+          "y": 200
+        },
+        "data": {
+          "integration": "webhook",
+          "trigger": "catch",
+          "label": "Booking received",
+          "config": {
+            "method": "POST",
+            "sample_payload": "{\n  \"title\": \"Intro call\",\n  \"start\": \"2026-10-20T10:00:00+05:00\",\n  \"end\": \"2026-10-20T10:30:00+05:00\",\n  \"email\": \"client@example.com\"\n}"
+          }
+        }
+      },
+      {
+        "id": "step_1",
+        "type": "action",
+        "position": {
+          "x": 240,
+          "y": 200
+        },
+        "data": {
+          "integration": "google_calendar",
+          "action": "create_event",
+          "label": "Create event",
+          "config": {
+            "calendar_id": "primary",
+            "summary": "{{ steps.trigger.data.title }}",
+            "start": "{{ steps.trigger.data.start }}",
+            "end": "{{ steps.trigger.data.end }}",
+            "attendees": "[{\"email\": \"{{ steps.trigger.data.email }}\"}]"
+          }
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "e-trigger-step_1",
+        "source": "trigger",
+        "target": "step_1",
+        "sourceHandle": null
+      }
+    ]
+  }
+}

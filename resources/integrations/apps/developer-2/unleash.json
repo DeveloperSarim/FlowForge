@@ -1,0 +1,81 @@
+{
+  "key": "unleash",
+  "name": "Unleash",
+  "category": "Developer Tools",
+  "description": "Turn feature flags on or off per environment and create or list flags.",
+  "brand": "unleash",
+  "website": "https://www.getunleash.io",
+  "docs_url": "https://docs.getunleash.io/reference/api/unleash",
+  "base_url": "{{ credentials.base_url }}/api/admin",
+  "auth": { "type": "api_key", "in": "header", "name": "Authorization", "fields": [
+    { "key": "base_url", "label": "Unleash URL", "type": "string", "required": true, "placeholder": "https://us.app.unleash-hosted.com/abcd1234", "help": "Instance URL without /api and without a trailing slash." },
+    { "key": "api_key", "label": "Personal access token or admin token", "type": "password", "required": true }
+  ] },
+  "actions": [
+    {
+      "key": "enable_flag",
+      "name": "Enable flag in environment",
+      "method": "POST",
+      "endpoint": "/projects/{{ inputs.project }}/features/{{ inputs.feature }}/environments/{{ inputs.environment }}/on",
+      "inputs": [
+        { "key": "project", "label": "Project ID", "type": "string", "required": true, "default": "default" },
+        { "key": "feature", "label": "Flag name", "type": "string", "required": true },
+        { "key": "environment", "label": "Environment", "type": "string", "required": true, "default": "production" }
+      ]
+    },
+    {
+      "key": "disable_flag",
+      "name": "Disable flag in environment",
+      "method": "POST",
+      "endpoint": "/projects/{{ inputs.project }}/features/{{ inputs.feature }}/environments/{{ inputs.environment }}/off",
+      "inputs": [
+        { "key": "project", "label": "Project ID", "type": "string", "required": true, "default": "default" },
+        { "key": "feature", "label": "Flag name", "type": "string", "required": true },
+        { "key": "environment", "label": "Environment", "type": "string", "required": true, "default": "production" }
+      ]
+    },
+    {
+      "key": "get_flag",
+      "name": "Get flag",
+      "method": "GET",
+      "endpoint": "/projects/{{ inputs.project }}/features/{{ inputs.feature }}",
+      "inputs": [
+        { "key": "project", "label": "Project ID", "type": "string", "required": true, "default": "default" },
+        { "key": "feature", "label": "Flag name", "type": "string", "required": true }
+      ]
+    },
+    {
+      "key": "list_flags",
+      "name": "List flags",
+      "method": "GET",
+      "endpoint": "/projects/{{ inputs.project }}/features",
+      "output_path": "features",
+      "inputs": [{ "key": "project", "label": "Project ID", "type": "string", "required": true, "default": "default" }]
+    },
+    {
+      "key": "create_flag",
+      "name": "Create flag",
+      "method": "POST",
+      "endpoint": "/projects/{{ inputs.project }}/features",
+      "body": { "name": "{{ inputs.name }}", "description": "{{ inputs.description }}", "type": "{{ inputs.type }}", "impressionData": "{{ inputs.impression_data }}" },
+      "inputs": [
+        { "key": "project", "label": "Project ID", "type": "string", "required": true, "default": "default" },
+        { "key": "name", "label": "Flag name", "type": "string", "required": true },
+        { "key": "description", "label": "Description", "type": "text" },
+        { "key": "type", "label": "Type", "type": "select", "default": "release", "options": [
+          { "value": "release", "label": "Release" }, { "value": "experiment", "label": "Experiment" }, { "value": "operational", "label": "Operational" },
+          { "value": "kill-switch", "label": "Kill switch" }, { "value": "permission", "label": "Permission" }
+        ] },
+        { "key": "impression_data", "label": "Emit impression data", "type": "boolean" }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Event webhook",
+      "type": "webhook",
+      "inputs": [{ "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }]
+    }
+  ]
+}

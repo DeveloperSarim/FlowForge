@@ -1,0 +1,113 @@
+{
+  "key": "trustpilot",
+  "name": "Trustpilot",
+  "category": "Marketing & Email",
+  "description": "Watch new reviews, reply to them and send review invitations.",
+  "brand": "trustpilot",
+  "website": "https://business.trustpilot.com",
+  "docs_url": "https://developers.trustpilot.com/",
+  "popular": true,
+  "base_url": "https://api.trustpilot.com/v1",
+  "headers": { "apikey": "{{ credentials.client_id }}" },
+  "auth": [
+    {
+      "type": "oauth2",
+      "authorize_url": "https://authenticate.trustpilot.com",
+      "token_url": "https://api.trustpilot.com/v1/oauth/oauth-business-users-for-applications/accesstoken",
+      "client_auth": "basic",
+      "fields": [
+        { "key": "client_id", "label": "API key", "type": "string", "required": true, "help": "Trustpilot Business > Integrations > API (create an application)." },
+        { "key": "client_secret", "label": "API secret", "type": "password", "required": true }
+      ]
+    },
+    { "type": "api_key", "in": "header", "name": "apikey", "fields": [{ "key": "api_key", "label": "API key (public endpoints only)", "type": "password", "required": true,
+      "help": "Reading reviews works with just the key; replies and invitations need the OAuth connection." }] }
+  ],
+  "actions": [
+    {
+      "key": "find_business_unit",
+      "name": "Find business unit",
+      "description": "Gets your business unit ID from your domain.",
+      "method": "GET",
+      "endpoint": "/business-units/find",
+      "query": { "name": "{{ inputs.name }}" },
+      "inputs": [{ "key": "name", "label": "Domain", "type": "string", "required": true, "placeholder": "example.com" }]
+    },
+    {
+      "key": "list_reviews",
+      "name": "List reviews",
+      "method": "GET",
+      "endpoint": "/business-units/{{ inputs.business_unit_id }}/reviews",
+      "query": { "perPage": "{{ inputs.per_page }}", "page": "{{ inputs.page }}", "stars": "{{ inputs.stars }}", "orderBy": "createdat.desc" },
+      "output_path": "reviews",
+      "inputs": [
+        { "key": "business_unit_id", "label": "Business unit ID", "type": "string", "required": true },
+        { "key": "stars", "label": "Stars (comma-separated)", "type": "string", "placeholder": "1,2" },
+        { "key": "per_page", "label": "Per page (max 100)", "type": "number", "default": 20 },
+        { "key": "page", "label": "Page", "type": "number", "default": 1 }
+      ]
+    },
+    {
+      "key": "reply_to_review",
+      "name": "Reply to review",
+      "description": "Needs the OAuth connection.",
+      "method": "POST",
+      "endpoint": "/private/reviews/{{ inputs.review_id }}/reply",
+      "body": { "message": "{{ inputs.message }}" },
+      "inputs": [
+        { "key": "review_id", "label": "Review ID", "type": "string", "required": true },
+        { "key": "message", "label": "Reply", "type": "text", "required": true }
+      ]
+    },
+    {
+      "key": "create_invitation",
+      "name": "Send review invitation",
+      "description": "Queues a service review invitation email. Needs the OAuth connection.",
+      "method": "POST",
+      "endpoint": "https://invitations-api.trustpilot.com/v1/private/business-units/{{ inputs.business_unit_id }}/email-invitations",
+      "body": {
+        "consumerEmail": "{{ inputs.email }}",
+        "consumerName": "{{ inputs.name }}",
+        "referenceNumber": "{{ inputs.reference }}",
+        "locale": "{{ inputs.locale }}",
+        "senderName": "{{ inputs.sender_name }}",
+        "replyTo": "{{ inputs.reply_to }}",
+        "serviceReviewInvitation": { "templateId": "{{ inputs.template_id }}", "preferredSendTime": "{{ inputs.send_time }}", "redirectUri": "{{ inputs.redirect_uri }}" }
+      },
+      "inputs": [
+        { "key": "business_unit_id", "label": "Business unit ID", "type": "string", "required": true },
+        { "key": "email", "label": "Customer email", "type": "string", "required": true },
+        { "key": "name", "label": "Customer name", "type": "string", "required": true },
+        { "key": "reference", "label": "Order/reference number", "type": "string", "required": true },
+        { "key": "locale", "label": "Locale", "type": "string", "default": "en-US" },
+        { "key": "template_id", "label": "Template ID", "type": "string" },
+        { "key": "send_time", "label": "Send at (UTC ISO 8601)", "type": "string", "help": "Empty = send now." },
+        { "key": "sender_name", "label": "Sender name", "type": "string" },
+        { "key": "reply_to", "label": "Reply-to email", "type": "string" },
+        { "key": "redirect_uri", "label": "Redirect after review", "type": "string" }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_review",
+      "name": "New review",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/business-units/{{ inputs.business_unit_id }}/reviews",
+      "query": { "perPage": 50, "orderBy": "createdat.desc" },
+      "items_path": "reviews",
+      "id_field": "id",
+      "inputs": [
+        { "key": "business_unit_id", "label": "Business unit ID", "type": "string", "required": true },
+        { "key": "poll_interval", "label": "Check every (minutes)", "type": "number", "default": 5 }
+      ]
+    },
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "inputs": [{ "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }]
+    }
+  ]
+}

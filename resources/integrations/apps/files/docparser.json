@@ -1,0 +1,146 @@
+{
+  "key": "docparser",
+  "name": "Docparser",
+  "category": "Files & Documents",
+  "description": "Send documents to a parser and fetch the extracted data.",
+  "brand": "docparser",
+  "website": "https://docparser.com",
+  "docs_url": "https://dev.docparser.com/",
+  "base_url": "https://api.docparser.com/v1",
+  "auth": [
+    {
+      "type": "api_key",
+      "in": "query",
+      "name": "api_key"
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_parsers",
+      "name": "List parsers",
+      "method": "GET",
+      "endpoint": "/parsers",
+      "inputs": []
+    },
+    {
+      "key": "fetch_document",
+      "name": "Import document from URL",
+      "method": "POST",
+      "endpoint": "/document/fetch/{{ inputs.parser_id }}",
+      "body_format": "form",
+      "body": {
+        "url": "{{ inputs.url }}",
+        "remote_id": "{{ inputs.remote_id }}"
+      },
+      "inputs": [
+        {
+          "key": "parser_id",
+          "label": "Parser ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "url",
+          "label": "Document URL",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "remote_id",
+          "label": "Your reference ID",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "get_results",
+      "name": "Get parsed results",
+      "method": "GET",
+      "endpoint": "/results/{{ inputs.parser_id }}",
+      "query": {
+        "format": "object",
+        "list": "last_uploaded",
+        "limit": "{{ inputs.limit }}"
+      },
+      "inputs": [
+        {
+          "key": "parser_id",
+          "label": "Parser ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "limit",
+          "label": "Max documents",
+          "type": "number",
+          "default": 20
+        }
+      ]
+    },
+    {
+      "key": "get_document_result",
+      "name": "Get document result",
+      "method": "GET",
+      "endpoint": "/results/{{ inputs.parser_id }}/{{ inputs.document_id }}",
+      "query": {
+        "format": "object"
+      },
+      "inputs": [
+        {
+          "key": "parser_id",
+          "label": "Parser ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "document_id",
+          "label": "Document ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_parsed_document",
+      "name": "New parsed document",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/results/{{ inputs.parser_id }}",
+      "query": {
+        "format": "object",
+        "list": "last_uploaded",
+        "limit": 50
+      },
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "parser_id",
+          "label": "Parser ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    },
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Parsed data pushed by a Docparser webhook integration.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

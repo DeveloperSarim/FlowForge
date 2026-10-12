@@ -1,0 +1,90 @@
+{
+  "key": "astra_db",
+  "name": "DataStax Astra DB",
+  "category": "Databases",
+  "description": "Find, insert, update and delete documents in Astra DB collections (Data API).",
+  "brand": "datastax",
+  "website": "https://www.datastax.com/products/datastax-astra",
+  "docs_url": "https://docs.datastax.com/en/astra-db-serverless/api-reference/dataapiclient.html",
+  "base_url": "{{ credentials.api_endpoint }}/api/json/v1",
+  "auth": { "type": "api_key", "in": "header", "name": "Token", "fields": [
+    { "key": "api_endpoint", "label": "API endpoint", "type": "string", "required": true, "placeholder": "https://01234567-89ab-cdef-0123-456789abcdef-us-east1.apps.astra.datastax.com", "help": "Database overview → API Endpoint." },
+    { "key": "api_key", "label": "Application token", "type": "password", "required": true, "help": "Starts with AstraCS:" }
+  ] },
+  "actions": [
+    {
+      "key": "find",
+      "name": "Find documents",
+      "method": "POST",
+      "endpoint": "/{{ inputs.keyspace }}/{{ inputs.collection }}",
+      "body": { "find": { "filter": "{{ inputs.filter }}", "sort": "{{ inputs.sort }}", "options": { "limit": "{{ inputs.limit }}" } } },
+      "error_path": "errors",
+      "output_path": "data.documents",
+      "inputs": [
+        { "key": "collection", "label": "Collection", "type": "string", "required": true },
+        { "key": "filter", "label": "Filter (JSON)", "type": "json", "placeholder": "{ \"status\": \"active\" }" },
+        { "key": "sort", "label": "Sort (JSON)", "type": "json", "placeholder": "{ \"created_at\": -1 }" },
+        { "key": "limit", "label": "Limit", "type": "number", "required": true, "default": 20 },
+        { "key": "keyspace", "label": "Keyspace", "type": "string", "required": true, "default": "default_keyspace" }
+      ]
+    },
+    {
+      "key": "find_one",
+      "name": "Find one document",
+      "method": "POST",
+      "endpoint": "/{{ inputs.keyspace }}/{{ inputs.collection }}",
+      "body": { "findOne": { "filter": "{{ inputs.filter }}" } },
+      "error_path": "errors",
+      "output_path": "data.document",
+      "inputs": [
+        { "key": "collection", "label": "Collection", "type": "string", "required": true },
+        { "key": "filter", "label": "Filter (JSON)", "type": "json", "required": true, "placeholder": "{ \"_id\": \"42\" }" },
+        { "key": "keyspace", "label": "Keyspace", "type": "string", "required": true, "default": "default_keyspace" }
+      ]
+    },
+    {
+      "key": "insert_one",
+      "name": "Insert document",
+      "method": "POST",
+      "endpoint": "/{{ inputs.keyspace }}/{{ inputs.collection }}",
+      "body": { "insertOne": { "document": "{{ inputs.document }}" } },
+      "error_path": "errors",
+      "output_path": "status",
+      "inputs": [
+        { "key": "collection", "label": "Collection", "type": "string", "required": true },
+        { "key": "document", "label": "Document (JSON)", "type": "json", "required": true },
+        { "key": "keyspace", "label": "Keyspace", "type": "string", "required": true, "default": "default_keyspace" }
+      ]
+    },
+    {
+      "key": "update_one",
+      "name": "Update document",
+      "method": "POST",
+      "endpoint": "/{{ inputs.keyspace }}/{{ inputs.collection }}",
+      "body": { "updateOne": { "filter": "{{ inputs.filter }}", "update": "{{ inputs.update }}", "options": { "upsert": "{{ inputs.upsert }}" } } },
+      "error_path": "errors",
+      "output_path": "status",
+      "inputs": [
+        { "key": "collection", "label": "Collection", "type": "string", "required": true },
+        { "key": "filter", "label": "Filter (JSON)", "type": "json", "required": true },
+        { "key": "update", "label": "Update (JSON)", "type": "json", "required": true, "placeholder": "{ \"$set\": { \"status\": \"done\" } }" },
+        { "key": "upsert", "label": "Insert if missing", "type": "boolean" },
+        { "key": "keyspace", "label": "Keyspace", "type": "string", "required": true, "default": "default_keyspace" }
+      ]
+    },
+    {
+      "key": "delete_one",
+      "name": "Delete document",
+      "method": "POST",
+      "endpoint": "/{{ inputs.keyspace }}/{{ inputs.collection }}",
+      "body": { "deleteOne": { "filter": "{{ inputs.filter }}" } },
+      "error_path": "errors",
+      "output_path": "status",
+      "inputs": [
+        { "key": "collection", "label": "Collection", "type": "string", "required": true },
+        { "key": "filter", "label": "Filter (JSON)", "type": "json", "required": true },
+        { "key": "keyspace", "label": "Keyspace", "type": "string", "required": true, "default": "default_keyspace" }
+      ]
+    }
+  ]
+}

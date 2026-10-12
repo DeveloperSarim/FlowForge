@@ -1,0 +1,175 @@
+{
+  "key": "braintrust",
+  "name": "Braintrust",
+  "category": "AI",
+  "description": "Log events, add dataset rows and invoke functions in Braintrust.",
+  "brand": "braintrust",
+  "website": "https://www.braintrust.dev",
+  "docs_url": "https://www.braintrust.dev/docs/reference/api",
+  "base_url": "https://api.braintrust.dev/v1",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "Settings → API keys."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_projects",
+      "name": "List projects",
+      "method": "GET",
+      "endpoint": "/project",
+      "query": {
+        "project_name": "{{ inputs.project_name }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_path": "objects",
+      "inputs": [
+        {
+          "key": "project_name",
+          "label": "Project name",
+          "type": "string"
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 100
+        }
+      ]
+    },
+    {
+      "key": "log_event",
+      "name": "Log event",
+      "method": "POST",
+      "endpoint": "/project_logs/{{ inputs.project_id }}/insert",
+      "body": {
+        "events": [
+          {
+            "input": "{{ inputs.input }}",
+            "output": "{{ inputs.output }}",
+            "expected": "{{ inputs.expected }}",
+            "scores": "{{ inputs.scores }}",
+            "metadata": "{{ inputs.metadata }}",
+            "tags": "{{ inputs.tags }}"
+          }
+        ]
+      },
+      "inputs": [
+        {
+          "key": "project_id",
+          "label": "Project ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "input",
+          "label": "Input (JSON)",
+          "type": "json"
+        },
+        {
+          "key": "output",
+          "label": "Output (JSON)",
+          "type": "json"
+        },
+        {
+          "key": "expected",
+          "label": "Expected (JSON)",
+          "type": "json"
+        },
+        {
+          "key": "scores",
+          "label": "Scores (JSON)",
+          "type": "json",
+          "placeholder": "{\"accuracy\": 1}"
+        },
+        {
+          "key": "metadata",
+          "label": "Metadata (JSON)",
+          "type": "json"
+        },
+        {
+          "key": "tags",
+          "label": "Tags",
+          "type": "list"
+        }
+      ]
+    },
+    {
+      "key": "insert_dataset_row",
+      "name": "Insert dataset row",
+      "method": "POST",
+      "endpoint": "/dataset/{{ inputs.dataset_id }}/insert",
+      "body": {
+        "events": [
+          {
+            "input": "{{ inputs.input }}",
+            "expected": "{{ inputs.expected }}",
+            "metadata": "{{ inputs.metadata }}",
+            "tags": "{{ inputs.tags }}"
+          }
+        ]
+      },
+      "inputs": [
+        {
+          "key": "dataset_id",
+          "label": "Dataset ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "input",
+          "label": "Input (JSON)",
+          "type": "json",
+          "required": true
+        },
+        {
+          "key": "expected",
+          "label": "Expected (JSON)",
+          "type": "json"
+        },
+        {
+          "key": "metadata",
+          "label": "Metadata (JSON)",
+          "type": "json"
+        },
+        {
+          "key": "tags",
+          "label": "Tags",
+          "type": "list"
+        }
+      ]
+    },
+    {
+      "key": "invoke_function",
+      "name": "Invoke function",
+      "description": "Run a prompt, tool or scorer stored in Braintrust.",
+      "method": "POST",
+      "endpoint": "/function/{{ inputs.function_id }}/invoke",
+      "timeout": 300,
+      "body": {
+        "input": "{{ inputs.input }}"
+      },
+      "inputs": [
+        {
+          "key": "function_id",
+          "label": "Function ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "input",
+          "label": "Input (JSON)",
+          "type": "json",
+          "required": true
+        }
+      ]
+    }
+  ]
+}

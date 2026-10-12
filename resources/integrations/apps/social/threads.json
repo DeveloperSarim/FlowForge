@@ -1,0 +1,188 @@
+{
+  "key": "threads",
+  "name": "Threads",
+  "category": "Social Media",
+  "description": "Publish text, image and video posts to Threads and list your posts.",
+  "brand": "threads",
+  "website": "https://www.threads.net",
+  "docs_url": "https://developers.facebook.com/docs/threads",
+  "base_url": "https://graph.threads.net/v1.0",
+  "auth": {
+    "type": "api_key",
+    "in": "query",
+    "name": "access_token",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "Long-lived access token",
+        "type": "password",
+        "required": true,
+        "help": "Threads user token with threads_basic and threads_content_publish (valid 60 days; refresh via /refresh_access_token)."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "create_container",
+      "name": "Create post container",
+      "description": "Step 1 of publishing: returns a container ID.",
+      "method": "POST",
+      "endpoint": "/{{ inputs.user_id }}/threads",
+      "body_format": "form",
+      "body": {
+        "media_type": "{{ inputs.media_type }}",
+        "text": "{{ inputs.text }}",
+        "image_url": "{{ inputs.image_url }}",
+        "video_url": "{{ inputs.video_url }}",
+        "reply_to_id": "{{ inputs.reply_to_id }}"
+      },
+      "inputs": [
+        {
+          "key": "user_id",
+          "label": "Threads user ID",
+          "type": "string",
+          "required": true,
+          "default": "me",
+          "help": "Leave as \"me\" to use the connected Threads account."
+        },
+        {
+          "key": "media_type",
+          "label": "Media type",
+          "type": "select",
+          "required": true,
+          "default": "TEXT",
+          "options": [
+            {
+              "value": "TEXT",
+              "label": "Text"
+            },
+            {
+              "value": "IMAGE",
+              "label": "Image"
+            },
+            {
+              "value": "VIDEO",
+              "label": "Video"
+            }
+          ]
+        },
+        {
+          "key": "text",
+          "label": "Text",
+          "type": "text"
+        },
+        {
+          "key": "image_url",
+          "label": "Image URL",
+          "type": "string",
+          "help": "Required for IMAGE. Must be public."
+        },
+        {
+          "key": "video_url",
+          "label": "Video URL",
+          "type": "string",
+          "help": "Required for VIDEO. Must be public."
+        },
+        {
+          "key": "reply_to_id",
+          "label": "Reply to post ID",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "publish_container",
+      "name": "Publish post container",
+      "description": "Step 2 of publishing. Meta suggests waiting ~30s after creating the container.",
+      "method": "POST",
+      "endpoint": "/{{ inputs.user_id }}/threads_publish",
+      "body_format": "form",
+      "body": {
+        "creation_id": "{{ inputs.creation_id }}"
+      },
+      "inputs": [
+        {
+          "key": "user_id",
+          "label": "Threads user ID",
+          "type": "string",
+          "required": true,
+          "default": "me",
+          "help": "Leave as \"me\" to use the connected Threads account."
+        },
+        {
+          "key": "creation_id",
+          "label": "Container ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "get_container_status",
+      "name": "Get container status",
+      "method": "GET",
+      "endpoint": "/{{ inputs.container_id }}",
+      "query": {
+        "fields": "status,error_message"
+      },
+      "inputs": [
+        {
+          "key": "container_id",
+          "label": "Container ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_threads",
+      "name": "List my posts",
+      "method": "GET",
+      "endpoint": "/{{ inputs.user_id }}/threads",
+      "query": {
+        "fields": "id,media_type,text,permalink,timestamp",
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "user_id",
+          "label": "Threads user ID",
+          "type": "string",
+          "required": true,
+          "default": "me",
+          "help": "Leave as \"me\" to use the connected Threads account."
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 25
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_thread",
+      "name": "New post",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/me/threads",
+      "query": {
+        "fields": "id,media_type,text,permalink,timestamp",
+        "limit": 25
+      },
+      "items_path": "data",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

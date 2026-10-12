@@ -1,0 +1,211 @@
+{
+  "key": "productive_io",
+  "name": "Productive",
+  "category": "Project Management",
+  "description": "Create Productive tasks and time entries, list projects and people.",
+  "brand": "productive",
+  "website": "https://productive.io",
+  "docs_url": "https://developer.productive.io",
+  "base_url": "https://api.productive.io/api/v2",
+  "headers": {
+    "X-Organization-Id": "{{ credentials.organization_id }}",
+    "Content-Type": "application/vnd.api+json"
+  },
+  "auth": [
+    {
+      "type": "api_key",
+      "in": "header",
+      "name": "X-Auth-Token",
+      "fields": [
+        {
+          "key": "organization_id",
+          "label": "Organization ID",
+          "type": "string",
+          "required": true,
+          "help": "Shown next to your token under Settings > API integrations."
+        },
+        {
+          "key": "api_key",
+          "label": "API token",
+          "type": "password",
+          "required": true,
+          "help": "Settings > API integrations."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_projects",
+      "name": "List projects",
+      "method": "GET",
+      "endpoint": "/projects",
+      "output_path": "data",
+      "inputs": []
+    },
+    {
+      "key": "list_tasks",
+      "name": "List tasks",
+      "method": "GET",
+      "endpoint": "/tasks",
+      "query": {
+        "filter[project_id]": "{{ inputs.project_id }}"
+      },
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "project_id",
+          "label": "Project ID",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "create_task",
+      "name": "Create task",
+      "method": "POST",
+      "endpoint": "/tasks",
+      "body": {
+        "data": {
+          "type": "tasks",
+          "attributes": {
+            "title": "{{ inputs.title }}",
+            "description": "{{ inputs.description }}",
+            "due_date": "{{ inputs.due_date }}"
+          },
+          "relationships": {
+            "project": {
+              "data": {
+                "type": "projects",
+                "id": "{{ inputs.project_id }}"
+              }
+            },
+            "task_list": {
+              "data": {
+                "type": "task_lists",
+                "id": "{{ inputs.task_list_id }}"
+              }
+            }
+          }
+        }
+      },
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "project_id",
+          "label": "Project ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "task_list_id",
+          "label": "Task list ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "description",
+          "label": "Description",
+          "type": "text"
+        },
+        {
+          "key": "due_date",
+          "label": "Due date",
+          "type": "string",
+          "placeholder": "2026-10-20"
+        }
+      ]
+    },
+    {
+      "key": "list_people",
+      "name": "List people",
+      "method": "GET",
+      "endpoint": "/people",
+      "output_path": "data",
+      "inputs": []
+    },
+    {
+      "key": "create_time_entry",
+      "name": "Create time entry",
+      "method": "POST",
+      "endpoint": "/time_entries",
+      "body": {
+        "data": {
+          "type": "time_entries",
+          "attributes": {
+            "date": "{{ inputs.date }}",
+            "time": "{{ inputs.minutes }}",
+            "note": "{{ inputs.note }}"
+          },
+          "relationships": {
+            "person": {
+              "data": {
+                "type": "people",
+                "id": "{{ inputs.person_id }}"
+              }
+            },
+            "service": {
+              "data": {
+                "type": "services",
+                "id": "{{ inputs.service_id }}"
+              }
+            }
+          }
+        }
+      },
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "person_id",
+          "label": "Person ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "service_id",
+          "label": "Service ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "date",
+          "label": "Date",
+          "type": "string",
+          "required": true,
+          "placeholder": "2026-10-12"
+        },
+        {
+          "key": "minutes",
+          "label": "Time (minutes)",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "note",
+          "label": "Note",
+          "type": "text"
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

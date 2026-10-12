@@ -1,0 +1,170 @@
+{
+  "key": "sesame_hr",
+  "name": "Sesame HR",
+  "category": "HR & Recruiting",
+  "description": "Look up employees and clock them in or out in Sesame HR.",
+  "brand": "sesame",
+  "website": "https://www.sesamehr.com",
+  "docs_url": "https://apidocs.sesametime.com",
+  "base_url": "https://api-{{ credentials.region }}.sesametime.com",
+  "auth": [
+    {
+      "type": "bearer",
+      "fields": [
+        {
+          "key": "region",
+          "label": "Region",
+          "type": "string",
+          "required": true,
+          "default": "eu1",
+          "help": "The api-<region> part of your API host, shown with your token."
+        },
+        {
+          "key": "token",
+          "label": "API token",
+          "type": "password",
+          "required": true,
+          "help": "Settings > Integrations > API (admin)."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "get_info",
+      "name": "Get account info",
+      "description": "Checks the token and returns your company.",
+      "method": "GET",
+      "endpoint": "/core/v3/info",
+      "inputs": []
+    },
+    {
+      "key": "list_employees",
+      "name": "List employees",
+      "method": "GET",
+      "endpoint": "/core/v3/employees",
+      "query": {
+        "email": "{{ inputs.email }}",
+        "status": "{{ inputs.status }}",
+        "page": "{{ inputs.page }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string"
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "options": [
+            {
+              "value": "active",
+              "label": "Active"
+            },
+            {
+              "value": "inactive",
+              "label": "Inactive"
+            }
+          ]
+        },
+        {
+          "key": "page",
+          "label": "Page",
+          "type": "number"
+        },
+        {
+          "key": "limit",
+          "label": "Per page",
+          "type": "number",
+          "default": 100
+        }
+      ]
+    },
+    {
+      "key": "get_employee",
+      "name": "Get employee",
+      "method": "GET",
+      "endpoint": "/core/v3/employees/{{ inputs.employee_id }}",
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "employee_id",
+          "label": "Employee ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "clock_in",
+      "name": "Clock in",
+      "method": "POST",
+      "endpoint": "/schedule/v1/work-entries/clock-in",
+      "body": {
+        "employeeId": "{{ inputs.employee_id }}"
+      },
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "employee_id",
+          "label": "Employee ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "clock_out",
+      "name": "Clock out",
+      "method": "POST",
+      "endpoint": "/schedule/v1/work-entries/clock-out",
+      "body": {
+        "employeeId": "{{ inputs.employee_id }}"
+      },
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "employee_id",
+          "label": "Employee ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_work_entries",
+      "name": "List work entries",
+      "method": "GET",
+      "endpoint": "/schedule/v1/work-entries",
+      "query": {
+        "employeeId": "{{ inputs.employee_id }}",
+        "from": "{{ inputs.from }}",
+        "to": "{{ inputs.to }}"
+      },
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "employee_id",
+          "label": "Employee ID",
+          "type": "string"
+        },
+        {
+          "key": "from",
+          "label": "From",
+          "type": "string",
+          "placeholder": "2026-10-01"
+        },
+        {
+          "key": "to",
+          "label": "To",
+          "type": "string",
+          "placeholder": "2026-10-31"
+        }
+      ]
+    }
+  ]
+}

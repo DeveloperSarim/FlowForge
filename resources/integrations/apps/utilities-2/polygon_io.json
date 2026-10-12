@@ -1,0 +1,90 @@
+{
+  "key": "polygon_io",
+  "name": "Polygon.io",
+  "category": "Utilities",
+  "description": "Stock, options, forex and crypto prices, aggregates, ticker details and news.",
+  "brand": "polygon",
+  "website": "https://polygon.io",
+  "docs_url": "https://polygon.io/docs",
+  "popular": true,
+  "base_url": "https://api.polygon.io",
+  "auth": { "type": "bearer", "fields": [
+    { "key": "token", "label": "API key", "type": "password", "required": true, "help": "Dashboard → API Keys." }
+  ] },
+  "actions": [
+    {
+      "key": "previous_close",
+      "name": "Get previous close",
+      "method": "GET",
+      "endpoint": "/v2/aggs/ticker/{{ inputs.ticker }}/prev",
+      "query": { "adjusted": "{{ inputs.adjusted }}" },
+      "inputs": [
+        { "key": "ticker", "label": "Ticker", "type": "string", "required": true, "placeholder": "AAPL", "help": "Crypto / forex tickers use prefixes: X:BTCUSD, C:EURUSD." },
+        { "key": "adjusted", "label": "Split-adjusted", "type": "select", "options": [{ "value": "true", "label": "Yes" }, { "value": "false", "label": "No" }] }
+      ]
+    },
+    {
+      "key": "aggregates",
+      "name": "Get price bars (aggregates)",
+      "method": "GET",
+      "endpoint": "/v2/aggs/ticker/{{ inputs.ticker }}/range/{{ inputs.multiplier }}/{{ inputs.timespan }}/{{ inputs.from }}/{{ inputs.to }}",
+      "query": { "adjusted": "{{ inputs.adjusted }}", "sort": "{{ inputs.sort }}", "limit": "{{ inputs.limit }}" },
+      "inputs": [
+        { "key": "ticker", "label": "Ticker", "type": "string", "required": true },
+        { "key": "multiplier", "label": "Multiplier", "type": "number", "required": true, "default": 1 },
+        { "key": "timespan", "label": "Timespan", "type": "select", "required": true, "default": "day", "options": [
+          { "value": "minute", "label": "Minute" }, { "value": "hour", "label": "Hour" }, { "value": "day", "label": "Day" },
+          { "value": "week", "label": "Week" }, { "value": "month", "label": "Month" }, { "value": "quarter", "label": "Quarter" }, { "value": "year", "label": "Year" }
+        ] },
+        { "key": "from", "label": "From (YYYY-MM-DD or ms)", "type": "string", "required": true },
+        { "key": "to", "label": "To (YYYY-MM-DD or ms)", "type": "string", "required": true },
+        { "key": "adjusted", "label": "Split-adjusted", "type": "select", "options": [{ "value": "true", "label": "Yes" }, { "value": "false", "label": "No" }] },
+        { "key": "sort", "label": "Sort", "type": "select", "options": [{ "value": "asc", "label": "Oldest first" }, { "value": "desc", "label": "Newest first" }] },
+        { "key": "limit", "label": "Limit", "type": "number" }
+      ]
+    },
+    {
+      "key": "daily_open_close",
+      "name": "Get daily open / close",
+      "method": "GET",
+      "endpoint": "/v1/open-close/{{ inputs.ticker }}/{{ inputs.date }}",
+      "inputs": [
+        { "key": "ticker", "label": "Ticker", "type": "string", "required": true },
+        { "key": "date", "label": "Date", "type": "string", "required": true, "placeholder": "2025-06-02" }
+      ]
+    },
+    {
+      "key": "search_tickers",
+      "name": "Search tickers",
+      "method": "GET",
+      "endpoint": "/v3/reference/tickers",
+      "query": { "search": "{{ inputs.search }}", "market": "{{ inputs.market }}", "active": "true", "limit": "{{ inputs.limit }}" },
+      "inputs": [
+        { "key": "search", "label": "Search", "type": "string", "required": true, "help": "Matches ticker symbol or company name." },
+        { "key": "market", "label": "Market", "type": "select", "options": [
+          { "value": "stocks", "label": "Stocks" }, { "value": "crypto", "label": "Crypto" }, { "value": "fx", "label": "Forex" },
+          { "value": "otc", "label": "OTC" }, { "value": "indices", "label": "Indices" }
+        ] },
+        { "key": "limit", "label": "Limit", "type": "number" }
+      ]
+    },
+    {
+      "key": "ticker_details",
+      "name": "Get ticker details",
+      "method": "GET",
+      "endpoint": "/v3/reference/tickers/{{ inputs.ticker }}",
+      "inputs": [{ "key": "ticker", "label": "Ticker", "type": "string", "required": true }]
+    },
+    {
+      "key": "news",
+      "name": "Get ticker news",
+      "method": "GET",
+      "endpoint": "/v2/reference/news",
+      "query": { "ticker": "{{ inputs.ticker }}", "order": "desc", "limit": "{{ inputs.limit }}" },
+      "inputs": [
+        { "key": "ticker", "label": "Ticker", "type": "string" },
+        { "key": "limit", "label": "Limit", "type": "number", "default": 10 }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,74 @@
+{
+  "key": "launchdarkly",
+  "name": "LaunchDarkly",
+  "category": "Developer Tools",
+  "description": "Create, read and toggle feature flags.",
+  "brand": "launchdarkly",
+  "website": "https://launchdarkly.com",
+  "docs_url": "https://launchdarkly.com/docs/api",
+  "base_url": "https://app.launchdarkly.com/api/v2",
+  "auth": { "type": "api_key", "in": "header", "name": "Authorization", "fields": [{ "key": "api_key", "label": "API access token", "type": "password", "required": true, "help": "Organization settings → Authorization → Access tokens." }] },
+  "actions": [
+    {
+      "key": "list_flags",
+      "name": "List flags",
+      "method": "GET",
+      "endpoint": "/flags/{{ inputs.project_key }}",
+      "query": { "env": "{{ inputs.environment }}", "limit": "{{ inputs.limit }}" },
+      "output_path": "items",
+      "inputs": [
+        { "key": "project_key", "label": "Project key", "type": "string", "required": true, "default": "default" },
+        { "key": "environment", "label": "Environment key", "type": "string", "help": "Limit environment details to this one." },
+        { "key": "limit", "label": "Limit", "type": "number", "default": 20 }
+      ]
+    },
+    {
+      "key": "get_flag",
+      "name": "Get flag",
+      "method": "GET",
+      "endpoint": "/flags/{{ inputs.project_key }}/{{ inputs.flag_key }}",
+      "query": { "env": "{{ inputs.environment }}" },
+      "inputs": [
+        { "key": "project_key", "label": "Project key", "type": "string", "required": true, "default": "default" },
+        { "key": "flag_key", "label": "Flag key", "type": "string", "required": true },
+        { "key": "environment", "label": "Environment key", "type": "string" }
+      ]
+    },
+    {
+      "key": "toggle_flag",
+      "name": "Turn flag on / off",
+      "method": "PATCH",
+      "endpoint": "/flags/{{ inputs.project_key }}/{{ inputs.flag_key }}",
+      "body": [{ "op": "replace", "path": "/environments/{{ inputs.environment }}/on", "value": "{{ inputs.on }}" }],
+      "inputs": [
+        { "key": "project_key", "label": "Project key", "type": "string", "required": true, "default": "default" },
+        { "key": "flag_key", "label": "Flag key", "type": "string", "required": true },
+        { "key": "environment", "label": "Environment key", "type": "string", "required": true, "default": "production" },
+        { "key": "on", "label": "Targeting on", "type": "boolean", "default": true }
+      ]
+    },
+    {
+      "key": "create_flag",
+      "name": "Create boolean flag",
+      "method": "POST",
+      "endpoint": "/flags/{{ inputs.project_key }}",
+      "body": { "name": "{{ inputs.name }}", "key": "{{ inputs.key }}", "description": "{{ inputs.description }}", "temporary": "{{ inputs.temporary }}", "tags": "{{ inputs.tags }}" },
+      "inputs": [
+        { "key": "project_key", "label": "Project key", "type": "string", "required": true, "default": "default" },
+        { "key": "name", "label": "Name", "type": "string", "required": true },
+        { "key": "key", "label": "Key", "type": "string", "required": true, "placeholder": "new-checkout" },
+        { "key": "description", "label": "Description", "type": "text" },
+        { "key": "temporary", "label": "Temporary", "type": "boolean", "default": true },
+        { "key": "tags", "label": "Tags", "type": "list" }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "inputs": [{ "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }]
+    }
+  ]
+}

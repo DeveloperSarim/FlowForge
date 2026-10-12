@@ -1,0 +1,77 @@
+{
+  "key": "configcat",
+  "name": "ConfigCat",
+  "category": "Developer Tools",
+  "description": "Read and change feature flag values per environment and list products and configs.",
+  "brand": "configcat",
+  "website": "https://configcat.com",
+  "docs_url": "https://api.configcat.com/docs/",
+  "base_url": "https://api.configcat.com/v1",
+  "auth": { "type": "basic", "fields": [
+    { "key": "username", "label": "Basic auth user name", "type": "string", "required": true, "help": "Public API credentials: app.configcat.com/my-account/public-api-credentials" },
+    { "key": "password", "label": "Basic auth password", "type": "password", "required": true }
+  ] },
+  "actions": [
+    {
+      "key": "get_value",
+      "name": "Get flag value",
+      "method": "GET",
+      "endpoint": "/environments/{{ inputs.environment_id }}/settings/{{ inputs.setting_id }}/value",
+      "inputs": [
+        { "key": "environment_id", "label": "Environment ID", "type": "string", "required": true },
+        { "key": "setting_id", "label": "Setting (flag) ID", "type": "number", "required": true }
+      ]
+    },
+    {
+      "key": "set_value",
+      "name": "Set flag value",
+      "description": "Changes the default served value; targeting rules stay as they are.",
+      "method": "PATCH",
+      "endpoint": "/environments/{{ inputs.environment_id }}/settings/{{ inputs.setting_id }}/value",
+      "query": { "reason": "{{ inputs.reason }}" },
+      "body": [{ "op": "replace", "path": "/value", "value": "{{ inputs.value }}" }],
+      "inputs": [
+        { "key": "environment_id", "label": "Environment ID", "type": "string", "required": true },
+        { "key": "setting_id", "label": "Setting (flag) ID", "type": "number", "required": true },
+        { "key": "value", "label": "Value (JSON)", "type": "json", "required": true, "help": "true / false for feature flags, a quoted string or a number otherwise." },
+        { "key": "reason", "label": "Reason", "type": "string", "help": "Required when the product enforces change reasons." }
+      ]
+    },
+    {
+      "key": "list_products",
+      "name": "List products",
+      "method": "GET",
+      "endpoint": "/products",
+      "inputs": []
+    },
+    {
+      "key": "list_configs",
+      "name": "List configs",
+      "method": "GET",
+      "endpoint": "/products/{{ inputs.product_id }}/configs",
+      "inputs": [{ "key": "product_id", "label": "Product ID", "type": "string", "required": true }]
+    },
+    {
+      "key": "list_environments",
+      "name": "List environments",
+      "method": "GET",
+      "endpoint": "/products/{{ inputs.product_id }}/environments",
+      "inputs": [{ "key": "product_id", "label": "Product ID", "type": "string", "required": true }]
+    },
+    {
+      "key": "list_settings",
+      "name": "List flags",
+      "method": "GET",
+      "endpoint": "/configs/{{ inputs.config_id }}/settings",
+      "inputs": [{ "key": "config_id", "label": "Config ID", "type": "string", "required": true }]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "config_changed",
+      "name": "Config changed (webhook)",
+      "type": "webhook",
+      "inputs": [{ "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }]
+    }
+  ]
+}

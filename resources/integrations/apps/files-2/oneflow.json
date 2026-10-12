@@ -1,0 +1,185 @@
+{
+  "key": "oneflow",
+  "name": "Oneflow",
+  "category": "Files & Documents",
+  "description": "Create contracts from templates, publish them and read contract data.",
+  "brand": "oneflow",
+  "website": "https://oneflow.com",
+  "docs_url": "https://developer.oneflow.com/reference",
+  "base_url": "https://api.oneflow.com/v1",
+  "headers": {
+    "x-oneflow-api-token": "{{ credentials.api_key }}",
+    "x-oneflow-user-email": "{{ credentials.user_email }}"
+  },
+  "auth": [
+    {
+      "type": "api_key",
+      "fields": [
+        {
+          "key": "api_key",
+          "label": "API token",
+          "type": "password",
+          "required": true,
+          "help": "Marketplace > API token extension."
+        },
+        {
+          "key": "user_email",
+          "label": "User email",
+          "type": "string",
+          "required": true,
+          "help": "Email of the Oneflow user the calls act as."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "create_contract",
+      "name": "Create contract",
+      "method": "POST",
+      "endpoint": "/contracts/create",
+      "body": {
+        "workspace_id": "{{ inputs.workspace_id }}",
+        "template_id": "{{ inputs.template_id }}",
+        "name": "{{ inputs.name }}",
+        "...": "{{ inputs.extra }}"
+      },
+      "inputs": [
+        {
+          "key": "workspace_id",
+          "label": "Workspace ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "template_id",
+          "label": "Template ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "name",
+          "label": "Contract name",
+          "type": "string"
+        },
+        {
+          "key": "extra",
+          "label": "Other fields (JSON)",
+          "type": "json",
+          "placeholder": "{\"parties\": [...], \"data_fields\": [{\"custom_id\": \"price\", \"value\": \"100\"}]}"
+        }
+      ]
+    },
+    {
+      "key": "publish_contract",
+      "name": "Publish contract",
+      "description": "Sends the contract to its participants.",
+      "method": "POST",
+      "endpoint": "/contracts/{{ inputs.contract_id }}/publish",
+      "body": {
+        "subject": "{{ inputs.subject }}",
+        "message": "{{ inputs.message }}"
+      },
+      "inputs": [
+        {
+          "key": "contract_id",
+          "label": "Contract ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "subject",
+          "label": "Subject",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "message",
+          "label": "Message",
+          "type": "text",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "get_contract",
+      "name": "Get contract",
+      "method": "GET",
+      "endpoint": "/contracts/{{ inputs.contract_id }}",
+      "inputs": [
+        {
+          "key": "contract_id",
+          "label": "Contract ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_contracts",
+      "name": "List contracts",
+      "method": "GET",
+      "endpoint": "/contracts",
+      "query": {
+        "filter[workspace_ids]": "{{ inputs.workspace_ids }}",
+        "limit": "{{ inputs.limit }}",
+        "offset": "{{ inputs.offset }}"
+      },
+      "inputs": [
+        {
+          "key": "workspace_ids",
+          "label": "Workspace IDs",
+          "type": "string",
+          "placeholder": "1,2"
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number"
+        },
+        {
+          "key": "offset",
+          "label": "Offset",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "list_templates",
+      "name": "List templates",
+      "method": "GET",
+      "endpoint": "/templates",
+      "query": {
+        "filter[workspace_ids]": "{{ inputs.workspace_ids }}"
+      },
+      "inputs": [
+        {
+          "key": "workspace_ids",
+          "label": "Workspace IDs",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "list_workspaces",
+      "name": "List workspaces",
+      "method": "GET",
+      "endpoint": "/workspaces",
+      "inputs": []
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

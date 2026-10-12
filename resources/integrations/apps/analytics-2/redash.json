@@ -1,0 +1,66 @@
+{
+  "key": "redash",
+  "name": "Redash",
+  "category": "Analytics",
+  "description": "Refresh saved queries, fetch their results and list dashboards on a Redash server.",
+  "brand": "redash",
+  "website": "https://redash.io",
+  "docs_url": "https://redash.io/help/user-guide/integrations-and-api/api",
+  "base_url": "{{ credentials.base_url }}/api",
+  "auth": { "type": "api_key", "in": "header", "name": "Authorization", "prefix": "Key ", "fields": [
+    { "key": "base_url", "label": "Redash URL", "type": "string", "required": true, "placeholder": "https://redash.example.com", "help": "No trailing slash." },
+    { "key": "api_key", "label": "User API key", "type": "password", "required": true, "help": "Your profile page → API Key." }
+  ] },
+  "actions": [
+    {
+      "key": "list_queries",
+      "name": "List queries",
+      "method": "GET",
+      "endpoint": "/queries",
+      "query": { "q": "{{ inputs.q }}", "page": "{{ inputs.page }}", "page_size": "{{ inputs.page_size }}" },
+      "output_path": "results",
+      "inputs": [
+        { "key": "q", "label": "Search", "type": "string" },
+        { "key": "page", "label": "Page", "type": "number" },
+        { "key": "page_size", "label": "Page size", "type": "number" }
+      ]
+    },
+    {
+      "key": "refresh_query",
+      "name": "Run / refresh query",
+      "description": "Returns cached results if newer than max age, otherwise a job to poll.",
+      "method": "POST",
+      "endpoint": "/queries/{{ inputs.query_id }}/results",
+      "body": { "parameters": "{{ inputs.parameters }}", "max_age": "{{ inputs.max_age }}" },
+      "inputs": [
+        { "key": "query_id", "label": "Query ID", "type": "number", "required": true },
+        { "key": "parameters", "label": "Parameters", "type": "keyvalue" },
+        { "key": "max_age", "label": "Max cache age (seconds)", "type": "number", "help": "0 forces a fresh run." }
+      ]
+    },
+    {
+      "key": "get_job",
+      "name": "Get job status",
+      "method": "GET",
+      "endpoint": "/jobs/{{ inputs.job_id }}",
+      "output_path": "job",
+      "inputs": [{ "key": "job_id", "label": "Job ID", "type": "string", "required": true }]
+    },
+    {
+      "key": "get_query_result",
+      "name": "Get query result",
+      "method": "GET",
+      "endpoint": "/query_results/{{ inputs.query_result_id }}",
+      "output_path": "query_result",
+      "inputs": [{ "key": "query_result_id", "label": "Query result ID", "type": "number", "required": true }]
+    },
+    {
+      "key": "list_dashboards",
+      "name": "List dashboards",
+      "method": "GET",
+      "endpoint": "/dashboards",
+      "output_path": "results",
+      "inputs": []
+    }
+  ]
+}

@@ -1,0 +1,233 @@
+{
+  "key": "write_as",
+  "name": "Write.as",
+  "category": "CMS & Websites",
+  "description": "Publish, update and list posts on Write.as or any WriteFreely blog.",
+  "brand": "writedotas",
+  "website": "https://write.as",
+  "docs_url": "https://developers.write.as/docs/api/",
+  "base_url": "{{ credentials.base_url }}/api",
+  "auth": [
+    {
+      "type": "api_key",
+      "in": "header",
+      "name": "Authorization",
+      "prefix": "Token ",
+      "fields": [
+        {
+          "key": "base_url",
+          "label": "Instance URL",
+          "type": "string",
+          "required": true,
+          "default": "https://write.as",
+          "help": "Or your WriteFreely URL. No trailing slash."
+        },
+        {
+          "key": "api_key",
+          "label": "Access token",
+          "type": "password",
+          "required": true,
+          "help": "Get it from POST /api/auth/login with your username and password."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "publish_post",
+      "name": "Publish post to blog",
+      "method": "POST",
+      "endpoint": "/collections/{{ inputs.alias }}/posts",
+      "body": {
+        "body": "{{ inputs.body }}",
+        "title": "{{ inputs.title }}",
+        "font": "{{ inputs.font }}",
+        "lang": "{{ inputs.lang }}"
+      },
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "alias",
+          "label": "Blog alias",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "body",
+          "label": "Body (Markdown)",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "string"
+        },
+        {
+          "key": "font",
+          "label": "Font",
+          "type": "select",
+          "options": [
+            {
+              "value": "norm",
+              "label": "Serif"
+            },
+            {
+              "value": "sans",
+              "label": "Sans-serif"
+            },
+            {
+              "value": "mono",
+              "label": "Monospace"
+            },
+            {
+              "value": "wrap",
+              "label": "Wrapped mono"
+            },
+            {
+              "value": "code",
+              "label": "Code"
+            }
+          ]
+        },
+        {
+          "key": "lang",
+          "label": "Language",
+          "type": "string",
+          "placeholder": "en"
+        }
+      ]
+    },
+    {
+      "key": "create_draft",
+      "name": "Create draft post",
+      "method": "POST",
+      "endpoint": "/posts",
+      "body": {
+        "body": "{{ inputs.body }}",
+        "title": "{{ inputs.title }}"
+      },
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "body",
+          "label": "Body (Markdown)",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "update_post",
+      "name": "Update post",
+      "method": "POST",
+      "endpoint": "/posts/{{ inputs.post_id }}",
+      "body": {
+        "body": "{{ inputs.body }}",
+        "title": "{{ inputs.title }}"
+      },
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "post_id",
+          "label": "Post ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "body",
+          "label": "Body (Markdown)",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "get_post",
+      "name": "Get post",
+      "method": "GET",
+      "endpoint": "/posts/{{ inputs.post_id }}",
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "post_id",
+          "label": "Post ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_blog_posts",
+      "name": "List blog posts",
+      "method": "GET",
+      "endpoint": "/collections/{{ inputs.alias }}/posts",
+      "query": {
+        "page": "{{ inputs.page }}"
+      },
+      "output_path": "data.posts",
+      "inputs": [
+        {
+          "key": "alias",
+          "label": "Blog alias",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "page",
+          "label": "Page",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "delete_post",
+      "name": "Delete post",
+      "method": "DELETE",
+      "endpoint": "/posts/{{ inputs.post_id }}",
+      "inputs": [
+        {
+          "key": "post_id",
+          "label": "Post ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_post",
+      "name": "New blog post",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/collections/{{ inputs.alias }}/posts",
+      "items_path": "data.posts",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "alias",
+          "label": "Blog alias",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

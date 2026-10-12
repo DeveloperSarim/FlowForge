@@ -1,0 +1,46 @@
+{
+  "key": "bird",
+  "name": "Bird (MessageBird)",
+  "category": "Communication",
+  "description": "Send text messages through a Bird SMS, WhatsApp or other channel.",
+  "brand": "bird",
+  "website": "https://bird.com",
+  "docs_url": "https://docs.bird.com/api",
+  "base_url": "https://api.bird.com",
+  "auth": [
+    {
+      "type": "api_key",
+      "in": "header",
+      "name": "Authorization",
+      "prefix": "AccessKey ",
+      "fields": [
+        { "key": "api_key", "label": "Access key", "type": "password", "required": true },
+        { "key": "workspace_id", "label": "Workspace ID", "type": "string", "required": true }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "send_message",
+      "name": "Send text message",
+      "method": "POST",
+      "endpoint": "/workspaces/{{ credentials.workspace_id }}/channels/{{ inputs.channel_id }}/messages",
+      "body": {
+        "receiver": { "contacts": [{ "identifierValue": "{{ inputs.to }}" }] },
+        "body": { "type": "text", "text": { "text": "{{ inputs.text }}" } }
+      },
+      "inputs": [
+        { "key": "channel_id", "label": "Channel ID", "type": "string", "required": true, "help": "From List channels." },
+        { "key": "to", "label": "To", "type": "string", "required": true, "placeholder": "+31612345678", "help": "Phone number (E.164), email or other identifier for the channel." },
+        { "key": "text", "label": "Message", "type": "text", "required": true }
+      ]
+    },
+    {
+      "key": "list_channels",
+      "name": "List channels",
+      "method": "GET",
+      "endpoint": "/workspaces/{{ credentials.workspace_id }}/channels",
+      "inputs": []
+    }
+  ]
+}

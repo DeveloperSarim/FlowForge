@@ -1,0 +1,83 @@
+{
+  "key": "growsurf",
+  "name": "GrowSurf",
+  "category": "Marketing & Email",
+  "description": "Add referral participants, look them up and trigger referral credit.",
+  "brand": "growsurf",
+  "website": "https://growsurf.com",
+  "docs_url": "https://docs.growsurf.com/developer-tools/rest-api/api-reference",
+  "base_url": "https://api.growsurf.com/v2",
+  "auth": { "type": "bearer", "fields": [{ "key": "token", "label": "API key", "type": "password", "required": true, "help": "Account > API Key." }] },
+  "actions": [
+    {
+      "key": "add_participant",
+      "name": "Add participant",
+      "method": "POST",
+      "endpoint": "/campaign/{{ inputs.campaign_id }}/participant",
+      "body": {
+        "email": "{{ inputs.email }}",
+        "firstName": "{{ inputs.first_name }}",
+        "lastName": "{{ inputs.last_name }}",
+        "referredBy": "{{ inputs.referred_by }}",
+        "metadata": "{{ inputs.metadata }}"
+      },
+      "inputs": [
+        { "key": "campaign_id", "label": "Program ID", "type": "string", "required": true },
+        { "key": "email", "label": "Email", "type": "string", "required": true },
+        { "key": "first_name", "label": "First name", "type": "string" },
+        { "key": "last_name", "label": "Last name", "type": "string" },
+        { "key": "referred_by", "label": "Referred by (participant ID or email)", "type": "string" },
+        { "key": "metadata", "label": "Metadata", "type": "keyvalue" }
+      ]
+    },
+    {
+      "key": "get_participant",
+      "name": "Get participant",
+      "method": "GET",
+      "endpoint": "/campaign/{{ inputs.campaign_id }}/participant/{{ inputs.participant }}",
+      "inputs": [
+        { "key": "campaign_id", "label": "Program ID", "type": "string", "required": true },
+        { "key": "participant", "label": "Participant ID or email", "type": "string", "required": true }
+      ]
+    },
+    {
+      "key": "list_participants",
+      "name": "List participants",
+      "method": "GET",
+      "endpoint": "/campaign/{{ inputs.campaign_id }}/participants",
+      "query": { "limit": "{{ inputs.limit }}", "nextId": "{{ inputs.next_id }}" },
+      "output_path": "participants",
+      "inputs": [
+        { "key": "campaign_id", "label": "Program ID", "type": "string", "required": true },
+        { "key": "limit", "label": "Limit (max 100)", "type": "number", "default": 50 },
+        { "key": "next_id", "label": "Next ID (pagination)", "type": "string" }
+      ]
+    },
+    {
+      "key": "trigger_referral",
+      "name": "Trigger referral",
+      "description": "Marks a referred participant as converted so the referrer gets credit.",
+      "method": "POST",
+      "endpoint": "/campaign/{{ inputs.campaign_id }}/participant/{{ inputs.participant }}/ref",
+      "inputs": [
+        { "key": "campaign_id", "label": "Program ID", "type": "string", "required": true },
+        { "key": "participant", "label": "Referred participant ID or email", "type": "string", "required": true }
+      ]
+    },
+    {
+      "key": "get_campaign",
+      "name": "Get program",
+      "method": "GET",
+      "endpoint": "/campaign/{{ inputs.campaign_id }}",
+      "inputs": [{ "key": "campaign_id", "label": "Program ID", "type": "string", "required": true }]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "inputs": [{ "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }]
+    }
+  ]
+}

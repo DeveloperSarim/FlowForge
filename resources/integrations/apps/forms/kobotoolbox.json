@@ -1,0 +1,150 @@
+{
+  "key": "kobotoolbox",
+  "name": "KoboToolbox",
+  "category": "Forms & Surveys",
+  "description": "Get new KoboToolbox submissions and list forms and data.",
+  "brand": "kobotoolbox",
+  "website": "https://www.kobotoolbox.org",
+  "docs_url": "https://support.kobotoolbox.org/api.html",
+  "base_url": "https://{{ credentials.server }}/api/v2",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "Authorization",
+    "prefix": "Token ",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "API token",
+        "type": "password",
+        "required": true,
+        "help": "Account settings > Security > API key"
+      },
+      {
+        "key": "server",
+        "label": "Server host",
+        "type": "string",
+        "required": true,
+        "default": "kf.kobotoolbox.org",
+        "help": "kf.kobotoolbox.org (global), eu.kobotoolbox.org (EU) or your own KPI host"
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_forms",
+      "name": "List forms",
+      "method": "GET",
+      "endpoint": "/assets/",
+      "output_path": "results",
+      "query": {
+        "q": "asset_type:survey",
+        "limit": "{{ inputs.limit }}"
+      },
+      "inputs": [
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 100
+        }
+      ]
+    },
+    {
+      "key": "list_submissions",
+      "name": "List submissions",
+      "description": "Newest first.",
+      "method": "GET",
+      "endpoint": "/assets/{{ inputs.asset_uid }}/data/",
+      "output_path": "results",
+      "query": {
+        "limit": "{{ inputs.limit }}",
+        "sort": "{\"_id\": -1}",
+        "query": "{{ inputs.query }}"
+      },
+      "inputs": [
+        {
+          "key": "asset_uid",
+          "label": "Form UID",
+          "type": "string",
+          "required": true,
+          "help": "The id in the form URL: /#/forms/<UID>/"
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 50
+        },
+        {
+          "key": "query",
+          "label": "Mongo query (JSON)",
+          "type": "string",
+          "placeholder": "{\"_submission_time\": {\"$gt\": \"2024-01-31\"}}"
+        }
+      ]
+    },
+    {
+      "key": "get_submission",
+      "name": "Get submission",
+      "method": "GET",
+      "endpoint": "/assets/{{ inputs.asset_uid }}/data/{{ inputs.submission_id }}/",
+      "inputs": [
+        {
+          "key": "asset_uid",
+          "label": "Form UID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "submission_id",
+          "label": "Submission ID",
+          "type": "number",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_submission",
+      "name": "New submission (polling)",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/assets/{{ inputs.asset_uid }}/data/",
+      "query": {
+        "limit": 50,
+        "sort": "{\"_id\": -1}"
+      },
+      "items_path": "results",
+      "id_field": "_id",
+      "inputs": [
+        {
+          "key": "asset_uid",
+          "label": "Form UID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    },
+    {
+      "key": "new_submission_webhook",
+      "name": "New submission (webhook)",
+      "type": "webhook",
+      "description": "Project > Settings > REST Services > Register a new service with this URL.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

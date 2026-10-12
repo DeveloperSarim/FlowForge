@@ -1,0 +1,187 @@
+{
+  "key": "lemon_squeezy",
+  "name": "Lemon Squeezy",
+  "category": "E-commerce",
+  "description": "Create checkouts and manage orders and subscriptions in Lemon Squeezy.",
+  "brand": "lemonsqueezy",
+  "website": "https://www.lemonsqueezy.com",
+  "docs_url": "https://docs.lemonsqueezy.com/api",
+  "base_url": "https://api.lemonsqueezy.com/v1",
+  "headers": {
+    "Accept": "application/vnd.api+json",
+    "Content-Type": "application/vnd.api+json"
+  },
+  "auth": [
+    {
+      "type": "bearer",
+      "fields": [
+        {
+          "key": "token",
+          "label": "API key",
+          "type": "password",
+          "required": true,
+          "help": "Settings > API > create a key."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "create_checkout",
+      "name": "Create checkout",
+      "description": "Creates a checkout URL for a product variant.",
+      "method": "POST",
+      "endpoint": "/checkouts",
+      "body": {
+        "data": {
+          "type": "checkouts",
+          "attributes": {
+            "checkout_data": {
+              "email": "{{ inputs.email }}",
+              "name": "{{ inputs.name }}",
+              "custom": "{{ inputs.custom }}"
+            },
+            "custom_price": "{{ inputs.custom_price }}"
+          },
+          "relationships": {
+            "store": {
+              "data": {
+                "type": "stores",
+                "id": "{{ inputs.store_id }}"
+              }
+            },
+            "variant": {
+              "data": {
+                "type": "variants",
+                "id": "{{ inputs.variant_id }}"
+              }
+            }
+          }
+        }
+      },
+      "output_fields": {
+        "url": "data.attributes.url"
+      },
+      "inputs": [
+        {
+          "key": "store_id",
+          "label": "Store ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "variant_id",
+          "label": "Variant ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "email",
+          "label": "Prefill email",
+          "type": "string"
+        },
+        {
+          "key": "name",
+          "label": "Prefill name",
+          "type": "string"
+        },
+        {
+          "key": "custom_price",
+          "label": "Custom price (cents)",
+          "type": "number"
+        },
+        {
+          "key": "custom",
+          "label": "Custom data",
+          "type": "json",
+          "help": "Passed back in webhooks as meta.custom_data."
+        }
+      ]
+    },
+    {
+      "key": "list_orders",
+      "name": "List orders",
+      "method": "GET",
+      "endpoint": "/orders",
+      "output_path": "data",
+      "query": {
+        "filter[store_id]": "{{ inputs.store_id }}",
+        "filter[user_email]": "{{ inputs.email }}"
+      },
+      "inputs": [
+        {
+          "key": "store_id",
+          "label": "Store ID",
+          "type": "string"
+        },
+        {
+          "key": "email",
+          "label": "Customer email",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "get_order",
+      "name": "Get order",
+      "method": "GET",
+      "endpoint": "/orders/{{ inputs.order_id }}",
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "order_id",
+          "label": "Order ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "get_subscription",
+      "name": "Get subscription",
+      "method": "GET",
+      "endpoint": "/subscriptions/{{ inputs.subscription_id }}",
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "subscription_id",
+          "label": "Subscription ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "cancel_subscription",
+      "name": "Cancel subscription",
+      "description": "Cancels at the end of the current billing period.",
+      "method": "DELETE",
+      "endpoint": "/subscriptions/{{ inputs.subscription_id }}",
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "subscription_id",
+          "label": "Subscription ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Settings > Webhooks > add this URL and pick the events to send.",
+      "data_path": "data",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

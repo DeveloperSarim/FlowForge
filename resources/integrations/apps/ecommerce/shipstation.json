@@ -1,0 +1,317 @@
+{
+  "key": "shipstation",
+  "name": "ShipStation",
+  "category": "E-commerce",
+  "description": "Create orders, mark them shipped and list shipments in ShipStation.",
+  "brand": "shipstation",
+  "website": "https://www.shipstation.com",
+  "docs_url": "https://www.shipstation.com/docs/api/",
+  "popular": true,
+  "base_url": "https://ssapi.shipstation.com",
+  "auth": [
+    {
+      "type": "basic",
+      "fields": [
+        {
+          "key": "username",
+          "label": "API key",
+          "type": "string",
+          "required": true,
+          "help": "Settings > Account > API Settings (ShipStation API v1)."
+        },
+        {
+          "key": "password",
+          "label": "API secret",
+          "type": "password",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_orders",
+      "name": "List orders",
+      "method": "GET",
+      "endpoint": "/orders",
+      "output_path": "orders",
+      "query": {
+        "orderStatus": "{{ inputs.order_status }}",
+        "orderNumber": "{{ inputs.order_number }}",
+        "customerName": "{{ inputs.customer_name }}",
+        "sortBy": "CreateDate",
+        "sortDir": "DESC",
+        "pageSize": "{{ inputs.page_size }}"
+      },
+      "inputs": [
+        {
+          "key": "order_status",
+          "label": "Status",
+          "type": "select",
+          "options": [
+            {
+              "value": "awaiting_payment",
+              "label": "Awaiting payment"
+            },
+            {
+              "value": "awaiting_shipment",
+              "label": "Awaiting shipment"
+            },
+            {
+              "value": "pending_fulfillment",
+              "label": "Pending fulfillment"
+            },
+            {
+              "value": "shipped",
+              "label": "Shipped"
+            },
+            {
+              "value": "on_hold",
+              "label": "On hold"
+            },
+            {
+              "value": "cancelled",
+              "label": "Cancelled"
+            }
+          ]
+        },
+        {
+          "key": "order_number",
+          "label": "Order number",
+          "type": "string"
+        },
+        {
+          "key": "customer_name",
+          "label": "Customer name",
+          "type": "string"
+        },
+        {
+          "key": "page_size",
+          "label": "Page size",
+          "type": "number",
+          "default": 100
+        }
+      ]
+    },
+    {
+      "key": "get_order",
+      "name": "Get order",
+      "method": "GET",
+      "endpoint": "/orders/{{ inputs.order_id }}",
+      "inputs": [
+        {
+          "key": "order_id",
+          "label": "Order ID",
+          "type": "string",
+          "required": true,
+          "help": "ShipStation orderId (numeric)."
+        }
+      ]
+    },
+    {
+      "key": "create_order",
+      "name": "Create or update order",
+      "description": "Creates an order, or updates it if the orderKey already exists.",
+      "method": "POST",
+      "endpoint": "/orders/createorder",
+      "body": {
+        "orderNumber": "{{ inputs.order_number }}",
+        "orderKey": "{{ inputs.order_key }}",
+        "orderDate": "{{ inputs.order_date }}",
+        "orderStatus": "{{ inputs.order_status }}",
+        "customerEmail": "{{ inputs.customer_email }}",
+        "billTo": "{{ inputs.bill_to }}",
+        "shipTo": "{{ inputs.ship_to }}",
+        "items": "{{ inputs.items }}",
+        "amountPaid": "{{ inputs.amount_paid }}"
+      },
+      "inputs": [
+        {
+          "key": "order_number",
+          "label": "Order number",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "order_key",
+          "label": "Order key",
+          "type": "string"
+        },
+        {
+          "key": "order_date",
+          "label": "Order date",
+          "type": "string",
+          "required": true,
+          "placeholder": "2025-06-01T08:46:27.0000000"
+        },
+        {
+          "key": "order_status",
+          "label": "Status",
+          "type": "select",
+          "options": [
+            {
+              "value": "awaiting_payment",
+              "label": "Awaiting payment"
+            },
+            {
+              "value": "awaiting_shipment",
+              "label": "Awaiting shipment"
+            },
+            {
+              "value": "on_hold",
+              "label": "On hold"
+            },
+            {
+              "value": "cancelled",
+              "label": "Cancelled"
+            }
+          ],
+          "default": "awaiting_shipment",
+          "required": true
+        },
+        {
+          "key": "customer_email",
+          "label": "Customer email",
+          "type": "string"
+        },
+        {
+          "key": "bill_to",
+          "label": "Bill to",
+          "type": "json",
+          "required": true,
+          "placeholder": "{\"name\": \"Jane Doe\"}"
+        },
+        {
+          "key": "ship_to",
+          "label": "Ship to",
+          "type": "json",
+          "required": true,
+          "placeholder": "{\"name\": \"Jane Doe\", \"street1\": \"1 Main St\", \"city\": \"Austin\", \"state\": \"TX\", \"postalCode\": \"78703\", \"country\": \"US\"}"
+        },
+        {
+          "key": "items",
+          "label": "Items",
+          "type": "json",
+          "placeholder": "[{\"sku\": \"ABC-1\", \"name\": \"T-shirt\", \"quantity\": 1, \"unitPrice\": 19.99}]"
+        },
+        {
+          "key": "amount_paid",
+          "label": "Amount paid",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "mark_shipped",
+      "name": "Mark order as shipped",
+      "method": "POST",
+      "endpoint": "/orders/markasshipped",
+      "body": {
+        "orderId": "{{ inputs.order_id }}",
+        "carrierCode": "{{ inputs.carrier_code }}",
+        "shipDate": "{{ inputs.ship_date }}",
+        "trackingNumber": "{{ inputs.tracking_number }}",
+        "notifyCustomer": "{{ inputs.notify_customer }}",
+        "notifySalesChannel": "{{ inputs.notify_channel }}"
+      },
+      "inputs": [
+        {
+          "key": "order_id",
+          "label": "Order ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "carrier_code",
+          "label": "Carrier code",
+          "type": "string",
+          "required": true,
+          "placeholder": "usps"
+        },
+        {
+          "key": "ship_date",
+          "label": "Ship date",
+          "type": "string",
+          "placeholder": "2025-06-02"
+        },
+        {
+          "key": "tracking_number",
+          "label": "Tracking number",
+          "type": "string"
+        },
+        {
+          "key": "notify_customer",
+          "label": "Notify customer",
+          "type": "boolean"
+        },
+        {
+          "key": "notify_channel",
+          "label": "Notify sales channel",
+          "type": "boolean"
+        }
+      ]
+    },
+    {
+      "key": "list_shipments",
+      "name": "List shipments",
+      "method": "GET",
+      "endpoint": "/shipments",
+      "output_path": "shipments",
+      "query": {
+        "orderNumber": "{{ inputs.order_number }}",
+        "trackingNumber": "{{ inputs.tracking_number }}",
+        "sortBy": "CreateDate",
+        "sortDir": "DESC"
+      },
+      "inputs": [
+        {
+          "key": "order_number",
+          "label": "Order number",
+          "type": "string"
+        },
+        {
+          "key": "tracking_number",
+          "label": "Tracking number",
+          "type": "string"
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_order",
+      "name": "New order",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/orders",
+      "query": {
+        "sortBy": "CreateDate",
+        "sortDir": "DESC",
+        "pageSize": 50
+      },
+      "items_path": "orders",
+      "id_field": "orderId",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    },
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Settings > Integrations > Webhooks. ShipStation sends a resource_url you can fetch with \"Make an API call\".",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

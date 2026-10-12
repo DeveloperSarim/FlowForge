@@ -1,0 +1,248 @@
+{
+  "key": "zoom",
+  "name": "Zoom",
+  "category": "Communication",
+  "description": "Create, update, list and delete Zoom meetings, and list cloud recordings.",
+  "brand": "zoom",
+  "website": "https://zoom.us",
+  "docs_url": "https://developers.zoom.us/docs/api/",
+  "popular": true,
+  "base_url": "https://api.zoom.us/v2",
+  "auth": [
+    {
+      "type": "oauth2",
+      "authorize_url": "https://zoom.us/oauth/authorize",
+      "token_url": "https://zoom.us/oauth/token",
+      "client_auth": "basic"
+    },
+    {
+      "type": "oauth2_client_credentials",
+      "token_url": "https://zoom.us/oauth/token",
+      "client_auth": "basic",
+      "token_params": {
+        "grant_type": "account_credentials",
+        "account_id": "{{ credentials.account_id }}"
+      },
+      "fields": [
+        {
+          "key": "account_id",
+          "label": "Account ID",
+          "type": "string",
+          "required": true,
+          "help": "Zoom App Marketplace → your Server-to-Server OAuth app → App credentials."
+        },
+        {
+          "key": "client_id",
+          "label": "Client ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "client_secret",
+          "label": "Client secret",
+          "type": "password",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "create_meeting",
+      "name": "Create meeting",
+      "method": "POST",
+      "endpoint": "/users/me/meetings",
+      "body": {
+        "topic": "{{ inputs.topic }}",
+        "type": 2,
+        "start_time": "{{ inputs.start_time }}",
+        "duration": "{{ inputs.duration }}",
+        "timezone": "{{ inputs.timezone }}",
+        "agenda": "{{ inputs.agenda }}",
+        "password": "{{ inputs.password }}"
+      },
+      "inputs": [
+        {
+          "key": "topic",
+          "label": "Topic",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "start_time",
+          "label": "Start time",
+          "type": "string",
+          "required": true,
+          "placeholder": "2026-05-01T15:00:00Z",
+          "help": "ISO 8601. Use a Z suffix for UTC, or no suffix plus a time zone."
+        },
+        {
+          "key": "duration",
+          "label": "Duration (minutes)",
+          "type": "number",
+          "default": 30
+        },
+        {
+          "key": "timezone",
+          "label": "Time zone",
+          "type": "string",
+          "placeholder": "America/New_York"
+        },
+        {
+          "key": "agenda",
+          "label": "Agenda",
+          "type": "text"
+        },
+        {
+          "key": "password",
+          "label": "Passcode",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "list_meetings",
+      "name": "List meetings",
+      "method": "GET",
+      "endpoint": "/users/me/meetings",
+      "query": {
+        "type": "{{ inputs.type }}",
+        "page_size": "{{ inputs.page_size }}"
+      },
+      "output_path": "meetings",
+      "inputs": [
+        {
+          "key": "type",
+          "label": "Type",
+          "type": "select",
+          "default": "upcoming",
+          "options": [
+            {
+              "value": "upcoming",
+              "label": "Upcoming"
+            },
+            {
+              "value": "scheduled",
+              "label": "Scheduled"
+            },
+            {
+              "value": "live",
+              "label": "Live"
+            },
+            {
+              "value": "previous_meetings",
+              "label": "Previous"
+            }
+          ]
+        },
+        {
+          "key": "page_size",
+          "label": "Max results",
+          "type": "number",
+          "default": 30
+        }
+      ]
+    },
+    {
+      "key": "get_meeting",
+      "name": "Get meeting",
+      "method": "GET",
+      "endpoint": "/meetings/{{ inputs.meeting_id }}",
+      "inputs": [
+        {
+          "key": "meeting_id",
+          "label": "Meeting ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "update_meeting",
+      "name": "Update meeting",
+      "method": "PATCH",
+      "endpoint": "/meetings/{{ inputs.meeting_id }}",
+      "body": {
+        "topic": "{{ inputs.topic }}",
+        "start_time": "{{ inputs.start_time }}",
+        "duration": "{{ inputs.duration }}",
+        "timezone": "{{ inputs.timezone }}",
+        "agenda": "{{ inputs.agenda }}"
+      },
+      "inputs": [
+        {
+          "key": "meeting_id",
+          "label": "Meeting ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "topic",
+          "label": "Topic",
+          "type": "string"
+        },
+        {
+          "key": "start_time",
+          "label": "Start time",
+          "type": "string",
+          "placeholder": "2026-05-01T15:00:00Z"
+        },
+        {
+          "key": "duration",
+          "label": "Duration (minutes)",
+          "type": "number"
+        },
+        {
+          "key": "timezone",
+          "label": "Time zone",
+          "type": "string"
+        },
+        {
+          "key": "agenda",
+          "label": "Agenda",
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "key": "delete_meeting",
+      "name": "Delete meeting",
+      "method": "DELETE",
+      "endpoint": "/meetings/{{ inputs.meeting_id }}",
+      "inputs": [
+        {
+          "key": "meeting_id",
+          "label": "Meeting ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_recordings",
+      "name": "List cloud recordings",
+      "method": "GET",
+      "endpoint": "/users/me/recordings",
+      "query": {
+        "from": "{{ inputs.from }}",
+        "to": "{{ inputs.to }}"
+      },
+      "output_path": "meetings",
+      "inputs": [
+        {
+          "key": "from",
+          "label": "From date",
+          "type": "string",
+          "placeholder": "2026-01-01",
+          "help": "Max 1 month range. Defaults to the last day."
+        },
+        {
+          "key": "to",
+          "label": "To date",
+          "type": "string",
+          "placeholder": "2026-01-31"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,89 @@
+{
+  "key": "thingspeak",
+  "name": "ThingSpeak",
+  "category": "IoT & Smart Home",
+  "description": "Write sensor readings to ThingSpeak channels and read channel feeds.",
+  "brand": "thingspeak",
+  "website": "https://thingspeak.mathworks.com",
+  "docs_url": "https://www.mathworks.com/help/thingspeak/rest-api.html",
+  "base_url": "https://api.thingspeak.com",
+  "auth": [
+    {
+      "type": "api_key",
+      "fields": [
+        { "key": "api_key", "label": "Write API key", "type": "password", "required": true, "help": "Channel > API Keys > Write API Key." },
+        { "key": "read_api_key", "label": "Read API key", "type": "password", "help": "Only needed for private channels (Channel > API Keys > Read API Keys)." }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "write_entry",
+      "name": "Write entry",
+      "description": "Adds one entry to the channel. Returns 0 if the update was rejected (e.g. rate limit).",
+      "method": "POST",
+      "endpoint": "/update.json",
+      "body_format": "form",
+      "body": {
+        "api_key": "{{ credentials.api_key }}",
+        "field1": "{{ inputs.field1 }}",
+        "field2": "{{ inputs.field2 }}",
+        "field3": "{{ inputs.field3 }}",
+        "field4": "{{ inputs.field4 }}",
+        "field5": "{{ inputs.field5 }}",
+        "field6": "{{ inputs.field6 }}",
+        "field7": "{{ inputs.field7 }}",
+        "field8": "{{ inputs.field8 }}",
+        "status": "{{ inputs.status }}"
+      },
+      "inputs": [
+        { "key": "field1", "label": "Field 1", "type": "string" },
+        { "key": "field2", "label": "Field 2", "type": "string" },
+        { "key": "field3", "label": "Field 3", "type": "string" },
+        { "key": "field4", "label": "Field 4", "type": "string" },
+        { "key": "field5", "label": "Field 5", "type": "string" },
+        { "key": "field6", "label": "Field 6", "type": "string" },
+        { "key": "field7", "label": "Field 7", "type": "string" },
+        { "key": "field8", "label": "Field 8", "type": "string" },
+        { "key": "status", "label": "Status message", "type": "string" }
+      ]
+    },
+    {
+      "key": "read_feed",
+      "name": "Read channel feed",
+      "method": "GET",
+      "endpoint": "/channels/{{ inputs.channel_id }}/feeds.json",
+      "query": { "api_key": "{{ credentials.read_api_key }}", "results": "{{ inputs.results }}" },
+      "inputs": [
+        { "key": "channel_id", "label": "Channel ID", "type": "string", "required": true },
+        { "key": "results", "label": "Number of entries", "type": "number", "default": 100 }
+      ]
+    },
+    {
+      "key": "read_last_entry",
+      "name": "Read last entry",
+      "method": "GET",
+      "endpoint": "/channels/{{ inputs.channel_id }}/feeds/last.json",
+      "query": { "api_key": "{{ credentials.read_api_key }}" },
+      "inputs": [
+        { "key": "channel_id", "label": "Channel ID", "type": "string", "required": true }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_entry",
+      "name": "New channel entry",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/channels/{{ inputs.channel_id }}/feeds.json",
+      "query": { "api_key": "{{ credentials.read_api_key }}", "results": 20 },
+      "items_path": "feeds",
+      "id_field": "entry_id",
+      "inputs": [
+        { "key": "channel_id", "label": "Channel ID", "type": "string", "required": true },
+        { "key": "poll_interval", "label": "Check every (minutes)", "type": "number", "default": 5 }
+      ]
+    }
+  ]
+}

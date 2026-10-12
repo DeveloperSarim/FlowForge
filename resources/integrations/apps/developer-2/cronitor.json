@@ -1,0 +1,65 @@
+{
+  "key": "cronitor",
+  "name": "Cronitor",
+  "category": "Developer Tools",
+  "description": "Send job telemetry pings and list, read or delete monitors.",
+  "brand": "cronitor",
+  "website": "https://cronitor.io",
+  "docs_url": "https://cronitor.io/docs/monitor-api",
+  "base_url": "https://cronitor.io/api",
+  "auth": { "type": "basic", "fields": [
+    { "key": "username", "label": "API key", "type": "password", "required": true, "help": "Settings → API keys." },
+    { "key": "password", "label": "Password", "type": "password", "required": false, "default": "", "help": "Leave empty." },
+    { "key": "telemetry_key", "label": "Telemetry (ping) API key", "type": "password", "help": "Needed for Send ping. Settings → API keys → Ping API key." }
+  ] },
+  "actions": [
+    {
+      "key": "send_ping",
+      "name": "Send ping",
+      "description": "Reports a job run, completion or failure.",
+      "method": "GET",
+      "endpoint": "https://cronitor.link/p/{{ credentials.telemetry_key }}/{{ inputs.monitor_key }}",
+      "query": { "state": "{{ inputs.state }}", "message": "{{ inputs.message }}", "env": "{{ inputs.env }}", "series": "{{ inputs.series }}" },
+      "inputs": [
+        { "key": "monitor_key", "label": "Monitor key", "type": "string", "required": true },
+        { "key": "state", "label": "State", "type": "select", "required": true, "default": "complete", "options": [
+          { "value": "run", "label": "Run (started)" }, { "value": "complete", "label": "Complete" }, { "value": "fail", "label": "Fail" }, { "value": "ok", "label": "OK (reset)" }
+        ] },
+        { "key": "message", "label": "Message", "type": "string" },
+        { "key": "env", "label": "Environment", "type": "string" },
+        { "key": "series", "label": "Series ID", "type": "string", "help": "Pairs run/complete pings of the same execution." }
+      ]
+    },
+    {
+      "key": "list_monitors",
+      "name": "List monitors",
+      "method": "GET",
+      "endpoint": "/monitors",
+      "query": { "page": "{{ inputs.page }}" },
+      "output_path": "monitors",
+      "inputs": [{ "key": "page", "label": "Page", "type": "number" }]
+    },
+    {
+      "key": "get_monitor",
+      "name": "Get monitor",
+      "method": "GET",
+      "endpoint": "/monitors/{{ inputs.monitor_key }}",
+      "inputs": [{ "key": "monitor_key", "label": "Monitor key", "type": "string", "required": true }]
+    },
+    {
+      "key": "delete_monitor",
+      "name": "Delete monitor",
+      "method": "DELETE",
+      "endpoint": "/monitors/{{ inputs.monitor_key }}",
+      "inputs": [{ "key": "monitor_key", "label": "Monitor key", "type": "string", "required": true }]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "alert",
+      "name": "Alert (webhook)",
+      "type": "webhook",
+      "inputs": [{ "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }]
+    }
+  ]
+}

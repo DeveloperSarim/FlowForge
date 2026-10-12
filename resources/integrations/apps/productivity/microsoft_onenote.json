@@ -1,0 +1,93 @@
+{
+  "key": "microsoft_onenote",
+  "name": "Microsoft OneNote",
+  "category": "Productivity",
+  "description": "Create pages and browse notebooks and sections in OneNote.",
+  "brand": "microsoftonenote",
+  "website": "https://www.onenote.com",
+  "docs_url": "https://learn.microsoft.com/en-us/graph/api/resources/onenote-api-overview",
+  "base_url": "https://graph.microsoft.com/v1.0",
+  "auth": [
+    {
+      "type": "oauth2",
+      "authorize_url": "https://login.microsoftonline.com/common/oauth2/v2.0/authorize",
+      "token_url": "https://login.microsoftonline.com/common/oauth2/v2.0/token",
+      "scopes": [
+        "offline_access",
+        "Notes.ReadWrite"
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_notebooks",
+      "name": "List notebooks",
+      "method": "GET",
+      "endpoint": "/me/onenote/notebooks",
+      "output_path": "value",
+      "inputs": []
+    },
+    {
+      "key": "list_sections",
+      "name": "List sections",
+      "method": "GET",
+      "endpoint": "/me/onenote/notebooks/{{ inputs.notebook_id }}/sections",
+      "output_path": "value",
+      "inputs": [
+        {
+          "key": "notebook_id",
+          "label": "Notebook ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "create_page",
+      "name": "Create page",
+      "description": "Adds a page to a section.",
+      "method": "POST",
+      "endpoint": "/me/onenote/sections/{{ inputs.section_id }}/pages",
+      "headers": {
+        "Content-Type": "text/html"
+      },
+      "body": "<!DOCTYPE html><html><head><title>{{ inputs.title }}</title></head><body>{{ inputs.content }}</body></html>",
+      "inputs": [
+        {
+          "key": "section_id",
+          "label": "Section ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "content",
+          "label": "Content (HTML)",
+          "type": "text",
+          "required": true,
+          "placeholder": "<p>Hello from FlowForge</p>"
+        }
+      ]
+    },
+    {
+      "key": "list_pages",
+      "name": "List pages",
+      "method": "GET",
+      "endpoint": "/me/onenote/sections/{{ inputs.section_id }}/pages",
+      "output_path": "value",
+      "inputs": [
+        {
+          "key": "section_id",
+          "label": "Section ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ]
+}

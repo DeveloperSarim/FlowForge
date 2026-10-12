@@ -1,0 +1,96 @@
+{
+  "key": "reducto",
+  "name": "Reducto",
+  "category": "AI",
+  "description": "Parse documents and extract structured data with Reducto.",
+  "brand": "reducto",
+  "website": "https://reducto.ai",
+  "docs_url": "https://docs.reducto.ai/api-reference/parse",
+  "base_url": "https://platform.reducto.ai",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "API key",
+        "type": "password",
+        "required": true
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "parse_document",
+      "name": "Parse document",
+      "method": "POST",
+      "endpoint": "/parse",
+      "timeout": 300,
+      "body": {
+        "input": "{{ inputs.input }}"
+      },
+      "inputs": [
+        {
+          "key": "input",
+          "label": "Document URL",
+          "type": "string",
+          "required": true,
+          "help": "Public or presigned URL, or a reducto:// file ID."
+        }
+      ]
+    },
+    {
+      "key": "extract_data",
+      "name": "Extract data",
+      "description": "Extracted fields are returned as {{ steps.<id>.data }}.",
+      "method": "POST",
+      "endpoint": "/extract",
+      "timeout": 300,
+      "body": {
+        "input": "{{ inputs.input }}",
+        "instructions": {
+          "schema": "{{ inputs.schema }}",
+          "system_prompt": "{{ inputs.system_prompt }}"
+        }
+      },
+      "output_fields": {
+        "data": "result.0"
+      },
+      "inputs": [
+        {
+          "key": "input",
+          "label": "Document URL",
+          "type": "string",
+          "required": true,
+          "help": "Public or presigned URL, reducto:// file ID or jobid:// from a parse."
+        },
+        {
+          "key": "schema",
+          "label": "JSON schema",
+          "type": "json",
+          "required": true,
+          "placeholder": "{\"type\": \"object\", \"properties\": {\"invoice_number\": {\"type\": \"string\"}, \"total\": {\"type\": \"number\"}}}"
+        },
+        {
+          "key": "system_prompt",
+          "label": "Instructions",
+          "type": "text",
+          "placeholder": "Be precise and thorough."
+        }
+      ]
+    },
+    {
+      "key": "get_job",
+      "name": "Get job",
+      "method": "GET",
+      "endpoint": "/job/{{ inputs.job_id }}",
+      "inputs": [
+        {
+          "key": "job_id",
+          "label": "Job ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ]
+}

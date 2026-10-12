@@ -1,0 +1,66 @@
+{
+  "key": "snapchat_ads",
+  "name": "Snapchat Ads",
+  "category": "Social Media",
+  "description": "List organizations, ad accounts and campaigns and pull campaign stats.",
+  "brand": "snapchat",
+  "website": "https://forbusiness.snapchat.com",
+  "docs_url": "https://developers.snap.com/api/marketing-api/Ads-API/introduction",
+  "base_url": "https://adsapi.snapchat.com/v1",
+  "auth": {
+    "type": "oauth2",
+    "authorize_url": "https://accounts.snapchat.com/login/oauth2/authorize",
+    "token_url": "https://accounts.snapchat.com/login/oauth2/access_token",
+    "scopes": ["snapchat-marketing-api"]
+  },
+  "actions": [
+    {
+      "key": "get_me",
+      "name": "Get authenticated user",
+      "method": "GET",
+      "endpoint": "/me",
+      "output_path": "me",
+      "inputs": []
+    },
+    {
+      "key": "list_organizations",
+      "name": "List organizations",
+      "method": "GET",
+      "endpoint": "/me/organizations",
+      "output_path": "organizations",
+      "inputs": []
+    },
+    {
+      "key": "list_ad_accounts",
+      "name": "List ad accounts",
+      "method": "GET",
+      "endpoint": "/organizations/{{ inputs.organization_id }}/adaccounts",
+      "output_path": "adaccounts",
+      "inputs": [{ "key": "organization_id", "label": "Organization ID", "type": "string", "required": true }]
+    },
+    {
+      "key": "list_campaigns",
+      "name": "List campaigns",
+      "method": "GET",
+      "endpoint": "/adaccounts/{{ inputs.ad_account_id }}/campaigns",
+      "output_path": "campaigns",
+      "inputs": [{ "key": "ad_account_id", "label": "Ad account ID", "type": "string", "required": true }]
+    },
+    {
+      "key": "get_campaign_stats",
+      "name": "Get campaign stats",
+      "method": "GET",
+      "endpoint": "/campaigns/{{ inputs.campaign_id }}/stats",
+      "query": { "granularity": "{{ inputs.granularity }}", "fields": "{{ inputs.fields }}", "start_time": "{{ inputs.start_time }}", "end_time": "{{ inputs.end_time }}" },
+      "inputs": [
+        { "key": "campaign_id", "label": "Campaign ID", "type": "string", "required": true },
+        { "key": "granularity", "label": "Granularity", "type": "select", "required": true, "default": "TOTAL", "options": [
+          { "value": "TOTAL", "label": "Total" }, { "value": "DAY", "label": "Daily" }, { "value": "HOUR", "label": "Hourly" }, { "value": "LIFETIME", "label": "Lifetime" }
+        ] },
+        { "key": "fields", "label": "Fields", "type": "string", "default": "impressions,swipes,spend" },
+        { "key": "start_time", "label": "Start time (ISO 8601)", "type": "string", "help": "Needed for DAY/HOUR; align to the ad account's time zone." },
+        { "key": "end_time", "label": "End time (ISO 8601)", "type": "string" }
+      ]
+    }
+  ]
+}

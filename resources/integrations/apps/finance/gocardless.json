@@ -1,0 +1,254 @@
+{
+  "key": "gocardless",
+  "name": "GoCardless",
+  "category": "Payments & Finance",
+  "description": "Collect Direct Debit payments and subscriptions with GoCardless.",
+  "brand": "gocardless",
+  "website": "https://gocardless.com",
+  "docs_url": "https://developer.gocardless.com/api-reference",
+  "base_url": "https://{{ credentials.environment }}",
+  "headers": {
+    "GoCardless-Version": "2015-07-06"
+  },
+  "auth": [
+    {
+      "type": "bearer",
+      "fields": [
+        {
+          "key": "environment",
+          "label": "Environment",
+          "type": "select",
+          "required": true,
+          "default": "api.gocardless.com",
+          "options": [
+            {
+              "value": "api.gocardless.com",
+              "label": "Live"
+            },
+            {
+              "value": "api-sandbox.gocardless.com",
+              "label": "Sandbox"
+            }
+          ]
+        },
+        {
+          "key": "token",
+          "label": "Access token",
+          "type": "password",
+          "required": true,
+          "help": "Developers > Create > Access token."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_customers",
+      "name": "List customers",
+      "method": "GET",
+      "endpoint": "/customers",
+      "output_path": "customers",
+      "query": {
+        "limit": "{{ inputs.limit }}",
+        "after": "{{ inputs.after }}"
+      },
+      "inputs": [
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 50
+        },
+        {
+          "key": "after",
+          "label": "After cursor",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "list_mandates",
+      "name": "List mandates",
+      "method": "GET",
+      "endpoint": "/mandates",
+      "output_path": "mandates",
+      "query": {
+        "customer": "{{ inputs.customer_id }}",
+        "status": "{{ inputs.status }}"
+      },
+      "inputs": [
+        {
+          "key": "customer_id",
+          "label": "Customer ID",
+          "type": "string"
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "string",
+          "placeholder": "active"
+        }
+      ]
+    },
+    {
+      "key": "create_payment",
+      "name": "Create payment",
+      "method": "POST",
+      "endpoint": "/payments",
+      "output_path": "payments",
+      "body": {
+        "payments": {
+          "amount": "{{ inputs.amount }}",
+          "currency": "{{ inputs.currency }}",
+          "description": "{{ inputs.description }}",
+          "charge_date": "{{ inputs.charge_date }}",
+          "reference": "{{ inputs.reference }}",
+          "links": {
+            "mandate": "{{ inputs.mandate_id }}"
+          }
+        }
+      },
+      "inputs": [
+        {
+          "key": "mandate_id",
+          "label": "Mandate ID",
+          "type": "string",
+          "required": true,
+          "placeholder": "MD…"
+        },
+        {
+          "key": "amount",
+          "label": "Amount (pence/cents)",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "currency",
+          "label": "Currency",
+          "type": "string",
+          "required": true,
+          "default": "GBP"
+        },
+        {
+          "key": "description",
+          "label": "Description",
+          "type": "string"
+        },
+        {
+          "key": "charge_date",
+          "label": "Charge date",
+          "type": "string",
+          "placeholder": "2025-06-15"
+        },
+        {
+          "key": "reference",
+          "label": "Reference",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "get_payment",
+      "name": "Get payment",
+      "method": "GET",
+      "endpoint": "/payments/{{ inputs.payment_id }}",
+      "output_path": "payments",
+      "inputs": [
+        {
+          "key": "payment_id",
+          "label": "Payment ID",
+          "type": "string",
+          "required": true,
+          "placeholder": "PM…"
+        }
+      ]
+    },
+    {
+      "key": "create_subscription",
+      "name": "Create subscription",
+      "method": "POST",
+      "endpoint": "/subscriptions",
+      "output_path": "subscriptions",
+      "body": {
+        "subscriptions": {
+          "amount": "{{ inputs.amount }}",
+          "currency": "{{ inputs.currency }}",
+          "name": "{{ inputs.name }}",
+          "interval_unit": "{{ inputs.interval_unit }}",
+          "day_of_month": "{{ inputs.day_of_month }}",
+          "links": {
+            "mandate": "{{ inputs.mandate_id }}"
+          }
+        }
+      },
+      "inputs": [
+        {
+          "key": "mandate_id",
+          "label": "Mandate ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "amount",
+          "label": "Amount (pence/cents)",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "currency",
+          "label": "Currency",
+          "type": "string",
+          "required": true,
+          "default": "GBP"
+        },
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string"
+        },
+        {
+          "key": "interval_unit",
+          "label": "Interval",
+          "type": "select",
+          "options": [
+            {
+              "value": "monthly",
+              "label": "Monthly"
+            },
+            {
+              "value": "weekly",
+              "label": "Weekly"
+            },
+            {
+              "value": "yearly",
+              "label": "Yearly"
+            }
+          ],
+          "default": "monthly",
+          "required": true
+        },
+        {
+          "key": "day_of_month",
+          "label": "Day of month",
+          "type": "number"
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Developers > Create > Webhook endpoint: add this URL.",
+      "data_path": "events",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

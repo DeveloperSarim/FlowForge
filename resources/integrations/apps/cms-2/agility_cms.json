@@ -1,0 +1,190 @@
+{
+  "key": "agility_cms",
+  "name": "Agility CMS",
+  "category": "CMS & Websites",
+  "description": "Fetch content items, lists, pages and sitemaps from Agility CMS.",
+  "brand": "agilitycms",
+  "website": "https://agilitycms.com",
+  "docs_url": "https://agilitycms.com/docs/developers/content-fetch-api",
+  "base_url": "https://{{ credentials.host }}/{{ credentials.guid }}/fetch/{{ credentials.locale }}",
+  "auth": [
+    {
+      "type": "api_key",
+      "in": "header",
+      "name": "APIKey",
+      "fields": [
+        {
+          "key": "host",
+          "label": "Region",
+          "type": "select",
+          "required": true,
+          "default": "api.aglty.io",
+          "options": [
+            {
+              "value": "api.aglty.io",
+              "label": "US (GUID ends in -u)"
+            },
+            {
+              "value": "api-ca.aglty.io",
+              "label": "Canada (-c)"
+            },
+            {
+              "value": "api-eu.aglty.io",
+              "label": "Europe (-e)"
+            },
+            {
+              "value": "api-aus.aglty.io",
+              "label": "Australia (-a)"
+            }
+          ]
+        },
+        {
+          "key": "guid",
+          "label": "Instance GUID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "locale",
+          "label": "Locale",
+          "type": "string",
+          "required": true,
+          "default": "en-us"
+        },
+        {
+          "key": "api_key",
+          "label": "Fetch API key",
+          "type": "password",
+          "required": true,
+          "help": "Settings > API Keys > Fetch (live) key."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "get_content_item",
+      "name": "Get content item",
+      "method": "GET",
+      "endpoint": "/item/{{ inputs.content_id }}",
+      "query": {
+        "contentLinkDepth": "{{ inputs.depth }}"
+      },
+      "inputs": [
+        {
+          "key": "content_id",
+          "label": "Content ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "depth",
+          "label": "Linked content depth",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "get_content_list",
+      "name": "Get content list",
+      "method": "GET",
+      "endpoint": "/list/{{ inputs.reference_name }}",
+      "query": {
+        "take": "{{ inputs.take }}",
+        "skip": "{{ inputs.skip }}",
+        "sort": "{{ inputs.sort }}",
+        "direction": "{{ inputs.direction }}",
+        "filter": "{{ inputs.filter }}"
+      },
+      "inputs": [
+        {
+          "key": "reference_name",
+          "label": "List reference name",
+          "type": "string",
+          "required": true,
+          "placeholder": "posts"
+        },
+        {
+          "key": "take",
+          "label": "Take",
+          "type": "number"
+        },
+        {
+          "key": "skip",
+          "label": "Skip",
+          "type": "number"
+        },
+        {
+          "key": "sort",
+          "label": "Sort field",
+          "type": "string",
+          "placeholder": "properties.created"
+        },
+        {
+          "key": "direction",
+          "label": "Direction",
+          "type": "select",
+          "options": [
+            {
+              "value": "asc",
+              "label": "Ascending"
+            },
+            {
+              "value": "desc",
+              "label": "Descending"
+            }
+          ]
+        },
+        {
+          "key": "filter",
+          "label": "Filter",
+          "type": "string",
+          "placeholder": "fields.category[eq]\"news\""
+        }
+      ]
+    },
+    {
+      "key": "get_page",
+      "name": "Get page",
+      "method": "GET",
+      "endpoint": "/page/{{ inputs.page_id }}",
+      "inputs": [
+        {
+          "key": "page_id",
+          "label": "Page ID",
+          "type": "number",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "get_sitemap",
+      "name": "Get sitemap",
+      "method": "GET",
+      "endpoint": "/sitemap/flat/{{ inputs.channel }}",
+      "inputs": [
+        {
+          "key": "channel",
+          "label": "Channel reference name",
+          "type": "string",
+          "required": true,
+          "default": "website"
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

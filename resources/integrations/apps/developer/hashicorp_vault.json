@@ -1,0 +1,67 @@
+{
+  "key": "hashicorp_vault",
+  "name": "HashiCorp Vault",
+  "category": "Developer Tools",
+  "description": "Read, write, list and delete KV v2 secrets.",
+  "brand": "vault",
+  "website": "https://www.hashicorp.com/products/vault",
+  "docs_url": "https://developer.hashicorp.com/vault/api-docs/secret/kv/kv-v2",
+  "base_url": "{{ credentials.base_url }}/v1",
+  "headers": { "X-Vault-Namespace": "{{ credentials.namespace }}" },
+  "auth": { "type": "api_key", "in": "header", "name": "X-Vault-Token", "fields": [
+    { "key": "base_url", "label": "Vault address", "type": "string", "required": true, "placeholder": "https://vault.example.com:8200", "help": "Without a trailing slash." },
+    { "key": "api_key", "label": "Vault token", "type": "password", "required": true },
+    { "key": "namespace", "label": "Namespace", "type": "string", "help": "HCP Vault / Enterprise only, e.g. admin." }
+  ] },
+  "actions": [
+    {
+      "key": "read_secret",
+      "name": "Read secret",
+      "method": "GET",
+      "endpoint": "/{{ inputs.mount }}/data/{{ inputs.path }}",
+      "query": { "version": "{{ inputs.version }}" },
+      "output_path": "data.data",
+      "inputs": [
+        { "key": "mount", "label": "KV mount", "type": "string", "required": true, "default": "secret" },
+        { "key": "path", "label": "Secret path", "type": "string", "required": true, "placeholder": "my-app/config" },
+        { "key": "version", "label": "Version", "type": "number", "help": "Leave empty for the latest." }
+      ]
+    },
+    {
+      "key": "write_secret",
+      "name": "Write secret",
+      "description": "Stores a new version with exactly these keys.",
+      "method": "POST",
+      "endpoint": "/{{ inputs.mount }}/data/{{ inputs.path }}",
+      "output_path": "data",
+      "body": { "data": "{{ inputs.data }}" },
+      "inputs": [
+        { "key": "mount", "label": "KV mount", "type": "string", "required": true, "default": "secret" },
+        { "key": "path", "label": "Secret path", "type": "string", "required": true },
+        { "key": "data", "label": "Key / value pairs", "type": "keyvalue", "required": true }
+      ]
+    },
+    {
+      "key": "list_secrets",
+      "name": "List secrets",
+      "method": "GET",
+      "endpoint": "/{{ inputs.mount }}/metadata/{{ inputs.path }}",
+      "query": { "list": "true" },
+      "output_path": "data.keys",
+      "inputs": [
+        { "key": "mount", "label": "KV mount", "type": "string", "required": true, "default": "secret" },
+        { "key": "path", "label": "Folder path", "type": "string", "help": "Leave empty for the mount root." }
+      ]
+    },
+    {
+      "key": "delete_secret",
+      "name": "Delete latest version",
+      "method": "DELETE",
+      "endpoint": "/{{ inputs.mount }}/data/{{ inputs.path }}",
+      "inputs": [
+        { "key": "mount", "label": "KV mount", "type": "string", "required": true, "default": "secret" },
+        { "key": "path", "label": "Secret path", "type": "string", "required": true }
+      ]
+    }
+  ]
+}

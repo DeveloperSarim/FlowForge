@@ -1,0 +1,54 @@
+{
+  "key": "sentry-to-linear",
+  "name": "Turn Sentry errors into Linear issues",
+  "description": "Each new Sentry issue becomes a Linear issue with a link back.",
+  "category": "Engineering",
+  "featured": false,
+  "graph": {
+    "nodes": [
+      {
+        "id": "trigger",
+        "type": "trigger",
+        "position": {
+          "x": 0,
+          "y": 200
+        },
+        "data": {
+          "integration": "sentry",
+          "trigger": "new_issue",
+          "label": "New issue",
+          "config": {
+            "organization": "",
+            "poll_interval": 5
+          }
+        }
+      },
+      {
+        "id": "step_1",
+        "type": "action",
+        "position": {
+          "x": 240,
+          "y": 200
+        },
+        "data": {
+          "integration": "linear",
+          "action": "create_issue",
+          "label": "Create Linear issue",
+          "config": {
+            "team_id": "",
+            "title": "[Sentry] {{ steps.trigger.data.title }}",
+            "description": "{{ steps.trigger.data.permalink }}"
+          }
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "e-trigger-step_1",
+        "source": "trigger",
+        "target": "step_1",
+        "sourceHandle": null
+      }
+    ]
+  }
+}

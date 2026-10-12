@@ -1,0 +1,77 @@
+{
+  "key": "ai-blog-draft-wordpress",
+  "name": "Draft a weekly blog post with AI in WordPress",
+  "description": "Every Monday Claude writes a draft from your topic list; it lands in WordPress as a draft for you to edit.",
+  "category": "AI",
+  "featured": true,
+  "graph": {
+    "nodes": [
+      {
+        "id": "trigger",
+        "type": "trigger",
+        "position": {
+          "x": 0,
+          "y": 200
+        },
+        "data": {
+          "integration": "schedule",
+          "trigger": "cron",
+          "label": "Mondays at 8:00",
+          "config": {
+            "cron": "0 8 * * 1"
+          }
+        }
+      },
+      {
+        "id": "step_1",
+        "type": "action",
+        "position": {
+          "x": 240,
+          "y": 200
+        },
+        "data": {
+          "integration": "anthropic",
+          "action": "create_message",
+          "label": "Write the draft",
+          "config": {
+            "model": "claude-opus-5-5",
+            "system": "You write clear, practical blog posts in HTML (h2, p, ul). No fluff.",
+            "prompt": "Write a 600-word post for small business owners about saving time with automation."
+          }
+        }
+      },
+      {
+        "id": "step_2",
+        "type": "action",
+        "position": {
+          "x": 480,
+          "y": 200
+        },
+        "data": {
+          "integration": "wordpress",
+          "action": "create_post",
+          "label": "Create draft",
+          "config": {
+            "title": "Weekly post {{ now }}",
+            "status": "draft",
+            "content": "{{ steps.step_1.text }}"
+          }
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "e-trigger-step_1",
+        "source": "trigger",
+        "target": "step_1",
+        "sourceHandle": null
+      },
+      {
+        "id": "e-step_1-step_2",
+        "source": "step_1",
+        "target": "step_2",
+        "sourceHandle": null
+      }
+    ]
+  }
+}

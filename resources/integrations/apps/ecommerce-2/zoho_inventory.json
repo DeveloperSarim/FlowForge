@@ -1,0 +1,257 @@
+{
+  "key": "zoho_inventory",
+  "name": "Zoho Inventory",
+  "category": "E-commerce",
+  "description": "Create items and sales orders and list contacts in Zoho Inventory.",
+  "brand": "zoho",
+  "website": "https://www.zoho.com/inventory/",
+  "docs_url": "https://www.zoho.com/inventory/api/v1/introduction/",
+  "base_url": "https://www.zohoapis.{{ credentials.data_center }}/inventory/v1",
+  "auth": [
+    {
+      "type": "oauth2",
+      "authorize_url": "https://accounts.zoho.{{ credentials.data_center }}/oauth/v2/auth",
+      "token_url": "https://accounts.zoho.{{ credentials.data_center }}/oauth/v2/token",
+      "scopes": [
+        "ZohoInventory.fullaccess.all"
+      ],
+      "scope_separator": ",",
+      "authorize_params": {
+        "access_type": "offline",
+        "prompt": "consent"
+      },
+      "fields": [
+        {
+          "key": "organization_id",
+          "label": "Organization ID",
+          "type": "string",
+          "required": true,
+          "help": "Zoho Inventory > Settings > Organization profile."
+        },
+        {
+          "key": "data_center",
+          "label": "Data center",
+          "type": "select",
+          "required": true,
+          "options": [
+            {
+              "value": "com",
+              "label": "US (.com)"
+            },
+            {
+              "value": "eu",
+              "label": "EU (.eu)"
+            },
+            {
+              "value": "in",
+              "label": "India (.in)"
+            },
+            {
+              "value": "com.au",
+              "label": "Australia (.com.au)"
+            },
+            {
+              "value": "jp",
+              "label": "Japan (.jp)"
+            },
+            {
+              "value": "ca",
+              "label": "Canada (.ca)"
+            },
+            {
+              "value": "sa",
+              "label": "Saudi Arabia (.sa)"
+            }
+          ],
+          "default": "com"
+        }
+      ],
+      "token_type": "Zoho-oauthtoken"
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_items",
+      "name": "List items",
+      "method": "GET",
+      "endpoint": "/items",
+      "query": {
+        "organization_id": "{{ credentials.organization_id }}",
+        "search_text": "{{ inputs.search_text }}",
+        "sku": "{{ inputs.sku }}"
+      },
+      "output_path": "items",
+      "inputs": [
+        {
+          "key": "search_text",
+          "label": "Search",
+          "type": "string"
+        },
+        {
+          "key": "sku",
+          "label": "SKU",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "create_item",
+      "name": "Create item",
+      "method": "POST",
+      "endpoint": "/items",
+      "query": {
+        "organization_id": "{{ credentials.organization_id }}"
+      },
+      "body": {
+        "name": "{{ inputs.name }}",
+        "sku": "{{ inputs.sku }}",
+        "rate": "{{ inputs.rate }}",
+        "purchase_rate": "{{ inputs.purchase_rate }}",
+        "unit": "{{ inputs.unit }}",
+        "description": "{{ inputs.description }}"
+      },
+      "output_path": "item",
+      "inputs": [
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "sku",
+          "label": "SKU",
+          "type": "string"
+        },
+        {
+          "key": "rate",
+          "label": "Selling price",
+          "type": "number"
+        },
+        {
+          "key": "purchase_rate",
+          "label": "Purchase price",
+          "type": "number"
+        },
+        {
+          "key": "unit",
+          "label": "Unit",
+          "type": "string",
+          "placeholder": "pcs"
+        },
+        {
+          "key": "description",
+          "label": "Description",
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "key": "list_sales_orders",
+      "name": "List sales orders",
+      "method": "GET",
+      "endpoint": "/salesorders",
+      "query": {
+        "organization_id": "{{ credentials.organization_id }}",
+        "customer_id": "{{ inputs.customer_id }}",
+        "search_text": "{{ inputs.search_text }}",
+        "sort_column": "created_time",
+        "sort_order": "D"
+      },
+      "output_path": "salesorders",
+      "inputs": [
+        {
+          "key": "customer_id",
+          "label": "Customer ID",
+          "type": "string"
+        },
+        {
+          "key": "search_text",
+          "label": "Search",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "create_sales_order",
+      "name": "Create sales order",
+      "method": "POST",
+      "endpoint": "/salesorders",
+      "query": {
+        "organization_id": "{{ credentials.organization_id }}"
+      },
+      "body": {
+        "customer_id": "{{ inputs.customer_id }}",
+        "date": "{{ inputs.date }}",
+        "reference_number": "{{ inputs.reference_number }}",
+        "line_items": "{{ inputs.line_items }}",
+        "notes": "{{ inputs.notes }}"
+      },
+      "output_path": "salesorder",
+      "inputs": [
+        {
+          "key": "customer_id",
+          "label": "Customer ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "date",
+          "label": "Date",
+          "type": "string",
+          "placeholder": "2026-01-31"
+        },
+        {
+          "key": "reference_number",
+          "label": "Reference",
+          "type": "string"
+        },
+        {
+          "key": "line_items",
+          "label": "Line items",
+          "type": "json",
+          "required": true,
+          "placeholder": "[{\"item_id\": \"4815000000044100\", \"quantity\": 2, \"rate\": 19.99}]"
+        },
+        {
+          "key": "notes",
+          "label": "Notes",
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "key": "list_contacts",
+      "name": "List contacts",
+      "method": "GET",
+      "endpoint": "/contacts",
+      "query": {
+        "organization_id": "{{ credentials.organization_id }}",
+        "search_text": "{{ inputs.search_text }}"
+      },
+      "output_path": "contacts",
+      "inputs": [
+        {
+          "key": "search_text",
+          "label": "Search",
+          "type": "string"
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Zoho Inventory > Settings > Automation > Webhooks: create a webhook with this URL.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

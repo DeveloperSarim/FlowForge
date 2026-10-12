@@ -1,0 +1,122 @@
+{
+  "key": "llamaparse",
+  "name": "LlamaParse (LlamaCloud)",
+  "category": "AI",
+  "description": "Parse PDFs and documents into Markdown with LlamaParse.",
+  "brand": "llamaindex",
+  "website": "https://www.llamaindex.ai/llamaparse",
+  "docs_url": "https://developers.llamaindex.ai/python/cloud/llamaparse/api-v2-guide",
+  "base_url": "https://{{ credentials.host }}/api/v2",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "host",
+        "label": "Region",
+        "type": "select",
+        "required": true,
+        "default": "api.cloud.llamaindex.ai",
+        "options": [
+          {
+            "value": "api.cloud.llamaindex.ai",
+            "label": "North America"
+          },
+          {
+            "value": "api.cloud.eu.llamaindex.ai",
+            "label": "Europe"
+          }
+        ]
+      },
+      {
+        "key": "token",
+        "label": "API key",
+        "type": "password",
+        "required": true
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "parse_document",
+      "name": "Parse document from URL",
+      "description": "Starts a parse job; pass {{ steps.<id>.id }} to Get parse result.",
+      "method": "POST",
+      "endpoint": "/parse",
+      "body": {
+        "source_url": "{{ inputs.source_url }}",
+        "tier": "{{ inputs.tier }}",
+        "version": "latest"
+      },
+      "inputs": [
+        {
+          "key": "source_url",
+          "label": "Document URL",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "tier",
+          "label": "Tier",
+          "type": "select",
+          "required": true,
+          "default": "cost_effective",
+          "options": [
+            {
+              "value": "fast",
+              "label": "Fast"
+            },
+            {
+              "value": "cost_effective",
+              "label": "Cost effective"
+            },
+            {
+              "value": "agentic",
+              "label": "Agentic"
+            },
+            {
+              "value": "agentic_plus",
+              "label": "Agentic plus"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "get_parse_result",
+      "name": "Get parse result",
+      "method": "GET",
+      "endpoint": "/parse/{{ inputs.job_id }}",
+      "query": {
+        "expand": "{{ inputs.expand }}"
+      },
+      "output_fields": {
+        "status": "job.status"
+      },
+      "inputs": [
+        {
+          "key": "job_id",
+          "label": "Job ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "expand",
+          "label": "Include",
+          "type": "select",
+          "required": true,
+          "default": "markdown_full",
+          "options": [
+            {
+              "value": "markdown_full",
+              "label": "Full Markdown"
+            },
+            {
+              "value": "markdown",
+              "label": "Markdown per page"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

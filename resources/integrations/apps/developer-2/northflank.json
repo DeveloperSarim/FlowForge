@@ -1,0 +1,85 @@
+{
+  "key": "northflank",
+  "name": "Northflank",
+  "category": "Developer Tools",
+  "description": "Start builds, restart and scale services and run jobs.",
+  "brand": "northflank",
+  "website": "https://northflank.com",
+  "docs_url": "https://northflank.com/docs/v1/api/introduction",
+  "base_url": "https://api.northflank.com/v1",
+  "auth": { "type": "bearer", "fields": [{ "key": "token", "label": "API token", "type": "password", "required": true, "help": "Team settings → API → Tokens." }] },
+  "actions": [
+    {
+      "key": "list_projects",
+      "name": "List projects",
+      "method": "GET",
+      "endpoint": "/projects",
+      "output_path": "data",
+      "inputs": []
+    },
+    {
+      "key": "list_services",
+      "name": "List services",
+      "method": "GET",
+      "endpoint": "/projects/{{ inputs.project_id }}/services",
+      "output_path": "data",
+      "inputs": [{ "key": "project_id", "label": "Project ID", "type": "string", "required": true }]
+    },
+    {
+      "key": "get_service",
+      "name": "Get service",
+      "method": "GET",
+      "endpoint": "/projects/{{ inputs.project_id }}/services/{{ inputs.service_id }}",
+      "output_path": "data",
+      "inputs": [
+        { "key": "project_id", "label": "Project ID", "type": "string", "required": true },
+        { "key": "service_id", "label": "Service ID", "type": "string", "required": true }
+      ]
+    },
+    {
+      "key": "start_build",
+      "name": "Start service build",
+      "method": "POST",
+      "endpoint": "/projects/{{ inputs.project_id }}/services/{{ inputs.service_id }}/build",
+      "body": { "sha": "{{ inputs.sha }}", "branch": "{{ inputs.branch }}" },
+      "inputs": [
+        { "key": "project_id", "label": "Project ID", "type": "string", "required": true },
+        { "key": "service_id", "label": "Service ID", "type": "string", "required": true },
+        { "key": "sha", "label": "Commit SHA", "type": "string" },
+        { "key": "branch", "label": "Branch", "type": "string" }
+      ]
+    },
+    {
+      "key": "restart_service",
+      "name": "Restart service",
+      "method": "POST",
+      "endpoint": "/projects/{{ inputs.project_id }}/services/{{ inputs.service_id }}/restart",
+      "inputs": [
+        { "key": "project_id", "label": "Project ID", "type": "string", "required": true },
+        { "key": "service_id", "label": "Service ID", "type": "string", "required": true }
+      ]
+    },
+    {
+      "key": "scale_service",
+      "name": "Scale service",
+      "method": "POST",
+      "endpoint": "/projects/{{ inputs.project_id }}/services/{{ inputs.service_id }}/scale",
+      "body": { "instances": "{{ inputs.instances }}" },
+      "inputs": [
+        { "key": "project_id", "label": "Project ID", "type": "string", "required": true },
+        { "key": "service_id", "label": "Service ID", "type": "string", "required": true },
+        { "key": "instances", "label": "Instances", "type": "number", "required": true }
+      ]
+    },
+    {
+      "key": "run_job",
+      "name": "Run job",
+      "method": "POST",
+      "endpoint": "/projects/{{ inputs.project_id }}/jobs/{{ inputs.job_id }}/runs",
+      "inputs": [
+        { "key": "project_id", "label": "Project ID", "type": "string", "required": true },
+        { "key": "job_id", "label": "Job ID", "type": "string", "required": true }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,134 @@
+{
+  "key": "turbopuffer",
+  "name": "turbopuffer",
+  "category": "AI",
+  "description": "Write rows to and query turbopuffer vector and full-text namespaces.",
+  "brand": "turbopuffer",
+  "website": "https://turbopuffer.com",
+  "docs_url": "https://turbopuffer.com/docs/query",
+  "base_url": "https://{{ credentials.region }}.turbopuffer.com",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "region",
+        "label": "Region",
+        "type": "string",
+        "required": true,
+        "default": "gcp-us-central1",
+        "help": "The region your namespaces live in, e.g. aws-us-east-1."
+      },
+      {
+        "key": "token",
+        "label": "API key",
+        "type": "password",
+        "required": true
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "query",
+      "name": "Query namespace",
+      "method": "POST",
+      "endpoint": "/v2/namespaces/{{ inputs.namespace }}/query",
+      "body": {
+        "rank_by": "{{ inputs.rank_by }}",
+        "top_k": "{{ inputs.top_k }}",
+        "filters": "{{ inputs.filters }}",
+        "include_attributes": "{{ inputs.include_attributes }}"
+      },
+      "output_path": "rows",
+      "inputs": [
+        {
+          "key": "namespace",
+          "label": "Namespace",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "rank_by",
+          "label": "Rank by (JSON)",
+          "type": "json",
+          "required": true,
+          "placeholder": "[\"vector\", \"ANN\", [0.1, 0.2, 0.3]]",
+          "help": "Vector search: [\"vector\", \"ANN\", [...]]. Full-text: [\"text\", \"BM25\", \"query\"]."
+        },
+        {
+          "key": "top_k",
+          "label": "Top K",
+          "type": "number",
+          "default": 10
+        },
+        {
+          "key": "filters",
+          "label": "Filters (JSON)",
+          "type": "json",
+          "placeholder": "[\"category\", \"Eq\", \"news\"]"
+        },
+        {
+          "key": "include_attributes",
+          "label": "Attributes to return",
+          "type": "list"
+        }
+      ]
+    },
+    {
+      "key": "upsert_rows",
+      "name": "Upsert rows",
+      "method": "POST",
+      "endpoint": "/v2/namespaces/{{ inputs.namespace }}",
+      "body": {
+        "upsert_rows": "{{ inputs.rows }}",
+        "distance_metric": "{{ inputs.distance_metric }}"
+      },
+      "inputs": [
+        {
+          "key": "namespace",
+          "label": "Namespace",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "rows",
+          "label": "Rows (JSON array)",
+          "type": "json",
+          "required": true,
+          "placeholder": "[{\"id\": 1, \"vector\": [0.1, 0.2, 0.3], \"text\": \"hello\"}]"
+        },
+        {
+          "key": "distance_metric",
+          "label": "Distance metric",
+          "type": "select",
+          "options": [
+            {
+              "value": "cosine_distance",
+              "label": "Cosine"
+            },
+            {
+              "value": "euclidean_squared",
+              "label": "Euclidean squared"
+            }
+          ],
+          "help": "Required when rows contain vectors."
+        }
+      ]
+    },
+    {
+      "key": "list_namespaces",
+      "name": "List namespaces",
+      "method": "GET",
+      "endpoint": "/v1/namespaces",
+      "query": {
+        "prefix": "{{ inputs.prefix }}"
+      },
+      "inputs": [
+        {
+          "key": "prefix",
+          "label": "Prefix",
+          "type": "string"
+        }
+      ]
+    }
+  ]
+}

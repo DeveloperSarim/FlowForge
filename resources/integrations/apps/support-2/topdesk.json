@@ -1,0 +1,69 @@
+{
+  "key": "topdesk",
+  "name": "TOPdesk",
+  "category": "Customer Support",
+  "description": "Register incidents, add progress updates and look up incidents in TOPdesk.",
+  "brand": "topdesk",
+  "website": "https://www.topdesk.com",
+  "docs_url": "https://developers.topdesk.com/",
+  "base_url": "{{ credentials.base_url }}/tas/api",
+  "auth": {
+    "type": "basic",
+    "fields": [
+      { "key": "base_url", "label": "TOPdesk URL", "type": "string", "required": true, "placeholder": "https://yourcompany.topdesk.net", "help": "Without a trailing slash" },
+      { "key": "username", "label": "Operator login name", "type": "string", "required": true },
+      { "key": "password", "label": "Application password", "type": "password", "required": true, "help": "Created in your operator settings (not your login password)" }
+    ]
+  },
+  "actions": [
+    {
+      "key": "create_incident",
+      "name": "Create incident",
+      "method": "POST",
+      "endpoint": "/incidents",
+      "body": {
+        "briefDescription": "{{ inputs.brief_description }}",
+        "request": "{{ inputs.request }}",
+        "callerLookup": { "email": "{{ inputs.caller_email }}" },
+        "...": "{{ inputs.extra }}"
+      },
+      "inputs": [
+        { "key": "brief_description", "label": "Brief description", "type": "string", "required": true, "help": "Max 80 characters" },
+        { "key": "request", "label": "Request", "type": "text" },
+        { "key": "caller_email", "label": "Caller email", "type": "string", "help": "Links a registered caller by email" },
+        { "key": "extra", "label": "Other fields", "type": "json", "placeholder": "{\"operatorGroup\": {\"id\": \"<id>\"}}" }
+      ]
+    },
+    {
+      "key": "update_incident",
+      "name": "Update incident",
+      "description": "Text in Action is added to the progress trail.",
+      "method": "PUT",
+      "endpoint": "/incidents/number/{{ inputs.number }}",
+      "body": { "action": "{{ inputs.action }}", "...": "{{ inputs.extra }}" },
+      "inputs": [
+        { "key": "number", "label": "Incident number", "type": "string", "required": true, "placeholder": "I 2601 001" },
+        { "key": "action", "label": "Action (progress entry)", "type": "text" },
+        { "key": "extra", "label": "Other fields", "type": "json" }
+      ]
+    },
+    {
+      "key": "get_incident",
+      "name": "Get incident",
+      "method": "GET",
+      "endpoint": "/incidents/number/{{ inputs.number }}",
+      "inputs": [{ "key": "number", "label": "Incident number", "type": "string", "required": true, "placeholder": "I 2601 001" }]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_incident",
+      "name": "New incident",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/incidents",
+      "id_field": "id",
+      "inputs": [{ "key": "poll_interval", "label": "Check every (minutes)", "type": "number", "default": 5 }]
+    }
+  ]
+}

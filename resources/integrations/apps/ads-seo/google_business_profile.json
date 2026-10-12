@@ -1,0 +1,116 @@
+{
+  "key": "google_business_profile",
+  "name": "Google Business Profile",
+  "category": "Ads & SEO",
+  "description": "List locations, read and reply to reviews, and publish posts.",
+  "brand": "googlemybusiness",
+  "website": "https://business.google.com",
+  "docs_url": "https://developers.google.com/my-business",
+  "popular": true,
+  "base_url": "https://mybusiness.googleapis.com",
+  "auth": [
+    {
+      "type": "oauth2",
+      "authorize_url": "https://accounts.google.com/o/oauth2/v2/auth",
+      "token_url": "https://oauth2.googleapis.com/token",
+      "scopes": ["https://www.googleapis.com/auth/business.manage"],
+      "authorize_params": { "access_type": "offline", "prompt": "consent" }
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_accounts",
+      "name": "List accounts",
+      "method": "GET",
+      "endpoint": "https://mybusinessaccountmanagement.googleapis.com/v1/accounts",
+      "output_path": "accounts",
+      "inputs": []
+    },
+    {
+      "key": "list_locations",
+      "name": "List locations",
+      "method": "GET",
+      "endpoint": "https://mybusinessbusinessinformation.googleapis.com/v1/accounts/{{ inputs.account_id }}/locations",
+      "query": { "readMask": "{{ inputs.read_mask }}", "pageSize": "{{ inputs.page_size }}" },
+      "output_path": "locations",
+      "inputs": [
+        { "key": "account_id", "label": "Account ID", "type": "string", "required": true, "help": "Digits after accounts/ in the account name." },
+        { "key": "read_mask", "label": "Fields", "type": "string", "required": true, "default": "name,title,storefrontAddress,phoneNumbers,websiteUri" },
+        { "key": "page_size", "label": "Page size (max 100)", "type": "number", "default": 100 }
+      ]
+    },
+    {
+      "key": "list_reviews",
+      "name": "List reviews",
+      "method": "GET",
+      "endpoint": "/v4/accounts/{{ inputs.account_id }}/locations/{{ inputs.location_id }}/reviews",
+      "query": { "pageSize": "{{ inputs.page_size }}", "orderBy": "{{ inputs.order_by }}" },
+      "output_path": "reviews",
+      "inputs": [
+        { "key": "account_id", "label": "Account ID", "type": "string", "required": true },
+        { "key": "location_id", "label": "Location ID", "type": "string", "required": true, "help": "Digits after locations/ in the location name." },
+        { "key": "page_size", "label": "Page size (max 50)", "type": "number", "default": 50 },
+        { "key": "order_by", "label": "Order", "type": "select", "default": "updateTime desc", "options": [
+          { "value": "updateTime desc", "label": "Newest first" }, { "value": "rating", "label": "Lowest rating first" }, { "value": "rating desc", "label": "Highest rating first" }
+        ] }
+      ]
+    },
+    {
+      "key": "reply_to_review",
+      "name": "Reply to review",
+      "description": "Creates or updates the owner reply.",
+      "method": "PUT",
+      "endpoint": "/v4/accounts/{{ inputs.account_id }}/locations/{{ inputs.location_id }}/reviews/{{ inputs.review_id }}/reply",
+      "body": { "comment": "{{ inputs.comment }}" },
+      "inputs": [
+        { "key": "account_id", "label": "Account ID", "type": "string", "required": true },
+        { "key": "location_id", "label": "Location ID", "type": "string", "required": true },
+        { "key": "review_id", "label": "Review ID", "type": "string", "required": true },
+        { "key": "comment", "label": "Reply", "type": "text", "required": true }
+      ]
+    },
+    {
+      "key": "create_post",
+      "name": "Create post",
+      "description": "Publishes an update post on the location's profile.",
+      "method": "POST",
+      "endpoint": "/v4/accounts/{{ inputs.account_id }}/locations/{{ inputs.location_id }}/localPosts",
+      "body": {
+        "languageCode": "{{ inputs.language_code }}",
+        "summary": "{{ inputs.summary }}",
+        "topicType": "STANDARD",
+        "callToAction": { "actionType": "{{ inputs.action_type }}", "url": "{{ inputs.action_url }}" },
+        "media": "{{ inputs.media }}"
+      },
+      "inputs": [
+        { "key": "account_id", "label": "Account ID", "type": "string", "required": true },
+        { "key": "location_id", "label": "Location ID", "type": "string", "required": true },
+        { "key": "summary", "label": "Text", "type": "text", "required": true },
+        { "key": "language_code", "label": "Language", "type": "string", "default": "en" },
+        { "key": "action_type", "label": "Button", "type": "select", "options": [
+          { "value": "LEARN_MORE", "label": "Learn more" }, { "value": "BOOK", "label": "Book" }, { "value": "ORDER", "label": "Order online" },
+          { "value": "SHOP", "label": "Buy" }, { "value": "SIGN_UP", "label": "Sign up" }, { "value": "CALL", "label": "Call now" }
+        ] },
+        { "key": "action_url", "label": "Button URL", "type": "string", "help": "Not used for Call now." },
+        { "key": "media", "label": "Media", "type": "json", "placeholder": "[{ \"mediaFormat\": \"PHOTO\", \"sourceUrl\": \"https://example.com/photo.jpg\" }]" }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_review",
+      "name": "New or updated review",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/v4/accounts/{{ inputs.account_id }}/locations/{{ inputs.location_id }}/reviews",
+      "query": { "pageSize": 50, "orderBy": "updateTime desc" },
+      "items_path": "reviews",
+      "id_field": "reviewId",
+      "inputs": [
+        { "key": "account_id", "label": "Account ID", "type": "string", "required": true },
+        { "key": "location_id", "label": "Location ID", "type": "string", "required": true },
+        { "key": "poll_interval", "label": "Check every (minutes)", "type": "number", "default": 15 }
+      ]
+    }
+  ]
+}

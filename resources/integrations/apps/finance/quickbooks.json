@@ -1,0 +1,228 @@
+{
+  "key": "quickbooks",
+  "name": "QuickBooks Online",
+  "category": "Payments & Finance",
+  "description": "Create customers and invoices and run queries in QuickBooks Online.",
+  "brand": "quickbooks",
+  "website": "https://quickbooks.intuit.com",
+  "docs_url": "https://developer.intuit.com/app/developer/qbo/docs/api/accounting/all-entities/account",
+  "popular": true,
+  "base_url": "https://{{ credentials.environment }}/v3/company/{{ credentials.realm_id }}",
+  "auth": [
+    {
+      "type": "oauth2",
+      "authorize_url": "https://appcenter.intuit.com/connect/oauth2",
+      "token_url": "https://oauth.platform.intuit.com/oauth2/v1/tokens/bearer",
+      "client_auth": "basic",
+      "scopes": [
+        "com.intuit.quickbooks.accounting"
+      ],
+      "fields": [
+        {
+          "key": "realm_id",
+          "label": "Company ID (realm ID)",
+          "type": "string",
+          "required": true,
+          "help": "Shown as realmId after connecting, or in QuickBooks under Settings > Account and settings > Billing & subscription."
+        },
+        {
+          "key": "environment",
+          "label": "Environment",
+          "type": "select",
+          "required": true,
+          "default": "quickbooks.api.intuit.com",
+          "options": [
+            {
+              "value": "quickbooks.api.intuit.com",
+              "label": "Production"
+            },
+            {
+              "value": "sandbox-quickbooks.api.intuit.com",
+              "label": "Sandbox"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "create_customer",
+      "name": "Create customer",
+      "method": "POST",
+      "endpoint": "/customer",
+      "output_path": "Customer",
+      "body": {
+        "DisplayName": "{{ inputs.display_name }}",
+        "GivenName": "{{ inputs.given_name }}",
+        "FamilyName": "{{ inputs.family_name }}",
+        "CompanyName": "{{ inputs.company }}",
+        "PrimaryEmailAddr": {
+          "Address": "{{ inputs.email }}"
+        },
+        "PrimaryPhone": {
+          "FreeFormNumber": "{{ inputs.phone }}"
+        }
+      },
+      "inputs": [
+        {
+          "key": "display_name",
+          "label": "Display name",
+          "type": "string",
+          "required": true,
+          "help": "Must be unique across customers, vendors and employees."
+        },
+        {
+          "key": "given_name",
+          "label": "First name",
+          "type": "string"
+        },
+        {
+          "key": "family_name",
+          "label": "Last name",
+          "type": "string"
+        },
+        {
+          "key": "company",
+          "label": "Company",
+          "type": "string"
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string"
+        },
+        {
+          "key": "phone",
+          "label": "Phone",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "create_invoice",
+      "name": "Create invoice",
+      "method": "POST",
+      "endpoint": "/invoice",
+      "output_path": "Invoice",
+      "body": {
+        "CustomerRef": {
+          "value": "{{ inputs.customer_id }}"
+        },
+        "Line": "{{ inputs.lines }}",
+        "DueDate": "{{ inputs.due_date }}",
+        "BillEmail": {
+          "Address": "{{ inputs.email }}"
+        },
+        "DocNumber": "{{ inputs.doc_number }}"
+      },
+      "inputs": [
+        {
+          "key": "customer_id",
+          "label": "Customer ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "lines",
+          "label": "Lines",
+          "type": "json",
+          "required": true,
+          "placeholder": "[{\"Amount\": 100.0, \"DetailType\": \"SalesItemLineDetail\", \"SalesItemLineDetail\": {\"ItemRef\": {\"value\": \"1\"}}}]"
+        },
+        {
+          "key": "due_date",
+          "label": "Due date",
+          "type": "string",
+          "placeholder": "2025-12-31"
+        },
+        {
+          "key": "email",
+          "label": "Bill email",
+          "type": "string"
+        },
+        {
+          "key": "doc_number",
+          "label": "Invoice number",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "get_invoice",
+      "name": "Get invoice",
+      "method": "GET",
+      "endpoint": "/invoice/{{ inputs.invoice_id }}",
+      "output_path": "Invoice",
+      "inputs": [
+        {
+          "key": "invoice_id",
+          "label": "Invoice ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "query",
+      "name": "Run query",
+      "method": "GET",
+      "endpoint": "/query",
+      "output_path": "QueryResponse",
+      "query": {
+        "query": "{{ inputs.query }}"
+      },
+      "inputs": [
+        {
+          "key": "query",
+          "label": "Query",
+          "type": "text",
+          "required": true,
+          "placeholder": "select * from Customer where PrimaryEmailAddr = 'jane@example.com'"
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_invoice",
+      "name": "New invoice",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/query",
+      "query": {
+        "query": "select * from Invoice ORDERBY MetaData.CreateTime DESC MAXRESULTS 50"
+      },
+      "items_path": "QueryResponse.Invoice",
+      "id_field": "Id",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    },
+    {
+      "key": "new_customer",
+      "name": "New customer",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/query",
+      "query": {
+        "query": "select * from Customer ORDERBY MetaData.CreateTime DESC MAXRESULTS 50"
+      },
+      "items_path": "QueryResponse.Customer",
+      "id_field": "Id",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

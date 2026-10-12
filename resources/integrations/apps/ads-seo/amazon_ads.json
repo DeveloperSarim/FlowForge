@@ -1,0 +1,103 @@
+{
+  "key": "amazon_ads",
+  "name": "Amazon Ads",
+  "category": "Ads & SEO",
+  "description": "List profiles and Sponsored Products campaigns and request async performance reports.",
+  "brand": "amazon",
+  "website": "https://advertising.amazon.com",
+  "docs_url": "https://advertising.amazon.com/API/docs/en-us",
+  "base_url": "https://{{ credentials.api_host }}",
+  "headers": { "Amazon-Advertising-API-ClientId": "{{ credentials.client_id }}" },
+  "auth": {
+    "type": "oauth2",
+    "authorize_url": "https://{{ credentials.auth_host }}/ap/oa",
+    "token_url": "https://{{ credentials.token_host }}/auth/o2/token",
+    "scopes": ["advertising::campaign_management"],
+    "fields": [
+      { "key": "client_id", "label": "Login with Amazon client ID", "type": "string", "required": true },
+      { "key": "client_secret", "label": "Login with Amazon client secret", "type": "password", "required": true },
+      { "key": "api_host", "label": "API host", "type": "string", "required": true, "default": "advertising-api.amazon.com",
+        "help": "North America: advertising-api.amazon.com, Europe: advertising-api-eu.amazon.com, Far East: advertising-api-fe.amazon.com." },
+      { "key": "auth_host", "label": "Login host", "type": "string", "required": true, "default": "www.amazon.com",
+        "help": "North America: www.amazon.com, Europe: eu.account.amazon.com, Far East: apac.account.amazon.com." },
+      { "key": "token_host", "label": "Token host", "type": "string", "required": true, "default": "api.amazon.com",
+        "help": "North America: api.amazon.com, Europe: api.amazon.co.uk, Far East: api.amazon.co.jp." }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_profiles",
+      "name": "List profiles",
+      "description": "Advertising profiles (one per marketplace/account); their profileId is the scope for other calls.",
+      "method": "GET",
+      "endpoint": "/v2/profiles",
+      "inputs": []
+    },
+    {
+      "key": "list_sp_campaigns",
+      "name": "List Sponsored Products campaigns",
+      "method": "POST",
+      "endpoint": "/sp/campaigns/list",
+      "headers": {
+        "Amazon-Advertising-API-Scope": "{{ inputs.profile_id }}",
+        "Content-Type": "application/vnd.spCampaign.v3+json",
+        "Accept": "application/vnd.spCampaign.v3+json"
+      },
+      "body": { "stateFilter": { "include": "{{ inputs.states }}" }, "maxResults": "{{ inputs.max_results }}", "nextToken": "{{ inputs.next_token }}" },
+      "output_path": "campaigns",
+      "inputs": [
+        { "key": "profile_id", "label": "Profile ID", "type": "string", "required": true },
+        { "key": "states", "label": "States", "type": "list", "placeholder": "ENABLED", "help": "Any of ENABLED, PAUSED, ARCHIVED. Empty = all." },
+        { "key": "max_results", "label": "Max results", "type": "number", "default": 100 },
+        { "key": "next_token", "label": "Next token", "type": "string" }
+      ]
+    },
+    {
+      "key": "create_report",
+      "name": "Request report",
+      "description": "Starts an async v3 report; poll it with Get report until COMPLETED.",
+      "method": "POST",
+      "endpoint": "/reporting/reports",
+      "headers": {
+        "Amazon-Advertising-API-Scope": "{{ inputs.profile_id }}",
+        "Content-Type": "application/vnd.createasyncreportrequest.v3+json"
+      },
+      "body": {
+        "name": "{{ inputs.name }}",
+        "startDate": "{{ inputs.start_date }}",
+        "endDate": "{{ inputs.end_date }}",
+        "configuration": {
+          "adProduct": "SPONSORED_PRODUCTS",
+          "reportTypeId": "spCampaigns",
+          "groupBy": ["campaign"],
+          "columns": "{{ inputs.columns }}",
+          "timeUnit": "{{ inputs.time_unit }}",
+          "format": "GZIP_JSON"
+        }
+      },
+      "inputs": [
+        { "key": "profile_id", "label": "Profile ID", "type": "string", "required": true },
+        { "key": "name", "label": "Report name", "type": "string" },
+        { "key": "start_date", "label": "Start date (YYYY-MM-DD)", "type": "string", "required": true },
+        { "key": "end_date", "label": "End date (YYYY-MM-DD)", "type": "string", "required": true },
+        { "key": "time_unit", "label": "Time unit", "type": "select", "required": true, "default": "SUMMARY", "options": [
+          { "value": "SUMMARY", "label": "Summary" }, { "value": "DAILY", "label": "Daily" }
+        ] },
+        { "key": "columns", "label": "Columns", "type": "list", "required": true, "placeholder": "campaignName",
+          "help": "e.g. campaignId, campaignName, impressions, clicks, cost, purchases7d, sales7d. Daily reports must include date." }
+      ]
+    },
+    {
+      "key": "get_report",
+      "name": "Get report",
+      "description": "Report status; when COMPLETED, url points at the gzipped JSON file.",
+      "method": "GET",
+      "endpoint": "/reporting/reports/{{ inputs.report_id }}",
+      "headers": { "Amazon-Advertising-API-Scope": "{{ inputs.profile_id }}" },
+      "inputs": [
+        { "key": "profile_id", "label": "Profile ID", "type": "string", "required": true },
+        { "key": "report_id", "label": "Report ID", "type": "string", "required": true }
+      ]
+    }
+  ]
+}

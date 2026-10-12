@@ -1,0 +1,252 @@
+{
+  "key": "docusign",
+  "name": "DocuSign",
+  "category": "Files & Documents",
+  "description": "Send envelopes from templates, track their status and void them.",
+  "brand": "docusign",
+  "website": "https://www.docusign.com",
+  "docs_url": "https://developers.docusign.com/docs/esign-rest-api/reference/",
+  "popular": true,
+  "base_url": "{{ credentials.base_uri }}/restapi/v2.1/accounts/{{ credentials.account_id }}",
+  "auth": [
+    {
+      "type": "oauth2",
+      "authorize_url": "https://account.docusign.com/oauth/auth",
+      "token_url": "https://account.docusign.com/oauth/token",
+      "scopes": [
+        "signature",
+        "extended"
+      ],
+      "fields": [
+        {
+          "key": "account_id",
+          "label": "API Account ID",
+          "type": "string",
+          "required": true,
+          "help": "Settings > Apps and Keys > API Account ID (a GUID)."
+        },
+        {
+          "key": "base_uri",
+          "label": "Account base URI",
+          "type": "string",
+          "required": true,
+          "placeholder": "https://na3.docusign.net",
+          "help": "Settings > Apps and Keys > Account Base URI. Demo accounts: https://demo.docusign.net"
+        }
+      ],
+      "client_auth": "basic"
+    },
+    {
+      "type": "bearer",
+      "fields": [
+        {
+          "key": "token",
+          "label": "Access token",
+          "type": "password",
+          "required": true
+        },
+        {
+          "key": "account_id",
+          "label": "API Account ID",
+          "type": "string",
+          "required": true,
+          "help": "Settings > Apps and Keys > API Account ID (a GUID)."
+        },
+        {
+          "key": "base_uri",
+          "label": "Account base URI",
+          "type": "string",
+          "required": true,
+          "placeholder": "https://na3.docusign.net",
+          "help": "Settings > Apps and Keys > Account Base URI. Demo accounts: https://demo.docusign.net"
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "send_from_template",
+      "name": "Send envelope from template",
+      "description": "Sends a template to one signer.",
+      "method": "POST",
+      "endpoint": "/envelopes",
+      "body": {
+        "templateId": "{{ inputs.template_id }}",
+        "emailSubject": "{{ inputs.email_subject }}",
+        "status": "{{ inputs.status }}",
+        "templateRoles": [
+          {
+            "roleName": "{{ inputs.role_name }}",
+            "name": "{{ inputs.name }}",
+            "email": "{{ inputs.email }}"
+          }
+        ]
+      },
+      "inputs": [
+        {
+          "key": "template_id",
+          "label": "Template ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "role_name",
+          "label": "Template role",
+          "type": "string",
+          "required": true,
+          "placeholder": "Signer",
+          "help": "Role name exactly as defined in the template."
+        },
+        {
+          "key": "name",
+          "label": "Signer name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "email",
+          "label": "Signer email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "email_subject",
+          "label": "Email subject",
+          "type": "string"
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "options": [
+            {
+              "value": "sent",
+              "label": "Send now"
+            },
+            {
+              "value": "created",
+              "label": "Save as draft"
+            }
+          ],
+          "default": "sent"
+        }
+      ]
+    },
+    {
+      "key": "create_envelope",
+      "name": "Create envelope (JSON)",
+      "method": "POST",
+      "endpoint": "/envelopes",
+      "body": "{{ inputs.envelope }}",
+      "inputs": [
+        {
+          "key": "envelope",
+          "label": "Envelope definition",
+          "type": "json",
+          "required": true,
+          "placeholder": "{\n  \"emailSubject\": \"Please sign\",\n  \"status\": \"sent\",\n  \"compositeTemplates\": []\n}"
+        }
+      ]
+    },
+    {
+      "key": "get_envelope",
+      "name": "Get envelope",
+      "method": "GET",
+      "endpoint": "/envelopes/{{ inputs.envelope_id }}",
+      "inputs": [
+        {
+          "key": "envelope_id",
+          "label": "Envelope ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_envelopes",
+      "name": "List envelopes",
+      "method": "GET",
+      "endpoint": "/envelopes",
+      "query": {
+        "from_date": "{{ inputs.from_date }}",
+        "status": "{{ inputs.status }}",
+        "search_text": "{{ inputs.search }}"
+      },
+      "inputs": [
+        {
+          "key": "from_date",
+          "label": "Changed since",
+          "type": "string",
+          "required": true,
+          "placeholder": "2024-01-01"
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "string",
+          "placeholder": "sent,completed"
+        },
+        {
+          "key": "search",
+          "label": "Search text",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "list_templates",
+      "name": "List templates",
+      "method": "GET",
+      "endpoint": "/templates",
+      "query": {
+        "search_text": "{{ inputs.search }}"
+      },
+      "inputs": [
+        {
+          "key": "search",
+          "label": "Search text",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "void_envelope",
+      "name": "Void envelope",
+      "method": "PUT",
+      "endpoint": "/envelopes/{{ inputs.envelope_id }}",
+      "body": {
+        "status": "voided",
+        "voidedReason": "{{ inputs.reason }}"
+      },
+      "inputs": [
+        {
+          "key": "envelope_id",
+          "label": "Envelope ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "reason",
+          "label": "Reason",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "connect_event",
+      "name": "DocuSign Connect event",
+      "type": "webhook",
+      "description": "Envelope events sent by a Connect configuration (JSON).",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

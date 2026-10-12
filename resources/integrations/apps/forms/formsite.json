@@ -1,0 +1,113 @@
+{
+  "key": "formsite",
+  "name": "Formsite",
+  "category": "Forms & Surveys",
+  "description": "List Formsite forms, items and results.",
+  "brand": "formsite",
+  "website": "https://www.formsite.com",
+  "base_url": "https://{{ credentials.server }}.formsite.com/api/v2/{{ credentials.user_dir }}",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "server",
+        "label": "Server",
+        "type": "string",
+        "required": true,
+        "placeholder": "fs22",
+        "help": "From the API base URL in Form Settings > Integrations > Formsite API"
+      },
+      {
+        "key": "user_dir",
+        "label": "User directory",
+        "type": "string",
+        "required": true,
+        "help": "The segment after /api/v2/ in the same URL"
+      },
+      {
+        "key": "token",
+        "label": "API key",
+        "type": "password",
+        "required": true
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_forms",
+      "name": "List forms",
+      "method": "GET",
+      "endpoint": "/forms",
+      "output_path": "forms",
+      "inputs": []
+    },
+    {
+      "key": "list_items",
+      "name": "List form items",
+      "description": "Questions and their ids.",
+      "method": "GET",
+      "endpoint": "/forms/{{ inputs.form_dir }}/items",
+      "output_path": "items",
+      "inputs": [
+        {
+          "key": "form_dir",
+          "label": "Form directory",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_results",
+      "name": "List results",
+      "method": "GET",
+      "endpoint": "/forms/{{ inputs.form_dir }}/results",
+      "output_path": "results",
+      "query": {
+        "limit": "{{ inputs.limit }}",
+        "page": "{{ inputs.page }}",
+        "after_date": "{{ inputs.after_date }}"
+      },
+      "inputs": [
+        {
+          "key": "form_dir",
+          "label": "Form directory",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 50
+        },
+        {
+          "key": "page",
+          "label": "Page",
+          "type": "number"
+        },
+        {
+          "key": "after_date",
+          "label": "After date",
+          "type": "string",
+          "placeholder": "2024-01-31T00:00:00Z"
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_result",
+      "name": "New result (webhook)",
+      "type": "webhook",
+      "description": "Form Settings > Integrations > Webhooks, paste this URL.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

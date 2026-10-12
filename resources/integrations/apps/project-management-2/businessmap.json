@@ -1,0 +1,215 @@
+{
+  "key": "businessmap",
+  "name": "Businessmap",
+  "category": "Project Management",
+  "description": "Create, update and comment on Businessmap (Kanbanize) cards.",
+  "brand": "businessmap",
+  "website": "https://businessmap.io",
+  "docs_url": "https://businessmap.io/api",
+  "base_url": "{{ credentials.url }}/api/v2",
+  "auth": [
+    {
+      "type": "api_key",
+      "in": "header",
+      "name": "apikey",
+      "fields": [
+        {
+          "key": "url",
+          "label": "Account URL",
+          "type": "string",
+          "required": true,
+          "placeholder": "https://yourcompany.kanbanize.com",
+          "help": "Base URL without a trailing slash."
+        },
+        {
+          "key": "api_key",
+          "label": "API key",
+          "type": "password",
+          "required": true,
+          "help": "My account > API."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_boards",
+      "name": "List boards",
+      "method": "GET",
+      "endpoint": "/boards",
+      "output_path": "data",
+      "inputs": []
+    },
+    {
+      "key": "list_cards",
+      "name": "List cards",
+      "method": "GET",
+      "endpoint": "/cards",
+      "query": {
+        "board_ids": "{{ inputs.board_ids }}",
+        "column_ids": "{{ inputs.column_ids }}"
+      },
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "board_ids",
+          "label": "Board IDs",
+          "type": "string",
+          "required": true,
+          "placeholder": "1,2"
+        },
+        {
+          "key": "column_ids",
+          "label": "Column IDs",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "get_card",
+      "name": "Get card",
+      "method": "GET",
+      "endpoint": "/cards/{{ inputs.card_id }}",
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "card_id",
+          "label": "Card ID",
+          "type": "number",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "create_card",
+      "name": "Create card",
+      "method": "POST",
+      "endpoint": "/cards",
+      "body": {
+        "column_id": "{{ inputs.column_id }}",
+        "lane_id": "{{ inputs.lane_id }}",
+        "title": "{{ inputs.title }}",
+        "description": "{{ inputs.description }}",
+        "...": "{{ inputs.extra }}"
+      },
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "column_id",
+          "label": "Column ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "lane_id",
+          "label": "Lane ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "description",
+          "label": "Description",
+          "type": "text"
+        },
+        {
+          "key": "extra",
+          "label": "Extra fields",
+          "type": "json",
+          "help": "Other card fields, e.g. {\"owner_user_id\": 5, \"deadline\": \"2026-10-31\"}."
+        }
+      ]
+    },
+    {
+      "key": "update_card",
+      "name": "Update card",
+      "method": "PATCH",
+      "endpoint": "/cards/{{ inputs.card_id }}",
+      "body": {
+        "title": "{{ inputs.title }}",
+        "description": "{{ inputs.description }}",
+        "column_id": "{{ inputs.column_id }}",
+        "lane_id": "{{ inputs.lane_id }}",
+        "...": "{{ inputs.extra }}"
+      },
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "card_id",
+          "label": "Card ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "string"
+        },
+        {
+          "key": "description",
+          "label": "Description",
+          "type": "text"
+        },
+        {
+          "key": "column_id",
+          "label": "Move to column ID",
+          "type": "number"
+        },
+        {
+          "key": "lane_id",
+          "label": "Move to lane ID",
+          "type": "number"
+        },
+        {
+          "key": "extra",
+          "label": "Extra fields",
+          "type": "json",
+          "help": "Any other fields the API accepts, merged into the request."
+        }
+      ]
+    },
+    {
+      "key": "add_comment",
+      "name": "Add comment",
+      "method": "POST",
+      "endpoint": "/cards/{{ inputs.card_id }}/comments",
+      "body": {
+        "text": "{{ inputs.text }}"
+      },
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "card_id",
+          "label": "Card ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "text",
+          "label": "Comment",
+          "type": "text",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Board event (webhook)",
+      "type": "webhook",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

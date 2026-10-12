@@ -1,0 +1,226 @@
+{
+  "key": "lago",
+  "name": "Lago",
+  "category": "Payments & Finance",
+  "description": "Manage customers and subscriptions and send usage events to Lago billing.",
+  "brand": "lago",
+  "website": "https://www.getlago.com",
+  "docs_url": "https://doc.getlago.com/api-reference/intro",
+  "base_url": "{{ credentials.url }}/api/v1",
+  "auth": [
+    {
+      "type": "bearer",
+      "fields": [
+        {
+          "key": "url",
+          "label": "API URL",
+          "type": "string",
+          "required": true,
+          "default": "https://api.getlago.com",
+          "help": "EU cloud: https://api.eu.getlago.com, or your self-hosted API URL."
+        },
+        {
+          "key": "token",
+          "label": "API key",
+          "type": "password",
+          "required": true,
+          "help": "Developers > API keys."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "create_customer",
+      "name": "Create or update customer",
+      "method": "POST",
+      "endpoint": "/customers",
+      "output_path": "customer",
+      "body": {
+        "customer": {
+          "external_id": "{{ inputs.external_id }}",
+          "name": "{{ inputs.name }}",
+          "email": "{{ inputs.email }}",
+          "currency": "{{ inputs.currency }}"
+        }
+      },
+      "inputs": [
+        {
+          "key": "external_id",
+          "label": "External customer ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string"
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string"
+        },
+        {
+          "key": "currency",
+          "label": "Currency",
+          "type": "string",
+          "placeholder": "USD"
+        }
+      ]
+    },
+    {
+      "key": "get_customer",
+      "name": "Get customer",
+      "method": "GET",
+      "endpoint": "/customers/{{ inputs.external_id }}",
+      "output_path": "customer",
+      "inputs": [
+        {
+          "key": "external_id",
+          "label": "External customer ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "create_subscription",
+      "name": "Assign plan (create subscription)",
+      "method": "POST",
+      "endpoint": "/subscriptions",
+      "output_path": "subscription",
+      "body": {
+        "subscription": {
+          "external_customer_id": "{{ inputs.external_customer_id }}",
+          "plan_code": "{{ inputs.plan_code }}",
+          "external_id": "{{ inputs.external_id }}",
+          "name": "{{ inputs.name }}"
+        }
+      },
+      "inputs": [
+        {
+          "key": "external_customer_id",
+          "label": "External customer ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "plan_code",
+          "label": "Plan code",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "external_id",
+          "label": "External subscription ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "send_event",
+      "name": "Send usage event",
+      "method": "POST",
+      "endpoint": "/events",
+      "body": {
+        "event": {
+          "transaction_id": "{{ inputs.transaction_id }}",
+          "external_subscription_id": "{{ inputs.external_subscription_id }}",
+          "code": "{{ inputs.code }}",
+          "timestamp": "{{ inputs.timestamp }}",
+          "properties": "{{ inputs.properties }}"
+        }
+      },
+      "inputs": [
+        {
+          "key": "transaction_id",
+          "label": "Transaction ID",
+          "type": "string",
+          "required": true,
+          "help": "Unique per event (idempotency)."
+        },
+        {
+          "key": "external_subscription_id",
+          "label": "External subscription ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "code",
+          "label": "Billable metric code",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "timestamp",
+          "label": "Timestamp (UNIX seconds)",
+          "type": "number"
+        },
+        {
+          "key": "properties",
+          "label": "Properties",
+          "type": "json"
+        }
+      ]
+    },
+    {
+      "key": "list_invoices",
+      "name": "List invoices",
+      "method": "GET",
+      "endpoint": "/invoices",
+      "output_path": "invoices",
+      "query": {
+        "external_customer_id": "{{ inputs.external_customer_id }}",
+        "status": "{{ inputs.status }}"
+      },
+      "inputs": [
+        {
+          "key": "external_customer_id",
+          "label": "External customer ID",
+          "type": "string"
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "options": [
+            {
+              "value": "draft",
+              "label": "Draft"
+            },
+            {
+              "value": "finalized",
+              "label": "Finalized"
+            },
+            {
+              "value": "voided",
+              "label": "Voided"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Developers > Webhooks: add this URL.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

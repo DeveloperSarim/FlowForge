@@ -1,0 +1,205 @@
+{
+  "key": "egnyte",
+  "name": "Egnyte",
+  "category": "Files & Documents",
+  "description": "Search files, create shared links and read user info in Egnyte.",
+  "brand": "egnyte",
+  "website": "https://www.egnyte.com",
+  "docs_url": "https://developers.egnyte.com/docs",
+  "base_url": "https://{{ credentials.domain }}.egnyte.com/pubapi",
+  "auth": [
+    {
+      "type": "oauth2",
+      "authorize_url": "https://{{ credentials.domain }}.egnyte.com/puboauth/token",
+      "token_url": "https://{{ credentials.domain }}.egnyte.com/puboauth/token",
+      "scopes": [
+        "Egnyte.filesystem",
+        "Egnyte.link",
+        "Egnyte.user"
+      ],
+      "fields": [
+        {
+          "key": "domain",
+          "label": "Egnyte domain",
+          "type": "string",
+          "required": true,
+          "placeholder": "acme",
+          "help": "The part before .egnyte.com."
+        }
+      ]
+    },
+    {
+      "type": "bearer",
+      "fields": [
+        {
+          "key": "domain",
+          "label": "Egnyte domain",
+          "type": "string",
+          "required": true,
+          "placeholder": "acme",
+          "help": "The part before .egnyte.com."
+        },
+        {
+          "key": "token",
+          "label": "Access token",
+          "type": "password",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "search",
+      "name": "Search files",
+      "method": "GET",
+      "endpoint": "/v1/search",
+      "query": {
+        "query": "{{ inputs.query }}",
+        "folder": "{{ inputs.folder }}",
+        "count": "{{ inputs.count }}",
+        "offset": "{{ inputs.offset }}"
+      },
+      "inputs": [
+        {
+          "key": "query",
+          "label": "Search text",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "folder",
+          "label": "In folder",
+          "type": "string",
+          "placeholder": "/Shared/Projects"
+        },
+        {
+          "key": "count",
+          "label": "Max results",
+          "type": "number"
+        },
+        {
+          "key": "offset",
+          "label": "Offset",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "create_link",
+      "name": "Create shared link",
+      "method": "POST",
+      "endpoint": "/v1/links",
+      "body": {
+        "path": "{{ inputs.path }}",
+        "type": "{{ inputs.type }}",
+        "accessibility": "{{ inputs.accessibility }}",
+        "send_email": "{{ inputs.send_email }}",
+        "recipients": "{{ inputs.recipients }}",
+        "message": "{{ inputs.message }}",
+        "expiry_date": "{{ inputs.expiry_date }}"
+      },
+      "inputs": [
+        {
+          "key": "path",
+          "label": "File or folder path",
+          "type": "string",
+          "required": true,
+          "placeholder": "/Shared/Docs/contract.pdf"
+        },
+        {
+          "key": "type",
+          "label": "Type",
+          "type": "select",
+          "options": [
+            {
+              "value": "file",
+              "label": "File"
+            },
+            {
+              "value": "folder",
+              "label": "Folder"
+            }
+          ],
+          "required": true,
+          "default": "file"
+        },
+        {
+          "key": "accessibility",
+          "label": "Who can open it",
+          "type": "select",
+          "options": [
+            {
+              "value": "anyone",
+              "label": "Anyone"
+            },
+            {
+              "value": "password",
+              "label": "Anyone with password"
+            },
+            {
+              "value": "domain",
+              "label": "Domain users"
+            },
+            {
+              "value": "recipients",
+              "label": "Recipients only"
+            }
+          ],
+          "required": true,
+          "default": "anyone"
+        },
+        {
+          "key": "send_email",
+          "label": "Email the link",
+          "type": "boolean"
+        },
+        {
+          "key": "recipients",
+          "label": "Recipients",
+          "type": "list"
+        },
+        {
+          "key": "message",
+          "label": "Message",
+          "type": "text"
+        },
+        {
+          "key": "expiry_date",
+          "label": "Expiry date",
+          "type": "string",
+          "placeholder": "2026-12-31"
+        }
+      ]
+    },
+    {
+      "key": "list_links",
+      "name": "List shared links",
+      "method": "GET",
+      "endpoint": "/v1/links",
+      "query": {
+        "path": "{{ inputs.path }}",
+        "count": "{{ inputs.count }}"
+      },
+      "inputs": [
+        {
+          "key": "path",
+          "label": "Path",
+          "type": "string"
+        },
+        {
+          "key": "count",
+          "label": "Max results",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "get_user_info",
+      "name": "Get current user",
+      "method": "GET",
+      "endpoint": "/v1/userinfo",
+      "inputs": []
+    }
+  ]
+}

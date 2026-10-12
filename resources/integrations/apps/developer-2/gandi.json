@@ -1,0 +1,82 @@
+{
+  "key": "gandi",
+  "name": "Gandi",
+  "category": "Developer Tools",
+  "description": "Manage LiveDNS records and list your domains.",
+  "brand": "gandi",
+  "website": "https://www.gandi.net",
+  "docs_url": "https://api.gandi.net/docs/livedns/",
+  "base_url": "https://api.gandi.net/v5",
+  "auth": { "type": "bearer", "fields": [{ "key": "token", "label": "Personal access token", "type": "password", "required": true, "help": "Account → Authentication options → Personal Access Tokens, with Domain and LiveDNS permissions." }] },
+  "actions": [
+    {
+      "key": "list_domains",
+      "name": "List domains",
+      "method": "GET",
+      "endpoint": "/domain/domains",
+      "query": { "fqdn": "{{ inputs.fqdn }}", "per_page": "{{ inputs.per_page }}" },
+      "inputs": [
+        { "key": "fqdn", "label": "Domain filter", "type": "string", "placeholder": "*.com" },
+        { "key": "per_page", "label": "Per page", "type": "number" }
+      ]
+    },
+    {
+      "key": "list_records",
+      "name": "List DNS records",
+      "method": "GET",
+      "endpoint": "/livedns/domains/{{ inputs.fqdn }}/records",
+      "query": { "rrset_type": "{{ inputs.type }}", "rrset_name": "{{ inputs.name }}" },
+      "inputs": [
+        { "key": "fqdn", "label": "Domain", "type": "string", "required": true, "placeholder": "example.com" },
+        { "key": "type", "label": "Type", "type": "string", "placeholder": "A" },
+        { "key": "name", "label": "Name", "type": "string", "placeholder": "www" }
+      ]
+    },
+    {
+      "key": "create_record",
+      "name": "Create DNS record",
+      "method": "POST",
+      "endpoint": "/livedns/domains/{{ inputs.fqdn }}/records",
+      "body": { "rrset_name": "{{ inputs.name }}", "rrset_type": "{{ inputs.type }}", "rrset_values": "{{ inputs.values }}", "rrset_ttl": "{{ inputs.ttl }}" },
+      "inputs": [
+        { "key": "fqdn", "label": "Domain", "type": "string", "required": true },
+        { "key": "name", "label": "Name", "type": "string", "required": true, "default": "@", "help": "@ for the root domain." },
+        { "key": "type", "label": "Type", "type": "select", "required": true, "default": "A", "options": [
+          { "value": "A", "label": "A" }, { "value": "AAAA", "label": "AAAA" }, { "value": "CNAME", "label": "CNAME" }, { "value": "ALIAS", "label": "ALIAS" },
+          { "value": "MX", "label": "MX" }, { "value": "TXT", "label": "TXT" }, { "value": "NS", "label": "NS" }, { "value": "SRV", "label": "SRV" }, { "value": "CAA", "label": "CAA" }
+        ] },
+        { "key": "values", "label": "Values", "type": "list", "required": true, "help": "TXT values need surrounding quotes." },
+        { "key": "ttl", "label": "TTL (seconds)", "type": "number", "default": 10800 }
+      ]
+    },
+    {
+      "key": "replace_record",
+      "name": "Replace DNS record",
+      "description": "Creates or overwrites the record set with this name and type.",
+      "method": "PUT",
+      "endpoint": "/livedns/domains/{{ inputs.fqdn }}/records/{{ inputs.name }}/{{ inputs.type }}",
+      "body": { "rrset_values": "{{ inputs.values }}", "rrset_ttl": "{{ inputs.ttl }}" },
+      "inputs": [
+        { "key": "fqdn", "label": "Domain", "type": "string", "required": true },
+        { "key": "name", "label": "Name", "type": "string", "required": true, "default": "@" },
+        { "key": "type", "label": "Type", "type": "select", "required": true, "default": "A", "options": [
+          { "value": "A", "label": "A" }, { "value": "AAAA", "label": "AAAA" }, { "value": "CNAME", "label": "CNAME" }, { "value": "ALIAS", "label": "ALIAS" },
+          { "value": "MX", "label": "MX" }, { "value": "TXT", "label": "TXT" }, { "value": "NS", "label": "NS" }, { "value": "SRV", "label": "SRV" }, { "value": "CAA", "label": "CAA" }
+        ] },
+        { "key": "values", "label": "Values", "type": "list", "required": true },
+        { "key": "ttl", "label": "TTL (seconds)", "type": "number", "default": 10800 }
+      ]
+    },
+    {
+      "key": "delete_record",
+      "name": "Delete DNS record",
+      "method": "DELETE",
+      "endpoint": "/livedns/domains/{{ inputs.fqdn }}/records/{{ inputs.name }}/{{ inputs.type }}",
+      "inputs": [
+        { "key": "fqdn", "label": "Domain", "type": "string", "required": true },
+        { "key": "name", "label": "Name", "type": "string", "required": true },
+        { "key": "type", "label": "Type", "type": "string", "required": true, "placeholder": "A" }
+      ]
+    }
+  ]
+}

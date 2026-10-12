@@ -1,0 +1,58 @@
+{
+  "key": "gupshup",
+  "name": "Gupshup",
+  "category": "Communication",
+  "description": "Send WhatsApp session and template messages through the Gupshup WhatsApp API.",
+  "brand": "gupshup",
+  "website": "https://www.gupshup.io",
+  "docs_url": "https://docs.gupshup.io/reference/msg",
+  "base_url": "https://api.gupshup.io",
+  "auth": [
+    { "type": "api_key", "in": "header", "name": "apikey", "fields": [{ "key": "api_key", "label": "API key", "type": "password", "required": true, "help": "Gupshup dashboard → profile → API key." }] }
+  ],
+  "actions": [
+    {
+      "key": "send_message",
+      "name": "Send WhatsApp message",
+      "description": "Free-form messages only reach users who wrote to you in the last 24 hours.",
+      "method": "POST",
+      "endpoint": "/wa/api/v1/msg",
+      "body_format": "form",
+      "body": {
+        "channel": "whatsapp",
+        "source": "{{ inputs.source }}",
+        "destination": "{{ inputs.destination }}",
+        "src.name": "{{ inputs.app_name }}",
+        "message": "{{ inputs.message }}"
+      },
+      "inputs": [
+        { "key": "source", "label": "Your WhatsApp number", "type": "string", "required": true, "placeholder": "917834811114" },
+        { "key": "app_name", "label": "App name", "type": "string", "required": true },
+        { "key": "destination", "label": "To (with country code, no +)", "type": "string", "required": true },
+        { "key": "message", "label": "Message (JSON)", "type": "text", "required": true, "placeholder": "{\"type\":\"text\",\"text\":\"Hello!\"}", "help": "A Gupshup message object: text, image, file, audio, video, location, list or quick_reply." }
+      ]
+    },
+    {
+      "key": "send_template",
+      "name": "Send WhatsApp template",
+      "method": "POST",
+      "endpoint": "/wa/api/v1/template/msg",
+      "body_format": "form",
+      "body": {
+        "channel": "whatsapp",
+        "source": "{{ inputs.source }}",
+        "destination": "{{ inputs.destination }}",
+        "src.name": "{{ inputs.app_name }}",
+        "template": "{{ inputs.template }}",
+        "message": "{{ inputs.message }}"
+      },
+      "inputs": [
+        { "key": "source", "label": "Your WhatsApp number", "type": "string", "required": true },
+        { "key": "app_name", "label": "App name", "type": "string", "required": true },
+        { "key": "destination", "label": "To (with country code, no +)", "type": "string", "required": true },
+        { "key": "template", "label": "Template (JSON)", "type": "text", "required": true, "placeholder": "{\"id\":\"2d4f8a1c-…\",\"params\":[\"Ada\",\"#1042\"]}" },
+        { "key": "message", "label": "Media header (JSON)", "type": "text", "placeholder": "{\"type\":\"image\",\"image\":{\"link\":\"https://example.com/a.jpg\"}}", "help": "Only for templates with an image, video or document header." }
+      ]
+    }
+  ]
+}

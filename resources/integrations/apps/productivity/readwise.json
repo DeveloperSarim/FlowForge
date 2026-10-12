@@ -1,0 +1,293 @@
+{
+  "key": "readwise",
+  "name": "Readwise",
+  "category": "Productivity",
+  "description": "Add highlights and save documents to Readwise and Reader.",
+  "brand": "readwise",
+  "website": "https://readwise.io",
+  "docs_url": "https://readwise.io/api_deets",
+  "base_url": "https://readwise.io/api",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "Authorization",
+    "prefix": "Token ",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "Access token",
+        "type": "password",
+        "required": true,
+        "help": "readwise.io/access_token"
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "create_highlight",
+      "name": "Create highlight",
+      "method": "POST",
+      "endpoint": "/v2/highlights/",
+      "body": {
+        "highlights": [
+          {
+            "text": "{{ inputs.text }}",
+            "title": "{{ inputs.title }}",
+            "author": "{{ inputs.author }}",
+            "source_url": "{{ inputs.source_url }}",
+            "source_type": "flowforge",
+            "note": "{{ inputs.note }}",
+            "category": "{{ inputs.category }}",
+            "highlighted_at": "{{ inputs.highlighted_at }}"
+          }
+        ]
+      },
+      "inputs": [
+        {
+          "key": "text",
+          "label": "Highlight",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "title",
+          "label": "Source title",
+          "type": "string"
+        },
+        {
+          "key": "author",
+          "label": "Author",
+          "type": "string"
+        },
+        {
+          "key": "source_url",
+          "label": "Source URL",
+          "type": "string"
+        },
+        {
+          "key": "note",
+          "label": "Note",
+          "type": "text"
+        },
+        {
+          "key": "category",
+          "label": "Category",
+          "type": "select",
+          "options": [
+            {
+              "value": "books",
+              "label": "books"
+            },
+            {
+              "value": "articles",
+              "label": "articles"
+            },
+            {
+              "value": "tweets",
+              "label": "tweets"
+            },
+            {
+              "value": "podcasts",
+              "label": "podcasts"
+            }
+          ]
+        },
+        {
+          "key": "highlighted_at",
+          "label": "Highlighted at",
+          "type": "string",
+          "placeholder": "2026-10-12T09:00:00Z"
+        }
+      ]
+    },
+    {
+      "key": "list_highlights",
+      "name": "List highlights",
+      "method": "GET",
+      "endpoint": "/v2/highlights/",
+      "query": {
+        "updated__gt": "{{ inputs.updated_after }}",
+        "book_id": "{{ inputs.book_id }}",
+        "page_size": "{{ inputs.page_size }}"
+      },
+      "output_path": "results",
+      "inputs": [
+        {
+          "key": "updated_after",
+          "label": "Updated after",
+          "type": "string",
+          "placeholder": "2026-10-01T00:00:00Z"
+        },
+        {
+          "key": "book_id",
+          "label": "Book ID",
+          "type": "string"
+        },
+        {
+          "key": "page_size",
+          "label": "Max results",
+          "type": "number",
+          "default": 100
+        }
+      ]
+    },
+    {
+      "key": "list_books",
+      "name": "List books",
+      "method": "GET",
+      "endpoint": "/v2/books/",
+      "query": {
+        "category": "{{ inputs.category }}",
+        "page_size": "{{ inputs.page_size }}"
+      },
+      "output_path": "results",
+      "inputs": [
+        {
+          "key": "category",
+          "label": "Category",
+          "type": "select",
+          "options": [
+            {
+              "value": "books",
+              "label": "books"
+            },
+            {
+              "value": "articles",
+              "label": "articles"
+            },
+            {
+              "value": "tweets",
+              "label": "tweets"
+            },
+            {
+              "value": "supplementals",
+              "label": "supplementals"
+            },
+            {
+              "value": "podcasts",
+              "label": "podcasts"
+            }
+          ]
+        },
+        {
+          "key": "page_size",
+          "label": "Max results",
+          "type": "number",
+          "default": 100
+        }
+      ]
+    },
+    {
+      "key": "save_to_reader",
+      "name": "Save document to Reader",
+      "method": "POST",
+      "endpoint": "/v3/save/",
+      "body": {
+        "url": "{{ inputs.url }}",
+        "title": "{{ inputs.title }}",
+        "html": "{{ inputs.html }}",
+        "tags": "{{ inputs.tags }}",
+        "location": "{{ inputs.location }}",
+        "notes": "{{ inputs.notes }}"
+      },
+      "inputs": [
+        {
+          "key": "url",
+          "label": "URL",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "string"
+        },
+        {
+          "key": "html",
+          "label": "HTML content",
+          "type": "text",
+          "help": "Optional; otherwise Reader fetches the URL."
+        },
+        {
+          "key": "tags",
+          "label": "Tags",
+          "type": "list"
+        },
+        {
+          "key": "location",
+          "label": "Location",
+          "type": "select",
+          "options": [
+            {
+              "value": "new",
+              "label": "new"
+            },
+            {
+              "value": "later",
+              "label": "later"
+            },
+            {
+              "value": "archive",
+              "label": "archive"
+            },
+            {
+              "value": "feed",
+              "label": "feed"
+            }
+          ]
+        },
+        {
+          "key": "notes",
+          "label": "Notes",
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "key": "list_reader_documents",
+      "name": "List Reader documents",
+      "method": "GET",
+      "endpoint": "/v3/list/",
+      "query": {
+        "location": "{{ inputs.location }}",
+        "updatedAfter": "{{ inputs.updated_after }}"
+      },
+      "output_path": "results",
+      "inputs": [
+        {
+          "key": "location",
+          "label": "Location",
+          "type": "select",
+          "options": [
+            {
+              "value": "new",
+              "label": "new"
+            },
+            {
+              "value": "later",
+              "label": "later"
+            },
+            {
+              "value": "shortlist",
+              "label": "shortlist"
+            },
+            {
+              "value": "archive",
+              "label": "archive"
+            },
+            {
+              "value": "feed",
+              "label": "feed"
+            }
+          ]
+        },
+        {
+          "key": "updated_after",
+          "label": "Updated after",
+          "type": "string",
+          "placeholder": "2026-10-01T00:00:00Z"
+        }
+      ]
+    }
+  ]
+}

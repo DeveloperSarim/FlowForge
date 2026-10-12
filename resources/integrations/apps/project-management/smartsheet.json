@@ -1,0 +1,145 @@
+{
+  "key": "smartsheet",
+  "name": "Smartsheet",
+  "category": "Project Management",
+  "description": "Add, update and search rows in Smartsheet sheets.",
+  "brand": "smartsheet",
+  "website": "https://www.smartsheet.com",
+  "docs_url": "https://developers.smartsheet.com/api/smartsheet/openapi",
+  "base_url": "https://api.smartsheet.com/2.0",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "API access token",
+        "type": "password",
+        "required": true,
+        "help": "Account > Apps & Integrations > API Access."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_sheets",
+      "name": "List sheets",
+      "method": "GET",
+      "endpoint": "/sheets",
+      "output_path": "data",
+      "inputs": []
+    },
+    {
+      "key": "get_sheet",
+      "name": "Get sheet",
+      "description": "Returns columns (with their IDs) and rows.",
+      "method": "GET",
+      "endpoint": "/sheets/{{ inputs.sheet_id }}",
+      "query": {
+        "pageSize": "{{ inputs.page_size }}"
+      },
+      "inputs": [
+        {
+          "key": "sheet_id",
+          "label": "Sheet ID",
+          "type": "string",
+          "required": true,
+          "help": "File > Properties > Sheet ID."
+        },
+        {
+          "key": "page_size",
+          "label": "Rows per page",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "add_row",
+      "name": "Add row",
+      "description": "Appends a row at the bottom of the sheet.",
+      "method": "POST",
+      "endpoint": "/sheets/{{ inputs.sheet_id }}/rows",
+      "body": [
+        {
+          "toBottom": true,
+          "cells": "{{ inputs.cells }}"
+        }
+      ],
+      "inputs": [
+        {
+          "key": "sheet_id",
+          "label": "Sheet ID",
+          "type": "string",
+          "required": true,
+          "help": "File > Properties > Sheet ID."
+        },
+        {
+          "key": "cells",
+          "label": "Cells",
+          "type": "json",
+          "required": true,
+          "placeholder": "[{ \"columnId\": 7960873114331012, \"value\": \"Ada\" }]",
+          "help": "Column IDs come from Get sheet."
+        }
+      ]
+    },
+    {
+      "key": "update_row",
+      "name": "Update row",
+      "method": "PUT",
+      "endpoint": "/sheets/{{ inputs.sheet_id }}/rows",
+      "body": [
+        {
+          "id": "{{ inputs.row_id }}",
+          "cells": "{{ inputs.cells }}"
+        }
+      ],
+      "inputs": [
+        {
+          "key": "sheet_id",
+          "label": "Sheet ID",
+          "type": "string",
+          "required": true,
+          "help": "File > Properties > Sheet ID."
+        },
+        {
+          "key": "row_id",
+          "label": "Row ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "cells",
+          "label": "Cells",
+          "type": "json",
+          "required": true,
+          "placeholder": "[{ \"columnId\": 7960873114331012, \"value\": \"Done\" }]"
+        }
+      ]
+    },
+    {
+      "key": "search_sheet",
+      "name": "Search sheet",
+      "method": "GET",
+      "endpoint": "/search/sheets/{{ inputs.sheet_id }}",
+      "query": {
+        "query": "{{ inputs.query }}"
+      },
+      "output_path": "results",
+      "inputs": [
+        {
+          "key": "sheet_id",
+          "label": "Sheet ID",
+          "type": "string",
+          "required": true,
+          "help": "File > Properties > Sheet ID."
+        },
+        {
+          "key": "query",
+          "label": "Search text",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,61 @@
+{
+  "key": "short_io",
+  "name": "Short.io",
+  "category": "Utilities",
+  "description": "Create and manage branded short links on your own domain.",
+  "brand": "shortio",
+  "website": "https://short.io",
+  "docs_url": "https://developers.short.io/reference",
+  "base_url": "https://api.short.io",
+  "auth": { "type": "api_key", "in": "header", "name": "authorization", "fields": [
+    { "key": "api_key", "label": "Secret API key", "type": "password", "required": true, "help": "Short.io → Integrations & API → API keys (secret key)." }
+  ] },
+  "actions": [
+    {
+      "key": "create_link",
+      "name": "Create link",
+      "method": "POST",
+      "endpoint": "/links",
+      "body": { "domain": "{{ inputs.domain }}", "originalURL": "{{ inputs.original_url }}", "path": "{{ inputs.path }}", "title": "{{ inputs.title }}", "tags": "{{ inputs.tags }}" },
+      "output_fields": { "short_url": "shortURL" },
+      "inputs": [
+        { "key": "domain", "label": "Domain", "type": "string", "required": true, "placeholder": "link.example.com" },
+        { "key": "original_url", "label": "Destination URL", "type": "string", "required": true },
+        { "key": "path", "label": "Path", "type": "string", "help": "Random when empty." },
+        { "key": "title", "label": "Title", "type": "string" },
+        { "key": "tags", "label": "Tags", "type": "list" }
+      ]
+    },
+    {
+      "key": "expand_link",
+      "name": "Get link by path",
+      "method": "GET",
+      "endpoint": "/links/expand",
+      "query": { "domain": "{{ inputs.domain }}", "path": "{{ inputs.path }}" },
+      "inputs": [
+        { "key": "domain", "label": "Domain", "type": "string", "required": true, "placeholder": "link.example.com" },
+        { "key": "path", "label": "Path", "type": "string", "required": true }
+      ]
+    },
+    {
+      "key": "update_link",
+      "name": "Update link",
+      "method": "POST",
+      "endpoint": "/links/{{ inputs.link_id }}",
+      "body": { "originalURL": "{{ inputs.original_url }}", "path": "{{ inputs.path }}", "title": "{{ inputs.title }}" },
+      "inputs": [
+        { "key": "link_id", "label": "Link ID", "type": "string", "required": true },
+        { "key": "original_url", "label": "Destination URL", "type": "string" },
+        { "key": "path", "label": "Path", "type": "string" },
+        { "key": "title", "label": "Title", "type": "string" }
+      ]
+    },
+    {
+      "key": "delete_link",
+      "name": "Delete link",
+      "method": "DELETE",
+      "endpoint": "/links/{{ inputs.link_id }}",
+      "inputs": [{ "key": "link_id", "label": "Link ID", "type": "string", "required": true }]
+    }
+  ]
+}

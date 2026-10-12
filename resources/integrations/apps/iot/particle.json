@@ -1,0 +1,84 @@
+{
+  "key": "particle",
+  "name": "Particle",
+  "category": "IoT & Smart Home",
+  "description": "Call device functions, read variables and publish events on Particle devices.",
+  "brand": "particle",
+  "website": "https://www.particle.io",
+  "docs_url": "https://docs.particle.io/reference/cloud-apis/api/",
+  "base_url": "https://api.particle.io/v1",
+  "auth": [
+    {
+      "type": "bearer",
+      "fields": [
+        { "key": "token", "label": "Access token", "type": "password", "required": true, "help": "Create one with `particle token create` or at console.particle.io (API users)." }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_devices",
+      "name": "List devices",
+      "method": "GET",
+      "endpoint": "/devices",
+      "inputs": []
+    },
+    {
+      "key": "get_device",
+      "name": "Get device",
+      "method": "GET",
+      "endpoint": "/devices/{{ inputs.device_id }}",
+      "inputs": [
+        { "key": "device_id", "label": "Device ID or name", "type": "string", "required": true }
+      ]
+    },
+    {
+      "key": "call_function",
+      "name": "Call function",
+      "description": "Runs a Particle.function() on an online device.",
+      "method": "POST",
+      "endpoint": "/devices/{{ inputs.device_id }}/{{ inputs.function }}",
+      "body": { "arg": "{{ inputs.arg }}" },
+      "inputs": [
+        { "key": "device_id", "label": "Device ID or name", "type": "string", "required": true },
+        { "key": "function", "label": "Function name", "type": "string", "required": true, "placeholder": "led" },
+        { "key": "arg", "label": "Argument", "type": "string", "help": "Max 63 characters on most Device OS versions." }
+      ]
+    },
+    {
+      "key": "get_variable",
+      "name": "Get variable",
+      "method": "GET",
+      "endpoint": "/devices/{{ inputs.device_id }}/{{ inputs.variable }}",
+      "output_fields": { "value": "result" },
+      "inputs": [
+        { "key": "device_id", "label": "Device ID or name", "type": "string", "required": true },
+        { "key": "variable", "label": "Variable name", "type": "string", "required": true, "placeholder": "temperature" }
+      ]
+    },
+    {
+      "key": "publish_event",
+      "name": "Publish event",
+      "description": "Publishes a cloud event that devices subscribed to it will receive.",
+      "method": "POST",
+      "endpoint": "/devices/events",
+      "body": { "name": "{{ inputs.name }}", "data": "{{ inputs.data }}", "ttl": "{{ inputs.ttl }}" },
+      "inputs": [
+        { "key": "name", "label": "Event name", "type": "string", "required": true },
+        { "key": "data", "label": "Data", "type": "string" },
+        { "key": "ttl", "label": "TTL (seconds)", "type": "number" }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Integration webhook",
+      "type": "webhook",
+      "description": "Create a Webhook integration in the Particle console for your event and point it at this URL.",
+      "inputs": [
+        { "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }
+      ]
+    }
+  ]
+}

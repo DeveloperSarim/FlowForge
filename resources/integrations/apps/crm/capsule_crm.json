@@ -1,0 +1,207 @@
+{
+  "key": "capsule_crm",
+  "name": "Capsule CRM",
+  "category": "CRM & Sales",
+  "description": "Add people, organisations, opportunities and notes in Capsule.",
+  "brand": "capsule",
+  "website": "https://capsulecrm.com",
+  "docs_url": "https://developer.capsulecrm.com/v2/overview/getting-started",
+  "base_url": "https://api.capsulecrm.com/api/v2",
+  "auth": [
+    {
+      "type": "bearer",
+      "fields": [
+        {
+          "key": "token",
+          "label": "Personal access token",
+          "type": "password",
+          "required": true,
+          "help": "My Preferences > API Authentication Tokens."
+        }
+      ]
+    },
+    {
+      "type": "oauth2",
+      "authorize_url": "https://api.capsulecrm.com/oauth/authorise",
+      "token_url": "https://api.capsulecrm.com/oauth/token",
+      "scopes": [
+        "read",
+        "write"
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "create_person",
+      "name": "Create person",
+      "method": "POST",
+      "endpoint": "/parties",
+      "body": {
+        "party": {
+          "type": "person",
+          "firstName": "{{ inputs.first_name }}",
+          "lastName": "{{ inputs.last_name }}",
+          "jobTitle": "{{ inputs.job_title }}",
+          "emailAddresses": [
+            {
+              "address": "{{ inputs.email }}"
+            }
+          ]
+        }
+      },
+      "output_path": "party",
+      "inputs": [
+        {
+          "key": "first_name",
+          "label": "First name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string"
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "job_title",
+          "label": "Job title",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "create_organisation",
+      "name": "Create organisation",
+      "method": "POST",
+      "endpoint": "/parties",
+      "body": {
+        "party": {
+          "type": "organisation",
+          "name": "{{ inputs.name }}"
+        }
+      },
+      "output_path": "party",
+      "inputs": [
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "search_parties",
+      "name": "Search people & organisations",
+      "method": "GET",
+      "endpoint": "/parties/search",
+      "query": {
+        "q": "{{ inputs.q }}"
+      },
+      "output_path": "parties",
+      "inputs": [
+        {
+          "key": "q",
+          "label": "Search",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "create_opportunity",
+      "name": "Create opportunity",
+      "method": "POST",
+      "endpoint": "/opportunities",
+      "body": {
+        "opportunity": {
+          "name": "{{ inputs.name }}",
+          "party": {
+            "id": "{{ inputs.party_id }}"
+          },
+          "milestone": {
+            "id": "{{ inputs.milestone_id }}"
+          },
+          "value": {
+            "amount": "{{ inputs.amount }}",
+            "currency": "{{ inputs.currency }}"
+          },
+          "description": "{{ inputs.description }}"
+        }
+      },
+      "output_path": "opportunity",
+      "inputs": [
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "party_id",
+          "label": "Party ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "milestone_id",
+          "label": "Milestone ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "amount",
+          "label": "Value",
+          "type": "number"
+        },
+        {
+          "key": "currency",
+          "label": "Currency",
+          "type": "string",
+          "placeholder": "USD"
+        },
+        {
+          "key": "description",
+          "label": "Description",
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "key": "add_note",
+      "name": "Add note",
+      "method": "POST",
+      "endpoint": "/entries",
+      "body": {
+        "entry": {
+          "type": "note",
+          "party": {
+            "id": "{{ inputs.party_id }}"
+          },
+          "content": "{{ inputs.content }}"
+        }
+      },
+      "output_path": "entry",
+      "inputs": [
+        {
+          "key": "party_id",
+          "label": "Party ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "content",
+          "label": "Note",
+          "type": "text",
+          "required": true
+        }
+      ]
+    }
+  ]
+}

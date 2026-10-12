@@ -1,0 +1,215 @@
+{
+  "key": "chargebee",
+  "name": "Chargebee",
+  "category": "Payments & Finance",
+  "description": "Create customers and look up subscriptions in Chargebee.",
+  "brand": "chargebee",
+  "website": "https://www.chargebee.com",
+  "docs_url": "https://apidocs.chargebee.com/docs/api",
+  "base_url": "https://{{ credentials.site }}.chargebee.com/api/v2",
+  "auth": [
+    {
+      "type": "basic",
+      "fields": [
+        {
+          "key": "site",
+          "label": "Site",
+          "type": "string",
+          "required": true,
+          "placeholder": "acme-test",
+          "help": "The part before .chargebee.com."
+        },
+        {
+          "key": "username",
+          "label": "API key",
+          "type": "password",
+          "required": true,
+          "help": "Settings > Configure Chargebee > API keys."
+        },
+        {
+          "key": "password",
+          "label": "Password",
+          "type": "password",
+          "required": false,
+          "default": "",
+          "help": "Leave blank."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "create_customer",
+      "name": "Create customer",
+      "method": "POST",
+      "endpoint": "/customers",
+      "body_format": "form",
+      "output_path": "customer",
+      "body": {
+        "first_name": "{{ inputs.first_name }}",
+        "last_name": "{{ inputs.last_name }}",
+        "email": "{{ inputs.email }}",
+        "company": "{{ inputs.company }}",
+        "phone": "{{ inputs.phone }}",
+        "id": "{{ inputs.id }}"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string"
+        },
+        {
+          "key": "first_name",
+          "label": "First name",
+          "type": "string"
+        },
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string"
+        },
+        {
+          "key": "company",
+          "label": "Company",
+          "type": "string"
+        },
+        {
+          "key": "phone",
+          "label": "Phone",
+          "type": "string"
+        },
+        {
+          "key": "id",
+          "label": "Customer ID",
+          "type": "string",
+          "help": "Leave blank to let Chargebee generate one."
+        }
+      ]
+    },
+    {
+      "key": "get_customer",
+      "name": "Get customer",
+      "method": "GET",
+      "endpoint": "/customers/{{ inputs.customer_id }}",
+      "output_path": "customer",
+      "inputs": [
+        {
+          "key": "customer_id",
+          "label": "Customer ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "get_subscription",
+      "name": "Get subscription",
+      "method": "GET",
+      "endpoint": "/subscriptions/{{ inputs.subscription_id }}",
+      "inputs": [
+        {
+          "key": "subscription_id",
+          "label": "Subscription ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_subscriptions",
+      "name": "List subscriptions",
+      "method": "GET",
+      "endpoint": "/subscriptions",
+      "output_path": "list",
+      "query": {
+        "limit": "{{ inputs.limit }}",
+        "status[is]": "{{ inputs.status }}",
+        "customer_id[is]": "{{ inputs.customer_id }}",
+        "sort_by[desc]": "created_at"
+      },
+      "inputs": [
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "options": [
+            {
+              "value": "future",
+              "label": "Future"
+            },
+            {
+              "value": "in_trial",
+              "label": "In trial"
+            },
+            {
+              "value": "active",
+              "label": "Active"
+            },
+            {
+              "value": "non_renewing",
+              "label": "Non renewing"
+            },
+            {
+              "value": "paused",
+              "label": "Paused"
+            },
+            {
+              "value": "cancelled",
+              "label": "Cancelled"
+            }
+          ]
+        },
+        {
+          "key": "customer_id",
+          "label": "Customer ID",
+          "type": "string"
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 20,
+          "help": "Max 100."
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_subscription",
+      "name": "New subscription",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/subscriptions",
+      "query": {
+        "limit": 50,
+        "sort_by[desc]": "created_at"
+      },
+      "items_path": "list",
+      "id_field": "subscription.id",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    },
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Settings > Configure Chargebee > Webhooks: add this URL.",
+      "data_path": "content",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

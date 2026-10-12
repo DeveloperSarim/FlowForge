@@ -1,0 +1,124 @@
+{
+  "key": "pagerduty",
+  "name": "PagerDuty",
+  "category": "Developer Tools",
+  "description": "Trigger alerts, create, acknowledge and resolve incidents, and add notes.",
+  "brand": "pagerduty",
+  "website": "https://www.pagerduty.com",
+  "docs_url": "https://developer.pagerduty.com/api-reference/",
+  "popular": true,
+  "base_url": "https://api.pagerduty.com",
+  "auth": { "type": "api_key", "in": "header", "name": "Authorization", "prefix": "Token token=", "fields": [
+    { "key": "api_key", "label": "REST API key", "type": "password", "required": true, "help": "Integrations → API Access Keys (or a user API key)." }
+  ] },
+  "actions": [
+    {
+      "key": "send_event",
+      "name": "Send alert event (Events API v2)",
+      "description": "Trigger, acknowledge or resolve an alert through a service integration key.",
+      "method": "POST",
+      "endpoint": "https://events.pagerduty.com/v2/enqueue",
+      "body": {
+        "routing_key": "{{ inputs.routing_key }}",
+        "event_action": "{{ inputs.event_action }}",
+        "dedup_key": "{{ inputs.dedup_key }}",
+        "payload": { "summary": "{{ inputs.summary }}", "source": "{{ inputs.source }}", "severity": "{{ inputs.severity }}", "custom_details": "{{ inputs.details }}" }
+      },
+      "inputs": [
+        { "key": "routing_key", "label": "Integration (routing) key", "type": "password", "required": true, "help": "Service → Integrations → Events API v2." },
+        { "key": "event_action", "label": "Action", "type": "select", "required": true, "default": "trigger", "options": [
+          { "value": "trigger", "label": "Trigger" }, { "value": "acknowledge", "label": "Acknowledge" }, { "value": "resolve", "label": "Resolve" }
+        ] },
+        { "key": "dedup_key", "label": "Dedup key", "type": "string", "help": "Required to acknowledge or resolve; reuse it to group triggers." },
+        { "key": "summary", "label": "Summary", "type": "string", "help": "Required for trigger." },
+        { "key": "source", "label": "Source", "type": "string", "default": "flowforge", "help": "Required for trigger." },
+        { "key": "severity", "label": "Severity", "type": "select", "default": "error", "options": [
+          { "value": "critical", "label": "Critical" }, { "value": "error", "label": "Error" }, { "value": "warning", "label": "Warning" }, { "value": "info", "label": "Info" }
+        ] },
+        { "key": "details", "label": "Custom details", "type": "json" }
+      ]
+    },
+    {
+      "key": "create_incident",
+      "name": "Create incident",
+      "method": "POST",
+      "endpoint": "/incidents",
+      "headers": { "From": "{{ inputs.from }}" },
+      "output_path": "incident",
+      "body": {
+        "incident": {
+          "type": "incident",
+          "title": "{{ inputs.title }}",
+          "service": { "id": "{{ inputs.service_id }}", "type": "service_reference" },
+          "urgency": "{{ inputs.urgency }}",
+          "body": { "type": "incident_body", "details": "{{ inputs.details }}" }
+        }
+      },
+      "inputs": [
+        { "key": "from", "label": "Your PagerDuty email", "type": "string", "required": true, "help": "Sent as the From header; must be a user in your account." },
+        { "key": "service_id", "label": "Service ID", "type": "string", "required": true },
+        { "key": "title", "label": "Title", "type": "string", "required": true },
+        { "key": "urgency", "label": "Urgency", "type": "select", "default": "high", "options": [{ "value": "high", "label": "High" }, { "value": "low", "label": "Low" }] },
+        { "key": "details", "label": "Details", "type": "text" }
+      ]
+    },
+    {
+      "key": "update_incident_status",
+      "name": "Acknowledge / resolve incident",
+      "method": "PUT",
+      "endpoint": "/incidents/{{ inputs.incident_id }}",
+      "headers": { "From": "{{ inputs.from }}" },
+      "output_path": "incident",
+      "body": { "incident": { "type": "incident_reference", "status": "{{ inputs.status }}" } },
+      "inputs": [
+        { "key": "from", "label": "Your PagerDuty email", "type": "string", "required": true },
+        { "key": "incident_id", "label": "Incident ID", "type": "string", "required": true },
+        { "key": "status", "label": "Status", "type": "select", "required": true, "default": "acknowledged", "options": [
+          { "value": "acknowledged", "label": "Acknowledged" }, { "value": "resolved", "label": "Resolved" }
+        ] }
+      ]
+    },
+    {
+      "key": "add_note",
+      "name": "Add incident note",
+      "method": "POST",
+      "endpoint": "/incidents/{{ inputs.incident_id }}/notes",
+      "headers": { "From": "{{ inputs.from }}" },
+      "output_path": "note",
+      "body": { "note": { "content": "{{ inputs.content }}" } },
+      "inputs": [
+        { "key": "from", "label": "Your PagerDuty email", "type": "string", "required": true },
+        { "key": "incident_id", "label": "Incident ID", "type": "string", "required": true },
+        { "key": "content", "label": "Note", "type": "text", "required": true }
+      ]
+    },
+    {
+      "key": "get_incident",
+      "name": "Get incident",
+      "method": "GET",
+      "endpoint": "/incidents/{{ inputs.incident_id }}",
+      "output_path": "incident",
+      "inputs": [{ "key": "incident_id", "label": "Incident ID", "type": "string", "required": true }]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_incident",
+      "name": "New incident (polling)",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/incidents",
+      "query": { "sort_by": "created_at:desc", "limit": 25 },
+      "items_path": "incidents",
+      "id_field": "id",
+      "inputs": [{ "key": "poll_interval", "label": "Check every (minutes)", "type": "number", "default": 5 }]
+    },
+    {
+      "key": "webhook_event",
+      "name": "Webhook event (v3)",
+      "type": "webhook",
+      "data_path": "event",
+      "inputs": [{ "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }]
+    }
+  ]
+}

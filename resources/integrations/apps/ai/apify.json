@@ -1,0 +1,122 @@
+{
+  "key": "apify",
+  "name": "Apify",
+  "category": "AI",
+  "description": "Run Apify Actors (scrapers) and fetch their dataset results.",
+  "brand": "apify",
+  "website": "https://apify.com",
+  "docs_url": "https://docs.apify.com/api/v2",
+  "base_url": "https://api.apify.com/v2",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "API token",
+        "type": "password",
+        "required": true
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "run_actor",
+      "name": "Run Actor",
+      "description": "Starts an Actor run and returns the run object.",
+      "method": "POST",
+      "endpoint": "/acts/{{ inputs.actor_id }}/runs",
+      "body": "{{ inputs.input }}",
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "actor_id",
+          "label": "Actor",
+          "type": "string",
+          "required": true,
+          "placeholder": "apify~web-scraper",
+          "help": "Actor ID or username~actor-name."
+        },
+        {
+          "key": "input",
+          "label": "Actor input (JSON)",
+          "type": "json"
+        }
+      ]
+    },
+    {
+      "key": "run_actor_sync",
+      "name": "Run Actor and get results",
+      "description": "Waits for the run (up to 5 minutes) and returns its dataset items.",
+      "method": "POST",
+      "endpoint": "/acts/{{ inputs.actor_id }}/run-sync-get-dataset-items",
+      "timeout": 300,
+      "body": "{{ inputs.input }}",
+      "inputs": [
+        {
+          "key": "actor_id",
+          "label": "Actor",
+          "type": "string",
+          "required": true,
+          "placeholder": "apify~web-scraper"
+        },
+        {
+          "key": "input",
+          "label": "Actor input (JSON)",
+          "type": "json"
+        }
+      ]
+    },
+    {
+      "key": "get_run",
+      "name": "Get run",
+      "method": "GET",
+      "endpoint": "/actor-runs/{{ inputs.run_id }}",
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "run_id",
+          "label": "Run ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "get_dataset_items",
+      "name": "Get dataset items",
+      "method": "GET",
+      "endpoint": "/datasets/{{ inputs.dataset_id }}/items",
+      "query": {
+        "limit": "{{ inputs.limit }}"
+      },
+      "inputs": [
+        {
+          "key": "dataset_id",
+          "label": "Dataset ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number"
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "run_event",
+      "name": "Actor run webhook",
+      "type": "webhook",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ],
+      "data_path": "resource"
+    }
+  ]
+}

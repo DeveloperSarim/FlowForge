@@ -1,0 +1,94 @@
+{
+  "key": "gmail",
+  "name": "Gmail",
+  "category": "Communication",
+  "description": "Search, read, label and trash emails in a Gmail mailbox.",
+  "brand": "gmail",
+  "website": "https://www.google.com/gmail/about/",
+  "docs_url": "https://developers.google.com/gmail/api/reference/rest",
+  "popular": true,
+  "base_url": "https://gmail.googleapis.com/gmail/v1/users/me",
+  "auth": [
+    {
+      "type": "oauth2",
+      "authorize_url": "https://accounts.google.com/o/oauth2/v2/auth",
+      "token_url": "https://oauth2.googleapis.com/token",
+      "scopes": ["https://www.googleapis.com/auth/gmail.modify"],
+      "authorize_params": { "access_type": "offline", "prompt": "consent" }
+    }
+  ],
+  "actions": [
+    {
+      "key": "search_messages",
+      "name": "Search messages",
+      "description": "Lists message ids matching a Gmail search query (newest first).",
+      "method": "GET",
+      "endpoint": "/messages",
+      "query": { "q": "{{ inputs.q }}", "maxResults": "{{ inputs.max_results }}", "pageToken": "{{ inputs.page_token }}" },
+      "inputs": [
+        { "key": "q", "label": "Search query", "type": "string", "placeholder": "from:boss@example.com is:unread", "help": "Same syntax as the Gmail search box." },
+        { "key": "max_results", "label": "Max results", "type": "number", "default": 20 },
+        { "key": "page_token", "label": "Page token", "type": "string" }
+      ]
+    },
+    {
+      "key": "get_message",
+      "name": "Get message",
+      "method": "GET",
+      "endpoint": "/messages/{{ inputs.message_id }}",
+      "query": { "format": "{{ inputs.format }}" },
+      "inputs": [
+        { "key": "message_id", "label": "Message ID", "type": "string", "required": true },
+        { "key": "format", "label": "Format", "type": "select", "default": "full", "options": [
+          { "value": "full", "label": "Full (headers + body)" }, { "value": "metadata", "label": "Metadata (headers only)" },
+          { "value": "minimal", "label": "Minimal" }, { "value": "raw", "label": "Raw (base64url RFC 822)" }
+        ] }
+      ]
+    },
+    {
+      "key": "modify_labels",
+      "name": "Add / remove labels",
+      "description": "Archive (remove INBOX), mark read (remove UNREAD) or apply your own labels.",
+      "method": "POST",
+      "endpoint": "/messages/{{ inputs.message_id }}/modify",
+      "body": { "addLabelIds": "{{ inputs.add_label_ids }}", "removeLabelIds": "{{ inputs.remove_label_ids }}" },
+      "inputs": [
+        { "key": "message_id", "label": "Message ID", "type": "string", "required": true },
+        { "key": "add_label_ids", "label": "Label IDs to add", "type": "list", "placeholder": "STARRED" },
+        { "key": "remove_label_ids", "label": "Label IDs to remove", "type": "list", "placeholder": "UNREAD" }
+      ]
+    },
+    {
+      "key": "trash_message",
+      "name": "Move message to trash",
+      "method": "POST",
+      "endpoint": "/messages/{{ inputs.message_id }}/trash",
+      "inputs": [{ "key": "message_id", "label": "Message ID", "type": "string", "required": true }]
+    },
+    {
+      "key": "list_labels",
+      "name": "List labels",
+      "method": "GET",
+      "endpoint": "/labels",
+      "output_path": "labels",
+      "inputs": []
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_email",
+      "name": "New email",
+      "description": "Yields the message id and threadId; add a Get message step for the content.",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/messages",
+      "query": { "q": "{{ inputs.q }}", "maxResults": 20 },
+      "items_path": "messages",
+      "id_field": "id",
+      "inputs": [
+        { "key": "q", "label": "Only emails matching", "type": "string", "default": "in:inbox", "placeholder": "in:inbox from:orders@example.com" },
+        { "key": "poll_interval", "label": "Check every (minutes)", "type": "number", "default": 5 }
+      ]
+    }
+  ]
+}

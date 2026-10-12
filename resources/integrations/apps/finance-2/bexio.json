@@ -1,0 +1,255 @@
+{
+  "key": "bexio",
+  "name": "bexio",
+  "category": "Payments & Finance",
+  "description": "Search and create contacts and list, get and issue invoices in bexio.",
+  "brand": "bexio",
+  "website": "https://www.bexio.com",
+  "docs_url": "https://docs.bexio.com",
+  "base_url": "https://api.bexio.com",
+  "auth": [
+    {
+      "type": "bearer",
+      "fields": [
+        {
+          "key": "token",
+          "label": "Personal access token",
+          "type": "password",
+          "required": true,
+          "help": "bexio > Settings > Security > Personal access tokens."
+        }
+      ]
+    },
+    {
+      "type": "oauth2",
+      "authorize_url": "https://auth.bexio.com/realms/bexio/protocol/openid-connect/auth",
+      "token_url": "https://auth.bexio.com/realms/bexio/protocol/openid-connect/token",
+      "scopes": [
+        "openid",
+        "profile",
+        "offline_access",
+        "contact_show",
+        "contact_edit",
+        "kb_invoice_show",
+        "kb_invoice_edit"
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "search_contacts",
+      "name": "Search contacts",
+      "method": "POST",
+      "endpoint": "/2.0/contact/search",
+      "query": {
+        "limit": "{{ inputs.limit }}"
+      },
+      "body": [
+        {
+          "field": "{{ inputs.field }}",
+          "value": "{{ inputs.value }}",
+          "criteria": "{{ inputs.criteria }}"
+        }
+      ],
+      "inputs": [
+        {
+          "key": "field",
+          "label": "Field",
+          "type": "select",
+          "options": [
+            {
+              "value": "mail",
+              "label": "Email"
+            },
+            {
+              "value": "name_1",
+              "label": "Name / company"
+            },
+            {
+              "value": "name_2",
+              "label": "First name"
+            },
+            {
+              "value": "nr",
+              "label": "Contact number"
+            },
+            {
+              "value": "city",
+              "label": "City"
+            }
+          ],
+          "default": "mail",
+          "required": true
+        },
+        {
+          "key": "value",
+          "label": "Value",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "criteria",
+          "label": "Match",
+          "type": "select",
+          "options": [
+            {
+              "value": "=",
+              "label": "Equals"
+            },
+            {
+              "value": "like",
+              "label": "Contains"
+            }
+          ],
+          "default": "=",
+          "required": true
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    },
+    {
+      "key": "create_contact",
+      "name": "Create contact",
+      "method": "POST",
+      "endpoint": "/2.0/contact",
+      "body": {
+        "contact_type_id": "{{ inputs.contact_type_id }}",
+        "name_1": "{{ inputs.name_1 }}",
+        "name_2": "{{ inputs.name_2 }}",
+        "mail": "{{ inputs.email }}",
+        "phone_fixed": "{{ inputs.phone }}",
+        "address": "{{ inputs.address }}",
+        "postcode": "{{ inputs.postcode }}",
+        "city": "{{ inputs.city }}",
+        "user_id": "{{ inputs.user_id }}",
+        "owner_id": "{{ inputs.owner_id }}"
+      },
+      "inputs": [
+        {
+          "key": "contact_type_id",
+          "label": "Type",
+          "type": "select",
+          "options": [
+            {
+              "value": "1",
+              "label": "Company"
+            },
+            {
+              "value": "2",
+              "label": "Person"
+            }
+          ],
+          "default": "1",
+          "required": true
+        },
+        {
+          "key": "name_1",
+          "label": "Company name / last name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "name_2",
+          "label": "First name",
+          "type": "string"
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string"
+        },
+        {
+          "key": "phone",
+          "label": "Phone",
+          "type": "string"
+        },
+        {
+          "key": "address",
+          "label": "Street",
+          "type": "string"
+        },
+        {
+          "key": "postcode",
+          "label": "Postcode",
+          "type": "string"
+        },
+        {
+          "key": "city",
+          "label": "City",
+          "type": "string"
+        },
+        {
+          "key": "user_id",
+          "label": "User ID",
+          "type": "number",
+          "required": true,
+          "help": "bexio user responsible for the contact."
+        },
+        {
+          "key": "owner_id",
+          "label": "Owner ID",
+          "type": "number",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_invoices",
+      "name": "List invoices",
+      "method": "GET",
+      "endpoint": "/2.0/kb_invoice",
+      "query": {
+        "limit": "{{ inputs.limit }}",
+        "offset": "{{ inputs.offset }}",
+        "order_by": "id_desc"
+      },
+      "inputs": [
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 50
+        },
+        {
+          "key": "offset",
+          "label": "Offset",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "get_invoice",
+      "name": "Get invoice",
+      "method": "GET",
+      "endpoint": "/2.0/kb_invoice/{{ inputs.invoice_id }}",
+      "inputs": [
+        {
+          "key": "invoice_id",
+          "label": "Invoice ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "issue_invoice",
+      "name": "Issue invoice",
+      "description": "Moves a draft invoice to pending.",
+      "method": "POST",
+      "endpoint": "/2.0/kb_invoice/{{ inputs.invoice_id }}/issue",
+      "inputs": [
+        {
+          "key": "invoice_id",
+          "label": "Invoice ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ]
+}

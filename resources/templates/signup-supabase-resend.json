@@ -1,0 +1,80 @@
+{
+  "key": "signup-supabase-resend",
+  "name": "Store signups in Supabase and send a welcome email",
+  "description": "A signup webhook writes a row to Supabase and sends a welcome email through Resend.",
+  "category": "Engineering",
+  "featured": false,
+  "graph": {
+    "nodes": [
+      {
+        "id": "trigger",
+        "type": "trigger",
+        "position": {
+          "x": 0,
+          "y": 200
+        },
+        "data": {
+          "integration": "webhook",
+          "trigger": "catch",
+          "label": "New signup",
+          "config": {
+            "method": "POST",
+            "sample_payload": "{\n  \"email\": \"grace@example.com\",\n  \"name\": \"Grace Hopper\",\n  \"plan\": \"free\"\n}"
+          }
+        }
+      },
+      {
+        "id": "step_1",
+        "type": "action",
+        "position": {
+          "x": 240,
+          "y": 200
+        },
+        "data": {
+          "integration": "supabase",
+          "action": "insert_rows",
+          "label": "Insert row",
+          "config": {
+            "table": "signups",
+            "rows": "{\"email\": \"{{ steps.trigger.data.email }}\", \"name\": \"{{ steps.trigger.data.name }}\", \"plan\": \"{{ steps.trigger.data.plan }}\"}"
+          }
+        }
+      },
+      {
+        "id": "step_2",
+        "type": "action",
+        "position": {
+          "x": 480,
+          "y": 200
+        },
+        "data": {
+          "integration": "resend",
+          "action": "send_email",
+          "label": "Welcome email",
+          "config": {
+            "from": "hello@yourdomain.com",
+            "to": [
+              "{{ steps.trigger.data.email }}"
+            ],
+            "subject": "Welcome, {{ steps.trigger.data.name }}!",
+            "html": "<p>Thanks for signing up. Reply to this email if you need anything.</p>"
+          }
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "e-trigger-step_1",
+        "source": "trigger",
+        "target": "step_1",
+        "sourceHandle": null
+      },
+      {
+        "id": "e-step_1-step_2",
+        "source": "step_1",
+        "target": "step_2",
+        "sourceHandle": null
+      }
+    ]
+  }
+}

@@ -1,0 +1,70 @@
+{
+  "key": "woocommerce-airtable",
+  "name": "Track WooCommerce orders in Airtable",
+  "description": "Each new order is stored as an Airtable record for fulfilment tracking.",
+  "category": "E-commerce",
+  "featured": false,
+  "graph": {
+    "nodes": [
+      {
+        "id": "trigger",
+        "type": "trigger",
+        "position": {
+          "x": 0,
+          "y": 200
+        },
+        "data": {
+          "integration": "woocommerce",
+          "trigger": "new_order",
+          "label": "New order",
+          "config": {
+            "poll_interval": 5
+          }
+        }
+      },
+      {
+        "id": "step_1",
+        "type": "action",
+        "position": {
+          "x": 240,
+          "y": 200
+        },
+        "data": {
+          "integration": "airtable",
+          "action": "create_record",
+          "label": "Create record",
+          "config": {
+            "base_id": "",
+            "table": "Orders",
+            "fields": [
+              {
+                "key": "Order",
+                "value": "{{ steps.trigger.data.number }}"
+              },
+              {
+                "key": "Customer",
+                "value": "{{ steps.trigger.data.billing.email }}"
+              },
+              {
+                "key": "Total",
+                "value": "{{ steps.trigger.data.total }}"
+              },
+              {
+                "key": "Status",
+                "value": "{{ steps.trigger.data.status }}"
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "e-trigger-step_1",
+        "source": "trigger",
+        "target": "step_1",
+        "sourceHandle": null
+      }
+    ]
+  }
+}

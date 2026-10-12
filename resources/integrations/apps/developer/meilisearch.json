@@ -1,0 +1,84 @@
+{
+  "key": "meilisearch",
+  "name": "Meilisearch",
+  "category": "Developer Tools",
+  "description": "Search an index and add, update, get or delete documents.",
+  "brand": "meilisearch",
+  "website": "https://www.meilisearch.com",
+  "docs_url": "https://www.meilisearch.com/docs/reference/api/overview",
+  "base_url": "{{ credentials.base_url }}",
+  "auth": { "type": "bearer", "fields": [
+    { "key": "base_url", "label": "Meilisearch URL", "type": "string", "required": true, "placeholder": "https://ms-xxxx.meilisearch.io", "help": "Cloud project URL or self-hosted address, without a trailing slash." },
+    { "key": "token", "label": "API key", "type": "password", "required": true, "help": "Default Admin API key for writes, Search key for searching." }
+  ] },
+  "actions": [
+    {
+      "key": "search",
+      "name": "Search index",
+      "method": "POST",
+      "endpoint": "/indexes/{{ inputs.index }}/search",
+      "body": { "q": "{{ inputs.q }}", "filter": "{{ inputs.filter }}", "sort": "{{ inputs.sort }}", "limit": "{{ inputs.limit }}", "offset": "{{ inputs.offset }}" },
+      "inputs": [
+        { "key": "index", "label": "Index UID", "type": "string", "required": true },
+        { "key": "q", "label": "Query", "type": "string" },
+        { "key": "filter", "label": "Filter", "type": "string", "placeholder": "genre = horror AND year > 2000" },
+        { "key": "sort", "label": "Sort", "type": "list", "placeholder": "price:asc" },
+        { "key": "limit", "label": "Limit", "type": "number", "default": 20 },
+        { "key": "offset", "label": "Offset", "type": "number" }
+      ]
+    },
+    {
+      "key": "add_documents",
+      "name": "Add or replace documents",
+      "description": "Returns a task; documents are indexed asynchronously.",
+      "method": "POST",
+      "endpoint": "/indexes/{{ inputs.index }}/documents",
+      "query": { "primaryKey": "{{ inputs.primary_key }}" },
+      "body": "{{ inputs.documents }}",
+      "inputs": [
+        { "key": "index", "label": "Index UID", "type": "string", "required": true },
+        { "key": "documents", "label": "Documents (JSON array)", "type": "json", "required": true, "placeholder": "[{ \"id\": 1, \"title\": \"Carol\" }]" },
+        { "key": "primary_key", "label": "Primary key", "type": "string", "help": "Only needed when the index has none yet." }
+      ]
+    },
+    {
+      "key": "update_documents",
+      "name": "Add or update documents",
+      "description": "Merges fields into existing documents.",
+      "method": "PUT",
+      "endpoint": "/indexes/{{ inputs.index }}/documents",
+      "body": "{{ inputs.documents }}",
+      "inputs": [
+        { "key": "index", "label": "Index UID", "type": "string", "required": true },
+        { "key": "documents", "label": "Documents (JSON array)", "type": "json", "required": true }
+      ]
+    },
+    {
+      "key": "get_document",
+      "name": "Get document",
+      "method": "GET",
+      "endpoint": "/indexes/{{ inputs.index }}/documents/{{ inputs.document_id }}",
+      "inputs": [
+        { "key": "index", "label": "Index UID", "type": "string", "required": true },
+        { "key": "document_id", "label": "Document ID", "type": "string", "required": true }
+      ]
+    },
+    {
+      "key": "delete_document",
+      "name": "Delete document",
+      "method": "DELETE",
+      "endpoint": "/indexes/{{ inputs.index }}/documents/{{ inputs.document_id }}",
+      "inputs": [
+        { "key": "index", "label": "Index UID", "type": "string", "required": true },
+        { "key": "document_id", "label": "Document ID", "type": "string", "required": true }
+      ]
+    },
+    {
+      "key": "get_task",
+      "name": "Get task",
+      "method": "GET",
+      "endpoint": "/tasks/{{ inputs.task_uid }}",
+      "inputs": [{ "key": "task_uid", "label": "Task UID", "type": "number", "required": true }]
+    }
+  ]
+}

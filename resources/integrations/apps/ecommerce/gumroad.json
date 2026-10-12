@@ -1,0 +1,151 @@
+{
+  "key": "gumroad",
+  "name": "Gumroad",
+  "category": "E-commerce",
+  "description": "List products and sales and verify license keys on Gumroad.",
+  "brand": "gumroad",
+  "website": "https://gumroad.com",
+  "docs_url": "https://gumroad.com/api",
+  "base_url": "https://api.gumroad.com/v2",
+  "auth": [
+    {
+      "type": "api_key",
+      "in": "query",
+      "name": "access_token",
+      "fields": [
+        {
+          "key": "api_key",
+          "label": "Access token",
+          "type": "password",
+          "required": true,
+          "help": "Settings > Advanced > Applications > create an application > Generate access token."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_products",
+      "name": "List products",
+      "method": "GET",
+      "endpoint": "/products",
+      "output_path": "products",
+      "inputs": []
+    },
+    {
+      "key": "get_product",
+      "name": "Get product",
+      "method": "GET",
+      "endpoint": "/products/{{ inputs.product_id }}",
+      "output_path": "product",
+      "inputs": [
+        {
+          "key": "product_id",
+          "label": "Product ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_sales",
+      "name": "List sales",
+      "method": "GET",
+      "endpoint": "/sales",
+      "query": {
+        "email": "{{ inputs.email }}",
+        "product_id": "{{ inputs.product_id }}",
+        "after": "{{ inputs.after }}",
+        "before": "{{ inputs.before }}",
+        "page_key": "{{ inputs.page_key }}"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Buyer email",
+          "type": "string"
+        },
+        {
+          "key": "product_id",
+          "label": "Product ID",
+          "type": "string"
+        },
+        {
+          "key": "after",
+          "label": "After date",
+          "type": "string",
+          "placeholder": "2025-01-01"
+        },
+        {
+          "key": "before",
+          "label": "Before date",
+          "type": "string",
+          "placeholder": "2025-12-31"
+        },
+        {
+          "key": "page_key",
+          "label": "Page key",
+          "type": "string",
+          "help": "next_page_key from a previous call."
+        }
+      ]
+    },
+    {
+      "key": "verify_license",
+      "name": "Verify license key",
+      "method": "POST",
+      "endpoint": "/licenses/verify",
+      "body_format": "form",
+      "body": {
+        "product_id": "{{ inputs.product_id }}",
+        "license_key": "{{ inputs.license_key }}",
+        "increment_uses_count": "{{ inputs.increment }}"
+      },
+      "inputs": [
+        {
+          "key": "product_id",
+          "label": "Product ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "license_key",
+          "label": "License key",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "increment",
+          "label": "Increment uses count",
+          "type": "select",
+          "options": [
+            {
+              "value": "true",
+              "label": "Yes"
+            },
+            {
+              "value": "false",
+              "label": "No"
+            }
+          ],
+          "default": "false"
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "sale_ping",
+      "name": "New sale (Ping)",
+      "type": "webhook",
+      "description": "Settings > Advanced > Ping: paste this URL. Gumroad posts each sale here.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

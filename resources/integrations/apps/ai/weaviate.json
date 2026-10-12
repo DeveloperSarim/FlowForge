@@ -1,0 +1,128 @@
+{
+  "key": "weaviate",
+  "name": "Weaviate",
+  "category": "AI",
+  "description": "Create, fetch and query objects in a Weaviate cluster.",
+  "brand": "weaviate",
+  "website": "https://weaviate.io",
+  "docs_url": "https://weaviate.io/developers/weaviate/api/rest",
+  "base_url": "{{ credentials.url }}/v1",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "url",
+        "label": "Cluster URL",
+        "type": "string",
+        "required": true,
+        "placeholder": "https://xyz.weaviate.cloud"
+      },
+      {
+        "key": "token",
+        "label": "API key",
+        "type": "password",
+        "required": true
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "create_object",
+      "name": "Create object",
+      "method": "POST",
+      "endpoint": "/objects",
+      "body": {
+        "class": "{{ inputs.class }}",
+        "properties": "{{ inputs.properties }}",
+        "vector": "{{ inputs.vector }}"
+      },
+      "inputs": [
+        {
+          "key": "class",
+          "label": "Collection (class)",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "properties",
+          "label": "Properties (JSON)",
+          "type": "json",
+          "required": true
+        },
+        {
+          "key": "vector",
+          "label": "Vector (JSON array)",
+          "type": "json",
+          "help": "Leave blank to let the collection's vectorizer embed it."
+        }
+      ]
+    },
+    {
+      "key": "get_object",
+      "name": "Get object",
+      "method": "GET",
+      "endpoint": "/objects/{{ inputs.class }}/{{ inputs.id }}",
+      "inputs": [
+        {
+          "key": "class",
+          "label": "Collection (class)",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "id",
+          "label": "Object UUID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "delete_object",
+      "name": "Delete object",
+      "method": "DELETE",
+      "endpoint": "/objects/{{ inputs.class }}/{{ inputs.id }}",
+      "inputs": [
+        {
+          "key": "class",
+          "label": "Collection (class)",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "id",
+          "label": "Object UUID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "graphql_query",
+      "name": "GraphQL query",
+      "method": "POST",
+      "endpoint": "/graphql",
+      "body": {
+        "query": "{{ inputs.query }}"
+      },
+      "output_path": "data",
+      "error_path": "errors",
+      "inputs": [
+        {
+          "key": "query",
+          "label": "GraphQL query",
+          "type": "code",
+          "required": true,
+          "placeholder": "{ Get { Article(nearText: {concepts: [\"ai\"]}, limit: 5) { title } } }"
+        }
+      ]
+    },
+    {
+      "key": "get_schema",
+      "name": "Get schema",
+      "method": "GET",
+      "endpoint": "/schema",
+      "inputs": []
+    }
+  ]
+}

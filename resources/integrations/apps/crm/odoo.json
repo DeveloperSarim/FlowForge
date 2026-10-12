@@ -1,0 +1,186 @@
+{
+  "key": "odoo",
+  "name": "Odoo",
+  "category": "CRM & Sales",
+  "description": "Search, create and update any Odoo model (Odoo 19+ JSON-2 API).",
+  "brand": "odoo",
+  "website": "https://www.odoo.com",
+  "docs_url": "https://www.odoo.com/documentation/19.0/developer/reference/external_api.html",
+  "base_url": "{{ credentials.url }}/json/2",
+  "headers": {
+    "X-Odoo-Database": "{{ credentials.database }}"
+  },
+  "auth": [
+    {
+      "type": "bearer",
+      "fields": [
+        {
+          "key": "url",
+          "label": "Odoo URL",
+          "type": "string",
+          "required": true,
+          "placeholder": "https://yourcompany.odoo.com",
+          "help": "No trailing slash."
+        },
+        {
+          "key": "database",
+          "label": "Database name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "token",
+          "label": "API key",
+          "type": "password",
+          "required": true,
+          "help": "Preferences > Account Security > New API Key."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "search_read",
+      "name": "Search records",
+      "method": "POST",
+      "endpoint": "/{{ inputs.model }}/search_read",
+      "body": {
+        "domain": "{{ inputs.domain }}",
+        "fields": "{{ inputs.fields }}",
+        "limit": "{{ inputs.limit }}",
+        "order": "{{ inputs.order }}"
+      },
+      "inputs": [
+        {
+          "key": "model",
+          "label": "Model",
+          "type": "string",
+          "required": true,
+          "default": "res.partner",
+          "placeholder": "res.partner, crm.lead, sale.order"
+        },
+        {
+          "key": "domain",
+          "label": "Domain",
+          "type": "json",
+          "placeholder": "[[\"email\", \"=\", \"jane@acme.com\"]]"
+        },
+        {
+          "key": "fields",
+          "label": "Fields",
+          "type": "list",
+          "help": "e.g. name, email"
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 20
+        },
+        {
+          "key": "order",
+          "label": "Order",
+          "type": "string",
+          "placeholder": "id desc"
+        }
+      ]
+    },
+    {
+      "key": "create",
+      "name": "Create record",
+      "description": "Returns the list of new IDs.",
+      "method": "POST",
+      "endpoint": "/{{ inputs.model }}/create",
+      "body": {
+        "vals_list": [
+          "{{ inputs.values }}"
+        ]
+      },
+      "inputs": [
+        {
+          "key": "model",
+          "label": "Model",
+          "type": "string",
+          "required": true,
+          "default": "crm.lead"
+        },
+        {
+          "key": "values",
+          "label": "Values",
+          "type": "json",
+          "required": true,
+          "placeholder": "{\"name\": \"New lead\", \"email_from\": \"jane@acme.com\"}"
+        }
+      ]
+    },
+    {
+      "key": "write",
+      "name": "Update records",
+      "method": "POST",
+      "endpoint": "/{{ inputs.model }}/write",
+      "body": {
+        "ids": "{{ inputs.ids }}",
+        "vals": "{{ inputs.values }}"
+      },
+      "inputs": [
+        {
+          "key": "model",
+          "label": "Model",
+          "type": "string",
+          "required": true,
+          "default": "crm.lead"
+        },
+        {
+          "key": "ids",
+          "label": "Record IDs",
+          "type": "json",
+          "required": true,
+          "placeholder": "[42]"
+        },
+        {
+          "key": "values",
+          "label": "Values",
+          "type": "json",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_record",
+      "name": "New record",
+      "type": "polling",
+      "method": "POST",
+      "endpoint": "/{{ inputs.model }}/search_read",
+      "body": {
+        "domain": [],
+        "fields": "{{ inputs.fields }}",
+        "limit": 50,
+        "order": "id desc"
+      },
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "model",
+          "label": "Model",
+          "type": "string",
+          "required": true,
+          "default": "crm.lead"
+        },
+        {
+          "key": "fields",
+          "label": "Fields",
+          "type": "list",
+          "help": "Empty = all fields."
+        },
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

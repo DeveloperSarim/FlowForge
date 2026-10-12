@@ -1,0 +1,195 @@
+{
+  "key": "ringcentral",
+  "name": "RingCentral",
+  "category": "Communication",
+  "description": "Send SMS, start RingOut calls and read messages and call logs.",
+  "brand": "ringcentral",
+  "website": "https://www.ringcentral.com",
+  "docs_url": "https://developers.ringcentral.com/api-reference",
+  "base_url": "https://platform.ringcentral.com/restapi/v1.0",
+  "auth": [
+    {
+      "type": "oauth2",
+      "authorize_url": "https://platform.ringcentral.com/restapi/oauth/authorize",
+      "token_url": "https://platform.ringcentral.com/restapi/oauth/token",
+      "client_auth": "basic"
+    },
+    {
+      "type": "bearer",
+      "fields": [
+        {
+          "key": "token",
+          "label": "Access token",
+          "type": "password",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "send_sms",
+      "name": "Send SMS",
+      "method": "POST",
+      "endpoint": "/account/~/extension/~/sms",
+      "body": {
+        "from": {
+          "phoneNumber": "{{ inputs.from }}"
+        },
+        "to": [
+          {
+            "phoneNumber": "{{ inputs.to }}"
+          }
+        ],
+        "text": "{{ inputs.text }}"
+      },
+      "inputs": [
+        {
+          "key": "from",
+          "label": "From (your SMS-enabled number)",
+          "type": "string",
+          "required": true,
+          "placeholder": "+16505550100"
+        },
+        {
+          "key": "to",
+          "label": "To",
+          "type": "string",
+          "required": true,
+          "placeholder": "+14155550100"
+        },
+        {
+          "key": "text",
+          "label": "Message",
+          "type": "text",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "ring_out",
+      "name": "Start RingOut call",
+      "description": "Calls your phone first, then connects you to the other number.",
+      "method": "POST",
+      "endpoint": "/account/~/extension/~/ring-out",
+      "body": {
+        "from": {
+          "phoneNumber": "{{ inputs.from }}"
+        },
+        "to": {
+          "phoneNumber": "{{ inputs.to }}"
+        },
+        "playPrompt": "{{ inputs.play_prompt }}"
+      },
+      "inputs": [
+        {
+          "key": "from",
+          "label": "Your phone",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "to",
+          "label": "Number to call",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "play_prompt",
+          "label": "Play \"press 1\" prompt",
+          "type": "boolean",
+          "default": false
+        }
+      ]
+    },
+    {
+      "key": "list_messages",
+      "name": "List messages",
+      "method": "GET",
+      "endpoint": "/account/~/extension/~/message-store",
+      "query": {
+        "messageType": "{{ inputs.message_type }}",
+        "direction": "{{ inputs.direction }}",
+        "perPage": "{{ inputs.per_page }}"
+      },
+      "output_path": "records",
+      "inputs": [
+        {
+          "key": "message_type",
+          "label": "Type",
+          "type": "select",
+          "default": "SMS",
+          "options": [
+            {
+              "value": "SMS",
+              "label": "SMS"
+            },
+            {
+              "value": "VoiceMail",
+              "label": "Voicemail"
+            },
+            {
+              "value": "Fax",
+              "label": "Fax"
+            },
+            {
+              "value": "Pager",
+              "label": "Pager"
+            }
+          ]
+        },
+        {
+          "key": "direction",
+          "label": "Direction",
+          "type": "select",
+          "options": [
+            {
+              "value": "",
+              "label": "Both"
+            },
+            {
+              "value": "Inbound",
+              "label": "Inbound"
+            },
+            {
+              "value": "Outbound",
+              "label": "Outbound"
+            }
+          ]
+        },
+        {
+          "key": "per_page",
+          "label": "Max results",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    },
+    {
+      "key": "get_call_log",
+      "name": "Get call log",
+      "method": "GET",
+      "endpoint": "/account/~/extension/~/call-log",
+      "query": {
+        "dateFrom": "{{ inputs.date_from }}",
+        "perPage": "{{ inputs.per_page }}"
+      },
+      "output_path": "records",
+      "inputs": [
+        {
+          "key": "date_from",
+          "label": "From",
+          "type": "string",
+          "placeholder": "2026-01-01T00:00:00Z",
+          "help": "Defaults to the last 24 hours."
+        },
+        {
+          "key": "per_page",
+          "label": "Max results",
+          "type": "number",
+          "default": 100
+        }
+      ]
+    }
+  ]
+}

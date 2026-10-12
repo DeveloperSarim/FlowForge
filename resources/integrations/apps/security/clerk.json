@@ -1,0 +1,107 @@
+{
+  "key": "clerk",
+  "name": "Clerk",
+  "category": "Security & IT",
+  "description": "Create, find, update, ban and delete users and send invitations.",
+  "brand": "clerk",
+  "website": "https://clerk.com",
+  "docs_url": "https://clerk.com/docs/reference/backend-api",
+  "base_url": "https://api.clerk.com/v1",
+  "auth": { "type": "bearer", "fields": [{ "key": "token", "label": "Secret key (sk_…)", "type": "password", "required": true, "help": "Dashboard → API keys → Secret keys." }] },
+  "actions": [
+    {
+      "key": "create_user",
+      "name": "Create user",
+      "method": "POST",
+      "endpoint": "/users",
+      "body": { "email_address": ["{{ inputs.email }}"], "first_name": "{{ inputs.first_name }}", "last_name": "{{ inputs.last_name }}", "username": "{{ inputs.username }}", "password": "{{ inputs.password }}", "skip_password_requirement": "{{ inputs.skip_password }}", "public_metadata": "{{ inputs.public_metadata }}", "private_metadata": "{{ inputs.private_metadata }}" },
+      "inputs": [
+        { "key": "email", "label": "Email", "type": "string", "required": true },
+        { "key": "first_name", "label": "First name", "type": "string" },
+        { "key": "last_name", "label": "Last name", "type": "string" },
+        { "key": "username", "label": "Username", "type": "string" },
+        { "key": "password", "label": "Password", "type": "password" },
+        { "key": "skip_password", "label": "Skip password requirement", "type": "boolean" },
+        { "key": "public_metadata", "label": "Public metadata", "type": "keyvalue" },
+        { "key": "private_metadata", "label": "Private metadata", "type": "keyvalue" }
+      ]
+    },
+    {
+      "key": "get_user",
+      "name": "Get user",
+      "method": "GET",
+      "endpoint": "/users/{{ inputs.user_id }}",
+      "inputs": [{ "key": "user_id", "label": "User ID", "type": "string", "required": true, "placeholder": "user_2abc..." }]
+    },
+    {
+      "key": "list_users",
+      "name": "Find users",
+      "method": "GET",
+      "endpoint": "/users",
+      "query": { "email_address": "{{ inputs.email }}", "query": "{{ inputs.query }}", "limit": "{{ inputs.limit }}", "order_by": "-created_at" },
+      "inputs": [
+        { "key": "email", "label": "Email", "type": "string" },
+        { "key": "query", "label": "Search text", "type": "string", "help": "Matches email, phone, username, name or ID." },
+        { "key": "limit", "label": "Limit", "type": "number", "default": 10 }
+      ]
+    },
+    {
+      "key": "update_metadata",
+      "name": "Merge user metadata",
+      "method": "PATCH",
+      "endpoint": "/users/{{ inputs.user_id }}/metadata",
+      "body": { "public_metadata": "{{ inputs.public_metadata }}", "private_metadata": "{{ inputs.private_metadata }}", "unsafe_metadata": "{{ inputs.unsafe_metadata }}" },
+      "inputs": [
+        { "key": "user_id", "label": "User ID", "type": "string", "required": true },
+        { "key": "public_metadata", "label": "Public metadata", "type": "keyvalue" },
+        { "key": "private_metadata", "label": "Private metadata", "type": "keyvalue" },
+        { "key": "unsafe_metadata", "label": "Unsafe metadata", "type": "keyvalue" }
+      ]
+    },
+    {
+      "key": "ban_user",
+      "name": "Ban user",
+      "method": "POST",
+      "endpoint": "/users/{{ inputs.user_id }}/ban",
+      "inputs": [{ "key": "user_id", "label": "User ID", "type": "string", "required": true }]
+    },
+    {
+      "key": "delete_user",
+      "name": "Delete user",
+      "method": "DELETE",
+      "endpoint": "/users/{{ inputs.user_id }}",
+      "inputs": [{ "key": "user_id", "label": "User ID", "type": "string", "required": true }]
+    },
+    {
+      "key": "create_invitation",
+      "name": "Send invitation",
+      "method": "POST",
+      "endpoint": "/invitations",
+      "body": { "email_address": "{{ inputs.email }}", "redirect_url": "{{ inputs.redirect_url }}", "public_metadata": "{{ inputs.public_metadata }}" },
+      "inputs": [
+        { "key": "email", "label": "Email", "type": "string", "required": true },
+        { "key": "redirect_url", "label": "Redirect URL", "type": "string" },
+        { "key": "public_metadata", "label": "Public metadata", "type": "keyvalue" }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_user",
+      "name": "New user (polling)",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/users",
+      "query": { "order_by": "-created_at", "limit": 50 },
+      "id_field": "id",
+      "inputs": [{ "key": "poll_interval", "label": "Check every (minutes)", "type": "number", "default": 5 }]
+    },
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "data_path": "data",
+      "inputs": [{ "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }]
+    }
+  ]
+}

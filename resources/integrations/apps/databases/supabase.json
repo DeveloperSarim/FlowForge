@@ -1,0 +1,121 @@
+{
+  "key": "supabase",
+  "name": "Supabase",
+  "category": "Databases",
+  "description": "Select, insert, upsert, update and delete table rows, and call database functions.",
+  "brand": "supabase",
+  "website": "https://supabase.com",
+  "docs_url": "https://supabase.com/docs/guides/api",
+  "popular": true,
+  "base_url": "{{ credentials.project_url }}/rest/v1",
+  "headers": { "Authorization": "Bearer {{ credentials.api_key }}" },
+  "auth": { "type": "api_key", "in": "header", "name": "apikey", "fields": [
+    { "key": "project_url", "label": "Project URL", "type": "string", "required": true, "placeholder": "https://abcdefghijklmnop.supabase.co", "help": "Project Settings → Data API. No trailing slash." },
+    { "key": "api_key", "label": "Secret or service_role key", "type": "password", "required": true, "help": "Project Settings → API Keys. Secret / service_role keys bypass Row Level Security; a publishable / anon key respects it." }
+  ] },
+  "actions": [
+    {
+      "key": "select_rows",
+      "name": "Select rows",
+      "method": "GET",
+      "endpoint": "/{{ inputs.table }}",
+      "query": { "select": "{{ inputs.select }}", "and": "{{ inputs.filter }}", "order": "{{ inputs.order }}", "limit": "{{ inputs.limit }}", "offset": "{{ inputs.offset }}" },
+      "inputs": [
+        { "key": "table", "label": "Table or view", "type": "string", "required": true },
+        { "key": "select", "label": "Columns", "type": "string", "default": "*", "placeholder": "id,name,orders(total)" },
+        { "key": "filter", "label": "Filter", "type": "string", "placeholder": "(status.eq.active,age.gte.18)", "help": "PostgREST conditions in parentheses, comma = AND. Operators: eq, neq, gt, gte, lt, lte, like, ilike, is, in.(a,b)." },
+        { "key": "order", "label": "Order by", "type": "string", "placeholder": "created_at.desc" },
+        { "key": "limit", "label": "Limit", "type": "number", "default": 100 },
+        { "key": "offset", "label": "Offset", "type": "number" }
+      ]
+    },
+    {
+      "key": "insert_rows",
+      "name": "Insert rows",
+      "method": "POST",
+      "endpoint": "/{{ inputs.table }}",
+      "headers": { "Prefer": "return=representation" },
+      "body": "{{ inputs.rows }}",
+      "inputs": [
+        { "key": "table", "label": "Table", "type": "string", "required": true },
+        { "key": "rows", "label": "Row or rows (JSON)", "type": "json", "required": true, "placeholder": "{ \"name\": \"Ada\", \"email\": \"ada@example.com\" }", "help": "One object, or an array of objects with the same keys." }
+      ]
+    },
+    {
+      "key": "upsert_rows",
+      "name": "Upsert rows",
+      "description": "Inserts rows, updating existing ones that clash on the conflict column(s).",
+      "method": "POST",
+      "endpoint": "/{{ inputs.table }}",
+      "query": { "on_conflict": "{{ inputs.on_conflict }}" },
+      "headers": { "Prefer": "return=representation,resolution=merge-duplicates" },
+      "body": "{{ inputs.rows }}",
+      "inputs": [
+        { "key": "table", "label": "Table", "type": "string", "required": true },
+        { "key": "rows", "label": "Row or rows (JSON)", "type": "json", "required": true },
+        { "key": "on_conflict", "label": "Conflict column(s)", "type": "string", "placeholder": "email", "help": "A unique column; defaults to the primary key." }
+      ]
+    },
+    {
+      "key": "update_rows",
+      "name": "Update rows",
+      "method": "PATCH",
+      "endpoint": "/{{ inputs.table }}",
+      "query": { "and": "{{ inputs.filter }}" },
+      "headers": { "Prefer": "return=representation" },
+      "body": "{{ inputs.values }}",
+      "inputs": [
+        { "key": "table", "label": "Table", "type": "string", "required": true },
+        { "key": "filter", "label": "Which rows", "type": "string", "required": true, "placeholder": "(id.eq.42)", "help": "PostgREST conditions in parentheses." },
+        { "key": "values", "label": "New values (JSON)", "type": "json", "required": true, "placeholder": "{ \"status\": \"done\" }" }
+      ]
+    },
+    {
+      "key": "delete_rows",
+      "name": "Delete rows",
+      "method": "DELETE",
+      "endpoint": "/{{ inputs.table }}",
+      "query": { "and": "{{ inputs.filter }}" },
+      "headers": { "Prefer": "return=representation" },
+      "inputs": [
+        { "key": "table", "label": "Table", "type": "string", "required": true },
+        { "key": "filter", "label": "Which rows", "type": "string", "required": true, "placeholder": "(id.eq.42)" }
+      ]
+    },
+    {
+      "key": "call_function",
+      "name": "Call database function (RPC)",
+      "method": "POST",
+      "endpoint": "/rpc/{{ inputs.function }}",
+      "body": "{{ inputs.args }}",
+      "inputs": [
+        { "key": "function", "label": "Function name", "type": "string", "required": true },
+        { "key": "args", "label": "Arguments (JSON)", "type": "json", "placeholder": "{ \"user_id\": 42 }" }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_row",
+      "name": "New row (polling)",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/{{ inputs.table }}",
+      "query": { "select": "*", "order": "{{ inputs.order_column }}.desc", "limit": 50 },
+      "id_field": "id",
+      "inputs": [
+        { "key": "table", "label": "Table", "type": "string", "required": true, "help": "Needs an id column." },
+        { "key": "order_column", "label": "Newest-first column", "type": "string", "required": true, "default": "created_at" },
+        { "key": "poll_interval", "label": "Check every (minutes)", "type": "number", "default": 5 }
+      ]
+    },
+    {
+      "key": "database_webhook",
+      "name": "Database webhook",
+      "description": "Point a Supabase Database Webhook (insert / update / delete) at this URL.",
+      "type": "webhook",
+      "data_path": "record",
+      "inputs": [{ "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }]
+    }
+  ]
+}

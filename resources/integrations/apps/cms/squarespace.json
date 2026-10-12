@@ -1,0 +1,163 @@
+{
+  "key": "squarespace",
+  "name": "Squarespace",
+  "category": "CMS & Websites",
+  "description": "List and fulfill store orders, read inventory and customer profiles.",
+  "brand": "squarespace",
+  "website": "https://www.squarespace.com",
+  "docs_url": "https://developers.squarespace.com/commerce-apis/overview",
+  "base_url": "https://api.squarespace.com/1.0",
+  "auth": [
+    {
+      "type": "bearer",
+      "fields": [
+        {
+          "key": "token",
+          "label": "API key",
+          "type": "password",
+          "required": true,
+          "help": "Settings > Advanced > Developer API Keys."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_orders",
+      "name": "List orders",
+      "method": "GET",
+      "endpoint": "/commerce/orders",
+      "output_path": "result",
+      "query": {
+        "fulfillmentStatus": "{{ inputs.fulfillment_status }}",
+        "modifiedAfter": "{{ inputs.modified_after }}",
+        "modifiedBefore": "{{ inputs.modified_before }}",
+        "cursor": "{{ inputs.cursor }}"
+      },
+      "inputs": [
+        {
+          "key": "fulfillment_status",
+          "label": "Fulfillment status",
+          "type": "select",
+          "options": [
+            {
+              "value": "PENDING",
+              "label": "Pending"
+            },
+            {
+              "value": "FULFILLED",
+              "label": "Fulfilled"
+            },
+            {
+              "value": "CANCELED",
+              "label": "Canceled"
+            }
+          ]
+        },
+        {
+          "key": "modified_after",
+          "label": "Modified after",
+          "type": "string",
+          "placeholder": "2024-01-01T00:00:00Z",
+          "help": "Set both dates or neither."
+        },
+        {
+          "key": "modified_before",
+          "label": "Modified before",
+          "type": "string",
+          "placeholder": "2024-12-31T23:59:59Z"
+        },
+        {
+          "key": "cursor",
+          "label": "Cursor",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "get_order",
+      "name": "Get order",
+      "method": "GET",
+      "endpoint": "/commerce/orders/{{ inputs.order_id }}",
+      "inputs": [
+        {
+          "key": "order_id",
+          "label": "Order ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "fulfill_order",
+      "name": "Fulfill order",
+      "method": "POST",
+      "endpoint": "/commerce/orders/{{ inputs.order_id }}/fulfillments",
+      "body": {
+        "shouldSendNotification": "{{ inputs.notify }}",
+        "shipments": "{{ inputs.shipments }}"
+      },
+      "inputs": [
+        {
+          "key": "order_id",
+          "label": "Order ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "notify",
+          "label": "Email the customer",
+          "type": "boolean",
+          "default": true
+        },
+        {
+          "key": "shipments",
+          "label": "Shipments (JSON)",
+          "type": "json",
+          "placeholder": "[{ \"shipDate\": \"2024-05-01T10:00:00Z\", \"carrierName\": \"UPS\", \"service\": \"Ground\", \"trackingNumber\": \"1Z...\" }]"
+        }
+      ]
+    },
+    {
+      "key": "list_inventory",
+      "name": "List inventory",
+      "method": "GET",
+      "endpoint": "/commerce/inventory",
+      "query": {
+        "cursor": "{{ inputs.cursor }}"
+      },
+      "output_path": "inventory",
+      "inputs": [
+        {
+          "key": "cursor",
+          "label": "Cursor",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "list_profiles",
+      "name": "List profiles",
+      "method": "GET",
+      "endpoint": "/profiles",
+      "output_path": "profiles",
+      "query": {
+        "filter": "{{ inputs.filter }}",
+        "cursor": "{{ inputs.cursor }}"
+      },
+      "inputs": [
+        {
+          "key": "filter",
+          "label": "Filter",
+          "type": "string",
+          "placeholder": "isCustomer,true"
+        },
+        {
+          "key": "cursor",
+          "label": "Cursor",
+          "type": "string"
+        }
+      ]
+    }
+  ]
+}

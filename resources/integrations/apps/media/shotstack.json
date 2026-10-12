@@ -1,0 +1,72 @@
+{
+  "key": "shotstack",
+  "name": "Shotstack",
+  "category": "Video & Media",
+  "description": "Render videos from JSON timelines or saved templates and check render status.",
+  "brand": "shotstack",
+  "website": "https://shotstack.io",
+  "docs_url": "https://shotstack.io/docs/api/",
+  "popular": true,
+  "base_url": "https://api.shotstack.io/edit/{{ credentials.environment }}",
+  "auth": { "type": "api_key", "in": "header", "name": "x-api-key", "fields": [
+    { "key": "environment", "label": "Environment", "type": "select", "required": true, "default": "v1", "options": [
+      { "value": "v1", "label": "Production (v1)" }, { "value": "stage", "label": "Sandbox (stage)" }
+    ] },
+    { "key": "api_key", "label": "API key for that environment", "type": "password", "required": true }
+  ] },
+  "actions": [
+    {
+      "key": "render",
+      "name": "Render video",
+      "description": "Queues an edit (timeline + output) for rendering.",
+      "method": "POST",
+      "endpoint": "/render",
+      "output_path": "response",
+      "body": { "timeline": "{{ inputs.timeline }}", "output": "{{ inputs.output }}", "merge": "{{ inputs.merge }}", "callback": "{{ inputs.callback }}" },
+      "inputs": [
+        { "key": "timeline", "label": "Timeline (JSON)", "type": "json", "required": true, "placeholder": "{\"tracks\":[{\"clips\":[{\"asset\":{\"type\":\"video\",\"src\":\"https://…/clip.mp4\"},\"start\":0,\"length\":5}]}]}" },
+        { "key": "output", "label": "Output (JSON)", "type": "json", "required": true, "placeholder": "{\"format\":\"mp4\",\"resolution\":\"sd\"}" },
+        { "key": "merge", "label": "Merge fields (JSON array)", "type": "json", "placeholder": "[{\"find\":\"NAME\",\"replace\":\"Ada\"}]" },
+        { "key": "callback", "label": "Callback URL", "type": "string", "help": "Shotstack POSTs the render status here when done." }
+      ]
+    },
+    {
+      "key": "render_template",
+      "name": "Render template",
+      "method": "POST",
+      "endpoint": "/templates/render",
+      "output_path": "response",
+      "body": { "id": "{{ inputs.template_id }}", "merge": "{{ inputs.merge }}" },
+      "inputs": [
+        { "key": "template_id", "label": "Template ID", "type": "string", "required": true },
+        { "key": "merge", "label": "Merge fields (JSON array)", "type": "json", "placeholder": "[{\"find\":\"NAME\",\"replace\":\"Ada\"}]" }
+      ]
+    },
+    {
+      "key": "get_render",
+      "name": "Get render status",
+      "description": "Status and output URL of a render.",
+      "method": "GET",
+      "endpoint": "/render/{{ inputs.render_id }}",
+      "output_path": "response",
+      "inputs": [{ "key": "render_id", "label": "Render ID", "type": "string", "required": true }]
+    },
+    {
+      "key": "list_templates",
+      "name": "List templates",
+      "method": "GET",
+      "endpoint": "/templates",
+      "output_path": "response",
+      "inputs": []
+    }
+  ],
+  "triggers": [
+    {
+      "key": "render_callback",
+      "name": "Render finished (callback)",
+      "description": "Use this URL as the render's callback URL.",
+      "type": "webhook",
+      "inputs": [{ "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }]
+    }
+  ]
+}

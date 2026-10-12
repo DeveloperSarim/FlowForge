@@ -1,0 +1,195 @@
+{
+  "key": "uploadcare",
+  "name": "Uploadcare",
+  "category": "Files & Documents",
+  "description": "Upload files from URLs, list, store and delete files.",
+  "brand": "uploadcare",
+  "website": "https://uploadcare.com",
+  "docs_url": "https://uploadcare.com/api-refs/rest-api/",
+  "base_url": "https://api.uploadcare.com",
+  "headers": {
+    "Accept": "application/vnd.uploadcare-v0.7+json",
+    "Authorization": "Uploadcare.Simple {{ credentials.public_key }}:{{ credentials.api_key }}"
+  },
+  "auth": [
+    {
+      "type": "api_key",
+      "fields": [
+        {
+          "key": "public_key",
+          "label": "Public key",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "api_key",
+          "label": "Secret key",
+          "type": "password",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "upload_from_url",
+      "name": "Upload from URL",
+      "method": "POST",
+      "endpoint": "https://upload.uploadcare.com/from_url/",
+      "body_format": "form",
+      "body": {
+        "pub_key": "{{ credentials.public_key }}",
+        "source_url": "{{ inputs.source_url }}",
+        "store": "{{ inputs.store }}",
+        "filename": "{{ inputs.filename }}"
+      },
+      "inputs": [
+        {
+          "key": "source_url",
+          "label": "File URL",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "filename",
+          "label": "File name",
+          "type": "string"
+        },
+        {
+          "key": "store",
+          "label": "Store",
+          "type": "select",
+          "options": [
+            {
+              "value": "auto",
+              "label": "Project default"
+            },
+            {
+              "value": "1",
+              "label": "Store permanently"
+            },
+            {
+              "value": "0",
+              "label": "Temporary (24h)"
+            }
+          ],
+          "default": "auto"
+        }
+      ]
+    },
+    {
+      "key": "list_files",
+      "name": "List files",
+      "method": "GET",
+      "endpoint": "/files/",
+      "query": {
+        "ordering": "-datetime_uploaded",
+        "limit": "{{ inputs.limit }}",
+        "stored": "{{ inputs.stored }}"
+      },
+      "output_path": "results",
+      "inputs": [
+        {
+          "key": "limit",
+          "label": "Max files",
+          "type": "number",
+          "default": 100
+        },
+        {
+          "key": "stored",
+          "label": "Stored",
+          "type": "select",
+          "options": [
+            {
+              "value": "true",
+              "label": "Stored only"
+            },
+            {
+              "value": "false",
+              "label": "Not stored only"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "get_file",
+      "name": "Get file info",
+      "method": "GET",
+      "endpoint": "/files/{{ inputs.uuid }}/",
+      "inputs": [
+        {
+          "key": "uuid",
+          "label": "File UUID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "store_file",
+      "name": "Store file",
+      "method": "PUT",
+      "endpoint": "/files/{{ inputs.uuid }}/storage/",
+      "inputs": [
+        {
+          "key": "uuid",
+          "label": "File UUID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "delete_file",
+      "name": "Delete file",
+      "method": "DELETE",
+      "endpoint": "/files/{{ inputs.uuid }}/storage/",
+      "inputs": [
+        {
+          "key": "uuid",
+          "label": "File UUID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_file",
+      "name": "New file",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/files/",
+      "query": {
+        "ordering": "-datetime_uploaded",
+        "limit": 50
+      },
+      "items_path": "results",
+      "id_field": "uuid",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    },
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Uploadcare webhook events such as file.uploaded.",
+      "data_path": "data",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

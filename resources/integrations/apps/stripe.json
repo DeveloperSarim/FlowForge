@@ -1,0 +1,50 @@
+{
+  "key": "stripe",
+  "name": "Stripe",
+  "category": "Payments & Finance",
+  "description": "Customers and events from your Stripe account.",
+  "base_url": "https://api.stripe.com/v1",
+  "auth": { "type": "bearer", "fields": [{ "key": "token", "label": "Secret or restricted key (sk_…/rk_…)", "type": "password", "required": true }] },
+  "actions": [
+    {
+      "key": "create_customer",
+      "name": "Create customer",
+      "method": "POST",
+      "endpoint": "/customers",
+      "body_format": "form",
+      "body": { "email": "{{ inputs.email }}", "name": "{{ inputs.name }}", "description": "{{ inputs.description }}" },
+      "inputs": [
+        { "key": "email", "label": "Email", "type": "string", "required": true },
+        { "key": "name", "label": "Name", "type": "string" },
+        { "key": "description", "label": "Description", "type": "string" }
+      ]
+    },
+    {
+      "key": "get_customer",
+      "name": "Get customer",
+      "method": "GET",
+      "endpoint": "/customers/{{ inputs.customer_id }}",
+      "inputs": [{ "key": "customer_id", "label": "Customer ID", "type": "string", "required": true }]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_customer",
+      "name": "New customer (polling)",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/customers",
+      "query": { "limit": 25 },
+      "items_path": "data",
+      "id_field": "id",
+      "inputs": [{ "key": "poll_interval", "label": "Check every (minutes)", "type": "number", "default": 5 }]
+    },
+    {
+      "key": "event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "data_path": "data.object",
+      "inputs": [{ "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }]
+    }
+  ]
+}

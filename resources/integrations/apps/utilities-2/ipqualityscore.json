@@ -1,0 +1,65 @@
+{
+  "key": "ipqualityscore",
+  "name": "IPQualityScore",
+  "category": "Utilities",
+  "description": "Score IPs, emails, phone numbers and URLs for fraud, proxies and abuse.",
+  "brand": "ipqualityscore",
+  "website": "https://www.ipqualityscore.com",
+  "docs_url": "https://www.ipqualityscore.com/documentation/overview",
+  "base_url": "https://ipqualityscore.com/api/json",
+  "auth": { "type": "api_key", "fields": [
+    { "key": "api_key", "label": "API key", "type": "password", "required": true, "help": "Account Settings → API key. It is part of every request path, e.g. /ip/<key>/<ip>." }
+  ] },
+  "actions": [
+    {
+      "key": "check_ip",
+      "name": "Check IP address",
+      "description": "Proxy / VPN / TOR detection and a fraud score.",
+      "method": "GET",
+      "endpoint": "/ip/{{ credentials.api_key }}/{{ inputs.ip }}",
+      "query": { "strictness": "{{ inputs.strictness }}", "user_agent": "{{ inputs.user_agent }}", "user_language": "{{ inputs.user_language }}" },
+      "inputs": [
+        { "key": "ip", "label": "IP address", "type": "string", "required": true },
+        { "key": "strictness", "label": "Strictness (0-3)", "type": "number" },
+        { "key": "user_agent", "label": "User agent", "type": "string" },
+        { "key": "user_language", "label": "User language", "type": "string", "placeholder": "en-US" }
+      ]
+    },
+    {
+      "key": "check_email",
+      "name": "Validate email",
+      "method": "GET",
+      "endpoint": "/email/{{ credentials.api_key }}/{{ inputs.email }}",
+      "query": { "abuse_strictness": "{{ inputs.abuse_strictness }}", "timeout": "{{ inputs.timeout }}" },
+      "inputs": [
+        { "key": "email", "label": "Email", "type": "string", "required": true },
+        { "key": "abuse_strictness", "label": "Abuse strictness (0-2)", "type": "number" },
+        { "key": "timeout", "label": "Timeout (seconds)", "type": "number" }
+      ]
+    },
+    {
+      "key": "check_phone",
+      "name": "Validate phone number",
+      "method": "GET",
+      "endpoint": "/phone/{{ credentials.api_key }}/{{ inputs.phone }}",
+      "query": { "country[]": "{{ inputs.country }}", "strictness": "{{ inputs.strictness }}" },
+      "inputs": [
+        { "key": "phone", "label": "Phone number", "type": "string", "required": true, "help": "International format, or a local number plus Country." },
+        { "key": "country", "label": "Country (ISO code)", "type": "string", "placeholder": "US" },
+        { "key": "strictness", "label": "Strictness (0-2)", "type": "number" }
+      ]
+    },
+    {
+      "key": "scan_url",
+      "name": "Scan URL",
+      "description": "Detects phishing, malware and suspicious domains.",
+      "method": "GET",
+      "endpoint": "/url/{{ credentials.api_key }}/{{ inputs.url }}",
+      "query": { "strictness": "{{ inputs.strictness }}" },
+      "inputs": [
+        { "key": "url", "label": "URL", "type": "string", "required": true },
+        { "key": "strictness", "label": "Strictness (0-2)", "type": "number" }
+      ]
+    }
+  ]
+}

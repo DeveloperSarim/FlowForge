@@ -1,0 +1,241 @@
+{
+  "key": "recurly",
+  "name": "Recurly",
+  "category": "Payments & Finance",
+  "description": "Create and look up accounts and subscriptions in Recurly.",
+  "brand": "recurly",
+  "website": "https://recurly.com",
+  "docs_url": "https://recurly.com/developers/api/v2021-02-25/",
+  "base_url": "https://{{ credentials.region }}",
+  "headers": {
+    "Accept": "application/vnd.recurly.v2021-02-25"
+  },
+  "auth": [
+    {
+      "type": "basic",
+      "fields": [
+        {
+          "key": "region",
+          "label": "Data center",
+          "type": "select",
+          "required": true,
+          "default": "v3.recurly.com",
+          "options": [
+            {
+              "value": "v3.recurly.com",
+              "label": "US"
+            },
+            {
+              "value": "v3.eu.recurly.com",
+              "label": "EU"
+            }
+          ]
+        },
+        {
+          "key": "username",
+          "label": "Private API key",
+          "type": "password",
+          "required": true,
+          "help": "Integrations > API credentials."
+        },
+        {
+          "key": "password",
+          "label": "Password",
+          "type": "password",
+          "required": false,
+          "default": "",
+          "help": "Leave blank."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "create_account",
+      "name": "Create account",
+      "method": "POST",
+      "endpoint": "/accounts",
+      "body": {
+        "code": "{{ inputs.code }}",
+        "email": "{{ inputs.email }}",
+        "first_name": "{{ inputs.first_name }}",
+        "last_name": "{{ inputs.last_name }}",
+        "company": "{{ inputs.company }}"
+      },
+      "inputs": [
+        {
+          "key": "code",
+          "label": "Account code",
+          "type": "string",
+          "required": true,
+          "help": "Your unique ID for this customer."
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string"
+        },
+        {
+          "key": "first_name",
+          "label": "First name",
+          "type": "string"
+        },
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string"
+        },
+        {
+          "key": "company",
+          "label": "Company",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "get_account",
+      "name": "Get account",
+      "method": "GET",
+      "endpoint": "/accounts/{{ inputs.account_id }}",
+      "inputs": [
+        {
+          "key": "account_id",
+          "label": "Account ID",
+          "type": "string",
+          "required": true,
+          "help": "Recurly ID, or code- followed by your account code (e.g. code-abc123)."
+        }
+      ]
+    },
+    {
+      "key": "list_accounts",
+      "name": "List accounts",
+      "method": "GET",
+      "endpoint": "/accounts",
+      "output_path": "data",
+      "query": {
+        "email": "{{ inputs.email }}",
+        "limit": "{{ inputs.limit }}",
+        "sort": "created_at",
+        "order": "desc"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string"
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 20
+        }
+      ]
+    },
+    {
+      "key": "get_subscription",
+      "name": "Get subscription",
+      "method": "GET",
+      "endpoint": "/subscriptions/{{ inputs.subscription_id }}",
+      "inputs": [
+        {
+          "key": "subscription_id",
+          "label": "Subscription ID",
+          "type": "string",
+          "required": true,
+          "help": "Recurly ID, or uuid- followed by the UUID."
+        }
+      ]
+    },
+    {
+      "key": "list_subscriptions",
+      "name": "List subscriptions",
+      "method": "GET",
+      "endpoint": "/subscriptions",
+      "output_path": "data",
+      "query": {
+        "state": "{{ inputs.state }}",
+        "limit": "{{ inputs.limit }}",
+        "sort": "created_at",
+        "order": "desc"
+      },
+      "inputs": [
+        {
+          "key": "state",
+          "label": "State",
+          "type": "select",
+          "options": [
+            {
+              "value": "active",
+              "label": "Active"
+            },
+            {
+              "value": "canceled",
+              "label": "Canceled"
+            },
+            {
+              "value": "expired",
+              "label": "Expired"
+            },
+            {
+              "value": "future",
+              "label": "Future"
+            },
+            {
+              "value": "in_trial",
+              "label": "In trial"
+            },
+            {
+              "value": "live",
+              "label": "Live"
+            }
+          ]
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 20
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_subscription",
+      "name": "New subscription",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/subscriptions",
+      "query": {
+        "limit": 50,
+        "sort": "created_at",
+        "order": "desc"
+      },
+      "items_path": "data",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    },
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Integrations > Webhooks: add an endpoint with this URL and choose JSON format.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

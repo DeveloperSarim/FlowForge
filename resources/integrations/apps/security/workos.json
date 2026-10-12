@@ -1,0 +1,123 @@
+{
+  "key": "workos",
+  "name": "WorkOS",
+  "category": "Security & IT",
+  "description": "Manage AuthKit users, organizations, memberships and invitations.",
+  "brand": "workos",
+  "website": "https://workos.com",
+  "docs_url": "https://workos.com/docs/reference",
+  "base_url": "https://api.workos.com",
+  "auth": { "type": "bearer", "fields": [{ "key": "token", "label": "API key (sk_…)", "type": "password", "required": true, "help": "Dashboard → API keys." }] },
+  "actions": [
+    {
+      "key": "create_user",
+      "name": "Create user",
+      "method": "POST",
+      "endpoint": "/user_management/users",
+      "body": { "email": "{{ inputs.email }}", "first_name": "{{ inputs.first_name }}", "last_name": "{{ inputs.last_name }}", "password": "{{ inputs.password }}", "email_verified": "{{ inputs.email_verified }}" },
+      "inputs": [
+        { "key": "email", "label": "Email", "type": "string", "required": true },
+        { "key": "first_name", "label": "First name", "type": "string" },
+        { "key": "last_name", "label": "Last name", "type": "string" },
+        { "key": "password", "label": "Password", "type": "password" },
+        { "key": "email_verified", "label": "Email verified", "type": "boolean" }
+      ]
+    },
+    {
+      "key": "get_user",
+      "name": "Get user",
+      "method": "GET",
+      "endpoint": "/user_management/users/{{ inputs.user_id }}",
+      "inputs": [{ "key": "user_id", "label": "User ID", "type": "string", "required": true }]
+    },
+    {
+      "key": "list_users",
+      "name": "Find users",
+      "method": "GET",
+      "endpoint": "/user_management/users",
+      "query": { "email": "{{ inputs.email }}", "organization_id": "{{ inputs.organization_id }}", "limit": "{{ inputs.limit }}", "order": "desc" },
+      "output_path": "data",
+      "inputs": [
+        { "key": "email", "label": "Email", "type": "string" },
+        { "key": "organization_id", "label": "Organization ID", "type": "string" },
+        { "key": "limit", "label": "Limit", "type": "number", "default": 10 }
+      ]
+    },
+    {
+      "key": "update_user",
+      "name": "Update user",
+      "method": "PUT",
+      "endpoint": "/user_management/users/{{ inputs.user_id }}",
+      "body": { "first_name": "{{ inputs.first_name }}", "last_name": "{{ inputs.last_name }}", "email_verified": "{{ inputs.email_verified }}" },
+      "inputs": [
+        { "key": "user_id", "label": "User ID", "type": "string", "required": true },
+        { "key": "first_name", "label": "First name", "type": "string" },
+        { "key": "last_name", "label": "Last name", "type": "string" },
+        { "key": "email_verified", "label": "Email verified", "type": "boolean" }
+      ]
+    },
+    {
+      "key": "delete_user",
+      "name": "Delete user",
+      "method": "DELETE",
+      "endpoint": "/user_management/users/{{ inputs.user_id }}",
+      "inputs": [{ "key": "user_id", "label": "User ID", "type": "string", "required": true }]
+    },
+    {
+      "key": "create_organization",
+      "name": "Create organization",
+      "method": "POST",
+      "endpoint": "/organizations",
+      "body": { "name": "{{ inputs.name }}", "external_id": "{{ inputs.external_id }}" },
+      "inputs": [
+        { "key": "name", "label": "Name", "type": "string", "required": true },
+        { "key": "external_id", "label": "External ID", "type": "string" }
+      ]
+    },
+    {
+      "key": "add_membership",
+      "name": "Add user to organization",
+      "method": "POST",
+      "endpoint": "/user_management/organization_memberships",
+      "body": { "user_id": "{{ inputs.user_id }}", "organization_id": "{{ inputs.organization_id }}", "role_slug": "{{ inputs.role_slug }}" },
+      "inputs": [
+        { "key": "user_id", "label": "User ID", "type": "string", "required": true },
+        { "key": "organization_id", "label": "Organization ID", "type": "string", "required": true },
+        { "key": "role_slug", "label": "Role slug", "type": "string", "placeholder": "member" }
+      ]
+    },
+    {
+      "key": "send_invitation",
+      "name": "Send invitation",
+      "method": "POST",
+      "endpoint": "/user_management/invitations",
+      "body": { "email": "{{ inputs.email }}", "organization_id": "{{ inputs.organization_id }}", "role_slug": "{{ inputs.role_slug }}", "expires_in_days": "{{ inputs.expires_in_days }}" },
+      "inputs": [
+        { "key": "email", "label": "Email", "type": "string", "required": true },
+        { "key": "organization_id", "label": "Organization ID", "type": "string" },
+        { "key": "role_slug", "label": "Role slug", "type": "string" },
+        { "key": "expires_in_days", "label": "Expires in (days)", "type": "number" }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_user",
+      "name": "New user (polling)",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/user_management/users",
+      "query": { "order": "desc", "limit": 50 },
+      "items_path": "data",
+      "id_field": "id",
+      "inputs": [{ "key": "poll_interval", "label": "Check every (minutes)", "type": "number", "default": 5 }]
+    },
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "data_path": "data",
+      "inputs": [{ "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }]
+    }
+  ]
+}

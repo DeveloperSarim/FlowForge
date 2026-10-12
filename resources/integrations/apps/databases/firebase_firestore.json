@@ -1,0 +1,102 @@
+{
+  "key": "firebase_firestore",
+  "name": "Cloud Firestore",
+  "category": "Databases",
+  "description": "Create, get, list, overwrite, delete and query Firestore documents.",
+  "brand": "firebase",
+  "website": "https://firebase.google.com/products/firestore",
+  "docs_url": "https://firebase.google.com/docs/firestore/use-rest-api",
+  "popular": true,
+  "base_url": "https://firestore.googleapis.com/v1/projects/{{ credentials.project_id }}/databases/(default)",
+  "auth": [
+    {
+      "type": "oauth2",
+      "authorize_url": "https://accounts.google.com/o/oauth2/v2/auth",
+      "token_url": "https://oauth2.googleapis.com/token",
+      "scopes": ["https://www.googleapis.com/auth/datastore"],
+      "authorize_params": { "access_type": "offline", "prompt": "consent" },
+      "fields": [{ "key": "project_id", "label": "Firebase / Google Cloud project ID", "type": "string", "required": true }]
+    },
+    {
+      "type": "google_service_account",
+      "scopes": ["https://www.googleapis.com/auth/datastore"],
+      "fields": [
+        { "key": "project_id", "label": "Firebase / Google Cloud project ID", "type": "string", "required": true },
+        { "key": "service_account_json", "label": "Service Account JSON key", "type": "code", "required": true, "help": "Project settings → Service accounts → Generate new private key." }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "create_document",
+      "name": "Create document",
+      "method": "POST",
+      "endpoint": "/documents/{{ inputs.collection }}",
+      "query": { "documentId": "{{ inputs.document_id }}" },
+      "body": { "fields": "{{ inputs.fields }}" },
+      "inputs": [
+        { "key": "collection", "label": "Collection", "type": "string", "required": true, "help": "Top-level collection ID. For subcollections use Make an API call." },
+        { "key": "document_id", "label": "Document ID", "type": "string", "help": "Leave empty for an auto-generated ID." },
+        { "key": "fields", "label": "Fields (Firestore JSON)", "type": "json", "required": true,
+          "placeholder": "{\n  \"name\": { \"stringValue\": \"Ada\" },\n  \"age\": { \"integerValue\": \"36\" },\n  \"active\": { \"booleanValue\": true }\n}" }
+      ]
+    },
+    {
+      "key": "get_document",
+      "name": "Get document",
+      "method": "GET",
+      "endpoint": "/documents/{{ inputs.collection }}/{{ inputs.document_id }}",
+      "inputs": [
+        { "key": "collection", "label": "Collection", "type": "string", "required": true },
+        { "key": "document_id", "label": "Document ID", "type": "string", "required": true }
+      ]
+    },
+    {
+      "key": "list_documents",
+      "name": "List documents",
+      "method": "GET",
+      "endpoint": "/documents/{{ inputs.collection }}",
+      "query": { "pageSize": "{{ inputs.page_size }}", "orderBy": "{{ inputs.order_by }}" },
+      "output_path": "documents",
+      "inputs": [
+        { "key": "collection", "label": "Collection", "type": "string", "required": true },
+        { "key": "page_size", "label": "Limit", "type": "number", "default": 50 },
+        { "key": "order_by", "label": "Order by", "type": "string", "placeholder": "createdAt desc" }
+      ]
+    },
+    {
+      "key": "set_document",
+      "name": "Create or overwrite document",
+      "description": "Replaces all fields of the document (creates it if missing).",
+      "method": "PATCH",
+      "endpoint": "/documents/{{ inputs.collection }}/{{ inputs.document_id }}",
+      "body": { "fields": "{{ inputs.fields }}" },
+      "inputs": [
+        { "key": "collection", "label": "Collection", "type": "string", "required": true },
+        { "key": "document_id", "label": "Document ID", "type": "string", "required": true },
+        { "key": "fields", "label": "Fields (Firestore JSON)", "type": "json", "required": true }
+      ]
+    },
+    {
+      "key": "delete_document",
+      "name": "Delete document",
+      "method": "DELETE",
+      "endpoint": "/documents/{{ inputs.collection }}/{{ inputs.document_id }}",
+      "inputs": [
+        { "key": "collection", "label": "Collection", "type": "string", "required": true },
+        { "key": "document_id", "label": "Document ID", "type": "string", "required": true }
+      ]
+    },
+    {
+      "key": "run_query",
+      "name": "Run query",
+      "method": "POST",
+      "endpoint": "/documents:runQuery",
+      "body": { "structuredQuery": "{{ inputs.structured_query }}" },
+      "inputs": [
+        { "key": "structured_query", "label": "Structured query (JSON)", "type": "json", "required": true,
+          "placeholder": "{\n  \"from\": [{ \"collectionId\": \"users\" }],\n  \"where\": { \"fieldFilter\": { \"field\": { \"fieldPath\": \"active\" }, \"op\": \"EQUAL\", \"value\": { \"booleanValue\": true } } },\n  \"limit\": 20\n}" }
+      ]
+    }
+  ]
+}

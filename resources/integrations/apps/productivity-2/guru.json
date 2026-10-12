@@ -1,0 +1,149 @@
+{
+  "key": "guru",
+  "name": "Guru",
+  "category": "Productivity",
+  "description": "Search, read and create Guru knowledge cards.",
+  "brand": "guru",
+  "website": "https://www.getguru.com",
+  "docs_url": "https://developer.getguru.com/docs/getting-started",
+  "popular": true,
+  "base_url": "https://api.getguru.com/api/v1",
+  "auth": [
+    {
+      "type": "basic",
+      "fields": [
+        {
+          "key": "username",
+          "label": "Email (or collection ID)",
+          "type": "string",
+          "required": true,
+          "help": "Your Guru user email; use the collection ID with a read-only collection token."
+        },
+        {
+          "key": "password",
+          "label": "API token",
+          "type": "password",
+          "required": true,
+          "help": "Settings > Apps & Integrations > API Access."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "search_cards",
+      "name": "Search cards",
+      "method": "GET",
+      "endpoint": "/search/query",
+      "query": {
+        "searchTerms": "{{ inputs.search_terms }}"
+      },
+      "inputs": [
+        {
+          "key": "search_terms",
+          "label": "Search terms",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "get_card",
+      "name": "Get card",
+      "method": "GET",
+      "endpoint": "/cards/{{ inputs.card_id }}/extended",
+      "inputs": [
+        {
+          "key": "card_id",
+          "label": "Card ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "create_card",
+      "name": "Create card",
+      "method": "POST",
+      "endpoint": "/cards/extended",
+      "body": {
+        "preferredPhrase": "{{ inputs.title }}",
+        "content": "{{ inputs.content }}",
+        "shareStatus": "{{ inputs.share_status }}",
+        "collection": {
+          "id": "{{ inputs.collection_id }}"
+        },
+        "folderIds": "{{ inputs.folder_ids }}"
+      },
+      "inputs": [
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "content",
+          "label": "Content (HTML)",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "collection_id",
+          "label": "Collection ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "folder_ids",
+          "label": "Folder IDs",
+          "type": "list"
+        },
+        {
+          "key": "share_status",
+          "label": "Share status",
+          "type": "select",
+          "default": "TEAM",
+          "options": [
+            {
+              "value": "TEAM",
+              "label": "Team"
+            },
+            {
+              "value": "PRIVATE",
+              "label": "Private"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "list_collections",
+      "name": "List collections",
+      "method": "GET",
+      "endpoint": "/collections",
+      "inputs": []
+    },
+    {
+      "key": "whoami",
+      "name": "Get current user",
+      "method": "GET",
+      "endpoint": "/whoami",
+      "inputs": []
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

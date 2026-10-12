@@ -1,0 +1,240 @@
+{
+  "key": "paystack",
+  "name": "Paystack",
+  "category": "Payments & Finance",
+  "description": "Initialize and verify transactions, manage customers and refunds.",
+  "brand": "paystack",
+  "website": "https://paystack.com",
+  "docs_url": "https://paystack.com/docs/api/",
+  "base_url": "https://api.paystack.co",
+  "auth": [
+    {
+      "type": "bearer",
+      "fields": [
+        {
+          "key": "token",
+          "label": "Secret key",
+          "type": "password",
+          "required": true,
+          "help": "Settings > API Keys & Webhooks (sk_live_… or sk_test_…)."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "initialize_transaction",
+      "name": "Initialize transaction",
+      "method": "POST",
+      "endpoint": "/transaction/initialize",
+      "output_path": "data",
+      "body": {
+        "email": "{{ inputs.email }}",
+        "amount": "{{ inputs.amount }}",
+        "currency": "{{ inputs.currency }}",
+        "reference": "{{ inputs.reference }}",
+        "callback_url": "{{ inputs.callback_url }}",
+        "metadata": "{{ inputs.metadata }}"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Customer email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "amount",
+          "label": "Amount (subunit)",
+          "type": "number",
+          "required": true,
+          "help": "Kobo/pesewas/cents: 10000 = ₦100."
+        },
+        {
+          "key": "currency",
+          "label": "Currency",
+          "type": "string",
+          "placeholder": "NGN"
+        },
+        {
+          "key": "reference",
+          "label": "Reference",
+          "type": "string"
+        },
+        {
+          "key": "callback_url",
+          "label": "Callback URL",
+          "type": "string"
+        },
+        {
+          "key": "metadata",
+          "label": "Metadata",
+          "type": "json"
+        }
+      ]
+    },
+    {
+      "key": "verify_transaction",
+      "name": "Verify transaction",
+      "method": "GET",
+      "endpoint": "/transaction/verify/{{ inputs.reference }}",
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "reference",
+          "label": "Reference",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_transactions",
+      "name": "List transactions",
+      "method": "GET",
+      "endpoint": "/transaction",
+      "output_path": "data",
+      "query": {
+        "status": "{{ inputs.status }}",
+        "customer": "{{ inputs.customer }}",
+        "from": "{{ inputs.from }}",
+        "perPage": "{{ inputs.per_page }}"
+      },
+      "inputs": [
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "options": [
+            {
+              "value": "success",
+              "label": "Success"
+            },
+            {
+              "value": "failed",
+              "label": "Failed"
+            },
+            {
+              "value": "abandoned",
+              "label": "Abandoned"
+            }
+          ]
+        },
+        {
+          "key": "customer",
+          "label": "Customer ID",
+          "type": "string"
+        },
+        {
+          "key": "from",
+          "label": "From date",
+          "type": "string",
+          "placeholder": "2025-01-01"
+        },
+        {
+          "key": "per_page",
+          "label": "Per page",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    },
+    {
+      "key": "create_customer",
+      "name": "Create customer",
+      "method": "POST",
+      "endpoint": "/customer",
+      "output_path": "data",
+      "body": {
+        "email": "{{ inputs.email }}",
+        "first_name": "{{ inputs.first_name }}",
+        "last_name": "{{ inputs.last_name }}",
+        "phone": "{{ inputs.phone }}"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "first_name",
+          "label": "First name",
+          "type": "string"
+        },
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string"
+        },
+        {
+          "key": "phone",
+          "label": "Phone",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "create_refund",
+      "name": "Create refund",
+      "method": "POST",
+      "endpoint": "/refund",
+      "output_path": "data",
+      "body": {
+        "transaction": "{{ inputs.transaction }}",
+        "amount": "{{ inputs.amount }}"
+      },
+      "inputs": [
+        {
+          "key": "transaction",
+          "label": "Transaction reference or ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "amount",
+          "label": "Amount (subunit)",
+          "type": "number",
+          "help": "Blank = full refund."
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_transaction",
+      "name": "New transaction",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/transaction",
+      "query": {
+        "perPage": 50
+      },
+      "items_path": "data",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    },
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Settings > API Keys & Webhooks: set this URL as the webhook URL.",
+      "data_path": "data",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

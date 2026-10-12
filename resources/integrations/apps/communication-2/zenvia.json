@@ -1,0 +1,57 @@
+{
+  "key": "zenvia",
+  "name": "Zenvia",
+  "category": "Communication",
+  "description": "Send SMS and WhatsApp text or template messages with the Zenvia API.",
+  "brand": "zenvia",
+  "website": "https://www.zenvia.com",
+  "docs_url": "https://zenvia.github.io/zenvia-openapi-spec/v2/",
+  "base_url": "https://api.zenvia.com/v2",
+  "auth": [
+    { "type": "api_key", "in": "header", "name": "X-API-TOKEN", "fields": [{ "key": "api_key", "label": "API token", "type": "password", "required": true, "help": "Zenvia app → Developers → Tokens & Webhooks." }] }
+  ],
+  "actions": [
+    {
+      "key": "send_sms",
+      "name": "Send SMS",
+      "method": "POST",
+      "endpoint": "/channels/sms/messages",
+      "body": { "from": "{{ inputs.from }}", "to": "{{ inputs.to }}", "contents": [{ "type": "text", "text": "{{ inputs.text }}" }] },
+      "inputs": [
+        { "key": "from", "label": "Sender ID", "type": "string", "required": true, "help": "Your Zenvia SMS sender ID (keyword)." },
+        { "key": "to", "label": "To", "type": "string", "required": true, "placeholder": "5511999999999" },
+        { "key": "text", "label": "Message", "type": "text", "required": true }
+      ]
+    },
+    {
+      "key": "send_whatsapp_text",
+      "name": "Send WhatsApp text",
+      "description": "Only reaches users who wrote to you in the last 24 hours; use a template otherwise.",
+      "method": "POST",
+      "endpoint": "/channels/whatsapp/messages",
+      "body": { "from": "{{ inputs.from }}", "to": "{{ inputs.to }}", "contents": [{ "type": "text", "text": "{{ inputs.text }}" }] },
+      "inputs": [
+        { "key": "from", "label": "Sender (WhatsApp number)", "type": "string", "required": true },
+        { "key": "to", "label": "To", "type": "string", "required": true },
+        { "key": "text", "label": "Message", "type": "text", "required": true }
+      ]
+    },
+    {
+      "key": "send_whatsapp_template",
+      "name": "Send WhatsApp template",
+      "method": "POST",
+      "endpoint": "/channels/whatsapp/messages",
+      "body": {
+        "from": "{{ inputs.from }}",
+        "to": "{{ inputs.to }}",
+        "contents": [{ "type": "template", "templateId": "{{ inputs.template_id }}", "fields": "{{ inputs.fields }}" }]
+      },
+      "inputs": [
+        { "key": "from", "label": "Sender (WhatsApp number)", "type": "string", "required": true },
+        { "key": "to", "label": "To", "type": "string", "required": true },
+        { "key": "template_id", "label": "Template ID", "type": "string", "required": true },
+        { "key": "fields", "label": "Template fields", "type": "keyvalue", "help": "Values for the template's variables, by name." }
+      ]
+    }
+  ]
+}

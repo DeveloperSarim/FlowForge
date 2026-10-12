@@ -1,0 +1,164 @@
+{
+  "key": "nuclino",
+  "name": "Nuclino",
+  "category": "Productivity",
+  "description": "Create, update and search items in Nuclino workspaces.",
+  "brand": "nuclino",
+  "website": "https://www.nuclino.com",
+  "docs_url": "https://help.nuclino.com/d3a29686-api",
+  "base_url": "https://api.nuclino.com/v0",
+  "auth": [
+    {
+      "type": "api_key",
+      "in": "header",
+      "name": "Authorization",
+      "fields": [
+        {
+          "key": "api_key",
+          "label": "API key",
+          "type": "password",
+          "required": true,
+          "help": "Profile menu > Settings > API keys."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_workspaces",
+      "name": "List workspaces",
+      "method": "GET",
+      "endpoint": "/workspaces",
+      "output_path": "data.results",
+      "inputs": []
+    },
+    {
+      "key": "search_items",
+      "name": "Search items",
+      "method": "GET",
+      "endpoint": "/items",
+      "query": {
+        "workspaceId": "{{ inputs.workspace_id }}",
+        "search": "{{ inputs.search }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_path": "data.results",
+      "inputs": [
+        {
+          "key": "workspace_id",
+          "label": "Workspace ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "search",
+          "label": "Search text",
+          "type": "string"
+        },
+        {
+          "key": "limit",
+          "label": "Max results (1-100)",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "get_item",
+      "name": "Get item",
+      "method": "GET",
+      "endpoint": "/items/{{ inputs.item_id }}",
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "item_id",
+          "label": "Item ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "create_item",
+      "name": "Create item",
+      "method": "POST",
+      "endpoint": "/items",
+      "body": {
+        "workspaceId": "{{ inputs.workspace_id }}",
+        "parentId": "{{ inputs.parent_id }}",
+        "object": "{{ inputs.object }}",
+        "title": "{{ inputs.title }}",
+        "content": "{{ inputs.content }}"
+      },
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "workspace_id",
+          "label": "Workspace ID",
+          "type": "string",
+          "help": "Set this or a parent collection ID."
+        },
+        {
+          "key": "parent_id",
+          "label": "Parent collection ID",
+          "type": "string"
+        },
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "string"
+        },
+        {
+          "key": "content",
+          "label": "Content (Markdown)",
+          "type": "text"
+        },
+        {
+          "key": "object",
+          "label": "Type",
+          "type": "select",
+          "default": "item",
+          "options": [
+            {
+              "value": "item",
+              "label": "Item"
+            },
+            {
+              "value": "collection",
+              "label": "Collection"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "update_item",
+      "name": "Update item",
+      "method": "PUT",
+      "endpoint": "/items/{{ inputs.item_id }}",
+      "body": {
+        "title": "{{ inputs.title }}",
+        "content": "{{ inputs.content }}"
+      },
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "item_id",
+          "label": "Item ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "string"
+        },
+        {
+          "key": "content",
+          "label": "Content (Markdown)",
+          "type": "text",
+          "help": "Replaces the item content."
+        }
+      ]
+    }
+  ]
+}

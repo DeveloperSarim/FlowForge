@@ -1,0 +1,217 @@
+{
+  "key": "follow_up_boss",
+  "name": "Follow Up Boss",
+  "category": "CRM & Sales",
+  "description": "Send new leads, add notes and look up people in the Follow Up Boss real estate CRM.",
+  "brand": "followupboss",
+  "website": "https://www.followupboss.com",
+  "docs_url": "https://docs.followupboss.com/reference/getting-started",
+  "base_url": "https://api.followupboss.com/v1",
+  "auth": {
+    "type": "basic",
+    "fields": [
+      {
+        "key": "username",
+        "label": "API key",
+        "type": "password",
+        "required": true
+      },
+      {
+        "key": "password",
+        "label": "Password",
+        "type": "password",
+        "required": false,
+        "default": "",
+        "help": "Leave empty."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "send_lead_event",
+      "name": "Send lead (event)",
+      "description": "Recommended way to add leads: creates or updates the person and runs your lead flows.",
+      "method": "POST",
+      "endpoint": "/events",
+      "body": {
+        "source": "{{ inputs.source }}",
+        "system": "FlowForge",
+        "type": "{{ inputs.type }}",
+        "message": "{{ inputs.message }}",
+        "description": "{{ inputs.description }}",
+        "person": {
+          "firstName": "{{ inputs.first_name }}",
+          "lastName": "{{ inputs.last_name }}",
+          "emails": [
+            {
+              "value": "{{ inputs.email }}"
+            }
+          ],
+          "phones": "{{ inputs.phones }}",
+          "tags": "{{ inputs.tags }}"
+        }
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "first_name",
+          "label": "First name",
+          "type": "string"
+        },
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string"
+        },
+        {
+          "key": "phones",
+          "label": "Phones",
+          "type": "json",
+          "placeholder": "[{\"value\": \"555-555-5555\", \"type\": \"mobile\"}]"
+        },
+        {
+          "key": "tags",
+          "label": "Tags",
+          "type": "list"
+        },
+        {
+          "key": "source",
+          "label": "Lead source",
+          "type": "string",
+          "required": true,
+          "default": "FlowForge"
+        },
+        {
+          "key": "type",
+          "label": "Event type",
+          "type": "select",
+          "required": true,
+          "default": "General Inquiry",
+          "options": [
+            {
+              "value": "Registration",
+              "label": "Registration"
+            },
+            {
+              "value": "Inquiry",
+              "label": "Inquiry"
+            },
+            {
+              "value": "Seller Inquiry",
+              "label": "Seller inquiry"
+            },
+            {
+              "value": "Property Inquiry",
+              "label": "Property inquiry"
+            },
+            {
+              "value": "General Inquiry",
+              "label": "General inquiry"
+            }
+          ]
+        },
+        {
+          "key": "message",
+          "label": "Message from the lead",
+          "type": "text"
+        },
+        {
+          "key": "description",
+          "label": "Description",
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "key": "create_note",
+      "name": "Add note",
+      "method": "POST",
+      "endpoint": "/notes",
+      "body": {
+        "personId": "{{ inputs.person_id }}",
+        "subject": "{{ inputs.subject }}",
+        "body": "{{ inputs.body }}"
+      },
+      "inputs": [
+        {
+          "key": "person_id",
+          "label": "Person ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "subject",
+          "label": "Subject",
+          "type": "string"
+        },
+        {
+          "key": "body",
+          "label": "Note",
+          "type": "text",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "get_person",
+      "name": "Get person",
+      "method": "GET",
+      "endpoint": "/people/{{ inputs.person_id }}",
+      "inputs": [
+        {
+          "key": "person_id",
+          "label": "Person ID",
+          "type": "number",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "find_people",
+      "name": "Find people by email",
+      "method": "GET",
+      "endpoint": "/people",
+      "output_path": "people",
+      "query": {
+        "email": "{{ inputs.email }}",
+        "limit": 25
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_person",
+      "name": "New person",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/people",
+      "query": {
+        "sort": "-created",
+        "limit": 50
+      },
+      "items_path": "people",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

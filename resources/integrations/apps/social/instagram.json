@@ -1,0 +1,220 @@
+{
+  "key": "instagram",
+  "name": "Instagram",
+  "category": "Social Media",
+  "description": "Publish photos and reels to a Business or Creator account and comment on media.",
+  "brand": "instagram",
+  "website": "https://www.instagram.com",
+  "docs_url": "https://developers.facebook.com/docs/instagram-platform/content-publishing",
+  "popular": true,
+  "base_url": "https://graph.facebook.com/v25.0",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "Access token",
+        "type": "password",
+        "required": true,
+        "help": "Facebook Login token with instagram_basic, instagram_content_publish and pages_read_engagement. The IG account must be linked to a Facebook Page."
+      }
+    ],
+    "profile": {
+      "endpoint": "/me/accounts?fields=instagram_business_account,name",
+      "store": {
+        "ig_user_id": "{{ data.0.instagram_business_account.id }}",
+        "account_name": "{{ data.0.name }}"
+      }
+    }
+  },
+  "actions": [
+    {
+      "key": "create_media_container",
+      "name": "Create media container",
+      "description": "Step 1 of publishing: uploads an image or video by URL and returns a container ID.",
+      "method": "POST",
+      "endpoint": "/{{ inputs.ig_user_id }}/media",
+      "body_format": "form",
+      "body": {
+        "image_url": "{{ inputs.image_url }}",
+        "video_url": "{{ inputs.video_url }}",
+        "media_type": "{{ inputs.media_type }}",
+        "caption": "{{ inputs.caption }}"
+      },
+      "inputs": [
+        {
+          "key": "ig_user_id",
+          "label": "Instagram user ID",
+          "type": "string",
+          "help": "Leave empty to use the Instagram Business account linked to your first Facebook Page. Several pages? Enter the account ID (GET /{page-id}?fields=instagram_business_account).",
+          "fallback": "credentials.ig_user_id",
+          "placeholder": "The Instagram account linked to your Facebook Page"
+        },
+        {
+          "key": "image_url",
+          "label": "Image URL (JPEG)",
+          "type": "string",
+          "help": "For image posts. Must be public."
+        },
+        {
+          "key": "video_url",
+          "label": "Video URL",
+          "type": "string",
+          "help": "For reels/stories. Must be public."
+        },
+        {
+          "key": "media_type",
+          "label": "Media type",
+          "type": "select",
+          "help": "Leave empty for a single image post.",
+          "options": [
+            {
+              "value": "REELS",
+              "label": "Reel"
+            },
+            {
+              "value": "STORIES",
+              "label": "Story"
+            }
+          ]
+        },
+        {
+          "key": "caption",
+          "label": "Caption",
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "key": "get_container_status",
+      "name": "Get container status",
+      "description": "Check a video container is FINISHED before publishing.",
+      "method": "GET",
+      "endpoint": "/{{ inputs.container_id }}",
+      "query": {
+        "fields": "status_code,status"
+      },
+      "inputs": [
+        {
+          "key": "container_id",
+          "label": "Container ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "publish_media",
+      "name": "Publish media container",
+      "description": "Step 2 of publishing: makes the container live on the account.",
+      "method": "POST",
+      "endpoint": "/{{ inputs.ig_user_id }}/media_publish",
+      "body_format": "form",
+      "body": {
+        "creation_id": "{{ inputs.creation_id }}"
+      },
+      "inputs": [
+        {
+          "key": "ig_user_id",
+          "label": "Instagram user ID",
+          "type": "string",
+          "fallback": "credentials.ig_user_id",
+          "placeholder": "The Instagram account linked to your Facebook Page",
+          "help": "Leave empty to use the Instagram Business account linked to your first Facebook Page. Several pages? Enter the account ID (GET /{page-id}?fields=instagram_business_account)."
+        },
+        {
+          "key": "creation_id",
+          "label": "Container ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_media",
+      "name": "List media",
+      "method": "GET",
+      "endpoint": "/{{ inputs.ig_user_id }}/media",
+      "query": {
+        "fields": "{{ inputs.fields }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "ig_user_id",
+          "label": "Instagram user ID",
+          "type": "string",
+          "fallback": "credentials.ig_user_id",
+          "placeholder": "The Instagram account linked to your Facebook Page",
+          "help": "Leave empty to use the Instagram Business account linked to your first Facebook Page. Several pages? Enter the account ID (GET /{page-id}?fields=instagram_business_account)."
+        },
+        {
+          "key": "fields",
+          "label": "Fields",
+          "type": "string",
+          "default": "id,caption,media_type,media_url,permalink,timestamp"
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 25
+        }
+      ]
+    },
+    {
+      "key": "add_comment",
+      "name": "Comment on media",
+      "method": "POST",
+      "endpoint": "/{{ inputs.media_id }}/comments",
+      "body_format": "form",
+      "body": {
+        "message": "{{ inputs.message }}"
+      },
+      "inputs": [
+        {
+          "key": "media_id",
+          "label": "Media ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "message",
+          "label": "Comment",
+          "type": "text",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_media",
+      "name": "New media posted",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/{{ inputs.ig_user_id }}/media",
+      "query": {
+        "fields": "id,caption,media_type,media_url,permalink,timestamp",
+        "limit": 25
+      },
+      "items_path": "data",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "ig_user_id",
+          "label": "Instagram user ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

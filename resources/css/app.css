@@ -1,0 +1,181 @@
+@import 'tailwindcss';
+@import '@xyflow/react/dist/style.css';
+
+@source '../**/*.blade.php';
+@source '../js/**/*.jsx';
+@source '../js/**/*.js';
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/*
+ * FlowForge design tokens. Light is the default; `.dark` on <html> swaps every token.
+ * Components only use the semantic names below (bg-surface, text-fg-muted, border-line…),
+ * never raw hex, so both themes stay in sync.
+ */
+:root {
+    --bg: #f6f7f9;
+    --surface: #ffffff;
+    --surface-2: #f3f4f6;
+    --surface-3: #e9ebef;
+    --line: #e4e7ec;
+    --line-strong: #cfd4dc;
+    --fg: #101318;
+    --fg-muted: #555e6c;
+    --fg-subtle: #8a919d;
+
+    --primary: #ee5a24;
+    --primary-hover: #d84c18;
+    --primary-fg: #ffffff;
+    --primary-soft: #fdeee7;
+
+    --ok: #15803d;
+    --ok-soft: #e7f6ec;
+    --fail: #d92d20;
+    --fail-soft: #fdecea;
+    --warn: #b45309;
+    --warn-soft: #fef3e2;
+    --info: #2f6bdc;
+    --info-soft: #e9f0fd;
+
+    /* Validated chart pair (dataviz validator: CVD + contrast pass on #fff) */
+    --chart-ok: #3b6fe0;
+    --chart-fail: #dc2626;
+
+    --canvas: #f4f5f7;
+    --canvas-dot: #c8cdd5;
+    --edge: #a3aab5;
+    --shadow-card: 0 1px 2px rgb(16 24 40 / 0.04), 0 1px 3px rgb(16 24 40 / 0.04);
+    --shadow-pop: 0 12px 32px -8px rgb(16 24 40 / 0.18), 0 2px 6px rgb(16 24 40 / 0.06);
+}
+
+.dark {
+    --bg: #0e1014;
+    --surface: #16191f;
+    --surface-2: #1c2028;
+    --surface-3: #252a33;
+    --line: #262b34;
+    --line-strong: #363c47;
+    --fg: #eceef2;
+    --fg-muted: #a0a7b3;
+    --fg-subtle: #6c7380;
+
+    --primary: #f2683a;
+    --primary-hover: #ff7b4d;
+    --primary-fg: #ffffff;
+    --primary-soft: rgb(242 104 58 / 0.14);
+
+    --ok: #3ccf7b;
+    --ok-soft: rgb(60 207 123 / 0.12);
+    --fail: #f26b5e;
+    --fail-soft: rgb(242 107 94 / 0.12);
+    --warn: #f0a63a;
+    --warn-soft: rgb(240 166 58 / 0.12);
+    --info: #6b98f5;
+    --info-soft: rgb(107 152 245 / 0.12);
+
+    --chart-ok: #5b8def;
+    --chart-fail: #ef5350;
+
+    --canvas: #111318;
+    --canvas-dot: #2b303a;
+    --edge: #59616e;
+    --shadow-card: 0 1px 2px rgb(0 0 0 / 0.3);
+    --shadow-pop: 0 16px 40px -8px rgb(0 0 0 / 0.6), 0 2px 6px rgb(0 0 0 / 0.3);
+}
+
+@theme inline {
+    --color-bg: var(--bg);
+    --color-surface: var(--surface);
+    --color-surface-2: var(--surface-2);
+    --color-surface-3: var(--surface-3);
+    --color-line: var(--line);
+    --color-line-strong: var(--line-strong);
+    --color-fg: var(--fg);
+    --color-fg-muted: var(--fg-muted);
+    --color-fg-subtle: var(--fg-subtle);
+    --color-primary: var(--primary);
+    --color-primary-hover: var(--primary-hover);
+    --color-primary-fg: var(--primary-fg);
+    --color-primary-soft: var(--primary-soft);
+    --color-ok: var(--ok);
+    --color-ok-soft: var(--ok-soft);
+    --color-fail: var(--fail);
+    --color-fail-soft: var(--fail-soft);
+    --color-warn: var(--warn);
+    --color-warn-soft: var(--warn-soft);
+    --color-info: var(--info);
+    --color-info-soft: var(--info-soft);
+    --color-chart-ok: var(--chart-ok);
+    --color-chart-fail: var(--chart-fail);
+    --color-canvas: var(--canvas);
+    --shadow-card: var(--shadow-card);
+    --shadow-pop: var(--shadow-pop);
+    --font-sans: 'Geist', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+    --font-mono: 'Geist Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+@layer base {
+    html { color-scheme: light; }
+    html.dark { color-scheme: dark; }
+    body { font-size: 14px; line-height: 1.5; font-feature-settings: 'ss01', 'cv11'; }
+    ::selection { background: color-mix(in srgb, var(--primary) 22%, transparent); }
+    :focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+    * { scrollbar-width: thin; scrollbar-color: var(--line-strong) transparent; }
+}
+
+@keyframes slide-in { from { transform: translateX(14px); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes pop-in { from { transform: translateY(6px) scale(0.98); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes running { 0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--primary) 45%, transparent); } 100% { box-shadow: 0 0 0 10px transparent; } }
+.animate-slide-in { animation: slide-in 180ms cubic-bezier(.2,.8,.2,1); }
+.animate-pop-in { animation: pop-in 160ms cubic-bezier(.2,.8,.2,1); }
+.animate-running { animation: running 1.1s ease-out infinite; }
+/* AI builder: messages rise in, the active step's label shimmers, the avatar ring turns while it works. */
+@keyframes msg-in { from { transform: translateY(8px); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+@keyframes spin-ring { to { transform: rotate(1turn); } }
+@keyframes step-in { from { transform: translateX(-4px); opacity: 0; } to { transform: none; opacity: 1; } }
+.animate-msg-in { animation: msg-in 240ms cubic-bezier(.2,.8,.2,1) both; }
+.animate-step-in { animation: step-in 200ms ease-out both; }
+.text-shimmer {
+    background: linear-gradient(90deg, var(--fg-muted) 0%, var(--fg-muted) 40%, var(--primary) 50%, var(--fg-muted) 60%, var(--fg-muted) 100%);
+    background-size: 200% 100%; -webkit-background-clip: text; background-clip: text; color: transparent;
+    animation: shimmer 1.8s linear infinite;
+}
+.ai-ring { position: relative; }
+.ai-ring::before {
+    content: ''; position: absolute; inset: -3px; border-radius: inherit; padding: 2px;
+    background: conic-gradient(from 0deg, var(--primary), transparent 55%, var(--primary));
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude;
+    animation: spin-ring 1.1s linear infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+    .animate-slide-in, .animate-pop-in, .animate-running, .animate-msg-in, .animate-step-in, .ai-ring::before { animation: none; }
+    .text-shimmer { animation: none; color: var(--fg-muted); background: none; }
+}
+
+/* React Flow, themed by the tokens */
+.react-flow {
+    --xy-background-color: var(--canvas);
+    --xy-background-pattern-color: var(--canvas-dot);
+    --xy-edge-stroke: var(--edge);
+    --xy-edge-stroke-selected: var(--primary);
+    --xy-edge-stroke-width: 2;
+    --xy-connectionline-stroke: var(--primary);
+    --xy-connectionline-stroke-width: 2;
+    --xy-handle-background-color: var(--surface);
+    --xy-handle-border-color: var(--line-strong);
+    --xy-minimap-background-color: var(--surface);
+    --xy-minimap-mask-background-color: color-mix(in srgb, var(--canvas) 70%, transparent);
+    --xy-minimap-node-background-color: var(--surface-3);
+    --xy-attribution-background-color: transparent;
+    --xy-selection-background-color: color-mix(in srgb, var(--primary) 8%, transparent);
+    --xy-selection-border: 1px dashed var(--primary);
+}
+.react-flow__attribution a { color: var(--fg-subtle); }
+.react-flow__edge.ff-ran .react-flow__edge-path { stroke: var(--ok); stroke-width: 2.5; }
+.react-flow__edge.ff-idle .react-flow__edge-path { stroke-dasharray: 5 5; opacity: 0.5; }
+.react-flow__edge:hover .react-flow__edge-path { stroke: var(--primary); }
+.react-flow__handle { width: 12px; height: 12px; border-width: 2px; transition: background 120ms, box-shadow 120ms; }
+/* never touch `transform` here: React Flow positions handles with it */
+.react-flow__handle:hover { background: var(--primary); border-color: var(--primary); box-shadow: 0 0 0 4px color-mix(in srgb, var(--primary) 20%, transparent); }
+.react-flow__node:focus-visible { outline: none; }

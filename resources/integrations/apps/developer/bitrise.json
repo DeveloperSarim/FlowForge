@@ -1,0 +1,84 @@
+{
+  "key": "bitrise",
+  "name": "Bitrise",
+  "category": "Developer Tools",
+  "description": "Start, check and abort mobile CI builds.",
+  "brand": "bitrise",
+  "website": "https://bitrise.io",
+  "docs_url": "https://api-docs.bitrise.io",
+  "base_url": "https://api.bitrise.io/v0.1",
+  "auth": { "type": "api_key", "in": "header", "name": "Authorization", "fields": [
+    { "key": "api_key", "label": "Personal access token", "type": "password", "required": true, "help": "Profile settings → Security → Personal access tokens." }
+  ] },
+  "actions": [
+    {
+      "key": "trigger_build",
+      "name": "Start build",
+      "method": "POST",
+      "endpoint": "/apps/{{ inputs.app_slug }}/builds",
+      "body": {
+        "hook_info": { "type": "bitrise" },
+        "build_params": { "branch": "{{ inputs.branch }}", "workflow_id": "{{ inputs.workflow_id }}", "commit_message": "{{ inputs.commit_message }}" }
+      },
+      "inputs": [
+        { "key": "app_slug", "label": "App slug", "type": "string", "required": true },
+        { "key": "branch", "label": "Branch", "type": "string", "required": true, "default": "main" },
+        { "key": "workflow_id", "label": "Workflow", "type": "string", "help": "Leave empty to use the trigger map." },
+        { "key": "commit_message", "label": "Build message", "type": "string" }
+      ]
+    },
+    {
+      "key": "get_build",
+      "name": "Get build",
+      "method": "GET",
+      "endpoint": "/apps/{{ inputs.app_slug }}/builds/{{ inputs.build_slug }}",
+      "output_path": "data",
+      "inputs": [
+        { "key": "app_slug", "label": "App slug", "type": "string", "required": true },
+        { "key": "build_slug", "label": "Build slug", "type": "string", "required": true }
+      ]
+    },
+    {
+      "key": "abort_build",
+      "name": "Abort build",
+      "method": "POST",
+      "endpoint": "/apps/{{ inputs.app_slug }}/builds/{{ inputs.build_slug }}/abort",
+      "body": { "abort_reason": "{{ inputs.reason }}" },
+      "inputs": [
+        { "key": "app_slug", "label": "App slug", "type": "string", "required": true },
+        { "key": "build_slug", "label": "Build slug", "type": "string", "required": true },
+        { "key": "reason", "label": "Reason", "type": "string", "required": true, "default": "Aborted by FlowForge" }
+      ]
+    },
+    {
+      "key": "list_apps",
+      "name": "List apps",
+      "method": "GET",
+      "endpoint": "/apps",
+      "output_path": "data",
+      "inputs": []
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_build",
+      "name": "New build (polling)",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/apps/{{ inputs.app_slug }}/builds",
+      "query": { "limit": 25 },
+      "items_path": "data",
+      "id_field": "slug",
+      "inputs": [
+        { "key": "app_slug", "label": "App slug", "type": "string", "required": true },
+        { "key": "poll_interval", "label": "Check every (minutes)", "type": "number", "default": 5 }
+      ]
+    },
+    {
+      "key": "webhook_event",
+      "name": "Outgoing webhook",
+      "type": "webhook",
+      "inputs": [{ "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }]
+    }
+  ]
+}

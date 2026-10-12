@@ -1,0 +1,139 @@
+{
+  "key": "leadsquared",
+  "name": "LeadSquared",
+  "category": "CRM & Sales",
+  "description": "Create or update leads and look them up by email or ID in LeadSquared.",
+  "brand": "leadsquared",
+  "website": "https://www.leadsquared.com",
+  "docs_url": "https://apidocs.leadsquared.com/",
+  "base_url": "https://{{ credentials.host }}/v2",
+  "headers": {
+    "x-LSQ-SecretKey": "{{ credentials.secret_key }}"
+  },
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "x-LSQ-AccessKey",
+    "fields": [
+      {
+        "key": "host",
+        "label": "API host",
+        "type": "select",
+        "required": true,
+        "default": "api.leadsquared.com",
+        "options": [
+          {
+            "value": "api.leadsquared.com",
+            "label": "Singapore (api.leadsquared.com)"
+          },
+          {
+            "value": "api-us11.leadsquared.com",
+            "label": "United States (api-us11)"
+          },
+          {
+            "value": "api-in21.leadsquared.com",
+            "label": "India - Mumbai (api-in21)"
+          },
+          {
+            "value": "api-in22.leadsquared.com",
+            "label": "India - Hyderabad (api-in22)"
+          },
+          {
+            "value": "api-ir31.leadsquared.com",
+            "label": "Ireland (api-ir31)"
+          },
+          {
+            "value": "api-ca12.leadsquared.com",
+            "label": "Canada (api-ca12)"
+          },
+          {
+            "value": "api-me61.leadsquared.com",
+            "label": "Middle East (api-me61)"
+          }
+        ],
+        "help": "Shown under Settings > API and Webhooks"
+      },
+      {
+        "key": "api_key",
+        "label": "Access key",
+        "type": "password",
+        "required": true
+      },
+      {
+        "key": "secret_key",
+        "label": "Secret key",
+        "type": "password",
+        "required": true
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "capture_lead",
+      "name": "Create or update lead",
+      "description": "Lead.Capture: updates the lead matched by SearchBy, or creates it.",
+      "method": "POST",
+      "endpoint": "/LeadManagement.svc/Lead.Capture",
+      "body": "{{ inputs.attributes }}",
+      "inputs": [
+        {
+          "key": "attributes",
+          "label": "Lead attributes",
+          "type": "json",
+          "required": true,
+          "placeholder": "[{\"Attribute\": \"EmailAddress\", \"Value\": \"jane@example.com\"}, {\"Attribute\": \"FirstName\", \"Value\": \"Jane\"}, {\"Attribute\": \"SearchBy\", \"Value\": \"EmailAddress\"}]",
+          "help": "Array of {Attribute, Value} using schema names (FirstName, LastName, EmailAddress, Phone, Source, mx_ custom fields)."
+        }
+      ]
+    },
+    {
+      "key": "get_lead_by_email",
+      "name": "Find lead by email",
+      "method": "GET",
+      "endpoint": "/LeadManagement.svc/Leads.GetByEmailaddress",
+      "query": {
+        "emailaddress": "{{ inputs.email }}"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "get_lead_by_id",
+      "name": "Get lead by ID",
+      "method": "GET",
+      "endpoint": "/LeadManagement.svc/Leads.GetById",
+      "query": {
+        "id": "{{ inputs.lead_id }}"
+      },
+      "inputs": [
+        {
+          "key": "lead_id",
+          "label": "Lead ID (ProspectID)",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Add this URL under Settings > API and Webhooks > Webhooks (e.g. Lead Created).",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

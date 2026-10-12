@@ -1,0 +1,127 @@
+{
+  "key": "signnow",
+  "name": "signNow",
+  "category": "Files & Documents",
+  "description": "Create documents from templates and send them for signature.",
+  "brand": "signnow",
+  "website": "https://www.signnow.com",
+  "docs_url": "https://docs.signnow.com/docs/signnow/",
+  "base_url": "https://api.signnow.com",
+  "auth": [
+    {
+      "type": "bearer",
+      "fields": [
+        {
+          "key": "token",
+          "label": "Access token",
+          "type": "password",
+          "required": true,
+          "help": "From the signNow API dashboard (Keys)."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_documents",
+      "name": "List documents",
+      "method": "GET",
+      "endpoint": "/user/documentsv2",
+      "inputs": []
+    },
+    {
+      "key": "get_document",
+      "name": "Get document",
+      "method": "GET",
+      "endpoint": "/document/{{ inputs.document_id }}",
+      "inputs": [
+        {
+          "key": "document_id",
+          "label": "Document ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "create_from_template",
+      "name": "Create document from template",
+      "method": "POST",
+      "endpoint": "/template/{{ inputs.template_id }}/copy",
+      "body": {
+        "document_name": "{{ inputs.document_name }}"
+      },
+      "inputs": [
+        {
+          "key": "template_id",
+          "label": "Template ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "document_name",
+          "label": "Document name",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "send_invite",
+      "name": "Send signing invite",
+      "description": "Free-form invite: the signer adds their signature anywhere.",
+      "method": "POST",
+      "endpoint": "/document/{{ inputs.document_id }}/invite",
+      "body": {
+        "to": "{{ inputs.to }}",
+        "from": "{{ inputs.from }}",
+        "subject": "{{ inputs.subject }}",
+        "message": "{{ inputs.message }}"
+      },
+      "inputs": [
+        {
+          "key": "document_id",
+          "label": "Document ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "to",
+          "label": "Signer email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "from",
+          "label": "Your signNow email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "subject",
+          "label": "Email subject",
+          "type": "string"
+        },
+        {
+          "key": "message",
+          "label": "Message",
+          "type": "text"
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Events from a signNow event subscription.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

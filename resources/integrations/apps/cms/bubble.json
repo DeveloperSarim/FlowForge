@@ -1,0 +1,215 @@
+{
+  "key": "bubble",
+  "name": "Bubble",
+  "category": "CMS & Websites",
+  "description": "Search, create and update things in a Bubble app and run backend workflows.",
+  "brand": "bubble",
+  "website": "https://bubble.io",
+  "docs_url": "https://manual.bubble.io/core-resources/api/the-bubble-api",
+  "base_url": "{{ credentials.app_url }}/api/1.1",
+  "auth": [
+    {
+      "type": "bearer",
+      "fields": [
+        {
+          "key": "app_url",
+          "label": "App URL",
+          "type": "string",
+          "required": true,
+          "placeholder": "https://yourapp.bubbleapps.io",
+          "help": "Add /version-test to use the development version."
+        },
+        {
+          "key": "token",
+          "label": "API token",
+          "type": "password",
+          "required": true,
+          "help": "Settings > API > API tokens."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "search_things",
+      "name": "Search things",
+      "method": "GET",
+      "endpoint": "/obj/{{ inputs.type }}",
+      "output_path": "response.results",
+      "query": {
+        "constraints": "{{ inputs.constraints }}",
+        "limit": "{{ inputs.limit }}",
+        "cursor": "{{ inputs.cursor }}",
+        "sort_field": "{{ inputs.sort_field }}",
+        "descending": "{{ inputs.descending }}"
+      },
+      "inputs": [
+        {
+          "key": "type",
+          "label": "Data type",
+          "type": "string",
+          "required": true,
+          "placeholder": "user",
+          "help": "Type name as used in the API (lowercase, no spaces)."
+        },
+        {
+          "key": "constraints",
+          "label": "Constraints (JSON)",
+          "type": "text",
+          "placeholder": "[{ \"key\": \"email\", \"constraint_type\": \"equals\", \"value\": \"a@b.com\" }]"
+        },
+        {
+          "key": "sort_field",
+          "label": "Sort by field",
+          "type": "string",
+          "placeholder": "Created Date"
+        },
+        {
+          "key": "descending",
+          "label": "Order",
+          "type": "select",
+          "options": [
+            {
+              "value": "true",
+              "label": "Descending"
+            },
+            {
+              "value": "false",
+              "label": "Ascending"
+            }
+          ]
+        },
+        {
+          "key": "limit",
+          "label": "Max results",
+          "type": "number",
+          "default": 100
+        },
+        {
+          "key": "cursor",
+          "label": "Cursor",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "get_thing",
+      "name": "Get thing",
+      "method": "GET",
+      "endpoint": "/obj/{{ inputs.type }}/{{ inputs.id }}",
+      "output_path": "response",
+      "inputs": [
+        {
+          "key": "type",
+          "label": "Data type",
+          "type": "string",
+          "required": true,
+          "placeholder": "user",
+          "help": "Type name as used in the API (lowercase, no spaces)."
+        },
+        {
+          "key": "id",
+          "label": "Thing ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "create_thing",
+      "name": "Create thing",
+      "method": "POST",
+      "endpoint": "/obj/{{ inputs.type }}",
+      "body": "{{ inputs.data }}",
+      "inputs": [
+        {
+          "key": "type",
+          "label": "Data type",
+          "type": "string",
+          "required": true,
+          "placeholder": "user",
+          "help": "Type name as used in the API (lowercase, no spaces)."
+        },
+        {
+          "key": "data",
+          "label": "Fields (JSON)",
+          "type": "json",
+          "required": true,
+          "placeholder": "{ \"name\": \"Jane\" }"
+        }
+      ]
+    },
+    {
+      "key": "update_thing",
+      "name": "Update thing",
+      "method": "PATCH",
+      "endpoint": "/obj/{{ inputs.type }}/{{ inputs.id }}",
+      "body": "{{ inputs.data }}",
+      "inputs": [
+        {
+          "key": "type",
+          "label": "Data type",
+          "type": "string",
+          "required": true,
+          "placeholder": "user",
+          "help": "Type name as used in the API (lowercase, no spaces)."
+        },
+        {
+          "key": "id",
+          "label": "Thing ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "data",
+          "label": "Fields (JSON)",
+          "type": "json",
+          "required": true,
+          "placeholder": "{ \"name\": \"Jane\" }"
+        }
+      ]
+    },
+    {
+      "key": "delete_thing",
+      "name": "Delete thing",
+      "method": "DELETE",
+      "endpoint": "/obj/{{ inputs.type }}/{{ inputs.id }}",
+      "inputs": [
+        {
+          "key": "type",
+          "label": "Data type",
+          "type": "string",
+          "required": true,
+          "placeholder": "user",
+          "help": "Type name as used in the API (lowercase, no spaces)."
+        },
+        {
+          "key": "id",
+          "label": "Thing ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "run_workflow",
+      "name": "Run backend workflow",
+      "method": "POST",
+      "endpoint": "/wf/{{ inputs.workflow }}",
+      "body": "{{ inputs.params }}",
+      "inputs": [
+        {
+          "key": "workflow",
+          "label": "Workflow name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "params",
+          "label": "Parameters (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,241 @@
+{
+  "key": "microsoft_bookings",
+  "name": "Microsoft Bookings",
+  "category": "Productivity",
+  "description": "Book, list and cancel Microsoft Bookings appointments.",
+  "brand": "microsoftbookings",
+  "website": "https://www.microsoft.com/microsoft-365/business/scheduling-and-booking-app",
+  "docs_url": "https://learn.microsoft.com/graph/api/resources/booking-api-overview",
+  "base_url": "https://graph.microsoft.com/v1.0",
+  "auth": [
+    {
+      "type": "oauth2",
+      "authorize_url": "https://login.microsoftonline.com/common/oauth2/v2.0/authorize",
+      "token_url": "https://login.microsoftonline.com/common/oauth2/v2.0/token",
+      "scopes": [
+        "offline_access",
+        "Bookings.ReadWrite.All",
+        "BookingsAppointment.ReadWrite.All"
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_businesses",
+      "name": "List booking businesses",
+      "method": "GET",
+      "endpoint": "/solutions/bookingBusinesses",
+      "output_path": "value",
+      "inputs": []
+    },
+    {
+      "key": "list_services",
+      "name": "List services",
+      "method": "GET",
+      "endpoint": "/solutions/bookingBusinesses/{{ inputs.business_id }}/services",
+      "output_path": "value",
+      "inputs": [
+        {
+          "key": "business_id",
+          "label": "Booking business ID",
+          "type": "string",
+          "required": true,
+          "placeholder": "Contosolunchdelivery@contoso.onmicrosoft.com"
+        }
+      ]
+    },
+    {
+      "key": "list_staff",
+      "name": "List staff members",
+      "method": "GET",
+      "endpoint": "/solutions/bookingBusinesses/{{ inputs.business_id }}/staffMembers",
+      "output_path": "value",
+      "inputs": [
+        {
+          "key": "business_id",
+          "label": "Booking business ID",
+          "type": "string",
+          "required": true,
+          "placeholder": "Contosolunchdelivery@contoso.onmicrosoft.com"
+        }
+      ]
+    },
+    {
+      "key": "list_appointments",
+      "name": "List appointments",
+      "method": "GET",
+      "endpoint": "/solutions/bookingBusinesses/{{ inputs.business_id }}/appointments",
+      "output_path": "value",
+      "inputs": [
+        {
+          "key": "business_id",
+          "label": "Booking business ID",
+          "type": "string",
+          "required": true,
+          "placeholder": "Contosolunchdelivery@contoso.onmicrosoft.com"
+        }
+      ]
+    },
+    {
+      "key": "create_customer",
+      "name": "Create customer",
+      "method": "POST",
+      "endpoint": "/solutions/bookingBusinesses/{{ inputs.business_id }}/customers",
+      "body": {
+        "@odata.type": "#microsoft.graph.bookingCustomer",
+        "displayName": "{{ inputs.name }}",
+        "emailAddress": "{{ inputs.email }}"
+      },
+      "inputs": [
+        {
+          "key": "business_id",
+          "label": "Booking business ID",
+          "type": "string",
+          "required": true,
+          "placeholder": "Contosolunchdelivery@contoso.onmicrosoft.com"
+        },
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "create_appointment",
+      "name": "Create appointment",
+      "method": "POST",
+      "endpoint": "/solutions/bookingBusinesses/{{ inputs.business_id }}/appointments",
+      "body": {
+        "serviceId": "{{ inputs.service_id }}",
+        "customerTimeZone": "{{ inputs.time_zone }}",
+        "startDateTime": {
+          "dateTime": "{{ inputs.start }}",
+          "timeZone": "{{ inputs.time_zone }}"
+        },
+        "endDateTime": {
+          "dateTime": "{{ inputs.end }}",
+          "timeZone": "{{ inputs.time_zone }}"
+        },
+        "staffMemberIds": "{{ inputs.staff_member_ids }}",
+        "serviceNotes": "{{ inputs.notes }}",
+        "customers": [
+          {
+            "@odata.type": "#microsoft.graph.bookingCustomerInformation",
+            "customerId": "{{ inputs.customer_id }}",
+            "name": "{{ inputs.customer_name }}",
+            "emailAddress": "{{ inputs.customer_email }}",
+            "phone": "{{ inputs.customer_phone }}",
+            "timeZone": "{{ inputs.time_zone }}"
+          }
+        ]
+      },
+      "inputs": [
+        {
+          "key": "business_id",
+          "label": "Booking business ID",
+          "type": "string",
+          "required": true,
+          "placeholder": "Contosolunchdelivery@contoso.onmicrosoft.com"
+        },
+        {
+          "key": "service_id",
+          "label": "Service ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "start",
+          "label": "Start",
+          "type": "string",
+          "required": true,
+          "placeholder": "2026-10-12T09:00:00"
+        },
+        {
+          "key": "end",
+          "label": "End",
+          "type": "string",
+          "required": true,
+          "placeholder": "2026-10-12T09:30:00"
+        },
+        {
+          "key": "time_zone",
+          "label": "Time zone",
+          "type": "string",
+          "required": true,
+          "default": "UTC",
+          "help": "Applies to start and end, e.g. UTC or America/Chicago."
+        },
+        {
+          "key": "customer_name",
+          "label": "Customer name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "customer_email",
+          "label": "Customer email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "customer_phone",
+          "label": "Customer phone",
+          "type": "string"
+        },
+        {
+          "key": "customer_id",
+          "label": "Existing customer ID",
+          "type": "string"
+        },
+        {
+          "key": "staff_member_ids",
+          "label": "Staff member IDs",
+          "type": "list"
+        },
+        {
+          "key": "notes",
+          "label": "Service notes",
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "key": "cancel_appointment",
+      "name": "Cancel appointment",
+      "method": "POST",
+      "endpoint": "/solutions/bookingBusinesses/{{ inputs.business_id }}/appointments/{{ inputs.appointment_id }}/cancel",
+      "body": {
+        "cancellationMessage": "{{ inputs.message }}"
+      },
+      "inputs": [
+        {
+          "key": "business_id",
+          "label": "Booking business ID",
+          "type": "string",
+          "required": true,
+          "placeholder": "Contosolunchdelivery@contoso.onmicrosoft.com"
+        },
+        {
+          "key": "appointment_id",
+          "label": "Appointment ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "message",
+          "label": "Cancellation message",
+          "type": "text",
+          "required": true
+        }
+      ]
+    }
+  ]
+}

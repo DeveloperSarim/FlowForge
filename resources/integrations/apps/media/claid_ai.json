@@ -1,0 +1,61 @@
+{
+  "key": "claid_ai",
+  "name": "Claid.ai",
+  "category": "Video & Media",
+  "description": "Enhance, upscale, resize and remove backgrounds from images by URL.",
+  "brand": "claid",
+  "website": "https://claid.ai",
+  "docs_url": "https://docs.claid.ai",
+  "base_url": "https://api.claid.ai/v1",
+  "auth": { "type": "bearer", "fields": [{ "key": "token", "label": "API key", "type": "password", "required": true }] },
+  "actions": [
+    {
+      "key": "edit_image",
+      "name": "Edit image",
+      "description": "Runs the given operations; result URL is in output.tmp_url.",
+      "method": "POST",
+      "endpoint": "/image/edit",
+      "output_path": "data",
+      "timeout": 120,
+      "body": { "input": "{{ inputs.input }}", "operations": "{{ inputs.operations }}", "output": "{{ inputs.output }}" },
+      "inputs": [
+        { "key": "input", "label": "Image URL", "type": "string", "required": true },
+        { "key": "operations", "label": "Operations (JSON)", "type": "json", "required": true, "placeholder": "{\"restorations\":{\"upscale\":\"smart_enhance\"},\"resizing\":{\"width\":1000}}" },
+        { "key": "output", "label": "Output (JSON)", "type": "json", "placeholder": "{\"format\":\"jpeg\"}" }
+      ]
+    },
+    {
+      "key": "remove_background",
+      "name": "Remove background",
+      "description": "Transparent PNG; result URL is in output.tmp_url.",
+      "method": "POST",
+      "endpoint": "/image/edit",
+      "output_path": "data",
+      "timeout": 120,
+      "body": { "input": "{{ inputs.input }}", "operations": { "background": { "remove": true } }, "output": { "format": "png" } },
+      "inputs": [{ "key": "input", "label": "Image URL", "type": "string", "required": true }]
+    },
+    {
+      "key": "edit_image_async",
+      "name": "Edit image (async)",
+      "description": "Queues an edit; check it with Get async edit result.",
+      "method": "POST",
+      "endpoint": "/image/edit/async",
+      "output_path": "data",
+      "body": { "input": "{{ inputs.input }}", "operations": "{{ inputs.operations }}", "output": "{{ inputs.output }}" },
+      "inputs": [
+        { "key": "input", "label": "Image URL", "type": "string", "required": true },
+        { "key": "operations", "label": "Operations (JSON)", "type": "json", "required": true, "placeholder": "{\"restorations\":{\"upscale\":\"smart_enhance\"}}" },
+        { "key": "output", "label": "Output (JSON)", "type": "json" }
+      ]
+    },
+    {
+      "key": "get_async_result",
+      "name": "Get async edit result",
+      "method": "GET",
+      "endpoint": "/image/edit/async/{{ inputs.task_id }}",
+      "output_path": "data",
+      "inputs": [{ "key": "task_id", "label": "Task ID", "type": "string", "required": true }]
+    }
+  ]
+}

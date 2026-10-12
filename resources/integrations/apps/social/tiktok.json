@@ -1,0 +1,87 @@
+{
+  "key": "tiktok",
+  "name": "TikTok",
+  "category": "Social Media",
+  "description": "Publish videos from a URL, check post status and list a creator's videos.",
+  "brand": "tiktok",
+  "website": "https://www.tiktok.com",
+  "docs_url": "https://developers.tiktok.com/doc/content-posting-api-get-started",
+  "base_url": "https://open.tiktokapis.com",
+  "headers": { "Content-Type": "application/json; charset=UTF-8" },
+  "auth": { "type": "bearer", "fields": [{ "key": "token", "label": "User access token", "type": "password", "required": true,
+    "help": "From TikTok Login Kit with video.publish, video.list and user.info.basic scopes. In-app OAuth isn't offered because TikTok uses client_key instead of client_id." }] },
+  "actions": [
+    {
+      "key": "get_user_info",
+      "name": "Get user info",
+      "method": "GET",
+      "endpoint": "/v2/user/info/",
+      "query": { "fields": "{{ inputs.fields }}" },
+      "output_path": "data.user",
+      "inputs": [{ "key": "fields", "label": "Fields", "type": "string", "default": "open_id,union_id,avatar_url,display_name" }]
+    },
+    {
+      "key": "query_creator_info",
+      "name": "Query creator info",
+      "description": "Returns the privacy levels and limits you must respect before posting.",
+      "method": "POST",
+      "endpoint": "/v2/post/publish/creator_info/query/",
+      "output_path": "data",
+      "inputs": []
+    },
+    {
+      "key": "publish_video_from_url",
+      "name": "Publish video from URL",
+      "description": "Direct-posts a video TikTok pulls from your verified domain.",
+      "method": "POST",
+      "endpoint": "/v2/post/publish/video/init/",
+      "body": {
+        "post_info": {
+          "title": "{{ inputs.title }}",
+          "privacy_level": "{{ inputs.privacy_level }}",
+          "disable_comment": "{{ inputs.disable_comment }}",
+          "disable_duet": "{{ inputs.disable_duet }}",
+          "disable_stitch": "{{ inputs.disable_stitch }}",
+          "video_cover_timestamp_ms": "{{ inputs.cover_timestamp_ms }}"
+        },
+        "source_info": { "source": "PULL_FROM_URL", "video_url": "{{ inputs.video_url }}" }
+      },
+      "output_path": "data",
+      "inputs": [
+        { "key": "video_url", "label": "Video URL", "type": "string", "required": true, "help": "The URL's domain must be verified in your TikTok app." },
+        { "key": "title", "label": "Caption", "type": "text" },
+        { "key": "privacy_level", "label": "Privacy", "type": "select", "required": true, "default": "SELF_ONLY", "help": "Unaudited apps can only post SELF_ONLY.", "options": [
+          { "value": "PUBLIC_TO_EVERYONE", "label": "Public" }, { "value": "MUTUAL_FOLLOW_FRIENDS", "label": "Friends" },
+          { "value": "FOLLOWER_OF_CREATOR", "label": "Followers" }, { "value": "SELF_ONLY", "label": "Only me" }
+        ] },
+        { "key": "disable_comment", "label": "Disable comments", "type": "boolean", "default": false },
+        { "key": "disable_duet", "label": "Disable duet", "type": "boolean", "default": false },
+        { "key": "disable_stitch", "label": "Disable stitch", "type": "boolean", "default": false },
+        { "key": "cover_timestamp_ms", "label": "Cover frame (ms)", "type": "number" }
+      ]
+    },
+    {
+      "key": "get_publish_status",
+      "name": "Get publish status",
+      "method": "POST",
+      "endpoint": "/v2/post/publish/status/fetch/",
+      "body": { "publish_id": "{{ inputs.publish_id }}" },
+      "output_path": "data",
+      "inputs": [{ "key": "publish_id", "label": "Publish ID", "type": "string", "required": true }]
+    },
+    {
+      "key": "list_videos",
+      "name": "List videos",
+      "method": "POST",
+      "endpoint": "/v2/video/list/",
+      "query": { "fields": "{{ inputs.fields }}" },
+      "body": { "max_count": "{{ inputs.max_count }}", "cursor": "{{ inputs.cursor }}" },
+      "output_path": "data",
+      "inputs": [
+        { "key": "fields", "label": "Fields", "type": "string", "default": "id,title,create_time,share_url,view_count,like_count" },
+        { "key": "max_count", "label": "Max count (1-20)", "type": "number", "default": 20 },
+        { "key": "cursor", "label": "Cursor", "type": "number" }
+      ]
+    }
+  ]
+}

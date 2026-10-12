@@ -1,0 +1,91 @@
+{
+  "key": "kandji",
+  "name": "Kandji",
+  "category": "Security & IT",
+  "description": "List and inspect Apple devices, change blueprints and send lock or restart commands.",
+  "brand": "kandji",
+  "website": "https://www.kandji.io",
+  "docs_url": "https://api-docs.kandji.io/",
+  "base_url": "{{ credentials.base_url }}/api/v1",
+  "auth": { "type": "bearer", "fields": [
+    { "key": "base_url", "label": "API URL", "type": "string", "required": true, "placeholder": "https://acme.api.kandji.io", "help": "Settings → Access → API URL (EU tenants use .api.eu.kandji.io)." },
+    { "key": "token", "label": "API token", "type": "password", "required": true, "help": "Settings → Access → Add API token, with the permissions you need." }
+  ] },
+  "actions": [
+    {
+      "key": "list_devices",
+      "name": "Find devices",
+      "method": "GET",
+      "endpoint": "/devices",
+      "query": { "serial_number": "{{ inputs.serial_number }}", "user_email": "{{ inputs.user_email }}", "platform": "{{ inputs.platform }}", "blueprint_id": "{{ inputs.blueprint_id }}", "limit": "{{ inputs.limit }}" },
+      "inputs": [
+        { "key": "serial_number", "label": "Serial number", "type": "string" },
+        { "key": "user_email", "label": "User email", "type": "string" },
+        { "key": "platform", "label": "Platform", "type": "select", "options": [
+          { "value": "Mac", "label": "Mac" }, { "value": "iPhone", "label": "iPhone" }, { "value": "iPad", "label": "iPad" }, { "value": "AppleTV", "label": "Apple TV" }
+        ] },
+        { "key": "blueprint_id", "label": "Blueprint ID", "type": "string" },
+        { "key": "limit", "label": "Limit", "type": "number", "default": 300 }
+      ]
+    },
+    {
+      "key": "get_device",
+      "name": "Get device",
+      "method": "GET",
+      "endpoint": "/devices/{{ inputs.device_id }}",
+      "inputs": [{ "key": "device_id", "label": "Device ID", "type": "string", "required": true }]
+    },
+    {
+      "key": "get_device_details",
+      "name": "Get device details",
+      "method": "GET",
+      "endpoint": "/devices/{{ inputs.device_id }}/details",
+      "inputs": [{ "key": "device_id", "label": "Device ID", "type": "string", "required": true }]
+    },
+    {
+      "key": "update_device",
+      "name": "Update device",
+      "description": "Move to another blueprint, reassign the user or set the asset tag.",
+      "method": "PATCH",
+      "endpoint": "/devices/{{ inputs.device_id }}",
+      "body": { "blueprint_id": "{{ inputs.blueprint_id }}", "user": "{{ inputs.user_id }}", "asset_tag": "{{ inputs.asset_tag }}" },
+      "inputs": [
+        { "key": "device_id", "label": "Device ID", "type": "string", "required": true },
+        { "key": "blueprint_id", "label": "Blueprint ID", "type": "string" },
+        { "key": "user_id", "label": "User ID", "type": "string" },
+        { "key": "asset_tag", "label": "Asset tag", "type": "string" }
+      ]
+    },
+    {
+      "key": "lock_device",
+      "name": "Lock device",
+      "description": "For Macs the response contains the unlock PIN.",
+      "method": "POST",
+      "endpoint": "/devices/{{ inputs.device_id }}/action/lock",
+      "inputs": [{ "key": "device_id", "label": "Device ID", "type": "string", "required": true }]
+    },
+    {
+      "key": "restart_device",
+      "name": "Restart device",
+      "method": "POST",
+      "endpoint": "/devices/{{ inputs.device_id }}/action/restart",
+      "inputs": [{ "key": "device_id", "label": "Device ID", "type": "string", "required": true }]
+    },
+    {
+      "key": "blank_push",
+      "name": "Send blank push",
+      "description": "Asks the device to check in with Kandji.",
+      "method": "POST",
+      "endpoint": "/devices/{{ inputs.device_id }}/action/blankpush",
+      "inputs": [{ "key": "device_id", "label": "Device ID", "type": "string", "required": true }]
+    },
+    {
+      "key": "list_blueprints",
+      "name": "List blueprints",
+      "method": "GET",
+      "endpoint": "/blueprints",
+      "output_path": "results",
+      "inputs": []
+    }
+  ]
+}

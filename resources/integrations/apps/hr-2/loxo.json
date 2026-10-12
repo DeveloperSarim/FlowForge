@@ -1,0 +1,172 @@
+{
+  "key": "loxo",
+  "name": "Loxo",
+  "category": "HR & Recruiting",
+  "description": "Search and create people and list jobs in Loxo.",
+  "brand": "loxo",
+  "website": "https://www.loxo.co",
+  "docs_url": "https://loxo.readme.io",
+  "base_url": "https://{{ credentials.domain }}/api/{{ credentials.agency_slug }}",
+  "auth": [
+    {
+      "type": "bearer",
+      "fields": [
+        {
+          "key": "domain",
+          "label": "Domain",
+          "type": "string",
+          "required": true,
+          "default": "app.loxo.co"
+        },
+        {
+          "key": "agency_slug",
+          "label": "Agency slug",
+          "type": "string",
+          "required": true,
+          "help": "The part after app.loxo.co/ in your Loxo URL."
+        },
+        {
+          "key": "token",
+          "label": "API key",
+          "type": "password",
+          "required": true,
+          "help": "Settings > API keys."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_people",
+      "name": "Search people",
+      "method": "GET",
+      "endpoint": "/people",
+      "query": {
+        "query": "{{ inputs.query }}",
+        "per_page": "{{ inputs.per_page }}"
+      },
+      "inputs": [
+        {
+          "key": "query",
+          "label": "Query",
+          "type": "string",
+          "placeholder": "name:\"Ada Lovelace\""
+        },
+        {
+          "key": "per_page",
+          "label": "Per page",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    },
+    {
+      "key": "create_person",
+      "name": "Create person",
+      "method": "POST",
+      "endpoint": "/people",
+      "body": {
+        "person": {
+          "name": "{{ inputs.name }}",
+          "title": "{{ inputs.title }}",
+          "company": "{{ inputs.company }}",
+          "...": "{{ inputs.extra }}"
+        }
+      },
+      "inputs": [
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "string"
+        },
+        {
+          "key": "company",
+          "label": "Company",
+          "type": "string"
+        },
+        {
+          "key": "extra",
+          "label": "Other fields",
+          "type": "keyvalue"
+        }
+      ]
+    },
+    {
+      "key": "list_jobs",
+      "name": "List jobs",
+      "method": "GET",
+      "endpoint": "/jobs",
+      "inputs": []
+    },
+    {
+      "key": "create_webhook",
+      "name": "Create webhook",
+      "method": "POST",
+      "endpoint": "/webhooks",
+      "body": {
+        "webhook": {
+          "item_type": "{{ inputs.item_type }}",
+          "action": "{{ inputs.action }}",
+          "endpoint_url": "{{ inputs.endpoint_url }}"
+        }
+      },
+      "inputs": [
+        {
+          "key": "item_type",
+          "label": "Item type",
+          "type": "string",
+          "required": true,
+          "placeholder": "person"
+        },
+        {
+          "key": "action",
+          "label": "Action",
+          "type": "select",
+          "required": true,
+          "options": [
+            {
+              "value": "create",
+              "label": "Create"
+            },
+            {
+              "value": "update",
+              "label": "Update"
+            },
+            {
+              "value": "destroy",
+              "label": "Destroy"
+            }
+          ]
+        },
+        {
+          "key": "endpoint_url",
+          "label": "Endpoint URL",
+          "type": "string",
+          "required": true,
+          "help": "Paste a workflow's Loxo webhook trigger URL."
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Register the URL with Create webhook.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

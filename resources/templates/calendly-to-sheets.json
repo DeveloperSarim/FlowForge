@@ -1,0 +1,55 @@
+{
+  "key": "calendly-to-sheets",
+  "name": "Log Calendly bookings in Google Sheets",
+  "description": "Each new booking becomes a row with the invitee, email and time.",
+  "category": "Productivity",
+  "featured": false,
+  "graph": {
+    "nodes": [
+      {
+        "id": "trigger",
+        "type": "trigger",
+        "position": {
+          "x": 0,
+          "y": 200
+        },
+        "data": {
+          "integration": "calendly",
+          "trigger": "webhook_event",
+          "label": "Invitee created",
+          "config": {}
+        }
+      },
+      {
+        "id": "step_1",
+        "type": "action",
+        "position": {
+          "x": 240,
+          "y": 200
+        },
+        "data": {
+          "integration": "google_sheets",
+          "action": "append_row",
+          "label": "Append booking",
+          "config": {
+            "spreadsheet_id": "",
+            "range": "Bookings",
+            "values": [
+              "{{ steps.trigger.data.payload.name }}",
+              "{{ steps.trigger.data.payload.email }}",
+              "{{ steps.trigger.data.payload.scheduled_event.start_time }}"
+            ]
+          }
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "e-trigger-step_1",
+        "source": "trigger",
+        "target": "step_1",
+        "sourceHandle": null
+      }
+    ]
+  }
+}

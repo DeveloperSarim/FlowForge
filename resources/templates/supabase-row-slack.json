@@ -1,0 +1,54 @@
+{
+  "key": "supabase-row-slack",
+  "name": "Alert Slack on new Supabase rows",
+  "description": "Watch a table (e.g. signups or orders) and post each new row.",
+  "category": "Engineering",
+  "featured": false,
+  "graph": {
+    "nodes": [
+      {
+        "id": "trigger",
+        "type": "trigger",
+        "position": {
+          "x": 0,
+          "y": 200
+        },
+        "data": {
+          "integration": "supabase",
+          "trigger": "new_row",
+          "label": "New row",
+          "config": {
+            "table": "signups",
+            "order_column": "created_at",
+            "poll_interval": 5
+          }
+        }
+      },
+      {
+        "id": "step_1",
+        "type": "action",
+        "position": {
+          "x": 240,
+          "y": 200
+        },
+        "data": {
+          "integration": "slack",
+          "action": "post_message",
+          "label": "Post to Slack",
+          "config": {
+            "channel": "#signups",
+            "text": "New signup: {{ steps.trigger.data.email }}"
+          }
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "e-trigger-step_1",
+        "source": "trigger",
+        "target": "step_1",
+        "sourceHandle": null
+      }
+    ]
+  }
+}

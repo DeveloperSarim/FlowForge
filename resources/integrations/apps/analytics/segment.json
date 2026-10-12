@@ -1,0 +1,79 @@
+{
+  "key": "segment",
+  "name": "Segment",
+  "category": "Analytics",
+  "description": "Send track, identify, page and group calls to a Segment source.",
+  "brand": "segment",
+  "website": "https://segment.com",
+  "docs_url": "https://segment.com/docs/connections/sources/catalog/libraries/server/http-api/",
+  "popular": true,
+  "base_url": "https://api.segment.io/v1",
+  "auth": { "type": "basic", "fields": [
+    { "key": "username", "label": "Write key", "type": "password", "required": true, "help": "Source > Settings > API keys (HTTP API source)." },
+    { "key": "password", "label": "Password", "type": "password", "required": false, "default": "", "help": "Leave empty; Segment uses only the write key." }
+  ] },
+  "actions": [
+    {
+      "key": "track",
+      "name": "Track event",
+      "method": "POST",
+      "endpoint": "/track",
+      "body": { "userId": "{{ inputs.user_id }}", "anonymousId": "{{ inputs.anonymous_id }}", "event": "{{ inputs.event }}", "properties": "{{ inputs.properties }}", "timestamp": "{{ inputs.timestamp }}" },
+      "inputs": [
+        { "key": "event", "label": "Event name", "type": "string", "required": true },
+        { "key": "user_id", "label": "User ID", "type": "string", "help": "User ID or anonymous ID is required." },
+        { "key": "anonymous_id", "label": "Anonymous ID", "type": "string" },
+        { "key": "properties", "label": "Properties", "type": "json", "placeholder": "{ \"plan\": \"pro\", \"revenue\": 49 }" },
+        { "key": "timestamp", "label": "Timestamp (ISO 8601)", "type": "string" }
+      ]
+    },
+    {
+      "key": "identify",
+      "name": "Identify user",
+      "method": "POST",
+      "endpoint": "/identify",
+      "body": { "userId": "{{ inputs.user_id }}", "anonymousId": "{{ inputs.anonymous_id }}", "traits": "{{ inputs.traits }}", "timestamp": "{{ inputs.timestamp }}" },
+      "inputs": [
+        { "key": "user_id", "label": "User ID", "type": "string", "help": "User ID or anonymous ID is required." },
+        { "key": "anonymous_id", "label": "Anonymous ID", "type": "string" },
+        { "key": "traits", "label": "Traits", "type": "json", "placeholder": "{ \"email\": \"ada@example.com\", \"name\": \"Ada\" }" },
+        { "key": "timestamp", "label": "Timestamp (ISO 8601)", "type": "string" }
+      ]
+    },
+    {
+      "key": "page",
+      "name": "Page view",
+      "method": "POST",
+      "endpoint": "/page",
+      "body": { "userId": "{{ inputs.user_id }}", "anonymousId": "{{ inputs.anonymous_id }}", "name": "{{ inputs.name }}", "properties": "{{ inputs.properties }}" },
+      "inputs": [
+        { "key": "user_id", "label": "User ID", "type": "string", "help": "User ID or anonymous ID is required." },
+        { "key": "anonymous_id", "label": "Anonymous ID", "type": "string" },
+        { "key": "name", "label": "Page name", "type": "string" },
+        { "key": "properties", "label": "Properties", "type": "json", "placeholder": "{ \"url\": \"https://example.com/pricing\" }" }
+      ]
+    },
+    {
+      "key": "group",
+      "name": "Group (account)",
+      "method": "POST",
+      "endpoint": "/group",
+      "body": { "userId": "{{ inputs.user_id }}", "anonymousId": "{{ inputs.anonymous_id }}", "groupId": "{{ inputs.group_id }}", "traits": "{{ inputs.traits }}" },
+      "inputs": [
+        { "key": "group_id", "label": "Group ID", "type": "string", "required": true },
+        { "key": "user_id", "label": "User ID", "type": "string", "help": "User ID or anonymous ID is required." },
+        { "key": "anonymous_id", "label": "Anonymous ID", "type": "string" },
+        { "key": "traits", "label": "Group traits", "type": "json", "placeholder": "{ \"name\": \"Acme\", \"plan\": \"enterprise\" }" }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook destination",
+      "description": "Add a Webhooks destination in Segment pointing at this URL.",
+      "type": "webhook",
+      "inputs": [{ "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }]
+    }
+  ]
+}

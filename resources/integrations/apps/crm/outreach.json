@@ -1,0 +1,161 @@
+{
+  "key": "outreach",
+  "name": "Outreach",
+  "category": "CRM & Sales",
+  "description": "Create prospects and add them to sequences in Outreach.",
+  "brand": "outreach",
+  "website": "https://www.outreach.io",
+  "docs_url": "https://developers.outreach.io/api/",
+  "base_url": "https://api.outreach.io/api/v2",
+  "headers": {
+    "Content-Type": "application/vnd.api+json"
+  },
+  "auth": [
+    {
+      "type": "oauth2",
+      "authorize_url": "https://api.outreach.io/oauth/authorize",
+      "token_url": "https://api.outreach.io/oauth/token",
+      "scopes": [
+        "prospects.all",
+        "accounts.read",
+        "sequences.read",
+        "sequenceStates.all",
+        "mailboxes.read"
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "create_prospect",
+      "name": "Create prospect",
+      "method": "POST",
+      "endpoint": "/prospects",
+      "body": {
+        "data": {
+          "type": "prospect",
+          "attributes": {
+            "emails": "{{ inputs.emails }}",
+            "firstName": "{{ inputs.first_name }}",
+            "lastName": "{{ inputs.last_name }}",
+            "title": "{{ inputs.title }}",
+            "company": "{{ inputs.company }}"
+          }
+        }
+      },
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "emails",
+          "label": "Emails",
+          "type": "list",
+          "required": true
+        },
+        {
+          "key": "first_name",
+          "label": "First name",
+          "type": "string"
+        },
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string"
+        },
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "string"
+        },
+        {
+          "key": "company",
+          "label": "Company",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "find_prospect",
+      "name": "Find prospect by email",
+      "method": "GET",
+      "endpoint": "/prospects",
+      "query": {
+        "filter[emails]": "{{ inputs.email }}"
+      },
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "get_prospect",
+      "name": "Get prospect",
+      "method": "GET",
+      "endpoint": "/prospects/{{ inputs.prospect_id }}",
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "prospect_id",
+          "label": "Prospect ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "add_to_sequence",
+      "name": "Add prospect to sequence",
+      "method": "POST",
+      "endpoint": "/sequenceStates",
+      "body": {
+        "data": {
+          "type": "sequenceState",
+          "relationships": {
+            "prospect": {
+              "data": {
+                "type": "prospect",
+                "id": "{{ inputs.prospect_id }}"
+              }
+            },
+            "sequence": {
+              "data": {
+                "type": "sequence",
+                "id": "{{ inputs.sequence_id }}"
+              }
+            },
+            "mailbox": {
+              "data": {
+                "type": "mailbox",
+                "id": "{{ inputs.mailbox_id }}"
+              }
+            }
+          }
+        }
+      },
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "prospect_id",
+          "label": "Prospect ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "sequence_id",
+          "label": "Sequence ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "mailbox_id",
+          "label": "Mailbox ID",
+          "type": "number",
+          "required": true
+        }
+      ]
+    }
+  ]
+}

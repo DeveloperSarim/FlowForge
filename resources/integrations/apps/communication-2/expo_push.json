@@ -1,0 +1,59 @@
+{
+  "key": "expo_push",
+  "name": "Expo Push Notifications",
+  "category": "Communication",
+  "description": "Send push notifications to Expo / React Native apps and fetch delivery receipts.",
+  "brand": "expo",
+  "website": "https://expo.dev",
+  "docs_url": "https://docs.expo.dev/push-notifications/sending-notifications/",
+  "base_url": "https://exp.host/--/api/v2",
+  "auth": [
+    { "type": "none" },
+    { "type": "bearer", "fields": [{ "key": "token", "label": "Access token", "type": "password", "required": true, "help": "Only needed when Enhanced Security for Push Notifications is enabled (expo.dev → Access tokens)." }] }
+  ],
+  "actions": [
+    {
+      "key": "send_push",
+      "name": "Send push notification",
+      "method": "POST",
+      "endpoint": "/push/send",
+      "body": {
+        "to": "{{ inputs.to }}",
+        "title": "{{ inputs.title }}",
+        "body": "{{ inputs.body }}",
+        "data": "{{ inputs.data }}",
+        "sound": "{{ inputs.sound }}",
+        "badge": "{{ inputs.badge }}",
+        "channelId": "{{ inputs.channel_id }}",
+        "priority": "{{ inputs.priority }}"
+      },
+      "output_path": "data",
+      "inputs": [
+        { "key": "to", "label": "Expo push token", "type": "string", "required": true, "placeholder": "ExponentPushToken[xxxxxxxxxxxxxxxxxxxxxx]" },
+        { "key": "title", "label": "Title", "type": "string" },
+        { "key": "body", "label": "Message", "type": "text", "required": true },
+        { "key": "data", "label": "Data (JSON)", "type": "json", "placeholder": "{\"screen\":\"order\",\"id\":1042}" },
+        { "key": "sound", "label": "Sound (iOS)", "type": "select", "options": [
+          { "value": "", "label": "None" }, { "value": "default", "label": "Default" }
+        ] },
+        { "key": "badge", "label": "Badge count (iOS)", "type": "number" },
+        { "key": "channel_id", "label": "Android channel ID", "type": "string" },
+        { "key": "priority", "label": "Priority", "type": "select", "options": [
+          { "value": "", "label": "Default" }, { "value": "normal", "label": "Normal" }, { "value": "high", "label": "High" }
+        ] }
+      ]
+    },
+    {
+      "key": "get_receipts",
+      "name": "Get push receipts",
+      "description": "Check delivery results (about 15 minutes after sending) using the ticket ids.",
+      "method": "POST",
+      "endpoint": "/push/getReceipts",
+      "body": { "ids": "{{ inputs.ids }}" },
+      "output_path": "data",
+      "inputs": [
+        { "key": "ids", "label": "Ticket IDs", "type": "list", "required": true }
+      ]
+    }
+  ]
+}

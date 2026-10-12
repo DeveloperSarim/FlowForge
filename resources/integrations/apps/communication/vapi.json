@@ -1,0 +1,69 @@
+{
+  "key": "vapi",
+  "name": "Vapi",
+  "category": "Communication",
+  "description": "Start AI voice agent phone calls and read call results from Vapi.",
+  "brand": "vapi",
+  "website": "https://vapi.ai",
+  "docs_url": "https://docs.vapi.ai/api-reference",
+  "base_url": "https://api.vapi.ai",
+  "auth": [
+    { "type": "bearer", "fields": [{ "key": "token", "label": "Private API key", "type": "password", "required": true }] }
+  ],
+  "actions": [
+    {
+      "key": "create_phone_call",
+      "name": "Start outbound phone call",
+      "method": "POST",
+      "endpoint": "/call",
+      "body": {
+        "assistantId": "{{ inputs.assistant_id }}",
+        "phoneNumberId": "{{ inputs.phone_number_id }}",
+        "customer": { "number": "{{ inputs.customer_number }}", "name": "{{ inputs.customer_name }}" }
+      },
+      "inputs": [
+        { "key": "assistant_id", "label": "Assistant ID", "type": "string", "required": true },
+        { "key": "phone_number_id", "label": "Phone number ID", "type": "string", "required": true, "help": "The Vapi phone number to call from." },
+        { "key": "customer_number", "label": "Customer phone", "type": "string", "required": true, "placeholder": "+14155550100" },
+        { "key": "customer_name", "label": "Customer name", "type": "string" }
+      ]
+    },
+    {
+      "key": "get_call",
+      "name": "Get call",
+      "description": "Includes status, transcript, summary and recording URL once ended.",
+      "method": "GET",
+      "endpoint": "/call/{{ inputs.call_id }}",
+      "inputs": [{ "key": "call_id", "label": "Call ID", "type": "string", "required": true }]
+    },
+    {
+      "key": "list_calls",
+      "name": "List calls",
+      "method": "GET",
+      "endpoint": "/call",
+      "query": { "assistantId": "{{ inputs.assistant_id }}", "limit": "{{ inputs.limit }}" },
+      "inputs": [
+        { "key": "assistant_id", "label": "Assistant ID", "type": "string" },
+        { "key": "limit", "label": "Max results", "type": "number", "default": 20 }
+      ]
+    },
+    {
+      "key": "list_assistants",
+      "name": "List assistants",
+      "method": "GET",
+      "endpoint": "/assistant",
+      "query": { "limit": "{{ inputs.limit }}" },
+      "inputs": [{ "key": "limit", "label": "Max results", "type": "number", "default": 50 }]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "server_message",
+      "name": "Server URL event",
+      "description": "Set this as the assistant's Server URL (e.g. for end-of-call reports).",
+      "type": "webhook",
+      "data_path": "message",
+      "inputs": [{ "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }]
+    }
+  ]
+}

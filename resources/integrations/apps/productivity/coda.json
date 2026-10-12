@@ -1,0 +1,214 @@
+{
+  "key": "coda",
+  "name": "Coda",
+  "category": "Productivity",
+  "description": "Insert, upsert, read and update rows in Coda tables.",
+  "brand": "coda",
+  "website": "https://coda.io",
+  "docs_url": "https://coda.io/developers/apis/v1",
+  "base_url": "https://coda.io/apis/v1",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "API token",
+        "type": "password",
+        "required": true,
+        "help": "Account settings > API settings."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_docs",
+      "name": "List docs",
+      "method": "GET",
+      "endpoint": "/docs",
+      "query": {
+        "query": "{{ inputs.query }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_path": "items",
+      "inputs": [
+        {
+          "key": "query",
+          "label": "Search",
+          "type": "string"
+        },
+        {
+          "key": "limit",
+          "label": "Max results",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    },
+    {
+      "key": "list_tables",
+      "name": "List tables",
+      "method": "GET",
+      "endpoint": "/docs/{{ inputs.doc_id }}/tables",
+      "output_path": "items",
+      "inputs": [
+        {
+          "key": "doc_id",
+          "label": "Doc ID",
+          "type": "string",
+          "required": true,
+          "help": "From the doc URL: coda.io/d/_d<ID>"
+        }
+      ]
+    },
+    {
+      "key": "insert_row",
+      "name": "Insert or upsert row",
+      "description": "Writes are applied asynchronously (returns a request id).",
+      "method": "POST",
+      "endpoint": "/docs/{{ inputs.doc_id }}/tables/{{ inputs.table }}/rows",
+      "body": {
+        "rows": [
+          {
+            "cells": "{{ inputs.cells }}"
+          }
+        ],
+        "keyColumns": "{{ inputs.key_columns }}"
+      },
+      "inputs": [
+        {
+          "key": "doc_id",
+          "label": "Doc ID",
+          "type": "string",
+          "required": true,
+          "help": "From the doc URL: coda.io/d/_d<ID>"
+        },
+        {
+          "key": "table",
+          "label": "Table ID or name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "cells",
+          "label": "Cells",
+          "type": "json",
+          "required": true,
+          "placeholder": "[{ \"column\": \"Name\", \"value\": \"Ada\" }]"
+        },
+        {
+          "key": "key_columns",
+          "label": "Key columns (upsert)",
+          "type": "list",
+          "help": "Column names/ids; matching rows are updated instead of inserted."
+        }
+      ]
+    },
+    {
+      "key": "list_rows",
+      "name": "List rows",
+      "method": "GET",
+      "endpoint": "/docs/{{ inputs.doc_id }}/tables/{{ inputs.table }}/rows",
+      "query": {
+        "query": "{{ inputs.query }}",
+        "useColumnNames": "true",
+        "valueFormat": "simple",
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_path": "items",
+      "inputs": [
+        {
+          "key": "doc_id",
+          "label": "Doc ID",
+          "type": "string",
+          "required": true,
+          "help": "From the doc URL: coda.io/d/_d<ID>"
+        },
+        {
+          "key": "table",
+          "label": "Table ID or name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "query",
+          "label": "Filter",
+          "type": "string",
+          "placeholder": "\"Status\":\"Open\"",
+          "help": "Format: \"Column\":value"
+        },
+        {
+          "key": "limit",
+          "label": "Max rows",
+          "type": "number",
+          "default": 100
+        }
+      ]
+    },
+    {
+      "key": "update_row",
+      "name": "Update row",
+      "method": "PUT",
+      "endpoint": "/docs/{{ inputs.doc_id }}/tables/{{ inputs.table }}/rows/{{ inputs.row }}",
+      "body": {
+        "row": {
+          "cells": "{{ inputs.cells }}"
+        }
+      },
+      "inputs": [
+        {
+          "key": "doc_id",
+          "label": "Doc ID",
+          "type": "string",
+          "required": true,
+          "help": "From the doc URL: coda.io/d/_d<ID>"
+        },
+        {
+          "key": "table",
+          "label": "Table ID or name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "row",
+          "label": "Row ID or name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "cells",
+          "label": "Cells",
+          "type": "json",
+          "required": true,
+          "placeholder": "[{ \"column\": \"Status\", \"value\": \"Done\" }]"
+        }
+      ]
+    },
+    {
+      "key": "delete_row",
+      "name": "Delete row",
+      "method": "DELETE",
+      "endpoint": "/docs/{{ inputs.doc_id }}/tables/{{ inputs.table }}/rows/{{ inputs.row }}",
+      "inputs": [
+        {
+          "key": "doc_id",
+          "label": "Doc ID",
+          "type": "string",
+          "required": true,
+          "help": "From the doc URL: coda.io/d/_d<ID>"
+        },
+        {
+          "key": "table",
+          "label": "Table ID or name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "row",
+          "label": "Row ID or name",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ]
+}

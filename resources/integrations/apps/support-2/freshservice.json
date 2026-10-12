@@ -1,0 +1,140 @@
+{
+  "key": "freshservice",
+  "name": "Freshservice",
+  "category": "Customer Support",
+  "description": "Create, update and reply to service desk tickets and add requesters.",
+  "brand": "freshservice",
+  "website": "https://www.freshworks.com/freshservice/",
+  "docs_url": "https://api.freshservice.com/",
+  "popular": true,
+  "base_url": "https://{{ credentials.domain }}.freshservice.com/api/v2",
+  "auth": {
+    "type": "basic",
+    "fields": [
+      { "key": "domain", "label": "Domain", "type": "string", "required": true, "placeholder": "yourcompany", "help": "The part before .freshservice.com" },
+      { "key": "username", "label": "API key", "type": "password", "required": true, "help": "Profile settings > Your API key" },
+      { "key": "password", "label": "Password", "type": "password", "default": "X", "help": "Not used by Freshservice; leave as X." }
+    ]
+  },
+  "actions": [
+    {
+      "key": "create_ticket",
+      "name": "Create ticket",
+      "method": "POST",
+      "endpoint": "/tickets",
+      "output_path": "ticket",
+      "body": {
+        "email": "{{ inputs.email }}",
+        "subject": "{{ inputs.subject }}",
+        "description": "{{ inputs.description }}",
+        "priority": "{{ inputs.priority }}",
+        "status": "{{ inputs.status }}",
+        "group_id": "{{ inputs.group_id }}",
+        "tags": "{{ inputs.tags }}",
+        "custom_fields": "{{ inputs.custom_fields }}"
+      },
+      "inputs": [
+        { "key": "email", "label": "Requester email", "type": "string", "required": true },
+        { "key": "subject", "label": "Subject", "type": "string", "required": true },
+        { "key": "description", "label": "Description (HTML)", "type": "text", "required": true },
+        { "key": "priority", "label": "Priority", "type": "number", "required": true, "default": 1, "help": "1 Low, 2 Medium, 3 High, 4 Urgent" },
+        { "key": "status", "label": "Status", "type": "number", "required": true, "default": 2, "help": "2 Open, 3 Pending, 4 Resolved, 5 Closed" },
+        { "key": "group_id", "label": "Group ID", "type": "number" },
+        { "key": "tags", "label": "Tags", "type": "list" },
+        { "key": "custom_fields", "label": "Custom fields", "type": "keyvalue" }
+      ]
+    },
+    {
+      "key": "update_ticket",
+      "name": "Update ticket",
+      "method": "PUT",
+      "endpoint": "/tickets/{{ inputs.ticket_id }}",
+      "output_path": "ticket",
+      "body": {
+        "priority": "{{ inputs.priority }}",
+        "status": "{{ inputs.status }}",
+        "responder_id": "{{ inputs.responder_id }}",
+        "group_id": "{{ inputs.group_id }}",
+        "custom_fields": "{{ inputs.custom_fields }}"
+      },
+      "inputs": [
+        { "key": "ticket_id", "label": "Ticket ID", "type": "number", "required": true },
+        { "key": "priority", "label": "Priority", "type": "number", "help": "1 Low, 2 Medium, 3 High, 4 Urgent" },
+        { "key": "status", "label": "Status", "type": "number", "help": "2 Open, 3 Pending, 4 Resolved, 5 Closed" },
+        { "key": "responder_id", "label": "Agent ID", "type": "number" },
+        { "key": "group_id", "label": "Group ID", "type": "number" },
+        { "key": "custom_fields", "label": "Custom fields", "type": "keyvalue" }
+      ]
+    },
+    {
+      "key": "get_ticket",
+      "name": "Get ticket",
+      "method": "GET",
+      "endpoint": "/tickets/{{ inputs.ticket_id }}",
+      "output_path": "ticket",
+      "inputs": [{ "key": "ticket_id", "label": "Ticket ID", "type": "number", "required": true }]
+    },
+    {
+      "key": "reply_ticket",
+      "name": "Reply to ticket",
+      "method": "POST",
+      "endpoint": "/tickets/{{ inputs.ticket_id }}/reply",
+      "body": { "body": "{{ inputs.body }}" },
+      "inputs": [
+        { "key": "ticket_id", "label": "Ticket ID", "type": "number", "required": true },
+        { "key": "body", "label": "Reply (HTML)", "type": "text", "required": true }
+      ]
+    },
+    {
+      "key": "add_note",
+      "name": "Add note",
+      "method": "POST",
+      "endpoint": "/tickets/{{ inputs.ticket_id }}/notes",
+      "body": { "body": "{{ inputs.body }}", "private": "{{ inputs.private }}" },
+      "inputs": [
+        { "key": "ticket_id", "label": "Ticket ID", "type": "number", "required": true },
+        { "key": "body", "label": "Note (HTML)", "type": "text", "required": true },
+        { "key": "private", "label": "Private", "type": "boolean", "default": true }
+      ]
+    },
+    {
+      "key": "create_requester",
+      "name": "Create requester",
+      "method": "POST",
+      "endpoint": "/requesters",
+      "output_path": "requester",
+      "body": {
+        "first_name": "{{ inputs.first_name }}",
+        "last_name": "{{ inputs.last_name }}",
+        "primary_email": "{{ inputs.email }}",
+        "job_title": "{{ inputs.job_title }}"
+      },
+      "inputs": [
+        { "key": "first_name", "label": "First name", "type": "string", "required": true },
+        { "key": "last_name", "label": "Last name", "type": "string" },
+        { "key": "email", "label": "Email", "type": "string", "required": true },
+        { "key": "job_title", "label": "Job title", "type": "string" }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_ticket",
+      "name": "New ticket",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/tickets",
+      "query": { "order_type": "desc", "per_page": 30 },
+      "items_path": "tickets",
+      "id_field": "id",
+      "inputs": [{ "key": "poll_interval", "label": "Check every (minutes)", "type": "number", "default": 5 }]
+    },
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Add a 'Trigger webhook' action to a Workflow Automator rule pointing at this URL.",
+      "inputs": [{ "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }]
+    }
+  ]
+}

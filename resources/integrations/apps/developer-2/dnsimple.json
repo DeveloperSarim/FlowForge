@@ -1,0 +1,107 @@
+{
+  "key": "dnsimple",
+  "name": "DNSimple",
+  "category": "Developer Tools",
+  "description": "Create, update, list and delete zone records and check domain availability.",
+  "brand": "dnsimple",
+  "website": "https://dnsimple.com",
+  "docs_url": "https://developer.dnsimple.com/v2/",
+  "base_url": "https://api.dnsimple.com/v2",
+  "auth": { "type": "bearer", "fields": [{ "key": "token", "label": "Account access token", "type": "password", "required": true, "help": "Account → Access tokens. Your account ID is shown in the dashboard URL." }] },
+  "actions": [
+    {
+      "key": "list_domains",
+      "name": "List domains",
+      "method": "GET",
+      "endpoint": "/{{ inputs.account_id }}/domains",
+      "query": { "name_like": "{{ inputs.name_like }}" },
+      "output_path": "data",
+      "inputs": [
+        { "key": "account_id", "label": "Account ID", "type": "string", "required": true },
+        { "key": "name_like", "label": "Name contains", "type": "string" }
+      ]
+    },
+    {
+      "key": "list_records",
+      "name": "List zone records",
+      "method": "GET",
+      "endpoint": "/{{ inputs.account_id }}/zones/{{ inputs.zone }}/records",
+      "query": { "name": "{{ inputs.name }}", "type": "{{ inputs.type }}" },
+      "output_path": "data",
+      "inputs": [
+        { "key": "account_id", "label": "Account ID", "type": "string", "required": true },
+        { "key": "zone", "label": "Zone", "type": "string", "required": true, "placeholder": "example.com" },
+        { "key": "name", "label": "Name", "type": "string", "help": "Exact record name; empty string matches the apex." },
+        { "key": "type", "label": "Type", "type": "string", "placeholder": "A" }
+      ]
+    },
+    {
+      "key": "create_record",
+      "name": "Create zone record",
+      "method": "POST",
+      "endpoint": "/{{ inputs.account_id }}/zones/{{ inputs.zone }}/records",
+      "body": { "name": "{{ inputs.name }}", "type": "{{ inputs.type }}", "content": "{{ inputs.content }}", "ttl": "{{ inputs.ttl }}", "priority": "{{ inputs.priority }}" },
+      "output_path": "data",
+      "inputs": [
+        { "key": "account_id", "label": "Account ID", "type": "string", "required": true },
+        { "key": "zone", "label": "Zone", "type": "string", "required": true },
+        { "key": "name", "label": "Name", "type": "string", "required": true, "placeholder": "www" },
+        { "key": "type", "label": "Type", "type": "select", "required": true, "default": "A", "options": [
+          { "value": "A", "label": "A" }, { "value": "AAAA", "label": "AAAA" }, { "value": "CNAME", "label": "CNAME" }, { "value": "ALIAS", "label": "ALIAS" },
+          { "value": "MX", "label": "MX" }, { "value": "TXT", "label": "TXT" }, { "value": "NS", "label": "NS" }, { "value": "SRV", "label": "SRV" }, { "value": "CAA", "label": "CAA" }, { "value": "URL", "label": "URL" }
+        ] },
+        { "key": "content", "label": "Content", "type": "string", "required": true },
+        { "key": "ttl", "label": "TTL (seconds)", "type": "number" },
+        { "key": "priority", "label": "Priority", "type": "number" }
+      ]
+    },
+    {
+      "key": "update_record",
+      "name": "Update zone record",
+      "method": "PATCH",
+      "endpoint": "/{{ inputs.account_id }}/zones/{{ inputs.zone }}/records/{{ inputs.record_id }}",
+      "body": { "name": "{{ inputs.name }}", "content": "{{ inputs.content }}", "ttl": "{{ inputs.ttl }}", "priority": "{{ inputs.priority }}" },
+      "output_path": "data",
+      "inputs": [
+        { "key": "account_id", "label": "Account ID", "type": "string", "required": true },
+        { "key": "zone", "label": "Zone", "type": "string", "required": true },
+        { "key": "record_id", "label": "Record ID", "type": "number", "required": true },
+        { "key": "name", "label": "Name", "type": "string" },
+        { "key": "content", "label": "Content", "type": "string" },
+        { "key": "ttl", "label": "TTL (seconds)", "type": "number" },
+        { "key": "priority", "label": "Priority", "type": "number" }
+      ]
+    },
+    {
+      "key": "delete_record",
+      "name": "Delete zone record",
+      "method": "DELETE",
+      "endpoint": "/{{ inputs.account_id }}/zones/{{ inputs.zone }}/records/{{ inputs.record_id }}",
+      "inputs": [
+        { "key": "account_id", "label": "Account ID", "type": "string", "required": true },
+        { "key": "zone", "label": "Zone", "type": "string", "required": true },
+        { "key": "record_id", "label": "Record ID", "type": "number", "required": true }
+      ]
+    },
+    {
+      "key": "check_domain",
+      "name": "Check domain availability",
+      "method": "GET",
+      "endpoint": "/{{ inputs.account_id }}/registrar/domains/{{ inputs.domain }}/check",
+      "output_path": "data",
+      "inputs": [
+        { "key": "account_id", "label": "Account ID", "type": "string", "required": true },
+        { "key": "domain", "label": "Domain", "type": "string", "required": true }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "data_path": "data",
+      "inputs": [{ "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }]
+    }
+  ]
+}

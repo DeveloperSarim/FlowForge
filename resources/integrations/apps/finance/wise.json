@@ -1,0 +1,198 @@
+{
+  "key": "wise",
+  "name": "Wise",
+  "category": "Payments & Finance",
+  "description": "Read profiles, balances, exchange rates and transfers; create quotes.",
+  "brand": "wise",
+  "website": "https://wise.com",
+  "docs_url": "https://docs.wise.com/api-docs/api-reference",
+  "base_url": "https://{{ credentials.environment }}",
+  "auth": [
+    {
+      "type": "bearer",
+      "fields": [
+        {
+          "key": "environment",
+          "label": "Environment",
+          "type": "select",
+          "required": true,
+          "default": "api.transferwise.com",
+          "options": [
+            {
+              "value": "api.transferwise.com",
+              "label": "Live"
+            },
+            {
+              "value": "api.sandbox.transferwise.tech",
+              "label": "Sandbox"
+            }
+          ]
+        },
+        {
+          "key": "token",
+          "label": "Personal API token",
+          "type": "password",
+          "required": true,
+          "help": "Settings > Developer tools > API tokens."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_profiles",
+      "name": "List profiles",
+      "method": "GET",
+      "endpoint": "/v2/profiles",
+      "inputs": []
+    },
+    {
+      "key": "get_balances",
+      "name": "Get balances",
+      "method": "GET",
+      "endpoint": "/v4/profiles/{{ inputs.profile_id }}/balances",
+      "query": {
+        "types": "STANDARD"
+      },
+      "inputs": [
+        {
+          "key": "profile_id",
+          "label": "Profile ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "get_rate",
+      "name": "Get exchange rate",
+      "method": "GET",
+      "endpoint": "/v1/rates",
+      "query": {
+        "source": "{{ inputs.source }}",
+        "target": "{{ inputs.target }}"
+      },
+      "inputs": [
+        {
+          "key": "source",
+          "label": "Source currency",
+          "type": "string",
+          "required": true,
+          "placeholder": "EUR"
+        },
+        {
+          "key": "target",
+          "label": "Target currency",
+          "type": "string",
+          "required": true,
+          "placeholder": "USD"
+        }
+      ]
+    },
+    {
+      "key": "create_quote",
+      "name": "Create quote",
+      "method": "POST",
+      "endpoint": "/v3/profiles/{{ inputs.profile_id }}/quotes",
+      "body": {
+        "sourceCurrency": "{{ inputs.source }}",
+        "targetCurrency": "{{ inputs.target }}",
+        "sourceAmount": "{{ inputs.source_amount }}",
+        "targetAmount": "{{ inputs.target_amount }}"
+      },
+      "inputs": [
+        {
+          "key": "profile_id",
+          "label": "Profile ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "source",
+          "label": "Source currency",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "target",
+          "label": "Target currency",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "source_amount",
+          "label": "Source amount",
+          "type": "number",
+          "help": "Fill either source or target amount."
+        },
+        {
+          "key": "target_amount",
+          "label": "Target amount",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "list_transfers",
+      "name": "List transfers",
+      "method": "GET",
+      "endpoint": "/v1/transfers",
+      "query": {
+        "profile": "{{ inputs.profile_id }}",
+        "status": "{{ inputs.status }}",
+        "limit": "{{ inputs.limit }}",
+        "offset": 0
+      },
+      "inputs": [
+        {
+          "key": "profile_id",
+          "label": "Profile ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "string",
+          "placeholder": "outgoing_payment_sent"
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 20
+        }
+      ]
+    },
+    {
+      "key": "get_transfer",
+      "name": "Get transfer",
+      "method": "GET",
+      "endpoint": "/v1/transfers/{{ inputs.transfer_id }}",
+      "inputs": [
+        {
+          "key": "transfer_id",
+          "label": "Transfer ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Settings > Developer tools > Webhooks: create a subscription with this URL.",
+      "data_path": "data",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

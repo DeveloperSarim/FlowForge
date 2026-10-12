@@ -1,0 +1,57 @@
+{
+  "key": "uvdesk",
+  "name": "UVdesk",
+  "category": "Customer Support",
+  "description": "Create tickets and add replies or notes in a UVdesk help desk.",
+  "brand": "uvdesk",
+  "website": "https://www.uvdesk.com",
+  "docs_url": "https://github.com/uvdesk/api-bundle",
+  "base_url": "{{ credentials.base_url }}/api/v1",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      { "key": "base_url", "label": "UVdesk URL", "type": "string", "required": true, "placeholder": "https://support.example.com", "help": "Without a trailing slash" },
+      { "key": "token", "label": "API access token", "type": "password", "required": true }
+    ]
+  },
+  "actions": [
+    {
+      "key": "create_ticket",
+      "name": "Create ticket",
+      "method": "POST",
+      "endpoint": "/ticket",
+      "body": {
+        "from": "{{ inputs.from }}",
+        "name": "{{ inputs.name }}",
+        "subject": "{{ inputs.subject }}",
+        "message": "{{ inputs.message }}",
+        "actAsType": "customer"
+      },
+      "inputs": [
+        { "key": "from", "label": "Customer email", "type": "string", "required": true },
+        { "key": "name", "label": "Customer name", "type": "string", "required": true },
+        { "key": "subject", "label": "Subject", "type": "string", "required": true },
+        { "key": "message", "label": "Message", "type": "text", "required": true }
+      ]
+    },
+    {
+      "key": "get_ticket",
+      "name": "Get ticket",
+      "method": "GET",
+      "endpoint": "/ticket/{{ inputs.ticket_id }}",
+      "inputs": [{ "key": "ticket_id", "label": "Ticket ID", "type": "number", "required": true }]
+    },
+    {
+      "key": "add_thread",
+      "name": "Reply or add note",
+      "method": "POST",
+      "endpoint": "/ticket/{{ inputs.ticket_id }}/thread",
+      "body": { "threadType": "{{ inputs.thread_type }}", "message": "{{ inputs.message }}", "actAsType": "agent" },
+      "inputs": [
+        { "key": "ticket_id", "label": "Ticket ID", "type": "number", "required": true },
+        { "key": "thread_type", "label": "Type", "type": "select", "required": true, "default": "reply", "options": [{ "value": "reply", "label": "Reply" }, { "value": "note", "label": "Note" }] },
+        { "key": "message", "label": "Message", "type": "text", "required": true }
+      ]
+    }
+  ]
+}

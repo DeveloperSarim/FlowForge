@@ -1,0 +1,85 @@
+{
+  "key": "publer",
+  "name": "Publer",
+  "category": "Social Media",
+  "description": "Schedule or publish posts to your Publer social accounts and track the jobs.",
+  "brand": "publer",
+  "website": "https://publer.com",
+  "docs_url": "https://publer.com/docs",
+  "popular": true,
+  "base_url": "https://app.publer.com/api/v1",
+  "headers": { "Publer-Workspace-Id": "{{ credentials.workspace_id }}" },
+  "auth": { "type": "api_key", "in": "header", "name": "Authorization", "prefix": "Bearer-API ", "fields": [
+    { "key": "api_key", "label": "API key", "type": "password", "required": true, "help": "Settings > Access & Login > API Keys (Business plan)." },
+    { "key": "workspace_id", "label": "Workspace ID", "type": "string", "required": true, "help": "Run List workspaces with any ID, or copy it from the app URL." }
+  ] },
+  "actions": [
+    {
+      "key": "list_workspaces",
+      "name": "List workspaces",
+      "method": "GET",
+      "endpoint": "/workspaces",
+      "inputs": []
+    },
+    {
+      "key": "list_accounts",
+      "name": "List social accounts",
+      "method": "GET",
+      "endpoint": "/accounts",
+      "inputs": []
+    },
+    {
+      "key": "schedule_post",
+      "name": "Schedule post",
+      "description": "Creates a scheduled post or draft; returns a job ID.",
+      "method": "POST",
+      "endpoint": "/posts/schedule",
+      "body": { "bulk": { "state": "{{ inputs.state }}", "posts": [{ "networks": "{{ inputs.networks }}", "accounts": "{{ inputs.accounts }}" }] } },
+      "inputs": [
+        { "key": "networks", "label": "Content per network (JSON)", "type": "json", "required": true,
+          "placeholder": "{\"facebook\":{\"type\":\"status\",\"text\":\"Hello!\"},\"linkedin\":{\"type\":\"status\",\"text\":\"Hello!\"}}" },
+        { "key": "accounts", "label": "Accounts and times (JSON array)", "type": "json", "required": true,
+          "placeholder": "[{\"id\":\"ACCOUNT_ID\",\"scheduled_at\":\"2026-12-01T09:00:00+00:00\"}]" },
+        { "key": "state", "label": "State", "type": "select", "default": "scheduled", "options": [
+          { "value": "scheduled", "label": "Scheduled" }, { "value": "draft", "label": "Draft" }
+        ] }
+      ]
+    },
+    {
+      "key": "publish_post_now",
+      "name": "Publish post now",
+      "method": "POST",
+      "endpoint": "/posts/schedule/publish",
+      "body": { "bulk": { "state": "scheduled", "posts": [{ "networks": "{{ inputs.networks }}", "accounts": "{{ inputs.accounts }}" }] } },
+      "inputs": [
+        { "key": "networks", "label": "Content per network (JSON)", "type": "json", "required": true,
+          "placeholder": "{\"facebook\":{\"type\":\"status\",\"text\":\"Hello!\"}}" },
+        { "key": "accounts", "label": "Accounts (JSON array)", "type": "json", "required": true, "placeholder": "[{\"id\":\"ACCOUNT_ID\"}]" }
+      ]
+    },
+    {
+      "key": "get_job_status",
+      "name": "Get job status",
+      "method": "GET",
+      "endpoint": "/job_status/{{ inputs.job_id }}",
+      "inputs": [{ "key": "job_id", "label": "Job ID", "type": "string", "required": true }]
+    },
+    {
+      "key": "list_posts",
+      "name": "List posts",
+      "method": "GET",
+      "endpoint": "/posts",
+      "query": { "state": "{{ inputs.state }}", "from": "{{ inputs.from }}", "to": "{{ inputs.to }}", "query": "{{ inputs.query }}", "page": "{{ inputs.page }}" },
+      "inputs": [
+        { "key": "state", "label": "State", "type": "select", "options": [
+          { "value": "", "label": "Any" }, { "value": "scheduled", "label": "Scheduled" }, { "value": "published", "label": "Published" },
+          { "value": "draft", "label": "Draft" }, { "value": "failed", "label": "Failed" }
+        ] },
+        { "key": "from", "label": "From (date)", "type": "string", "placeholder": "2026-01-01" },
+        { "key": "to", "label": "To (date)", "type": "string", "placeholder": "2026-01-31" },
+        { "key": "query", "label": "Text contains", "type": "string" },
+        { "key": "page", "label": "Page", "type": "number" }
+      ]
+    }
+  ]
+}

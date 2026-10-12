@@ -1,0 +1,105 @@
+{
+  "key": "google_pagespeed",
+  "name": "PageSpeed Insights",
+  "category": "Ads & SEO",
+  "description": "Run Lighthouse on any URL for performance, SEO and accessibility scores.",
+  "brand": "pagespeedinsights",
+  "website": "https://pagespeed.web.dev",
+  "docs_url": "https://developers.google.com/speed/docs/insights/v5/get-started",
+  "base_url": "https://www.googleapis.com/pagespeedonline/v5",
+  "auth": [
+    {
+      "type": "none"
+    },
+    {
+      "type": "api_key",
+      "in": "query",
+      "name": "key",
+      "fields": [
+        {
+          "key": "api_key",
+          "label": "Google API key",
+          "type": "password",
+          "required": true,
+          "help": "Recommended: the keyless quota is shared by everyone and often exhausted (HTTP 429). Enable the PageSpeed Insights API for the key."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "run_pagespeed",
+      "name": "Analyze URL",
+      "description": "Runs Lighthouse (lab) and returns CrUX field data for the URL.",
+      "method": "GET",
+      "endpoint": "/runPagespeed",
+      "query": {
+        "url": "{{ inputs.url }}",
+        "strategy": "{{ inputs.strategy }}",
+        "category": "{{ inputs.category }}",
+        "locale": "{{ inputs.locale }}"
+      },
+      "timeout": 120,
+      "output_fields": {
+        "score": "lighthouseResult.categories.*.score",
+        "lcp": "lighthouseResult.audits.largest-contentful-paint.displayValue",
+        "cls": "lighthouseResult.audits.cumulative-layout-shift.displayValue"
+      },
+      "inputs": [
+        {
+          "key": "url",
+          "label": "URL",
+          "type": "string",
+          "required": true,
+          "placeholder": "https://example.com"
+        },
+        {
+          "key": "strategy",
+          "label": "Device",
+          "type": "select",
+          "default": "mobile",
+          "options": [
+            {
+              "value": "mobile",
+              "label": "Mobile"
+            },
+            {
+              "value": "desktop",
+              "label": "Desktop"
+            }
+          ]
+        },
+        {
+          "key": "category",
+          "label": "Category",
+          "type": "select",
+          "default": "performance",
+          "options": [
+            {
+              "value": "performance",
+              "label": "Performance"
+            },
+            {
+              "value": "seo",
+              "label": "SEO"
+            },
+            {
+              "value": "accessibility",
+              "label": "Accessibility"
+            },
+            {
+              "value": "best-practices",
+              "label": "Best practices"
+            }
+          ]
+        },
+        {
+          "key": "locale",
+          "label": "Locale",
+          "type": "string",
+          "placeholder": "en"
+        }
+      ]
+    }
+  ]
+}

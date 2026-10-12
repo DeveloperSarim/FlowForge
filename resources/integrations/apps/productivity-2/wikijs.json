@@ -1,0 +1,190 @@
+{
+  "key": "wikijs",
+  "name": "Wiki.js",
+  "category": "Productivity",
+  "description": "Search, read and create pages in a self-hosted Wiki.js.",
+  "brand": "wikidotjs",
+  "website": "https://js.wiki",
+  "docs_url": "https://docs.requarks.io/dev/api",
+  "base_url": "{{ credentials.url }}",
+  "auth": [
+    {
+      "type": "bearer",
+      "fields": [
+        {
+          "key": "url",
+          "label": "Wiki.js URL",
+          "type": "string",
+          "required": true,
+          "placeholder": "https://wiki.example.com",
+          "help": "Base URL without a trailing slash."
+        },
+        {
+          "key": "token",
+          "label": "API key",
+          "type": "password",
+          "required": true,
+          "help": "Administration > API Access (enable the API, then create a key)."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "search_pages",
+      "name": "Search pages",
+      "method": "POST",
+      "endpoint": "/graphql",
+      "body": {
+        "query": "query ($q: String!, $locale: String) { pages { search(query: $q, locale: $locale) { results { id title description path locale } totalHits } } }",
+        "variables": {
+          "q": "{{ inputs.query }}",
+          "locale": "{{ inputs.locale }}"
+        }
+      },
+      "error_path": "errors",
+      "inputs": [
+        {
+          "key": "query",
+          "label": "Search text",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "locale",
+          "label": "Locale",
+          "type": "string",
+          "placeholder": "en"
+        }
+      ],
+      "output_path": "data.pages.search"
+    },
+    {
+      "key": "list_pages",
+      "name": "List recently updated pages",
+      "method": "POST",
+      "endpoint": "/graphql",
+      "body": {
+        "query": "query ($limit: Int) { pages { list(orderBy: UPDATED, orderByDirection: DESC, limit: $limit) { id path locale title updatedAt } } }",
+        "variables": {
+          "limit": "{{ inputs.limit }}"
+        }
+      },
+      "error_path": "errors",
+      "inputs": [
+        {
+          "key": "limit",
+          "label": "Max results",
+          "type": "number",
+          "default": 50
+        }
+      ],
+      "output_path": "data.pages.list"
+    },
+    {
+      "key": "get_page",
+      "name": "Get page",
+      "method": "POST",
+      "endpoint": "/graphql",
+      "body": {
+        "query": "query ($id: Int!) { pages { single(id: $id) { id path locale title description isPublished createdAt updatedAt content } } }",
+        "variables": {
+          "id": "{{ inputs.page_id }}"
+        }
+      },
+      "error_path": "errors",
+      "inputs": [
+        {
+          "key": "page_id",
+          "label": "Page ID",
+          "type": "number",
+          "required": true
+        }
+      ],
+      "output_path": "data.pages.single"
+    },
+    {
+      "key": "create_page",
+      "name": "Create page",
+      "method": "POST",
+      "endpoint": "/graphql",
+      "body": {
+        "query": "mutation ($path: String!, $title: String!, $content: String!, $description: String = \"\", $locale: String!, $tags: [String] = []) { pages { create(path: $path, title: $title, content: $content, description: $description, locale: $locale, tags: $tags, editor: \"markdown\", isPublished: true, isPrivate: false) { responseResult { succeeded errorCode message } page { id path } } } }",
+        "variables": {
+          "path": "{{ inputs.path }}",
+          "title": "{{ inputs.title }}",
+          "content": "{{ inputs.content }}",
+          "description": "{{ inputs.description }}",
+          "locale": "{{ inputs.locale }}",
+          "tags": "{{ inputs.tags }}"
+        }
+      },
+      "error_path": "errors",
+      "inputs": [
+        {
+          "key": "path",
+          "label": "Path",
+          "type": "string",
+          "required": true,
+          "placeholder": "docs/getting-started"
+        },
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "content",
+          "label": "Content (Markdown)",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "description",
+          "label": "Description",
+          "type": "string"
+        },
+        {
+          "key": "locale",
+          "label": "Locale",
+          "type": "string",
+          "required": true,
+          "default": "en"
+        },
+        {
+          "key": "tags",
+          "label": "Tags",
+          "type": "list"
+        }
+      ],
+      "output_path": "data.pages.create",
+      "description": "Creates and publishes a Markdown page."
+    },
+    {
+      "key": "run_graphql",
+      "name": "Run GraphQL query",
+      "method": "POST",
+      "endpoint": "/graphql",
+      "description": "Runs any query or mutation against the GraphQL API.",
+      "body": {
+        "query": "{{ inputs.query }}",
+        "variables": "{{ inputs.variables }}"
+      },
+      "error_path": "errors",
+      "inputs": [
+        {
+          "key": "query",
+          "label": "Query or mutation",
+          "type": "code",
+          "required": true
+        },
+        {
+          "key": "variables",
+          "label": "Variables",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

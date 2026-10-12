@@ -1,0 +1,153 @@
+{
+  "key": "qdrant",
+  "name": "Qdrant",
+  "category": "AI",
+  "description": "Upsert, search and delete points in Qdrant collections.",
+  "brand": "qdrant",
+  "website": "https://qdrant.tech",
+  "docs_url": "https://api.qdrant.tech/api-reference",
+  "base_url": "{{ credentials.url }}",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "api-key",
+    "fields": [
+      {
+        "key": "url",
+        "label": "Cluster URL",
+        "type": "string",
+        "required": true,
+        "placeholder": "https://xyz.eu-central-1-0.aws.cloud.qdrant.io:6333"
+      },
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "query_points",
+      "name": "Search points",
+      "method": "POST",
+      "endpoint": "/collections/{{ inputs.collection }}/points/query",
+      "body": {
+        "query": "{{ inputs.vector }}",
+        "limit": "{{ inputs.limit }}",
+        "filter": "{{ inputs.filter }}",
+        "with_payload": true
+      },
+      "output_fields": {
+        "points": "result.points"
+      },
+      "inputs": [
+        {
+          "key": "collection",
+          "label": "Collection",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "vector",
+          "label": "Query vector (JSON array)",
+          "type": "json",
+          "required": true
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 10
+        },
+        {
+          "key": "filter",
+          "label": "Filter (JSON)",
+          "type": "json"
+        }
+      ]
+    },
+    {
+      "key": "upsert_points",
+      "name": "Upsert points",
+      "method": "PUT",
+      "endpoint": "/collections/{{ inputs.collection }}/points",
+      "query": {
+        "wait": "true"
+      },
+      "body": {
+        "points": "{{ inputs.points }}"
+      },
+      "inputs": [
+        {
+          "key": "collection",
+          "label": "Collection",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "points",
+          "label": "Points (JSON)",
+          "type": "json",
+          "required": true,
+          "placeholder": "[{\"id\": 1, \"vector\": [0.1, 0.2], \"payload\": {\"text\": \"...\"}}]"
+        }
+      ]
+    },
+    {
+      "key": "get_point",
+      "name": "Get point",
+      "method": "GET",
+      "endpoint": "/collections/{{ inputs.collection }}/points/{{ inputs.point_id }}",
+      "inputs": [
+        {
+          "key": "collection",
+          "label": "Collection",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "point_id",
+          "label": "Point ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "delete_points",
+      "name": "Delete points",
+      "method": "POST",
+      "endpoint": "/collections/{{ inputs.collection }}/points/delete",
+      "query": {
+        "wait": "true"
+      },
+      "body": {
+        "points": "{{ inputs.ids }}"
+      },
+      "inputs": [
+        {
+          "key": "collection",
+          "label": "Collection",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "ids",
+          "label": "Point IDs (JSON array)",
+          "type": "json",
+          "required": true,
+          "placeholder": "[1, 2]"
+        }
+      ]
+    },
+    {
+      "key": "list_collections",
+      "name": "List collections",
+      "method": "GET",
+      "endpoint": "/collections",
+      "inputs": []
+    }
+  ]
+}

@@ -1,0 +1,92 @@
+{
+  "key": "helicone",
+  "name": "Helicone",
+  "category": "AI",
+  "description": "Query logged LLM requests and send user feedback to Helicone.",
+  "brand": "helicone",
+  "website": "https://www.helicone.ai",
+  "docs_url": "https://docs.helicone.ai/rest/request/post-v1requestquery",
+  "base_url": "https://{{ credentials.host }}/v1",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "host",
+        "label": "Region",
+        "type": "select",
+        "required": true,
+        "default": "api.helicone.ai",
+        "options": [
+          {
+            "value": "api.helicone.ai",
+            "label": "US"
+          },
+          {
+            "value": "eu.api.helicone.ai",
+            "label": "EU"
+          }
+        ]
+      },
+      {
+        "key": "token",
+        "label": "API key",
+        "type": "password",
+        "required": true
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_requests",
+      "name": "List recent requests",
+      "method": "POST",
+      "endpoint": "/request/query",
+      "body": {
+        "filter": "all",
+        "limit": "{{ inputs.limit }}",
+        "offset": "{{ inputs.offset }}",
+        "sort": {
+          "created_at": "desc"
+        }
+      },
+      "output_path": "data",
+      "error_path": "error",
+      "inputs": [
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 50
+        },
+        {
+          "key": "offset",
+          "label": "Offset",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "submit_feedback",
+      "name": "Submit feedback",
+      "method": "POST",
+      "endpoint": "/request/{{ inputs.request_id }}/feedback",
+      "body": {
+        "rating": "{{ inputs.rating }}"
+      },
+      "inputs": [
+        {
+          "key": "request_id",
+          "label": "Request ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "rating",
+          "label": "Positive?",
+          "type": "boolean",
+          "required": true
+        }
+      ]
+    }
+  ]
+}

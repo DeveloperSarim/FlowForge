@@ -1,0 +1,338 @@
+{
+  "key": "klaviyo",
+  "name": "Klaviyo",
+  "category": "Marketing & Email",
+  "description": "Upsert profiles, subscribe to lists, track events.",
+  "brand": "klaviyo",
+  "website": "https://www.klaviyo.com",
+  "docs_url": "https://developers.klaviyo.com/en/reference/api_overview",
+  "popular": true,
+  "base_url": "https://a.klaviyo.com/api",
+  "headers": {
+    "revision": "2025-07-15",
+    "Accept": "application/vnd.api+json",
+    "Content-Type": "application/vnd.api+json"
+  },
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "Authorization",
+    "prefix": "Klaviyo-API-Key ",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "Private API key (pk_…)",
+        "type": "password",
+        "required": true
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "upsert_profile",
+      "name": "Create or update profile",
+      "method": "POST",
+      "endpoint": "/profile-import/",
+      "output_path": "data",
+      "body": {
+        "data": {
+          "type": "profile",
+          "attributes": {
+            "email": "{{ inputs.email }}",
+            "phone_number": "{{ inputs.phone_number }}",
+            "external_id": "{{ inputs.external_id }}",
+            "first_name": "{{ inputs.first_name }}",
+            "last_name": "{{ inputs.last_name }}",
+            "properties": "{{ inputs.properties }}"
+          }
+        }
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string"
+        },
+        {
+          "key": "phone_number",
+          "label": "Phone (E.164)",
+          "type": "string",
+          "placeholder": "+15005550006"
+        },
+        {
+          "key": "external_id",
+          "label": "External ID",
+          "type": "string"
+        },
+        {
+          "key": "first_name",
+          "label": "First name",
+          "type": "string"
+        },
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string"
+        },
+        {
+          "key": "properties",
+          "label": "Custom properties",
+          "type": "keyvalue"
+        }
+      ]
+    },
+    {
+      "key": "subscribe_profile",
+      "name": "Subscribe to email marketing",
+      "description": "Gives email marketing consent and adds the profile to a list (async job).",
+      "method": "POST",
+      "endpoint": "/profile-subscription-bulk-create-jobs/",
+      "body": {
+        "data": {
+          "type": "profile-subscription-bulk-create-job",
+          "attributes": {
+            "profiles": {
+              "data": [
+                {
+                  "type": "profile",
+                  "attributes": {
+                    "email": "{{ inputs.email }}",
+                    "subscriptions": {
+                      "email": {
+                        "marketing": {
+                          "consent": "SUBSCRIBED"
+                        }
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          "relationships": {
+            "list": {
+              "data": {
+                "type": "list",
+                "id": "{{ inputs.list_id }}"
+              }
+            }
+          }
+        }
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "list_id",
+          "label": "List ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "unsubscribe_profile",
+      "name": "Unsubscribe from email marketing",
+      "method": "POST",
+      "endpoint": "/profile-subscription-bulk-delete-jobs/",
+      "body": {
+        "data": {
+          "type": "profile-subscription-bulk-delete-job",
+          "attributes": {
+            "profiles": {
+              "data": [
+                {
+                  "type": "profile",
+                  "attributes": {
+                    "email": "{{ inputs.email }}",
+                    "subscriptions": {
+                      "email": {
+                        "marketing": {
+                          "consent": "UNSUBSCRIBED"
+                        }
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          "relationships": {
+            "list": {
+              "data": {
+                "type": "list",
+                "id": "{{ inputs.list_id }}"
+              }
+            }
+          }
+        }
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "list_id",
+          "label": "List ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "add_to_list",
+      "name": "Add profile to list",
+      "description": "Adds an existing profile to a list without changing consent.",
+      "method": "POST",
+      "endpoint": "/lists/{{ inputs.list_id }}/relationships/profiles/",
+      "body": {
+        "data": [
+          {
+            "type": "profile",
+            "id": "{{ inputs.profile_id }}"
+          }
+        ]
+      },
+      "inputs": [
+        {
+          "key": "list_id",
+          "label": "List ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "profile_id",
+          "label": "Profile ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "track_event",
+      "name": "Track event",
+      "method": "POST",
+      "endpoint": "/events/",
+      "body": {
+        "data": {
+          "type": "event",
+          "attributes": {
+            "properties": "{{ inputs.properties }}",
+            "value": "{{ inputs.value }}",
+            "time": "{{ inputs.time }}",
+            "metric": {
+              "data": {
+                "type": "metric",
+                "attributes": {
+                  "name": "{{ inputs.metric }}"
+                }
+              }
+            },
+            "profile": {
+              "data": {
+                "type": "profile",
+                "attributes": {
+                  "email": "{{ inputs.email }}"
+                }
+              }
+            }
+          }
+        }
+      },
+      "inputs": [
+        {
+          "key": "metric",
+          "label": "Metric (event) name",
+          "type": "string",
+          "required": true,
+          "placeholder": "Placed Order"
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "properties",
+          "label": "Event properties",
+          "type": "json",
+          "required": true,
+          "placeholder": "{\"OrderId\": \"1234\"}"
+        },
+        {
+          "key": "value",
+          "label": "Value",
+          "type": "number"
+        },
+        {
+          "key": "time",
+          "label": "Time (ISO 8601)",
+          "type": "string",
+          "help": "Defaults to now."
+        }
+      ]
+    },
+    {
+      "key": "find_profile",
+      "name": "Find profile by email",
+      "method": "GET",
+      "endpoint": "/profiles/",
+      "query": {
+        "filter": "equals(email,\"{{ inputs.email }}\")"
+      },
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_profile",
+      "name": "New profile",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/profiles/",
+      "query": {
+        "sort": "-created",
+        "page[size]": 50
+      },
+      "items_path": "data",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    },
+    {
+      "key": "webhook_event",
+      "name": "Flow webhook",
+      "type": "webhook",
+      "description": "Add a Webhook action to a flow and paste this URL.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

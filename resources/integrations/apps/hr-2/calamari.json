@@ -1,0 +1,135 @@
+{
+  "key": "calamari",
+  "name": "Calamari",
+  "category": "HR & Recruiting",
+  "description": "List employees and clock people in or out in Calamari.",
+  "brand": "calamari",
+  "website": "https://www.calamari.io",
+  "docs_url": "https://developers.calamari.dev",
+  "base_url": "https://{{ credentials.tenant }}.calamari.io/api",
+  "auth": [
+    {
+      "type": "basic",
+      "fields": [
+        {
+          "key": "tenant",
+          "label": "Tenant",
+          "type": "string",
+          "required": true,
+          "placeholder": "acme",
+          "help": "The part before .calamari.io."
+        },
+        {
+          "key": "username",
+          "label": "Username",
+          "type": "string",
+          "required": true,
+          "default": "calamari",
+          "help": "Always \"calamari\"."
+        },
+        {
+          "key": "password",
+          "label": "API key",
+          "type": "password",
+          "required": true,
+          "help": "Configuration > Integrations > API."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_employees",
+      "name": "List employees",
+      "method": "POST",
+      "endpoint": "/employees/v1/list",
+      "body": {
+        "page": "{{ inputs.page }}"
+      },
+      "output_path": "employees",
+      "inputs": [
+        {
+          "key": "page",
+          "label": "Page",
+          "type": "number",
+          "default": 0
+        }
+      ]
+    },
+    {
+      "key": "list_people",
+      "name": "List people (newest first)",
+      "method": "GET",
+      "endpoint": "/people/v2",
+      "query": {
+        "limit": "{{ inputs.limit }}",
+        "offset": "{{ inputs.offset }}",
+        "sort": "id,DESC"
+      },
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "limit",
+          "label": "Max results",
+          "type": "number",
+          "default": 50
+        },
+        {
+          "key": "offset",
+          "label": "Offset",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "clock_in",
+      "name": "Clock in",
+      "method": "POST",
+      "endpoint": "/clockin/terminal/v1/clock-in",
+      "body": {
+        "person": "{{ inputs.person }}",
+        "time": "{{ inputs.time }}"
+      },
+      "inputs": [
+        {
+          "key": "person",
+          "label": "Employee email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "time",
+          "label": "Time",
+          "type": "string",
+          "required": true,
+          "placeholder": "2026-10-11T09:00:00Z"
+        }
+      ]
+    },
+    {
+      "key": "clock_out",
+      "name": "Clock out",
+      "method": "POST",
+      "endpoint": "/clockin/terminal/v1/clock-out",
+      "body": {
+        "person": "{{ inputs.person }}",
+        "time": "{{ inputs.time }}"
+      },
+      "inputs": [
+        {
+          "key": "person",
+          "label": "Employee email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "time",
+          "label": "Time",
+          "type": "string",
+          "required": true,
+          "placeholder": "2026-10-11T17:00:00Z"
+        }
+      ]
+    }
+  ]
+}

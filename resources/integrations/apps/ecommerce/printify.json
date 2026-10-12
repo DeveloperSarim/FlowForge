@@ -1,0 +1,200 @@
+{
+  "key": "printify",
+  "name": "Printify",
+  "category": "E-commerce",
+  "description": "List shops and products and create or look up print-on-demand orders.",
+  "brand": "printify",
+  "website": "https://printify.com",
+  "docs_url": "https://developers.printify.com/",
+  "base_url": "https://api.printify.com/v1",
+  "auth": [
+    {
+      "type": "bearer",
+      "fields": [
+        {
+          "key": "token",
+          "label": "Personal access token",
+          "type": "password",
+          "required": true,
+          "help": "Account > Connections > Generate token."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_shops",
+      "name": "List shops",
+      "method": "GET",
+      "endpoint": "/shops.json",
+      "inputs": []
+    },
+    {
+      "key": "list_products",
+      "name": "List products",
+      "method": "GET",
+      "endpoint": "/shops/{{ inputs.shop_id }}/products.json",
+      "output_path": "data",
+      "query": {
+        "limit": "{{ inputs.limit }}",
+        "page": "{{ inputs.page }}"
+      },
+      "inputs": [
+        {
+          "key": "shop_id",
+          "label": "Shop ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 10,
+          "help": "Max 50."
+        },
+        {
+          "key": "page",
+          "label": "Page",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "get_product",
+      "name": "Get product",
+      "method": "GET",
+      "endpoint": "/shops/{{ inputs.shop_id }}/products/{{ inputs.product_id }}.json",
+      "inputs": [
+        {
+          "key": "shop_id",
+          "label": "Shop ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "product_id",
+          "label": "Product ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_orders",
+      "name": "List orders",
+      "method": "GET",
+      "endpoint": "/shops/{{ inputs.shop_id }}/orders.json",
+      "output_path": "data",
+      "query": {
+        "status": "{{ inputs.status }}",
+        "limit": "{{ inputs.limit }}",
+        "page": "{{ inputs.page }}"
+      },
+      "inputs": [
+        {
+          "key": "shop_id",
+          "label": "Shop ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "string",
+          "placeholder": "pending"
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 10
+        },
+        {
+          "key": "page",
+          "label": "Page",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "get_order",
+      "name": "Get order",
+      "method": "GET",
+      "endpoint": "/shops/{{ inputs.shop_id }}/orders/{{ inputs.order_id }}.json",
+      "inputs": [
+        {
+          "key": "shop_id",
+          "label": "Shop ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "order_id",
+          "label": "Order ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "create_order",
+      "name": "Create order",
+      "method": "POST",
+      "endpoint": "/shops/{{ inputs.shop_id }}/orders.json",
+      "body": {
+        "external_id": "{{ inputs.external_id }}",
+        "label": "{{ inputs.label }}",
+        "line_items": "{{ inputs.line_items }}",
+        "shipping_method": "{{ inputs.shipping_method }}",
+        "send_shipping_notification": "{{ inputs.notify }}",
+        "address_to": "{{ inputs.address_to }}"
+      },
+      "inputs": [
+        {
+          "key": "shop_id",
+          "label": "Shop ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "external_id",
+          "label": "External ID",
+          "type": "string"
+        },
+        {
+          "key": "label",
+          "label": "Label",
+          "type": "string"
+        },
+        {
+          "key": "line_items",
+          "label": "Line items",
+          "type": "json",
+          "required": true,
+          "placeholder": "[{\"product_id\": \"5bfd0b66a342bcc9b5563216\", \"variant_id\": 17887, \"quantity\": 1}]"
+        },
+        {
+          "key": "shipping_method",
+          "label": "Shipping method",
+          "type": "number",
+          "default": 1,
+          "help": "1 standard, 2 priority, 3 express, 4 economy."
+        },
+        {
+          "key": "notify",
+          "label": "Send shipping notification",
+          "type": "boolean"
+        },
+        {
+          "key": "address_to",
+          "label": "Ship to",
+          "type": "json",
+          "required": true,
+          "placeholder": "{\"first_name\": \"Jane\", \"last_name\": \"Doe\", \"email\": \"jane@example.com\", \"country\": \"US\", \"region\": \"CA\", \"address1\": \"1 Main St\", \"city\": \"LA\", \"zip\": \"90001\"}"
+        }
+      ]
+    }
+  ],
+  "triggers": []
+}

@@ -1,0 +1,65 @@
+{
+  "key": "tinybird",
+  "name": "Tinybird",
+  "category": "Databases",
+  "description": "Send events to data sources, query API endpoints (pipes) and run SQL.",
+  "brand": "tinybird",
+  "website": "https://www.tinybird.co",
+  "docs_url": "https://www.tinybird.co/docs/api-reference",
+  "base_url": "{{ credentials.api_host }}",
+  "auth": { "type": "bearer", "fields": [
+    { "key": "api_host", "label": "API host", "type": "string", "required": true, "default": "https://api.tinybird.co", "help": "Depends on your workspace region, e.g. https://api.us-east.tinybird.co. Shown under Tokens in the UI." },
+    { "key": "token", "label": "Token", "type": "password", "required": true }
+  ] },
+  "actions": [
+    {
+      "key": "send_event",
+      "name": "Send event",
+      "description": "Ingests one JSON event into a data source (Events API).",
+      "method": "POST",
+      "endpoint": "/v0/events",
+      "query": { "name": "{{ inputs.datasource }}", "wait": "{{ inputs.wait }}" },
+      "body": "{{ inputs.event }}",
+      "inputs": [
+        { "key": "datasource", "label": "Data source", "type": "string", "required": true },
+        { "key": "event", "label": "Event (JSON)", "type": "json", "required": true, "placeholder": "{ \"timestamp\": \"2025-06-01 12:00:00\", \"action\": \"click\" }" },
+        { "key": "wait", "label": "Wait for write", "type": "select", "options": [{ "value": "true", "label": "Yes" }, { "value": "false", "label": "No" }] }
+      ]
+    },
+    {
+      "key": "query_pipe",
+      "name": "Query API endpoint (pipe)",
+      "method": "GET",
+      "endpoint": "/v0/pipes/{{ inputs.pipe }}.json",
+      "query": "{{ inputs.params }}",
+      "inputs": [
+        { "key": "pipe", "label": "Pipe name", "type": "string", "required": true },
+        { "key": "params", "label": "Parameters", "type": "keyvalue" }
+      ]
+    },
+    {
+      "key": "run_sql",
+      "name": "Run SQL query",
+      "method": "GET",
+      "endpoint": "/v0/sql",
+      "query": { "q": "{{ inputs.q }}" },
+      "inputs": [{ "key": "q", "label": "SQL", "type": "code", "required": true, "placeholder": "SELECT count() FROM events FORMAT JSON", "help": "End with FORMAT JSON for JSON output." }]
+    },
+    {
+      "key": "list_datasources",
+      "name": "List data sources",
+      "method": "GET",
+      "endpoint": "/v0/datasources",
+      "output_path": "datasources",
+      "inputs": []
+    },
+    {
+      "key": "list_pipes",
+      "name": "List pipes",
+      "method": "GET",
+      "endpoint": "/v0/pipes",
+      "output_path": "pipes",
+      "inputs": []
+    }
+  ]
+}

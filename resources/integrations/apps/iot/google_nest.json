@@ -1,0 +1,65 @@
+{
+  "key": "google_nest",
+  "name": "Google Nest",
+  "category": "IoT & Smart Home",
+  "description": "Read Nest thermostat, camera and doorbell traits and run thermostat commands.",
+  "brand": "googlenest",
+  "website": "https://developers.google.com/nest/device-access",
+  "docs_url": "https://developers.google.com/nest/device-access/api",
+  "base_url": "https://smartdevicemanagement.googleapis.com/v1/enterprises/{{ credentials.project_id }}",
+  "auth": [
+    {
+      "type": "oauth2",
+      "authorize_url": "https://nestservices.google.com/partnerconnections/{{ credentials.project_id }}/auth",
+      "token_url": "https://oauth2.googleapis.com/token",
+      "scopes": ["https://www.googleapis.com/auth/sdm.service"],
+      "authorize_params": { "access_type": "offline", "prompt": "consent" },
+      "fields": [
+        { "key": "project_id", "label": "Device Access project ID", "type": "string", "required": true, "help": "From console.nest.google.com/device-access (requires the one-time Device Access registration)." },
+        { "key": "client_id", "label": "Google OAuth client ID", "type": "string", "required": true, "help": "The Google Cloud OAuth client linked to your Device Access project." },
+        { "key": "client_secret", "label": "Google OAuth client secret", "type": "password", "required": true }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_devices",
+      "name": "List devices",
+      "description": "Devices with their current traits (temperature, humidity, mode…).",
+      "method": "GET",
+      "endpoint": "/devices",
+      "output_path": "devices",
+      "inputs": []
+    },
+    {
+      "key": "get_device",
+      "name": "Get device",
+      "method": "GET",
+      "endpoint": "/devices/{{ inputs.device_id }}",
+      "inputs": [
+        { "key": "device_id", "label": "Device ID", "type": "string", "required": true, "help": "The last part of the device name (enterprises/…/devices/<ID>)." }
+      ]
+    },
+    {
+      "key": "execute_command",
+      "name": "Execute command",
+      "description": "e.g. sdm.devices.commands.ThermostatTemperatureSetpoint.SetHeat with params {\"heatCelsius\": 21}.",
+      "method": "POST",
+      "endpoint": "/devices/{{ inputs.device_id }}:executeCommand",
+      "body": { "command": "{{ inputs.command }}", "params": "{{ inputs.params }}" },
+      "inputs": [
+        { "key": "device_id", "label": "Device ID", "type": "string", "required": true },
+        { "key": "command", "label": "Command", "type": "string", "required": true, "placeholder": "sdm.devices.commands.ThermostatMode.SetMode" },
+        { "key": "params", "label": "Params", "type": "json", "required": true, "placeholder": "{\"mode\": \"HEAT\"}" }
+      ]
+    },
+    {
+      "key": "list_structures",
+      "name": "List structures",
+      "method": "GET",
+      "endpoint": "/structures",
+      "output_path": "structures",
+      "inputs": []
+    }
+  ]
+}

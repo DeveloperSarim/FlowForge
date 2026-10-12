@@ -1,0 +1,90 @@
+{
+  "key": "discourse",
+  "name": "Discourse",
+  "category": "Social Media",
+  "description": "Create topics, replies and private messages and watch for new topics.",
+  "brand": "discourse",
+  "website": "https://www.discourse.org",
+  "docs_url": "https://docs.discourse.org",
+  "base_url": "{{ credentials.site_url }}",
+  "headers": { "Api-Username": "{{ credentials.api_username }}" },
+  "auth": { "type": "api_key", "in": "header", "name": "Api-Key", "fields": [
+    { "key": "site_url", "label": "Forum URL", "type": "string", "required": true, "placeholder": "https://forum.example.com" },
+    { "key": "api_key", "label": "API key", "type": "password", "required": true, "help": "Admin > API > New API key." },
+    { "key": "api_username", "label": "Api-Username", "type": "string", "required": true, "default": "system", "help": "The user the actions run as." }
+  ] },
+  "actions": [
+    {
+      "key": "create_topic",
+      "name": "Create topic",
+      "method": "POST",
+      "endpoint": "/posts.json",
+      "body": { "title": "{{ inputs.title }}", "raw": "{{ inputs.raw }}", "category": "{{ inputs.category_id }}", "tags": "{{ inputs.tags }}" },
+      "inputs": [
+        { "key": "title", "label": "Title", "type": "string", "required": true },
+        { "key": "raw", "label": "Body (Markdown)", "type": "text", "required": true },
+        { "key": "category_id", "label": "Category ID", "type": "number" },
+        { "key": "tags", "label": "Tags", "type": "list" }
+      ]
+    },
+    {
+      "key": "reply_to_topic",
+      "name": "Reply to topic",
+      "method": "POST",
+      "endpoint": "/posts.json",
+      "body": { "topic_id": "{{ inputs.topic_id }}", "raw": "{{ inputs.raw }}", "reply_to_post_number": "{{ inputs.reply_to_post_number }}" },
+      "inputs": [
+        { "key": "topic_id", "label": "Topic ID", "type": "number", "required": true },
+        { "key": "raw", "label": "Body (Markdown)", "type": "text", "required": true },
+        { "key": "reply_to_post_number", "label": "Reply to post number", "type": "number" }
+      ]
+    },
+    {
+      "key": "send_private_message",
+      "name": "Send private message",
+      "method": "POST",
+      "endpoint": "/posts.json",
+      "body": { "title": "{{ inputs.title }}", "raw": "{{ inputs.raw }}", "target_recipients": "{{ inputs.recipients }}", "archetype": "private_message" },
+      "inputs": [
+        { "key": "recipients", "label": "Recipients", "type": "string", "required": true, "placeholder": "alice,bob", "help": "Comma-separated usernames or group names." },
+        { "key": "title", "label": "Subject", "type": "string", "required": true },
+        { "key": "raw", "label": "Body (Markdown)", "type": "text", "required": true }
+      ]
+    },
+    {
+      "key": "get_topic",
+      "name": "Get topic",
+      "method": "GET",
+      "endpoint": "/t/{{ inputs.topic_id }}.json",
+      "inputs": [{ "key": "topic_id", "label": "Topic ID", "type": "number", "required": true }]
+    },
+    {
+      "key": "search",
+      "name": "Search",
+      "method": "GET",
+      "endpoint": "/search.json",
+      "query": { "q": "{{ inputs.q }}" },
+      "inputs": [{ "key": "q", "label": "Query", "type": "string", "required": true, "placeholder": "release notes in:title order:latest" }]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_topic",
+      "name": "New topic",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/latest.json",
+      "query": { "order": "created" },
+      "items_path": "topic_list.topics",
+      "id_field": "id",
+      "inputs": [{ "key": "poll_interval", "label": "Check every (minutes)", "type": "number", "default": 5 }]
+    },
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "description": "Admin > API > Webhooks; set content type to application/json.",
+      "type": "webhook",
+      "inputs": [{ "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }]
+    }
+  ]
+}

@@ -1,0 +1,143 @@
+{
+  "key": "trengo",
+  "name": "Trengo",
+  "category": "Customer Support",
+  "description": "Create tickets and contacts, send messages and close tickets in Trengo.",
+  "brand": "trengo",
+  "website": "https://trengo.com",
+  "docs_url": "https://developers.trengo.com/",
+  "base_url": "https://app.trengo.com/api/v2",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "Personal access token",
+        "type": "password",
+        "required": true,
+        "help": "Settings > Apps & integrations > Rest API"
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "create_ticket",
+      "name": "Create ticket",
+      "method": "POST",
+      "endpoint": "/tickets",
+      "body": {
+        "channel_id": "{{ inputs.channel_id }}",
+        "contact_identifier": "{{ inputs.contact_identifier }}",
+        "subject": "{{ inputs.subject }}"
+      },
+      "inputs": [
+        {
+          "key": "channel_id",
+          "label": "Channel ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "contact_identifier",
+          "label": "Contact identifier",
+          "type": "string",
+          "required": true,
+          "help": "Email address or phone number, depending on the channel"
+        },
+        {
+          "key": "subject",
+          "label": "Subject",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "send_message",
+      "name": "Send message",
+      "method": "POST",
+      "endpoint": "/tickets/{{ inputs.ticket_id }}/messages",
+      "body": {
+        "message": "{{ inputs.message }}",
+        "internal_note": "{{ inputs.internal_note }}"
+      },
+      "inputs": [
+        {
+          "key": "ticket_id",
+          "label": "Ticket ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "message",
+          "label": "Message",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "internal_note",
+          "label": "Internal note",
+          "type": "boolean",
+          "default": false
+        }
+      ]
+    },
+    {
+      "key": "close_ticket",
+      "name": "Close ticket",
+      "method": "POST",
+      "endpoint": "/tickets/{{ inputs.ticket_id }}/close",
+      "inputs": [
+        {
+          "key": "ticket_id",
+          "label": "Ticket ID",
+          "type": "number",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "create_contact",
+      "name": "Create contact",
+      "method": "POST",
+      "endpoint": "/channels/{{ inputs.channel_id }}/contacts",
+      "body": {
+        "identifier": "{{ inputs.identifier }}",
+        "name": "{{ inputs.name }}"
+      },
+      "inputs": [
+        {
+          "key": "channel_id",
+          "label": "Channel ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "identifier",
+          "label": "Email or phone",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string"
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Add this URL in Settings > Apps & integrations > Webhooks.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

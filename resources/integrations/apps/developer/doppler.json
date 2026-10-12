@@ -1,0 +1,59 @@
+{
+  "key": "doppler",
+  "name": "Doppler",
+  "category": "Developer Tools",
+  "description": "Read, download and update secrets in Doppler configs.",
+  "brand": "doppler",
+  "website": "https://www.doppler.com",
+  "docs_url": "https://docs.doppler.com/reference/api",
+  "base_url": "https://api.doppler.com/v3",
+  "auth": { "type": "bearer", "fields": [{ "key": "token", "label": "Service or personal token", "type": "password", "required": true, "help": "Service tokens (dp.st.…) are scoped to one config; leave project/config empty when using one." }] },
+  "actions": [
+    {
+      "key": "get_secret",
+      "name": "Get secret",
+      "method": "GET",
+      "endpoint": "/configs/config/secret",
+      "query": { "project": "{{ inputs.project }}", "config": "{{ inputs.config }}", "name": "{{ inputs.name }}" },
+      "output_fields": { "value": "value.computed" },
+      "inputs": [
+        { "key": "project", "label": "Project", "type": "string" },
+        { "key": "config", "label": "Config", "type": "string", "placeholder": "prd" },
+        { "key": "name", "label": "Secret name", "type": "string", "required": true }
+      ]
+    },
+    {
+      "key": "download_secrets",
+      "name": "Download secrets",
+      "description": "Returns all secrets of a config as a name → value object.",
+      "method": "GET",
+      "endpoint": "/configs/config/secrets/download",
+      "query": { "project": "{{ inputs.project }}", "config": "{{ inputs.config }}", "format": "json" },
+      "inputs": [
+        { "key": "project", "label": "Project", "type": "string" },
+        { "key": "config", "label": "Config", "type": "string" }
+      ]
+    },
+    {
+      "key": "update_secrets",
+      "name": "Set secrets",
+      "description": "Creates or updates the given secrets.",
+      "method": "POST",
+      "endpoint": "/configs/config/secrets",
+      "body": { "project": "{{ inputs.project }}", "config": "{{ inputs.config }}", "secrets": "{{ inputs.secrets }}" },
+      "inputs": [
+        { "key": "project", "label": "Project", "type": "string" },
+        { "key": "config", "label": "Config", "type": "string" },
+        { "key": "secrets", "label": "Secrets", "type": "keyvalue", "required": true }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Config changed (webhook)",
+      "type": "webhook",
+      "inputs": [{ "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }]
+    }
+  ]
+}

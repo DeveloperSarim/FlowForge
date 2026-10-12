@@ -1,0 +1,100 @@
+{
+  "key": "tapfiliate",
+  "name": "Tapfiliate",
+  "category": "Marketing & Email",
+  "description": "Create conversions and customers and manage affiliates.",
+  "brand": "tapfiliate",
+  "website": "https://tapfiliate.com",
+  "docs_url": "https://tapfiliate.com/docs/rest/",
+  "base_url": "https://api.tapfiliate.com/1.6",
+  "auth": { "type": "api_key", "in": "header", "name": "X-Api-Key", "fields": [{ "key": "api_key", "label": "API key", "type": "password", "required": true, "help": "Profile settings > API key." }] },
+  "actions": [
+    {
+      "key": "create_conversion",
+      "name": "Create conversion",
+      "method": "POST",
+      "endpoint": "/conversions/",
+      "body": {
+        "referral_code": "{{ inputs.referral_code }}",
+        "click_id": "{{ inputs.click_id }}",
+        "customer_id": "{{ inputs.customer_id }}",
+        "external_id": "{{ inputs.external_id }}",
+        "amount": "{{ inputs.amount }}",
+        "currency": "{{ inputs.currency }}",
+        "meta_data": "{{ inputs.meta_data }}"
+      },
+      "inputs": [
+        { "key": "referral_code", "label": "Referral code", "type": "string" },
+        { "key": "click_id", "label": "Click ID", "type": "string" },
+        { "key": "customer_id", "label": "Customer ID", "type": "string", "help": "Attributes to a customer created earlier (e.g. at sign-up)." },
+        { "key": "external_id", "label": "External ID (order/invoice)", "type": "string" },
+        { "key": "amount", "label": "Amount", "type": "number" },
+        { "key": "currency", "label": "Currency", "type": "string", "placeholder": "USD" },
+        { "key": "meta_data", "label": "Metadata", "type": "keyvalue" }
+      ]
+    },
+    {
+      "key": "create_customer",
+      "name": "Create customer",
+      "description": "Tracks a referred sign-up/trial so later conversions are attributed.",
+      "method": "POST",
+      "endpoint": "/customers/",
+      "body": {
+        "customer_id": "{{ inputs.customer_id }}",
+        "referral_code": "{{ inputs.referral_code }}",
+        "click_id": "{{ inputs.click_id }}",
+        "meta_data": "{{ inputs.meta_data }}"
+      },
+      "inputs": [
+        { "key": "customer_id", "label": "Customer ID (your system)", "type": "string", "required": true },
+        { "key": "referral_code", "label": "Referral code", "type": "string" },
+        { "key": "click_id", "label": "Click ID", "type": "string" },
+        { "key": "meta_data", "label": "Metadata", "type": "keyvalue" }
+      ]
+    },
+    {
+      "key": "list_conversions",
+      "name": "List conversions",
+      "method": "GET",
+      "endpoint": "/conversions/",
+      "query": { "affiliate_id": "{{ inputs.affiliate_id }}", "external_id": "{{ inputs.external_id }}", "date_from": "{{ inputs.date_from }}", "date_to": "{{ inputs.date_to }}" },
+      "inputs": [
+        { "key": "affiliate_id", "label": "Affiliate ID", "type": "string" },
+        { "key": "external_id", "label": "External ID", "type": "string" },
+        { "key": "date_from", "label": "From (YYYY-MM-DD)", "type": "string" },
+        { "key": "date_to", "label": "To (YYYY-MM-DD)", "type": "string" }
+      ]
+    },
+    {
+      "key": "create_affiliate",
+      "name": "Create affiliate",
+      "method": "POST",
+      "endpoint": "/affiliates/",
+      "body": { "firstname": "{{ inputs.first_name }}", "lastname": "{{ inputs.last_name }}", "email": "{{ inputs.email }}" },
+      "inputs": [
+        { "key": "first_name", "label": "First name", "type": "string", "required": true },
+        { "key": "last_name", "label": "Last name", "type": "string", "required": true },
+        { "key": "email", "label": "Email", "type": "string", "required": true }
+      ]
+    },
+    {
+      "key": "list_affiliates",
+      "name": "List affiliates",
+      "method": "GET",
+      "endpoint": "/affiliates/",
+      "query": { "email": "{{ inputs.email }}", "referral_code": "{{ inputs.referral_code }}" },
+      "inputs": [
+        { "key": "email", "label": "Email", "type": "string" },
+        { "key": "referral_code", "label": "Referral code", "type": "string" }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "inputs": [{ "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }]
+    }
+  ]
+}

@@ -1,0 +1,189 @@
+{
+  "key": "learnworlds",
+  "name": "LearnWorlds",
+  "category": "Education",
+  "description": "List users and courses and enroll users in LearnWorlds products.",
+  "brand": "learnworlds",
+  "website": "https://www.learnworlds.com",
+  "docs_url": "https://www.learnworlds.dev",
+  "base_url": "https://{{ credentials.school_domain }}/admin/api/v2",
+  "headers": {
+    "Lw-Client": "{{ credentials.client_id }}"
+  },
+  "auth": [
+    {
+      "type": "bearer",
+      "fields": [
+        {
+          "key": "school_domain",
+          "label": "School domain",
+          "type": "string",
+          "required": true,
+          "placeholder": "academy.example.com",
+          "help": "Your school address without https://."
+        },
+        {
+          "key": "client_id",
+          "label": "Client ID",
+          "type": "string",
+          "required": true,
+          "help": "Settings > Developers > API."
+        },
+        {
+          "key": "token",
+          "label": "Access token",
+          "type": "password",
+          "required": true,
+          "help": "Settings > Developers > API > Access tokens > Create. Tokens have an expiry date."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_users",
+      "name": "List users",
+      "method": "GET",
+      "endpoint": "/users",
+      "query": {
+        "page": "{{ inputs.page }}"
+      },
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "page",
+          "label": "Page",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "get_user",
+      "name": "Get user",
+      "method": "GET",
+      "endpoint": "/users/{{ inputs.user_id }}",
+      "inputs": [
+        {
+          "key": "user_id",
+          "label": "User ID or email",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_user_courses",
+      "name": "List user courses",
+      "method": "GET",
+      "endpoint": "/users/{{ inputs.user_id }}/courses",
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "user_id",
+          "label": "User ID or email",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "enroll_user",
+      "name": "Enroll user",
+      "method": "POST",
+      "endpoint": "/users/{{ inputs.user_id }}/enrollment",
+      "body": {
+        "productId": "{{ inputs.product_id }}",
+        "productType": "{{ inputs.product_type }}",
+        "price": "{{ inputs.price }}",
+        "justification": "{{ inputs.justification }}",
+        "send_enrollment_email": "{{ inputs.send_enrollment_email }}"
+      },
+      "inputs": [
+        {
+          "key": "user_id",
+          "label": "User ID or email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "product_id",
+          "label": "Product ID",
+          "type": "string",
+          "required": true,
+          "help": "Course, bundle or subscription ID."
+        },
+        {
+          "key": "product_type",
+          "label": "Product type",
+          "type": "select",
+          "required": true,
+          "default": "course",
+          "options": [
+            {
+              "value": "course",
+              "label": "Course"
+            },
+            {
+              "value": "bundle",
+              "label": "Bundle"
+            },
+            {
+              "value": "subscription",
+              "label": "Subscription"
+            }
+          ]
+        },
+        {
+          "key": "price",
+          "label": "Price",
+          "type": "number",
+          "required": true,
+          "default": 0
+        },
+        {
+          "key": "justification",
+          "label": "Justification",
+          "type": "string",
+          "placeholder": "Added by FlowForge"
+        },
+        {
+          "key": "send_enrollment_email",
+          "label": "Send enrollment email",
+          "type": "boolean"
+        }
+      ]
+    },
+    {
+      "key": "list_courses",
+      "name": "List courses",
+      "method": "GET",
+      "endpoint": "/courses",
+      "query": {
+        "page": "{{ inputs.page }}"
+      },
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "page",
+          "label": "Page",
+          "type": "number"
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Settings > Developers > Webhooks: add this URL and pick events.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,75 @@
+{
+  "key": "matomo",
+  "name": "Matomo",
+  "category": "Analytics",
+  "description": "Pull any Reporting API report and record server-side tracking hits.",
+  "brand": "matomo",
+  "website": "https://matomo.org",
+  "docs_url": "https://developer.matomo.org/api-reference/reporting-api",
+  "base_url": "{{ credentials.url }}",
+  "auth": { "type": "api_key", "fields": [
+    { "key": "url", "label": "Matomo URL", "type": "string", "required": true, "placeholder": "https://analytics.example.com or https://you.matomo.cloud" },
+    { "key": "api_key", "label": "Auth token (token_auth)", "type": "password", "required": true, "help": "Administration > Personal > Security > Auth tokens." }
+  ] },
+  "actions": [
+    {
+      "key": "visits_summary",
+      "name": "Get visits summary",
+      "method": "POST",
+      "endpoint": "/index.php",
+      "query": { "module": "API", "method": "VisitsSummary.get", "idSite": "{{ inputs.site_id }}", "period": "{{ inputs.period }}", "date": "{{ inputs.date }}", "format": "JSON" },
+      "body_format": "form",
+      "body": { "token_auth": "{{ credentials.api_key }}" },
+      "error_path": "message",
+      "inputs": [
+        { "key": "site_id", "label": "Site ID", "type": "number", "required": true, "default": 1 },
+        { "key": "period", "label": "Period", "type": "select", "required": true, "default": "day", "options": [
+          { "value": "day", "label": "Day" }, { "value": "week", "label": "Week" }, { "value": "month", "label": "Month" }, { "value": "year", "label": "Year" }, { "value": "range", "label": "Date range" }
+        ] },
+        { "key": "date", "label": "Date", "type": "string", "required": true, "default": "yesterday", "help": "today, yesterday, YYYY-MM-DD, last7, or YYYY-MM-DD,YYYY-MM-DD for a range." }
+      ]
+    },
+    {
+      "key": "run_report",
+      "name": "Run report",
+      "description": "Calls any Reporting API method, e.g. Actions.getPageUrls or Referrers.getWebsites.",
+      "method": "POST",
+      "endpoint": "/index.php",
+      "query": { "module": "API", "method": "{{ inputs.method }}", "idSite": "{{ inputs.site_id }}", "period": "{{ inputs.period }}", "date": "{{ inputs.date }}", "format": "JSON", "flat": "1", "filter_limit": "{{ inputs.limit }}" },
+      "body_format": "form",
+      "body": { "token_auth": "{{ credentials.api_key }}" },
+      "inputs": [
+        { "key": "method", "label": "API method", "type": "string", "required": true, "placeholder": "Actions.getPageUrls" },
+        { "key": "site_id", "label": "Site ID", "type": "number", "required": true, "default": 1 },
+        { "key": "period", "label": "Period", "type": "select", "required": true, "default": "day", "options": [
+          { "value": "day", "label": "Day" }, { "value": "week", "label": "Week" }, { "value": "month", "label": "Month" }, { "value": "year", "label": "Year" }, { "value": "range", "label": "Date range" }
+        ] },
+        { "key": "date", "label": "Date", "type": "string", "required": true, "default": "yesterday" },
+        { "key": "limit", "label": "Row limit", "type": "number", "default": 100 }
+      ]
+    },
+    {
+      "key": "track",
+      "name": "Track page view or event",
+      "description": "Server-side hit through the Tracking HTTP API.",
+      "method": "POST",
+      "endpoint": "/matomo.php",
+      "body_format": "form",
+      "body": {
+        "idsite": "{{ inputs.site_id }}", "rec": "1", "apiv": "1", "send_image": "0",
+        "url": "{{ inputs.url }}", "action_name": "{{ inputs.action_name }}", "uid": "{{ inputs.user_id }}",
+        "e_c": "{{ inputs.event_category }}", "e_a": "{{ inputs.event_action }}", "e_n": "{{ inputs.event_name }}", "e_v": "{{ inputs.event_value }}"
+      },
+      "inputs": [
+        { "key": "site_id", "label": "Site ID", "type": "number", "required": true, "default": 1 },
+        { "key": "url", "label": "Page URL", "type": "string", "required": true },
+        { "key": "action_name", "label": "Page title", "type": "string" },
+        { "key": "user_id", "label": "User ID", "type": "string" },
+        { "key": "event_category", "label": "Event category", "type": "string", "help": "Fill category + action to record an event instead of a page view." },
+        { "key": "event_action", "label": "Event action", "type": "string" },
+        { "key": "event_name", "label": "Event name", "type": "string" },
+        { "key": "event_value", "label": "Event value", "type": "number" }
+      ]
+    }
+  ]
+}

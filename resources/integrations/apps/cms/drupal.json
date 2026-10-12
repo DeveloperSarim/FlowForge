@@ -1,0 +1,266 @@
+{
+  "key": "drupal",
+  "name": "Drupal",
+  "category": "CMS & Websites",
+  "description": "Create, update, list and delete content nodes via JSON:API.",
+  "brand": "drupal",
+  "website": "https://www.drupal.org",
+  "docs_url": "https://www.drupal.org/docs/core-modules-and-themes/core-modules/jsonapi-module",
+  "base_url": "{{ credentials.site_url }}/jsonapi",
+  "headers": {
+    "Accept": "application/vnd.api+json",
+    "Content-Type": "application/vnd.api+json"
+  },
+  "auth": [
+    {
+      "type": "basic",
+      "fields": [
+        {
+          "key": "site_url",
+          "label": "Site URL",
+          "type": "string",
+          "required": true,
+          "placeholder": "https://example.com",
+          "help": "No trailing slash."
+        },
+        {
+          "key": "username",
+          "label": "Username",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "password",
+          "label": "Password",
+          "type": "password",
+          "required": true,
+          "help": "Needs the core HTTP Basic Auth module."
+        }
+      ]
+    },
+    {
+      "type": "bearer",
+      "fields": [
+        {
+          "key": "site_url",
+          "label": "Site URL",
+          "type": "string",
+          "required": true,
+          "placeholder": "https://example.com",
+          "help": "No trailing slash."
+        },
+        {
+          "key": "token",
+          "label": "OAuth access token",
+          "type": "password",
+          "required": true,
+          "help": "From the Simple OAuth module."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_nodes",
+      "name": "List content",
+      "method": "GET",
+      "endpoint": "/node/{{ inputs.bundle }}",
+      "output_path": "data",
+      "query": {
+        "sort": "-created",
+        "page[limit]": "{{ inputs.limit }}"
+      },
+      "inputs": [
+        {
+          "key": "bundle",
+          "label": "Content type",
+          "type": "string",
+          "required": true,
+          "default": "article"
+        },
+        {
+          "key": "limit",
+          "label": "Max items",
+          "type": "number",
+          "default": 20
+        }
+      ]
+    },
+    {
+      "key": "get_node",
+      "name": "Get content",
+      "method": "GET",
+      "endpoint": "/node/{{ inputs.bundle }}/{{ inputs.uuid }}",
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "bundle",
+          "label": "Content type",
+          "type": "string",
+          "required": true,
+          "default": "article"
+        },
+        {
+          "key": "uuid",
+          "label": "Node UUID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "create_node",
+      "name": "Create content",
+      "description": "Writes need JSON:API set to accept all operations.",
+      "method": "POST",
+      "endpoint": "/node/{{ inputs.bundle }}",
+      "output_path": "data",
+      "body": {
+        "data": {
+          "type": "node--{{ inputs.bundle }}",
+          "attributes": {
+            "title": "{{ inputs.title }}",
+            "status": "{{ inputs.published }}",
+            "body": {
+              "value": "{{ inputs.body }}",
+              "format": "{{ inputs.format }}"
+            }
+          }
+        }
+      },
+      "inputs": [
+        {
+          "key": "bundle",
+          "label": "Content type",
+          "type": "string",
+          "required": true,
+          "default": "article"
+        },
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "body",
+          "label": "Body (HTML)",
+          "type": "text"
+        },
+        {
+          "key": "format",
+          "label": "Text format",
+          "type": "select",
+          "options": [
+            {
+              "value": "basic_html",
+              "label": "Basic HTML"
+            },
+            {
+              "value": "full_html",
+              "label": "Full HTML"
+            },
+            {
+              "value": "plain_text",
+              "label": "Plain text"
+            }
+          ],
+          "default": "basic_html"
+        },
+        {
+          "key": "published",
+          "label": "Published",
+          "type": "boolean",
+          "default": false
+        }
+      ]
+    },
+    {
+      "key": "update_node",
+      "name": "Update content",
+      "method": "PATCH",
+      "endpoint": "/node/{{ inputs.bundle }}/{{ inputs.uuid }}",
+      "output_path": "data",
+      "body": {
+        "data": {
+          "type": "node--{{ inputs.bundle }}",
+          "id": "{{ inputs.uuid }}",
+          "attributes": "{{ inputs.attributes }}"
+        }
+      },
+      "inputs": [
+        {
+          "key": "bundle",
+          "label": "Content type",
+          "type": "string",
+          "required": true,
+          "default": "article"
+        },
+        {
+          "key": "uuid",
+          "label": "Node UUID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "attributes",
+          "label": "Attributes (JSON)",
+          "type": "json",
+          "required": true,
+          "placeholder": "{ \"title\": \"New title\" }"
+        }
+      ]
+    },
+    {
+      "key": "delete_node",
+      "name": "Delete content",
+      "method": "DELETE",
+      "endpoint": "/node/{{ inputs.bundle }}/{{ inputs.uuid }}",
+      "inputs": [
+        {
+          "key": "bundle",
+          "label": "Content type",
+          "type": "string",
+          "required": true,
+          "default": "article"
+        },
+        {
+          "key": "uuid",
+          "label": "Node UUID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_node",
+      "name": "New content",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/node/{{ inputs.bundle }}",
+      "query": {
+        "sort": "-created",
+        "page[limit]": 20
+      },
+      "items_path": "data",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "bundle",
+          "label": "Content type",
+          "type": "string",
+          "required": true,
+          "default": "article"
+        },
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

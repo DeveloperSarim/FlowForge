@@ -1,0 +1,71 @@
+{
+  "key": "losant",
+  "name": "Losant",
+  "category": "IoT & Smart Home",
+  "description": "Report device state, send device commands and read device data in Losant.",
+  "brand": "losant",
+  "website": "https://www.losant.com",
+  "docs_url": "https://docs.losant.com/rest-api/overview/",
+  "base_url": "https://api.losant.com",
+  "auth": [
+    {
+      "type": "bearer",
+      "fields": [
+        { "key": "token", "label": "API token", "type": "password", "required": true, "help": "Application > Security > Application tokens (or an account API token)." }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_devices",
+      "name": "List devices",
+      "method": "GET",
+      "endpoint": "/applications/{{ inputs.application_id }}/devices",
+      "query": { "filter": "{{ inputs.filter }}", "perPage": "{{ inputs.per_page }}" },
+      "output_path": "items",
+      "inputs": [
+        { "key": "application_id", "label": "Application ID", "type": "string", "required": true },
+        { "key": "filter", "label": "Name filter", "type": "string", "help": "Wildcards (*) allowed." },
+        { "key": "per_page", "label": "Max results", "type": "number", "default": 100 }
+      ]
+    },
+    {
+      "key": "get_composite_state",
+      "name": "Get device state",
+      "description": "Latest value of every attribute of a device.",
+      "method": "GET",
+      "endpoint": "/applications/{{ inputs.application_id }}/devices/{{ inputs.device_id }}/compositeState",
+      "inputs": [
+        { "key": "application_id", "label": "Application ID", "type": "string", "required": true },
+        { "key": "device_id", "label": "Device ID", "type": "string", "required": true }
+      ]
+    },
+    {
+      "key": "send_state",
+      "name": "Send device state",
+      "description": "Reports attribute values for a device, as if the device sent them.",
+      "method": "POST",
+      "endpoint": "/applications/{{ inputs.application_id }}/devices/{{ inputs.device_id }}/state",
+      "body": { "data": "{{ inputs.data }}", "time": "{{ inputs.time }}" },
+      "inputs": [
+        { "key": "application_id", "label": "Application ID", "type": "string", "required": true },
+        { "key": "device_id", "label": "Device ID", "type": "string", "required": true },
+        { "key": "data", "label": "Attributes", "type": "keyvalue", "required": true, "help": "Attribute name = value, e.g. temperature = 21.4." },
+        { "key": "time", "label": "Time", "type": "string", "help": "ISO date or epoch ms. Defaults to now." }
+      ]
+    },
+    {
+      "key": "send_command",
+      "name": "Send device command",
+      "method": "POST",
+      "endpoint": "/applications/{{ inputs.application_id }}/devices/{{ inputs.device_id }}/command",
+      "body": { "name": "{{ inputs.name }}", "payload": "{{ inputs.payload }}" },
+      "inputs": [
+        { "key": "application_id", "label": "Application ID", "type": "string", "required": true },
+        { "key": "device_id", "label": "Device ID", "type": "string", "required": true },
+        { "key": "name", "label": "Command name", "type": "string", "required": true },
+        { "key": "payload", "label": "Payload", "type": "json" }
+      ]
+    }
+  ]
+}

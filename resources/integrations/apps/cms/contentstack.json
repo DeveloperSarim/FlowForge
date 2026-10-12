@@ -1,0 +1,224 @@
+{
+  "key": "contentstack",
+  "name": "Contentstack",
+  "category": "CMS & Websites",
+  "description": "Create, update, publish and list entries in a Contentstack stack.",
+  "brand": "contentstack",
+  "website": "https://www.contentstack.com",
+  "docs_url": "https://www.contentstack.com/docs/developers/apis/content-management-api",
+  "base_url": "{{ credentials.api_host }}/v3",
+  "headers": {
+    "api_key": "{{ credentials.stack_api_key }}"
+  },
+  "auth": [
+    {
+      "type": "api_key",
+      "in": "header",
+      "name": "authorization",
+      "fields": [
+        {
+          "key": "api_key",
+          "label": "Management token",
+          "type": "password",
+          "required": true,
+          "help": "Settings > Tokens > Management Tokens."
+        },
+        {
+          "key": "stack_api_key",
+          "label": "Stack API key",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "api_host",
+          "label": "API host",
+          "type": "string",
+          "required": true,
+          "default": "https://api.contentstack.io",
+          "help": "EU: https://eu-api.contentstack.com, Azure NA: https://azure-na-api.contentstack.com"
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_entries",
+      "name": "List entries",
+      "method": "GET",
+      "endpoint": "/content_types/{{ inputs.content_type }}/entries",
+      "output_path": "entries",
+      "query": {
+        "locale": "{{ inputs.locale }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "inputs": [
+        {
+          "key": "content_type",
+          "label": "Content type UID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "locale",
+          "label": "Locale",
+          "type": "string",
+          "placeholder": "en-us"
+        },
+        {
+          "key": "limit",
+          "label": "Max entries",
+          "type": "number",
+          "default": 25
+        }
+      ]
+    },
+    {
+      "key": "get_entry",
+      "name": "Get entry",
+      "method": "GET",
+      "endpoint": "/content_types/{{ inputs.content_type }}/entries/{{ inputs.entry_uid }}",
+      "output_path": "entry",
+      "inputs": [
+        {
+          "key": "content_type",
+          "label": "Content type UID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "entry_uid",
+          "label": "Entry UID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "create_entry",
+      "name": "Create entry",
+      "method": "POST",
+      "endpoint": "/content_types/{{ inputs.content_type }}/entries",
+      "output_path": "entry",
+      "query": {
+        "locale": "{{ inputs.locale }}"
+      },
+      "body": {
+        "entry": "{{ inputs.entry }}"
+      },
+      "inputs": [
+        {
+          "key": "content_type",
+          "label": "Content type UID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "entry",
+          "label": "Entry (JSON)",
+          "type": "json",
+          "required": true,
+          "placeholder": "{ \"title\": \"Hello\", \"url\": \"/hello\" }"
+        },
+        {
+          "key": "locale",
+          "label": "Locale",
+          "type": "string",
+          "placeholder": "en-us"
+        }
+      ]
+    },
+    {
+      "key": "update_entry",
+      "name": "Update entry",
+      "method": "PUT",
+      "endpoint": "/content_types/{{ inputs.content_type }}/entries/{{ inputs.entry_uid }}",
+      "output_path": "entry",
+      "query": {
+        "locale": "{{ inputs.locale }}"
+      },
+      "body": {
+        "entry": "{{ inputs.entry }}"
+      },
+      "inputs": [
+        {
+          "key": "content_type",
+          "label": "Content type UID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "entry_uid",
+          "label": "Entry UID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "entry",
+          "label": "Fields to change (JSON)",
+          "type": "json",
+          "required": true
+        },
+        {
+          "key": "locale",
+          "label": "Locale",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "publish_entry",
+      "name": "Publish entry",
+      "method": "POST",
+      "endpoint": "/content_types/{{ inputs.content_type }}/entries/{{ inputs.entry_uid }}/publish",
+      "body": {
+        "entry": {
+          "environments": "{{ inputs.environments }}",
+          "locales": "{{ inputs.locales }}"
+        }
+      },
+      "inputs": [
+        {
+          "key": "content_type",
+          "label": "Content type UID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "entry_uid",
+          "label": "Entry UID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "environments",
+          "label": "Environments",
+          "type": "list",
+          "required": true,
+          "placeholder": "production"
+        },
+        {
+          "key": "locales",
+          "label": "Locales",
+          "type": "list",
+          "required": true,
+          "placeholder": "en-us"
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Contentstack webhooks (entry created, published, ...).",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

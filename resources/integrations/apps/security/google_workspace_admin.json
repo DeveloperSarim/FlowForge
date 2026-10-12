@@ -1,0 +1,125 @@
+{
+  "key": "google_workspace_admin",
+  "name": "Google Workspace Admin",
+  "category": "Security & IT",
+  "description": "Create, find, suspend and delete users and manage group members (Admin SDK).",
+  "brand": "google",
+  "website": "https://workspace.google.com",
+  "docs_url": "https://developers.google.com/admin-sdk/directory/reference/rest",
+  "base_url": "https://admin.googleapis.com/admin/directory/v1",
+  "auth": [
+    {
+      "type": "oauth2",
+      "authorize_url": "https://accounts.google.com/o/oauth2/v2/auth",
+      "token_url": "https://oauth2.googleapis.com/token",
+      "scopes": ["https://www.googleapis.com/auth/admin.directory.user", "https://www.googleapis.com/auth/admin.directory.group"],
+      "authorize_params": { "access_type": "offline", "prompt": "consent" }
+    },
+    {
+      "type": "google_service_account",
+      "scopes": ["https://www.googleapis.com/auth/admin.directory.user", "https://www.googleapis.com/auth/admin.directory.group"],
+      "fields": [
+        { "key": "service_account_json", "label": "Service Account JSON key", "type": "code", "required": true, "help": "Paste the full JSON key. In the Admin console assign the service account an admin role (Account → Admin roles → Assign service accounts)." }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "create_user",
+      "name": "Create user",
+      "method": "POST",
+      "endpoint": "/users",
+      "body": { "primaryEmail": "{{ inputs.primary_email }}", "name": { "givenName": "{{ inputs.given_name }}", "familyName": "{{ inputs.family_name }}" }, "password": "{{ inputs.password }}", "changePasswordAtNextLogin": "{{ inputs.change_password }}", "orgUnitPath": "{{ inputs.org_unit_path }}", "recoveryEmail": "{{ inputs.recovery_email }}" },
+      "inputs": [
+        { "key": "primary_email", "label": "Primary email", "type": "string", "required": true },
+        { "key": "given_name", "label": "First name", "type": "string", "required": true },
+        { "key": "family_name", "label": "Last name", "type": "string", "required": true },
+        { "key": "password", "label": "Initial password", "type": "password", "required": true, "help": "8 to 100 characters." },
+        { "key": "change_password", "label": "Require change at next login", "type": "boolean", "default": true },
+        { "key": "org_unit_path", "label": "Org unit path", "type": "string", "placeholder": "/Sales" },
+        { "key": "recovery_email", "label": "Recovery email", "type": "string" }
+      ]
+    },
+    {
+      "key": "get_user",
+      "name": "Get user",
+      "method": "GET",
+      "endpoint": "/users/{{ inputs.user_key }}",
+      "inputs": [{ "key": "user_key", "label": "Email or user ID", "type": "string", "required": true }]
+    },
+    {
+      "key": "list_users",
+      "name": "Find users",
+      "method": "GET",
+      "endpoint": "/users",
+      "query": { "customer": "my_customer", "query": "{{ inputs.query }}", "maxResults": "{{ inputs.max_results }}", "orderBy": "{{ inputs.order_by }}" },
+      "output_path": "users",
+      "inputs": [
+        { "key": "query", "label": "Search query", "type": "string", "placeholder": "orgUnitPath=/Sales isSuspended=false" },
+        { "key": "max_results", "label": "Max results", "type": "number", "default": 100 },
+        { "key": "order_by", "label": "Order by", "type": "select", "options": [
+          { "value": "email", "label": "Email" }, { "value": "givenName", "label": "First name" }, { "value": "familyName", "label": "Last name" }
+        ] }
+      ]
+    },
+    {
+      "key": "update_user",
+      "name": "Update user",
+      "description": "Set Suspended to block sign-in; only the fields you set change.",
+      "method": "PUT",
+      "endpoint": "/users/{{ inputs.user_key }}",
+      "body": { "suspended": "{{ inputs.suspended }}", "orgUnitPath": "{{ inputs.org_unit_path }}", "name": { "givenName": "{{ inputs.given_name }}", "familyName": "{{ inputs.family_name }}" }, "...": "{{ inputs.extra }}" },
+      "inputs": [
+        { "key": "user_key", "label": "Email or user ID", "type": "string", "required": true },
+        { "key": "suspended", "label": "Suspended", "type": "boolean" },
+        { "key": "org_unit_path", "label": "Org unit path", "type": "string" },
+        { "key": "given_name", "label": "First name", "type": "string" },
+        { "key": "family_name", "label": "Last name", "type": "string" },
+        { "key": "extra", "label": "Other fields (JSON)", "type": "json", "help": "e.g. {\"organizations\": [{\"title\": \"Engineer\", \"primary\": true}]}" }
+      ]
+    },
+    {
+      "key": "delete_user",
+      "name": "Delete user",
+      "method": "DELETE",
+      "endpoint": "/users/{{ inputs.user_key }}",
+      "inputs": [{ "key": "user_key", "label": "Email or user ID", "type": "string", "required": true }]
+    },
+    {
+      "key": "add_group_member",
+      "name": "Add member to group",
+      "method": "POST",
+      "endpoint": "/groups/{{ inputs.group_key }}/members",
+      "body": { "email": "{{ inputs.email }}", "role": "{{ inputs.role }}" },
+      "inputs": [
+        { "key": "group_key", "label": "Group email or ID", "type": "string", "required": true },
+        { "key": "email", "label": "Member email", "type": "string", "required": true },
+        { "key": "role", "label": "Role", "type": "select", "required": true, "default": "MEMBER", "options": [
+          { "value": "MEMBER", "label": "Member" }, { "value": "MANAGER", "label": "Manager" }, { "value": "OWNER", "label": "Owner" }
+        ] }
+      ]
+    },
+    {
+      "key": "remove_group_member",
+      "name": "Remove member from group",
+      "method": "DELETE",
+      "endpoint": "/groups/{{ inputs.group_key }}/members/{{ inputs.member_key }}",
+      "inputs": [
+        { "key": "group_key", "label": "Group email or ID", "type": "string", "required": true },
+        { "key": "member_key", "label": "Member email or ID", "type": "string", "required": true }
+      ]
+    },
+    {
+      "key": "list_groups",
+      "name": "List groups",
+      "method": "GET",
+      "endpoint": "/groups",
+      "query": { "customer": "my_customer", "query": "{{ inputs.query }}", "maxResults": "{{ inputs.max_results }}" },
+      "output_path": "groups",
+      "inputs": [
+        { "key": "query", "label": "Search query", "type": "string", "placeholder": "email:sales*" },
+        { "key": "max_results", "label": "Max results", "type": "number", "default": 200 }
+      ]
+    }
+  ]
+}

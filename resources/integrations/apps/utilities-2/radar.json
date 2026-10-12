@@ -1,0 +1,79 @@
+{
+  "key": "radar",
+  "name": "Radar",
+  "category": "Utilities",
+  "description": "Geocoding, IP geolocation, address autocomplete, distances and geofence events.",
+  "brand": "radar",
+  "website": "https://radar.com",
+  "docs_url": "https://radar.com/documentation/api",
+  "base_url": "https://api.radar.io/v1",
+  "auth": { "type": "api_key", "in": "header", "name": "Authorization", "fields": [
+    { "key": "api_key", "label": "Secret key", "type": "password", "required": true, "help": "Settings → API keys (prj_live_sk_… or prj_test_sk_…)." }
+  ] },
+  "actions": [
+    {
+      "key": "forward_geocode",
+      "name": "Geocode address",
+      "method": "GET",
+      "endpoint": "/geocode/forward",
+      "query": { "query": "{{ inputs.query }}", "country": "{{ inputs.country }}" },
+      "inputs": [
+        { "key": "query", "label": "Address", "type": "string", "required": true },
+        { "key": "country", "label": "Country codes", "type": "string", "placeholder": "US,CA" }
+      ]
+    },
+    {
+      "key": "reverse_geocode",
+      "name": "Reverse geocode",
+      "method": "GET",
+      "endpoint": "/geocode/reverse",
+      "query": { "coordinates": "{{ inputs.coordinates }}" },
+      "inputs": [{ "key": "coordinates", "label": "Coordinates", "type": "string", "required": true, "placeholder": "40.70390,-73.98670" }]
+    },
+    {
+      "key": "ip_geocode",
+      "name": "Geocode IP address",
+      "method": "GET",
+      "endpoint": "/geocode/ip",
+      "query": { "ip": "{{ inputs.ip }}" },
+      "inputs": [{ "key": "ip", "label": "IP address", "type": "string", "required": true }]
+    },
+    {
+      "key": "autocomplete",
+      "name": "Autocomplete address",
+      "method": "GET",
+      "endpoint": "/search/autocomplete",
+      "query": { "query": "{{ inputs.query }}", "near": "{{ inputs.near }}", "countryCode": "{{ inputs.country_code }}", "limit": "{{ inputs.limit }}" },
+      "inputs": [
+        { "key": "query", "label": "Partial address", "type": "string", "required": true },
+        { "key": "near", "label": "Near (lat,lng)", "type": "string" },
+        { "key": "country_code", "label": "Country code", "type": "string", "placeholder": "US" },
+        { "key": "limit", "label": "Limit", "type": "number" }
+      ]
+    },
+    {
+      "key": "route_distance",
+      "name": "Distance and travel time",
+      "method": "GET",
+      "endpoint": "/route/distance",
+      "query": { "origin": "{{ inputs.origin }}", "destination": "{{ inputs.destination }}", "modes": "{{ inputs.modes }}", "units": "{{ inputs.units }}" },
+      "inputs": [
+        { "key": "origin", "label": "Origin (lat,lng)", "type": "string", "required": true },
+        { "key": "destination", "label": "Destination (lat,lng)", "type": "string", "required": true },
+        { "key": "modes", "label": "Modes", "type": "string", "default": "car", "placeholder": "car,foot,bike,truck" },
+        { "key": "units", "label": "Units", "type": "select", "default": "metric", "options": [
+          { "value": "metric", "label": "Metric" }, { "value": "imperial", "label": "Imperial" }
+        ] }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "radar_event",
+      "name": "Radar event (webhook)",
+      "description": "Add this URL under Integrations → Webhooks to receive geofence, place and trip events.",
+      "type": "webhook",
+      "inputs": [{ "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }]
+    }
+  ]
+}

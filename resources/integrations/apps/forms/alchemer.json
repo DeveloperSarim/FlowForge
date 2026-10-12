@@ -1,0 +1,149 @@
+{
+  "key": "alchemer",
+  "name": "Alchemer",
+  "category": "Forms & Surveys",
+  "description": "List Alchemer surveys and read survey responses.",
+  "brand": "alchemer",
+  "website": "https://www.alchemer.com",
+  "docs_url": "https://apihelp.alchemer.com/",
+  "base_url": "https://{{ credentials.api_host }}/v5",
+  "auth": {
+    "type": "api_key",
+    "in": "query",
+    "name": "api_token",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "API token",
+        "type": "password",
+        "required": true,
+        "help": "Account > Integrations > API Access"
+      },
+      {
+        "key": "api_token_secret",
+        "label": "API token secret",
+        "type": "password",
+        "required": true,
+        "help": "Sent automatically by the actions; add it as api_token_secret when using Make an API call."
+      },
+      {
+        "key": "api_host",
+        "label": "Region",
+        "type": "select",
+        "required": true,
+        "default": "api.alchemer.com",
+        "options": [
+          {
+            "value": "api.alchemer.com",
+            "label": "US"
+          },
+          {
+            "value": "api.alchemer.eu",
+            "label": "EU"
+          },
+          {
+            "value": "api.alchemer-ca.com",
+            "label": "Canada"
+          }
+        ]
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_surveys",
+      "name": "List surveys",
+      "method": "GET",
+      "endpoint": "/survey",
+      "output_path": "data",
+      "query": {
+        "api_token_secret": "{{ credentials.api_token_secret }}",
+        "resultsperpage": "{{ inputs.per_page }}",
+        "page": "{{ inputs.page }}"
+      },
+      "inputs": [
+        {
+          "key": "per_page",
+          "label": "Results per page",
+          "type": "number",
+          "default": 50
+        },
+        {
+          "key": "page",
+          "label": "Page",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "list_responses",
+      "name": "List responses",
+      "method": "GET",
+      "endpoint": "/survey/{{ inputs.survey_id }}/surveyresponse",
+      "output_path": "data",
+      "query": {
+        "api_token_secret": "{{ credentials.api_token_secret }}",
+        "resultsperpage": "{{ inputs.per_page }}",
+        "page": "{{ inputs.page }}"
+      },
+      "inputs": [
+        {
+          "key": "survey_id",
+          "label": "Survey ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "per_page",
+          "label": "Results per page",
+          "type": "number",
+          "default": 50
+        },
+        {
+          "key": "page",
+          "label": "Page",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "get_response",
+      "name": "Get response",
+      "method": "GET",
+      "endpoint": "/survey/{{ inputs.survey_id }}/surveyresponse/{{ inputs.response_id }}",
+      "output_path": "data",
+      "query": {
+        "api_token_secret": "{{ credentials.api_token_secret }}"
+      },
+      "inputs": [
+        {
+          "key": "survey_id",
+          "label": "Survey ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "response_id",
+          "label": "Response ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_response",
+      "name": "New response (webhook)",
+      "type": "webhook",
+      "description": "Add a Webhook action to your survey that posts to this URL.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

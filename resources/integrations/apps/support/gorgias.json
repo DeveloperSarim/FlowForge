@@ -1,0 +1,196 @@
+{
+  "key": "gorgias",
+  "name": "Gorgias",
+  "category": "Customer Support",
+  "description": "Create and update Gorgias tickets and customers.",
+  "brand": "gorgias",
+  "website": "https://www.gorgias.com",
+  "docs_url": "https://developers.gorgias.com/reference/introduction",
+  "base_url": "https://{{ credentials.domain }}.gorgias.com/api",
+  "auth": {
+    "type": "basic",
+    "fields": [
+      {
+        "key": "domain",
+        "label": "Domain",
+        "type": "string",
+        "required": true,
+        "placeholder": "yourstore",
+        "help": "The part before .gorgias.com"
+      },
+      {
+        "key": "username",
+        "label": "Email",
+        "type": "string",
+        "required": true,
+        "help": "The email of the user who created the API key"
+      },
+      {
+        "key": "password",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "Settings > REST API"
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "create_ticket",
+      "name": "Create ticket",
+      "method": "POST",
+      "endpoint": "/tickets",
+      "body": {
+        "channel": "api",
+        "via": "api",
+        "subject": "{{ inputs.subject }}",
+        "customer": {
+          "email": "{{ inputs.email }}"
+        },
+        "messages": [
+          {
+            "channel": "api",
+            "via": "api",
+            "from_agent": false,
+            "sender": {
+              "email": "{{ inputs.email }}"
+            },
+            "subject": "{{ inputs.subject }}",
+            "body_text": "{{ inputs.body }}"
+          }
+        ]
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Customer email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "subject",
+          "label": "Subject",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "body",
+          "label": "Message",
+          "type": "text",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "update_ticket",
+      "name": "Update ticket",
+      "method": "PUT",
+      "endpoint": "/tickets/{{ inputs.ticket_id }}",
+      "body": {
+        "status": "{{ inputs.status }}",
+        "subject": "{{ inputs.subject }}"
+      },
+      "inputs": [
+        {
+          "key": "ticket_id",
+          "label": "Ticket ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "options": [
+            {
+              "value": "open",
+              "label": "Open"
+            },
+            {
+              "value": "closed",
+              "label": "Closed"
+            }
+          ]
+        },
+        {
+          "key": "subject",
+          "label": "Subject",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "get_ticket",
+      "name": "Get ticket",
+      "method": "GET",
+      "endpoint": "/tickets/{{ inputs.ticket_id }}",
+      "inputs": [
+        {
+          "key": "ticket_id",
+          "label": "Ticket ID",
+          "type": "number",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "create_customer",
+      "name": "Create customer",
+      "method": "POST",
+      "endpoint": "/customers",
+      "body": {
+        "email": "{{ inputs.email }}",
+        "name": "{{ inputs.name }}"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string"
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_ticket",
+      "name": "New ticket (polling)",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/tickets",
+      "query": {
+        "limit": 30,
+        "order_by": "created_datetime:desc"
+      },
+      "items_path": "data",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    },
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Add an HTTP integration (Settings > Integrations > HTTP) that posts to this URL.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

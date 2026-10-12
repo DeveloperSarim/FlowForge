@@ -1,0 +1,128 @@
+{
+  "key": "google_gemini",
+  "name": "Google Gemini",
+  "category": "AI",
+  "description": "Generate text with Gemini models and embed content.",
+  "brand": "googlegemini",
+  "website": "https://ai.google.dev",
+  "docs_url": "https://ai.google.dev/api",
+  "popular": true,
+  "base_url": "https://generativelanguage.googleapis.com/v1beta",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "x-goog-api-key",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "Create one in Google AI Studio."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "generate_content",
+      "name": "Generate text",
+      "description": "Send a prompt and get the reply as {{ steps.<id>.text }}.",
+      "method": "POST",
+      "endpoint": "/models/{{ inputs.model }}:generateContent",
+      "timeout": 300,
+      "body": {
+        "contents": [
+          {
+            "role": "user",
+            "parts": [
+              {
+                "text": "{{ inputs.prompt }}"
+              }
+            ]
+          }
+        ],
+        "systemInstruction": {
+          "parts": [
+            {
+              "text": "{{ inputs.system }}"
+            }
+          ]
+        },
+        "generationConfig": {
+          "temperature": "{{ inputs.temperature }}",
+          "maxOutputTokens": "{{ inputs.max_tokens }}"
+        }
+      },
+      "output_fields": {
+        "text": "candidates.0.content.parts.*.text"
+      },
+      "inputs": [
+        {
+          "key": "model",
+          "label": "Model",
+          "type": "string",
+          "required": true,
+          "default": "gemini-2.5-flash"
+        },
+        {
+          "key": "prompt",
+          "label": "Prompt",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "system",
+          "label": "System prompt",
+          "type": "text",
+          "required": true,
+          "default": "You are a helpful assistant.",
+          "help": "Sent as the system message."
+        },
+        {
+          "key": "temperature",
+          "label": "Temperature",
+          "type": "number",
+          "placeholder": "0.7"
+        },
+        {
+          "key": "max_tokens",
+          "label": "Max output tokens",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "embed_content",
+      "name": "Create embedding",
+      "method": "POST",
+      "endpoint": "/models/{{ inputs.model }}:embedContent",
+      "body": {
+        "content": {
+          "parts": [
+            {
+              "text": "{{ inputs.text }}"
+            }
+          ]
+        }
+      },
+      "output_fields": {
+        "embedding": "embedding.values"
+      },
+      "inputs": [
+        {
+          "key": "model",
+          "label": "Model",
+          "type": "string",
+          "required": true,
+          "default": "gemini-embedding-001"
+        },
+        {
+          "key": "text",
+          "label": "Text",
+          "type": "text",
+          "required": true
+        }
+      ]
+    }
+  ]
+}

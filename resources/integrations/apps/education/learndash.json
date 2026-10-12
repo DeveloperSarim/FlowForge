@@ -1,0 +1,153 @@
+{
+  "key": "learndash",
+  "name": "LearnDash",
+  "category": "Education",
+  "description": "Enroll users in LearnDash courses and read course progress.",
+  "brand": "learndash",
+  "website": "https://www.learndash.com",
+  "docs_url": "https://developers.learndash.com/rest-api/v2/",
+  "base_url": "{{ credentials.site_url }}/wp-json/ldlms/v2",
+  "auth": [
+    {
+      "type": "basic",
+      "fields": [
+        {
+          "key": "site_url",
+          "label": "WordPress site URL",
+          "type": "string",
+          "required": true,
+          "placeholder": "https://academy.example.com",
+          "help": "No trailing slash."
+        },
+        {
+          "key": "username",
+          "label": "WordPress username",
+          "type": "string",
+          "required": true,
+          "help": "An administrator account."
+        },
+        {
+          "key": "password",
+          "label": "Application password",
+          "type": "password",
+          "required": true,
+          "help": "Users > Profile > Application Passwords > Add new."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_courses",
+      "name": "List courses",
+      "method": "GET",
+      "endpoint": "/sfwd-courses",
+      "query": {
+        "search": "{{ inputs.search }}",
+        "per_page": "{{ inputs.per_page }}"
+      },
+      "inputs": [
+        {
+          "key": "search",
+          "label": "Search",
+          "type": "string"
+        },
+        {
+          "key": "per_page",
+          "label": "Per page",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    },
+    {
+      "key": "list_course_users",
+      "name": "List enrolled users",
+      "method": "GET",
+      "endpoint": "/sfwd-courses/{{ inputs.course_id }}/users",
+      "inputs": [
+        {
+          "key": "course_id",
+          "label": "Course ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "enroll_users",
+      "name": "Enroll users in course",
+      "method": "POST",
+      "endpoint": "/sfwd-courses/{{ inputs.course_id }}/users",
+      "body": {
+        "user_ids": "{{ inputs.user_ids }}"
+      },
+      "inputs": [
+        {
+          "key": "course_id",
+          "label": "Course ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "user_ids",
+          "label": "User IDs",
+          "type": "list",
+          "required": true,
+          "help": "Up to 50 WordPress user IDs."
+        }
+      ]
+    },
+    {
+      "key": "unenroll_users",
+      "name": "Remove users from course",
+      "method": "DELETE",
+      "endpoint": "/sfwd-courses/{{ inputs.course_id }}/users",
+      "body": {
+        "user_ids": "{{ inputs.user_ids }}"
+      },
+      "inputs": [
+        {
+          "key": "course_id",
+          "label": "Course ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "user_ids",
+          "label": "User IDs",
+          "type": "list",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_user_courses",
+      "name": "List user courses",
+      "method": "GET",
+      "endpoint": "/users/{{ inputs.user_id }}/courses",
+      "inputs": [
+        {
+          "key": "user_id",
+          "label": "User ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "get_course_progress",
+      "name": "Get user course progress",
+      "method": "GET",
+      "endpoint": "/users/{{ inputs.user_id }}/course-progress",
+      "inputs": [
+        {
+          "key": "user_id",
+          "label": "User ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ]
+}

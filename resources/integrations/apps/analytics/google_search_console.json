@@ -1,0 +1,90 @@
+{
+  "key": "google_search_console",
+  "name": "Google Search Console",
+  "category": "Analytics",
+  "description": "Query search performance, inspect URLs and submit sitemaps.",
+  "brand": "googlesearchconsole",
+  "website": "https://search.google.com/search-console",
+  "docs_url": "https://developers.google.com/webmaster-tools/v1/api_reference_index",
+  "base_url": "https://searchconsole.googleapis.com",
+  "auth": [
+    {
+      "type": "oauth2",
+      "authorize_url": "https://accounts.google.com/o/oauth2/v2/auth",
+      "token_url": "https://oauth2.googleapis.com/token",
+      "scopes": ["https://www.googleapis.com/auth/webmasters"],
+      "authorize_params": { "access_type": "offline", "prompt": "consent" }
+    },
+    { "type": "google_service_account", "scopes": ["https://www.googleapis.com/auth/webmasters"] }
+  ],
+  "actions": [
+    {
+      "key": "search_analytics",
+      "name": "Query search analytics",
+      "description": "Clicks, impressions, CTR and position grouped by query, page, country...",
+      "method": "POST",
+      "endpoint": "/webmasters/v3/sites/{{ inputs.site_url }}/searchAnalytics/query",
+      "body": {
+        "startDate": "{{ inputs.start_date }}",
+        "endDate": "{{ inputs.end_date }}",
+        "dimensions": "{{ inputs.dimensions }}",
+        "type": "{{ inputs.type }}",
+        "rowLimit": "{{ inputs.row_limit }}",
+        "dimensionFilterGroups": "{{ inputs.filters }}"
+      },
+      "output_path": "rows",
+      "inputs": [
+        { "key": "site_url", "label": "Property", "type": "string", "required": true, "placeholder": "sc-domain:example.com or https://www.example.com/" },
+        { "key": "start_date", "label": "Start date (YYYY-MM-DD)", "type": "string", "required": true },
+        { "key": "end_date", "label": "End date (YYYY-MM-DD)", "type": "string", "required": true },
+        { "key": "dimensions", "label": "Dimensions", "type": "list", "placeholder": "query", "help": "query, page, country, device, date, searchAppearance" },
+        { "key": "type", "label": "Search type", "type": "select", "default": "web", "options": [
+          { "value": "web", "label": "Web" }, { "value": "image", "label": "Image" }, { "value": "video", "label": "Video" },
+          { "value": "news", "label": "News" }, { "value": "discover", "label": "Discover" }, { "value": "googleNews", "label": "Google News" }
+        ] },
+        { "key": "row_limit", "label": "Row limit (max 25000)", "type": "number", "default": 1000 },
+        { "key": "filters", "label": "Dimension filter groups", "type": "json", "placeholder": "[{ \"filters\": [{ \"dimension\": \"page\", \"operator\": \"contains\", \"expression\": \"/blog/\" }] }]" }
+      ]
+    },
+    {
+      "key": "inspect_url",
+      "name": "Inspect URL",
+      "description": "Index status, coverage and mobile usability for one URL.",
+      "method": "POST",
+      "endpoint": "/v1/urlInspection/index:inspect",
+      "body": { "inspectionUrl": "{{ inputs.url }}", "siteUrl": "{{ inputs.site_url }}", "languageCode": "{{ inputs.language }}" },
+      "output_path": "inspectionResult",
+      "inputs": [
+        { "key": "url", "label": "URL to inspect", "type": "string", "required": true },
+        { "key": "site_url", "label": "Property", "type": "string", "required": true, "placeholder": "sc-domain:example.com" },
+        { "key": "language", "label": "Language", "type": "string", "placeholder": "en-US" }
+      ]
+    },
+    {
+      "key": "list_sites",
+      "name": "List properties",
+      "method": "GET",
+      "endpoint": "/webmasters/v3/sites",
+      "output_path": "siteEntry",
+      "inputs": []
+    },
+    {
+      "key": "list_sitemaps",
+      "name": "List sitemaps",
+      "method": "GET",
+      "endpoint": "/webmasters/v3/sites/{{ inputs.site_url }}/sitemaps",
+      "output_path": "sitemap",
+      "inputs": [{ "key": "site_url", "label": "Property", "type": "string", "required": true }]
+    },
+    {
+      "key": "submit_sitemap",
+      "name": "Submit sitemap",
+      "method": "PUT",
+      "endpoint": "/webmasters/v3/sites/{{ inputs.site_url }}/sitemaps/{{ inputs.sitemap_url }}",
+      "inputs": [
+        { "key": "site_url", "label": "Property", "type": "string", "required": true },
+        { "key": "sitemap_url", "label": "Sitemap URL", "type": "string", "required": true, "placeholder": "https://www.example.com/sitemap.xml" }
+      ]
+    }
+  ]
+}

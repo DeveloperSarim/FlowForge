@@ -1,0 +1,206 @@
+{
+  "key": "campaign_monitor",
+  "name": "Campaign Monitor",
+  "category": "Marketing & Email",
+  "description": "Add, find and unsubscribe subscribers; send smart transactional email.",
+  "brand": "campaignmonitor",
+  "website": "https://www.campaignmonitor.com",
+  "docs_url": "https://www.campaignmonitor.com/api/v3-3/",
+  "base_url": "https://api.createsend.com/api/v3.3",
+  "auth": {
+    "type": "basic",
+    "fields": [
+      {
+        "key": "username",
+        "label": "API key",
+        "type": "password",
+        "required": true
+      },
+      {
+        "key": "password",
+        "label": "Password",
+        "type": "password",
+        "required": false,
+        "default": "x",
+        "help": "Any value; leave as x."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "add_subscriber",
+      "name": "Add or update subscriber",
+      "method": "POST",
+      "endpoint": "/subscribers/{{ inputs.list_id }}.json",
+      "body": {
+        "EmailAddress": "{{ inputs.email }}",
+        "Name": "{{ inputs.name }}",
+        "ConsentToTrack": "{{ inputs.consent }}",
+        "Resubscribe": "{{ inputs.resubscribe }}"
+      },
+      "inputs": [
+        {
+          "key": "list_id",
+          "label": "List ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string"
+        },
+        {
+          "key": "consent",
+          "label": "Consent to track",
+          "type": "select",
+          "required": true,
+          "options": [
+            {
+              "value": "Yes",
+              "label": "Yes"
+            },
+            {
+              "value": "No",
+              "label": "No"
+            },
+            {
+              "value": "Unchanged",
+              "label": "Unchanged"
+            }
+          ],
+          "default": "Unchanged"
+        },
+        {
+          "key": "resubscribe",
+          "label": "Resubscribe if unsubscribed",
+          "type": "boolean",
+          "default": true
+        }
+      ]
+    },
+    {
+      "key": "get_subscriber",
+      "name": "Get subscriber",
+      "method": "GET",
+      "endpoint": "/subscribers/{{ inputs.list_id }}.json",
+      "query": {
+        "email": "{{ inputs.email }}"
+      },
+      "inputs": [
+        {
+          "key": "list_id",
+          "label": "List ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "unsubscribe",
+      "name": "Unsubscribe",
+      "method": "POST",
+      "endpoint": "/subscribers/{{ inputs.list_id }}/unsubscribe.json",
+      "body": {
+        "EmailAddress": "{{ inputs.email }}"
+      },
+      "inputs": [
+        {
+          "key": "list_id",
+          "label": "List ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "send_smart_email",
+      "name": "Send smart transactional email",
+      "method": "POST",
+      "endpoint": "/transactional/smartEmail/{{ inputs.smart_email_id }}/send",
+      "body": {
+        "To": [
+          "{{ inputs.to }}"
+        ],
+        "Data": "{{ inputs.data }}",
+        "ConsentToTrack": "{{ inputs.consent }}"
+      },
+      "inputs": [
+        {
+          "key": "smart_email_id",
+          "label": "Smart email ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "to",
+          "label": "To",
+          "type": "string",
+          "required": true,
+          "placeholder": "Ada <ada@example.com>"
+        },
+        {
+          "key": "data",
+          "label": "Data",
+          "type": "json",
+          "placeholder": "{\"name\": \"Ada\"}"
+        },
+        {
+          "key": "consent",
+          "label": "Consent to track",
+          "type": "select",
+          "required": true,
+          "options": [
+            {
+              "value": "Yes",
+              "label": "Yes"
+            },
+            {
+              "value": "No",
+              "label": "No"
+            },
+            {
+              "value": "Unchanged",
+              "label": "Unchanged"
+            }
+          ],
+          "default": "Unchanged"
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "List webhook",
+      "type": "webhook",
+      "description": "List webhooks (subscribe, update, deactivate).",
+      "data_path": "Events",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

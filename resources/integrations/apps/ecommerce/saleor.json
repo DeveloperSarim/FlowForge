@@ -1,0 +1,104 @@
+{
+  "key": "saleor",
+  "name": "Saleor",
+  "category": "E-commerce",
+  "description": "Run GraphQL queries and read orders on a Saleor commerce API.",
+  "brand": "saleor",
+  "website": "https://saleor.io",
+  "docs_url": "https://docs.saleor.io/api-reference",
+  "base_url": "{{ credentials.url }}",
+  "auth": [
+    {
+      "type": "bearer",
+      "fields": [
+        {
+          "key": "url",
+          "label": "Instance URL",
+          "type": "string",
+          "required": true,
+          "placeholder": "https://my-store.saleor.cloud",
+          "help": "Without /graphql/ and without a trailing slash."
+        },
+        {
+          "key": "token",
+          "label": "App token",
+          "type": "password",
+          "required": true,
+          "help": "Dashboard > Extensions > add a local app and create a token (needs MANAGE_ORDERS)."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "graphql",
+      "name": "Run GraphQL query",
+      "method": "POST",
+      "endpoint": "/graphql/",
+      "error_path": "errors",
+      "body": {
+        "query": "{{ inputs.query }}",
+        "variables": "{{ inputs.variables }}"
+      },
+      "inputs": [
+        {
+          "key": "query",
+          "label": "Query",
+          "type": "code",
+          "required": true,
+          "placeholder": "query { shop { name } }"
+        },
+        {
+          "key": "variables",
+          "label": "Variables",
+          "type": "json"
+        }
+      ]
+    },
+    {
+      "key": "get_order",
+      "name": "Get order",
+      "method": "POST",
+      "endpoint": "/graphql/",
+      "output_path": "data.order",
+      "error_path": "errors",
+      "body": {
+        "query": "query Order($id: ID!) { order(id: $id) { id number created status userEmail total { gross { amount currency } } lines { productName variantName quantity } } }",
+        "variables": {
+          "id": "{{ inputs.order_id }}"
+        }
+      },
+      "inputs": [
+        {
+          "key": "order_id",
+          "label": "Order ID",
+          "type": "string",
+          "required": true,
+          "help": "The GraphQL ID (base64), e.g. from the New order trigger."
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_order",
+      "name": "New order",
+      "type": "polling",
+      "method": "POST",
+      "endpoint": "/graphql/",
+      "body": {
+        "query": "query { orders(first: 50, sortBy: {field: NUMBER, direction: DESC}) { edges { node { id number created status userEmail total { gross { amount currency } } lines { productName variantName quantity } } } } }"
+      },
+      "items_path": "data.orders.edges",
+      "id_field": "node.id",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,71 @@
+{
+  "key": "xano",
+  "name": "Xano",
+  "category": "Databases",
+  "description": "Browse and add table records in a Xano workspace via the Metadata API.",
+  "brand": "xano",
+  "website": "https://www.xano.com",
+  "docs_url": "https://docs.xano.com/xano-features/metadata-api",
+  "base_url": "{{ credentials.instance_url }}/api:meta",
+  "auth": { "type": "bearer", "fields": [
+    { "key": "instance_url", "label": "Instance URL", "type": "string", "required": true, "placeholder": "https://x8ki-letl-twmt.n7.xano.io", "help": "Your instance origin, no trailing slash." },
+    { "key": "token", "label": "Metadata API access token", "type": "password", "required": true, "help": "Instance settings → Metadata API → New Access Token (give it Workspace Content scopes)." }
+  ] },
+  "actions": [
+    {
+      "key": "list_workspaces",
+      "name": "List workspaces",
+      "method": "GET",
+      "endpoint": "/workspace",
+      "inputs": []
+    },
+    {
+      "key": "list_tables",
+      "name": "List tables",
+      "method": "GET",
+      "endpoint": "/workspace/{{ inputs.workspace_id }}/table",
+      "query": { "page": "{{ inputs.page }}", "per_page": "{{ inputs.per_page }}" },
+      "inputs": [
+        { "key": "workspace_id", "label": "Workspace ID", "type": "number", "required": true },
+        { "key": "page", "label": "Page", "type": "number" },
+        { "key": "per_page", "label": "Per page", "type": "number" }
+      ]
+    },
+    {
+      "key": "list_records",
+      "name": "List records",
+      "method": "GET",
+      "endpoint": "/workspace/{{ inputs.workspace_id }}/table/{{ inputs.table_id }}/content",
+      "query": { "page": "{{ inputs.page }}", "per_page": "{{ inputs.per_page }}" },
+      "inputs": [
+        { "key": "workspace_id", "label": "Workspace ID", "type": "number", "required": true },
+        { "key": "table_id", "label": "Table ID", "type": "number", "required": true },
+        { "key": "page", "label": "Page", "type": "number" },
+        { "key": "per_page", "label": "Per page", "type": "number" }
+      ]
+    },
+    {
+      "key": "get_record",
+      "name": "Get record",
+      "method": "GET",
+      "endpoint": "/workspace/{{ inputs.workspace_id }}/table/{{ inputs.table_id }}/content/{{ inputs.record_id }}",
+      "inputs": [
+        { "key": "workspace_id", "label": "Workspace ID", "type": "number", "required": true },
+        { "key": "table_id", "label": "Table ID", "type": "number", "required": true },
+        { "key": "record_id", "label": "Record ID", "type": "string", "required": true }
+      ]
+    },
+    {
+      "key": "create_record",
+      "name": "Create record",
+      "method": "POST",
+      "endpoint": "/workspace/{{ inputs.workspace_id }}/table/{{ inputs.table_id }}/content",
+      "body": "{{ inputs.data }}",
+      "inputs": [
+        { "key": "workspace_id", "label": "Workspace ID", "type": "number", "required": true },
+        { "key": "table_id", "label": "Table ID", "type": "number", "required": true },
+        { "key": "data", "label": "Fields (JSON)", "type": "json", "required": true, "placeholder": "{ \"name\": \"Ada\" }" }
+      ]
+    }
+  ]
+}

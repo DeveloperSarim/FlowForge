@@ -1,0 +1,240 @@
+{
+  "key": "black_forest_labs",
+  "name": "Black Forest Labs (FLUX)",
+  "category": "AI",
+  "description": "Generate and edit images with FLUX models.",
+  "brand": "blackforestlabs",
+  "website": "https://bfl.ai",
+  "docs_url": "https://docs.bfl.ai",
+  "popular": true,
+  "base_url": "https://api.bfl.ai/v1",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "x-key",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "generate_image",
+      "name": "Generate image",
+      "description": "Starts a generation; pass {{ steps.<id>.polling_url }} to Get result.",
+      "method": "POST",
+      "endpoint": "/{{ inputs.model }}",
+      "body": {
+        "prompt": "{{ inputs.prompt }}",
+        "width": "{{ inputs.width }}",
+        "height": "{{ inputs.height }}",
+        "input_image": "{{ inputs.input_image }}",
+        "seed": "{{ inputs.seed }}",
+        "safety_tolerance": "{{ inputs.safety_tolerance }}",
+        "output_format": "{{ inputs.output_format }}",
+        "webhook_url": "{{ inputs.webhook_url }}"
+      },
+      "inputs": [
+        {
+          "key": "model",
+          "label": "Model",
+          "type": "select",
+          "required": true,
+          "default": "flux-2-pro",
+          "options": [
+            {
+              "value": "flux-2-pro",
+              "label": "FLUX.2 [pro]"
+            },
+            {
+              "value": "flux-2-max",
+              "label": "FLUX.2 [max]"
+            },
+            {
+              "value": "flux-2-flex",
+              "label": "FLUX.2 [flex]"
+            },
+            {
+              "value": "flux-pro-1.1",
+              "label": "FLUX1.1 [pro]"
+            }
+          ]
+        },
+        {
+          "key": "prompt",
+          "label": "Prompt",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "width",
+          "label": "Width",
+          "type": "number",
+          "placeholder": "1024"
+        },
+        {
+          "key": "height",
+          "label": "Height",
+          "type": "number",
+          "placeholder": "1024"
+        },
+        {
+          "key": "input_image",
+          "label": "Input image (URL or base64)",
+          "type": "string",
+          "help": "FLUX.2 models only: edit or reference this image."
+        },
+        {
+          "key": "seed",
+          "label": "Seed",
+          "type": "number"
+        },
+        {
+          "key": "safety_tolerance",
+          "label": "Safety tolerance (0-5)",
+          "type": "number",
+          "placeholder": "2"
+        },
+        {
+          "key": "output_format",
+          "label": "Output format",
+          "type": "select",
+          "options": [
+            {
+              "value": "jpeg",
+              "label": "JPEG"
+            },
+            {
+              "value": "png",
+              "label": "PNG"
+            },
+            {
+              "value": "webp",
+              "label": "WebP"
+            }
+          ]
+        },
+        {
+          "key": "webhook_url",
+          "label": "Webhook URL",
+          "type": "string",
+          "help": "Optional: BFL posts the result here when ready."
+        }
+      ]
+    },
+    {
+      "key": "edit_image",
+      "name": "Edit image (Kontext)",
+      "description": "Starts an edit; pass {{ steps.<id>.polling_url }} to Get result.",
+      "method": "POST",
+      "endpoint": "/{{ inputs.model }}",
+      "body": {
+        "prompt": "{{ inputs.prompt }}",
+        "input_image": "{{ inputs.input_image }}",
+        "aspect_ratio": "{{ inputs.aspect_ratio }}",
+        "seed": "{{ inputs.seed }}",
+        "safety_tolerance": "{{ inputs.safety_tolerance }}",
+        "output_format": "{{ inputs.output_format }}",
+        "webhook_url": "{{ inputs.webhook_url }}"
+      },
+      "inputs": [
+        {
+          "key": "model",
+          "label": "Model",
+          "type": "select",
+          "required": true,
+          "default": "flux-kontext-pro",
+          "options": [
+            {
+              "value": "flux-kontext-pro",
+              "label": "FLUX.1 Kontext [pro]"
+            },
+            {
+              "value": "flux-kontext-max",
+              "label": "FLUX.1 Kontext [max]"
+            }
+          ]
+        },
+        {
+          "key": "prompt",
+          "label": "Edit instruction",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "input_image",
+          "label": "Input image (URL or base64)",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "aspect_ratio",
+          "label": "Aspect ratio",
+          "type": "string",
+          "placeholder": "16:9"
+        },
+        {
+          "key": "seed",
+          "label": "Seed",
+          "type": "number"
+        },
+        {
+          "key": "safety_tolerance",
+          "label": "Safety tolerance (0-5)",
+          "type": "number",
+          "placeholder": "2"
+        },
+        {
+          "key": "output_format",
+          "label": "Output format",
+          "type": "select",
+          "options": [
+            {
+              "value": "jpeg",
+              "label": "JPEG"
+            },
+            {
+              "value": "png",
+              "label": "PNG"
+            },
+            {
+              "value": "webp",
+              "label": "WebP"
+            }
+          ]
+        },
+        {
+          "key": "webhook_url",
+          "label": "Webhook URL",
+          "type": "string",
+          "help": "Optional: BFL posts the result here when ready."
+        }
+      ]
+    },
+    {
+      "key": "get_result",
+      "name": "Get result",
+      "description": "Image URL (valid 10 min) is {{ steps.<id>.image_url }} once status is Ready.",
+      "method": "GET",
+      "endpoint": "{{ inputs.polling_url }}",
+      "output_fields": {
+        "status": "status",
+        "image_url": "result.sample"
+      },
+      "inputs": [
+        {
+          "key": "polling_url",
+          "label": "Polling URL",
+          "type": "string",
+          "required": true,
+          "placeholder": "{{ steps.generate.polling_url }}",
+          "help": "The polling_url returned by Generate image or Edit image."
+        }
+      ]
+    }
+  ]
+}

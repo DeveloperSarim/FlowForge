@@ -1,0 +1,100 @@
+{
+  "key": "twilio",
+  "name": "Twilio",
+  "category": "Communication",
+  "description": "Send SMS/MMS, place calls and read message history with Twilio.",
+  "brand": "twilio",
+  "website": "https://www.twilio.com",
+  "docs_url": "https://www.twilio.com/docs/messaging/api/message-resource",
+  "popular": true,
+  "base_url": "https://api.twilio.com/2010-04-01/Accounts/{{ credentials.username }}",
+  "auth": [
+    {
+      "type": "basic",
+      "fields": [
+        { "key": "username", "label": "Account SID", "type": "string", "required": true, "placeholder": "AC…" },
+        { "key": "password", "label": "Auth Token", "type": "password", "required": true }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "send_sms",
+      "name": "Send SMS / MMS",
+      "method": "POST",
+      "endpoint": "/Messages.json",
+      "body_format": "form",
+      "body": {
+        "To": "{{ inputs.to }}",
+        "From": "{{ inputs.from }}",
+        "MessagingServiceSid": "{{ inputs.messaging_service_sid }}",
+        "Body": "{{ inputs.body }}",
+        "MediaUrl": "{{ inputs.media_url }}"
+      },
+      "inputs": [
+        { "key": "to", "label": "To", "type": "string", "required": true, "placeholder": "+15551234567", "help": "E.164 format. Use whatsapp:+1555… for WhatsApp." },
+        { "key": "from", "label": "From", "type": "string", "placeholder": "+15557654321", "help": "A Twilio number. Leave empty if you set a Messaging Service SID." },
+        { "key": "messaging_service_sid", "label": "Messaging Service SID", "type": "string", "placeholder": "MG…" },
+        { "key": "body", "label": "Message", "type": "text", "required": true },
+        { "key": "media_url", "label": "Media URL (MMS)", "type": "string" }
+      ]
+    },
+    {
+      "key": "make_call",
+      "name": "Make phone call",
+      "method": "POST",
+      "endpoint": "/Calls.json",
+      "body_format": "form",
+      "body": { "To": "{{ inputs.to }}", "From": "{{ inputs.from }}", "Twiml": "{{ inputs.twiml }}", "Url": "{{ inputs.url }}" },
+      "inputs": [
+        { "key": "to", "label": "To", "type": "string", "required": true, "placeholder": "+15551234567" },
+        { "key": "from", "label": "From (Twilio number)", "type": "string", "required": true },
+        { "key": "twiml", "label": "TwiML", "type": "code", "placeholder": "<Response><Say>Hello from FlowForge</Say></Response>", "help": "Set this or a TwiML URL." },
+        { "key": "url", "label": "Or TwiML URL", "type": "string" }
+      ]
+    },
+    {
+      "key": "get_message",
+      "name": "Get message",
+      "method": "GET",
+      "endpoint": "/Messages/{{ inputs.message_sid }}.json",
+      "inputs": [{ "key": "message_sid", "label": "Message SID", "type": "string", "required": true, "placeholder": "SM…" }]
+    },
+    {
+      "key": "list_messages",
+      "name": "List messages",
+      "method": "GET",
+      "endpoint": "/Messages.json",
+      "query": { "To": "{{ inputs.to }}", "From": "{{ inputs.from }}", "PageSize": "{{ inputs.page_size }}" },
+      "output_path": "messages",
+      "inputs": [
+        { "key": "to", "label": "To", "type": "string" },
+        { "key": "from", "label": "From", "type": "string" },
+        { "key": "page_size", "label": "Max results", "type": "number", "default": 20 }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_incoming_sms",
+      "name": "New incoming SMS",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/Messages.json",
+      "query": { "To": "{{ inputs.to }}", "PageSize": 20 },
+      "items_path": "messages",
+      "id_field": "sid",
+      "inputs": [
+        { "key": "to", "label": "Your Twilio number", "type": "string", "required": true, "placeholder": "+15557654321" },
+        { "key": "poll_interval", "label": "Check every (minutes)", "type": "number", "default": 5 }
+      ]
+    },
+    {
+      "key": "incoming_webhook",
+      "name": "Incoming message / call webhook",
+      "description": "Paste this URL as the number's \"A message comes in\" or \"A call comes in\" webhook.",
+      "type": "webhook",
+      "inputs": [{ "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }]
+    }
+  ]
+}

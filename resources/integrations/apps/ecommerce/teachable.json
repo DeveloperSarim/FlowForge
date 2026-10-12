@@ -1,0 +1,168 @@
+{
+  "key": "teachable",
+  "name": "Teachable",
+  "category": "E-commerce",
+  "description": "List courses and students, enroll users and read transactions in Teachable.",
+  "brand": "teachable",
+  "website": "https://teachable.com",
+  "docs_url": "https://docs.teachable.com/",
+  "base_url": "https://developers.teachable.com/v1",
+  "auth": [
+    {
+      "type": "api_key",
+      "in": "header",
+      "name": "apiKey",
+      "fields": [
+        {
+          "key": "api_key",
+          "label": "API key",
+          "type": "password",
+          "required": true,
+          "help": "School admin > Settings > API."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_courses",
+      "name": "List courses",
+      "method": "GET",
+      "endpoint": "/courses",
+      "output_path": "courses",
+      "query": {
+        "name": "{{ inputs.name }}",
+        "is_published": "{{ inputs.is_published }}"
+      },
+      "inputs": [
+        {
+          "key": "name",
+          "label": "Name contains",
+          "type": "string"
+        },
+        {
+          "key": "is_published",
+          "label": "Published",
+          "type": "select",
+          "options": [
+            {
+              "value": "true",
+              "label": "Published"
+            },
+            {
+              "value": "false",
+              "label": "Unpublished"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "find_users",
+      "name": "Find users",
+      "method": "GET",
+      "endpoint": "/users",
+      "output_path": "users",
+      "query": {
+        "email": "{{ inputs.email }}"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "get_user",
+      "name": "Get user",
+      "method": "GET",
+      "endpoint": "/users/{{ inputs.user_id }}",
+      "inputs": [
+        {
+          "key": "user_id",
+          "label": "User ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "enroll_user",
+      "name": "Enroll user in course",
+      "method": "POST",
+      "endpoint": "/enroll",
+      "body": {
+        "user_id": "{{ inputs.user_id }}",
+        "course_id": "{{ inputs.course_id }}"
+      },
+      "inputs": [
+        {
+          "key": "user_id",
+          "label": "User ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "course_id",
+          "label": "Course ID",
+          "type": "number",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_transactions",
+      "name": "List transactions",
+      "method": "GET",
+      "endpoint": "/transactions",
+      "output_path": "transactions",
+      "query": {
+        "user_id": "{{ inputs.user_id }}",
+        "course_id": "{{ inputs.course_id }}",
+        "start": "{{ inputs.start }}",
+        "end": "{{ inputs.end }}"
+      },
+      "inputs": [
+        {
+          "key": "user_id",
+          "label": "User ID",
+          "type": "string"
+        },
+        {
+          "key": "course_id",
+          "label": "Course ID",
+          "type": "string"
+        },
+        {
+          "key": "start",
+          "label": "Start date",
+          "type": "string",
+          "placeholder": "2025-01-01"
+        },
+        {
+          "key": "end",
+          "label": "End date",
+          "type": "string"
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Settings > Webhooks: add this URL and choose events (e.g. new enrollment, new sale).",
+      "data_path": "object",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

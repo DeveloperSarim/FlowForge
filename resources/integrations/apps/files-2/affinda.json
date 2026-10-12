@@ -1,0 +1,165 @@
+{
+  "key": "affinda",
+  "name": "Affinda",
+  "category": "Files & Documents",
+  "description": "Read parsed resumes, invoices and other documents from Affinda.",
+  "brand": "affinda",
+  "website": "https://www.affinda.com",
+  "docs_url": "https://docs.affinda.com/reference",
+  "base_url": "https://{{ credentials.region }}.affinda.com/v3",
+  "auth": [
+    {
+      "type": "bearer",
+      "fields": [
+        {
+          "key": "region",
+          "label": "Region",
+          "type": "select",
+          "required": true,
+          "default": "api",
+          "options": [
+            {
+              "value": "api",
+              "label": "Global / Australia (api)"
+            },
+            {
+              "value": "api.us1",
+              "label": "United States (api.us1)"
+            },
+            {
+              "value": "api.eu1",
+              "label": "Europe (api.eu1)"
+            }
+          ],
+          "help": "Match the host of your Affinda web app."
+        },
+        {
+          "key": "token",
+          "label": "API key",
+          "type": "password",
+          "required": true,
+          "help": "Settings > API keys."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_documents",
+      "name": "List documents",
+      "method": "GET",
+      "endpoint": "/documents",
+      "query": {
+        "workspace": "{{ inputs.workspace }}",
+        "collection": "{{ inputs.collection }}",
+        "search": "{{ inputs.search }}",
+        "limit": "{{ inputs.limit }}",
+        "offset": "{{ inputs.offset }}"
+      },
+      "inputs": [
+        {
+          "key": "workspace",
+          "label": "Workspace ID",
+          "type": "string"
+        },
+        {
+          "key": "collection",
+          "label": "Collection ID",
+          "type": "string"
+        },
+        {
+          "key": "search",
+          "label": "Search",
+          "type": "string"
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number"
+        },
+        {
+          "key": "offset",
+          "label": "Offset",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "get_document",
+      "name": "Get document",
+      "method": "GET",
+      "endpoint": "/documents/{{ inputs.identifier }}",
+      "query": {
+        "compact": "{{ inputs.compact }}"
+      },
+      "inputs": [
+        {
+          "key": "identifier",
+          "label": "Document identifier",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "compact",
+          "label": "Compact result",
+          "type": "select",
+          "options": [
+            {
+              "value": "true",
+              "label": "Yes"
+            },
+            {
+              "value": "false",
+              "label": "No"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "delete_document",
+      "name": "Delete document",
+      "method": "DELETE",
+      "endpoint": "/documents/{{ inputs.identifier }}",
+      "inputs": [
+        {
+          "key": "identifier",
+          "label": "Document identifier",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_workspaces",
+      "name": "List workspaces",
+      "method": "GET",
+      "endpoint": "/workspaces",
+      "query": {
+        "organization": "{{ inputs.organization }}"
+      },
+      "inputs": [
+        {
+          "key": "organization",
+          "label": "Organization ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

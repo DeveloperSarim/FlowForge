@@ -1,0 +1,197 @@
+{
+  "key": "lattice",
+  "name": "Lattice",
+  "category": "HR & Recruiting",
+  "description": "List users, goals, review cycles and departments, and create goals in Lattice.",
+  "brand": "lattice",
+  "website": "https://lattice.com",
+  "docs_url": "https://developers.lattice.com",
+  "base_url": "https://api.latticehq.com/v1",
+  "auth": [
+    {
+      "type": "bearer",
+      "fields": [
+        {
+          "key": "token",
+          "label": "API key",
+          "type": "password",
+          "required": true,
+          "help": "Admin > Settings > API keys."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "get_me",
+      "name": "Get API user",
+      "method": "GET",
+      "endpoint": "/me",
+      "inputs": []
+    },
+    {
+      "key": "list_users",
+      "name": "List users",
+      "method": "GET",
+      "endpoint": "/users",
+      "query": {
+        "status": "{{ inputs.status }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "options": [
+            {
+              "value": "ACTIVE",
+              "label": "Active"
+            },
+            {
+              "value": "INVITED",
+              "label": "Invited"
+            },
+            {
+              "value": "CREATED",
+              "label": "Created"
+            },
+            {
+              "value": "DEACTIVATED",
+              "label": "Deactivated"
+            }
+          ]
+        },
+        {
+          "key": "limit",
+          "label": "Max results",
+          "type": "number",
+          "default": 100
+        }
+      ]
+    },
+    {
+      "key": "get_user",
+      "name": "Get user",
+      "method": "GET",
+      "endpoint": "/user/{{ inputs.user_id }}",
+      "inputs": [
+        {
+          "key": "user_id",
+          "label": "User ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_goals",
+      "name": "List goals",
+      "method": "GET",
+      "endpoint": "/goals",
+      "query": {
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "limit",
+          "label": "Max results",
+          "type": "number",
+          "default": 100
+        }
+      ]
+    },
+    {
+      "key": "create_goal",
+      "name": "Create goal",
+      "method": "POST",
+      "endpoint": "/goals",
+      "body": {
+        "name": "{{ inputs.name }}",
+        "startDate": "{{ inputs.start_date }}",
+        "dueDate": "{{ inputs.due_date }}",
+        "ownerIds": "{{ inputs.owner_ids }}",
+        "description": "{{ inputs.description }}",
+        "goalCycleId": "{{ inputs.goal_cycle_id }}"
+      },
+      "inputs": [
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "start_date",
+          "label": "Start date",
+          "type": "string",
+          "required": true,
+          "placeholder": "2026-10-01"
+        },
+        {
+          "key": "due_date",
+          "label": "Due date",
+          "type": "string",
+          "required": true,
+          "placeholder": "2026-12-31"
+        },
+        {
+          "key": "owner_ids",
+          "label": "Owner user IDs",
+          "type": "list",
+          "required": true
+        },
+        {
+          "key": "description",
+          "label": "Description",
+          "type": "text"
+        },
+        {
+          "key": "goal_cycle_id",
+          "label": "Goal cycle ID",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "list_review_cycles",
+      "name": "List review cycles",
+      "method": "GET",
+      "endpoint": "/reviewCycles",
+      "output_path": "data",
+      "inputs": []
+    },
+    {
+      "key": "list_departments",
+      "name": "List departments",
+      "method": "GET",
+      "endpoint": "/departments",
+      "output_path": "data",
+      "inputs": []
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_user",
+      "name": "New user",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/users",
+      "query": {
+        "limit": 50
+      },
+      "items_path": "data",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

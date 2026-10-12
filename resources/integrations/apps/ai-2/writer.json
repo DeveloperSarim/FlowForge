@@ -1,0 +1,130 @@
+{
+  "key": "writer",
+  "name": "Writer",
+  "category": "AI",
+  "description": "Chat with Palmyra models, run no-code agents and list Knowledge Graphs.",
+  "brand": "writer",
+  "website": "https://writer.com",
+  "docs_url": "https://dev.writer.com/api-reference",
+  "base_url": "https://api.writer.com/v1",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "API key",
+        "type": "password",
+        "required": true
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "chat_completion",
+      "name": "Chat completion",
+      "description": "Send a prompt and get the reply as {{ steps.<id>.text }}.",
+      "method": "POST",
+      "endpoint": "/chat",
+      "timeout": 300,
+      "body": {
+        "model": "{{ inputs.model }}",
+        "messages": [
+          {
+            "role": "system",
+            "content": "{{ inputs.system }}"
+          },
+          {
+            "role": "user",
+            "content": "{{ inputs.prompt }}"
+          }
+        ],
+        "temperature": "{{ inputs.temperature }}",
+        "max_tokens": "{{ inputs.max_tokens }}"
+      },
+      "output_fields": {
+        "text": "choices.0.message.content"
+      },
+      "inputs": [
+        {
+          "key": "model",
+          "label": "Model",
+          "type": "string",
+          "required": true,
+          "default": "palmyra-x6"
+        },
+        {
+          "key": "prompt",
+          "label": "Prompt",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "system",
+          "label": "System prompt",
+          "type": "text",
+          "required": true,
+          "default": "You are a helpful assistant.",
+          "help": "Sent as the system message."
+        },
+        {
+          "key": "temperature",
+          "label": "Temperature",
+          "type": "number",
+          "placeholder": "0.7"
+        },
+        {
+          "key": "max_tokens",
+          "label": "Max output tokens",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "generate_from_application",
+      "name": "Run no-code agent",
+      "description": "Generate content from a Writer no-code agent (application).",
+      "method": "POST",
+      "endpoint": "/applications/{{ inputs.application_id }}",
+      "timeout": 300,
+      "body": {
+        "inputs": "{{ inputs.inputs }}"
+      },
+      "output_fields": {
+        "text": "suggestion"
+      },
+      "inputs": [
+        {
+          "key": "application_id",
+          "label": "Application ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "inputs",
+          "label": "Inputs (JSON)",
+          "type": "json",
+          "required": true,
+          "placeholder": "[{\"id\": \"Topic\", \"value\": [\"Product launch\"]}]",
+          "help": "One entry per agent input: id is the input name, value is a list of strings."
+        }
+      ]
+    },
+    {
+      "key": "list_graphs",
+      "name": "List Knowledge Graphs",
+      "method": "GET",
+      "endpoint": "/graphs",
+      "query": {
+        "limit": "{{ inputs.limit }}"
+      },
+      "inputs": [
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    }
+  ]
+}

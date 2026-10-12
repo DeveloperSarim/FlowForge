@@ -1,0 +1,296 @@
+{
+  "key": "greenhouse",
+  "name": "Greenhouse",
+  "category": "HR & Recruiting",
+  "description": "Add candidates, notes and read jobs and applications via the Harvest API.",
+  "brand": "greenhouse",
+  "website": "https://www.greenhouse.com",
+  "docs_url": "https://developers.greenhouse.io/harvest.html",
+  "popular": true,
+  "base_url": "https://harvest.greenhouse.io/v1",
+  "auth": [
+    {
+      "type": "basic",
+      "fields": [
+        {
+          "key": "username",
+          "label": "Harvest API key",
+          "type": "password",
+          "required": true,
+          "help": "Configure > Dev Center > API Credential Management."
+        },
+        {
+          "key": "password",
+          "label": "Password",
+          "type": "password",
+          "required": false,
+          "default": "",
+          "help": "Leave empty."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_candidates",
+      "name": "List candidates",
+      "method": "GET",
+      "endpoint": "/candidates",
+      "query": {
+        "email": "{{ inputs.email }}",
+        "job_id": "{{ inputs.job_id }}",
+        "created_after": "{{ inputs.created_after }}",
+        "per_page": "{{ inputs.per_page }}"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string"
+        },
+        {
+          "key": "job_id",
+          "label": "Job ID",
+          "type": "string"
+        },
+        {
+          "key": "created_after",
+          "label": "Created after (ISO 8601)",
+          "type": "string"
+        },
+        {
+          "key": "per_page",
+          "label": "Per page",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    },
+    {
+      "key": "get_candidate",
+      "name": "Get candidate",
+      "method": "GET",
+      "endpoint": "/candidates/{{ inputs.candidate_id }}",
+      "inputs": [
+        {
+          "key": "candidate_id",
+          "label": "Candidate ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "create_candidate",
+      "name": "Create candidate",
+      "method": "POST",
+      "endpoint": "/candidates",
+      "headers": {
+        "On-Behalf-Of": "{{ inputs.on_behalf_of }}"
+      },
+      "body": {
+        "first_name": "{{ inputs.first_name }}",
+        "last_name": "{{ inputs.last_name }}",
+        "company": "{{ inputs.company }}",
+        "title": "{{ inputs.title }}",
+        "emails": [
+          {
+            "value": "{{ inputs.email }}",
+            "type": "personal"
+          }
+        ],
+        "applications": [
+          {
+            "job_id": "{{ inputs.job_id }}"
+          }
+        ]
+      },
+      "inputs": [
+        {
+          "key": "on_behalf_of",
+          "label": "Acting user ID",
+          "type": "number",
+          "required": true,
+          "help": "Greenhouse user ID recorded in the audit log."
+        },
+        {
+          "key": "first_name",
+          "label": "First name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "company",
+          "label": "Current company",
+          "type": "string"
+        },
+        {
+          "key": "title",
+          "label": "Current title",
+          "type": "string"
+        },
+        {
+          "key": "job_id",
+          "label": "Job ID",
+          "type": "number",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "add_note",
+      "name": "Add note to candidate",
+      "method": "POST",
+      "endpoint": "/candidates/{{ inputs.candidate_id }}/activity_feed/notes",
+      "headers": {
+        "On-Behalf-Of": "{{ inputs.on_behalf_of }}"
+      },
+      "body": {
+        "user_id": "{{ inputs.on_behalf_of }}",
+        "body": "{{ inputs.body }}",
+        "visibility": "{{ inputs.visibility }}"
+      },
+      "inputs": [
+        {
+          "key": "on_behalf_of",
+          "label": "Acting user ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "candidate_id",
+          "label": "Candidate ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "body",
+          "label": "Note",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "visibility",
+          "label": "Visibility",
+          "type": "select",
+          "required": true,
+          "options": [
+            {
+              "value": "admin_only",
+              "label": "Admin only"
+            },
+            {
+              "value": "private",
+              "label": "Private"
+            },
+            {
+              "value": "public",
+              "label": "Public"
+            }
+          ],
+          "default": "admin_only"
+        }
+      ]
+    },
+    {
+      "key": "list_jobs",
+      "name": "List jobs",
+      "method": "GET",
+      "endpoint": "/jobs",
+      "query": {
+        "status": "{{ inputs.status }}"
+      },
+      "inputs": [
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "options": [
+            {
+              "value": "open",
+              "label": "Open"
+            },
+            {
+              "value": "closed",
+              "label": "Closed"
+            },
+            {
+              "value": "draft",
+              "label": "Draft"
+            }
+          ],
+          "default": "open"
+        }
+      ]
+    },
+    {
+      "key": "list_applications",
+      "name": "List applications",
+      "method": "GET",
+      "endpoint": "/applications",
+      "query": {
+        "job_id": "{{ inputs.job_id }}",
+        "status": "{{ inputs.status }}",
+        "created_after": "{{ inputs.created_after }}"
+      },
+      "inputs": [
+        {
+          "key": "job_id",
+          "label": "Job ID",
+          "type": "string"
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "options": [
+            {
+              "value": "active",
+              "label": "Active"
+            },
+            {
+              "value": "rejected",
+              "label": "Rejected"
+            },
+            {
+              "value": "hired",
+              "label": "Hired"
+            }
+          ]
+        },
+        {
+          "key": "created_after",
+          "label": "Created after (ISO 8601)",
+          "type": "string"
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "data_path": "payload",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

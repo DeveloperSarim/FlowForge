@@ -1,0 +1,190 @@
+{
+  "key": "airship",
+  "name": "Airship",
+  "category": "Communication",
+  "description": "Send push notifications to devices or named users and tag named users in Airship.",
+  "brand": "airship",
+  "website": "https://www.airship.com",
+  "docs_url": "https://docs.airship.com/api/ua/",
+  "base_url": "https://{{ credentials.host }}/api",
+  "headers": {
+    "Accept": "application/vnd.urbanairship+json; version=3",
+    "X-UA-Appkey": "{{ credentials.app_key }}"
+  },
+  "auth": [
+    {
+      "type": "basic",
+      "fields": [
+        {
+          "key": "host",
+          "label": "Data center",
+          "type": "select",
+          "required": true,
+          "default": "go.urbanairship.com",
+          "options": [
+            {
+              "value": "go.urbanairship.com",
+              "label": "US (go.urbanairship.com)"
+            },
+            {
+              "value": "go.airship.eu",
+              "label": "EU (go.airship.eu)"
+            }
+          ]
+        },
+        {
+          "key": "username",
+          "label": "App key",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "password",
+          "label": "Master secret",
+          "type": "password",
+          "required": true
+        }
+      ]
+    },
+    {
+      "type": "bearer",
+      "fields": [
+        {
+          "key": "host",
+          "label": "Data center",
+          "type": "select",
+          "required": true,
+          "default": "go.urbanairship.com",
+          "options": [
+            {
+              "value": "go.urbanairship.com",
+              "label": "US (go.urbanairship.com)"
+            },
+            {
+              "value": "go.airship.eu",
+              "label": "EU (go.airship.eu)"
+            }
+          ]
+        },
+        {
+          "key": "app_key",
+          "label": "App key",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "token",
+          "label": "Bearer token",
+          "type": "password",
+          "required": true,
+          "help": "Airship dashboard → Settings → Tokens."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "send_push",
+      "name": "Send push notification",
+      "method": "POST",
+      "endpoint": "/push",
+      "body": {
+        "audience": "{{ inputs.audience }}",
+        "device_types": "{{ inputs.device_types }}",
+        "notification": {
+          "alert": "{{ inputs.alert }}"
+        }
+      },
+      "inputs": [
+        {
+          "key": "audience",
+          "label": "Audience (JSON)",
+          "type": "json",
+          "required": true,
+          "placeholder": "{\"tag\":\"vip\"}",
+          "help": "\"all\" (with quotes) to broadcast, or a selector such as {\"named_user\":\"user-1\"}."
+        },
+        {
+          "key": "device_types",
+          "label": "Device types",
+          "type": "list",
+          "required": true,
+          "placeholder": "ios",
+          "help": "ios, android, web, amazon…"
+        },
+        {
+          "key": "alert",
+          "label": "Message",
+          "type": "text",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "send_push_to_named_user",
+      "name": "Send push to named user",
+      "method": "POST",
+      "endpoint": "/push",
+      "body": {
+        "audience": {
+          "named_user": "{{ inputs.named_user }}"
+        },
+        "device_types": "{{ inputs.device_types }}",
+        "notification": {
+          "alert": "{{ inputs.alert }}"
+        }
+      },
+      "inputs": [
+        {
+          "key": "named_user",
+          "label": "Named user ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "device_types",
+          "label": "Device types",
+          "type": "list",
+          "required": true,
+          "placeholder": "ios"
+        },
+        {
+          "key": "alert",
+          "label": "Message",
+          "type": "text",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "add_named_user_tags",
+      "name": "Add tags to named user",
+      "method": "POST",
+      "endpoint": "/named_users/tags",
+      "body": {
+        "audience": {
+          "named_user_id": [
+            "{{ inputs.named_user }}"
+          ]
+        },
+        "add": "{{ inputs.add }}"
+      },
+      "inputs": [
+        {
+          "key": "named_user",
+          "label": "Named user ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "add",
+          "label": "Tags to add (JSON)",
+          "type": "json",
+          "required": true,
+          "placeholder": "{\"crm\":[\"vip\",\"beta\"]}",
+          "help": "Tag group names mapped to lists of tags."
+        }
+      ]
+    }
+  ]
+}

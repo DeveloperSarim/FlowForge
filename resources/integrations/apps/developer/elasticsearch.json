@@ -1,0 +1,98 @@
+{
+  "key": "elasticsearch",
+  "name": "Elasticsearch",
+  "category": "Developer Tools",
+  "description": "Index, search, get, update and delete documents.",
+  "brand": "elasticsearch",
+  "website": "https://www.elastic.co/elasticsearch",
+  "docs_url": "https://www.elastic.co/docs/api/doc/elasticsearch/",
+  "base_url": "{{ credentials.base_url }}",
+  "auth": [
+    { "type": "api_key", "in": "header", "name": "Authorization", "prefix": "ApiKey ", "fields": [
+      { "key": "base_url", "label": "Elasticsearch URL", "type": "string", "required": true, "placeholder": "https://my-deployment.es.us-east-1.aws.elastic.cloud", "help": "Elastic Cloud endpoint or self-hosted address (e.g. https://host:9200), without a trailing slash." },
+      { "key": "api_key", "label": "API key (encoded)", "type": "password", "required": true, "help": "The base64 \"encoded\" value shown when you create the key." }
+    ] },
+    { "type": "basic", "fields": [
+      { "key": "base_url", "label": "Elasticsearch URL", "type": "string", "required": true, "placeholder": "https://localhost:9200" },
+      { "key": "username", "label": "Username", "type": "string", "required": true, "default": "elastic" },
+      { "key": "password", "label": "Password", "type": "password", "required": true }
+    ] }
+  ],
+  "actions": [
+    {
+      "key": "search",
+      "name": "Search",
+      "method": "POST",
+      "endpoint": "/{{ inputs.index }}/_search",
+      "body": { "query": "{{ inputs.query }}", "size": "{{ inputs.size }}", "sort": "{{ inputs.sort }}" },
+      "output_fields": { "documents": "hits.hits.*._source" },
+      "inputs": [
+        { "key": "index", "label": "Index", "type": "string", "required": true, "help": "Comma-separated or wildcard patterns allowed (logs-*)." },
+        { "key": "query", "label": "Query DSL (JSON)", "type": "json", "placeholder": "{ \"match\": { \"title\": \"hello\" } }", "help": "Leave empty to match all." },
+        { "key": "size", "label": "Max hits", "type": "number", "default": 10 },
+        { "key": "sort", "label": "Sort (JSON)", "type": "json", "placeholder": "[{ \"@timestamp\": \"desc\" }]" }
+      ]
+    },
+    {
+      "key": "index_document",
+      "name": "Index document",
+      "description": "Adds a document with an auto-generated ID.",
+      "method": "POST",
+      "endpoint": "/{{ inputs.index }}/_doc",
+      "query": { "refresh": "{{ inputs.refresh }}" },
+      "body": "{{ inputs.document }}",
+      "inputs": [
+        { "key": "index", "label": "Index", "type": "string", "required": true },
+        { "key": "document", "label": "Document (JSON)", "type": "json", "required": true },
+        { "key": "refresh", "label": "Wait until searchable", "type": "select", "options": [{ "value": "wait_for", "label": "Yes" }] }
+      ]
+    },
+    {
+      "key": "put_document",
+      "name": "Create or replace document by ID",
+      "method": "PUT",
+      "endpoint": "/{{ inputs.index }}/_doc/{{ inputs.id }}",
+      "query": { "refresh": "{{ inputs.refresh }}" },
+      "body": "{{ inputs.document }}",
+      "inputs": [
+        { "key": "index", "label": "Index", "type": "string", "required": true },
+        { "key": "id", "label": "Document ID", "type": "string", "required": true },
+        { "key": "document", "label": "Document (JSON)", "type": "json", "required": true },
+        { "key": "refresh", "label": "Wait until searchable", "type": "select", "options": [{ "value": "wait_for", "label": "Yes" }] }
+      ]
+    },
+    {
+      "key": "get_document",
+      "name": "Get document",
+      "method": "GET",
+      "endpoint": "/{{ inputs.index }}/_doc/{{ inputs.id }}",
+      "inputs": [
+        { "key": "index", "label": "Index", "type": "string", "required": true },
+        { "key": "id", "label": "Document ID", "type": "string", "required": true }
+      ]
+    },
+    {
+      "key": "update_document",
+      "name": "Update document fields",
+      "method": "POST",
+      "endpoint": "/{{ inputs.index }}/_update/{{ inputs.id }}",
+      "body": { "doc": "{{ inputs.fields }}", "doc_as_upsert": "{{ inputs.upsert }}" },
+      "inputs": [
+        { "key": "index", "label": "Index", "type": "string", "required": true },
+        { "key": "id", "label": "Document ID", "type": "string", "required": true },
+        { "key": "fields", "label": "Fields to change (JSON)", "type": "json", "required": true },
+        { "key": "upsert", "label": "Create if missing", "type": "boolean", "default": false }
+      ]
+    },
+    {
+      "key": "delete_document",
+      "name": "Delete document",
+      "method": "DELETE",
+      "endpoint": "/{{ inputs.index }}/_doc/{{ inputs.id }}",
+      "inputs": [
+        { "key": "index", "label": "Index", "type": "string", "required": true },
+        { "key": "id", "label": "Document ID", "type": "string", "required": true }
+      ]
+    }
+  ]
+}

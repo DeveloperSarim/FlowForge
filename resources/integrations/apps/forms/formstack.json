@@ -1,0 +1,123 @@
+{
+  "key": "formstack",
+  "name": "Formstack",
+  "category": "Forms & Surveys",
+  "description": "Get new Formstack submissions and read forms and entries.",
+  "brand": "formstack",
+  "website": "https://www.formstack.com",
+  "docs_url": "https://developers.formstack.com/",
+  "base_url": "https://www.formstack.com/api/v2",
+  "auth": [
+    {
+      "type": "bearer",
+      "fields": [
+        {
+          "key": "token",
+          "label": "Access token",
+          "type": "password",
+          "required": true,
+          "help": "Settings > API > your application's access token"
+        }
+      ]
+    },
+    {
+      "type": "oauth2",
+      "authorize_url": "https://www.formstack.com/api/v2/oauth2/authorize",
+      "token_url": "https://www.formstack.com/api/v2/oauth2/token",
+      "scopes": []
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_forms",
+      "name": "List forms",
+      "method": "GET",
+      "endpoint": "/form.json",
+      "output_path": "forms",
+      "inputs": []
+    },
+    {
+      "key": "list_submissions",
+      "name": "List submissions",
+      "method": "GET",
+      "endpoint": "/form/{{ inputs.form_id }}/submission.json",
+      "output_path": "submissions",
+      "query": {
+        "per_page": "{{ inputs.per_page }}",
+        "sort": "DESC",
+        "data": "true"
+      },
+      "inputs": [
+        {
+          "key": "form_id",
+          "label": "Form ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "per_page",
+          "label": "Per page",
+          "type": "number",
+          "default": 25
+        }
+      ]
+    },
+    {
+      "key": "get_submission",
+      "name": "Get submission",
+      "method": "GET",
+      "endpoint": "/submission/{{ inputs.submission_id }}.json",
+      "inputs": [
+        {
+          "key": "submission_id",
+          "label": "Submission ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_submission",
+      "name": "New submission (polling)",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/form/{{ inputs.form_id }}/submission.json",
+      "query": {
+        "per_page": 25,
+        "sort": "DESC",
+        "data": "true"
+      },
+      "items_path": "submissions",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "form_id",
+          "label": "Form ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    },
+    {
+      "key": "new_submission_webhook",
+      "name": "New submission (webhook)",
+      "type": "webhook",
+      "description": "Form > Settings > Emails & Actions > Add a webhook with this URL.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

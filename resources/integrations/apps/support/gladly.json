@@ -1,0 +1,96 @@
+{
+  "key": "gladly",
+  "name": "Gladly",
+  "category": "Customer Support",
+  "description": "Create and find customer profiles in Gladly.",
+  "brand": "gladly",
+  "website": "https://www.gladly.com",
+  "docs_url": "https://developer.gladly.com/rest/",
+  "base_url": "https://{{ credentials.organization }}.gladly.com/api/v1",
+  "auth": {
+    "type": "basic",
+    "fields": [
+      {
+        "key": "organization",
+        "label": "Organization subdomain",
+        "type": "string",
+        "required": true,
+        "placeholder": "yourorg",
+        "help": "The part before .gladly.com"
+      },
+      {
+        "key": "username",
+        "label": "Agent email",
+        "type": "string",
+        "required": true
+      },
+      {
+        "key": "password",
+        "label": "API token",
+        "type": "password",
+        "required": true
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "create_customer",
+      "name": "Create customer",
+      "method": "POST",
+      "endpoint": "/customer-profiles",
+      "body": {
+        "name": "{{ inputs.name }}",
+        "emails": [
+          {
+            "original": "{{ inputs.email }}"
+          }
+        ]
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "find_customers",
+      "name": "Find customers by email",
+      "method": "GET",
+      "endpoint": "/customer-profiles",
+      "query": {
+        "email": "{{ inputs.email }}"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Register this URL as a webhook in Gladly's Settings > Webhooks.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,342 @@
+{
+  "key": "yousign",
+  "name": "Yousign",
+  "category": "Files & Documents",
+  "description": "Create signature requests, add signers, activate and track them.",
+  "brand": "yousign",
+  "website": "https://youtrust.com",
+  "docs_url": "https://developers.youtrust.com/reference",
+  "base_url": "https://{{ credentials.host }}/v3",
+  "auth": [
+    {
+      "type": "bearer",
+      "fields": [
+        {
+          "key": "host",
+          "label": "Environment",
+          "type": "select",
+          "required": true,
+          "default": "api.yousign.app",
+          "options": [
+            {
+              "value": "api.yousign.app",
+              "label": "Production"
+            },
+            {
+              "value": "api-sandbox.yousign.app",
+              "label": "Sandbox"
+            }
+          ]
+        },
+        {
+          "key": "token",
+          "label": "API key",
+          "type": "password",
+          "required": true,
+          "help": "Developers > API keys (Yousign is now Youtrust)."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "create_signature_request",
+      "name": "Create signature request",
+      "method": "POST",
+      "endpoint": "/signature_requests",
+      "body": {
+        "name": "{{ inputs.name }}",
+        "delivery_mode": "{{ inputs.delivery_mode }}",
+        "template_id": "{{ inputs.template_id }}",
+        "external_id": "{{ inputs.external_id }}",
+        "...": "{{ inputs.extra }}"
+      },
+      "inputs": [
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "delivery_mode",
+          "label": "Delivery mode",
+          "type": "select",
+          "options": [
+            {
+              "value": "email",
+              "label": "Email"
+            },
+            {
+              "value": "none",
+              "label": "None (embedded)"
+            }
+          ],
+          "required": true,
+          "default": "email"
+        },
+        {
+          "key": "template_id",
+          "label": "Template ID",
+          "type": "string"
+        },
+        {
+          "key": "external_id",
+          "label": "External ID",
+          "type": "string"
+        },
+        {
+          "key": "extra",
+          "label": "Other fields (JSON)",
+          "type": "json",
+          "placeholder": "{\"ordered_signers\": true, \"timezone\": \"Europe/Paris\"}"
+        }
+      ]
+    },
+    {
+      "key": "add_signer",
+      "name": "Add signer",
+      "method": "POST",
+      "endpoint": "/signature_requests/{{ inputs.signature_request_id }}/signers",
+      "body": {
+        "info": {
+          "first_name": "{{ inputs.first_name }}",
+          "last_name": "{{ inputs.last_name }}",
+          "email": "{{ inputs.email }}",
+          "locale": "{{ inputs.locale }}"
+        },
+        "signature_level": "{{ inputs.signature_level }}",
+        "signature_authentication_mode": "{{ inputs.authentication }}",
+        "fields": "{{ inputs.fields }}"
+      },
+      "inputs": [
+        {
+          "key": "signature_request_id",
+          "label": "Signature request ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "first_name",
+          "label": "First name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "locale",
+          "label": "Locale",
+          "type": "select",
+          "options": [
+            {
+              "value": "en",
+              "label": "English"
+            },
+            {
+              "value": "fr",
+              "label": "French"
+            },
+            {
+              "value": "de",
+              "label": "German"
+            },
+            {
+              "value": "it",
+              "label": "Italian"
+            },
+            {
+              "value": "nl",
+              "label": "Dutch"
+            },
+            {
+              "value": "es",
+              "label": "Spanish"
+            },
+            {
+              "value": "pl",
+              "label": "Polish"
+            },
+            {
+              "value": "pt",
+              "label": "Portuguese"
+            },
+            {
+              "value": "ro",
+              "label": "Romanian"
+            }
+          ],
+          "required": true,
+          "default": "en"
+        },
+        {
+          "key": "signature_level",
+          "label": "Signature level",
+          "type": "select",
+          "options": [
+            {
+              "value": "electronic_signature",
+              "label": "Simple"
+            },
+            {
+              "value": "advanced_electronic_signature",
+              "label": "Advanced"
+            },
+            {
+              "value": "qualified_electronic_signature",
+              "label": "Qualified"
+            }
+          ],
+          "required": true,
+          "default": "electronic_signature"
+        },
+        {
+          "key": "authentication",
+          "label": "Authentication",
+          "type": "select",
+          "options": [
+            {
+              "value": "otp_email",
+              "label": "Email OTP"
+            },
+            {
+              "value": "otp_sms",
+              "label": "SMS OTP"
+            },
+            {
+              "value": "no_otp",
+              "label": "None"
+            }
+          ]
+        },
+        {
+          "key": "fields",
+          "label": "Signature fields",
+          "type": "json",
+          "placeholder": "[{\"document_id\": \"...\", \"type\": \"signature\", \"page\": 1, \"x\": 77, \"y\": 581}]"
+        }
+      ]
+    },
+    {
+      "key": "activate",
+      "name": "Activate signature request",
+      "description": "Sends the request to its signers.",
+      "method": "POST",
+      "endpoint": "/signature_requests/{{ inputs.signature_request_id }}/activate",
+      "inputs": [
+        {
+          "key": "signature_request_id",
+          "label": "Signature request ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "get_signature_request",
+      "name": "Get signature request",
+      "method": "GET",
+      "endpoint": "/signature_requests/{{ inputs.signature_request_id }}",
+      "inputs": [
+        {
+          "key": "signature_request_id",
+          "label": "Signature request ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_signature_requests",
+      "name": "List signature requests",
+      "method": "GET",
+      "endpoint": "/signature_requests",
+      "query": {
+        "status": "{{ inputs.status }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "inputs": [
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "string",
+          "placeholder": "ongoing"
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "cancel",
+      "name": "Cancel signature request",
+      "method": "POST",
+      "endpoint": "/signature_requests/{{ inputs.signature_request_id }}/cancel",
+      "body": {
+        "reason": "{{ inputs.reason }}",
+        "custom_note": "{{ inputs.custom_note }}"
+      },
+      "inputs": [
+        {
+          "key": "signature_request_id",
+          "label": "Signature request ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "reason",
+          "label": "Reason",
+          "type": "select",
+          "options": [
+            {
+              "value": "contractualization_aborted",
+              "label": "Contract aborted"
+            },
+            {
+              "value": "errors_in_document",
+              "label": "Errors in document"
+            },
+            {
+              "value": "other",
+              "label": "Other"
+            }
+          ],
+          "required": true,
+          "default": "other"
+        },
+        {
+          "key": "custom_note",
+          "label": "Note",
+          "type": "string"
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "data_path": "data",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

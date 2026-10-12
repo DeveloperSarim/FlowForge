@@ -1,0 +1,148 @@
+{
+  "key": "commercetools",
+  "name": "commercetools",
+  "category": "E-commerce",
+  "brand": "commercetools",
+  "description": "Query products, customers and orders in a commercetools project.",
+  "website": "https://commercetools.com",
+  "docs_url": "https://docs.commercetools.com/api/",
+  "base_url": "https://api.{{ credentials.region }}.commercetools.com/{{ credentials.project_key }}",
+  "auth": {
+    "type": "oauth2_client_credentials",
+    "token_url": "https://auth.{{ credentials.region }}.commercetools.com/oauth/token",
+    "client_auth": "basic",
+    "scopes": [
+      "manage_project:{{ credentials.project_key }}"
+    ],
+    "fields": [
+      {
+        "key": "region",
+        "label": "Region",
+        "type": "select",
+        "required": true,
+        "default": "europe-west1.gcp",
+        "options": [
+          {
+            "value": "europe-west1.gcp",
+            "label": "europe-west1.gcp"
+          },
+          {
+            "value": "us-central1.gcp",
+            "label": "us-central1.gcp"
+          },
+          {
+            "value": "australia-southeast1.gcp",
+            "label": "australia-southeast1.gcp"
+          },
+          {
+            "value": "eu-central-1.aws",
+            "label": "eu-central-1.aws"
+          },
+          {
+            "value": "us-east-2.aws",
+            "label": "us-east-2.aws"
+          }
+        ]
+      },
+      {
+        "key": "project_key",
+        "label": "Project key",
+        "type": "string",
+        "required": true
+      },
+      {
+        "key": "client_id",
+        "label": "Client ID",
+        "type": "string",
+        "required": true
+      },
+      {
+        "key": "client_secret",
+        "label": "Client secret",
+        "type": "password",
+        "required": true
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "query_products",
+      "name": "Query products",
+      "method": "GET",
+      "endpoint": "/products",
+      "query": {
+        "where": "{{ inputs.where }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "inputs": [
+        {
+          "key": "where",
+          "label": "Where predicate",
+          "type": "string",
+          "placeholder": "masterData(current(name(en=\"Shirt\")))"
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 20
+        }
+      ]
+    },
+    {
+      "key": "get_customer",
+      "name": "Get customer",
+      "method": "GET",
+      "endpoint": "/customers/{{ inputs.customer_id }}",
+      "inputs": [
+        {
+          "key": "customer_id",
+          "label": "Customer ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "query_orders",
+      "name": "Query orders",
+      "method": "GET",
+      "endpoint": "/orders",
+      "query": {
+        "sort": "createdAt desc",
+        "limit": "{{ inputs.limit }}"
+      },
+      "inputs": [
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 20
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_order",
+      "name": "New order",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/orders",
+      "query": {
+        "sort": "createdAt desc",
+        "limit": 20
+      },
+      "items_path": "results",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

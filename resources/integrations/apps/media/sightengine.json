@@ -1,0 +1,54 @@
+{
+  "key": "sightengine",
+  "name": "Sightengine",
+  "category": "Video & Media",
+  "description": "Moderate images and text: nudity, weapons, offensive content, AI-generated images.",
+  "brand": "sightengine",
+  "website": "https://sightengine.com",
+  "docs_url": "https://sightengine.com/docs/getstarted",
+  "base_url": "https://api.sightengine.com/1.0",
+  "auth": { "type": "api_key", "fields": [
+    { "key": "api_user", "label": "API user", "type": "string", "required": true },
+    { "key": "api_key", "label": "API secret", "type": "password", "required": true }
+  ] },
+  "actions": [
+    {
+      "key": "check_image",
+      "name": "Moderate image",
+      "method": "GET",
+      "endpoint": "/check.json",
+      "error_path": "error",
+      "query": { "url": "{{ inputs.url }}", "models": "{{ inputs.models }}", "api_user": "{{ credentials.api_user }}", "api_secret": "{{ credentials.api_key }}" },
+      "inputs": [
+        { "key": "url", "label": "Image URL", "type": "string", "required": true },
+        { "key": "models", "label": "Models (comma-separated)", "type": "string", "required": true, "placeholder": "nudity-2.1,weapon,offensive-2.0,genai" }
+      ]
+    },
+    {
+      "key": "check_image_workflow",
+      "name": "Run image workflow",
+      "method": "GET",
+      "endpoint": "/check-workflow.json",
+      "error_path": "error",
+      "query": { "url": "{{ inputs.url }}", "workflow": "{{ inputs.workflow }}", "api_user": "{{ credentials.api_user }}", "api_secret": "{{ credentials.api_key }}" },
+      "inputs": [
+        { "key": "url", "label": "Image URL", "type": "string", "required": true },
+        { "key": "workflow", "label": "Workflow ID", "type": "string", "required": true }
+      ]
+    },
+    {
+      "key": "check_text",
+      "name": "Moderate text",
+      "method": "POST",
+      "endpoint": "/text/check.json",
+      "body_format": "form",
+      "error_path": "error",
+      "body": { "text": "{{ inputs.text }}", "lang": "{{ inputs.lang }}", "mode": "rules", "categories": "{{ inputs.categories }}", "api_user": "{{ credentials.api_user }}", "api_secret": "{{ credentials.api_key }}" },
+      "inputs": [
+        { "key": "text", "label": "Text", "type": "text", "required": true },
+        { "key": "lang", "label": "Language (ISO 639-1)", "type": "string", "required": true, "default": "en" },
+        { "key": "categories", "label": "Categories (comma-separated)", "type": "string", "placeholder": "profanity,personal,link,drug,weapon" }
+      ]
+    }
+  ]
+}

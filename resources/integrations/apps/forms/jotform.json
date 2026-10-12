@@ -1,0 +1,175 @@
+{
+  "key": "jotform",
+  "name": "Jotform",
+  "category": "Forms & Surveys",
+  "description": "Get new Jotform submissions and read forms and answers.",
+  "brand": "jotform",
+  "website": "https://www.jotform.com",
+  "docs_url": "https://api.jotform.com/docs/",
+  "popular": true,
+  "base_url": "https://{{ credentials.api_host }}",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "APIKEY",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "Settings > API > Create new key"
+      },
+      {
+        "key": "api_host",
+        "label": "Region",
+        "type": "select",
+        "required": true,
+        "default": "api.jotform.com",
+        "options": [
+          {
+            "value": "api.jotform.com",
+            "label": "Standard"
+          },
+          {
+            "value": "eu-api.jotform.com",
+            "label": "EU"
+          },
+          {
+            "value": "hipaa-api.jotform.com",
+            "label": "HIPAA"
+          }
+        ]
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_forms",
+      "name": "List forms",
+      "method": "GET",
+      "endpoint": "/user/forms",
+      "output_path": "content",
+      "query": {
+        "limit": "{{ inputs.limit }}",
+        "offset": "{{ inputs.offset }}"
+      },
+      "inputs": [
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 50
+        },
+        {
+          "key": "offset",
+          "label": "Offset",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "get_form_questions",
+      "name": "Get form questions",
+      "method": "GET",
+      "endpoint": "/form/{{ inputs.form_id }}/questions",
+      "output_path": "content",
+      "inputs": [
+        {
+          "key": "form_id",
+          "label": "Form ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_submissions",
+      "name": "List submissions",
+      "method": "GET",
+      "endpoint": "/form/{{ inputs.form_id }}/submissions",
+      "output_path": "content",
+      "query": {
+        "limit": "{{ inputs.limit }}",
+        "offset": "{{ inputs.offset }}",
+        "orderby": "created_at"
+      },
+      "inputs": [
+        {
+          "key": "form_id",
+          "label": "Form ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 20
+        },
+        {
+          "key": "offset",
+          "label": "Offset",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "get_submission",
+      "name": "Get submission",
+      "method": "GET",
+      "endpoint": "/submission/{{ inputs.submission_id }}",
+      "output_path": "content",
+      "inputs": [
+        {
+          "key": "submission_id",
+          "label": "Submission ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_submission",
+      "name": "New submission (polling)",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/form/{{ inputs.form_id }}/submissions",
+      "query": {
+        "limit": 50,
+        "orderby": "created_at"
+      },
+      "items_path": "content",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "form_id",
+          "label": "Form ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    },
+    {
+      "key": "new_submission_webhook",
+      "name": "New submission (webhook)",
+      "type": "webhook",
+      "description": "Form > Settings > Integrations > Webhooks. Answers arrive form-encoded (rawRequest holds JSON).",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

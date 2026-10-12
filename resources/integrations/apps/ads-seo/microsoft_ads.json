@@ -1,0 +1,54 @@
+{
+  "key": "microsoft_ads",
+  "name": "Microsoft Advertising",
+  "category": "Ads & SEO",
+  "description": "List campaigns and ad groups in your Microsoft Advertising (Bing Ads) accounts.",
+  "brand": "microsoftbing",
+  "website": "https://ads.microsoft.com",
+  "docs_url": "https://learn.microsoft.com/en-us/advertising/guides/",
+  "base_url": "https://campaign.api.bingads.microsoft.com/CampaignManagement/v13",
+  "headers": {
+    "DeveloperToken": "{{ credentials.developer_token }}",
+    "CustomerId": "{{ credentials.customer_id }}",
+    "CustomerAccountId": "{{ credentials.account_id }}"
+  },
+  "auth": {
+    "type": "oauth2",
+    "authorize_url": "https://login.microsoftonline.com/common/oauth2/v2.0/authorize",
+    "token_url": "https://login.microsoftonline.com/common/oauth2/v2.0/token",
+    "scopes": ["https://ads.microsoft.com/msads.manage", "offline_access"],
+    "fields": [
+      { "key": "developer_token", "label": "Developer token", "type": "password", "required": true, "help": "Microsoft Advertising > Tools > Developer portal." },
+      { "key": "customer_id", "label": "Customer ID", "type": "string", "required": true, "help": "The manager/customer ID (cid in the web UI URL)." },
+      { "key": "account_id", "label": "Account ID", "type": "string", "required": true, "help": "The ad account ID (aid in the web UI URL)." }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_campaigns",
+      "name": "List campaigns",
+      "description": "Campaigns of one type in an ad account.",
+      "method": "POST",
+      "endpoint": "/Campaigns/QueryByAccountId",
+      "body": { "AccountId": "{{ inputs.account_id }}", "CampaignType": "{{ inputs.campaign_type }}" },
+      "output_path": "Campaigns",
+      "inputs": [
+        { "key": "account_id", "label": "Account ID", "type": "number", "required": true },
+        { "key": "campaign_type", "label": "Campaign type", "type": "select", "required": true, "default": "Search", "options": [
+          { "value": "Search", "label": "Search" }, { "value": "Shopping", "label": "Shopping" }, { "value": "Audience", "label": "Audience" },
+          { "value": "PerformanceMax", "label": "Performance Max" }, { "value": "Hotel", "label": "Hotel" }, { "value": "App", "label": "App" }
+        ] }
+      ]
+    },
+    {
+      "key": "list_ad_groups",
+      "name": "List ad groups",
+      "description": "Ad groups in a campaign.",
+      "method": "POST",
+      "endpoint": "/AdGroups/QueryByCampaignId",
+      "body": { "CampaignId": "{{ inputs.campaign_id }}" },
+      "output_path": "AdGroups",
+      "inputs": [{ "key": "campaign_id", "label": "Campaign ID", "type": "number", "required": true }]
+    }
+  ]
+}

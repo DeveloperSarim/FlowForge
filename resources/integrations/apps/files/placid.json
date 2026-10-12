@@ -1,0 +1,100 @@
+{
+  "key": "placid",
+  "name": "Placid",
+  "category": "Files & Documents",
+  "description": "Generate images from Placid templates with dynamic layers.",
+  "brand": "placid",
+  "website": "https://placid.app",
+  "docs_url": "https://placid.app/docs/2.0/rest/",
+  "base_url": "https://api.placid.app/api/rest",
+  "auth": [
+    {
+      "type": "bearer",
+      "fields": [
+        {
+          "key": "token",
+          "label": "API token",
+          "type": "password",
+          "required": true,
+          "help": "Project > API Tokens."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "create_image",
+      "name": "Create image",
+      "method": "POST",
+      "endpoint": "/images",
+      "body": {
+        "template_uuid": "{{ inputs.template_uuid }}",
+        "layers": "{{ inputs.layers }}",
+        "create_now": "{{ inputs.create_now }}",
+        "webhook_success": "{{ inputs.webhook_success }}"
+      },
+      "inputs": [
+        {
+          "key": "template_uuid",
+          "label": "Template UUID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "layers",
+          "label": "Layers (JSON)",
+          "type": "json",
+          "required": true,
+          "placeholder": "{ \"title\": { \"text\": \"Hello\" }, \"img\": { \"image\": \"https://...\" } }"
+        },
+        {
+          "key": "create_now",
+          "label": "Wait for the image",
+          "type": "boolean",
+          "default": true
+        },
+        {
+          "key": "webhook_success",
+          "label": "Webhook URL",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "get_image",
+      "name": "Get image",
+      "method": "GET",
+      "endpoint": "/images/{{ inputs.image_id }}",
+      "inputs": [
+        {
+          "key": "image_id",
+          "label": "Image ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_templates",
+      "name": "List templates",
+      "method": "GET",
+      "endpoint": "/templates",
+      "inputs": []
+    }
+  ],
+  "triggers": [
+    {
+      "key": "image_ready",
+      "name": "Image ready",
+      "type": "webhook",
+      "description": "Finished image posted to your webhook URL.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,149 @@
+{
+  "key": "medusa",
+  "name": "Medusa",
+  "category": "E-commerce",
+  "description": "List and read orders, products and customers on a Medusa v2 backend.",
+  "brand": "medusa",
+  "website": "https://medusajs.com",
+  "docs_url": "https://docs.medusajs.com/api/admin",
+  "base_url": "{{ credentials.url }}/admin",
+  "auth": [
+    {
+      "type": "api_key",
+      "in": "header",
+      "name": "Authorization",
+      "prefix": "Basic ",
+      "fields": [
+        {
+          "key": "url",
+          "label": "Backend URL",
+          "type": "string",
+          "required": true,
+          "placeholder": "https://api.example.com",
+          "help": "Your Medusa server, no trailing slash."
+        },
+        {
+          "key": "api_key",
+          "label": "Secret API key",
+          "type": "password",
+          "required": true,
+          "help": "Admin > Settings > Secret API Keys (sk_…)."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_orders",
+      "name": "List orders",
+      "method": "GET",
+      "endpoint": "/orders",
+      "output_path": "orders",
+      "query": {
+        "q": "{{ inputs.q }}",
+        "limit": "{{ inputs.limit }}",
+        "order": "-created_at"
+      },
+      "inputs": [
+        {
+          "key": "q",
+          "label": "Search",
+          "type": "string"
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 20
+        }
+      ]
+    },
+    {
+      "key": "get_order",
+      "name": "Get order",
+      "method": "GET",
+      "endpoint": "/orders/{{ inputs.order_id }}",
+      "output_path": "order",
+      "inputs": [
+        {
+          "key": "order_id",
+          "label": "Order ID",
+          "type": "string",
+          "required": true,
+          "placeholder": "order_…"
+        }
+      ]
+    },
+    {
+      "key": "list_products",
+      "name": "List products",
+      "method": "GET",
+      "endpoint": "/products",
+      "output_path": "products",
+      "query": {
+        "q": "{{ inputs.q }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "inputs": [
+        {
+          "key": "q",
+          "label": "Search",
+          "type": "string"
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 20
+        }
+      ]
+    },
+    {
+      "key": "list_customers",
+      "name": "List customers",
+      "method": "GET",
+      "endpoint": "/customers",
+      "output_path": "customers",
+      "query": {
+        "q": "{{ inputs.q }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "inputs": [
+        {
+          "key": "q",
+          "label": "Search (name, email)",
+          "type": "string"
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 20
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_order",
+      "name": "New order",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/orders",
+      "query": {
+        "order": "-created_at",
+        "limit": 50
+      },
+      "items_path": "orders",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

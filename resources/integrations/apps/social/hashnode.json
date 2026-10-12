@@ -1,0 +1,73 @@
+{
+  "key": "hashnode",
+  "name": "Hashnode",
+  "category": "Social Media",
+  "description": "Publish posts to a Hashnode blog and run GraphQL queries.",
+  "brand": "hashnode",
+  "website": "https://hashnode.com",
+  "docs_url": "https://apidocs.hashnode.com",
+  "base_url": "https://gql.hashnode.com",
+  "auth": { "type": "api_key", "in": "header", "name": "Authorization", "fields": [{ "key": "api_key", "label": "Personal access token", "type": "password", "required": true,
+    "help": "hashnode.com/settings/developer. API access needs a Pro plan on the publication." }] },
+  "actions": [
+    {
+      "key": "get_me",
+      "name": "Get me and my publications",
+      "method": "POST",
+      "endpoint": "/",
+      "body": { "query": "query Me { me { id username name publications(first: 20) { edges { node { id title url } } } } }" },
+      "error_path": "errors",
+      "output_path": "data.me",
+      "inputs": []
+    },
+    {
+      "key": "publish_post",
+      "name": "Publish post",
+      "method": "POST",
+      "endpoint": "/",
+      "body": {
+        "query": "mutation PublishPost($input: PublishPostInput!) { publishPost(input: $input) { post { id slug url title } } }",
+        "variables": { "input": {
+          "publicationId": "{{ inputs.publication_id }}",
+          "title": "{{ inputs.title }}",
+          "subtitle": "{{ inputs.subtitle }}",
+          "contentMarkdown": "{{ inputs.content_markdown }}",
+          "slug": "{{ inputs.slug }}",
+          "originalArticleURL": "{{ inputs.original_url }}"
+        } }
+      },
+      "error_path": "errors",
+      "output_path": "data.publishPost.post",
+      "inputs": [
+        { "key": "publication_id", "label": "Publication ID", "type": "string", "required": true, "help": "Find it with \"Get me and my publications\"." },
+        { "key": "title", "label": "Title", "type": "string", "required": true },
+        { "key": "subtitle", "label": "Subtitle", "type": "string" },
+        { "key": "content_markdown", "label": "Content (Markdown)", "type": "text", "required": true },
+        { "key": "slug", "label": "Slug", "type": "string" },
+        { "key": "original_url", "label": "Canonical (original) URL", "type": "string" }
+      ]
+    },
+    {
+      "key": "graphql",
+      "name": "Run GraphQL query",
+      "method": "POST",
+      "endpoint": "/",
+      "body": { "query": "{{ inputs.query }}", "variables": "{{ inputs.variables }}" },
+      "error_path": "errors",
+      "output_path": "data",
+      "inputs": [
+        { "key": "query", "label": "Query", "type": "code", "required": true },
+        { "key": "variables", "label": "Variables", "type": "json" }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "description": "Paste the URL in Blog dashboard > Webhooks (post published/updated/deleted).",
+      "type": "webhook",
+      "inputs": [{ "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }]
+    }
+  ]
+}

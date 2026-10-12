@@ -1,0 +1,123 @@
+{
+  "key": "bytescale",
+  "name": "Bytescale",
+  "category": "Files & Documents",
+  "description": "Upload files from URLs, list folders and manage files in Bytescale.",
+  "brand": "bytescale",
+  "website": "https://www.bytescale.com",
+  "docs_url": "https://www.bytescale.com/docs/upload-api",
+  "base_url": "https://api.bytescale.com/v2/accounts/{{ credentials.account_id }}",
+  "auth": [
+    {
+      "type": "bearer",
+      "fields": [
+        {
+          "key": "account_id",
+          "label": "Account ID",
+          "type": "string",
+          "required": true,
+          "help": "Shown on the Bytescale settings page."
+        },
+        {
+          "key": "token",
+          "label": "Secret API key",
+          "type": "password",
+          "required": true,
+          "help": "A secret_... key from Settings > API keys."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "upload_from_url",
+      "name": "Upload from URL",
+      "method": "POST",
+      "endpoint": "/uploads/url",
+      "body": {
+        "url": "{{ inputs.url }}",
+        "...": "{{ inputs.extra }}"
+      },
+      "inputs": [
+        {
+          "key": "url",
+          "label": "File URL",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "extra",
+          "label": "Extra fields (JSON)",
+          "type": "json",
+          "placeholder": "{\"metadata\": {\"source\": \"flowforge\"}}"
+        }
+      ]
+    },
+    {
+      "key": "list_folder",
+      "name": "List folder",
+      "method": "GET",
+      "endpoint": "/folders/list",
+      "query": {
+        "folderPath": "{{ inputs.folder_path }}",
+        "recursive": "{{ inputs.recursive }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "inputs": [
+        {
+          "key": "folder_path",
+          "label": "Folder path",
+          "type": "string",
+          "required": true,
+          "default": "/",
+          "help": "Starts with /, no trailing slash (except root)."
+        },
+        {
+          "key": "recursive",
+          "label": "Include subfolders",
+          "type": "boolean"
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "get_file_details",
+      "name": "Get file details",
+      "method": "GET",
+      "endpoint": "/files/details",
+      "query": {
+        "filePath": "{{ inputs.file_path }}"
+      },
+      "inputs": [
+        {
+          "key": "file_path",
+          "label": "File path",
+          "type": "string",
+          "required": true,
+          "placeholder": "/uploads/image.jpg"
+        }
+      ]
+    },
+    {
+      "key": "delete_file",
+      "name": "Delete file",
+      "method": "DELETE",
+      "endpoint": "/files",
+      "query": {
+        "filePath": "{{ inputs.file_path }}"
+      },
+      "inputs": [
+        {
+          "key": "file_path",
+          "label": "File path",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ]
+}

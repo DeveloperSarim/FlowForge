@@ -1,0 +1,72 @@
+{
+  "key": "dailymotion",
+  "name": "Dailymotion",
+  "category": "Video & Media",
+  "description": "Search public Dailymotion videos and watch channels for new uploads.",
+  "brand": "dailymotion",
+  "website": "https://www.dailymotion.com",
+  "docs_url": "https://developers.dailymotion.com/api/platform-api/reference/",
+  "base_url": "https://api.dailymotion.com",
+  "auth": { "type": "none" },
+  "actions": [
+    {
+      "key": "search_videos",
+      "name": "Search videos",
+      "method": "GET",
+      "endpoint": "/videos",
+      "error_path": "error",
+      "output_path": "list",
+      "query": { "search": "{{ inputs.search }}", "sort": "{{ inputs.sort }}", "limit": "{{ inputs.limit }}", "fields": "{{ inputs.fields }}" },
+      "inputs": [
+        { "key": "search", "label": "Search", "type": "string", "required": true, "placeholder": "nature" },
+        { "key": "sort", "label": "Sort", "type": "select", "default": "relevance", "options": [
+          { "value": "relevance", "label": "Relevance" }, { "value": "recent", "label": "Most recent" }, { "value": "visited", "label": "Most viewed" }
+        ] },
+        { "key": "limit", "label": "Limit (max 100)", "type": "number", "default": 10 },
+        { "key": "fields", "label": "Fields", "type": "string", "placeholder": "id,title,url,thumbnail_url,created_time" }
+      ]
+    },
+    {
+      "key": "get_video",
+      "name": "Get video",
+      "method": "GET",
+      "endpoint": "/video/{{ inputs.video_id }}",
+      "error_path": "error",
+      "query": { "fields": "{{ inputs.fields }}" },
+      "inputs": [
+        { "key": "video_id", "label": "Video ID", "type": "string", "required": true, "placeholder": "xbkd8eu" },
+        { "key": "fields", "label": "Fields", "type": "string", "placeholder": "id,title,description,url,duration,views_total" }
+      ]
+    },
+    {
+      "key": "list_user_videos",
+      "name": "List a channel's videos",
+      "method": "GET",
+      "endpoint": "/user/{{ inputs.user }}/videos",
+      "error_path": "error",
+      "output_path": "list",
+      "query": { "sort": "recent", "limit": "{{ inputs.limit }}", "fields": "{{ inputs.fields }}" },
+      "inputs": [
+        { "key": "user", "label": "Channel (username or ID)", "type": "string", "required": true, "placeholder": "dailymotion" },
+        { "key": "limit", "label": "Limit (max 100)", "type": "number", "default": 10 },
+        { "key": "fields", "label": "Fields", "type": "string", "placeholder": "id,title,url,created_time" }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_channel_video",
+      "name": "New video on a channel",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/user/{{ inputs.user }}/videos",
+      "query": { "sort": "recent", "limit": 20, "fields": "id,title,url,thumbnail_url,created_time" },
+      "items_path": "list",
+      "id_field": "id",
+      "inputs": [
+        { "key": "user", "label": "Channel (username or ID)", "type": "string", "required": true },
+        { "key": "poll_interval", "label": "Check every (minutes)", "type": "number", "default": 15 }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,67 @@
+{
+  "key": "chartmogul",
+  "name": "ChartMogul",
+  "category": "Analytics",
+  "description": "Pull subscription metrics and find or create customers.",
+  "brand": "chartmogul",
+  "website": "https://chartmogul.com",
+  "docs_url": "https://dev.chartmogul.com/reference",
+  "base_url": "https://api.chartmogul.com/v1",
+  "auth": { "type": "basic", "fields": [
+    { "key": "username", "label": "API key", "type": "password", "required": true, "help": "Profile > API keys." },
+    { "key": "password", "label": "Password", "type": "password", "required": false, "default": "", "help": "Leave empty." }
+  ] },
+  "actions": [
+    {
+      "key": "get_all_metrics",
+      "name": "Get key metrics",
+      "description": "MRR, ARR, ARPA, ASP, customers, churn and LTV per interval.",
+      "method": "GET",
+      "endpoint": "/metrics/all",
+      "query": { "start-date": "{{ inputs.start_date }}", "end-date": "{{ inputs.end_date }}", "interval": "{{ inputs.interval }}" },
+      "inputs": [
+        { "key": "start_date", "label": "Start (YYYY-MM-DD)", "type": "string", "required": true },
+        { "key": "end_date", "label": "End (YYYY-MM-DD)", "type": "string", "required": true },
+        { "key": "interval", "label": "Interval", "type": "select", "default": "month", "options": [
+          { "value": "day", "label": "Day" }, { "value": "week", "label": "Week" }, { "value": "month", "label": "Month" }, { "value": "quarter", "label": "Quarter" }
+        ] }
+      ]
+    },
+    {
+      "key": "find_customer_by_email",
+      "name": "Find customer by email",
+      "method": "GET",
+      "endpoint": "/customers/search",
+      "query": { "email": "{{ inputs.email }}" },
+      "output_path": "entries",
+      "inputs": [{ "key": "email", "label": "Email", "type": "string", "required": true }]
+    },
+    {
+      "key": "create_customer",
+      "name": "Create customer",
+      "method": "POST",
+      "endpoint": "/customers",
+      "body": {
+        "data_source_uuid": "{{ inputs.data_source_uuid }}", "external_id": "{{ inputs.external_id }}", "name": "{{ inputs.name }}",
+        "email": "{{ inputs.email }}", "company": "{{ inputs.company }}", "country": "{{ inputs.country }}", "city": "{{ inputs.city }}"
+      },
+      "inputs": [
+        { "key": "data_source_uuid", "label": "Data source UUID", "type": "string", "required": true, "placeholder": "ds_…" },
+        { "key": "external_id", "label": "External ID", "type": "string", "required": true },
+        { "key": "name", "label": "Name", "type": "string", "required": true },
+        { "key": "email", "label": "Email", "type": "string" },
+        { "key": "company", "label": "Company", "type": "string" },
+        { "key": "country", "label": "Country (ISO alpha-2)", "type": "string" },
+        { "key": "city", "label": "City", "type": "string" }
+      ]
+    },
+    {
+      "key": "list_data_sources",
+      "name": "List data sources",
+      "method": "GET",
+      "endpoint": "/data_sources",
+      "output_path": "data_sources",
+      "inputs": []
+    }
+  ]
+}

@@ -1,0 +1,55 @@
+{
+  "key": "hubspot-to-mailchimp",
+  "name": "Sync new HubSpot contacts to Mailchimp",
+  "description": "New CRM contacts join your newsletter audience automatically.",
+  "category": "Marketing",
+  "featured": false,
+  "graph": {
+    "nodes": [
+      {
+        "id": "trigger",
+        "type": "trigger",
+        "position": {
+          "x": 0,
+          "y": 200
+        },
+        "data": {
+          "integration": "hubspot",
+          "trigger": "new_contact",
+          "label": "New contact",
+          "config": {
+            "poll_interval": 10
+          }
+        }
+      },
+      {
+        "id": "step_1",
+        "type": "action",
+        "position": {
+          "x": 240,
+          "y": 200
+        },
+        "data": {
+          "integration": "mailchimp",
+          "action": "upsert_member",
+          "label": "Add subscriber",
+          "config": {
+            "list_id": "",
+            "email": "{{ steps.trigger.data.properties.email }}",
+            "status_if_new": "subscribed",
+            "first_name": "{{ steps.trigger.data.properties.firstname }}",
+            "last_name": "{{ steps.trigger.data.properties.lastname }}"
+          }
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "e-trigger-step_1",
+        "source": "trigger",
+        "target": "step_1",
+        "sourceHandle": null
+      }
+    ]
+  }
+}

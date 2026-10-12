@@ -1,0 +1,153 @@
+{
+  "key": "qonto",
+  "name": "Qonto",
+  "category": "Payments & Finance",
+  "description": "Read your Qonto organization, bank accounts and transactions.",
+  "brand": "qonto",
+  "website": "https://qonto.com",
+  "docs_url": "https://docs.qonto.com/api-reference/business-api",
+  "base_url": "https://thirdparty.qonto.com/v2",
+  "headers": {
+    "Authorization": "{{ credentials.login }}:{{ credentials.api_key }}"
+  },
+  "auth": [
+    {
+      "type": "api_key",
+      "fields": [
+        {
+          "key": "login",
+          "label": "Login (organization slug)",
+          "type": "string",
+          "required": true,
+          "help": "Qonto app > Settings > Integrations & partnerships > API key."
+        },
+        {
+          "key": "api_key",
+          "label": "Secret key",
+          "type": "password",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "get_organization",
+      "name": "Get organization and bank accounts",
+      "method": "GET",
+      "endpoint": "/organization",
+      "output_path": "organization",
+      "inputs": []
+    },
+    {
+      "key": "list_transactions",
+      "name": "List transactions",
+      "method": "GET",
+      "endpoint": "/transactions",
+      "query": {
+        "iban": "{{ inputs.iban }}",
+        "bank_account_id": "{{ inputs.bank_account_id }}",
+        "status[]": "{{ inputs.status }}",
+        "settled_at_from": "{{ inputs.settled_at_from }}",
+        "per_page": "{{ inputs.per_page }}"
+      },
+      "output_path": "transactions",
+      "inputs": [
+        {
+          "key": "iban",
+          "label": "IBAN",
+          "type": "string",
+          "help": "Give the IBAN or the bank account ID."
+        },
+        {
+          "key": "bank_account_id",
+          "label": "Bank account ID",
+          "type": "string"
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "options": [
+            {
+              "value": "completed",
+              "label": "Completed"
+            },
+            {
+              "value": "pending",
+              "label": "Pending"
+            },
+            {
+              "value": "declined",
+              "label": "Declined"
+            }
+          ]
+        },
+        {
+          "key": "settled_at_from",
+          "label": "Settled from",
+          "type": "string",
+          "placeholder": "2026-01-31T00:00:00.000Z"
+        },
+        {
+          "key": "per_page",
+          "label": "Per page",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    },
+    {
+      "key": "get_transaction",
+      "name": "Get transaction",
+      "method": "GET",
+      "endpoint": "/transactions/{{ inputs.transaction_id }}",
+      "output_path": "transaction",
+      "inputs": [
+        {
+          "key": "transaction_id",
+          "label": "Transaction ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_memberships",
+      "name": "List team members",
+      "method": "GET",
+      "endpoint": "/memberships",
+      "output_path": "memberships",
+      "inputs": []
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_transaction",
+      "name": "New transaction",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/transactions",
+      "query": {
+        "iban": "{{ inputs.iban }}",
+        "per_page": 50
+      },
+      "items_path": "transactions",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "iban",
+          "label": "IBAN",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

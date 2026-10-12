@@ -1,0 +1,187 @@
+{
+  "key": "zeptomail",
+  "name": "ZeptoMail",
+  "category": "Marketing & Email",
+  "description": "Send transactional email and templates (Zoho ZeptoMail).",
+  "brand": "zoho",
+  "website": "https://www.zoho.com/zeptomail/",
+  "docs_url": "https://www.zoho.com/zeptomail/help/api/email-sending.html",
+  "base_url": "https://{{ credentials.host }}/v1.1",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "Authorization",
+    "prefix": "Zoho-enczapikey ",
+    "fields": [
+      {
+        "key": "host",
+        "label": "Data center",
+        "type": "select",
+        "required": true,
+        "default": "api.zeptomail.com",
+        "options": [
+          {
+            "value": "api.zeptomail.com",
+            "label": "US (.com)"
+          },
+          {
+            "value": "api.zeptomail.eu",
+            "label": "EU (.eu)"
+          },
+          {
+            "value": "api.zeptomail.in",
+            "label": "India (.in)"
+          },
+          {
+            "value": "api.zeptomail.com.au",
+            "label": "Australia (.com.au)"
+          }
+        ]
+      },
+      {
+        "key": "api_key",
+        "label": "Send Mail token",
+        "type": "password",
+        "required": true,
+        "help": "Paste the token without the \"Zoho-enczapikey\" prefix."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "send_email",
+      "name": "Send email",
+      "method": "POST",
+      "endpoint": "/email",
+      "body": {
+        "from": {
+          "address": "{{ inputs.from_address }}",
+          "name": "{{ inputs.from_name }}"
+        },
+        "to": [
+          {
+            "email_address": {
+              "address": "{{ inputs.to }}",
+              "name": "{{ inputs.to_name }}"
+            }
+          }
+        ],
+        "subject": "{{ inputs.subject }}",
+        "htmlbody": "{{ inputs.html }}",
+        "textbody": "{{ inputs.text }}"
+      },
+      "inputs": [
+        {
+          "key": "from_address",
+          "label": "From address",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "from_name",
+          "label": "From name",
+          "type": "string"
+        },
+        {
+          "key": "to",
+          "label": "To",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "to_name",
+          "label": "To name",
+          "type": "string"
+        },
+        {
+          "key": "subject",
+          "label": "Subject",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "html",
+          "label": "HTML body",
+          "type": "text"
+        },
+        {
+          "key": "text",
+          "label": "Text body",
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "key": "send_template",
+      "name": "Send template email",
+      "method": "POST",
+      "endpoint": "/email/template",
+      "body": {
+        "template_key": "{{ inputs.template_key }}",
+        "from": {
+          "address": "{{ inputs.from_address }}",
+          "name": "{{ inputs.from_name }}"
+        },
+        "to": [
+          {
+            "email_address": {
+              "address": "{{ inputs.to }}",
+              "name": "{{ inputs.to_name }}"
+            }
+          }
+        ],
+        "merge_info": "{{ inputs.merge_info }}"
+      },
+      "inputs": [
+        {
+          "key": "template_key",
+          "label": "Template key",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "from_address",
+          "label": "From address",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "from_name",
+          "label": "From name",
+          "type": "string"
+        },
+        {
+          "key": "to",
+          "label": "To",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "to_name",
+          "label": "To name",
+          "type": "string"
+        },
+        {
+          "key": "merge_info",
+          "label": "Merge info",
+          "type": "json"
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Mail Agent → Webhooks (bounce, open, click).",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

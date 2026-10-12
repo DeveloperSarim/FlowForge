@@ -1,0 +1,99 @@
+{
+  "key": "d_id",
+  "name": "D-ID",
+  "category": "AI",
+  "description": "Turn a photo and script into a talking-head video.",
+  "brand": "d-id",
+  "website": "https://www.d-id.com",
+  "docs_url": "https://docs.d-id.com/reference",
+  "base_url": "https://api.d-id.com",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "Authorization",
+    "prefix": "Basic ",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "Paste the key from D-ID Studio exactly as shown."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "create_talk",
+      "name": "Create talking video",
+      "description": "Starts rendering; poll with Get talk.",
+      "method": "POST",
+      "endpoint": "/talks",
+      "body": {
+        "source_url": "{{ inputs.source_url }}",
+        "script": {
+          "type": "text",
+          "input": "{{ inputs.script }}"
+        },
+        "webhook": "{{ inputs.webhook }}"
+      },
+      "inputs": [
+        {
+          "key": "source_url",
+          "label": "Photo URL",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "script",
+          "label": "Script",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "webhook",
+          "label": "Webhook URL",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "get_talk",
+      "name": "Get talk",
+      "method": "GET",
+      "endpoint": "/talks/{{ inputs.talk_id }}",
+      "output_fields": {
+        "video_url": "result_url"
+      },
+      "inputs": [
+        {
+          "key": "talk_id",
+          "label": "Talk ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "get_credits",
+      "name": "Get credits",
+      "method": "GET",
+      "endpoint": "/credits",
+      "inputs": []
+    }
+  ],
+  "triggers": [
+    {
+      "key": "talk_done",
+      "name": "Talk finished (webhook)",
+      "type": "webhook",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

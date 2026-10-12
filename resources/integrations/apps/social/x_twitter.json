@@ -1,0 +1,165 @@
+{
+  "key": "x_twitter",
+  "name": "X (Twitter)",
+  "category": "Social Media",
+  "description": "Post, delete and search posts with a user access token (no PKCE login).",
+  "brand": "x",
+  "website": "https://x.com",
+  "docs_url": "https://docs.x.com/x-api/introduction",
+  "popular": true,
+  "base_url": "https://api.x.com/2",
+  "auth": [
+    {
+      "type": "oauth2",
+      "authorize_url": "https://x.com/i/oauth2/authorize",
+      "token_url": "https://api.x.com/2/oauth2/token",
+      "scopes": [
+        "tweet.read",
+        "tweet.write",
+        "users.read",
+        "offline.access"
+      ],
+      "client_auth": "basic",
+      "pkce": true
+    },
+    {
+      "type": "bearer",
+      "fields": [
+        {
+          "key": "token",
+          "label": "OAuth 2.0 user access token",
+          "type": "password",
+          "required": true,
+          "help": "Needs tweet.read, tweet.write, users.read. App-only bearer tokens can read and search but cannot post. In-app OAuth login isn't supported because X requires PKCE."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "create_post",
+      "name": "Create post",
+      "description": "Publishes a post, optionally as a reply.",
+      "method": "POST",
+      "endpoint": "/tweets",
+      "body": {
+        "text": "{{ inputs.text }}",
+        "reply": {
+          "in_reply_to_tweet_id": "{{ inputs.reply_to }}"
+        }
+      },
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "text",
+          "label": "Text",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "reply_to",
+          "label": "Reply to post ID",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "delete_post",
+      "name": "Delete post",
+      "method": "DELETE",
+      "endpoint": "/tweets/{{ inputs.id }}",
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "id",
+          "label": "Post ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "search_recent",
+      "name": "Search recent posts",
+      "description": "Searches posts from the last 7 days.",
+      "method": "GET",
+      "endpoint": "/tweets/search/recent",
+      "query": {
+        "query": "{{ inputs.query }}",
+        "max_results": "{{ inputs.max_results }}",
+        "tweet.fields": "created_at,author_id,public_metrics"
+      },
+      "inputs": [
+        {
+          "key": "query",
+          "label": "Query",
+          "type": "string",
+          "required": true,
+          "placeholder": "from:xdevelopers -is:retweet"
+        },
+        {
+          "key": "max_results",
+          "label": "Max results (10-100)",
+          "type": "number",
+          "default": 10
+        }
+      ]
+    },
+    {
+      "key": "get_user_by_username",
+      "name": "Get user by username",
+      "method": "GET",
+      "endpoint": "/users/by/username/{{ inputs.username }}",
+      "query": {
+        "user.fields": "description,public_metrics,created_at,profile_image_url"
+      },
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "username",
+          "label": "Username (without @)",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "get_me",
+      "name": "Get authenticated user",
+      "method": "GET",
+      "endpoint": "/users/me",
+      "output_path": "data",
+      "inputs": []
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_user_post",
+      "name": "New post by user",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/users/{{ inputs.user_id }}/tweets",
+      "query": {
+        "max_results": 10,
+        "tweet.fields": "created_at,public_metrics"
+      },
+      "items_path": "data",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "user_id",
+          "label": "User ID",
+          "type": "string",
+          "required": true,
+          "help": "Numeric ID; use \"Get user by username\" to find it."
+        },
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

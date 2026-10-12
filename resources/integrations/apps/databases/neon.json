@@ -1,0 +1,70 @@
+{
+  "key": "neon",
+  "name": "Neon",
+  "category": "Databases",
+  "description": "Manage serverless Postgres projects and branches, and get connection strings.",
+  "brand": "neon",
+  "website": "https://neon.com",
+  "docs_url": "https://api-docs.neon.tech/reference/getting-started-with-neon-api",
+  "base_url": "https://console.neon.tech/api/v2",
+  "auth": { "type": "bearer", "fields": [{ "key": "token", "label": "API key", "type": "password", "required": true, "help": "Account or organization settings → API keys." }] },
+  "actions": [
+    {
+      "key": "list_projects",
+      "name": "List projects",
+      "method": "GET",
+      "endpoint": "/projects",
+      "query": { "org_id": "{{ inputs.org_id }}", "search": "{{ inputs.search }}" },
+      "output_path": "projects",
+      "inputs": [
+        { "key": "org_id", "label": "Organization ID", "type": "string", "help": "Required for organization projects with a personal API key." },
+        { "key": "search", "label": "Name or ID contains", "type": "string" }
+      ]
+    },
+    {
+      "key": "list_branches",
+      "name": "List branches",
+      "method": "GET",
+      "endpoint": "/projects/{{ inputs.project_id }}/branches",
+      "output_path": "branches",
+      "inputs": [{ "key": "project_id", "label": "Project ID", "type": "string", "required": true }]
+    },
+    {
+      "key": "create_branch",
+      "name": "Create branch",
+      "description": "Creates a branch with a read-write compute endpoint.",
+      "method": "POST",
+      "endpoint": "/projects/{{ inputs.project_id }}/branches",
+      "body": { "branch": { "name": "{{ inputs.name }}", "parent_id": "{{ inputs.parent_id }}" }, "endpoints": [{ "type": "read_write" }] },
+      "inputs": [
+        { "key": "project_id", "label": "Project ID", "type": "string", "required": true },
+        { "key": "name", "label": "Branch name", "type": "string", "required": true },
+        { "key": "parent_id", "label": "Parent branch ID", "type": "string", "help": "Defaults to the project's default branch." }
+      ]
+    },
+    {
+      "key": "delete_branch",
+      "name": "Delete branch",
+      "method": "DELETE",
+      "endpoint": "/projects/{{ inputs.project_id }}/branches/{{ inputs.branch_id }}",
+      "inputs": [
+        { "key": "project_id", "label": "Project ID", "type": "string", "required": true },
+        { "key": "branch_id", "label": "Branch ID", "type": "string", "required": true }
+      ]
+    },
+    {
+      "key": "get_connection_uri",
+      "name": "Get connection string",
+      "method": "GET",
+      "endpoint": "/projects/{{ inputs.project_id }}/connection_uri",
+      "query": { "branch_id": "{{ inputs.branch_id }}", "database_name": "{{ inputs.database_name }}", "role_name": "{{ inputs.role_name }}", "pooled": "{{ inputs.pooled }}" },
+      "inputs": [
+        { "key": "project_id", "label": "Project ID", "type": "string", "required": true },
+        { "key": "database_name", "label": "Database", "type": "string", "required": true, "default": "neondb" },
+        { "key": "role_name", "label": "Role", "type": "string", "required": true, "default": "neondb_owner" },
+        { "key": "branch_id", "label": "Branch ID", "type": "string", "help": "Defaults to the default branch." },
+        { "key": "pooled", "label": "Pooled connection", "type": "select", "options": [{ "value": "true", "label": "Yes" }, { "value": "false", "label": "No" }] }
+      ]
+    }
+  ]
+}

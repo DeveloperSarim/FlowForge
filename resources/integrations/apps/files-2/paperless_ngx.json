@@ -1,0 +1,164 @@
+{
+  "key": "paperless_ngx",
+  "name": "Paperless-ngx",
+  "category": "Files & Documents",
+  "description": "Search, read and tag documents in a self-hosted Paperless-ngx archive.",
+  "brand": "paperlessngx",
+  "website": "https://docs.paperless-ngx.com",
+  "docs_url": "https://docs.paperless-ngx.com/api/",
+  "base_url": "{{ credentials.base_url }}/api",
+  "auth": [
+    {
+      "type": "api_key",
+      "in": "header",
+      "name": "Authorization",
+      "prefix": "Token ",
+      "fields": [
+        {
+          "key": "base_url",
+          "label": "Paperless URL",
+          "type": "string",
+          "required": true,
+          "placeholder": "https://paperless.example.com",
+          "help": "No trailing slash."
+        },
+        {
+          "key": "api_key",
+          "label": "API token",
+          "type": "password",
+          "required": true,
+          "help": "Profile > API Auth Token."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "search_documents",
+      "name": "Search documents",
+      "method": "GET",
+      "endpoint": "/documents/",
+      "query": {
+        "query": "{{ inputs.query }}",
+        "tags__id__all": "{{ inputs.tags }}",
+        "page_size": "{{ inputs.page_size }}",
+        "ordering": "-added"
+      },
+      "inputs": [
+        {
+          "key": "query",
+          "label": "Full-text query",
+          "type": "string"
+        },
+        {
+          "key": "tags",
+          "label": "Tag IDs (all of)",
+          "type": "string",
+          "placeholder": "1,4"
+        },
+        {
+          "key": "page_size",
+          "label": "Page size",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "get_document",
+      "name": "Get document",
+      "method": "GET",
+      "endpoint": "/documents/{{ inputs.document_id }}/",
+      "inputs": [
+        {
+          "key": "document_id",
+          "label": "Document ID",
+          "type": "number",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "update_document",
+      "name": "Update document",
+      "method": "PATCH",
+      "endpoint": "/documents/{{ inputs.document_id }}/",
+      "body": {
+        "title": "{{ inputs.title }}",
+        "correspondent": "{{ inputs.correspondent }}",
+        "document_type": "{{ inputs.document_type }}",
+        "...": "{{ inputs.extra }}"
+      },
+      "inputs": [
+        {
+          "key": "document_id",
+          "label": "Document ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "string"
+        },
+        {
+          "key": "correspondent",
+          "label": "Correspondent ID",
+          "type": "number"
+        },
+        {
+          "key": "document_type",
+          "label": "Document type ID",
+          "type": "number"
+        },
+        {
+          "key": "extra",
+          "label": "Other fields (JSON)",
+          "type": "json",
+          "placeholder": "{\"tags\": [1, 4]}"
+        }
+      ]
+    },
+    {
+      "key": "list_tags",
+      "name": "List tags",
+      "method": "GET",
+      "endpoint": "/tags/",
+      "inputs": []
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_document",
+      "name": "New document",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/documents/",
+      "query": {
+        "ordering": "-added",
+        "page_size": 25
+      },
+      "items_path": "results",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    },
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

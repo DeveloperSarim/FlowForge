@@ -1,0 +1,56 @@
+{
+  "key": "justcall",
+  "name": "JustCall",
+  "category": "Communication",
+  "description": "Send SMS from JustCall numbers and list calls.",
+  "brand": "justcall",
+  "website": "https://justcall.io",
+  "docs_url": "https://developer.justcall.io/reference/introduction",
+  "base_url": "https://api.justcall.io/v2.1",
+  "headers": { "Authorization": "{{ credentials.api_key }}:{{ credentials.api_secret }}" },
+  "auth": [
+    { "type": "api_key", "fields": [
+      { "key": "api_key", "label": "API key", "type": "password", "required": true, "help": "JustCall → Settings → APIs and Webhooks." },
+      { "key": "api_secret", "label": "API secret", "type": "password", "required": true }
+    ] }
+  ],
+  "actions": [
+    {
+      "key": "send_sms",
+      "name": "Send SMS",
+      "method": "POST",
+      "endpoint": "/texts/new",
+      "body": {
+        "justcall_number": "{{ inputs.justcall_number }}",
+        "contact_number": "{{ inputs.contact_number }}",
+        "body": "{{ inputs.body }}"
+      },
+      "inputs": [
+        { "key": "justcall_number", "label": "From (your JustCall number)", "type": "string", "required": true, "placeholder": "+14155552671" },
+        { "key": "contact_number", "label": "To", "type": "string", "required": true },
+        { "key": "body", "label": "Message", "type": "text", "required": true }
+      ]
+    },
+    {
+      "key": "list_calls",
+      "name": "List calls",
+      "method": "GET",
+      "endpoint": "/calls",
+      "query": { "per_page": "{{ inputs.per_page }}", "page": "{{ inputs.page }}" },
+      "output_path": "data",
+      "inputs": [
+        { "key": "per_page", "label": "Per page", "type": "number", "default": 20 },
+        { "key": "page", "label": "Page (from 0)", "type": "number" }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "description": "Add this URL under Settings → APIs and Webhooks (e.g. call completed, SMS received).",
+      "type": "webhook",
+      "inputs": [{ "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }]
+    }
+  ]
+}

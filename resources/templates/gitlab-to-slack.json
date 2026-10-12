@@ -1,0 +1,53 @@
+{
+  "key": "gitlab-to-slack",
+  "name": "Post new GitLab issues to Slack",
+  "description": "Keep the team aware of new issues without leaving Slack.",
+  "category": "Engineering",
+  "featured": false,
+  "graph": {
+    "nodes": [
+      {
+        "id": "trigger",
+        "type": "trigger",
+        "position": {
+          "x": 0,
+          "y": 200
+        },
+        "data": {
+          "integration": "gitlab",
+          "trigger": "new_issue",
+          "label": "New issue",
+          "config": {
+            "project": "",
+            "poll_interval": 5
+          }
+        }
+      },
+      {
+        "id": "step_1",
+        "type": "action",
+        "position": {
+          "x": 240,
+          "y": 200
+        },
+        "data": {
+          "integration": "slack",
+          "action": "post_message",
+          "label": "Post to #dev",
+          "config": {
+            "channel": "#dev",
+            "text": "GitLab issue: {{ steps.trigger.data.title }}\n{{ steps.trigger.data.web_url }}"
+          }
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "e-trigger-step_1",
+        "source": "trigger",
+        "target": "step_1",
+        "sourceHandle": null
+      }
+    ]
+  }
+}

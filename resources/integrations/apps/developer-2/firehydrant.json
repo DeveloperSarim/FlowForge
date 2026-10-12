@@ -1,0 +1,67 @@
+{
+  "key": "firehydrant",
+  "name": "FireHydrant",
+  "category": "Developer Tools",
+  "description": "Open incidents, add notes and look up incidents.",
+  "brand": "firehydrant",
+  "website": "https://firehydrant.com",
+  "docs_url": "https://docs.firehydrant.com/reference/introduction",
+  "base_url": "https://api.firehydrant.io/v1",
+  "auth": { "type": "bearer", "fields": [{ "key": "token", "label": "API key (bot token)", "type": "password", "required": true, "help": "Settings → API keys." }] },
+  "actions": [
+    {
+      "key": "create_incident",
+      "name": "Create incident",
+      "method": "POST",
+      "endpoint": "/incidents",
+      "body": { "name": "{{ inputs.name }}", "summary": "{{ inputs.summary }}", "description": "{{ inputs.description }}", "severity": "{{ inputs.severity }}", "priority": "{{ inputs.priority }}", "tag_list": "{{ inputs.tags }}" },
+      "inputs": [
+        { "key": "name", "label": "Name", "type": "string", "required": true },
+        { "key": "summary", "label": "Summary", "type": "text" },
+        { "key": "description", "label": "Description", "type": "text" },
+        { "key": "severity", "label": "Severity", "type": "string", "placeholder": "SEV1" },
+        { "key": "priority", "label": "Priority", "type": "string", "placeholder": "P1" },
+        { "key": "tags", "label": "Tags", "type": "list" }
+      ]
+    },
+    {
+      "key": "get_incident",
+      "name": "Get incident",
+      "method": "GET",
+      "endpoint": "/incidents/{{ inputs.incident_id }}",
+      "inputs": [{ "key": "incident_id", "label": "Incident ID", "type": "string", "required": true }]
+    },
+    {
+      "key": "list_incidents",
+      "name": "List incidents",
+      "method": "GET",
+      "endpoint": "/incidents",
+      "query": { "query": "{{ inputs.query }}", "per_page": "{{ inputs.per_page }}" },
+      "output_path": "data",
+      "inputs": [
+        { "key": "query", "label": "Search", "type": "string" },
+        { "key": "per_page", "label": "Per page", "type": "number", "default": 20 }
+      ]
+    },
+    {
+      "key": "add_note",
+      "name": "Add note to incident",
+      "method": "POST",
+      "endpoint": "/incidents/{{ inputs.incident_id }}/notes",
+      "body": { "body": "{{ inputs.body }}" },
+      "inputs": [
+        { "key": "incident_id", "label": "Incident ID", "type": "string", "required": true },
+        { "key": "body", "label": "Note", "type": "text", "required": true }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "data_path": "data",
+      "inputs": [{ "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }]
+    }
+  ]
+}

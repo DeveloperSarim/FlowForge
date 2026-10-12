@@ -1,0 +1,103 @@
+{
+  "key": "phrase",
+  "name": "Phrase Strings",
+  "category": "Utilities",
+  "description": "Manage translation keys and translations and download locale files.",
+  "brand": "phrase",
+  "website": "https://phrase.com",
+  "docs_url": "https://developers.phrase.com/api/",
+  "base_url": "{{ credentials.api_host }}",
+  "auth": { "type": "api_key", "in": "header", "name": "Authorization", "prefix": "token ", "fields": [
+    { "key": "api_key", "label": "Access token", "type": "password", "required": true, "help": "Profile → Settings → Access tokens." },
+    { "key": "api_host", "label": "Data center", "type": "select", "required": true, "default": "https://api.phrase.com/v2", "options": [
+      { "value": "https://api.phrase.com/v2", "label": "EU" }, { "value": "https://api.us.app.phrase.com/v2", "label": "US" }
+    ] }
+  ] },
+  "actions": [
+    {
+      "key": "list_projects",
+      "name": "List projects",
+      "method": "GET",
+      "endpoint": "/projects",
+      "query": { "per_page": "{{ inputs.per_page }}", "page": "{{ inputs.page }}" },
+      "inputs": [
+        { "key": "per_page", "label": "Per page", "type": "number" },
+        { "key": "page", "label": "Page", "type": "number" }
+      ]
+    },
+    {
+      "key": "list_locales",
+      "name": "List locales",
+      "method": "GET",
+      "endpoint": "/projects/{{ inputs.project_id }}/locales",
+      "query": { "branch": "{{ inputs.branch }}" },
+      "inputs": [
+        { "key": "project_id", "label": "Project ID", "type": "string", "required": true },
+        { "key": "branch", "label": "Branch", "type": "string" }
+      ]
+    },
+    {
+      "key": "search_keys",
+      "name": "List / search keys",
+      "method": "GET",
+      "endpoint": "/projects/{{ inputs.project_id }}/keys",
+      "query": { "q": "{{ inputs.q }}", "branch": "{{ inputs.branch }}", "per_page": "{{ inputs.per_page }}" },
+      "inputs": [
+        { "key": "project_id", "label": "Project ID", "type": "string", "required": true },
+        { "key": "q", "label": "Query", "type": "string", "placeholder": "name:welcome* tags:web" },
+        { "key": "branch", "label": "Branch", "type": "string" },
+        { "key": "per_page", "label": "Per page", "type": "number" }
+      ]
+    },
+    {
+      "key": "create_key",
+      "name": "Create key",
+      "method": "POST",
+      "endpoint": "/projects/{{ inputs.project_id }}/keys",
+      "body": { "name": "{{ inputs.name }}", "description": "{{ inputs.description }}", "tags": "{{ inputs.tags }}", "branch": "{{ inputs.branch }}" },
+      "inputs": [
+        { "key": "project_id", "label": "Project ID", "type": "string", "required": true },
+        { "key": "name", "label": "Key name", "type": "string", "required": true },
+        { "key": "description", "label": "Description", "type": "string" },
+        { "key": "tags", "label": "Tags", "type": "string", "placeholder": "web,checkout" },
+        { "key": "branch", "label": "Branch", "type": "string" }
+      ]
+    },
+    {
+      "key": "create_translation",
+      "name": "Create translation",
+      "method": "POST",
+      "endpoint": "/projects/{{ inputs.project_id }}/translations",
+      "body": { "locale_id": "{{ inputs.locale_id }}", "key_id": "{{ inputs.key_id }}", "content": "{{ inputs.content }}", "branch": "{{ inputs.branch }}" },
+      "inputs": [
+        { "key": "project_id", "label": "Project ID", "type": "string", "required": true },
+        { "key": "locale_id", "label": "Locale ID", "type": "string", "required": true },
+        { "key": "key_id", "label": "Key ID", "type": "string", "required": true },
+        { "key": "content", "label": "Translation", "type": "text", "required": true },
+        { "key": "branch", "label": "Branch", "type": "string" }
+      ]
+    },
+    {
+      "key": "download_locale",
+      "name": "Download locale file",
+      "method": "GET",
+      "endpoint": "/projects/{{ inputs.project_id }}/locales/{{ inputs.locale_id }}/download",
+      "query": { "file_format": "{{ inputs.file_format }}", "branch": "{{ inputs.branch }}" },
+      "inputs": [
+        { "key": "project_id", "label": "Project ID", "type": "string", "required": true },
+        { "key": "locale_id", "label": "Locale ID or name", "type": "string", "required": true },
+        { "key": "file_format", "label": "File format", "type": "string", "required": true, "placeholder": "simple_json", "help": "e.g. simple_json, nested_json, yml, strings, xml, gettext." },
+        { "key": "branch", "label": "Branch", "type": "string" }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Phrase webhook",
+      "description": "Add this URL in Project settings → Webhooks.",
+      "type": "webhook",
+      "inputs": [{ "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }]
+    }
+  ]
+}

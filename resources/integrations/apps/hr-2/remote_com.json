@@ -1,0 +1,150 @@
+{
+  "key": "remote_com",
+  "name": "Remote",
+  "category": "HR & Recruiting",
+  "description": "List employments and time off, and subscribe to Remote webhooks.",
+  "brand": "remote",
+  "website": "https://remote.com",
+  "docs_url": "https://developer.remote.com",
+  "base_url": "https://gateway.remote.com",
+  "auth": [
+    {
+      "type": "bearer",
+      "fields": [
+        {
+          "key": "token",
+          "label": "API token",
+          "type": "password",
+          "required": true,
+          "help": "Company settings > Integrations > Remote API (ra_live_…)."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_employments",
+      "name": "List employments",
+      "method": "GET",
+      "endpoint": "/v1/employments",
+      "query": {
+        "email": "{{ inputs.email }}",
+        "status": "{{ inputs.status }}",
+        "page": "{{ inputs.page }}",
+        "page_size": "{{ inputs.page_size }}"
+      },
+      "output_path": "data.employments",
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string"
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "string",
+          "placeholder": "active"
+        },
+        {
+          "key": "page",
+          "label": "Page",
+          "type": "number"
+        },
+        {
+          "key": "page_size",
+          "label": "Per page",
+          "type": "number",
+          "default": 100
+        }
+      ]
+    },
+    {
+      "key": "get_employment",
+      "name": "Get employment",
+      "method": "GET",
+      "endpoint": "/v1/employments/{{ inputs.employment_id }}",
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "employment_id",
+          "label": "Employment ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_timeoff",
+      "name": "List time off",
+      "method": "GET",
+      "endpoint": "/v1/timeoff",
+      "query": {
+        "employment_id": "{{ inputs.employment_id }}",
+        "status": "{{ inputs.status }}"
+      },
+      "output_path": "data.timeoffs",
+      "inputs": [
+        {
+          "key": "employment_id",
+          "label": "Employment ID",
+          "type": "string"
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "string",
+          "placeholder": "approved"
+        }
+      ]
+    },
+    {
+      "key": "create_webhook",
+      "name": "Create webhook callback",
+      "method": "POST",
+      "endpoint": "/v1/webhook-callbacks",
+      "body": {
+        "url": "{{ inputs.url }}",
+        "subscribed_events": "{{ inputs.subscribed_events }}",
+        "subscribe_to_all_events": "{{ inputs.subscribe_to_all_events }}"
+      },
+      "output_path": "data.webhook_callback",
+      "inputs": [
+        {
+          "key": "url",
+          "label": "Callback URL",
+          "type": "string",
+          "required": true,
+          "help": "Paste a workflow's Remote webhook trigger URL."
+        },
+        {
+          "key": "subscribed_events",
+          "label": "Events",
+          "type": "list",
+          "placeholder": "employment.onboarding.completed",
+          "help": "Leave empty and enable All events to get everything."
+        },
+        {
+          "key": "subscribe_to_all_events",
+          "label": "All events",
+          "type": "boolean"
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Register the URL with Create webhook callback.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

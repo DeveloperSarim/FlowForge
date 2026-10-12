@@ -1,0 +1,243 @@
+{
+  "key": "attio",
+  "name": "Attio",
+  "category": "CRM & Sales",
+  "description": "Create, upsert and query records and notes in Attio.",
+  "brand": "attio",
+  "website": "https://attio.com",
+  "docs_url": "https://docs.attio.com/rest-api/overview",
+  "base_url": "https://api.attio.com/v2",
+  "auth": [
+    {
+      "type": "bearer",
+      "fields": [
+        {
+          "key": "token",
+          "label": "Access token",
+          "type": "password",
+          "required": true,
+          "help": "Workspace settings > Developers."
+        }
+      ]
+    },
+    {
+      "type": "oauth2",
+      "authorize_url": "https://app.attio.com/authorize",
+      "token_url": "https://app.attio.com/oauth/token",
+      "scopes": []
+    }
+  ],
+  "actions": [
+    {
+      "key": "create_record",
+      "name": "Create record",
+      "method": "POST",
+      "endpoint": "/objects/{{ inputs.object }}/records",
+      "body": {
+        "data": {
+          "values": "{{ inputs.values }}"
+        }
+      },
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "object",
+          "label": "Object",
+          "type": "string",
+          "required": true,
+          "default": "people",
+          "placeholder": "people, companies, deals"
+        },
+        {
+          "key": "values",
+          "label": "Values",
+          "type": "json",
+          "required": true,
+          "help": "e.g. {\"email_addresses\": [\"jane@acme.com\"], \"name\": [{\"first_name\": \"Jane\", \"last_name\": \"Doe\", \"full_name\": \"Jane Doe\"}]}"
+        }
+      ]
+    },
+    {
+      "key": "assert_record",
+      "name": "Create or update record",
+      "method": "PUT",
+      "endpoint": "/objects/{{ inputs.object }}/records",
+      "query": {
+        "matching_attribute": "{{ inputs.matching_attribute }}"
+      },
+      "body": {
+        "data": {
+          "values": "{{ inputs.values }}"
+        }
+      },
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "object",
+          "label": "Object",
+          "type": "string",
+          "required": true,
+          "default": "people"
+        },
+        {
+          "key": "matching_attribute",
+          "label": "Match on attribute",
+          "type": "string",
+          "required": true,
+          "default": "email_addresses",
+          "help": "A unique attribute."
+        },
+        {
+          "key": "values",
+          "label": "Values",
+          "type": "json",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "get_record",
+      "name": "Get record",
+      "method": "GET",
+      "endpoint": "/objects/{{ inputs.object }}/records/{{ inputs.record_id }}",
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "object",
+          "label": "Object",
+          "type": "string",
+          "required": true,
+          "default": "people"
+        },
+        {
+          "key": "record_id",
+          "label": "Record ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "query_records",
+      "name": "Query records",
+      "method": "POST",
+      "endpoint": "/objects/{{ inputs.object }}/records/query",
+      "body": {
+        "filter": "{{ inputs.filter }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "object",
+          "label": "Object",
+          "type": "string",
+          "required": true,
+          "default": "people"
+        },
+        {
+          "key": "filter",
+          "label": "Filter",
+          "type": "json",
+          "help": "e.g. {\"email_addresses\": \"jane@acme.com\"}"
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 20
+        }
+      ]
+    },
+    {
+      "key": "create_note",
+      "name": "Create note",
+      "method": "POST",
+      "endpoint": "/notes",
+      "body": {
+        "data": {
+          "parent_object": "{{ inputs.parent_object }}",
+          "parent_record_id": "{{ inputs.parent_record_id }}",
+          "title": "{{ inputs.title }}",
+          "format": "plaintext",
+          "content": "{{ inputs.content }}"
+        }
+      },
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "parent_object",
+          "label": "Parent object",
+          "type": "string",
+          "required": true,
+          "default": "people"
+        },
+        {
+          "key": "parent_record_id",
+          "label": "Parent record ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "content",
+          "label": "Content",
+          "type": "text",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_record",
+      "name": "New record",
+      "type": "polling",
+      "method": "POST",
+      "endpoint": "/objects/{{ inputs.object }}/records/query",
+      "body": {
+        "sorts": [
+          {
+            "direction": "desc",
+            "attribute": "created_at"
+          }
+        ],
+        "limit": 50
+      },
+      "items_path": "data",
+      "id_field": "id.record_id",
+      "inputs": [
+        {
+          "key": "object",
+          "label": "Object",
+          "type": "string",
+          "required": true,
+          "default": "people"
+        },
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    },
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

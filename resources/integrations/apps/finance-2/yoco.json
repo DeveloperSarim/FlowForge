@@ -1,0 +1,117 @@
+{
+  "key": "yoco",
+  "name": "Yoco",
+  "category": "Payments & Finance",
+  "description": "Create online checkouts and refund payments with Yoco.",
+  "brand": "yoco",
+  "website": "https://www.yoco.com",
+  "docs_url": "https://developer.yoco.com/online/api-reference/checkout",
+  "base_url": "https://payments.yoco.com/api",
+  "auth": [
+    {
+      "type": "bearer",
+      "fields": [
+        {
+          "key": "token",
+          "label": "Secret key (sk_…)",
+          "type": "password",
+          "required": true,
+          "help": "Yoco app > Sales > Payment gateway > API keys."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "create_checkout",
+      "name": "Create checkout",
+      "method": "POST",
+      "endpoint": "/checkouts",
+      "body": {
+        "amount": "{{ inputs.amount }}",
+        "currency": "{{ inputs.currency }}",
+        "successUrl": "{{ inputs.success_url }}",
+        "cancelUrl": "{{ inputs.cancel_url }}",
+        "failureUrl": "{{ inputs.failure_url }}",
+        "externalId": "{{ inputs.external_id }}",
+        "metadata": "{{ inputs.metadata }}"
+      },
+      "output_fields": {
+        "url": "redirectUrl"
+      },
+      "inputs": [
+        {
+          "key": "amount",
+          "label": "Amount (cents)",
+          "type": "number",
+          "required": true,
+          "help": "1000 = R10.00."
+        },
+        {
+          "key": "currency",
+          "label": "Currency",
+          "type": "string",
+          "required": true,
+          "default": "ZAR"
+        },
+        {
+          "key": "success_url",
+          "label": "Success URL",
+          "type": "string"
+        },
+        {
+          "key": "cancel_url",
+          "label": "Cancel URL",
+          "type": "string"
+        },
+        {
+          "key": "failure_url",
+          "label": "Failure URL",
+          "type": "string"
+        },
+        {
+          "key": "external_id",
+          "label": "External ID",
+          "type": "string"
+        },
+        {
+          "key": "metadata",
+          "label": "Metadata",
+          "type": "keyvalue"
+        }
+      ]
+    },
+    {
+      "key": "refund_checkout",
+      "name": "Refund checkout",
+      "method": "POST",
+      "endpoint": "/checkouts/{{ inputs.checkout_id }}/refund",
+      "headers": {
+        "Idempotency-Key": "{{ inputs.idempotency_key }}"
+      },
+      "body": {
+        "amount": "{{ inputs.amount }}"
+      },
+      "inputs": [
+        {
+          "key": "checkout_id",
+          "label": "Checkout ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "amount",
+          "label": "Amount (cents)",
+          "type": "number",
+          "help": "Blank = full refund."
+        },
+        {
+          "key": "idempotency_key",
+          "label": "Idempotency key",
+          "type": "string",
+          "help": "Any unique string; retries with the same key never refund twice."
+        }
+      ]
+    }
+  ]
+}

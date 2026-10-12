@@ -1,0 +1,63 @@
+{
+  "key": "vonage",
+  "name": "Vonage",
+  "category": "Communication",
+  "description": "Send SMS, WhatsApp and Viber messages and verify phone numbers.",
+  "brand": "vonage",
+  "website": "https://www.vonage.com/communications-apis/",
+  "docs_url": "https://developer.vonage.com/en/api/messages",
+  "base_url": "https://api.nexmo.com",
+  "auth": [
+    {
+      "type": "basic",
+      "fields": [
+        { "key": "username", "label": "API key", "type": "string", "required": true },
+        { "key": "password", "label": "API secret", "type": "password", "required": true }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "send_message",
+      "name": "Send message",
+      "method": "POST",
+      "endpoint": "/v1/messages",
+      "body": { "message_type": "text", "channel": "{{ inputs.channel }}", "to": "{{ inputs.to }}", "from": "{{ inputs.from }}", "text": "{{ inputs.text }}" },
+      "inputs": [
+        { "key": "channel", "label": "Channel", "type": "select", "required": true, "default": "sms", "options": [
+          { "value": "sms", "label": "SMS" }, { "value": "whatsapp", "label": "WhatsApp" },
+          { "value": "viber_service", "label": "Viber" }, { "value": "messenger", "label": "Facebook Messenger" }
+        ] },
+        { "key": "to", "label": "To", "type": "string", "required": true, "placeholder": "447700900000", "help": "E.164 without the leading + (Messenger: the recipient ID)." },
+        { "key": "from", "label": "From", "type": "string", "required": true, "help": "Your Vonage number or sender ID (WhatsApp/Viber/Messenger: your business ID)." },
+        { "key": "text", "label": "Message", "type": "text", "required": true }
+      ]
+    },
+    {
+      "key": "start_verification",
+      "name": "Send verification code",
+      "method": "POST",
+      "endpoint": "/v2/verify",
+      "body": { "brand": "{{ inputs.brand }}", "code_length": "{{ inputs.code_length }}", "workflow": [{ "channel": "{{ inputs.channel }}", "to": "{{ inputs.to }}" }] },
+      "inputs": [
+        { "key": "brand", "label": "Brand name (shown in message)", "type": "string", "required": true },
+        { "key": "channel", "label": "Channel", "type": "select", "required": true, "default": "sms", "options": [
+          { "value": "sms", "label": "SMS" }, { "value": "voice", "label": "Voice call" }, { "value": "whatsapp", "label": "WhatsApp" }, { "value": "email", "label": "Email" }
+        ] },
+        { "key": "to", "label": "To (phone or email)", "type": "string", "required": true },
+        { "key": "code_length", "label": "Code length", "type": "number", "default": 4 }
+      ]
+    },
+    {
+      "key": "check_verification",
+      "name": "Check verification code",
+      "method": "POST",
+      "endpoint": "/v2/verify/{{ inputs.request_id }}",
+      "body": { "code": "{{ inputs.code }}" },
+      "inputs": [
+        { "key": "request_id", "label": "Request ID", "type": "string", "required": true, "help": "Returned by Send verification code." },
+        { "key": "code", "label": "Code entered by the user", "type": "string", "required": true }
+      ]
+    }
+  ]
+}

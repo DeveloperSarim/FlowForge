@@ -1,0 +1,186 @@
+{
+  "key": "outline",
+  "name": "Outline",
+  "category": "Productivity",
+  "description": "Create, update and search documents in your Outline wiki.",
+  "brand": "outline",
+  "website": "https://www.getoutline.com",
+  "docs_url": "https://www.getoutline.com/developers",
+  "base_url": "{{ credentials.url }}/api",
+  "auth": [
+    {
+      "type": "bearer",
+      "fields": [
+        {
+          "key": "url",
+          "label": "Outline URL",
+          "type": "string",
+          "required": true,
+          "default": "https://app.getoutline.com",
+          "help": "Your self-hosted URL, or https://app.getoutline.com for cloud."
+        },
+        {
+          "key": "token",
+          "label": "API key",
+          "type": "password",
+          "required": true,
+          "help": "Settings > API & Apps."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "search_documents",
+      "name": "Search documents",
+      "method": "POST",
+      "endpoint": "/documents.search",
+      "body": {
+        "query": "{{ inputs.query }}",
+        "collectionId": "{{ inputs.collection_id }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "query",
+          "label": "Search text",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "collection_id",
+          "label": "Collection ID",
+          "type": "string"
+        },
+        {
+          "key": "limit",
+          "label": "Max results",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "get_document",
+      "name": "Get document",
+      "method": "POST",
+      "endpoint": "/documents.info",
+      "body": {
+        "id": "{{ inputs.id }}"
+      },
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "id",
+          "label": "Document ID or URL slug",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "create_document",
+      "name": "Create document",
+      "method": "POST",
+      "endpoint": "/documents.create",
+      "body": {
+        "title": "{{ inputs.title }}",
+        "text": "{{ inputs.text }}",
+        "collectionId": "{{ inputs.collection_id }}",
+        "parentDocumentId": "{{ inputs.parent_document_id }}",
+        "publish": "{{ inputs.publish }}"
+      },
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "text",
+          "label": "Content (Markdown)",
+          "type": "text"
+        },
+        {
+          "key": "collection_id",
+          "label": "Collection ID",
+          "type": "string"
+        },
+        {
+          "key": "parent_document_id",
+          "label": "Parent document ID",
+          "type": "string"
+        },
+        {
+          "key": "publish",
+          "label": "Publish",
+          "type": "boolean",
+          "default": true
+        }
+      ]
+    },
+    {
+      "key": "update_document",
+      "name": "Update document",
+      "method": "POST",
+      "endpoint": "/documents.update",
+      "body": {
+        "id": "{{ inputs.id }}",
+        "title": "{{ inputs.title }}",
+        "text": "{{ inputs.text }}",
+        "append": "{{ inputs.append }}"
+      },
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "id",
+          "label": "Document ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "string"
+        },
+        {
+          "key": "text",
+          "label": "Content (Markdown)",
+          "type": "text"
+        },
+        {
+          "key": "append",
+          "label": "Append instead of replace",
+          "type": "boolean"
+        }
+      ]
+    },
+    {
+      "key": "list_collections",
+      "name": "List collections",
+      "method": "POST",
+      "endpoint": "/collections.list",
+      "body": {
+        "limit": 100
+      },
+      "output_path": "data",
+      "inputs": []
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

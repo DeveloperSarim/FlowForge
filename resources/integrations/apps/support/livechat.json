@@ -1,0 +1,148 @@
+{
+  "key": "livechat",
+  "name": "LiveChat",
+  "category": "Customer Support",
+  "description": "List chats, read a chat, send messages and close chats in LiveChat.",
+  "brand": "livechat",
+  "website": "https://www.livechat.com",
+  "docs_url": "https://platform.text.com/docs/messaging/agent-chat-api",
+  "base_url": "https://api.livechatinc.com/v3.5",
+  "auth": {
+    "type": "basic",
+    "fields": [
+      {
+        "key": "username",
+        "label": "Account ID",
+        "type": "string",
+        "required": true,
+        "help": "Developer Console > Tools > Personal Access Tokens shows it"
+      },
+      {
+        "key": "password",
+        "label": "Personal access token",
+        "type": "password",
+        "required": true
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_chats",
+      "name": "List chats",
+      "method": "POST",
+      "endpoint": "/agent/action/list_chats",
+      "body": {
+        "limit": "{{ inputs.limit }}"
+      },
+      "inputs": [
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 10
+        }
+      ]
+    },
+    {
+      "key": "get_chat",
+      "name": "Get chat",
+      "method": "POST",
+      "endpoint": "/agent/action/get_chat",
+      "body": {
+        "chat_id": "{{ inputs.chat_id }}",
+        "thread_id": "{{ inputs.thread_id }}"
+      },
+      "inputs": [
+        {
+          "key": "chat_id",
+          "label": "Chat ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "thread_id",
+          "label": "Thread ID",
+          "type": "string",
+          "help": "Defaults to the latest thread."
+        }
+      ]
+    },
+    {
+      "key": "send_message",
+      "name": "Send message",
+      "method": "POST",
+      "endpoint": "/agent/action/send_event",
+      "body": {
+        "chat_id": "{{ inputs.chat_id }}",
+        "event": {
+          "type": "message",
+          "text": "{{ inputs.text }}",
+          "visibility": "{{ inputs.visibility }}"
+        }
+      },
+      "inputs": [
+        {
+          "key": "chat_id",
+          "label": "Chat ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "text",
+          "label": "Message",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "visibility",
+          "label": "Visibility",
+          "type": "select",
+          "default": "all",
+          "options": [
+            {
+              "value": "all",
+              "label": "Everyone"
+            },
+            {
+              "value": "agents",
+              "label": "Agents only"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "deactivate_chat",
+      "name": "Close chat",
+      "method": "POST",
+      "endpoint": "/agent/action/deactivate_chat",
+      "body": {
+        "id": "{{ inputs.chat_id }}"
+      },
+      "inputs": [
+        {
+          "key": "chat_id",
+          "label": "Chat ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Register this URL as a webhook in the Developer Console.",
+      "data_path": "payload",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

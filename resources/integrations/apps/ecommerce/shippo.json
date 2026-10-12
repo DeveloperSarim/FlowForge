@@ -1,0 +1,208 @@
+{
+  "key": "shippo",
+  "name": "Shippo",
+  "category": "E-commerce",
+  "description": "Get shipping rates, buy labels, validate addresses and track packages.",
+  "brand": "shippo",
+  "website": "https://goshippo.com",
+  "docs_url": "https://docs.goshippo.com/shippoapi/public-api/",
+  "base_url": "https://api.goshippo.com",
+  "auth": [
+    {
+      "type": "api_key",
+      "in": "header",
+      "name": "Authorization",
+      "prefix": "ShippoToken ",
+      "fields": [
+        {
+          "key": "api_key",
+          "label": "API token",
+          "type": "password",
+          "required": true,
+          "help": "Settings > Advanced > API (shippo_live_… or shippo_test_…)."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "create_shipment",
+      "name": "Create shipment (get rates)",
+      "method": "POST",
+      "endpoint": "/shipments",
+      "output_fields": {
+        "rates": "rates"
+      },
+      "body": {
+        "address_from": "{{ inputs.address_from }}",
+        "address_to": "{{ inputs.address_to }}",
+        "parcels": "{{ inputs.parcels }}",
+        "async": false
+      },
+      "inputs": [
+        {
+          "key": "address_from",
+          "label": "From address",
+          "type": "json",
+          "required": true,
+          "placeholder": "{\"name\": \"Shop\", \"street1\": \"215 Clayton St.\", \"city\": \"San Francisco\", \"state\": \"CA\", \"zip\": \"94117\", \"country\": \"US\"}"
+        },
+        {
+          "key": "address_to",
+          "label": "To address",
+          "type": "json",
+          "required": true
+        },
+        {
+          "key": "parcels",
+          "label": "Parcels",
+          "type": "json",
+          "required": true,
+          "placeholder": "[{\"length\": \"5\", \"width\": \"5\", \"height\": \"5\", \"distance_unit\": \"in\", \"weight\": \"2\", \"mass_unit\": \"lb\"}]"
+        }
+      ]
+    },
+    {
+      "key": "purchase_label",
+      "name": "Buy label",
+      "method": "POST",
+      "endpoint": "/transactions",
+      "body": {
+        "rate": "{{ inputs.rate_id }}",
+        "label_file_type": "{{ inputs.label_file_type }}",
+        "async": false
+      },
+      "inputs": [
+        {
+          "key": "rate_id",
+          "label": "Rate ID",
+          "type": "string",
+          "required": true,
+          "help": "object_id of a rate returned by Create shipment."
+        },
+        {
+          "key": "label_file_type",
+          "label": "Label format",
+          "type": "select",
+          "options": [
+            {
+              "value": "PDF",
+              "label": "PDF"
+            },
+            {
+              "value": "PDF_4x6",
+              "label": "PDF 4x6"
+            },
+            {
+              "value": "PNG",
+              "label": "PNG"
+            },
+            {
+              "value": "ZPLII",
+              "label": "ZPL II"
+            }
+          ],
+          "default": "PDF"
+        }
+      ]
+    },
+    {
+      "key": "validate_address",
+      "name": "Validate address",
+      "method": "POST",
+      "endpoint": "/addresses",
+      "body": {
+        "name": "{{ inputs.name }}",
+        "street1": "{{ inputs.street1 }}",
+        "street2": "{{ inputs.street2 }}",
+        "city": "{{ inputs.city }}",
+        "state": "{{ inputs.state }}",
+        "zip": "{{ inputs.zip }}",
+        "country": "{{ inputs.country }}",
+        "validate": true
+      },
+      "output_fields": {
+        "is_valid": "validation_results.is_valid"
+      },
+      "inputs": [
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string"
+        },
+        {
+          "key": "street1",
+          "label": "Street",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "street2",
+          "label": "Street 2",
+          "type": "string"
+        },
+        {
+          "key": "city",
+          "label": "City",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "state",
+          "label": "State",
+          "type": "string"
+        },
+        {
+          "key": "zip",
+          "label": "ZIP / postal code",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "country",
+          "label": "Country (ISO 2)",
+          "type": "string",
+          "required": true,
+          "placeholder": "US"
+        }
+      ]
+    },
+    {
+      "key": "track_package",
+      "name": "Track package",
+      "method": "GET",
+      "endpoint": "/tracks/{{ inputs.carrier }}/{{ inputs.tracking_number }}",
+      "inputs": [
+        {
+          "key": "carrier",
+          "label": "Carrier token",
+          "type": "string",
+          "required": true,
+          "placeholder": "usps"
+        },
+        {
+          "key": "tracking_number",
+          "label": "Tracking number",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Settings > Advanced > Webhooks: add this URL for events like track_updated or transaction_created.",
+      "data_path": "data",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

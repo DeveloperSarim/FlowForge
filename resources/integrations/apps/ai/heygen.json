@@ -1,0 +1,143 @@
+{
+  "key": "heygen",
+  "name": "HeyGen",
+  "category": "AI",
+  "description": "Create AI avatar videos and check their status.",
+  "brand": "heygen",
+  "website": "https://www.heygen.com",
+  "docs_url": "https://docs.heygen.com/reference",
+  "base_url": "https://api.heygen.com",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "X-Api-Key",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "create_avatar_video",
+      "name": "Create avatar video",
+      "method": "POST",
+      "endpoint": "/v2/video/generate",
+      "body": {
+        "title": "{{ inputs.title }}",
+        "video_inputs": [
+          {
+            "character": {
+              "type": "avatar",
+              "avatar_id": "{{ inputs.avatar_id }}",
+              "avatar_style": "normal"
+            },
+            "voice": {
+              "type": "text",
+              "input_text": "{{ inputs.script }}",
+              "voice_id": "{{ inputs.voice_id }}"
+            }
+          }
+        ],
+        "dimension": {
+          "width": "{{ inputs.width }}",
+          "height": "{{ inputs.height }}"
+        }
+      },
+      "output_fields": {
+        "video_id": "data.video_id"
+      },
+      "inputs": [
+        {
+          "key": "avatar_id",
+          "label": "Avatar ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "voice_id",
+          "label": "Voice ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "script",
+          "label": "Script",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "string"
+        },
+        {
+          "key": "width",
+          "label": "Width",
+          "type": "number",
+          "required": true,
+          "default": 1280
+        },
+        {
+          "key": "height",
+          "label": "Height",
+          "type": "number",
+          "required": true,
+          "default": 720
+        }
+      ]
+    },
+    {
+      "key": "get_video_status",
+      "name": "Get video status",
+      "method": "GET",
+      "endpoint": "/v1/video_status.get",
+      "query": {
+        "video_id": "{{ inputs.video_id }}"
+      },
+      "output_fields": {
+        "video_url": "data.video_url"
+      },
+      "inputs": [
+        {
+          "key": "video_id",
+          "label": "Video ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_avatars",
+      "name": "List avatars",
+      "method": "GET",
+      "endpoint": "/v2/avatars",
+      "inputs": []
+    },
+    {
+      "key": "list_voices",
+      "name": "List voices",
+      "method": "GET",
+      "endpoint": "/v2/voices",
+      "inputs": []
+    }
+  ],
+  "triggers": [
+    {
+      "key": "video_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ],
+      "data_path": "event_data"
+    }
+  ]
+}

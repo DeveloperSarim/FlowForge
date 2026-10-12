@@ -1,0 +1,73 @@
+{
+  "key": "contactout",
+  "name": "ContactOut",
+  "category": "CRM & Sales",
+  "description": "Get emails and phone numbers from LinkedIn profiles, emails or names.",
+  "brand": "contactout",
+  "website": "https://contactout.com",
+  "docs_url": "https://api.contactout.com/",
+  "base_url": "https://api.contactout.com",
+  "headers": { "authorization": "basic" },
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "token",
+    "fields": [{ "key": "api_key", "label": "API token", "type": "password", "required": true }]
+  },
+  "actions": [
+    {
+      "key": "linkedin_contact_info",
+      "name": "Get contact info from LinkedIn",
+      "method": "GET",
+      "endpoint": "/v1/people/linkedin",
+      "output_path": "profile",
+      "query": { "profile": "{{ inputs.profile }}", "include_phone": "{{ inputs.include_phone }}", "email_type": "{{ inputs.email_type }}" },
+      "inputs": [
+        { "key": "profile", "label": "LinkedIn profile URL", "type": "string", "required": true },
+        { "key": "include_phone", "label": "Include phone", "type": "boolean" },
+        { "key": "email_type", "label": "Email type", "type": "select", "options": [{ "value": "personal,work", "label": "Personal and work" }, { "value": "work", "label": "Work" }, { "value": "personal", "label": "Personal" }, { "value": "none", "label": "None" }] }
+      ]
+    },
+    {
+      "key": "enrich_linkedin",
+      "name": "Enrich LinkedIn profile",
+      "method": "GET",
+      "endpoint": "/v1/linkedin/enrich",
+      "output_path": "profile",
+      "query": { "profile": "{{ inputs.profile }}" },
+      "inputs": [{ "key": "profile", "label": "LinkedIn profile URL", "type": "string", "required": true }]
+    },
+    {
+      "key": "enrich_email",
+      "name": "Enrich email",
+      "method": "GET",
+      "endpoint": "/v1/email/enrich",
+      "output_path": "profile",
+      "query": { "email": "{{ inputs.email }}" },
+      "inputs": [{ "key": "email", "label": "Email", "type": "string", "required": true }]
+    },
+    {
+      "key": "enrich_person",
+      "name": "Enrich person",
+      "description": "Find a person by name plus company, or by LinkedIn URL, email or phone.",
+      "method": "POST",
+      "endpoint": "/v1/people/enrich",
+      "body": {
+        "linkedin_url": "{{ inputs.linkedin_url }}",
+        "email": "{{ inputs.email }}",
+        "full_name": "{{ inputs.full_name }}",
+        "company": "{{ inputs.company }}",
+        "job_title": "{{ inputs.job_title }}",
+        "include": "{{ inputs.include }}"
+      },
+      "inputs": [
+        { "key": "linkedin_url", "label": "LinkedIn URL", "type": "string" },
+        { "key": "email", "label": "Email", "type": "string" },
+        { "key": "full_name", "label": "Full name", "type": "string" },
+        { "key": "company", "label": "Company", "type": "list", "help": "Company names" },
+        { "key": "job_title", "label": "Job title", "type": "string" },
+        { "key": "include", "label": "Include", "type": "list", "help": "Any of: work_email, personal_email, phone" }
+      ]
+    }
+  ]
+}

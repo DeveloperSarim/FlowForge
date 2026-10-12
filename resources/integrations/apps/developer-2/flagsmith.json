@@ -1,0 +1,43 @@
+{
+  "key": "flagsmith",
+  "name": "Flagsmith",
+  "category": "Developer Tools",
+  "description": "Read feature flags for an environment or identity and set identity traits.",
+  "brand": "flagsmith",
+  "website": "https://www.flagsmith.com",
+  "docs_url": "https://docs.flagsmith.com/clients/rest",
+  "base_url": "{{ credentials.base_url }}",
+  "auth": { "type": "api_key", "in": "header", "name": "X-Environment-Key", "fields": [
+    { "key": "base_url", "label": "API URL", "type": "string", "required": true, "default": "https://edge.api.flagsmith.com/api/v1", "help": "Self-hosted: https://<your-host>/api/v1" },
+    { "key": "api_key", "label": "Environment key", "type": "password", "required": true, "help": "Environment settings → Keys (client-side or server-side key)." }
+  ] },
+  "actions": [
+    {
+      "key": "get_flags",
+      "name": "Get environment flags",
+      "method": "GET",
+      "endpoint": "/flags/",
+      "inputs": []
+    },
+    {
+      "key": "get_identity_flags",
+      "name": "Get identity flags and traits",
+      "method": "GET",
+      "endpoint": "/identities/",
+      "query": { "identifier": "{{ inputs.identifier }}" },
+      "inputs": [{ "key": "identifier", "label": "Identifier", "type": "string", "required": true, "placeholder": "user-123" }]
+    },
+    {
+      "key": "identify",
+      "name": "Identify with traits",
+      "description": "Stores traits for an identity and returns its flags.",
+      "method": "POST",
+      "endpoint": "/identities/",
+      "body": { "identifier": "{{ inputs.identifier }}", "traits": "{{ inputs.traits }}" },
+      "inputs": [
+        { "key": "identifier", "label": "Identifier", "type": "string", "required": true },
+        { "key": "traits", "label": "Traits (JSON array)", "type": "json", "placeholder": "[{\"trait_key\": \"plan\", \"trait_value\": \"pro\"}]" }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,88 @@
+{
+  "key": "infisical",
+  "name": "Infisical",
+  "category": "Developer Tools",
+  "description": "Read, list, create, update and delete secrets in a project environment.",
+  "brand": "infisical",
+  "website": "https://infisical.com",
+  "docs_url": "https://infisical.com/docs/api-reference/overview/introduction",
+  "base_url": "{{ credentials.base_url }}/api",
+  "auth": { "type": "bearer", "fields": [
+    { "key": "base_url", "label": "Infisical URL", "type": "string", "required": true, "default": "https://app.infisical.com", "help": "https://eu.infisical.com for EU cloud, or your self-hosted URL." },
+    { "key": "token", "label": "Access token", "type": "password", "required": true, "help": "A machine identity access token (Token Auth) with access to the project." }
+  ] },
+  "actions": [
+    {
+      "key": "get_secret",
+      "name": "Get secret",
+      "method": "GET",
+      "endpoint": "/v3/secrets/raw/{{ inputs.name }}",
+      "query": { "workspaceId": "{{ inputs.project_id }}", "environment": "{{ inputs.environment }}", "secretPath": "{{ inputs.path }}" },
+      "output_path": "secret",
+      "inputs": [
+        { "key": "project_id", "label": "Project ID", "type": "string", "required": true },
+        { "key": "environment", "label": "Environment slug", "type": "string", "required": true, "default": "prod" },
+        { "key": "name", "label": "Secret name", "type": "string", "required": true },
+        { "key": "path", "label": "Folder path", "type": "string", "default": "/" }
+      ]
+    },
+    {
+      "key": "list_secrets",
+      "name": "List secrets",
+      "method": "GET",
+      "endpoint": "/v3/secrets/raw",
+      "query": { "workspaceId": "{{ inputs.project_id }}", "environment": "{{ inputs.environment }}", "secretPath": "{{ inputs.path }}", "recursive": "{{ inputs.recursive }}" },
+      "output_path": "secrets",
+      "inputs": [
+        { "key": "project_id", "label": "Project ID", "type": "string", "required": true },
+        { "key": "environment", "label": "Environment slug", "type": "string", "required": true, "default": "prod" },
+        { "key": "path", "label": "Folder path", "type": "string", "default": "/" },
+        { "key": "recursive", "label": "Include sub-folders", "type": "boolean" }
+      ]
+    },
+    {
+      "key": "create_secret",
+      "name": "Create secret",
+      "method": "POST",
+      "endpoint": "/v3/secrets/raw/{{ inputs.name }}",
+      "body": { "workspaceId": "{{ inputs.project_id }}", "environment": "{{ inputs.environment }}", "secretPath": "{{ inputs.path }}", "secretValue": "{{ inputs.value }}", "secretComment": "{{ inputs.comment }}", "type": "shared" },
+      "output_path": "secret",
+      "inputs": [
+        { "key": "project_id", "label": "Project ID", "type": "string", "required": true },
+        { "key": "environment", "label": "Environment slug", "type": "string", "required": true, "default": "prod" },
+        { "key": "name", "label": "Secret name", "type": "string", "required": true },
+        { "key": "value", "label": "Value", "type": "password", "required": true },
+        { "key": "path", "label": "Folder path", "type": "string", "default": "/" },
+        { "key": "comment", "label": "Comment", "type": "string" }
+      ]
+    },
+    {
+      "key": "update_secret",
+      "name": "Update secret",
+      "method": "PATCH",
+      "endpoint": "/v3/secrets/raw/{{ inputs.name }}",
+      "body": { "workspaceId": "{{ inputs.project_id }}", "environment": "{{ inputs.environment }}", "secretPath": "{{ inputs.path }}", "secretValue": "{{ inputs.value }}", "type": "shared" },
+      "output_path": "secret",
+      "inputs": [
+        { "key": "project_id", "label": "Project ID", "type": "string", "required": true },
+        { "key": "environment", "label": "Environment slug", "type": "string", "required": true, "default": "prod" },
+        { "key": "name", "label": "Secret name", "type": "string", "required": true },
+        { "key": "value", "label": "New value", "type": "password", "required": true },
+        { "key": "path", "label": "Folder path", "type": "string", "default": "/" }
+      ]
+    },
+    {
+      "key": "delete_secret",
+      "name": "Delete secret",
+      "method": "DELETE",
+      "endpoint": "/v3/secrets/raw/{{ inputs.name }}",
+      "body": { "workspaceId": "{{ inputs.project_id }}", "environment": "{{ inputs.environment }}", "secretPath": "{{ inputs.path }}", "type": "shared" },
+      "inputs": [
+        { "key": "project_id", "label": "Project ID", "type": "string", "required": true },
+        { "key": "environment", "label": "Environment slug", "type": "string", "required": true, "default": "prod" },
+        { "key": "name", "label": "Secret name", "type": "string", "required": true },
+        { "key": "path", "label": "Folder path", "type": "string", "default": "/" }
+      ]
+    }
+  ]
+}

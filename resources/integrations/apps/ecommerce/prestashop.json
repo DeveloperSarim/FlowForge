@@ -1,0 +1,147 @@
+{
+  "key": "prestashop",
+  "name": "PrestaShop",
+  "category": "E-commerce",
+  "description": "Read orders, products and customers through the PrestaShop webservice.",
+  "brand": "prestashop",
+  "website": "https://www.prestashop.com",
+  "docs_url": "https://devdocs.prestashop-project.org/8/webservice/",
+  "base_url": "{{ credentials.store_url }}/api",
+  "headers": {
+    "Output-Format": "JSON"
+  },
+  "auth": [
+    {
+      "type": "basic",
+      "fields": [
+        {
+          "key": "store_url",
+          "label": "Store URL",
+          "type": "string",
+          "required": true,
+          "placeholder": "https://shop.example.com",
+          "help": "No trailing slash."
+        },
+        {
+          "key": "username",
+          "label": "Webservice key",
+          "type": "password",
+          "required": true,
+          "help": "Advanced Parameters > Webservice > Add new webservice key."
+        },
+        {
+          "key": "password",
+          "label": "Password",
+          "type": "password",
+          "required": false,
+          "default": "",
+          "help": "Leave blank."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_orders",
+      "name": "List orders",
+      "method": "GET",
+      "endpoint": "/orders",
+      "output_path": "orders",
+      "query": {
+        "output_format": "JSON",
+        "display": "full",
+        "sort": "[id_DESC]",
+        "limit": "{{ inputs.limit }}"
+      },
+      "inputs": [
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    },
+    {
+      "key": "get_order",
+      "name": "Get order",
+      "method": "GET",
+      "endpoint": "/orders/{{ inputs.order_id }}",
+      "output_path": "order",
+      "query": {
+        "output_format": "JSON"
+      },
+      "inputs": [
+        {
+          "key": "order_id",
+          "label": "Order ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "get_product",
+      "name": "Get product",
+      "method": "GET",
+      "endpoint": "/products/{{ inputs.product_id }}",
+      "output_path": "product",
+      "query": {
+        "output_format": "JSON"
+      },
+      "inputs": [
+        {
+          "key": "product_id",
+          "label": "Product ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "find_customer",
+      "name": "Find customer by email",
+      "method": "GET",
+      "endpoint": "/customers",
+      "output_path": "customers",
+      "query": {
+        "output_format": "JSON",
+        "display": "full",
+        "filter[email]": "[{{ inputs.email }}]"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_order",
+      "name": "New order",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/orders",
+      "query": {
+        "output_format": "JSON",
+        "display": "full",
+        "sort": "[id_DESC]",
+        "limit": 50
+      },
+      "items_path": "orders",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

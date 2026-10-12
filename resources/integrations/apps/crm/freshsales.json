@@ -1,0 +1,226 @@
+{
+  "key": "freshsales",
+  "name": "Freshsales",
+  "category": "CRM & Sales",
+  "description": "Create and update contacts, accounts and deals in Freshsales.",
+  "brand": "freshworks",
+  "website": "https://www.freshworks.com/crm/sales/",
+  "docs_url": "https://developers.freshworks.com/crm/api/",
+  "base_url": "https://{{ credentials.bundle_alias }}.myfreshworks.com/crm/sales/api",
+  "auth": [
+    {
+      "type": "api_key",
+      "in": "header",
+      "name": "Authorization",
+      "prefix": "Token token=",
+      "fields": [
+        {
+          "key": "bundle_alias",
+          "label": "Bundle alias",
+          "type": "string",
+          "required": true,
+          "placeholder": "yourcompany",
+          "help": "The part before .myfreshworks.com in your account URL."
+        },
+        {
+          "key": "api_key",
+          "label": "API key",
+          "type": "password",
+          "required": true,
+          "help": "Profile settings > API settings."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "create_contact",
+      "name": "Create contact",
+      "method": "POST",
+      "endpoint": "/contacts",
+      "body": {
+        "contact": {
+          "first_name": "{{ inputs.first_name }}",
+          "last_name": "{{ inputs.last_name }}",
+          "email": "{{ inputs.email }}",
+          "mobile_number": "{{ inputs.mobile_number }}",
+          "job_title": "{{ inputs.job_title }}"
+        }
+      },
+      "output_path": "contact",
+      "inputs": [
+        {
+          "key": "first_name",
+          "label": "First name",
+          "type": "string"
+        },
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string"
+        },
+        {
+          "key": "mobile_number",
+          "label": "Mobile number",
+          "type": "string"
+        },
+        {
+          "key": "job_title",
+          "label": "Job title",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "update_contact",
+      "name": "Update contact",
+      "method": "PUT",
+      "endpoint": "/contacts/{{ inputs.contact_id }}",
+      "body": {
+        "contact": "{{ inputs.fields }}"
+      },
+      "output_path": "contact",
+      "inputs": [
+        {
+          "key": "contact_id",
+          "label": "Contact ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "fields",
+          "label": "Fields",
+          "type": "json",
+          "required": true,
+          "help": "e.g. {\"job_title\": \"CTO\"}"
+        }
+      ]
+    },
+    {
+      "key": "get_contact",
+      "name": "Get contact",
+      "method": "GET",
+      "endpoint": "/contacts/{{ inputs.contact_id }}",
+      "output_path": "contact",
+      "inputs": [
+        {
+          "key": "contact_id",
+          "label": "Contact ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "lookup",
+      "name": "Find by field",
+      "method": "GET",
+      "endpoint": "/lookup",
+      "query": {
+        "q": "{{ inputs.q }}",
+        "f": "{{ inputs.f }}",
+        "entities": "{{ inputs.entities }}"
+      },
+      "inputs": [
+        {
+          "key": "q",
+          "label": "Value",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "f",
+          "label": "Field",
+          "type": "string",
+          "required": true,
+          "default": "email"
+        },
+        {
+          "key": "entities",
+          "label": "Entity",
+          "type": "select",
+          "required": true,
+          "options": [
+            {
+              "value": "contact",
+              "label": "Contact"
+            },
+            {
+              "value": "sales_account",
+              "label": "Account"
+            },
+            {
+              "value": "deal",
+              "label": "Deal"
+            }
+          ],
+          "default": "contact"
+        }
+      ]
+    },
+    {
+      "key": "create_account",
+      "name": "Create account",
+      "method": "POST",
+      "endpoint": "/sales_accounts",
+      "body": {
+        "sales_account": {
+          "name": "{{ inputs.name }}",
+          "website": "{{ inputs.website }}"
+        }
+      },
+      "output_path": "sales_account",
+      "inputs": [
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "website",
+          "label": "Website",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "create_deal",
+      "name": "Create deal",
+      "method": "POST",
+      "endpoint": "/deals",
+      "body": {
+        "deal": {
+          "name": "{{ inputs.name }}",
+          "amount": "{{ inputs.amount }}",
+          "sales_account_id": "{{ inputs.sales_account_id }}"
+        }
+      },
+      "output_path": "deal",
+      "inputs": [
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "amount",
+          "label": "Amount",
+          "type": "number"
+        },
+        {
+          "key": "sales_account_id",
+          "label": "Account ID",
+          "type": "number"
+        }
+      ]
+    }
+  ]
+}

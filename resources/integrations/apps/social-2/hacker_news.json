@@ -1,0 +1,80 @@
+{
+  "key": "hacker_news",
+  "name": "Hacker News",
+  "category": "Social Media",
+  "description": "Read top and new stories, items and users, and search Hacker News.",
+  "brand": "ycombinator",
+  "website": "https://news.ycombinator.com",
+  "docs_url": "https://github.com/HackerNews/API",
+  "base_url": "https://hacker-news.firebaseio.com/v0",
+  "auth": { "type": "none" },
+  "actions": [
+    {
+      "key": "get_top_stories",
+      "name": "Get top story IDs",
+      "method": "GET",
+      "endpoint": "/topstories.json",
+      "inputs": []
+    },
+    {
+      "key": "get_new_stories",
+      "name": "Get newest story IDs",
+      "method": "GET",
+      "endpoint": "/newstories.json",
+      "inputs": []
+    },
+    {
+      "key": "get_best_stories",
+      "name": "Get best story IDs",
+      "method": "GET",
+      "endpoint": "/beststories.json",
+      "inputs": []
+    },
+    {
+      "key": "get_item",
+      "name": "Get item",
+      "description": "A story, comment, job or poll.",
+      "method": "GET",
+      "endpoint": "/item/{{ inputs.item_id }}.json",
+      "inputs": [{ "key": "item_id", "label": "Item ID", "type": "string", "required": true, "placeholder": "8863" }]
+    },
+    {
+      "key": "get_user",
+      "name": "Get user",
+      "method": "GET",
+      "endpoint": "/user/{{ inputs.username }}.json",
+      "inputs": [{ "key": "username", "label": "Username", "type": "string", "required": true, "placeholder": "pg" }]
+    },
+    {
+      "key": "search",
+      "name": "Search stories (Algolia)",
+      "method": "GET",
+      "endpoint": "https://hn.algolia.com/api/v1/search",
+      "output_path": "hits",
+      "query": { "query": "{{ inputs.query }}", "tags": "{{ inputs.tags }}", "hitsPerPage": "{{ inputs.hits_per_page }}" },
+      "inputs": [
+        { "key": "query", "label": "Query", "type": "string", "required": true, "placeholder": "workflow automation" },
+        { "key": "tags", "label": "Type", "type": "select", "default": "story", "options": [
+          { "value": "story", "label": "Stories" }, { "value": "comment", "label": "Comments" }, { "value": "show_hn", "label": "Show HN" }, { "value": "ask_hn", "label": "Ask HN" }
+        ] },
+        { "key": "hits_per_page", "label": "Results", "type": "number", "default": 20 }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_story",
+      "name": "New story (optionally matching keywords)",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "https://hn.algolia.com/api/v1/search_by_date",
+      "query": { "query": "{{ inputs.query }}", "tags": "story", "hitsPerPage": 30 },
+      "items_path": "hits",
+      "id_field": "objectID",
+      "inputs": [
+        { "key": "query", "label": "Keywords", "type": "string", "placeholder": "laravel" },
+        { "key": "poll_interval", "label": "Check every (minutes)", "type": "number", "default": 5 }
+      ]
+    }
+  ]
+}

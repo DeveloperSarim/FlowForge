@@ -1,0 +1,152 @@
+{
+  "key": "microsoft_dynamics_365",
+  "name": "Microsoft Dynamics 365 Sales",
+  "category": "CRM & Sales",
+  "description": "Create leads, contacts and accounts and query any Dataverse table.",
+  "brand": "dynamics365",
+  "website": "https://dynamics.microsoft.com/sales/",
+  "docs_url": "https://learn.microsoft.com/power-apps/developer/data-platform/webapi/overview",
+  "base_url": "{{ credentials.environment_url }}/api/data/v9.2",
+  "headers": { "Accept": "application/json", "OData-MaxVersion": "4.0", "OData-Version": "4.0", "Prefer": "return=representation" },
+  "auth": {
+    "type": "oauth2",
+    "authorize_url": "https://login.microsoftonline.com/{{ credentials.tenant }}/oauth2/v2.0/authorize",
+    "token_url": "https://login.microsoftonline.com/{{ credentials.tenant }}/oauth2/v2.0/token",
+    "scopes": ["{{ credentials.environment_url }}/user_impersonation", "offline_access"],
+    "fields": [
+      { "key": "environment_url", "label": "Environment URL", "type": "string", "required": true, "placeholder": "https://yourorg.crm.dynamics.com", "help": "Without a trailing slash" },
+      { "key": "tenant", "label": "Tenant", "type": "string", "required": true, "default": "organizations", "help": "Your Entra tenant ID or domain, or 'organizations'" }
+    ]
+  },
+  "actions": [
+    {
+      "key": "create_lead",
+      "name": "Create lead",
+      "method": "POST",
+      "endpoint": "/leads",
+      "body": {
+        "subject": "{{ inputs.subject }}",
+        "firstname": "{{ inputs.first_name }}",
+        "lastname": "{{ inputs.last_name }}",
+        "emailaddress1": "{{ inputs.email }}",
+        "telephone1": "{{ inputs.phone }}",
+        "companyname": "{{ inputs.company }}",
+        "description": "{{ inputs.description }}",
+        "...": "{{ inputs.extra }}"
+      },
+      "inputs": [
+        { "key": "subject", "label": "Topic", "type": "string", "required": true },
+        { "key": "first_name", "label": "First name", "type": "string" },
+        { "key": "last_name", "label": "Last name", "type": "string", "required": true },
+        { "key": "email", "label": "Email", "type": "string" },
+        { "key": "phone", "label": "Phone", "type": "string" },
+        { "key": "company", "label": "Company", "type": "string" },
+        { "key": "description", "label": "Description", "type": "text" },
+        { "key": "extra", "label": "Other columns", "type": "keyvalue", "help": "Logical column names, e.g. jobtitle, websiteurl" }
+      ]
+    },
+    {
+      "key": "create_contact",
+      "name": "Create contact",
+      "method": "POST",
+      "endpoint": "/contacts",
+      "body": {
+        "firstname": "{{ inputs.first_name }}",
+        "lastname": "{{ inputs.last_name }}",
+        "emailaddress1": "{{ inputs.email }}",
+        "telephone1": "{{ inputs.phone }}",
+        "jobtitle": "{{ inputs.job_title }}",
+        "...": "{{ inputs.extra }}"
+      },
+      "inputs": [
+        { "key": "first_name", "label": "First name", "type": "string" },
+        { "key": "last_name", "label": "Last name", "type": "string", "required": true },
+        { "key": "email", "label": "Email", "type": "string" },
+        { "key": "phone", "label": "Phone", "type": "string" },
+        { "key": "job_title", "label": "Job title", "type": "string" },
+        { "key": "extra", "label": "Other columns", "type": "keyvalue", "help": "e.g. parentcustomerid_account@odata.bind = /accounts(<id>)" }
+      ]
+    },
+    {
+      "key": "create_account",
+      "name": "Create account",
+      "method": "POST",
+      "endpoint": "/accounts",
+      "body": {
+        "name": "{{ inputs.name }}",
+        "websiteurl": "{{ inputs.website }}",
+        "telephone1": "{{ inputs.phone }}",
+        "...": "{{ inputs.extra }}"
+      },
+      "inputs": [
+        { "key": "name", "label": "Account name", "type": "string", "required": true },
+        { "key": "website", "label": "Website", "type": "string" },
+        { "key": "phone", "label": "Phone", "type": "string" },
+        { "key": "extra", "label": "Other columns", "type": "keyvalue" }
+      ]
+    },
+    {
+      "key": "update_record",
+      "name": "Update record",
+      "method": "PATCH",
+      "endpoint": "/{{ inputs.entity_set }}({{ inputs.record_id }})",
+      "body": "{{ inputs.fields }}",
+      "inputs": [
+        { "key": "entity_set", "label": "Table (entity set)", "type": "string", "required": true, "placeholder": "contacts" },
+        { "key": "record_id", "label": "Record ID (GUID)", "type": "string", "required": true },
+        { "key": "fields", "label": "Columns", "type": "keyvalue", "required": true }
+      ]
+    },
+    {
+      "key": "get_record",
+      "name": "Get record",
+      "method": "GET",
+      "endpoint": "/{{ inputs.entity_set }}({{ inputs.record_id }})",
+      "query": { "$select": "{{ inputs.select }}" },
+      "inputs": [
+        { "key": "entity_set", "label": "Table (entity set)", "type": "string", "required": true, "placeholder": "contacts" },
+        { "key": "record_id", "label": "Record ID (GUID)", "type": "string", "required": true },
+        { "key": "select", "label": "Columns", "type": "string", "placeholder": "fullname,emailaddress1" }
+      ]
+    },
+    {
+      "key": "list_records",
+      "name": "Search records",
+      "method": "GET",
+      "endpoint": "/{{ inputs.entity_set }}",
+      "output_path": "value",
+      "query": { "$filter": "{{ inputs.filter }}", "$select": "{{ inputs.select }}", "$orderby": "{{ inputs.orderby }}", "$top": "{{ inputs.top }}" },
+      "inputs": [
+        { "key": "entity_set", "label": "Table (entity set)", "type": "string", "required": true, "placeholder": "leads" },
+        { "key": "filter", "label": "Filter", "type": "string", "placeholder": "emailaddress1 eq 'jane@example.com'" },
+        { "key": "select", "label": "Columns", "type": "string", "placeholder": "fullname,emailaddress1" },
+        { "key": "orderby", "label": "Order by", "type": "string", "placeholder": "createdon desc" },
+        { "key": "top", "label": "Limit", "type": "number", "default": 50 }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_lead",
+      "name": "New lead",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/leads",
+      "query": { "$orderby": "createdon desc", "$top": 50 },
+      "items_path": "value",
+      "id_field": "leadid",
+      "inputs": [{ "key": "poll_interval", "label": "Check every (minutes)", "type": "number", "default": 5 }]
+    },
+    {
+      "key": "new_contact",
+      "name": "New contact",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/contacts",
+      "query": { "$orderby": "createdon desc", "$top": 50 },
+      "items_path": "value",
+      "id_field": "contactid",
+      "inputs": [{ "key": "poll_interval", "label": "Check every (minutes)", "type": "number", "default": 5 }]
+    }
+  ]
+}

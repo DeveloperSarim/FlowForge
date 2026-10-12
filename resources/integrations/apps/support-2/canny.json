@@ -1,0 +1,317 @@
+{
+  "key": "canny",
+  "name": "Canny",
+  "category": "Customer Support",
+  "description": "Capture feedback posts, comments, votes and status changes in Canny.",
+  "brand": "canny",
+  "website": "https://canny.io",
+  "docs_url": "https://developers.canny.io/api-reference",
+  "popular": true,
+  "base_url": "https://canny.io/api/v1",
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "Secret API key",
+        "type": "password",
+        "required": true,
+        "help": "Settings > API"
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "create_post",
+      "name": "Create post",
+      "method": "POST",
+      "endpoint": "/posts/create",
+      "body": {
+        "apiKey": "{{ credentials.api_key }}",
+        "authorID": "{{ inputs.author_id }}",
+        "boardID": "{{ inputs.board_id }}",
+        "title": "{{ inputs.title }}",
+        "details": "{{ inputs.details }}",
+        "categoryID": "{{ inputs.category_id }}",
+        "customFields": "{{ inputs.custom_fields }}"
+      },
+      "inputs": [
+        {
+          "key": "board_id",
+          "label": "Board ID",
+          "type": "string",
+          "required": true,
+          "help": "Use List boards to find it."
+        },
+        {
+          "key": "author_id",
+          "label": "Author ID",
+          "type": "string",
+          "required": true,
+          "help": "Canny user ID; use Create or update user to get one."
+        },
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "details",
+          "label": "Details",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "category_id",
+          "label": "Category ID",
+          "type": "string"
+        },
+        {
+          "key": "custom_fields",
+          "label": "Custom fields",
+          "type": "keyvalue"
+        }
+      ]
+    },
+    {
+      "key": "get_post",
+      "name": "Get post",
+      "method": "POST",
+      "endpoint": "/posts/retrieve",
+      "body": {
+        "apiKey": "{{ credentials.api_key }}",
+        "id": "{{ inputs.post_id }}"
+      },
+      "inputs": [
+        {
+          "key": "post_id",
+          "label": "Post ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "change_post_status",
+      "name": "Change post status",
+      "method": "POST",
+      "endpoint": "/posts/change_status",
+      "body": {
+        "apiKey": "{{ credentials.api_key }}",
+        "postID": "{{ inputs.post_id }}",
+        "changerID": "{{ inputs.changer_id }}",
+        "status": "{{ inputs.status }}",
+        "shouldNotifyVoters": "{{ inputs.notify_voters }}",
+        "commentValue": "{{ inputs.comment }}"
+      },
+      "inputs": [
+        {
+          "key": "post_id",
+          "label": "Post ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "changer_id",
+          "label": "Changed by (admin user ID)",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "required": true,
+          "options": [
+            {
+              "value": "open",
+              "label": "Open"
+            },
+            {
+              "value": "under review",
+              "label": "Under review"
+            },
+            {
+              "value": "planned",
+              "label": "Planned"
+            },
+            {
+              "value": "in progress",
+              "label": "In progress"
+            },
+            {
+              "value": "complete",
+              "label": "Complete"
+            },
+            {
+              "value": "closed",
+              "label": "Closed"
+            }
+          ]
+        },
+        {
+          "key": "notify_voters",
+          "label": "Notify voters",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "key": "comment",
+          "label": "Comment",
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "key": "create_comment",
+      "name": "Create comment",
+      "method": "POST",
+      "endpoint": "/comments/create",
+      "body": {
+        "apiKey": "{{ credentials.api_key }}",
+        "authorID": "{{ inputs.author_id }}",
+        "postID": "{{ inputs.post_id }}",
+        "value": "{{ inputs.value }}",
+        "internal": "{{ inputs.internal }}"
+      },
+      "inputs": [
+        {
+          "key": "post_id",
+          "label": "Post ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "author_id",
+          "label": "Author ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "value",
+          "label": "Comment",
+          "type": "text",
+          "required": true,
+          "help": "Under 2500 characters"
+        },
+        {
+          "key": "internal",
+          "label": "Internal",
+          "type": "boolean"
+        }
+      ]
+    },
+    {
+      "key": "create_or_update_user",
+      "name": "Create or update user",
+      "method": "POST",
+      "endpoint": "/users/create_or_update",
+      "body": {
+        "apiKey": "{{ credentials.api_key }}",
+        "name": "{{ inputs.name }}",
+        "email": "{{ inputs.email }}",
+        "userID": "{{ inputs.user_id }}"
+      },
+      "inputs": [
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string"
+        },
+        {
+          "key": "user_id",
+          "label": "Your user ID",
+          "type": "string",
+          "help": "Your app's ID for this user"
+        }
+      ]
+    },
+    {
+      "key": "create_vote",
+      "name": "Add vote",
+      "method": "POST",
+      "endpoint": "/votes/create",
+      "body": {
+        "apiKey": "{{ credentials.api_key }}",
+        "postID": "{{ inputs.post_id }}",
+        "voterID": "{{ inputs.voter_id }}"
+      },
+      "inputs": [
+        {
+          "key": "post_id",
+          "label": "Post ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "voter_id",
+          "label": "Voter ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_boards",
+      "name": "List boards",
+      "method": "POST",
+      "endpoint": "/boards/list",
+      "output_path": "boards",
+      "body": {
+        "apiKey": "{{ credentials.api_key }}"
+      },
+      "inputs": []
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_post",
+      "name": "New post",
+      "type": "polling",
+      "method": "POST",
+      "endpoint": "/posts/list",
+      "body": {
+        "apiKey": "{{ credentials.api_key }}",
+        "boardID": "{{ inputs.board_id }}",
+        "sort": "newest",
+        "limit": 50
+      },
+      "items_path": "posts",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "board_id",
+          "label": "Board ID",
+          "type": "string",
+          "help": "Leave empty for all boards"
+        },
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    },
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Add this URL under Settings > API & Webhooks.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

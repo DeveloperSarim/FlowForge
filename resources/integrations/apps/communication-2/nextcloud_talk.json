@@ -1,0 +1,54 @@
+{
+  "key": "nextcloud_talk",
+  "name": "Nextcloud Talk",
+  "category": "Communication",
+  "description": "Send and read chat messages in Nextcloud Talk conversations.",
+  "brand": "nextcloud",
+  "website": "https://nextcloud.com/talk/",
+  "docs_url": "https://nextcloud-talk.readthedocs.io/en/latest/chat/",
+  "base_url": "{{ credentials.server_url }}/ocs/v2.php/apps/spreed/api",
+  "headers": { "OCS-APIRequest": "true" },
+  "auth": [
+    { "type": "basic", "fields": [
+      { "key": "server_url", "label": "Nextcloud URL", "type": "string", "required": true, "placeholder": "https://cloud.example.com", "help": "No trailing slash." },
+      { "key": "username", "label": "Username", "type": "string", "required": true },
+      { "key": "password", "label": "App password", "type": "password", "required": true, "help": "Personal settings → Security → Create new app password." }
+    ] }
+  ],
+  "actions": [
+    {
+      "key": "send_message",
+      "name": "Send message",
+      "method": "POST",
+      "endpoint": "/v1/chat/{{ inputs.token }}",
+      "body": { "message": "{{ inputs.message }}", "replyTo": "{{ inputs.reply_to }}", "silent": "{{ inputs.silent }}" },
+      "output_path": "ocs.data",
+      "inputs": [
+        { "key": "token", "label": "Conversation token", "type": "string", "required": true, "help": "The last part of the conversation URL (…/call/<token>)." },
+        { "key": "message", "label": "Message", "type": "text", "required": true },
+        { "key": "reply_to", "label": "Reply to message ID", "type": "number" },
+        { "key": "silent", "label": "Send without notification", "type": "boolean" }
+      ]
+    },
+    {
+      "key": "get_messages",
+      "name": "Get recent messages",
+      "method": "GET",
+      "endpoint": "/v1/chat/{{ inputs.token }}",
+      "query": { "lookIntoFuture": 0, "limit": "{{ inputs.limit }}" },
+      "output_path": "ocs.data",
+      "inputs": [
+        { "key": "token", "label": "Conversation token", "type": "string", "required": true },
+        { "key": "limit", "label": "Max messages", "type": "number", "default": 50 }
+      ]
+    },
+    {
+      "key": "list_conversations",
+      "name": "List conversations",
+      "method": "GET",
+      "endpoint": "/v4/room",
+      "output_path": "ocs.data",
+      "inputs": []
+    }
+  ]
+}

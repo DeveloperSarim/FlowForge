@@ -1,0 +1,147 @@
+{
+  "key": "firecrawl",
+  "name": "Firecrawl",
+  "category": "AI",
+  "description": "Scrape, crawl, map and search the web as LLM-ready Markdown.",
+  "brand": "firecrawl",
+  "website": "https://www.firecrawl.dev",
+  "docs_url": "https://docs.firecrawl.dev/api-reference/introduction",
+  "base_url": "https://api.firecrawl.dev/v2",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "API key",
+        "type": "password",
+        "required": true
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "scrape",
+      "name": "Scrape URL",
+      "method": "POST",
+      "endpoint": "/scrape",
+      "timeout": 120,
+      "body": {
+        "url": "{{ inputs.url }}",
+        "formats": [
+          "markdown"
+        ],
+        "onlyMainContent": "{{ inputs.only_main }}"
+      },
+      "output_fields": {
+        "markdown": "data.markdown"
+      },
+      "inputs": [
+        {
+          "key": "url",
+          "label": "URL",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "only_main",
+          "label": "Main content only",
+          "type": "boolean",
+          "default": true
+        }
+      ]
+    },
+    {
+      "key": "crawl",
+      "name": "Start crawl",
+      "description": "Crawls a site in the background; poll with Get crawl.",
+      "method": "POST",
+      "endpoint": "/crawl",
+      "body": {
+        "url": "{{ inputs.url }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "inputs": [
+        {
+          "key": "url",
+          "label": "Start URL",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "limit",
+          "label": "Max pages",
+          "type": "number",
+          "default": 10
+        }
+      ]
+    },
+    {
+      "key": "get_crawl",
+      "name": "Get crawl",
+      "method": "GET",
+      "endpoint": "/crawl/{{ inputs.crawl_id }}",
+      "inputs": [
+        {
+          "key": "crawl_id",
+          "label": "Crawl ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "map",
+      "name": "Map site URLs",
+      "method": "POST",
+      "endpoint": "/map",
+      "body": {
+        "url": "{{ inputs.url }}",
+        "search": "{{ inputs.search }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "inputs": [
+        {
+          "key": "url",
+          "label": "URL",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "search",
+          "label": "Filter by keyword",
+          "type": "string"
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "search",
+      "name": "Search the web",
+      "method": "POST",
+      "endpoint": "/search",
+      "timeout": 120,
+      "body": {
+        "query": "{{ inputs.query }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "inputs": [
+        {
+          "key": "query",
+          "label": "Query",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

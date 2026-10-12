@@ -1,0 +1,66 @@
+{
+  "key": "unsplash",
+  "name": "Unsplash",
+  "category": "Utilities",
+  "description": "Search and fetch free high-resolution photos.",
+  "brand": "unsplash",
+  "website": "https://unsplash.com",
+  "docs_url": "https://unsplash.com/documentation",
+  "popular": true,
+  "base_url": "https://api.unsplash.com",
+  "headers": { "Accept-Version": "v1" },
+  "auth": { "type": "api_key", "in": "header", "name": "Authorization", "prefix": "Client-ID ", "fields": [
+    { "key": "api_key", "label": "Access key", "type": "password", "required": true, "help": "From your app at unsplash.com/oauth/applications." }
+  ] },
+  "actions": [
+    {
+      "key": "search_photos",
+      "name": "Search photos",
+      "method": "GET",
+      "endpoint": "/search/photos",
+      "query": { "query": "{{ inputs.query }}", "page": "{{ inputs.page }}", "per_page": "{{ inputs.per_page }}", "orientation": "{{ inputs.orientation }}", "color": "{{ inputs.color }}", "order_by": "{{ inputs.order_by }}", "content_filter": "{{ inputs.content_filter }}" },
+      "output_path": "results",
+      "inputs": [
+        { "key": "query", "label": "Search", "type": "string", "required": true, "placeholder": "mountains" },
+        { "key": "per_page", "label": "Per page", "type": "number", "default": 10, "help": "Max 30." },
+        { "key": "page", "label": "Page", "type": "number" },
+        { "key": "orientation", "label": "Orientation", "type": "select", "options": [
+          { "value": "", "label": "Any" }, { "value": "landscape", "label": "Landscape" }, { "value": "portrait", "label": "Portrait" }, { "value": "squarish", "label": "Square" }
+        ] },
+        { "key": "color", "label": "Color", "type": "string", "placeholder": "black_and_white, blue, green…" },
+        { "key": "order_by", "label": "Sort", "type": "select", "default": "relevant", "options": [{ "value": "relevant", "label": "Relevance" }, { "value": "latest", "label": "Latest" }] },
+        { "key": "content_filter", "label": "Content filter", "type": "select", "default": "low", "options": [{ "value": "low", "label": "Low" }, { "value": "high", "label": "High (safest)" }] }
+      ]
+    },
+    {
+      "key": "random_photo",
+      "name": "Get random photo",
+      "method": "GET",
+      "endpoint": "/photos/random",
+      "query": { "query": "{{ inputs.query }}", "orientation": "{{ inputs.orientation }}", "collections": "{{ inputs.collections }}", "topics": "{{ inputs.topics }}" },
+      "inputs": [
+        { "key": "query", "label": "Search", "type": "string" },
+        { "key": "orientation", "label": "Orientation", "type": "select", "options": [
+          { "value": "", "label": "Any" }, { "value": "landscape", "label": "Landscape" }, { "value": "portrait", "label": "Portrait" }, { "value": "squarish", "label": "Square" }
+        ] },
+        { "key": "collections", "label": "Collection IDs", "type": "string", "help": "Comma-separated." },
+        { "key": "topics", "label": "Topic IDs", "type": "string", "help": "Comma-separated." }
+      ]
+    },
+    {
+      "key": "get_photo",
+      "name": "Get photo",
+      "method": "GET",
+      "endpoint": "/photos/{{ inputs.photo_id }}",
+      "inputs": [{ "key": "photo_id", "label": "Photo ID", "type": "string", "required": true }]
+    },
+    {
+      "key": "track_download",
+      "name": "Track photo download",
+      "description": "Required by the Unsplash API guidelines when you use a photo. Returns its download URL.",
+      "method": "GET",
+      "endpoint": "/photos/{{ inputs.photo_id }}/download",
+      "inputs": [{ "key": "photo_id", "label": "Photo ID", "type": "string", "required": true }]
+    }
+  ]
+}

@@ -1,0 +1,215 @@
+{
+  "key": "typeform",
+  "name": "Typeform",
+  "category": "Forms & Surveys",
+  "description": "Get new Typeform responses, list forms and register webhooks.",
+  "brand": "typeform",
+  "website": "https://www.typeform.com",
+  "docs_url": "https://www.typeform.com/developers/get-started/",
+  "popular": true,
+  "base_url": "https://api.typeform.com",
+  "auth": [
+    {
+      "type": "bearer",
+      "fields": [
+        {
+          "key": "token",
+          "label": "Personal access token",
+          "type": "password",
+          "required": true,
+          "help": "Account > Your settings > Personal tokens"
+        }
+      ]
+    },
+    {
+      "type": "oauth2",
+      "authorize_url": "https://api.typeform.com/oauth/authorize",
+      "token_url": "https://api.typeform.com/oauth/token",
+      "scopes": [
+        "accounts:read",
+        "forms:read",
+        "responses:read",
+        "webhooks:read",
+        "webhooks:write",
+        "offline"
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_forms",
+      "name": "List forms",
+      "method": "GET",
+      "endpoint": "/forms",
+      "output_path": "items",
+      "query": {
+        "search": "{{ inputs.search }}",
+        "page_size": "{{ inputs.page_size }}"
+      },
+      "inputs": [
+        {
+          "key": "search",
+          "label": "Search",
+          "type": "string"
+        },
+        {
+          "key": "page_size",
+          "label": "Page size",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    },
+    {
+      "key": "get_form",
+      "name": "Get form",
+      "method": "GET",
+      "endpoint": "/forms/{{ inputs.form_id }}",
+      "inputs": [
+        {
+          "key": "form_id",
+          "label": "Form ID",
+          "type": "string",
+          "required": true,
+          "help": "The id in the form URL: /to/<ID>"
+        }
+      ]
+    },
+    {
+      "key": "list_responses",
+      "name": "List responses",
+      "method": "GET",
+      "endpoint": "/forms/{{ inputs.form_id }}/responses",
+      "output_path": "items",
+      "query": {
+        "page_size": "{{ inputs.page_size }}",
+        "since": "{{ inputs.since }}",
+        "until": "{{ inputs.until }}",
+        "completed": "{{ inputs.completed }}",
+        "query": "{{ inputs.query }}",
+        "sort": "submitted_at,desc"
+      },
+      "inputs": [
+        {
+          "key": "form_id",
+          "label": "Form ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "page_size",
+          "label": "Page size",
+          "type": "number",
+          "default": 25
+        },
+        {
+          "key": "since",
+          "label": "Since",
+          "type": "string",
+          "placeholder": "2024-01-31T00:00:00Z"
+        },
+        {
+          "key": "until",
+          "label": "Until",
+          "type": "string",
+          "placeholder": "2024-12-31T00:00:00Z"
+        },
+        {
+          "key": "completed",
+          "label": "Completed",
+          "type": "select",
+          "options": [
+            {
+              "value": "true",
+              "label": "Submitted only"
+            },
+            {
+              "value": "false",
+              "label": "Partial only"
+            }
+          ]
+        },
+        {
+          "key": "query",
+          "label": "Search text",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "create_webhook",
+      "name": "Create or update webhook",
+      "method": "PUT",
+      "endpoint": "/forms/{{ inputs.form_id }}/webhooks/{{ inputs.tag }}",
+      "body": {
+        "url": "{{ inputs.url }}",
+        "enabled": true
+      },
+      "inputs": [
+        {
+          "key": "form_id",
+          "label": "Form ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "tag",
+          "label": "Webhook tag",
+          "type": "string",
+          "required": true,
+          "default": "flowforge"
+        },
+        {
+          "key": "url",
+          "label": "Webhook URL",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_response",
+      "name": "New response (polling)",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/forms/{{ inputs.form_id }}/responses",
+      "query": {
+        "page_size": 25,
+        "sort": "submitted_at,desc",
+        "completed": "true"
+      },
+      "items_path": "items",
+      "id_field": "response_id",
+      "inputs": [
+        {
+          "key": "form_id",
+          "label": "Form ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    },
+    {
+      "key": "new_response_webhook",
+      "name": "New response (webhook)",
+      "type": "webhook",
+      "description": "Form > Connect > Webhooks > Add a webhook with this URL.",
+      "data_path": "form_response",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

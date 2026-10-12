@@ -1,0 +1,68 @@
+{
+  "key": "threema_gateway",
+  "name": "Threema Gateway",
+  "category": "Communication",
+  "description": "Send Threema messages by Threema ID, phone or email, and look up Threema IDs.",
+  "brand": "threema",
+  "website": "https://gateway.threema.ch",
+  "docs_url": "https://gateway.threema.ch/en/developer/api",
+  "base_url": "https://msgapi.threema.ch",
+  "auth": [
+    { "type": "api_key", "fields": [
+      { "key": "gateway_id", "label": "Gateway ID", "type": "string", "required": true, "placeholder": "*MYCOMPY", "help": "Your 8-character Basic-mode ID, starting with *." },
+      { "key": "api_key", "label": "API secret", "type": "password", "required": true }
+    ] }
+  ],
+  "actions": [
+    {
+      "key": "send_message",
+      "name": "Send message",
+      "description": "Basic mode (server-side encryption). Fill exactly one recipient field.",
+      "method": "POST",
+      "endpoint": "/send_simple",
+      "body_format": "form",
+      "body": {
+        "from": "{{ credentials.gateway_id }}",
+        "secret": "{{ credentials.api_key }}",
+        "to": "{{ inputs.threema_id }}",
+        "phone": "{{ inputs.phone }}",
+        "email": "{{ inputs.email }}",
+        "text": "{{ inputs.text }}"
+      },
+      "inputs": [
+        { "key": "threema_id", "label": "Recipient Threema ID", "type": "string", "placeholder": "ECHOECHO" },
+        { "key": "phone", "label": "…or phone (E.164, no +)", "type": "string", "placeholder": "41791234567" },
+        { "key": "email", "label": "…or email", "type": "string" },
+        { "key": "text", "label": "Message", "type": "text", "required": true, "help": "Up to 3500 bytes." }
+      ]
+    },
+    {
+      "key": "lookup_by_phone",
+      "name": "Find Threema ID by phone",
+      "method": "GET",
+      "endpoint": "/lookup/phone/{{ inputs.phone }}",
+      "query": { "from": "{{ credentials.gateway_id }}", "secret": "{{ credentials.api_key }}" },
+      "inputs": [
+        { "key": "phone", "label": "Phone (E.164, no +)", "type": "string", "required": true }
+      ]
+    },
+    {
+      "key": "lookup_by_email",
+      "name": "Find Threema ID by email",
+      "method": "GET",
+      "endpoint": "/lookup/email/{{ inputs.email }}",
+      "query": { "from": "{{ credentials.gateway_id }}", "secret": "{{ credentials.api_key }}" },
+      "inputs": [
+        { "key": "email", "label": "Email", "type": "string", "required": true }
+      ]
+    },
+    {
+      "key": "get_credits",
+      "name": "Get remaining credits",
+      "method": "GET",
+      "endpoint": "/credits",
+      "query": { "from": "{{ credentials.gateway_id }}", "secret": "{{ credentials.api_key }}" },
+      "inputs": []
+    }
+  ]
+}

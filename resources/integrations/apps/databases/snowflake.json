@@ -1,0 +1,56 @@
+{
+  "key": "snowflake",
+  "name": "Snowflake",
+  "category": "Databases",
+  "description": "Run SQL statements and fetch or cancel results through the Snowflake SQL API.",
+  "brand": "snowflake",
+  "website": "https://www.snowflake.com",
+  "docs_url": "https://docs.snowflake.com/en/developer-guide/sql-api/index",
+  "base_url": "https://{{ credentials.account }}.snowflakecomputing.com/api/v2",
+  "headers": { "X-Snowflake-Authorization-Token-Type": "{{ credentials.token_type }}" },
+  "auth": { "type": "bearer", "fields": [
+    { "key": "account", "label": "Account identifier", "type": "string", "required": true, "placeholder": "myorg-myaccount", "help": "The part before .snowflakecomputing.com in your account URL (use - instead of _)." },
+    { "key": "token_type", "label": "Token type", "type": "select", "required": true, "default": "PROGRAMMATIC_ACCESS_TOKEN", "options": [
+      { "value": "PROGRAMMATIC_ACCESS_TOKEN", "label": "Programmatic access token" }, { "value": "OAUTH", "label": "OAuth access token" }, { "value": "KEYPAIR_JWT", "label": "Key-pair JWT" }
+    ] },
+    { "key": "token", "label": "Token", "type": "password", "required": true, "help": "A programmatic access token (Settings → Authentication) is easiest. Key-pair JWTs expire within an hour." }
+  ] },
+  "actions": [
+    {
+      "key": "execute_statement",
+      "name": "Execute SQL",
+      "description": "Waits up to the timeout, then returns rows or a statement handle to poll.",
+      "method": "POST",
+      "endpoint": "/statements",
+      "timeout": 120,
+      "body": { "statement": "{{ inputs.statement }}", "timeout": "{{ inputs.timeout }}", "warehouse": "{{ inputs.warehouse }}", "database": "{{ inputs.database }}", "schema": "{{ inputs.schema }}", "role": "{{ inputs.role }}", "bindings": "{{ inputs.bindings }}" },
+      "inputs": [
+        { "key": "statement", "label": "SQL", "type": "code", "required": true, "placeholder": "SELECT * FROM orders WHERE status = ? LIMIT 100" },
+        { "key": "warehouse", "label": "Warehouse", "type": "string" },
+        { "key": "database", "label": "Database", "type": "string" },
+        { "key": "schema", "label": "Schema", "type": "string" },
+        { "key": "role", "label": "Role", "type": "string" },
+        { "key": "bindings", "label": "Bindings (JSON)", "type": "json", "placeholder": "{ \"1\": { \"type\": \"TEXT\", \"value\": \"open\" } }" },
+        { "key": "timeout", "label": "Statement timeout (seconds)", "type": "number", "default": 60 }
+      ]
+    },
+    {
+      "key": "get_statement",
+      "name": "Get statement results",
+      "method": "GET",
+      "endpoint": "/statements/{{ inputs.handle }}",
+      "query": { "partition": "{{ inputs.partition }}" },
+      "inputs": [
+        { "key": "handle", "label": "Statement handle", "type": "string", "required": true },
+        { "key": "partition", "label": "Partition", "type": "number" }
+      ]
+    },
+    {
+      "key": "cancel_statement",
+      "name": "Cancel statement",
+      "method": "POST",
+      "endpoint": "/statements/{{ inputs.handle }}/cancel",
+      "inputs": [{ "key": "handle", "label": "Statement handle", "type": "string", "required": true }]
+    }
+  ]
+}

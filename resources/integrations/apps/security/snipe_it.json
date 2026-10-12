@@ -1,0 +1,122 @@
+{
+  "key": "snipe_it",
+  "name": "Snipe-IT",
+  "category": "Security & IT",
+  "description": "Find, create and update IT assets and check them out or in.",
+  "brand": "snipeit",
+  "website": "https://snipeitapp.com",
+  "docs_url": "https://snipe-it.readme.io/reference/api-overview",
+  "base_url": "{{ credentials.base_url }}/api/v1",
+  "auth": { "type": "bearer", "fields": [
+    { "key": "base_url", "label": "Snipe-IT URL", "type": "string", "required": true, "placeholder": "https://assets.example.com", "help": "Without a trailing slash." },
+    { "key": "token", "label": "API key", "type": "password", "required": true, "help": "Your profile → Manage API keys → Create new token." }
+  ] },
+  "actions": [
+    {
+      "key": "search_assets",
+      "name": "Search assets",
+      "method": "GET",
+      "endpoint": "/hardware",
+      "query": { "search": "{{ inputs.search }}", "status": "{{ inputs.status }}", "limit": "{{ inputs.limit }}" },
+      "output_path": "rows",
+      "inputs": [
+        { "key": "search", "label": "Search", "type": "string" },
+        { "key": "status", "label": "Status", "type": "select", "options": [
+          { "value": "RTD", "label": "Ready to deploy" }, { "value": "Deployed", "label": "Deployed" }, { "value": "Pending", "label": "Pending" },
+          { "value": "Undeployable", "label": "Undeployable" }, { "value": "Archived", "label": "Archived" }
+        ] },
+        { "key": "limit", "label": "Limit", "type": "number", "default": 50 }
+      ]
+    },
+    {
+      "key": "get_asset",
+      "name": "Get asset",
+      "method": "GET",
+      "endpoint": "/hardware/{{ inputs.asset_id }}",
+      "inputs": [{ "key": "asset_id", "label": "Asset ID", "type": "number", "required": true }]
+    },
+    {
+      "key": "get_asset_by_tag",
+      "name": "Get asset by tag",
+      "method": "GET",
+      "endpoint": "/hardware/bytag/{{ inputs.asset_tag }}",
+      "inputs": [{ "key": "asset_tag", "label": "Asset tag", "type": "string", "required": true }]
+    },
+    {
+      "key": "get_asset_by_serial",
+      "name": "Find assets by serial",
+      "method": "GET",
+      "endpoint": "/hardware/byserial/{{ inputs.serial }}",
+      "output_path": "rows",
+      "inputs": [{ "key": "serial", "label": "Serial number", "type": "string", "required": true }]
+    },
+    {
+      "key": "create_asset",
+      "name": "Create asset",
+      "method": "POST",
+      "endpoint": "/hardware",
+      "body": { "model_id": "{{ inputs.model_id }}", "status_id": "{{ inputs.status_id }}", "asset_tag": "{{ inputs.asset_tag }}", "name": "{{ inputs.name }}", "serial": "{{ inputs.serial }}", "notes": "{{ inputs.notes }}", "...": "{{ inputs.custom_fields }}" },
+      "inputs": [
+        { "key": "model_id", "label": "Model ID", "type": "number", "required": true },
+        { "key": "status_id", "label": "Status label ID", "type": "number", "required": true },
+        { "key": "asset_tag", "label": "Asset tag", "type": "string", "help": "Leave empty when auto-increment is on." },
+        { "key": "name", "label": "Name", "type": "string" },
+        { "key": "serial", "label": "Serial", "type": "string" },
+        { "key": "notes", "label": "Notes", "type": "text" },
+        { "key": "custom_fields", "label": "Custom fields", "type": "keyvalue", "help": "Use the DB column names, e.g. _snipeit_mac_address_1." }
+      ]
+    },
+    {
+      "key": "update_asset",
+      "name": "Update asset",
+      "method": "PATCH",
+      "endpoint": "/hardware/{{ inputs.asset_id }}",
+      "body": { "name": "{{ inputs.name }}", "status_id": "{{ inputs.status_id }}", "serial": "{{ inputs.serial }}", "notes": "{{ inputs.notes }}", "...": "{{ inputs.custom_fields }}" },
+      "inputs": [
+        { "key": "asset_id", "label": "Asset ID", "type": "number", "required": true },
+        { "key": "name", "label": "Name", "type": "string" },
+        { "key": "status_id", "label": "Status label ID", "type": "number" },
+        { "key": "serial", "label": "Serial", "type": "string" },
+        { "key": "notes", "label": "Notes", "type": "text" },
+        { "key": "custom_fields", "label": "Custom fields", "type": "keyvalue" }
+      ]
+    },
+    {
+      "key": "checkout_asset",
+      "name": "Check out asset to user",
+      "method": "POST",
+      "endpoint": "/hardware/{{ inputs.asset_id }}/checkout",
+      "body": { "checkout_to_type": "user", "assigned_user": "{{ inputs.user_id }}", "note": "{{ inputs.note }}", "expected_checkin": "{{ inputs.expected_checkin }}" },
+      "inputs": [
+        { "key": "asset_id", "label": "Asset ID", "type": "number", "required": true },
+        { "key": "user_id", "label": "User ID", "type": "number", "required": true },
+        { "key": "note", "label": "Note", "type": "string" },
+        { "key": "expected_checkin", "label": "Expected check-in", "type": "string", "placeholder": "2026-12-31" }
+      ]
+    },
+    {
+      "key": "checkin_asset",
+      "name": "Check in asset",
+      "method": "POST",
+      "endpoint": "/hardware/{{ inputs.asset_id }}/checkin",
+      "body": { "note": "{{ inputs.note }}", "location_id": "{{ inputs.location_id }}" },
+      "inputs": [
+        { "key": "asset_id", "label": "Asset ID", "type": "number", "required": true },
+        { "key": "note", "label": "Note", "type": "string" },
+        { "key": "location_id", "label": "Location ID", "type": "number" }
+      ]
+    },
+    {
+      "key": "search_users",
+      "name": "Search users",
+      "method": "GET",
+      "endpoint": "/users",
+      "query": { "search": "{{ inputs.search }}", "limit": "{{ inputs.limit }}" },
+      "output_path": "rows",
+      "inputs": [
+        { "key": "search", "label": "Search", "type": "string", "required": true },
+        { "key": "limit", "label": "Limit", "type": "number", "default": 25 }
+      ]
+    }
+  ]
+}

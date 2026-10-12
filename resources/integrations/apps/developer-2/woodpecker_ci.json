@@ -1,0 +1,92 @@
+{
+  "key": "woodpecker_ci",
+  "name": "Woodpecker CI",
+  "category": "Developer Tools",
+  "description": "Start, restart and cancel pipelines on your Woodpecker server.",
+  "brand": "woodpeckerci",
+  "website": "https://woodpecker-ci.org",
+  "docs_url": "https://woodpecker-ci.org/api",
+  "base_url": "{{ credentials.base_url }}/api",
+  "auth": { "type": "bearer", "fields": [
+    { "key": "base_url", "label": "Woodpecker server URL", "type": "string", "required": true, "placeholder": "https://ci.example.com", "help": "Without a trailing slash." },
+    { "key": "token", "label": "Personal access token", "type": "password", "required": true, "help": "User settings → CLI & API → token." }
+  ] },
+  "actions": [
+    {
+      "key": "lookup_repo",
+      "name": "Look up repository",
+      "description": "Finds a repository (and its numeric ID) by full name.",
+      "method": "GET",
+      "endpoint": "/repos/lookup/{{ inputs.full_name }}",
+      "inputs": [{ "key": "full_name", "label": "Repository full name", "type": "string", "required": true, "placeholder": "owner/repo" }]
+    },
+    {
+      "key": "start_pipeline",
+      "name": "Start pipeline",
+      "method": "POST",
+      "endpoint": "/repos/{{ inputs.repo_id }}/pipelines",
+      "body": { "branch": "{{ inputs.branch }}", "variables": "{{ inputs.variables }}" },
+      "inputs": [
+        { "key": "repo_id", "label": "Repository ID", "type": "number", "required": true, "help": "Numeric ID from Look up repository." },
+        { "key": "branch", "label": "Branch", "type": "string", "required": true, "placeholder": "main" },
+        { "key": "variables", "label": "Variables", "type": "keyvalue" }
+      ]
+    },
+    {
+      "key": "list_pipelines",
+      "name": "List pipelines",
+      "method": "GET",
+      "endpoint": "/repos/{{ inputs.repo_id }}/pipelines",
+      "query": { "page": "{{ inputs.page }}", "perPage": "{{ inputs.per_page }}" },
+      "inputs": [
+        { "key": "repo_id", "label": "Repository ID", "type": "number", "required": true },
+        { "key": "page", "label": "Page", "type": "number" },
+        { "key": "per_page", "label": "Per page", "type": "number" }
+      ]
+    },
+    {
+      "key": "get_pipeline",
+      "name": "Get pipeline",
+      "method": "GET",
+      "endpoint": "/repos/{{ inputs.repo_id }}/pipelines/{{ inputs.number }}",
+      "inputs": [
+        { "key": "repo_id", "label": "Repository ID", "type": "number", "required": true },
+        { "key": "number", "label": "Pipeline number", "type": "number", "required": true }
+      ]
+    },
+    {
+      "key": "restart_pipeline",
+      "name": "Restart pipeline",
+      "method": "POST",
+      "endpoint": "/repos/{{ inputs.repo_id }}/pipelines/{{ inputs.number }}",
+      "inputs": [
+        { "key": "repo_id", "label": "Repository ID", "type": "number", "required": true },
+        { "key": "number", "label": "Pipeline number", "type": "number", "required": true }
+      ]
+    },
+    {
+      "key": "cancel_pipeline",
+      "name": "Cancel pipeline",
+      "method": "POST",
+      "endpoint": "/repos/{{ inputs.repo_id }}/pipelines/{{ inputs.number }}/cancel",
+      "inputs": [
+        { "key": "repo_id", "label": "Repository ID", "type": "number", "required": true },
+        { "key": "number", "label": "Pipeline number", "type": "number", "required": true }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_pipeline",
+      "name": "New pipeline (polling)",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/repos/{{ inputs.repo_id }}/pipelines",
+      "id_field": "id",
+      "inputs": [
+        { "key": "repo_id", "label": "Repository ID", "type": "number", "required": true },
+        { "key": "poll_interval", "label": "Check every (minutes)", "type": "number", "default": 5 }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,213 @@
+{
+  "key": "heyreach",
+  "name": "HeyReach",
+  "category": "CRM & Sales",
+  "description": "Add leads to LinkedIn outreach campaigns and lists in HeyReach.",
+  "brand": "heyreach",
+  "website": "https://www.heyreach.io",
+  "base_url": "https://api.heyreach.io/api/public",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "X-API-KEY",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "add_lead_to_campaign",
+      "name": "Add lead to campaign",
+      "method": "POST",
+      "endpoint": "/campaign/AddLeadsToCampaignV2",
+      "body": {
+        "campaignId": "{{ inputs.campaign_id }}",
+        "accountLeadPairs": [
+          {
+            "linkedInAccountId": "{{ inputs.linkedin_account_id }}",
+            "lead": {
+              "profileUrl": "{{ inputs.profile_url }}",
+              "firstName": "{{ inputs.first_name }}",
+              "lastName": "{{ inputs.last_name }}",
+              "companyName": "{{ inputs.company_name }}",
+              "position": "{{ inputs.position }}",
+              "emailAddress": "{{ inputs.email }}",
+              "customUserFields": "{{ inputs.custom_fields }}"
+            }
+          }
+        ]
+      },
+      "inputs": [
+        {
+          "key": "campaign_id",
+          "label": "Campaign ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "linkedin_account_id",
+          "label": "Sender LinkedIn account ID",
+          "type": "number",
+          "help": "Leave empty to use any sender active in the campaign"
+        },
+        {
+          "key": "profile_url",
+          "label": "LinkedIn profile URL",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "first_name",
+          "label": "First name",
+          "type": "string"
+        },
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string"
+        },
+        {
+          "key": "company_name",
+          "label": "Company",
+          "type": "string"
+        },
+        {
+          "key": "position",
+          "label": "Position",
+          "type": "string"
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string"
+        },
+        {
+          "key": "custom_fields",
+          "label": "Custom fields",
+          "type": "json",
+          "placeholder": "[{\"name\": \"icebreaker\", \"value\": \"Loved your talk\"}]"
+        }
+      ]
+    },
+    {
+      "key": "add_lead_to_list",
+      "name": "Add lead to list",
+      "method": "POST",
+      "endpoint": "/list/AddLeadsToListV2",
+      "body": {
+        "listId": "{{ inputs.list_id }}",
+        "leads": [
+          {
+            "profileUrl": "{{ inputs.profile_url }}",
+            "firstName": "{{ inputs.first_name }}",
+            "lastName": "{{ inputs.last_name }}",
+            "companyName": "{{ inputs.company_name }}",
+            "emailAddress": "{{ inputs.email }}"
+          }
+        ]
+      },
+      "inputs": [
+        {
+          "key": "list_id",
+          "label": "List ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "profile_url",
+          "label": "LinkedIn profile URL",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "first_name",
+          "label": "First name",
+          "type": "string"
+        },
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string"
+        },
+        {
+          "key": "company_name",
+          "label": "Company",
+          "type": "string"
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "get_lead",
+      "name": "Get lead",
+      "method": "POST",
+      "endpoint": "/lead/GetLead",
+      "body": {
+        "profileUrl": "{{ inputs.profile_url }}"
+      },
+      "inputs": [
+        {
+          "key": "profile_url",
+          "label": "LinkedIn profile URL",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_campaigns",
+      "name": "List campaigns",
+      "method": "POST",
+      "endpoint": "/campaign/GetAll",
+      "output_path": "items",
+      "body": {
+        "offset": "{{ inputs.offset }}",
+        "limit": "{{ inputs.limit }}",
+        "keyword": "{{ inputs.keyword }}"
+      },
+      "inputs": [
+        {
+          "key": "keyword",
+          "label": "Name contains",
+          "type": "string"
+        },
+        {
+          "key": "offset",
+          "label": "Offset",
+          "type": "number",
+          "default": 0
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 100
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Create a webhook in HeyReach (Integrations > Webhooks) for events like replies or accepted connections.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

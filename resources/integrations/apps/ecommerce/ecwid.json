@@ -1,0 +1,274 @@
+{
+  "key": "ecwid",
+  "name": "Ecwid by Lightspeed",
+  "category": "E-commerce",
+  "description": "Search and update orders and manage products in your Ecwid store.",
+  "brand": "ecwid",
+  "website": "https://www.ecwid.com",
+  "docs_url": "https://api-docs.ecwid.com/reference/overview",
+  "base_url": "https://app.ecwid.com/api/v3/{{ credentials.store_id }}",
+  "auth": [
+    {
+      "type": "bearer",
+      "fields": [
+        {
+          "key": "store_id",
+          "label": "Store ID",
+          "type": "string",
+          "required": true,
+          "placeholder": "1003",
+          "help": "Shown at the bottom of your Ecwid admin."
+        },
+        {
+          "key": "token",
+          "label": "Secret access token",
+          "type": "password",
+          "required": true,
+          "help": "From your custom app in Ecwid admin (starts with secret_)."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "search_orders",
+      "name": "Search orders",
+      "method": "GET",
+      "endpoint": "/orders",
+      "output_path": "items",
+      "query": {
+        "email": "{{ inputs.email }}",
+        "paymentStatus": "{{ inputs.payment_status }}",
+        "fulfillmentStatus": "{{ inputs.fulfillment_status }}",
+        "createdFrom": "{{ inputs.created_from }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Customer email",
+          "type": "string"
+        },
+        {
+          "key": "payment_status",
+          "label": "Payment status",
+          "type": "string",
+          "placeholder": "PAID"
+        },
+        {
+          "key": "fulfillment_status",
+          "label": "Fulfillment status",
+          "type": "string",
+          "placeholder": "AWAITING_PROCESSING"
+        },
+        {
+          "key": "created_from",
+          "label": "Created from (UNIX timestamp or date)",
+          "type": "string",
+          "placeholder": "2025-01-01"
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 100
+        }
+      ]
+    },
+    {
+      "key": "get_order",
+      "name": "Get order",
+      "method": "GET",
+      "endpoint": "/orders/{{ inputs.order_id }}",
+      "inputs": [
+        {
+          "key": "order_id",
+          "label": "Order ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "update_order",
+      "name": "Update order",
+      "description": "Only the fields you fill in are changed.",
+      "method": "PUT",
+      "endpoint": "/orders/{{ inputs.order_id }}",
+      "body": {
+        "fulfillmentStatus": "{{ inputs.fulfillment_status }}",
+        "paymentStatus": "{{ inputs.payment_status }}",
+        "trackingNumber": "{{ inputs.tracking_number }}",
+        "privateAdminNotes": "{{ inputs.notes }}"
+      },
+      "inputs": [
+        {
+          "key": "order_id",
+          "label": "Order ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "fulfillment_status",
+          "label": "Fulfillment status",
+          "type": "select",
+          "options": [
+            {
+              "value": "AWAITING_PROCESSING",
+              "label": "Awaiting processing"
+            },
+            {
+              "value": "PROCESSING",
+              "label": "Processing"
+            },
+            {
+              "value": "SHIPPED",
+              "label": "Shipped"
+            },
+            {
+              "value": "DELIVERED",
+              "label": "Delivered"
+            },
+            {
+              "value": "WILL_NOT_DELIVER",
+              "label": "Will not deliver"
+            },
+            {
+              "value": "RETURNED",
+              "label": "Returned"
+            },
+            {
+              "value": "READY_FOR_PICKUP",
+              "label": "Ready for pickup"
+            },
+            {
+              "value": "OUT_FOR_DELIVERY",
+              "label": "Out for delivery"
+            }
+          ]
+        },
+        {
+          "key": "payment_status",
+          "label": "Payment status",
+          "type": "select",
+          "options": [
+            {
+              "value": "AWAITING_PAYMENT",
+              "label": "Awaiting payment"
+            },
+            {
+              "value": "PAID",
+              "label": "Paid"
+            },
+            {
+              "value": "CANCELLED",
+              "label": "Cancelled"
+            },
+            {
+              "value": "REFUNDED",
+              "label": "Refunded"
+            },
+            {
+              "value": "PARTIALLY_REFUNDED",
+              "label": "Partially refunded"
+            },
+            {
+              "value": "INCOMPLETE",
+              "label": "Incomplete"
+            }
+          ]
+        },
+        {
+          "key": "tracking_number",
+          "label": "Tracking number",
+          "type": "string"
+        },
+        {
+          "key": "notes",
+          "label": "Private admin notes",
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "key": "create_product",
+      "name": "Create product",
+      "method": "POST",
+      "endpoint": "/products",
+      "body": {
+        "name": "{{ inputs.name }}",
+        "sku": "{{ inputs.sku }}",
+        "price": "{{ inputs.price }}",
+        "quantity": "{{ inputs.quantity }}",
+        "description": "{{ inputs.description }}",
+        "enabled": "{{ inputs.enabled }}"
+      },
+      "inputs": [
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "sku",
+          "label": "SKU",
+          "type": "string"
+        },
+        {
+          "key": "price",
+          "label": "Price",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "quantity",
+          "label": "Quantity in stock",
+          "type": "number"
+        },
+        {
+          "key": "description",
+          "label": "Description (HTML)",
+          "type": "text"
+        },
+        {
+          "key": "enabled",
+          "label": "Enabled",
+          "type": "boolean",
+          "default": true
+        }
+      ]
+    },
+    {
+      "key": "search_products",
+      "name": "Search products",
+      "method": "GET",
+      "endpoint": "/products",
+      "output_path": "items",
+      "query": {
+        "keyword": "{{ inputs.keyword }}",
+        "sku": "{{ inputs.sku }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "inputs": [
+        {
+          "key": "keyword",
+          "label": "Keyword",
+          "type": "string"
+        },
+        {
+          "key": "sku",
+          "label": "SKU",
+          "type": "string"
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 100
+        }
+      ]
+    }
+  ],
+  "triggers": []
+}

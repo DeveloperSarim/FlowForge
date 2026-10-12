@@ -1,0 +1,118 @@
+{
+  "key": "moodle",
+  "name": "Moodle",
+  "category": "Education",
+  "description": "Create users, enrol them in courses and look up courses via Moodle web services.",
+  "brand": "moodle",
+  "website": "https://moodle.org",
+  "docs_url": "https://docs.moodle.org/dev/Web_service_API_functions",
+  "popular": true,
+  "base_url": "{{ credentials.site_url }}/webservice/rest",
+  "auth": [
+    {
+      "type": "api_key",
+      "in": "query",
+      "name": "wstoken",
+      "fields": [
+        { "key": "site_url", "label": "Moodle site URL", "type": "string", "required": true, "placeholder": "https://moodle.example.edu", "help": "No trailing slash." },
+        { "key": "api_key", "label": "Web service token", "type": "password", "required": true, "help": "Site administration > Server > Web services > Manage tokens. Enable REST protocol and add the functions you need to the service." }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "get_site_info",
+      "name": "Get site info",
+      "description": "Returns the site, the token's user and the functions it may call.",
+      "method": "GET",
+      "endpoint": "/server.php",
+      "query": { "wsfunction": "core_webservice_get_site_info", "moodlewsrestformat": "json" },
+      "error_path": "exception",
+      "inputs": []
+    },
+    {
+      "key": "get_courses",
+      "name": "Get courses",
+      "method": "GET",
+      "endpoint": "/server.php",
+      "query": { "wsfunction": "core_course_get_courses", "moodlewsrestformat": "json", "options[ids][0]": "{{ inputs.course_id }}" },
+      "error_path": "exception",
+      "inputs": [
+        { "key": "course_id", "label": "Course ID", "type": "string", "help": "Leave empty to return all courses." }
+      ]
+    },
+    {
+      "key": "find_user_by_email",
+      "name": "Find user by email",
+      "method": "GET",
+      "endpoint": "/server.php",
+      "query": { "wsfunction": "core_user_get_users_by_field", "moodlewsrestformat": "json", "field": "email", "values[0]": "{{ inputs.email }}" },
+      "error_path": "exception",
+      "inputs": [
+        { "key": "email", "label": "Email", "type": "string", "required": true }
+      ]
+    },
+    {
+      "key": "create_user",
+      "name": "Create user",
+      "method": "POST",
+      "endpoint": "/server.php",
+      "query": { "wsfunction": "core_user_create_users", "moodlewsrestformat": "json" },
+      "body_format": "form",
+      "body": {
+        "users[0][username]": "{{ inputs.username }}",
+        "users[0][firstname]": "{{ inputs.first_name }}",
+        "users[0][lastname]": "{{ inputs.last_name }}",
+        "users[0][email]": "{{ inputs.email }}",
+        "users[0][password]": "{{ inputs.password }}",
+        "users[0][createpassword]": "{{ inputs.create_password }}",
+        "users[0][auth]": "{{ inputs.auth_method }}"
+      },
+      "error_path": "exception",
+      "inputs": [
+        { "key": "username", "label": "Username", "type": "string", "required": true, "help": "Lowercase." },
+        { "key": "first_name", "label": "First name", "type": "string", "required": true },
+        { "key": "last_name", "label": "Last name", "type": "string", "required": true },
+        { "key": "email", "label": "Email", "type": "string", "required": true },
+        { "key": "password", "label": "Password", "type": "password", "help": "Leave empty and turn on 'Email a generated password' instead." },
+        { "key": "create_password", "label": "Email a generated password", "type": "boolean" },
+        { "key": "auth_method", "label": "Auth method", "type": "string", "placeholder": "manual" }
+      ]
+    },
+    {
+      "key": "enrol_user",
+      "name": "Enrol user in course",
+      "description": "Manual enrolment (the course needs the Manual enrolments method).",
+      "method": "POST",
+      "endpoint": "/server.php",
+      "query": { "wsfunction": "enrol_manual_enrol_users", "moodlewsrestformat": "json" },
+      "body_format": "form",
+      "body": {
+        "enrolments[0][roleid]": "{{ inputs.role_id }}",
+        "enrolments[0][userid]": "{{ inputs.user_id }}",
+        "enrolments[0][courseid]": "{{ inputs.course_id }}",
+        "enrolments[0][timestart]": "{{ inputs.time_start }}",
+        "enrolments[0][timeend]": "{{ inputs.time_end }}"
+      },
+      "error_path": "exception",
+      "inputs": [
+        { "key": "user_id", "label": "User ID", "type": "string", "required": true },
+        { "key": "course_id", "label": "Course ID", "type": "string", "required": true },
+        { "key": "role_id", "label": "Role ID", "type": "number", "required": true, "default": 5, "help": "5 = student, 3 = teacher on a default install." },
+        { "key": "time_start", "label": "Start (Unix time)", "type": "number" },
+        { "key": "time_end", "label": "End (Unix time)", "type": "number" }
+      ]
+    },
+    {
+      "key": "get_enrolled_users",
+      "name": "List enrolled users",
+      "method": "GET",
+      "endpoint": "/server.php",
+      "query": { "wsfunction": "core_enrol_get_enrolled_users", "moodlewsrestformat": "json", "courseid": "{{ inputs.course_id }}" },
+      "error_path": "exception",
+      "inputs": [
+        { "key": "course_id", "label": "Course ID", "type": "string", "required": true }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,131 @@
+{
+  "key": "wiza",
+  "name": "Wiza",
+  "category": "CRM & Sales",
+  "description": "Reveal verified emails and phone numbers for a LinkedIn profile, name or email.",
+  "brand": "wiza",
+  "website": "https://wiza.co",
+  "docs_url": "https://docs.wiza.co/",
+  "base_url": "https://wiza.co/api",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "API key",
+        "type": "password",
+        "required": true
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "start_individual_reveal",
+      "name": "Start individual reveal",
+      "description": "Starts an async enrichment; poll Get individual reveal or receive the callback.",
+      "method": "POST",
+      "endpoint": "/individual_reveals",
+      "output_path": "data",
+      "body": {
+        "individual_reveal": {
+          "profile_url": "{{ inputs.profile_url }}",
+          "full_name": "{{ inputs.full_name }}",
+          "company": "{{ inputs.company }}",
+          "domain": "{{ inputs.domain }}",
+          "email": "{{ inputs.email }}"
+        },
+        "enrichment_level": "{{ inputs.enrichment_level }}",
+        "callback_url": "{{ inputs.callback_url }}"
+      },
+      "inputs": [
+        {
+          "key": "profile_url",
+          "label": "LinkedIn profile URL",
+          "type": "string"
+        },
+        {
+          "key": "full_name",
+          "label": "Full name",
+          "type": "string"
+        },
+        {
+          "key": "company",
+          "label": "Company",
+          "type": "string"
+        },
+        {
+          "key": "domain",
+          "label": "Company domain",
+          "type": "string"
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "help": "Give a profile URL, a full name with company or domain, or an email."
+        },
+        {
+          "key": "enrichment_level",
+          "label": "Enrichment level",
+          "type": "select",
+          "required": true,
+          "default": "partial",
+          "options": [
+            {
+              "value": "none",
+              "label": "None (profile only)"
+            },
+            {
+              "value": "partial",
+              "label": "Partial (email)"
+            },
+            {
+              "value": "phone",
+              "label": "Phone"
+            },
+            {
+              "value": "full",
+              "label": "Full (email + phone)"
+            }
+          ]
+        },
+        {
+          "key": "callback_url",
+          "label": "Callback URL",
+          "type": "string",
+          "help": "Paste a FlowForge webhook trigger URL to get the result"
+        }
+      ]
+    },
+    {
+      "key": "get_individual_reveal",
+      "name": "Get individual reveal",
+      "method": "GET",
+      "endpoint": "/individual_reveals/{{ inputs.reveal_id }}",
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "reveal_id",
+          "label": "Reveal ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "reveal_finished",
+      "name": "Reveal finished",
+      "type": "webhook",
+      "description": "Use this trigger's URL as the callback URL of Start individual reveal.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

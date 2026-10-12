@@ -1,0 +1,79 @@
+{
+  "key": "airbyte",
+  "name": "Airbyte",
+  "category": "Analytics",
+  "description": "Trigger connection syncs and check job status in Airbyte Cloud or self-managed.",
+  "brand": "airbyte",
+  "website": "https://airbyte.com",
+  "docs_url": "https://reference.airbyte.com/reference/getting-started",
+  "base_url": "{{ credentials.api_url }}",
+  "auth": { "type": "bearer", "fields": [
+    { "key": "api_url", "label": "API URL", "type": "string", "required": true, "default": "https://api.airbyte.com/v1", "help": "Self-managed: http(s)://<host>/api/public/v1" },
+    { "key": "token", "label": "Access token", "type": "password", "required": true, "help": "Generated from an application's client ID/secret (POST /applications/token). Cloud tokens expire after a few minutes." }
+  ] },
+  "actions": [
+    {
+      "key": "list_workspaces",
+      "name": "List workspaces",
+      "method": "GET",
+      "endpoint": "/workspaces",
+      "output_path": "data",
+      "inputs": []
+    },
+    {
+      "key": "list_connections",
+      "name": "List connections",
+      "method": "GET",
+      "endpoint": "/connections",
+      "query": { "workspaceIds": "{{ inputs.workspace_id }}", "limit": "{{ inputs.limit }}" },
+      "output_path": "data",
+      "inputs": [
+        { "key": "workspace_id", "label": "Workspace ID", "type": "string" },
+        { "key": "limit", "label": "Limit", "type": "number" }
+      ]
+    },
+    {
+      "key": "trigger_sync",
+      "name": "Trigger sync",
+      "method": "POST",
+      "endpoint": "/jobs",
+      "body": { "connectionId": "{{ inputs.connection_id }}", "jobType": "{{ inputs.job_type }}" },
+      "inputs": [
+        { "key": "connection_id", "label": "Connection ID", "type": "string", "required": true },
+        { "key": "job_type", "label": "Job type", "type": "select", "required": true, "default": "sync", "options": [
+          { "value": "sync", "label": "Sync" }, { "value": "reset", "label": "Reset (clear data)" }
+        ] }
+      ]
+    },
+    {
+      "key": "get_job",
+      "name": "Get job",
+      "method": "GET",
+      "endpoint": "/jobs/{{ inputs.job_id }}",
+      "inputs": [{ "key": "job_id", "label": "Job ID", "type": "number", "required": true }]
+    },
+    {
+      "key": "list_jobs",
+      "name": "List jobs",
+      "method": "GET",
+      "endpoint": "/jobs",
+      "query": { "connectionId": "{{ inputs.connection_id }}", "status": "{{ inputs.status }}", "limit": "{{ inputs.limit }}", "orderBy": "createdAt|DESC" },
+      "output_path": "data",
+      "inputs": [
+        { "key": "connection_id", "label": "Connection ID", "type": "string" },
+        { "key": "status", "label": "Status", "type": "select", "options": [
+          { "value": "pending", "label": "Pending" }, { "value": "running", "label": "Running" }, { "value": "succeeded", "label": "Succeeded" },
+          { "value": "failed", "label": "Failed" }, { "value": "cancelled", "label": "Cancelled" }, { "value": "incomplete", "label": "Incomplete" }
+        ] },
+        { "key": "limit", "label": "Limit", "type": "number" }
+      ]
+    },
+    {
+      "key": "cancel_job",
+      "name": "Cancel job",
+      "method": "DELETE",
+      "endpoint": "/jobs/{{ inputs.job_id }}",
+      "inputs": [{ "key": "job_id", "label": "Job ID", "type": "number", "required": true }]
+    }
+  ]
+}

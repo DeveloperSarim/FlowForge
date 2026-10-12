@@ -1,0 +1,96 @@
+{
+  "key": "deepgram",
+  "name": "Deepgram",
+  "category": "AI",
+  "description": "Transcribe audio files by URL with Deepgram speech models.",
+  "brand": "deepgram",
+  "website": "https://deepgram.com",
+  "docs_url": "https://developers.deepgram.com/reference",
+  "base_url": "https://api.deepgram.com/v1",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "Authorization",
+    "prefix": "Token ",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "transcribe_url",
+      "name": "Transcribe audio URL",
+      "method": "POST",
+      "endpoint": "/listen",
+      "timeout": 300,
+      "query": {
+        "model": "{{ inputs.model }}",
+        "smart_format": "true",
+        "language": "{{ inputs.language }}",
+        "diarize": "{{ inputs.diarize }}",
+        "callback": "{{ inputs.callback }}"
+      },
+      "body": {
+        "url": "{{ inputs.url }}"
+      },
+      "output_fields": {
+        "transcript": "results.channels.0.alternatives.0.transcript"
+      },
+      "inputs": [
+        {
+          "key": "url",
+          "label": "Audio URL",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "model",
+          "label": "Model",
+          "type": "string",
+          "required": true,
+          "default": "nova-3"
+        },
+        {
+          "key": "language",
+          "label": "Language",
+          "type": "string",
+          "placeholder": "en"
+        },
+        {
+          "key": "diarize",
+          "label": "Identify speakers",
+          "type": "select",
+          "options": [
+            {
+              "value": "false",
+              "label": "No"
+            },
+            {
+              "value": "true",
+              "label": "Yes"
+            }
+          ],
+          "default": "false"
+        },
+        {
+          "key": "callback",
+          "label": "Callback URL",
+          "type": "string",
+          "help": "If set, Deepgram responds immediately and POSTs the result here."
+        }
+      ]
+    },
+    {
+      "key": "list_projects",
+      "name": "List projects",
+      "method": "GET",
+      "endpoint": "/projects",
+      "inputs": []
+    }
+  ]
+}

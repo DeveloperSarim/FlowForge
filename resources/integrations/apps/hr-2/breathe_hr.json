@@ -1,0 +1,202 @@
+{
+  "key": "breathe_hr",
+  "name": "Breathe HR",
+  "category": "HR & Recruiting",
+  "description": "Add employees, list absences and create or approve leave requests in Breathe.",
+  "brand": "breathe",
+  "website": "https://www.breathehr.com",
+  "docs_url": "https://developer.breathehr.com",
+  "base_url": "https://api.breathehr.com/v1",
+  "auth": [
+    {
+      "type": "api_key",
+      "in": "header",
+      "name": "X-API-KEY",
+      "fields": [
+        {
+          "key": "api_key",
+          "label": "API key",
+          "type": "password",
+          "required": true,
+          "help": "Configure > Settings > API setup."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_employees",
+      "name": "List employees",
+      "method": "GET",
+      "endpoint": "/employees",
+      "query": {
+        "page": "{{ inputs.page }}",
+        "per_page": "{{ inputs.per_page }}"
+      },
+      "output_path": "employees",
+      "inputs": [
+        {
+          "key": "page",
+          "label": "Page",
+          "type": "number"
+        },
+        {
+          "key": "per_page",
+          "label": "Per page",
+          "type": "number",
+          "default": 100
+        }
+      ]
+    },
+    {
+      "key": "get_employee",
+      "name": "Get employee",
+      "method": "GET",
+      "endpoint": "/employees/{{ inputs.employee_id }}",
+      "output_path": "employees.0",
+      "inputs": [
+        {
+          "key": "employee_id",
+          "label": "Employee ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "create_employee",
+      "name": "Create employee",
+      "method": "POST",
+      "endpoint": "/employees",
+      "body": {
+        "employee": {
+          "first_name": "{{ inputs.first_name }}",
+          "last_name": "{{ inputs.last_name }}",
+          "email": "{{ inputs.email }}",
+          "company_join_date": "{{ inputs.company_join_date }}",
+          "job_title": "{{ inputs.job_title }}"
+        }
+      },
+      "output_path": "employees.0",
+      "inputs": [
+        {
+          "key": "first_name",
+          "label": "First name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "company_join_date",
+          "label": "Join date",
+          "type": "string",
+          "required": true,
+          "placeholder": "2026-11-01"
+        },
+        {
+          "key": "job_title",
+          "label": "Job title",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "list_absences",
+      "name": "List absences",
+      "method": "GET",
+      "endpoint": "/absences",
+      "query": {
+        "employee_id": "{{ inputs.employee_id }}",
+        "start_date": "{{ inputs.start_date }}",
+        "end_date": "{{ inputs.end_date }}"
+      },
+      "output_path": "absences",
+      "inputs": [
+        {
+          "key": "employee_id",
+          "label": "Employee ID",
+          "type": "string"
+        },
+        {
+          "key": "start_date",
+          "label": "From",
+          "type": "string",
+          "placeholder": "2026-10-01"
+        },
+        {
+          "key": "end_date",
+          "label": "To",
+          "type": "string",
+          "placeholder": "2026-10-31"
+        }
+      ]
+    },
+    {
+      "key": "create_leave_request",
+      "name": "Create leave request",
+      "method": "POST",
+      "endpoint": "/employees/{{ inputs.employee_id }}/leave_requests",
+      "body": {
+        "leave_request": {
+          "start_date": "{{ inputs.start_date }}",
+          "end_date": "{{ inputs.end_date }}",
+          "half_start": "{{ inputs.half_start }}"
+        }
+      },
+      "output_path": "leave_requests.0",
+      "inputs": [
+        {
+          "key": "employee_id",
+          "label": "Employee ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "start_date",
+          "label": "Start date",
+          "type": "string",
+          "required": true,
+          "placeholder": "2026-12-22"
+        },
+        {
+          "key": "end_date",
+          "label": "End date",
+          "type": "string",
+          "required": true,
+          "placeholder": "2026-12-24"
+        },
+        {
+          "key": "half_start",
+          "label": "Starts at midday",
+          "type": "boolean",
+          "default": false
+        }
+      ]
+    },
+    {
+      "key": "approve_leave_request",
+      "name": "Approve leave request",
+      "method": "POST",
+      "endpoint": "/leave_requests/{{ inputs.leave_request_id }}/approve",
+      "inputs": [
+        {
+          "key": "leave_request_id",
+          "label": "Leave request ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ]
+}

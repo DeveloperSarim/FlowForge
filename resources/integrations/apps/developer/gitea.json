@@ -1,0 +1,83 @@
+{
+  "key": "gitea",
+  "name": "Gitea",
+  "category": "Developer Tools",
+  "description": "Create issues, comments, pull requests and releases on Gitea or Forgejo.",
+  "brand": "gitea",
+  "website": "https://about.gitea.com",
+  "docs_url": "https://docs.gitea.com/development/api-usage",
+  "base_url": "{{ credentials.base_url }}/api/v1",
+  "auth": { "type": "api_key", "in": "header", "name": "Authorization", "prefix": "token ", "fields": [
+    { "key": "base_url", "label": "Gitea URL", "type": "string", "required": true, "placeholder": "https://gitea.example.com", "help": "Your instance URL without a trailing slash (Forgejo and Codeberg work too)." },
+    { "key": "api_key", "label": "Access token", "type": "password", "required": true, "help": "Settings → Applications → Generate token." }
+  ] },
+  "actions": [
+    {
+      "key": "create_issue",
+      "name": "Create issue",
+      "method": "POST",
+      "endpoint": "/repos/{{ inputs.owner }}/{{ inputs.repo }}/issues",
+      "body": { "title": "{{ inputs.title }}", "body": "{{ inputs.body }}", "assignees": "{{ inputs.assignees }}" },
+      "inputs": [
+        { "key": "owner", "label": "Owner", "type": "string", "required": true },
+        { "key": "repo", "label": "Repository", "type": "string", "required": true },
+        { "key": "title", "label": "Title", "type": "string", "required": true },
+        { "key": "body", "label": "Body (Markdown)", "type": "text" },
+        { "key": "assignees", "label": "Assignees (usernames)", "type": "list" }
+      ]
+    },
+    {
+      "key": "comment_issue",
+      "name": "Comment on issue / PR",
+      "method": "POST",
+      "endpoint": "/repos/{{ inputs.owner }}/{{ inputs.repo }}/issues/{{ inputs.index }}/comments",
+      "body": { "body": "{{ inputs.body }}" },
+      "inputs": [
+        { "key": "owner", "label": "Owner", "type": "string", "required": true },
+        { "key": "repo", "label": "Repository", "type": "string", "required": true },
+        { "key": "index", "label": "Issue / PR number", "type": "number", "required": true },
+        { "key": "body", "label": "Comment (Markdown)", "type": "text", "required": true }
+      ]
+    },
+    {
+      "key": "create_pull_request",
+      "name": "Create pull request",
+      "method": "POST",
+      "endpoint": "/repos/{{ inputs.owner }}/{{ inputs.repo }}/pulls",
+      "body": { "title": "{{ inputs.title }}", "head": "{{ inputs.head }}", "base": "{{ inputs.base }}", "body": "{{ inputs.body }}" },
+      "inputs": [
+        { "key": "owner", "label": "Owner", "type": "string", "required": true },
+        { "key": "repo", "label": "Repository", "type": "string", "required": true },
+        { "key": "title", "label": "Title", "type": "string", "required": true },
+        { "key": "head", "label": "Head branch", "type": "string", "required": true },
+        { "key": "base", "label": "Base branch", "type": "string", "required": true, "default": "main" },
+        { "key": "body", "label": "Description (Markdown)", "type": "text" }
+      ]
+    },
+    {
+      "key": "create_release",
+      "name": "Create release",
+      "method": "POST",
+      "endpoint": "/repos/{{ inputs.owner }}/{{ inputs.repo }}/releases",
+      "body": { "tag_name": "{{ inputs.tag_name }}", "target_commitish": "{{ inputs.target }}", "name": "{{ inputs.name }}", "body": "{{ inputs.body }}", "draft": "{{ inputs.draft }}", "prerelease": "{{ inputs.prerelease }}" },
+      "inputs": [
+        { "key": "owner", "label": "Owner", "type": "string", "required": true },
+        { "key": "repo", "label": "Repository", "type": "string", "required": true },
+        { "key": "tag_name", "label": "Tag", "type": "string", "required": true, "placeholder": "v1.2.0" },
+        { "key": "target", "label": "Target branch or commit", "type": "string", "help": "Used when the tag doesn't exist yet." },
+        { "key": "name", "label": "Release title", "type": "string" },
+        { "key": "body", "label": "Release notes (Markdown)", "type": "text" },
+        { "key": "draft", "label": "Draft", "type": "boolean", "default": false },
+        { "key": "prerelease", "label": "Pre-release", "type": "boolean", "default": false }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "inputs": [{ "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }]
+    }
+  ]
+}

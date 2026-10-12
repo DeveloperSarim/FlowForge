@@ -1,0 +1,95 @@
+{
+  "key": "pocketbase",
+  "name": "PocketBase",
+  "category": "Databases",
+  "description": "List, create, update and delete records in a self-hosted PocketBase collection.",
+  "brand": "pocketbase",
+  "website": "https://pocketbase.io",
+  "docs_url": "https://pocketbase.io/docs/api-records/",
+  "base_url": "{{ credentials.base_url }}/api",
+  "auth": { "type": "api_key", "in": "header", "name": "Authorization", "fields": [
+    { "key": "base_url", "label": "PocketBase URL", "type": "string", "required": true, "placeholder": "https://pb.example.com", "help": "No trailing slash." },
+    { "key": "api_key", "label": "Auth token", "type": "password", "required": true, "help": "Superuser API token (Dashboard → Collections → _superusers → record → Impersonate) or an auth record token." }
+  ] },
+  "actions": [
+    {
+      "key": "list_records",
+      "name": "List / search records",
+      "method": "GET",
+      "endpoint": "/collections/{{ inputs.collection }}/records",
+      "query": { "filter": "{{ inputs.filter }}", "sort": "{{ inputs.sort }}", "expand": "{{ inputs.expand }}", "fields": "{{ inputs.fields }}", "page": "{{ inputs.page }}", "perPage": "{{ inputs.per_page }}" },
+      "inputs": [
+        { "key": "collection", "label": "Collection", "type": "string", "required": true },
+        { "key": "filter", "label": "Filter", "type": "string", "placeholder": "status = 'active' && created > '2025-01-01'" },
+        { "key": "sort", "label": "Sort", "type": "string", "placeholder": "-created,title" },
+        { "key": "expand", "label": "Expand relations", "type": "string" },
+        { "key": "fields", "label": "Fields", "type": "string" },
+        { "key": "page", "label": "Page", "type": "number" },
+        { "key": "per_page", "label": "Per page", "type": "number" }
+      ]
+    },
+    {
+      "key": "get_record",
+      "name": "Get record",
+      "method": "GET",
+      "endpoint": "/collections/{{ inputs.collection }}/records/{{ inputs.record_id }}",
+      "query": { "expand": "{{ inputs.expand }}" },
+      "inputs": [
+        { "key": "collection", "label": "Collection", "type": "string", "required": true },
+        { "key": "record_id", "label": "Record ID", "type": "string", "required": true },
+        { "key": "expand", "label": "Expand relations", "type": "string" }
+      ]
+    },
+    {
+      "key": "create_record",
+      "name": "Create record",
+      "method": "POST",
+      "endpoint": "/collections/{{ inputs.collection }}/records",
+      "body": "{{ inputs.data }}",
+      "inputs": [
+        { "key": "collection", "label": "Collection", "type": "string", "required": true },
+        { "key": "data", "label": "Fields (JSON)", "type": "json", "required": true, "placeholder": "{ \"title\": \"Hello\", \"status\": \"active\" }" }
+      ]
+    },
+    {
+      "key": "update_record",
+      "name": "Update record",
+      "method": "PATCH",
+      "endpoint": "/collections/{{ inputs.collection }}/records/{{ inputs.record_id }}",
+      "body": "{{ inputs.data }}",
+      "inputs": [
+        { "key": "collection", "label": "Collection", "type": "string", "required": true },
+        { "key": "record_id", "label": "Record ID", "type": "string", "required": true },
+        { "key": "data", "label": "Fields to change (JSON)", "type": "json", "required": true }
+      ]
+    },
+    {
+      "key": "delete_record",
+      "name": "Delete record",
+      "method": "DELETE",
+      "endpoint": "/collections/{{ inputs.collection }}/records/{{ inputs.record_id }}",
+      "inputs": [
+        { "key": "collection", "label": "Collection", "type": "string", "required": true },
+        { "key": "record_id", "label": "Record ID", "type": "string", "required": true }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_record",
+      "name": "New record",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/collections/{{ inputs.collection }}/records",
+      "query": { "sort": "{{ inputs.sort }}", "filter": "{{ inputs.filter }}", "perPage": 50, "skipTotal": "true" },
+      "items_path": "items",
+      "id_field": "id",
+      "inputs": [
+        { "key": "collection", "label": "Collection", "type": "string", "required": true },
+        { "key": "sort", "label": "Newest-first sort", "type": "string", "required": true, "default": "-created", "help": "Needs a created (autodate) field, or use another field." },
+        { "key": "filter", "label": "Filter", "type": "string" },
+        { "key": "poll_interval", "label": "Check every (minutes)", "type": "number", "default": 5 }
+      ]
+    }
+  ]
+}

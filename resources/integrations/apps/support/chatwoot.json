@@ -1,0 +1,198 @@
+{
+  "key": "chatwoot",
+  "name": "Chatwoot",
+  "category": "Customer Support",
+  "description": "Manage contacts, send messages and resolve conversations in Chatwoot.",
+  "brand": "chatwoot",
+  "website": "https://www.chatwoot.com",
+  "docs_url": "https://developers.chatwoot.com/",
+  "base_url": "{{ credentials.base_url }}/api/v1/accounts/{{ credentials.account_id }}",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "api_access_token",
+    "fields": [
+      {
+        "key": "base_url",
+        "label": "Instance URL",
+        "type": "string",
+        "required": true,
+        "default": "https://app.chatwoot.com",
+        "help": "Your self-hosted URL, without a trailing slash"
+      },
+      {
+        "key": "account_id",
+        "label": "Account ID",
+        "type": "number",
+        "required": true,
+        "help": "The number in your dashboard URL: /app/accounts/<ID>/"
+      },
+      {
+        "key": "api_key",
+        "label": "Access token",
+        "type": "password",
+        "required": true,
+        "help": "Profile settings > Access Token"
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "create_contact",
+      "name": "Create contact",
+      "method": "POST",
+      "endpoint": "/contacts",
+      "body": {
+        "inbox_id": "{{ inputs.inbox_id }}",
+        "name": "{{ inputs.name }}",
+        "email": "{{ inputs.email }}",
+        "phone_number": "{{ inputs.phone_number }}",
+        "identifier": "{{ inputs.identifier }}"
+      },
+      "inputs": [
+        {
+          "key": "inbox_id",
+          "label": "Inbox ID",
+          "type": "number"
+        },
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string"
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string"
+        },
+        {
+          "key": "phone_number",
+          "label": "Phone (E.164)",
+          "type": "string",
+          "placeholder": "+15551234567"
+        },
+        {
+          "key": "identifier",
+          "label": "External identifier",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "search_contacts",
+      "name": "Search contacts",
+      "method": "GET",
+      "endpoint": "/contacts/search",
+      "query": {
+        "q": "{{ inputs.q }}"
+      },
+      "output_path": "payload",
+      "inputs": [
+        {
+          "key": "q",
+          "label": "Name, email, phone or identifier",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "send_message",
+      "name": "Send message",
+      "method": "POST",
+      "endpoint": "/conversations/{{ inputs.conversation_id }}/messages",
+      "body": {
+        "content": "{{ inputs.content }}",
+        "message_type": "outgoing",
+        "private": "{{ inputs.private }}"
+      },
+      "inputs": [
+        {
+          "key": "conversation_id",
+          "label": "Conversation ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "content",
+          "label": "Message",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "private",
+          "label": "Private note",
+          "type": "boolean",
+          "default": false
+        }
+      ]
+    },
+    {
+      "key": "toggle_status",
+      "name": "Change conversation status",
+      "method": "POST",
+      "endpoint": "/conversations/{{ inputs.conversation_id }}/toggle_status",
+      "body": {
+        "status": "{{ inputs.status }}"
+      },
+      "inputs": [
+        {
+          "key": "conversation_id",
+          "label": "Conversation ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "required": true,
+          "default": "resolved",
+          "options": [
+            {
+              "value": "open",
+              "label": "Open"
+            },
+            {
+              "value": "resolved",
+              "label": "Resolved"
+            },
+            {
+              "value": "pending",
+              "label": "Pending"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "get_conversation",
+      "name": "Get conversation",
+      "method": "GET",
+      "endpoint": "/conversations/{{ inputs.conversation_id }}",
+      "inputs": [
+        {
+          "key": "conversation_id",
+          "label": "Conversation ID",
+          "type": "number",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Add this URL in Settings > Integrations > Webhooks.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

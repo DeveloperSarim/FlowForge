@@ -1,0 +1,86 @@
+{
+  "key": "honeybadger",
+  "name": "Honeybadger",
+  "category": "Developer Tools",
+  "description": "Search, resolve, ignore and assign error faults and read their notices.",
+  "brand": "honeybadger",
+  "website": "https://www.honeybadger.io",
+  "docs_url": "https://docs.honeybadger.io/api/",
+  "popular": true,
+  "base_url": "{{ credentials.base_url }}/v2",
+  "auth": { "type": "basic", "fields": [
+    { "key": "base_url", "label": "Region", "type": "string", "required": true, "default": "https://app.honeybadger.io", "help": "https://app.honeybadger.io (US) or https://eu-app.honeybadger.io (EU)." },
+    { "key": "username", "label": "Personal auth token", "type": "password", "required": true, "help": "User settings → Authentication → Personal auth token." },
+    { "key": "password", "label": "Password", "type": "password", "required": false, "default": "", "help": "Leave empty." }
+  ] },
+  "actions": [
+    {
+      "key": "list_projects",
+      "name": "List projects",
+      "method": "GET",
+      "endpoint": "/projects",
+      "output_path": "results",
+      "inputs": []
+    },
+    {
+      "key": "list_faults",
+      "name": "Search faults",
+      "method": "GET",
+      "endpoint": "/projects/{{ inputs.project_id }}/faults",
+      "query": { "q": "{{ inputs.q }}", "order": "{{ inputs.order }}", "limit": "{{ inputs.limit }}" },
+      "output_path": "results",
+      "inputs": [
+        { "key": "project_id", "label": "Project ID", "type": "string", "required": true },
+        { "key": "q", "label": "Search query", "type": "string", "placeholder": "-is:resolved environment:production" },
+        { "key": "order", "label": "Order", "type": "select", "options": [{ "value": "recent", "label": "Most recent" }, { "value": "frequent", "label": "Most frequent" }] },
+        { "key": "limit", "label": "Limit", "type": "number", "help": "Up to 25." }
+      ]
+    },
+    {
+      "key": "get_fault",
+      "name": "Get fault",
+      "method": "GET",
+      "endpoint": "/projects/{{ inputs.project_id }}/faults/{{ inputs.fault_id }}",
+      "inputs": [
+        { "key": "project_id", "label": "Project ID", "type": "string", "required": true },
+        { "key": "fault_id", "label": "Fault ID", "type": "string", "required": true }
+      ]
+    },
+    {
+      "key": "update_fault",
+      "name": "Update fault",
+      "description": "Resolve, ignore or assign a fault.",
+      "method": "PUT",
+      "endpoint": "/projects/{{ inputs.project_id }}/faults/{{ inputs.fault_id }}",
+      "body": { "fault": { "resolved": "{{ inputs.resolved }}", "ignored": "{{ inputs.ignored }}", "assignee_id": "{{ inputs.assignee_id }}" } },
+      "inputs": [
+        { "key": "project_id", "label": "Project ID", "type": "string", "required": true },
+        { "key": "fault_id", "label": "Fault ID", "type": "string", "required": true },
+        { "key": "resolved", "label": "Resolved", "type": "boolean" },
+        { "key": "ignored", "label": "Ignored", "type": "boolean" },
+        { "key": "assignee_id", "label": "Assignee user ID", "type": "number" }
+      ]
+    },
+    {
+      "key": "list_notices",
+      "name": "List fault notices",
+      "method": "GET",
+      "endpoint": "/projects/{{ inputs.project_id }}/faults/{{ inputs.fault_id }}/notices",
+      "query": { "limit": "{{ inputs.limit }}" },
+      "output_path": "results",
+      "inputs": [
+        { "key": "project_id", "label": "Project ID", "type": "string", "required": true },
+        { "key": "fault_id", "label": "Fault ID", "type": "string", "required": true },
+        { "key": "limit", "label": "Limit", "type": "number" }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "inputs": [{ "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }]
+    }
+  ]
+}

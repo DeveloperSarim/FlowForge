@@ -1,0 +1,293 @@
+{
+  "key": "statuspage",
+  "name": "Statuspage",
+  "category": "Customer Support",
+  "description": "Open and update incidents and set component status on Atlassian Statuspage.",
+  "brand": "statuspage",
+  "website": "https://www.atlassian.com/software/statuspage",
+  "docs_url": "https://developer.statuspage.io/",
+  "base_url": "https://api.statuspage.io/v1",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "Authorization",
+    "prefix": "OAuth ",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "Your avatar > API info"
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "create_incident",
+      "name": "Create incident",
+      "method": "POST",
+      "endpoint": "/pages/{{ inputs.page_id }}/incidents",
+      "body": {
+        "incident": {
+          "name": "{{ inputs.name }}",
+          "status": "{{ inputs.status }}",
+          "body": "{{ inputs.body }}",
+          "impact_override": "{{ inputs.impact }}",
+          "component_ids": "{{ inputs.component_ids }}",
+          "deliver_notifications": "{{ inputs.notify }}"
+        }
+      },
+      "inputs": [
+        {
+          "key": "page_id",
+          "label": "Page ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "name",
+          "label": "Title",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "default": "investigating",
+          "options": [
+            {
+              "value": "investigating",
+              "label": "Investigating"
+            },
+            {
+              "value": "identified",
+              "label": "Identified"
+            },
+            {
+              "value": "monitoring",
+              "label": "Monitoring"
+            },
+            {
+              "value": "resolved",
+              "label": "Resolved"
+            }
+          ]
+        },
+        {
+          "key": "body",
+          "label": "Message",
+          "type": "text"
+        },
+        {
+          "key": "impact",
+          "label": "Impact",
+          "type": "select",
+          "options": [
+            {
+              "value": "none",
+              "label": "None"
+            },
+            {
+              "value": "minor",
+              "label": "Minor"
+            },
+            {
+              "value": "major",
+              "label": "Major"
+            },
+            {
+              "value": "critical",
+              "label": "Critical"
+            }
+          ]
+        },
+        {
+          "key": "component_ids",
+          "label": "Affected component IDs",
+          "type": "list"
+        },
+        {
+          "key": "notify",
+          "label": "Notify subscribers",
+          "type": "boolean",
+          "default": true
+        }
+      ]
+    },
+    {
+      "key": "update_incident",
+      "name": "Update incident",
+      "method": "PATCH",
+      "endpoint": "/pages/{{ inputs.page_id }}/incidents/{{ inputs.incident_id }}",
+      "body": {
+        "incident": {
+          "status": "{{ inputs.status }}",
+          "body": "{{ inputs.body }}"
+        }
+      },
+      "inputs": [
+        {
+          "key": "page_id",
+          "label": "Page ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "incident_id",
+          "label": "Incident ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "options": [
+            {
+              "value": "investigating",
+              "label": "Investigating"
+            },
+            {
+              "value": "identified",
+              "label": "Identified"
+            },
+            {
+              "value": "monitoring",
+              "label": "Monitoring"
+            },
+            {
+              "value": "resolved",
+              "label": "Resolved"
+            }
+          ]
+        },
+        {
+          "key": "body",
+          "label": "Update message",
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "key": "list_unresolved_incidents",
+      "name": "List unresolved incidents",
+      "method": "GET",
+      "endpoint": "/pages/{{ inputs.page_id }}/incidents/unresolved",
+      "inputs": [
+        {
+          "key": "page_id",
+          "label": "Page ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "update_component_status",
+      "name": "Update component status",
+      "method": "PATCH",
+      "endpoint": "/pages/{{ inputs.page_id }}/components/{{ inputs.component_id }}",
+      "body": {
+        "component": {
+          "status": "{{ inputs.status }}"
+        }
+      },
+      "inputs": [
+        {
+          "key": "page_id",
+          "label": "Page ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "component_id",
+          "label": "Component ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "required": true,
+          "default": "operational",
+          "options": [
+            {
+              "value": "operational",
+              "label": "Operational"
+            },
+            {
+              "value": "degraded_performance",
+              "label": "Degraded performance"
+            },
+            {
+              "value": "partial_outage",
+              "label": "Partial outage"
+            },
+            {
+              "value": "major_outage",
+              "label": "Major outage"
+            },
+            {
+              "value": "under_maintenance",
+              "label": "Under maintenance"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "list_components",
+      "name": "List components",
+      "method": "GET",
+      "endpoint": "/pages/{{ inputs.page_id }}/components",
+      "inputs": [
+        {
+          "key": "page_id",
+          "label": "Page ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_incident",
+      "name": "New incident (polling)",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/pages/{{ inputs.page_id }}/incidents",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "page_id",
+          "label": "Page ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    },
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Subscribe this URL as a webhook subscriber on your page.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

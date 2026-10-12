@@ -1,0 +1,157 @@
+{
+  "key": "microsoft_planner",
+  "name": "Microsoft Planner",
+  "category": "Project Management",
+  "description": "Create, list and complete Microsoft Planner tasks.",
+  "brand": "microsoftplanner",
+  "website": "https://www.microsoft.com/microsoft-365/planner",
+  "docs_url": "https://learn.microsoft.com/en-us/graph/api/resources/planner-overview",
+  "base_url": "https://graph.microsoft.com/v1.0",
+  "auth": {
+    "type": "oauth2",
+    "authorize_url": "https://login.microsoftonline.com/common/oauth2/v2.0/authorize",
+    "token_url": "https://login.microsoftonline.com/common/oauth2/v2.0/token",
+    "scopes": [
+      "offline_access",
+      "Tasks.ReadWrite"
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_my_plans",
+      "name": "List my plans",
+      "method": "GET",
+      "endpoint": "/me/planner/plans",
+      "output_path": "value",
+      "inputs": []
+    },
+    {
+      "key": "list_buckets",
+      "name": "List buckets",
+      "method": "GET",
+      "endpoint": "/planner/plans/{{ inputs.plan_id }}/buckets",
+      "output_path": "value",
+      "inputs": [
+        {
+          "key": "plan_id",
+          "label": "Plan ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_plan_tasks",
+      "name": "List plan tasks",
+      "method": "GET",
+      "endpoint": "/planner/plans/{{ inputs.plan_id }}/tasks",
+      "output_path": "value",
+      "inputs": [
+        {
+          "key": "plan_id",
+          "label": "Plan ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "create_task",
+      "name": "Create task",
+      "method": "POST",
+      "endpoint": "/planner/tasks",
+      "body": {
+        "planId": "{{ inputs.plan_id }}",
+        "bucketId": "{{ inputs.bucket_id }}",
+        "title": "{{ inputs.title }}",
+        "dueDateTime": "{{ inputs.due }}",
+        "startDateTime": "{{ inputs.start }}",
+        "priority": "{{ inputs.priority }}",
+        "assignments": "{{ inputs.assignments }}"
+      },
+      "inputs": [
+        {
+          "key": "plan_id",
+          "label": "Plan ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "bucket_id",
+          "label": "Bucket ID",
+          "type": "string"
+        },
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "due",
+          "label": "Due date-time",
+          "type": "string",
+          "placeholder": "2026-10-12T17:00:00Z"
+        },
+        {
+          "key": "start",
+          "label": "Start date-time",
+          "type": "string"
+        },
+        {
+          "key": "priority",
+          "label": "Priority",
+          "type": "number",
+          "help": "1 urgent, 3 important, 5 medium, 9 low."
+        },
+        {
+          "key": "assignments",
+          "label": "Assignments (JSON)",
+          "type": "json",
+          "placeholder": "{ \"<user-id>\": { \"@odata.type\": \"#microsoft.graph.plannerAssignment\", \"orderHint\": \" !\" } }"
+        }
+      ]
+    },
+    {
+      "key": "get_task",
+      "name": "Get task",
+      "method": "GET",
+      "endpoint": "/planner/tasks/{{ inputs.task_id }}",
+      "inputs": [
+        {
+          "key": "task_id",
+          "label": "Task ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "complete_task",
+      "name": "Complete task",
+      "method": "PATCH",
+      "endpoint": "/planner/tasks/{{ inputs.task_id }}",
+      "headers": {
+        "If-Match": "{{ inputs.etag }}"
+      },
+      "body": {
+        "percentComplete": 100
+      },
+      "inputs": [
+        {
+          "key": "task_id",
+          "label": "Task ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "etag",
+          "label": "ETag",
+          "type": "string",
+          "required": true,
+          "help": "The @odata.etag value from Get task."
+        }
+      ]
+    }
+  ]
+}

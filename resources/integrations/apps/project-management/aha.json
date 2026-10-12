@@ -1,0 +1,208 @@
+{
+  "key": "aha",
+  "name": "Aha!",
+  "category": "Project Management",
+  "description": "Create ideas and features and update them in Aha! Roadmaps.",
+  "brand": "aha",
+  "website": "https://www.aha.io",
+  "docs_url": "https://www.aha.io/api",
+  "base_url": "https://{{ credentials.subdomain }}.aha.io/api/v1",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "subdomain",
+        "label": "Account domain",
+        "type": "string",
+        "required": true,
+        "placeholder": "yourcompany",
+        "help": "The part before .aha.io"
+      },
+      {
+        "key": "token",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "Settings > Personal > Developer > API keys."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "create_idea",
+      "name": "Create idea",
+      "method": "POST",
+      "endpoint": "/products/{{ inputs.product_id }}/ideas",
+      "body": {
+        "idea": {
+          "name": "{{ inputs.name }}",
+          "description": "{{ inputs.description }}"
+        }
+      },
+      "output_path": "idea",
+      "inputs": [
+        {
+          "key": "product_id",
+          "label": "Workspace (product) key or ID",
+          "type": "string",
+          "required": true,
+          "placeholder": "APP"
+        },
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "description",
+          "label": "Description (HTML)",
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "key": "create_feature",
+      "name": "Create feature",
+      "method": "POST",
+      "endpoint": "/releases/{{ inputs.release_id }}/features",
+      "body": {
+        "feature": {
+          "name": "{{ inputs.name }}",
+          "description": "{{ inputs.description }}"
+        }
+      },
+      "output_path": "feature",
+      "inputs": [
+        {
+          "key": "release_id",
+          "label": "Release key or ID",
+          "type": "string",
+          "required": true,
+          "placeholder": "APP-R-1"
+        },
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "description",
+          "label": "Description (HTML)",
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "key": "get_feature",
+      "name": "Get feature",
+      "method": "GET",
+      "endpoint": "/features/{{ inputs.feature_id }}",
+      "output_path": "feature",
+      "inputs": [
+        {
+          "key": "feature_id",
+          "label": "Feature key or ID",
+          "type": "string",
+          "required": true,
+          "placeholder": "APP-12"
+        }
+      ]
+    },
+    {
+      "key": "update_feature",
+      "name": "Update feature",
+      "method": "PUT",
+      "endpoint": "/features/{{ inputs.feature_id }}",
+      "body": {
+        "feature": {
+          "name": "{{ inputs.name }}",
+          "description": "{{ inputs.description }}",
+          "workflow_status": {
+            "name": "{{ inputs.status }}"
+          }
+        }
+      },
+      "output_path": "feature",
+      "inputs": [
+        {
+          "key": "feature_id",
+          "label": "Feature key or ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string"
+        },
+        {
+          "key": "description",
+          "label": "Description (HTML)",
+          "type": "text"
+        },
+        {
+          "key": "status",
+          "label": "Workflow status name",
+          "type": "string",
+          "placeholder": "In development"
+        }
+      ]
+    },
+    {
+      "key": "list_features",
+      "name": "List features",
+      "method": "GET",
+      "endpoint": "/features",
+      "query": {
+        "q": "{{ inputs.q }}",
+        "updated_since": "{{ inputs.updated_since }}",
+        "per_page": "{{ inputs.per_page }}"
+      },
+      "output_path": "features",
+      "inputs": [
+        {
+          "key": "q",
+          "label": "Search",
+          "type": "string"
+        },
+        {
+          "key": "updated_since",
+          "label": "Updated since",
+          "type": "string",
+          "placeholder": "2026-10-01T00:00:00Z"
+        },
+        {
+          "key": "per_page",
+          "label": "Max results",
+          "type": "number",
+          "default": 30
+        }
+      ]
+    },
+    {
+      "key": "list_products",
+      "name": "List workspaces",
+      "method": "GET",
+      "endpoint": "/products",
+      "output_path": "products",
+      "inputs": []
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Add an Activity webhook integration pointing to this URL.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

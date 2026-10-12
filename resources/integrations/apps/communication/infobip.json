@@ -1,0 +1,49 @@
+{
+  "key": "infobip",
+  "name": "Infobip",
+  "category": "Communication",
+  "description": "Send SMS and WhatsApp text messages through Infobip.",
+  "brand": "infobip",
+  "website": "https://www.infobip.com",
+  "docs_url": "https://www.infobip.com/docs/api",
+  "base_url": "{{ credentials.base_url }}",
+  "auth": [
+    {
+      "type": "api_key",
+      "in": "header",
+      "name": "Authorization",
+      "prefix": "App ",
+      "fields": [
+        { "key": "base_url", "label": "Base URL", "type": "string", "required": true, "placeholder": "https://xxxxx.api.infobip.com", "help": "Your personal base URL from the Infobip portal home page. No trailing slash." },
+        { "key": "api_key", "label": "API key", "type": "password", "required": true }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "send_sms",
+      "name": "Send SMS",
+      "method": "POST",
+      "endpoint": "/sms/2/text/advanced",
+      "body": { "messages": [{ "destinations": [{ "to": "{{ inputs.to }}" }], "from": "{{ inputs.from }}", "text": "{{ inputs.text }}" }] },
+      "inputs": [
+        { "key": "to", "label": "To", "type": "string", "required": true, "placeholder": "41793026727", "help": "International format." },
+        { "key": "from", "label": "From (sender ID)", "type": "string" },
+        { "key": "text", "label": "Message", "type": "text", "required": true }
+      ]
+    },
+    {
+      "key": "send_whatsapp_text",
+      "name": "Send WhatsApp text",
+      "description": "Only within 24 hours of the user's last message; otherwise use a template.",
+      "method": "POST",
+      "endpoint": "/whatsapp/1/message/text",
+      "body": { "from": "{{ inputs.from }}", "to": "{{ inputs.to }}", "content": { "text": "{{ inputs.text }}" } },
+      "inputs": [
+        { "key": "from", "label": "From (your WhatsApp sender)", "type": "string", "required": true },
+        { "key": "to", "label": "To", "type": "string", "required": true, "placeholder": "441134960001" },
+        { "key": "text", "label": "Message", "type": "text", "required": true }
+      ]
+    }
+  ]
+}

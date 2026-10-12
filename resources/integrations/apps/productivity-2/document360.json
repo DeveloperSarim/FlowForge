@@ -1,0 +1,216 @@
+{
+  "key": "document360",
+  "name": "Document360",
+  "category": "Productivity",
+  "description": "Search, read and create Document360 knowledge base articles.",
+  "brand": "document360",
+  "website": "https://document360.com",
+  "docs_url": "https://apidocs.document360.com/apidocs/getting-started",
+  "base_url": "https://{{ credentials.host }}/v3",
+  "auth": [
+    {
+      "type": "api_key",
+      "in": "header",
+      "name": "X-API-Key",
+      "fields": [
+        {
+          "key": "host",
+          "label": "API host",
+          "type": "select",
+          "required": true,
+          "default": "apihub.document360.io",
+          "options": [
+            {
+              "value": "apihub.document360.io",
+              "label": "apihub.document360.io (default / EU)"
+            },
+            {
+              "value": "apihub.us.document360.io",
+              "label": "apihub.us.document360.io (US)"
+            }
+          ]
+        },
+        {
+          "key": "api_key",
+          "label": "API key",
+          "type": "password",
+          "required": true,
+          "placeholder": "d360_sk_…",
+          "help": "Settings > API tokens (v3 keys; older v1/v2 tokens do not work)."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_projects",
+      "name": "List projects",
+      "method": "GET",
+      "endpoint": "/projects",
+      "inputs": []
+    },
+    {
+      "key": "list_workspaces",
+      "name": "List workspaces",
+      "method": "GET",
+      "endpoint": "/projects/{{ inputs.project_id }}/workspaces",
+      "inputs": [
+        {
+          "key": "project_id",
+          "label": "Project ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "search_articles",
+      "name": "Search articles",
+      "method": "GET",
+      "endpoint": "/projects/{{ inputs.project_id }}/workspaces/{{ inputs.workspace_id }}/search",
+      "query": {
+        "query": "{{ inputs.query }}",
+        "lang_code": "{{ inputs.lang_code }}",
+        "page_size": "{{ inputs.page_size }}"
+      },
+      "inputs": [
+        {
+          "key": "project_id",
+          "label": "Project ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "workspace_id",
+          "label": "Workspace ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "query",
+          "label": "Search phrase",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "lang_code",
+          "label": "Language code",
+          "type": "string",
+          "placeholder": "en"
+        },
+        {
+          "key": "page_size",
+          "label": "Results per page",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "get_article",
+      "name": "Get article",
+      "method": "GET",
+      "endpoint": "/projects/{{ inputs.project_id }}/articles/{{ inputs.article_id }}",
+      "query": {
+        "lang_code": "{{ inputs.lang_code }}",
+        "published": "{{ inputs.published }}"
+      },
+      "inputs": [
+        {
+          "key": "project_id",
+          "label": "Project ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "article_id",
+          "label": "Article ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "lang_code",
+          "label": "Language code",
+          "type": "string",
+          "placeholder": "en"
+        },
+        {
+          "key": "published",
+          "label": "Latest published version only",
+          "type": "boolean"
+        }
+      ]
+    },
+    {
+      "key": "create_article",
+      "name": "Create article",
+      "method": "POST",
+      "endpoint": "/projects/{{ inputs.project_id }}/articles",
+      "description": "Creates a draft article in a category.",
+      "body": {
+        "title": "{{ inputs.title }}",
+        "category_id": "{{ inputs.category_id }}",
+        "workspace_id": "{{ inputs.workspace_id }}",
+        "content": "{{ inputs.content }}",
+        "content_type": "{{ inputs.content_type }}",
+        "user_id": "{{ inputs.user_id }}"
+      },
+      "inputs": [
+        {
+          "key": "project_id",
+          "label": "Project ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "workspace_id",
+          "label": "Workspace ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "category_id",
+          "label": "Category ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "content",
+          "label": "Content",
+          "type": "text",
+          "help": "Markdown unless the content type is WYSIWYG/block (HTML)."
+        },
+        {
+          "key": "content_type",
+          "label": "Content type",
+          "type": "select",
+          "options": [
+            {
+              "value": "markdown",
+              "label": "Markdown"
+            },
+            {
+              "value": "wysiwyg",
+              "label": "WYSIWYG (HTML)"
+            },
+            {
+              "value": "block",
+              "label": "Block (HTML)"
+            }
+          ]
+        },
+        {
+          "key": "user_id",
+          "label": "Author user ID",
+          "type": "string",
+          "help": "Required when authenticating with an API key."
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,78 @@
+{
+  "key": "prometheus",
+  "name": "Prometheus",
+  "category": "Developer Tools",
+  "description": "Run PromQL queries and read active alerts and scrape targets.",
+  "brand": "prometheus",
+  "website": "https://prometheus.io",
+  "docs_url": "https://prometheus.io/docs/prometheus/latest/querying/api/",
+  "base_url": "{{ credentials.base_url }}/api/v1",
+  "auth": [
+    { "type": "basic", "fields": [
+      { "key": "base_url", "label": "Prometheus URL", "type": "string", "required": true, "placeholder": "http://prometheus:9090", "help": "Without a trailing slash." },
+      { "key": "username", "label": "Username", "type": "string", "required": false, "default": "", "help": "Leave empty when Prometheus has no authentication." },
+      { "key": "password", "label": "Password", "type": "password", "required": false, "default": "" }
+    ] },
+    { "type": "bearer", "fields": [
+      { "key": "base_url", "label": "Prometheus URL", "type": "string", "required": true, "placeholder": "https://prometheus.example.com" },
+      { "key": "token", "label": "Bearer token", "type": "password", "required": true }
+    ] }
+  ],
+  "actions": [
+    {
+      "key": "query",
+      "name": "Instant query",
+      "method": "GET",
+      "endpoint": "/query",
+      "query": { "query": "{{ inputs.query }}", "time": "{{ inputs.time }}" },
+      "output_path": "data",
+      "inputs": [
+        { "key": "query", "label": "PromQL", "type": "code", "required": true, "placeholder": "sum(rate(http_requests_total[5m]))" },
+        { "key": "time", "label": "Evaluation time", "type": "string", "help": "RFC 3339 or Unix timestamp; defaults to now." }
+      ]
+    },
+    {
+      "key": "query_range",
+      "name": "Range query",
+      "method": "GET",
+      "endpoint": "/query_range",
+      "query": { "query": "{{ inputs.query }}", "start": "{{ inputs.start }}", "end": "{{ inputs.end }}", "step": "{{ inputs.step }}" },
+      "output_path": "data",
+      "inputs": [
+        { "key": "query", "label": "PromQL", "type": "code", "required": true },
+        { "key": "start", "label": "Start", "type": "string", "required": true, "placeholder": "2026-01-01T00:00:00Z" },
+        { "key": "end", "label": "End", "type": "string", "required": true, "placeholder": "2026-01-01T06:00:00Z" },
+        { "key": "step", "label": "Step", "type": "string", "required": true, "default": "60s" }
+      ]
+    },
+    {
+      "key": "list_alerts",
+      "name": "List active alerts",
+      "method": "GET",
+      "endpoint": "/alerts",
+      "output_path": "data.alerts",
+      "inputs": []
+    },
+    {
+      "key": "list_targets",
+      "name": "List scrape targets",
+      "method": "GET",
+      "endpoint": "/targets",
+      "query": { "state": "{{ inputs.state }}" },
+      "output_path": "data",
+      "inputs": [
+        { "key": "state", "label": "State", "type": "select", "options": [
+          { "value": "active", "label": "Active" }, { "value": "dropped", "label": "Dropped" }, { "value": "any", "label": "Any" }
+        ] }
+      ]
+    },
+    {
+      "key": "label_values",
+      "name": "List label values",
+      "method": "GET",
+      "endpoint": "/label/{{ inputs.label }}/values",
+      "output_path": "data",
+      "inputs": [{ "key": "label", "label": "Label name", "type": "string", "required": true, "placeholder": "job" }]
+    }
+  ]
+}

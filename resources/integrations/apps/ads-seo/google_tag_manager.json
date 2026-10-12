@@ -1,0 +1,99 @@
+{
+  "key": "google_tag_manager",
+  "name": "Google Tag Manager",
+  "category": "Ads & SEO",
+  "description": "Browse accounts, containers and tags, then version and publish workspaces.",
+  "brand": "googletagmanager",
+  "website": "https://tagmanager.google.com",
+  "docs_url": "https://developers.google.com/tag-platform/tag-manager/api/v2",
+  "base_url": "https://tagmanager.googleapis.com/tagmanager/v2",
+  "auth": [
+    {
+      "type": "oauth2",
+      "authorize_url": "https://accounts.google.com/o/oauth2/v2/auth",
+      "token_url": "https://oauth2.googleapis.com/token",
+      "scopes": [
+        "https://www.googleapis.com/auth/tagmanager.edit.containers",
+        "https://www.googleapis.com/auth/tagmanager.edit.containerversions",
+        "https://www.googleapis.com/auth/tagmanager.publish"
+      ],
+      "authorize_params": { "access_type": "offline", "prompt": "consent" }
+    },
+    {
+      "type": "google_service_account",
+      "scopes": [
+        "https://www.googleapis.com/auth/tagmanager.edit.containers",
+        "https://www.googleapis.com/auth/tagmanager.edit.containerversions",
+        "https://www.googleapis.com/auth/tagmanager.publish"
+      ],
+      "fields": [{ "key": "service_account_json", "label": "Service Account JSON key", "type": "code", "required": true,
+        "help": "Add the service account email as a user of your Tag Manager account or container (Publish permission to publish)." }]
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_accounts",
+      "name": "List accounts",
+      "method": "GET",
+      "endpoint": "/accounts",
+      "output_path": "account",
+      "inputs": []
+    },
+    {
+      "key": "list_containers",
+      "name": "List containers",
+      "method": "GET",
+      "endpoint": "/accounts/{{ inputs.account_id }}/containers",
+      "output_path": "container",
+      "inputs": [{ "key": "account_id", "label": "Account ID", "type": "string", "required": true }]
+    },
+    {
+      "key": "list_workspaces",
+      "name": "List workspaces",
+      "method": "GET",
+      "endpoint": "/accounts/{{ inputs.account_id }}/containers/{{ inputs.container_id }}/workspaces",
+      "output_path": "workspace",
+      "inputs": [
+        { "key": "account_id", "label": "Account ID", "type": "string", "required": true },
+        { "key": "container_id", "label": "Container ID (numeric)", "type": "string", "required": true }
+      ]
+    },
+    {
+      "key": "list_tags",
+      "name": "List tags",
+      "method": "GET",
+      "endpoint": "/accounts/{{ inputs.account_id }}/containers/{{ inputs.container_id }}/workspaces/{{ inputs.workspace_id }}/tags",
+      "output_path": "tag",
+      "inputs": [
+        { "key": "account_id", "label": "Account ID", "type": "string", "required": true },
+        { "key": "container_id", "label": "Container ID (numeric)", "type": "string", "required": true },
+        { "key": "workspace_id", "label": "Workspace ID", "type": "string", "required": true }
+      ]
+    },
+    {
+      "key": "create_version",
+      "name": "Create version from workspace",
+      "method": "POST",
+      "endpoint": "/accounts/{{ inputs.account_id }}/containers/{{ inputs.container_id }}/workspaces/{{ inputs.workspace_id }}:create_version",
+      "body": { "name": "{{ inputs.name }}", "notes": "{{ inputs.notes }}" },
+      "inputs": [
+        { "key": "account_id", "label": "Account ID", "type": "string", "required": true },
+        { "key": "container_id", "label": "Container ID (numeric)", "type": "string", "required": true },
+        { "key": "workspace_id", "label": "Workspace ID", "type": "string", "required": true },
+        { "key": "name", "label": "Version name", "type": "string" },
+        { "key": "notes", "label": "Notes", "type": "text" }
+      ]
+    },
+    {
+      "key": "publish_version",
+      "name": "Publish version",
+      "method": "POST",
+      "endpoint": "/accounts/{{ inputs.account_id }}/containers/{{ inputs.container_id }}/versions/{{ inputs.version_id }}:publish",
+      "inputs": [
+        { "key": "account_id", "label": "Account ID", "type": "string", "required": true },
+        { "key": "container_id", "label": "Container ID (numeric)", "type": "string", "required": true },
+        { "key": "version_id", "label": "Container version ID", "type": "string", "required": true }
+      ]
+    }
+  ]
+}

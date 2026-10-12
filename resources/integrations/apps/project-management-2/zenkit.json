@@ -1,0 +1,164 @@
+{
+  "key": "zenkit",
+  "name": "Zenkit",
+  "category": "Project Management",
+  "description": "Create, update and list entries in Zenkit lists.",
+  "brand": "zenkit",
+  "website": "https://zenkit.com",
+  "docs_url": "https://base.zenkit.com/docs/api/overview/introduction",
+  "base_url": "https://zenkit.com/api/v1",
+  "auth": [
+    {
+      "type": "api_key",
+      "in": "header",
+      "name": "Zenkit-API-Key",
+      "fields": [
+        {
+          "key": "api_key",
+          "label": "API key",
+          "type": "password",
+          "required": true,
+          "help": "Account settings > Developer > API keys."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_workspaces",
+      "name": "List workspaces and lists",
+      "method": "GET",
+      "endpoint": "/users/me/workspacesWithLists",
+      "inputs": []
+    },
+    {
+      "key": "get_list_fields",
+      "name": "Get list fields",
+      "method": "GET",
+      "endpoint": "/lists/{{ inputs.list_id }}/elements",
+      "description": "Returns the list's fields (elements) and their UUIDs, needed to write entries.",
+      "inputs": [
+        {
+          "key": "list_id",
+          "label": "List ID or short ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_entries",
+      "name": "List entries",
+      "method": "POST",
+      "endpoint": "/lists/{{ inputs.list_id }}/entries/filter/list",
+      "body": {
+        "limit": "{{ inputs.limit }}",
+        "skip": "{{ inputs.skip }}"
+      },
+      "inputs": [
+        {
+          "key": "list_id",
+          "label": "List ID or short ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "limit",
+          "label": "Max results",
+          "type": "number",
+          "default": 50
+        },
+        {
+          "key": "skip",
+          "label": "Skip",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "get_entry",
+      "name": "Get entry",
+      "method": "GET",
+      "endpoint": "/lists/{{ inputs.list_id }}/entries/{{ inputs.entry_id }}",
+      "inputs": [
+        {
+          "key": "list_id",
+          "label": "List ID or short ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "entry_id",
+          "label": "Entry ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "create_entry",
+      "name": "Create entry",
+      "method": "POST",
+      "endpoint": "/lists/{{ inputs.list_id }}/entries",
+      "body": "{{ inputs.fields }}",
+      "inputs": [
+        {
+          "key": "list_id",
+          "label": "List ID or short ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "fields",
+          "label": "Field values",
+          "type": "json",
+          "required": true,
+          "placeholder": "{\"<element-uuid>_text\": \"My task\"}",
+          "help": "Keys are element UUIDs plus a type suffix; see Get list fields."
+        }
+      ]
+    },
+    {
+      "key": "update_entry",
+      "name": "Update entry",
+      "method": "PUT",
+      "endpoint": "/lists/{{ inputs.list_id }}/entries/{{ inputs.entry_id }}",
+      "body": "{{ inputs.fields }}",
+      "inputs": [
+        {
+          "key": "list_id",
+          "label": "List ID or short ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "entry_id",
+          "label": "Entry ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "fields",
+          "label": "Field values",
+          "type": "json",
+          "required": true,
+          "placeholder": "{\"<element-uuid>_text\": \"Renamed\"}"
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

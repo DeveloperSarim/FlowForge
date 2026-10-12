@@ -1,0 +1,71 @@
+{
+  "key": "pushbullet",
+  "name": "Pushbullet",
+  "category": "Communication",
+  "description": "Push notes and links to your devices, and list recent pushes.",
+  "brand": "pushbullet",
+  "website": "https://www.pushbullet.com",
+  "docs_url": "https://docs.pushbullet.com",
+  "base_url": "https://api.pushbullet.com/v2",
+  "auth": [
+    { "type": "api_key", "in": "header", "name": "Access-Token", "fields": [{ "key": "api_key", "label": "Access token", "type": "password", "required": true, "help": "Settings > Account > Create Access Token." }] }
+  ],
+  "actions": [
+    {
+      "key": "create_push",
+      "name": "Send push",
+      "method": "POST",
+      "endpoint": "/pushes",
+      "body": {
+        "type": "{{ inputs.type }}",
+        "title": "{{ inputs.title }}",
+        "body": "{{ inputs.body }}",
+        "url": "{{ inputs.url }}",
+        "device_iden": "{{ inputs.device_iden }}",
+        "email": "{{ inputs.email }}",
+        "channel_tag": "{{ inputs.channel_tag }}"
+      },
+      "inputs": [
+        { "key": "type", "label": "Type", "type": "select", "required": true, "default": "note", "options": [
+          { "value": "note", "label": "Note" }, { "value": "link", "label": "Link" }
+        ] },
+        { "key": "title", "label": "Title", "type": "string" },
+        { "key": "body", "label": "Body", "type": "text" },
+        { "key": "url", "label": "URL (link pushes)", "type": "string" },
+        { "key": "device_iden", "label": "Device ID", "type": "string", "help": "Leave all targets empty to push to all your devices." },
+        { "key": "email", "label": "Or recipient email", "type": "string" },
+        { "key": "channel_tag", "label": "Or channel tag", "type": "string" }
+      ]
+    },
+    {
+      "key": "list_pushes",
+      "name": "List pushes",
+      "method": "GET",
+      "endpoint": "/pushes",
+      "query": { "active": "true", "limit": "{{ inputs.limit }}" },
+      "output_path": "pushes",
+      "inputs": [{ "key": "limit", "label": "Max results", "type": "number", "default": 20 }]
+    },
+    {
+      "key": "list_devices",
+      "name": "List devices",
+      "method": "GET",
+      "endpoint": "/devices",
+      "output_path": "devices",
+      "inputs": []
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_push",
+      "name": "New push",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/pushes",
+      "query": { "active": "true", "limit": 20 },
+      "items_path": "pushes",
+      "id_field": "iden",
+      "inputs": [{ "key": "poll_interval", "label": "Check every (minutes)", "type": "number", "default": 5 }]
+    }
+  ]
+}

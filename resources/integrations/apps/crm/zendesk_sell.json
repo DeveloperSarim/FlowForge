@@ -1,0 +1,233 @@
+{
+  "key": "zendesk_sell",
+  "name": "Zendesk Sell",
+  "category": "CRM & Sales",
+  "description": "Create leads, contacts and deals in Zendesk Sell.",
+  "brand": "zendesk",
+  "website": "https://www.zendesk.com/sell/",
+  "docs_url": "https://developer.zendesk.com/api-reference/sales-crm/introduction/",
+  "base_url": "https://api.getbase.com/v2",
+  "auth": [
+    {
+      "type": "bearer",
+      "fields": [
+        {
+          "key": "token",
+          "label": "Personal access token",
+          "type": "password",
+          "required": true,
+          "help": "Settings > Integrations > OAuth > Access tokens."
+        }
+      ]
+    },
+    {
+      "type": "oauth2",
+      "authorize_url": "https://api.getbase.com/oauth2/authorize",
+      "token_url": "https://api.getbase.com/oauth2/token",
+      "scopes": [
+        "read",
+        "write",
+        "profile"
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "create_lead",
+      "name": "Create lead",
+      "method": "POST",
+      "endpoint": "/leads",
+      "body": {
+        "data": {
+          "first_name": "{{ inputs.first_name }}",
+          "last_name": "{{ inputs.last_name }}",
+          "email": "{{ inputs.email }}",
+          "phone": "{{ inputs.phone }}",
+          "organization_name": "{{ inputs.organization_name }}",
+          "title": "{{ inputs.title }}"
+        }
+      },
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "first_name",
+          "label": "First name",
+          "type": "string"
+        },
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string"
+        },
+        {
+          "key": "phone",
+          "label": "Phone",
+          "type": "string"
+        },
+        {
+          "key": "organization_name",
+          "label": "Company",
+          "type": "string"
+        },
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "create_contact",
+      "name": "Create contact",
+      "method": "POST",
+      "endpoint": "/contacts",
+      "body": {
+        "data": {
+          "is_organization": false,
+          "first_name": "{{ inputs.first_name }}",
+          "last_name": "{{ inputs.last_name }}",
+          "email": "{{ inputs.email }}",
+          "phone": "{{ inputs.phone }}",
+          "title": "{{ inputs.title }}"
+        }
+      },
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "first_name",
+          "label": "First name",
+          "type": "string"
+        },
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string"
+        },
+        {
+          "key": "phone",
+          "label": "Phone",
+          "type": "string"
+        },
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "get_contact",
+      "name": "Get contact",
+      "method": "GET",
+      "endpoint": "/contacts/{{ inputs.contact_id }}",
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "contact_id",
+          "label": "Contact ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "find_leads",
+      "name": "Find leads by email",
+      "method": "GET",
+      "endpoint": "/leads",
+      "query": {
+        "email": "{{ inputs.email }}"
+      },
+      "output_path": "items",
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "create_deal",
+      "name": "Create deal",
+      "method": "POST",
+      "endpoint": "/deals",
+      "body": {
+        "data": {
+          "name": "{{ inputs.name }}",
+          "contact_id": "{{ inputs.contact_id }}",
+          "value": "{{ inputs.value }}",
+          "currency": "{{ inputs.currency }}",
+          "stage_id": "{{ inputs.stage_id }}"
+        }
+      },
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "contact_id",
+          "label": "Contact ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "value",
+          "label": "Value",
+          "type": "number"
+        },
+        {
+          "key": "currency",
+          "label": "Currency",
+          "type": "string",
+          "placeholder": "USD"
+        },
+        {
+          "key": "stage_id",
+          "label": "Stage ID",
+          "type": "number"
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_lead",
+      "name": "New lead",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/leads",
+      "query": {
+        "sort_by": "created_at:desc",
+        "per_page": 50
+      },
+      "items_path": "items",
+      "id_field": "data.id",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

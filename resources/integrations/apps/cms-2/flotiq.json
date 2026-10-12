@@ -1,0 +1,197 @@
+{
+  "key": "flotiq",
+  "name": "Flotiq",
+  "category": "CMS & Websites",
+  "description": "Create, update, list and delete Flotiq content objects.",
+  "brand": "flotiq",
+  "website": "https://flotiq.com",
+  "docs_url": "https://flotiq.com/docs/API/",
+  "base_url": "https://api.flotiq.com/api/v1",
+  "auth": [
+    {
+      "type": "api_key",
+      "in": "header",
+      "name": "X-AUTH-TOKEN",
+      "fields": [
+        {
+          "key": "api_key",
+          "label": "API key",
+          "type": "password",
+          "required": true,
+          "help": "Account > API keys (read-write key for writes)."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_objects",
+      "name": "List objects",
+      "method": "GET",
+      "endpoint": "/content/{{ inputs.content_type }}",
+      "query": {
+        "page": "{{ inputs.page }}",
+        "limit": "{{ inputs.limit }}",
+        "order_by": "{{ inputs.order_by }}",
+        "order_direction": "{{ inputs.order_direction }}",
+        "filters": "{{ inputs.filters }}"
+      },
+      "inputs": [
+        {
+          "key": "content_type",
+          "label": "Content type",
+          "type": "string",
+          "required": true,
+          "placeholder": "blogpost"
+        },
+        {
+          "key": "page",
+          "label": "Page",
+          "type": "number"
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number"
+        },
+        {
+          "key": "order_by",
+          "label": "Order by",
+          "type": "string",
+          "placeholder": "internal.createdAt"
+        },
+        {
+          "key": "order_direction",
+          "label": "Direction",
+          "type": "select",
+          "options": [
+            {
+              "value": "asc",
+              "label": "Ascending"
+            },
+            {
+              "value": "desc",
+              "label": "Descending"
+            }
+          ]
+        },
+        {
+          "key": "filters",
+          "label": "Filters (JSON)",
+          "type": "string",
+          "placeholder": "{\"title\":{\"type\":\"contains\",\"filter\":\"news\"}}"
+        }
+      ]
+    },
+    {
+      "key": "get_object",
+      "name": "Get object",
+      "method": "GET",
+      "endpoint": "/content/{{ inputs.content_type }}/{{ inputs.id }}",
+      "inputs": [
+        {
+          "key": "content_type",
+          "label": "Content type",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "id",
+          "label": "Object ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "create_object",
+      "name": "Create object",
+      "method": "POST",
+      "endpoint": "/content/{{ inputs.content_type }}",
+      "body": "{{ inputs.data }}",
+      "inputs": [
+        {
+          "key": "content_type",
+          "label": "Content type",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "data",
+          "label": "Fields",
+          "type": "json",
+          "required": true,
+          "placeholder": "{\"title\": \"Hello\", \"slug\": \"hello\"}"
+        }
+      ]
+    },
+    {
+      "key": "update_object",
+      "name": "Update object",
+      "method": "PUT",
+      "endpoint": "/content/{{ inputs.content_type }}/{{ inputs.id }}",
+      "body": "{{ inputs.data }}",
+      "inputs": [
+        {
+          "key": "content_type",
+          "label": "Content type",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "id",
+          "label": "Object ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "data",
+          "label": "All fields",
+          "type": "json",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "delete_object",
+      "name": "Delete object",
+      "method": "DELETE",
+      "endpoint": "/content/{{ inputs.content_type }}/{{ inputs.id }}",
+      "inputs": [
+        {
+          "key": "content_type",
+          "label": "Content type",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "id",
+          "label": "Object ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_content_types",
+      "name": "List content types",
+      "method": "GET",
+      "endpoint": "/internal/contenttype",
+      "inputs": []
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

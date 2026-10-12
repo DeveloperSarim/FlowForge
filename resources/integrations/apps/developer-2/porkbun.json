@@ -1,0 +1,90 @@
+{
+  "key": "porkbun",
+  "name": "Porkbun",
+  "category": "Developer Tools",
+  "description": "Create, edit, list and delete DNS records and list your domains.",
+  "brand": "porkbun",
+  "website": "https://porkbun.com",
+  "docs_url": "https://porkbun.com/api/json/v3/documentation",
+  "base_url": "https://api.porkbun.com/api/json/v3",
+  "auth": { "type": "api_key", "fields": [
+    { "key": "api_key", "label": "API key (pk1_…)", "type": "password", "required": true, "help": "Account → API Access. Also enable API access on each domain." },
+    { "key": "secret_api_key", "label": "Secret API key (sk1_…)", "type": "password", "required": true }
+  ] },
+  "actions": [
+    {
+      "key": "list_records",
+      "name": "List DNS records",
+      "method": "POST",
+      "endpoint": "/dns/retrieve/{{ inputs.domain }}",
+      "body": { "apikey": "{{ credentials.api_key }}", "secretapikey": "{{ credentials.secret_api_key }}" },
+      "output_path": "records",
+      "inputs": [{ "key": "domain", "label": "Domain", "type": "string", "required": true, "placeholder": "example.com" }]
+    },
+    {
+      "key": "create_record",
+      "name": "Create DNS record",
+      "method": "POST",
+      "endpoint": "/dns/create/{{ inputs.domain }}",
+      "body": { "apikey": "{{ credentials.api_key }}", "secretapikey": "{{ credentials.secret_api_key }}", "name": "{{ inputs.name }}", "type": "{{ inputs.type }}", "content": "{{ inputs.content }}", "ttl": "{{ inputs.ttl }}", "prio": "{{ inputs.prio }}" },
+      "inputs": [
+        { "key": "domain", "label": "Domain", "type": "string", "required": true },
+        { "key": "type", "label": "Type", "type": "select", "required": true, "default": "A", "options": [
+          { "value": "A", "label": "A" }, { "value": "AAAA", "label": "AAAA" }, { "value": "CNAME", "label": "CNAME" }, { "value": "ALIAS", "label": "ALIAS" },
+          { "value": "MX", "label": "MX" }, { "value": "TXT", "label": "TXT" }, { "value": "NS", "label": "NS" }, { "value": "SRV", "label": "SRV" }, { "value": "CAA", "label": "CAA" }
+        ] },
+        { "key": "name", "label": "Subdomain", "type": "string", "help": "Leave empty for the root domain; * for a wildcard." },
+        { "key": "content", "label": "Value", "type": "string", "required": true },
+        { "key": "ttl", "label": "TTL (seconds)", "type": "number", "help": "Minimum 600." },
+        { "key": "prio", "label": "Priority", "type": "number" }
+      ]
+    },
+    {
+      "key": "edit_record",
+      "name": "Edit DNS record",
+      "method": "POST",
+      "endpoint": "/dns/edit/{{ inputs.domain }}/{{ inputs.record_id }}",
+      "body": { "apikey": "{{ credentials.api_key }}", "secretapikey": "{{ credentials.secret_api_key }}", "name": "{{ inputs.name }}", "type": "{{ inputs.type }}", "content": "{{ inputs.content }}", "ttl": "{{ inputs.ttl }}", "prio": "{{ inputs.prio }}" },
+      "inputs": [
+        { "key": "domain", "label": "Domain", "type": "string", "required": true },
+        { "key": "record_id", "label": "Record ID", "type": "string", "required": true },
+        { "key": "type", "label": "Type", "type": "select", "required": true, "default": "A", "options": [
+          { "value": "A", "label": "A" }, { "value": "AAAA", "label": "AAAA" }, { "value": "CNAME", "label": "CNAME" }, { "value": "ALIAS", "label": "ALIAS" },
+          { "value": "MX", "label": "MX" }, { "value": "TXT", "label": "TXT" }, { "value": "NS", "label": "NS" }, { "value": "SRV", "label": "SRV" }, { "value": "CAA", "label": "CAA" }
+        ] },
+        { "key": "name", "label": "Subdomain", "type": "string" },
+        { "key": "content", "label": "Value", "type": "string", "required": true },
+        { "key": "ttl", "label": "TTL (seconds)", "type": "number" },
+        { "key": "prio", "label": "Priority", "type": "number" }
+      ]
+    },
+    {
+      "key": "delete_record",
+      "name": "Delete DNS record",
+      "method": "POST",
+      "endpoint": "/dns/delete/{{ inputs.domain }}/{{ inputs.record_id }}",
+      "body": { "apikey": "{{ credentials.api_key }}", "secretapikey": "{{ credentials.secret_api_key }}" },
+      "inputs": [
+        { "key": "domain", "label": "Domain", "type": "string", "required": true },
+        { "key": "record_id", "label": "Record ID", "type": "string", "required": true }
+      ]
+    },
+    {
+      "key": "list_domains",
+      "name": "List domains",
+      "method": "POST",
+      "endpoint": "/domain/listAll",
+      "body": { "apikey": "{{ credentials.api_key }}", "secretapikey": "{{ credentials.secret_api_key }}", "start": "{{ inputs.start }}" },
+      "output_path": "domains",
+      "inputs": [{ "key": "start", "label": "Start index", "type": "number", "help": "Returns up to 1000 domains from this offset." }]
+    },
+    {
+      "key": "ping",
+      "name": "Test credentials (ping)",
+      "method": "POST",
+      "endpoint": "/ping",
+      "body": { "apikey": "{{ credentials.api_key }}", "secretapikey": "{{ credentials.secret_api_key }}" },
+      "inputs": []
+    }
+  ]
+}

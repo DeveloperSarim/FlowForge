@@ -1,0 +1,74 @@
+{
+  "key": "misskey",
+  "name": "Misskey",
+  "category": "Social Media",
+  "description": "Post notes, react and search on any Misskey instance.",
+  "brand": "misskey",
+  "website": "https://misskey-hub.net",
+  "docs_url": "https://misskey-hub.net/en/docs/for-developers/api/",
+  "base_url": "{{ credentials.instance_url }}/api",
+  "auth": { "type": "bearer", "fields": [
+    { "key": "instance_url", "label": "Instance URL", "type": "string", "required": true, "placeholder": "https://misskey.io" },
+    { "key": "token", "label": "Access token", "type": "password", "required": true, "help": "Settings > API > Generate access token." }
+  ] },
+  "actions": [
+    {
+      "key": "create_note",
+      "name": "Create note",
+      "method": "POST",
+      "endpoint": "/notes/create",
+      "output_path": "createdNote",
+      "body": { "text": "{{ inputs.text }}", "visibility": "{{ inputs.visibility }}", "cw": "{{ inputs.cw }}", "localOnly": "{{ inputs.local_only }}", "replyId": "{{ inputs.reply_id }}" },
+      "inputs": [
+        { "key": "text", "label": "Text", "type": "text", "required": true },
+        { "key": "visibility", "label": "Visibility", "type": "select", "default": "public", "options": [
+          { "value": "public", "label": "Public" }, { "value": "home", "label": "Home" }, { "value": "followers", "label": "Followers" }
+        ] },
+        { "key": "cw", "label": "Content warning", "type": "string" },
+        { "key": "local_only", "label": "Local only (no federation)", "type": "boolean" },
+        { "key": "reply_id", "label": "Reply to note ID", "type": "string" }
+      ]
+    },
+    {
+      "key": "show_note",
+      "name": "Get note",
+      "method": "POST",
+      "endpoint": "/notes/show",
+      "body": { "noteId": "{{ inputs.note_id }}" },
+      "inputs": [{ "key": "note_id", "label": "Note ID", "type": "string", "required": true }]
+    },
+    {
+      "key": "add_reaction",
+      "name": "Add reaction",
+      "method": "POST",
+      "endpoint": "/notes/reactions/create",
+      "body": { "noteId": "{{ inputs.note_id }}", "reaction": "{{ inputs.reaction }}" },
+      "inputs": [
+        { "key": "note_id", "label": "Note ID", "type": "string", "required": true },
+        { "key": "reaction", "label": "Reaction", "type": "string", "required": true, "placeholder": "👍 or :custom_emoji:" }
+      ]
+    },
+    {
+      "key": "search_notes",
+      "name": "Search notes",
+      "method": "POST",
+      "endpoint": "/notes/search",
+      "body": { "query": "{{ inputs.query }}", "limit": "{{ inputs.limit }}" },
+      "inputs": [
+        { "key": "query", "label": "Query", "type": "string", "required": true },
+        { "key": "limit", "label": "Limit (max 100)", "type": "number", "default": 10 }
+      ]
+    },
+    {
+      "key": "user_notes",
+      "name": "Get user's notes",
+      "method": "POST",
+      "endpoint": "/users/notes",
+      "body": { "userId": "{{ inputs.user_id }}", "limit": "{{ inputs.limit }}" },
+      "inputs": [
+        { "key": "user_id", "label": "User ID", "type": "string", "required": true },
+        { "key": "limit", "label": "Limit (max 100)", "type": "number", "default": 10 }
+      ]
+    }
+  ]
+}

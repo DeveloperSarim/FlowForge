@@ -1,0 +1,280 @@
+{
+  "key": "freeagent",
+  "name": "FreeAgent",
+  "category": "Payments & Finance",
+  "description": "Create contacts and invoices, list invoices and mark them as sent in FreeAgent.",
+  "brand": "freeagent",
+  "website": "https://www.freeagent.com",
+  "docs_url": "https://dev.freeagent.com/docs",
+  "base_url": "https://api.freeagent.com/v2",
+  "auth": [
+    {
+      "type": "oauth2",
+      "authorize_url": "https://api.freeagent.com/v2/approve_app",
+      "token_url": "https://api.freeagent.com/v2/token_endpoint",
+      "client_auth": "basic"
+    }
+  ],
+  "actions": [
+    {
+      "key": "get_company",
+      "name": "Get company",
+      "method": "GET",
+      "endpoint": "/company",
+      "output_path": "company",
+      "inputs": []
+    },
+    {
+      "key": "list_contacts",
+      "name": "List contacts",
+      "method": "GET",
+      "endpoint": "/contacts",
+      "query": {
+        "view": "{{ inputs.view }}",
+        "sort": "-created_at",
+        "per_page": "{{ inputs.per_page }}"
+      },
+      "output_path": "contacts",
+      "inputs": [
+        {
+          "key": "view",
+          "label": "View",
+          "type": "select",
+          "options": [
+            {
+              "value": "active",
+              "label": "Active"
+            },
+            {
+              "value": "all",
+              "label": "All"
+            },
+            {
+              "value": "clients",
+              "label": "Clients"
+            },
+            {
+              "value": "suppliers",
+              "label": "Suppliers"
+            },
+            {
+              "value": "hidden",
+              "label": "Hidden"
+            }
+          ]
+        },
+        {
+          "key": "per_page",
+          "label": "Per page",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    },
+    {
+      "key": "create_contact",
+      "name": "Create contact",
+      "method": "POST",
+      "endpoint": "/contacts",
+      "body": {
+        "contact": {
+          "organisation_name": "{{ inputs.organisation_name }}",
+          "first_name": "{{ inputs.first_name }}",
+          "last_name": "{{ inputs.last_name }}",
+          "email": "{{ inputs.email }}",
+          "phone_number": "{{ inputs.phone }}",
+          "address1": "{{ inputs.address1 }}",
+          "town": "{{ inputs.town }}",
+          "postcode": "{{ inputs.postcode }}",
+          "country": "{{ inputs.country }}"
+        }
+      },
+      "output_path": "contact",
+      "inputs": [
+        {
+          "key": "organisation_name",
+          "label": "Organisation name",
+          "type": "string",
+          "help": "Give an organisation or a first + last name."
+        },
+        {
+          "key": "first_name",
+          "label": "First name",
+          "type": "string"
+        },
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string"
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string"
+        },
+        {
+          "key": "phone",
+          "label": "Phone",
+          "type": "string"
+        },
+        {
+          "key": "address1",
+          "label": "Address",
+          "type": "string"
+        },
+        {
+          "key": "town",
+          "label": "Town",
+          "type": "string"
+        },
+        {
+          "key": "postcode",
+          "label": "Postcode",
+          "type": "string"
+        },
+        {
+          "key": "country",
+          "label": "Country",
+          "type": "string",
+          "placeholder": "United Kingdom"
+        }
+      ]
+    },
+    {
+      "key": "list_invoices",
+      "name": "List invoices",
+      "method": "GET",
+      "endpoint": "/invoices",
+      "query": {
+        "view": "{{ inputs.view }}",
+        "contact": "{{ inputs.contact_url }}",
+        "sort": "-created_at",
+        "per_page": "{{ inputs.per_page }}"
+      },
+      "output_path": "invoices",
+      "inputs": [
+        {
+          "key": "view",
+          "label": "View",
+          "type": "select",
+          "options": [
+            {
+              "value": "recent_open_or_overdue",
+              "label": "Recent open or overdue"
+            },
+            {
+              "value": "open",
+              "label": "Open"
+            },
+            {
+              "value": "overdue",
+              "label": "Overdue"
+            },
+            {
+              "value": "draft",
+              "label": "Draft"
+            },
+            {
+              "value": "paid",
+              "label": "Paid"
+            },
+            {
+              "value": "all",
+              "label": "All"
+            }
+          ]
+        },
+        {
+          "key": "contact_url",
+          "label": "Contact URL",
+          "type": "string",
+          "placeholder": "https://api.freeagent.com/v2/contacts/123"
+        },
+        {
+          "key": "per_page",
+          "label": "Per page",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    },
+    {
+      "key": "create_invoice",
+      "name": "Create invoice",
+      "method": "POST",
+      "endpoint": "/invoices",
+      "body": {
+        "invoice": {
+          "contact": "{{ inputs.contact_url }}",
+          "dated_on": "{{ inputs.dated_on }}",
+          "payment_terms_in_days": "{{ inputs.payment_terms }}",
+          "currency": "{{ inputs.currency }}",
+          "reference": "{{ inputs.reference }}",
+          "comments": "{{ inputs.comments }}",
+          "invoice_items": "{{ inputs.items }}"
+        }
+      },
+      "output_path": "invoice",
+      "inputs": [
+        {
+          "key": "contact_url",
+          "label": "Contact URL",
+          "type": "string",
+          "required": true,
+          "placeholder": "https://api.freeagent.com/v2/contacts/123"
+        },
+        {
+          "key": "dated_on",
+          "label": "Date",
+          "type": "string",
+          "required": true,
+          "placeholder": "2026-01-31"
+        },
+        {
+          "key": "payment_terms",
+          "label": "Payment terms (days)",
+          "type": "number",
+          "required": true,
+          "default": 30
+        },
+        {
+          "key": "currency",
+          "label": "Currency",
+          "type": "string",
+          "placeholder": "GBP"
+        },
+        {
+          "key": "reference",
+          "label": "Reference",
+          "type": "string"
+        },
+        {
+          "key": "comments",
+          "label": "Comments",
+          "type": "text"
+        },
+        {
+          "key": "items",
+          "label": "Items",
+          "type": "json",
+          "required": true,
+          "placeholder": "[{\"item_type\": \"Hours\", \"quantity\": 8, \"price\": 75, \"description\": \"Consulting\"}]"
+        }
+      ]
+    },
+    {
+      "key": "mark_invoice_sent",
+      "name": "Mark invoice as sent",
+      "method": "PUT",
+      "endpoint": "/invoices/{{ inputs.invoice_id }}/transitions/mark_as_sent",
+      "inputs": [
+        {
+          "key": "invoice_id",
+          "label": "Invoice ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,122 @@
+{
+  "key": "google_translate",
+  "name": "Google Cloud Translation",
+  "category": "AI",
+  "description": "Translate text and detect languages with Google.",
+  "brand": "googletranslate",
+  "website": "https://cloud.google.com/translate",
+  "docs_url": "https://cloud.google.com/translate/docs/reference/rest/v2/translate",
+  "base_url": "https://translation.googleapis.com/language/translate",
+  "auth": [
+    {
+      "type": "api_key",
+      "in": "query",
+      "name": "key",
+      "fields": [
+        {
+          "key": "api_key",
+          "label": "API key",
+          "type": "password",
+          "required": true
+        }
+      ]
+    },
+    {
+      "type": "google_service_account",
+      "scopes": [
+        "https://www.googleapis.com/auth/cloud-translation"
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "translate",
+      "name": "Translate text",
+      "method": "POST",
+      "endpoint": "/v2",
+      "body": {
+        "q": "{{ inputs.text }}",
+        "target": "{{ inputs.target }}",
+        "source": "{{ inputs.source }}",
+        "format": "{{ inputs.format }}"
+      },
+      "output_fields": {
+        "text": "data.translations.0.translatedText"
+      },
+      "inputs": [
+        {
+          "key": "text",
+          "label": "Text",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "target",
+          "label": "Target language",
+          "type": "string",
+          "required": true,
+          "placeholder": "es"
+        },
+        {
+          "key": "source",
+          "label": "Source language",
+          "type": "string",
+          "placeholder": "auto-detect"
+        },
+        {
+          "key": "format",
+          "label": "Format",
+          "type": "select",
+          "options": [
+            {
+              "value": "text",
+              "label": "Plain text"
+            },
+            {
+              "value": "html",
+              "label": "HTML"
+            }
+          ],
+          "default": "text"
+        }
+      ]
+    },
+    {
+      "key": "detect_language",
+      "name": "Detect language",
+      "method": "POST",
+      "endpoint": "/v2/detect",
+      "body": {
+        "q": "{{ inputs.text }}"
+      },
+      "output_fields": {
+        "language": "data.detections.0.0.language"
+      },
+      "inputs": [
+        {
+          "key": "text",
+          "label": "Text",
+          "type": "text",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_languages",
+      "name": "List languages",
+      "method": "GET",
+      "endpoint": "/v2/languages",
+      "query": {
+        "target": "{{ inputs.target }}"
+      },
+      "inputs": [
+        {
+          "key": "target",
+          "label": "Show names in",
+          "type": "string",
+          "placeholder": "en"
+        }
+      ]
+    }
+  ]
+}

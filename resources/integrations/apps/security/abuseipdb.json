@@ -1,0 +1,67 @@
+{
+  "key": "abuseipdb",
+  "name": "AbuseIPDB",
+  "category": "Security & IT",
+  "description": "Check and report abusive IP addresses and fetch the blocklist.",
+  "brand": "abuseipdb",
+  "website": "https://www.abuseipdb.com",
+  "docs_url": "https://docs.abuseipdb.com/",
+  "base_url": "https://api.abuseipdb.com/api/v2",
+  "auth": { "type": "api_key", "in": "header", "name": "Key", "fields": [
+    { "key": "api_key", "label": "API key", "type": "password", "required": true, "help": "Account → API → Create key." }
+  ] },
+  "actions": [
+    {
+      "key": "check_ip",
+      "name": "Check IP",
+      "method": "GET",
+      "endpoint": "/check",
+      "query": { "ipAddress": "{{ inputs.ip }}", "maxAgeInDays": "{{ inputs.max_age }}", "verbose": "{{ inputs.verbose }}" },
+      "output_path": "data",
+      "inputs": [
+        { "key": "ip", "label": "IP address", "type": "string", "required": true },
+        { "key": "max_age", "label": "Max report age (days)", "type": "number", "default": 90 },
+        { "key": "verbose", "label": "Include individual reports", "type": "boolean" }
+      ]
+    },
+    {
+      "key": "report_ip",
+      "name": "Report IP",
+      "method": "POST",
+      "endpoint": "/report",
+      "body_format": "form",
+      "body": { "ip": "{{ inputs.ip }}", "categories": "{{ inputs.categories }}", "comment": "{{ inputs.comment }}", "timestamp": "{{ inputs.timestamp }}" },
+      "output_path": "data",
+      "inputs": [
+        { "key": "ip", "label": "IP address", "type": "string", "required": true },
+        { "key": "categories", "label": "Category IDs", "type": "string", "required": true, "placeholder": "18,22", "help": "Comma-separated, see abuseipdb.com/categories (e.g. 18 brute force, 22 SSH)." },
+        { "key": "comment", "label": "Comment", "type": "text", "help": "Strip personal data, e.g. usernames." },
+        { "key": "timestamp", "label": "Attack time (ISO 8601)", "type": "string" }
+      ]
+    },
+    {
+      "key": "check_block",
+      "name": "Check network block",
+      "method": "GET",
+      "endpoint": "/check-block",
+      "query": { "network": "{{ inputs.network }}", "maxAgeInDays": "{{ inputs.max_age }}" },
+      "output_path": "data",
+      "inputs": [
+        { "key": "network", "label": "CIDR network", "type": "string", "required": true, "placeholder": "203.0.113.0/24" },
+        { "key": "max_age", "label": "Max report age (days)", "type": "number", "default": 30 }
+      ]
+    },
+    {
+      "key": "get_blacklist",
+      "name": "Get blocklist",
+      "method": "GET",
+      "endpoint": "/blacklist",
+      "query": { "confidenceMinimum": "{{ inputs.confidence_minimum }}", "limit": "{{ inputs.limit }}" },
+      "output_path": "data",
+      "inputs": [
+        { "key": "confidence_minimum", "label": "Minimum confidence (25-100)", "type": "number", "default": 90 },
+        { "key": "limit", "label": "Limit", "type": "number", "default": 1000 }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,52 @@
+{
+  "key": "failure-alerts-telegram",
+  "name": "Get a Telegram message when a workflow fails",
+  "description": "A phone notification for every failed run, with the error and a link.",
+  "category": "Monitoring",
+  "featured": false,
+  "graph": {
+    "nodes": [
+      {
+        "id": "trigger",
+        "type": "trigger",
+        "position": {
+          "x": 0,
+          "y": 200
+        },
+        "data": {
+          "integration": "error_trigger",
+          "trigger": "workflow_failed",
+          "label": "Any workflow fails",
+          "config": {
+            "sample_payload": "{\n  \"workflow\": { \"id\": 3, \"name\": \"Sync Shopify orders\" },\n  \"execution\": { \"id\": 120, \"error\": \"Append row: HTTP 403\", \"url\": \"https://flowforge.example.com/executions?open=120\" }\n}"
+          }
+        }
+      },
+      {
+        "id": "step_1",
+        "type": "action",
+        "position": {
+          "x": 240,
+          "y": 200
+        },
+        "data": {
+          "integration": "telegram",
+          "action": "send_message",
+          "label": "Message me",
+          "config": {
+            "chat_id": "",
+            "text": "⚠️ {{ steps.trigger.data.workflow.name }} failed: {{ steps.trigger.data.execution.error }}\n{{ steps.trigger.data.execution.url }}"
+          }
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "e-trigger-step_1",
+        "source": "trigger",
+        "target": "step_1",
+        "sourceHandle": null
+      }
+    ]
+  }
+}

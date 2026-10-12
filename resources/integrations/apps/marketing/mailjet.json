@@ -1,0 +1,219 @@
+{
+  "key": "mailjet",
+  "name": "Mailjet",
+  "category": "Marketing & Email",
+  "description": "Send email and manage contacts in lists.",
+  "brand": "mailjet",
+  "website": "https://www.mailjet.com",
+  "docs_url": "https://dev.mailjet.com/email/reference/",
+  "base_url": "https://api.mailjet.com",
+  "auth": {
+    "type": "basic",
+    "fields": [
+      {
+        "key": "username",
+        "label": "API key",
+        "type": "string",
+        "required": true
+      },
+      {
+        "key": "password",
+        "label": "Secret key",
+        "type": "password",
+        "required": true
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "send_email",
+      "name": "Send email",
+      "description": "HTML/text or a stored template (set Template ID).",
+      "method": "POST",
+      "endpoint": "/v3.1/send",
+      "body": {
+        "Messages": [
+          {
+            "From": {
+              "Email": "{{ inputs.from_email }}",
+              "Name": "{{ inputs.from_name }}"
+            },
+            "To": [
+              {
+                "Email": "{{ inputs.to }}",
+                "Name": "{{ inputs.to_name }}"
+              }
+            ],
+            "Subject": "{{ inputs.subject }}",
+            "TextPart": "{{ inputs.text }}",
+            "HTMLPart": "{{ inputs.html }}",
+            "TemplateID": "{{ inputs.template_id }}",
+            "TemplateLanguage": true,
+            "Variables": "{{ inputs.variables }}"
+          }
+        ]
+      },
+      "inputs": [
+        {
+          "key": "from_email",
+          "label": "From email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "from_name",
+          "label": "From name",
+          "type": "string"
+        },
+        {
+          "key": "to",
+          "label": "To",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "to_name",
+          "label": "To name",
+          "type": "string"
+        },
+        {
+          "key": "subject",
+          "label": "Subject",
+          "type": "string"
+        },
+        {
+          "key": "text",
+          "label": "Text part",
+          "type": "text"
+        },
+        {
+          "key": "html",
+          "label": "HTML part",
+          "type": "text"
+        },
+        {
+          "key": "template_id",
+          "label": "Template ID",
+          "type": "number"
+        },
+        {
+          "key": "variables",
+          "label": "Template variables",
+          "type": "json"
+        }
+      ]
+    },
+    {
+      "key": "manage_list_contact",
+      "name": "Subscribe / unsubscribe contact in list",
+      "method": "POST",
+      "endpoint": "/v3/REST/contactslist/{{ inputs.list_id }}/managecontact",
+      "output_path": "Data",
+      "body": {
+        "Email": "{{ inputs.email }}",
+        "Name": "{{ inputs.name }}",
+        "Action": "{{ inputs.action }}",
+        "Properties": "{{ inputs.properties }}"
+      },
+      "inputs": [
+        {
+          "key": "list_id",
+          "label": "List ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string"
+        },
+        {
+          "key": "action",
+          "label": "Action",
+          "type": "select",
+          "required": true,
+          "options": [
+            {
+              "value": "addforce",
+              "label": "Add (force resubscribe)"
+            },
+            {
+              "value": "addnoforce",
+              "label": "Add (keep unsubscribed)"
+            },
+            {
+              "value": "unsub",
+              "label": "Unsubscribe"
+            },
+            {
+              "value": "remove",
+              "label": "Remove"
+            }
+          ],
+          "default": "addnoforce"
+        },
+        {
+          "key": "properties",
+          "label": "Contact properties",
+          "type": "keyvalue"
+        }
+      ]
+    },
+    {
+      "key": "create_contact",
+      "name": "Create contact",
+      "method": "POST",
+      "endpoint": "/v3/REST/contact",
+      "output_path": "Data",
+      "body": {
+        "Email": "{{ inputs.email }}",
+        "Name": "{{ inputs.name }}"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "list_contact_lists",
+      "name": "List contact lists",
+      "method": "GET",
+      "endpoint": "/v3/REST/contactslist",
+      "query": {
+        "Limit": 100
+      },
+      "output_path": "Data",
+      "inputs": []
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Event webhook",
+      "type": "webhook",
+      "description": "Account → Event notifications (sent, open, click, bounce, unsub…).",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

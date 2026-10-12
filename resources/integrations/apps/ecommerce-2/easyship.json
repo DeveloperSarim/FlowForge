@@ -1,0 +1,145 @@
+{
+  "key": "easyship",
+  "name": "Easyship",
+  "category": "E-commerce",
+  "description": "Get shipping rates and look up shipments in Easyship.",
+  "brand": "easyship",
+  "website": "https://www.easyship.com",
+  "docs_url": "https://developers.easyship.com/reference/introduction",
+  "base_url": "https://public-api.easyship.com/2024-09",
+  "auth": [
+    {
+      "type": "bearer",
+      "fields": [
+        {
+          "key": "token",
+          "label": "API access token",
+          "type": "password",
+          "required": true,
+          "help": "Easyship dashboard > Connect > API integration (prod_… or sand_…)."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_shipments",
+      "name": "List shipments",
+      "method": "GET",
+      "endpoint": "/shipments",
+      "query": {
+        "platform_order_number": "{{ inputs.platform_order_number }}",
+        "created_at_from": "{{ inputs.created_at_from }}",
+        "per_page": "{{ inputs.per_page }}",
+        "page": "{{ inputs.page }}"
+      },
+      "output_path": "shipments",
+      "inputs": [
+        {
+          "key": "platform_order_number",
+          "label": "Order number",
+          "type": "string"
+        },
+        {
+          "key": "created_at_from",
+          "label": "Created from",
+          "type": "string",
+          "placeholder": "2026-01-31T00:00:00Z"
+        },
+        {
+          "key": "per_page",
+          "label": "Per page",
+          "type": "number",
+          "default": 50
+        },
+        {
+          "key": "page",
+          "label": "Page",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "get_shipment",
+      "name": "Get shipment",
+      "method": "GET",
+      "endpoint": "/shipments/{{ inputs.shipment_id }}",
+      "output_path": "shipment",
+      "inputs": [
+        {
+          "key": "shipment_id",
+          "label": "Easyship shipment ID",
+          "type": "string",
+          "required": true,
+          "placeholder": "ESUS10000001"
+        }
+      ]
+    },
+    {
+      "key": "get_rates",
+      "name": "Get rates",
+      "method": "POST",
+      "endpoint": "/rates",
+      "body": {
+        "origin_address": "{{ inputs.origin_address }}",
+        "destination_address": "{{ inputs.destination_address }}",
+        "incoterms": "{{ inputs.incoterms }}",
+        "parcels": "{{ inputs.parcels }}"
+      },
+      "output_path": "rates",
+      "inputs": [
+        {
+          "key": "origin_address",
+          "label": "Origin address",
+          "type": "json",
+          "required": true,
+          "placeholder": "{\"country_alpha2\": \"US\", \"postal_code\": \"10001\", \"city\": \"New York\", \"state\": \"NY\", \"line_1\": \"1 Main St\"}"
+        },
+        {
+          "key": "destination_address",
+          "label": "Destination address",
+          "type": "json",
+          "required": true,
+          "placeholder": "{\"country_alpha2\": \"GB\", \"postal_code\": \"SW1A 1AA\", \"city\": \"London\", \"line_1\": \"10 Downing St\"}"
+        },
+        {
+          "key": "parcels",
+          "label": "Parcels",
+          "type": "json",
+          "required": true,
+          "placeholder": "[{\"total_actual_weight\": 1.2, \"items\": [{\"quantity\": 1, \"declared_currency\": \"USD\", \"declared_customs_value\": 20, \"hs_code\": \"61091000\", \"description\": \"T-shirt\"}]}]"
+        },
+        {
+          "key": "incoterms",
+          "label": "Incoterms",
+          "type": "select",
+          "options": [
+            {
+              "value": "DDU",
+              "label": "DDU (receiver pays duties)"
+            },
+            {
+              "value": "DDP",
+              "label": "DDP (sender pays duties)"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Easyship dashboard > Webhooks (app.easyship.com/webhooks): add this URL and select events.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

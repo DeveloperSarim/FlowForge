@@ -1,0 +1,83 @@
+{
+  "key": "buffer",
+  "name": "Buffer",
+  "category": "Social Media",
+  "description": "Queue, schedule or share posts to your Buffer channels.",
+  "brand": "buffer",
+  "website": "https://buffer.com",
+  "docs_url": "https://developers.buffer.com",
+  "base_url": "https://api.buffer.com",
+  "auth": { "type": "bearer", "fields": [{ "key": "token", "label": "API key", "type": "password", "required": true, "help": "Create one at publish.buffer.com/settings/api." }] },
+  "actions": [
+    {
+      "key": "list_organizations",
+      "name": "List organizations",
+      "method": "POST",
+      "endpoint": "/",
+      "body": { "query": "query GetOrganizations { account { organizations { id name } } }" },
+      "error_path": "errors",
+      "output_path": "data.account.organizations",
+      "inputs": []
+    },
+    {
+      "key": "list_channels",
+      "name": "List channels",
+      "method": "POST",
+      "endpoint": "/",
+      "body": {
+        "query": "query GetChannels($organizationId: OrganizationId!) { channels(input: { organizationId: $organizationId }) { id name service } }",
+        "variables": { "organizationId": "{{ inputs.organization_id }}" }
+      },
+      "error_path": "errors",
+      "output_path": "data.channels",
+      "inputs": [{ "key": "organization_id", "label": "Organization ID", "type": "string", "required": true }]
+    },
+    {
+      "key": "create_post",
+      "name": "Create post",
+      "method": "POST",
+      "endpoint": "/",
+      "body": {
+        "query": "mutation CreatePost($input: CreatePostInput!) { createPost(input: $input) { ... on PostActionSuccess { post { id text dueAt } } ... on MutationError { message } } }",
+        "variables": { "input": {
+          "channelId": "{{ inputs.channel_id }}",
+          "text": "{{ inputs.text }}",
+          "schedulingType": "{{ inputs.scheduling_type }}",
+          "mode": "{{ inputs.mode }}",
+          "dueAt": "{{ inputs.due_at }}",
+          "assets": "{{ inputs.assets }}",
+          "saveToDraft": "{{ inputs.save_to_draft }}"
+        } }
+      },
+      "error_path": "data.createPost.message",
+      "output_path": "data.createPost.post",
+      "inputs": [
+        { "key": "channel_id", "label": "Channel ID", "type": "string", "required": true },
+        { "key": "text", "label": "Text", "type": "text", "required": true },
+        { "key": "mode", "label": "When", "type": "select", "required": true, "default": "addToQueue", "options": [
+          { "value": "addToQueue", "label": "Add to queue" }, { "value": "shareNext", "label": "Share next" },
+          { "value": "shareNow", "label": "Share now" }, { "value": "customScheduled", "label": "At a specific time" }
+        ] },
+        { "key": "due_at", "label": "Scheduled time (ISO 8601, UTC)", "type": "string", "placeholder": "2026-03-10T15:00:00.000Z", "help": "Only for \"At a specific time\"." },
+        { "key": "scheduling_type", "label": "Publishing", "type": "select", "required": true, "default": "automatic", "options": [
+          { "value": "automatic", "label": "Automatic" }, { "value": "notification", "label": "Reminder notification" }
+        ] },
+        { "key": "assets", "label": "Media (JSON)", "type": "json", "placeholder": "[{ \"image\": { \"url\": \"https://example.com/a.jpg\" } }]" },
+        { "key": "save_to_draft", "label": "Save as draft", "type": "boolean", "default": false }
+      ]
+    },
+    {
+      "key": "graphql",
+      "name": "Run GraphQL query",
+      "method": "POST",
+      "endpoint": "/",
+      "body": { "query": "{{ inputs.query }}", "variables": "{{ inputs.variables }}" },
+      "error_path": "errors",
+      "output_path": "data",
+      "inputs": [
+        { "key": "query", "label": "Query", "type": "code", "required": true },
+        { "key": "variables", "label": "Variables", "type": "json" }
+      ]
+    }
+  ]
+}

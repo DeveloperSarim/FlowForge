@@ -1,0 +1,63 @@
+{
+  "key": "countly",
+  "name": "Countly",
+  "category": "Analytics",
+  "description": "Record events and user details and read analytics from a Countly server.",
+  "brand": "countly",
+  "website": "https://countly.com",
+  "docs_url": "https://api.count.ly",
+  "base_url": "{{ credentials.server_url }}",
+  "auth": { "type": "api_key", "in": "query", "name": "api_key", "fields": [
+    { "key": "server_url", "label": "Server URL", "type": "string", "required": true, "placeholder": "https://analytics.example.com", "help": "No trailing slash." },
+    { "key": "api_key", "label": "API key", "type": "password", "required": true, "help": "Account settings → API key (used for read and management calls)." }
+  ] },
+  "actions": [
+    {
+      "key": "record_event",
+      "name": "Record events",
+      "method": "GET",
+      "endpoint": "/i",
+      "query": { "app_key": "{{ inputs.app_key }}", "device_id": "{{ inputs.device_id }}", "events": "{{ inputs.events }}" },
+      "inputs": [
+        { "key": "app_key", "label": "App key", "type": "string", "required": true, "help": "Management → Applications → App key." },
+        { "key": "device_id", "label": "Device / user ID", "type": "string", "required": true },
+        { "key": "events", "label": "Events (JSON array)", "type": "code", "required": true, "placeholder": "[{\"key\": \"purchase\", \"count\": 1, \"sum\": 9.99, \"segmentation\": {\"plan\": \"pro\"}}]" }
+      ]
+    },
+    {
+      "key": "set_user_details",
+      "name": "Set user details",
+      "method": "GET",
+      "endpoint": "/i",
+      "query": { "app_key": "{{ inputs.app_key }}", "device_id": "{{ inputs.device_id }}", "user_details": "{{ inputs.user_details }}" },
+      "inputs": [
+        { "key": "app_key", "label": "App key", "type": "string", "required": true },
+        { "key": "device_id", "label": "Device / user ID", "type": "string", "required": true },
+        { "key": "user_details", "label": "User details (JSON)", "type": "code", "required": true, "placeholder": "{\"name\": \"Ada\", \"email\": \"ada@example.com\", \"custom\": {\"plan\": \"pro\"}}" }
+      ]
+    },
+    {
+      "key": "get_analytics",
+      "name": "Get analytics data",
+      "method": "GET",
+      "endpoint": "/o",
+      "query": { "app_id": "{{ inputs.app_id }}", "method": "{{ inputs.method }}", "period": "{{ inputs.period }}" },
+      "inputs": [
+        { "key": "app_id", "label": "App ID", "type": "string", "required": true },
+        { "key": "method", "label": "Data", "type": "select", "required": true, "default": "sessions", "options": [
+          { "value": "sessions", "label": "Sessions" }, { "value": "users", "label": "Users" }, { "value": "locations", "label": "Locations" },
+          { "value": "devices", "label": "Devices" }, { "value": "app_versions", "label": "App versions" }, { "value": "carriers", "label": "Carriers" },
+          { "value": "events", "label": "Events" }, { "value": "get_events", "label": "Event list" }
+        ] },
+        { "key": "period", "label": "Period", "type": "string", "placeholder": "30days", "help": "month, 7days, 30days, or [startMs,endMs]." }
+      ]
+    },
+    {
+      "key": "list_apps",
+      "name": "List my apps",
+      "method": "GET",
+      "endpoint": "/o/apps/mine",
+      "inputs": []
+    }
+  ]
+}

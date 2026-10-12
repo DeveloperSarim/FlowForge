@@ -1,0 +1,93 @@
+{
+  "key": "webex",
+  "name": "Webex",
+  "category": "Communication",
+  "description": "Send Webex messages, create spaces and read space messages.",
+  "brand": "webex",
+  "website": "https://www.webex.com",
+  "docs_url": "https://developer.webex.com/docs/api/getting-started",
+  "base_url": "https://webexapis.com/v1",
+  "auth": [
+    { "type": "bearer", "fields": [{ "key": "token", "label": "Bot or personal access token", "type": "password", "required": true }] },
+    {
+      "type": "oauth2",
+      "authorize_url": "https://webexapis.com/v1/authorize",
+      "token_url": "https://webexapis.com/v1/access_token",
+      "scopes": ["spark:messages_write", "spark:messages_read", "spark:rooms_read", "spark:rooms_write"]
+    }
+  ],
+  "actions": [
+    {
+      "key": "send_message",
+      "name": "Send message",
+      "method": "POST",
+      "endpoint": "/messages",
+      "body": { "roomId": "{{ inputs.room_id }}", "toPersonEmail": "{{ inputs.to_person_email }}", "markdown": "{{ inputs.markdown }}", "parentId": "{{ inputs.parent_id }}" },
+      "inputs": [
+        { "key": "room_id", "label": "Space (room) ID", "type": "string", "help": "Set this or a person email." },
+        { "key": "to_person_email", "label": "Or person email (1:1)", "type": "string" },
+        { "key": "markdown", "label": "Message (Markdown)", "type": "text", "required": true },
+        { "key": "parent_id", "label": "Reply to message ID", "type": "string" }
+      ]
+    },
+    {
+      "key": "create_room",
+      "name": "Create space",
+      "method": "POST",
+      "endpoint": "/rooms",
+      "body": { "title": "{{ inputs.title }}" },
+      "inputs": [{ "key": "title", "label": "Title", "type": "string", "required": true }]
+    },
+    {
+      "key": "list_rooms",
+      "name": "List spaces",
+      "method": "GET",
+      "endpoint": "/rooms",
+      "query": { "type": "{{ inputs.type }}", "max": "{{ inputs.max }}" },
+      "output_path": "items",
+      "inputs": [
+        { "key": "type", "label": "Type", "type": "select", "options": [
+          { "value": "", "label": "All" }, { "value": "group", "label": "Group spaces" }, { "value": "direct", "label": "1:1 spaces" }
+        ] },
+        { "key": "max", "label": "Max results", "type": "number", "default": 100 }
+      ]
+    },
+    {
+      "key": "list_messages",
+      "name": "List messages in space",
+      "method": "GET",
+      "endpoint": "/messages",
+      "query": { "roomId": "{{ inputs.room_id }}", "max": "{{ inputs.max }}" },
+      "output_path": "items",
+      "inputs": [
+        { "key": "room_id", "label": "Space (room) ID", "type": "string", "required": true },
+        { "key": "max", "label": "Max results", "type": "number", "default": 50 }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_message",
+      "name": "New message in space",
+      "description": "Bots only see messages that @mention them in group spaces.",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/messages",
+      "query": { "roomId": "{{ inputs.room_id }}", "max": 50 },
+      "items_path": "items",
+      "id_field": "id",
+      "inputs": [
+        { "key": "room_id", "label": "Space (room) ID", "type": "string", "required": true },
+        { "key": "poll_interval", "label": "Check every (minutes)", "type": "number", "default": 5 }
+      ]
+    },
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "description": "Register this URL as a Webex webhook targetUrl.",
+      "type": "webhook",
+      "data_path": "data",
+      "inputs": [{ "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }]
+    }
+  ]
+}

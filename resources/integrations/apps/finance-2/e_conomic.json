@@ -1,0 +1,242 @@
+{
+  "key": "e_conomic",
+  "name": "e-conomic",
+  "category": "Payments & Finance",
+  "description": "Create and look up customers and list booked invoices and products in e-conomic.",
+  "brand": "e-conomic",
+  "website": "https://www.e-conomic.com",
+  "docs_url": "https://restdocs.e-conomic.com",
+  "base_url": "https://restapi.e-conomic.com",
+  "headers": {
+    "X-AppSecretToken": "{{ credentials.app_secret_token }}",
+    "X-AgreementGrantToken": "{{ credentials.api_key }}"
+  },
+  "auth": [
+    {
+      "type": "api_key",
+      "fields": [
+        {
+          "key": "app_secret_token",
+          "label": "App secret token",
+          "type": "password",
+          "required": true,
+          "help": "From your app in the e-conomic developer portal (\"demo\" for the demo agreement)."
+        },
+        {
+          "key": "api_key",
+          "label": "Agreement grant token",
+          "type": "password",
+          "required": true,
+          "help": "Issued when the agreement installs your app."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_customers",
+      "name": "List customers",
+      "method": "GET",
+      "endpoint": "/customers",
+      "query": {
+        "filter": "{{ inputs.filter }}",
+        "pagesize": "{{ inputs.pagesize }}"
+      },
+      "output_path": "collection",
+      "inputs": [
+        {
+          "key": "filter",
+          "label": "Filter",
+          "type": "string",
+          "placeholder": "email$eq:ana@example.com"
+        },
+        {
+          "key": "pagesize",
+          "label": "Page size",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    },
+    {
+      "key": "get_customer",
+      "name": "Get customer",
+      "method": "GET",
+      "endpoint": "/customers/{{ inputs.customer_number }}",
+      "inputs": [
+        {
+          "key": "customer_number",
+          "label": "Customer number",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "create_customer",
+      "name": "Create customer",
+      "method": "POST",
+      "endpoint": "/customers",
+      "body": {
+        "name": "{{ inputs.name }}",
+        "email": "{{ inputs.email }}",
+        "currency": "{{ inputs.currency }}",
+        "customerGroup": {
+          "customerGroupNumber": "{{ inputs.customer_group }}"
+        },
+        "vatZone": {
+          "vatZoneNumber": "{{ inputs.vat_zone }}"
+        },
+        "paymentTerms": {
+          "paymentTermsNumber": "{{ inputs.payment_terms }}"
+        },
+        "address": "{{ inputs.address }}",
+        "zip": "{{ inputs.zip }}",
+        "city": "{{ inputs.city }}",
+        "country": "{{ inputs.country }}",
+        "corporateIdentificationNumber": "{{ inputs.cvr }}"
+      },
+      "inputs": [
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string"
+        },
+        {
+          "key": "currency",
+          "label": "Currency",
+          "type": "string",
+          "required": true,
+          "default": "DKK"
+        },
+        {
+          "key": "customer_group",
+          "label": "Customer group number",
+          "type": "number",
+          "required": true,
+          "default": 1
+        },
+        {
+          "key": "vat_zone",
+          "label": "VAT zone number",
+          "type": "number",
+          "required": true,
+          "default": 1,
+          "help": "1 = Domestic, 2 = EU, 3 = Abroad."
+        },
+        {
+          "key": "payment_terms",
+          "label": "Payment terms number",
+          "type": "number",
+          "required": true,
+          "default": 1
+        },
+        {
+          "key": "address",
+          "label": "Address",
+          "type": "string"
+        },
+        {
+          "key": "zip",
+          "label": "Postcode",
+          "type": "string"
+        },
+        {
+          "key": "city",
+          "label": "City",
+          "type": "string"
+        },
+        {
+          "key": "country",
+          "label": "Country",
+          "type": "string"
+        },
+        {
+          "key": "cvr",
+          "label": "CVR / company number",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "list_booked_invoices",
+      "name": "List booked invoices",
+      "method": "GET",
+      "endpoint": "/invoices/booked",
+      "query": {
+        "filter": "{{ inputs.filter }}",
+        "sort": "-bookedInvoiceNumber",
+        "pagesize": "{{ inputs.pagesize }}"
+      },
+      "output_path": "collection",
+      "inputs": [
+        {
+          "key": "filter",
+          "label": "Filter",
+          "type": "string",
+          "placeholder": "customer.customerNumber$eq:1"
+        },
+        {
+          "key": "pagesize",
+          "label": "Page size",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    },
+    {
+      "key": "list_products",
+      "name": "List products",
+      "method": "GET",
+      "endpoint": "/products",
+      "query": {
+        "filter": "{{ inputs.filter }}",
+        "pagesize": "{{ inputs.pagesize }}"
+      },
+      "output_path": "collection",
+      "inputs": [
+        {
+          "key": "filter",
+          "label": "Filter",
+          "type": "string",
+          "placeholder": "name$like:shirt"
+        },
+        {
+          "key": "pagesize",
+          "label": "Page size",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_booked_invoice",
+      "name": "New booked invoice",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/invoices/booked",
+      "query": {
+        "sort": "-bookedInvoiceNumber",
+        "pagesize": 50
+      },
+      "items_path": "collection",
+      "id_field": "bookedInvoiceNumber",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

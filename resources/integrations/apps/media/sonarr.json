@@ -1,0 +1,105 @@
+{
+  "key": "sonarr",
+  "name": "Sonarr",
+  "category": "Video & Media",
+  "description": "Look up and add TV series, run commands and read the download queue in Sonarr.",
+  "brand": "sonarr",
+  "website": "https://sonarr.tv",
+  "docs_url": "https://sonarr.tv/docs/api/",
+  "base_url": "{{ credentials.server_url }}/api/v3",
+  "auth": { "type": "api_key", "in": "header", "name": "X-Api-Key", "fields": [
+    { "key": "server_url", "label": "Sonarr URL", "type": "string", "required": true, "placeholder": "http://192.168.1.10:8989" },
+    { "key": "api_key", "label": "API key", "type": "password", "required": true, "help": "Settings > General > Security." }
+  ] },
+  "actions": [
+    {
+      "key": "lookup_series",
+      "name": "Look up series",
+      "description": "Search through Sonarr (term or tvdb:ID).",
+      "method": "GET",
+      "endpoint": "/series/lookup",
+      "query": { "term": "{{ inputs.term }}" },
+      "inputs": [{ "key": "term", "label": "Search", "type": "string", "required": true, "placeholder": "Breaking Bad" }]
+    },
+    {
+      "key": "add_series",
+      "name": "Add series",
+      "method": "POST",
+      "endpoint": "/series",
+      "body": {
+        "title": "{{ inputs.title }}", "tvdbId": "{{ inputs.tvdb_id }}", "qualityProfileId": "{{ inputs.quality_profile_id }}", "rootFolderPath": "{{ inputs.root_folder_path }}",
+        "monitored": "{{ inputs.monitored }}", "seasonFolder": "{{ inputs.season_folder }}", "addOptions": { "searchForMissingEpisodes": "{{ inputs.search_now }}" }
+      },
+      "inputs": [
+        { "key": "title", "label": "Title", "type": "string", "required": true },
+        { "key": "tvdb_id", "label": "TVDB ID", "type": "number", "required": true },
+        { "key": "quality_profile_id", "label": "Quality profile ID", "type": "number", "required": true, "help": "See List quality profiles." },
+        { "key": "root_folder_path", "label": "Root folder path", "type": "string", "required": true, "placeholder": "/tv" },
+        { "key": "monitored", "label": "Monitored", "type": "boolean", "default": true },
+        { "key": "season_folder", "label": "Use season folders", "type": "boolean", "default": true },
+        { "key": "search_now", "label": "Search for missing episodes now", "type": "boolean", "default": true }
+      ]
+    },
+    {
+      "key": "list_series",
+      "name": "List series",
+      "method": "GET",
+      "endpoint": "/series",
+      "inputs": []
+    },
+    {
+      "key": "list_quality_profiles",
+      "name": "List quality profiles",
+      "method": "GET",
+      "endpoint": "/qualityprofile",
+      "inputs": []
+    },
+    {
+      "key": "list_root_folders",
+      "name": "List root folders",
+      "method": "GET",
+      "endpoint": "/rootfolder",
+      "inputs": []
+    },
+    {
+      "key": "get_queue",
+      "name": "Get download queue",
+      "method": "GET",
+      "endpoint": "/queue",
+      "output_path": "records",
+      "inputs": []
+    },
+    {
+      "key": "get_calendar",
+      "name": "Get calendar",
+      "description": "Episodes airing in a date range.",
+      "method": "GET",
+      "endpoint": "/calendar",
+      "query": { "start": "{{ inputs.start }}", "end": "{{ inputs.end }}" },
+      "inputs": [
+        { "key": "start", "label": "Start (ISO date)", "type": "string", "placeholder": "2026-01-01" },
+        { "key": "end", "label": "End (ISO date)", "type": "string", "placeholder": "2026-01-31" }
+      ]
+    },
+    {
+      "key": "run_command",
+      "name": "Run command",
+      "method": "POST",
+      "endpoint": "/command",
+      "body": { "name": "{{ inputs.name }}", "...": "{{ inputs.params }}" },
+      "inputs": [
+        { "key": "name", "label": "Command", "type": "string", "required": true, "placeholder": "SeriesSearch", "help": "e.g. RefreshSeries, SeriesSearch, RssSync, MissingEpisodeSearch." },
+        { "key": "params", "label": "Parameters (JSON)", "type": "json", "placeholder": "{\"seriesId\":1}" }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "description": "Settings > Connect > Webhook, paste this URL (Grab, Download, SeriesAdd…).",
+      "type": "webhook",
+      "inputs": [{ "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }]
+    }
+  ]
+}

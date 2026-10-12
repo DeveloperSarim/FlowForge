@@ -1,0 +1,75 @@
+{
+  "key": "qwilr",
+  "name": "Qwilr",
+  "category": "CRM & Sales",
+  "description": "Create proposal pages from templates and track accepted pages in Qwilr.",
+  "brand": "qwilr",
+  "website": "https://qwilr.com",
+  "docs_url": "https://docs.qwilr.com/api-reference",
+  "base_url": "https://api.qwilr.com/v1",
+  "auth": {
+    "type": "bearer",
+    "fields": [{ "key": "token", "label": "API token", "type": "password", "required": true, "help": "Settings > API" }]
+  },
+  "actions": [
+    {
+      "key": "create_page_from_template",
+      "name": "Create page from template",
+      "method": "POST",
+      "endpoint": "/pages",
+      "body": {
+        "templateId": "{{ inputs.template_id }}",
+        "name": "{{ inputs.name }}",
+        "published": "{{ inputs.published }}",
+        "substitutions": "{{ inputs.substitutions }}",
+        "metadata": "{{ inputs.metadata }}",
+        "tags": "{{ inputs.tags }}",
+        "ownerId": "{{ inputs.owner_id }}"
+      },
+      "inputs": [
+        { "key": "template_id", "label": "Template ID", "type": "string", "required": true },
+        { "key": "name", "label": "Page name", "type": "string" },
+        { "key": "published", "label": "Publish (make live)", "type": "boolean" },
+        { "key": "substitutions", "label": "Variable substitutions", "type": "json", "placeholder": "{\"client\": {\"name\": \"Acme\"}}" },
+        { "key": "metadata", "label": "Metadata", "type": "keyvalue", "help": "Your own IDs, returned in webhooks" },
+        { "key": "tags", "label": "Tags", "type": "list" },
+        { "key": "owner_id", "label": "Owner user ID", "type": "string" }
+      ]
+    },
+    {
+      "key": "get_page",
+      "name": "Get page",
+      "method": "GET",
+      "endpoint": "/pages/{{ inputs.page_id }}",
+      "query": { "expand": "metadata,acceptance" },
+      "inputs": [{ "key": "page_id", "label": "Page ID", "type": "string", "required": true }]
+    },
+    {
+      "key": "list_users",
+      "name": "List users",
+      "method": "GET",
+      "endpoint": "/users",
+      "inputs": []
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_page",
+      "name": "New page",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/pages",
+      "query": { "sortDirection": "desc", "limit": 25 },
+      "items_path": "data",
+      "id_field": "id",
+      "inputs": [{ "key": "poll_interval", "label": "Check every (minutes)", "type": "number", "default": 5 }]
+    },
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Subscribe this URL with POST /webhooks (event e.g. pageAccepted) via Make an API call.",
+      "inputs": [{ "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }]
+    }
+  ]
+}

@@ -1,0 +1,61 @@
+{
+  "key": "prospeo",
+  "name": "Prospeo",
+  "category": "CRM & Sales",
+  "description": "Find verified emails and mobiles for people and search B2B prospects.",
+  "brand": "prospeo",
+  "website": "https://prospeo.io",
+  "docs_url": "https://prospeo.io/api-docs",
+  "base_url": "https://api.prospeo.io",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "X-KEY",
+    "fields": [{ "key": "api_key", "label": "API key", "type": "password", "required": true }]
+  },
+  "actions": [
+    {
+      "key": "enrich_person",
+      "name": "Enrich person",
+      "description": "Finds a person's email (and optionally mobile) from a LinkedIn URL, email, or name + company.",
+      "method": "POST",
+      "endpoint": "/enrich-person",
+      "body": {
+        "data": {
+          "linkedin_url": "{{ inputs.linkedin_url }}",
+          "email": "{{ inputs.email }}",
+          "first_name": "{{ inputs.first_name }}",
+          "last_name": "{{ inputs.last_name }}",
+          "full_name": "{{ inputs.full_name }}",
+          "company_name": "{{ inputs.company_name }}",
+          "company_website": "{{ inputs.company_website }}"
+        },
+        "only_verified_email": "{{ inputs.only_verified_email }}",
+        "enrich_mobile": "{{ inputs.enrich_mobile }}"
+      },
+      "inputs": [
+        { "key": "linkedin_url", "label": "LinkedIn URL", "type": "string" },
+        { "key": "email", "label": "Email", "type": "string" },
+        { "key": "first_name", "label": "First name", "type": "string" },
+        { "key": "last_name", "label": "Last name", "type": "string" },
+        { "key": "full_name", "label": "Full name", "type": "string" },
+        { "key": "company_name", "label": "Company name", "type": "string" },
+        { "key": "company_website", "label": "Company website", "type": "string", "placeholder": "stripe.com", "help": "Give a LinkedIn URL, an email, or a name plus a company field." },
+        { "key": "only_verified_email", "label": "Only verified emails", "type": "boolean" },
+        { "key": "enrich_mobile", "label": "Also find mobile", "type": "boolean" }
+      ]
+    },
+    {
+      "key": "search_person",
+      "name": "Search people",
+      "description": "Searches the B2B database with filters (returns profiles, not emails).",
+      "method": "POST",
+      "endpoint": "/search-person",
+      "body": { "filters": "{{ inputs.filters }}", "page": "{{ inputs.page }}" },
+      "inputs": [
+        { "key": "filters", "label": "Filters (JSON)", "type": "json", "required": true, "help": "See the Search Person filter reference in Prospeo's API docs." },
+        { "key": "page", "label": "Page", "type": "number", "default": 1 }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,76 @@
+{
+  "key": "zendesk-ai-summary-slack",
+  "name": "Summarize new Zendesk tickets with AI and post to Slack",
+  "description": "New tickets are summarized by OpenAI into two lines with a suggested priority, then posted to your support channel.",
+  "category": "AI",
+  "featured": true,
+  "graph": {
+    "nodes": [
+      {
+        "id": "trigger",
+        "type": "trigger",
+        "position": {
+          "x": 0,
+          "y": 200
+        },
+        "data": {
+          "integration": "zendesk",
+          "trigger": "new_ticket",
+          "label": "New ticket",
+          "config": {
+            "poll_interval": 5
+          }
+        }
+      },
+      {
+        "id": "step_1",
+        "type": "action",
+        "position": {
+          "x": 240,
+          "y": 200
+        },
+        "data": {
+          "integration": "openai",
+          "action": "chat_completion",
+          "label": "Summarize ticket",
+          "config": {
+            "model": "gpt-4o-mini",
+            "system": "You triage support tickets. Reply with a two-line summary and a suggested priority (low/normal/high/urgent).",
+            "prompt": "Subject: {{ steps.trigger.data.subject }}\n\n{{ steps.trigger.data.description }}"
+          }
+        }
+      },
+      {
+        "id": "step_2",
+        "type": "action",
+        "position": {
+          "x": 480,
+          "y": 200
+        },
+        "data": {
+          "integration": "slack",
+          "action": "post_message",
+          "label": "Post to #support",
+          "config": {
+            "channel": "#support",
+            "text": "Ticket #{{ steps.trigger.data.id }}: {{ steps.trigger.data.subject }}\n{{ steps.step_1.text }}"
+          }
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "e-trigger-step_1",
+        "source": "trigger",
+        "target": "step_1",
+        "sourceHandle": null
+      },
+      {
+        "id": "e-step_1-step_2",
+        "source": "step_1",
+        "target": "step_2",
+        "sourceHandle": null
+      }
+    ]
+  }
+}

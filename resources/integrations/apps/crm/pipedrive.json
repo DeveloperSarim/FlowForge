@@ -1,0 +1,382 @@
+{
+  "key": "pipedrive",
+  "name": "Pipedrive",
+  "category": "CRM & Sales",
+  "description": "Manage persons, organizations, deals and activities.",
+  "brand": "pipedrive",
+  "website": "https://www.pipedrive.com",
+  "docs_url": "https://developers.pipedrive.com/docs/api/v1",
+  "popular": true,
+  "base_url": "https://api.pipedrive.com/api",
+  "auth": [
+    {
+      "type": "api_key",
+      "in": "query",
+      "name": "api_token",
+      "fields": [
+        {
+          "key": "api_key",
+          "label": "API token",
+          "type": "password",
+          "required": true,
+          "help": "Personal preferences > API."
+        }
+      ]
+    },
+    {
+      "type": "oauth2",
+      "authorize_url": "https://oauth.pipedrive.com/oauth/authorize",
+      "token_url": "https://oauth.pipedrive.com/oauth/token",
+      "scopes": [],
+      "client_auth": "basic"
+    }
+  ],
+  "actions": [
+    {
+      "key": "create_person",
+      "name": "Create person",
+      "method": "POST",
+      "endpoint": "/v2/persons",
+      "body": {
+        "name": "{{ inputs.name }}",
+        "emails": [
+          {
+            "value": "{{ inputs.email }}",
+            "primary": true,
+            "label": "work"
+          }
+        ],
+        "org_id": "{{ inputs.org_id }}",
+        "owner_id": "{{ inputs.owner_id }}"
+      },
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "org_id",
+          "label": "Organization ID",
+          "type": "number"
+        },
+        {
+          "key": "owner_id",
+          "label": "Owner user ID",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "search_persons",
+      "name": "Search persons",
+      "method": "GET",
+      "endpoint": "/v2/persons/search",
+      "query": {
+        "term": "{{ inputs.term }}",
+        "fields": "{{ inputs.fields }}",
+        "exact_match": "{{ inputs.exact_match }}"
+      },
+      "output_path": "data.items",
+      "inputs": [
+        {
+          "key": "term",
+          "label": "Search term",
+          "type": "string",
+          "required": true,
+          "help": "At least 2 characters."
+        },
+        {
+          "key": "fields",
+          "label": "Search in",
+          "type": "select",
+          "options": [
+            {
+              "value": "email",
+              "label": "Email"
+            },
+            {
+              "value": "name",
+              "label": "Name"
+            },
+            {
+              "value": "phone",
+              "label": "Phone"
+            }
+          ],
+          "default": "email"
+        },
+        {
+          "key": "exact_match",
+          "label": "Exact match",
+          "type": "boolean",
+          "default": true
+        }
+      ]
+    },
+    {
+      "key": "create_organization",
+      "name": "Create organization",
+      "method": "POST",
+      "endpoint": "/v2/organizations",
+      "body": {
+        "name": "{{ inputs.name }}",
+        "owner_id": "{{ inputs.owner_id }}"
+      },
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "owner_id",
+          "label": "Owner user ID",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "create_deal",
+      "name": "Create deal",
+      "method": "POST",
+      "endpoint": "/v2/deals",
+      "body": {
+        "title": "{{ inputs.title }}",
+        "value": "{{ inputs.value }}",
+        "currency": "{{ inputs.currency }}",
+        "person_id": "{{ inputs.person_id }}",
+        "org_id": "{{ inputs.org_id }}",
+        "stage_id": "{{ inputs.stage_id }}",
+        "owner_id": "{{ inputs.owner_id }}"
+      },
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "value",
+          "label": "Value",
+          "type": "number"
+        },
+        {
+          "key": "currency",
+          "label": "Currency",
+          "type": "string",
+          "placeholder": "USD"
+        },
+        {
+          "key": "person_id",
+          "label": "Person ID",
+          "type": "number"
+        },
+        {
+          "key": "org_id",
+          "label": "Organization ID",
+          "type": "number"
+        },
+        {
+          "key": "stage_id",
+          "label": "Stage ID",
+          "type": "number"
+        },
+        {
+          "key": "owner_id",
+          "label": "Owner user ID",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "update_deal",
+      "name": "Update deal",
+      "method": "PATCH",
+      "endpoint": "/v2/deals/{{ inputs.deal_id }}",
+      "body": {
+        "title": "{{ inputs.title }}",
+        "value": "{{ inputs.value }}",
+        "stage_id": "{{ inputs.stage_id }}",
+        "status": "{{ inputs.status }}",
+        "lost_reason": "{{ inputs.lost_reason }}"
+      },
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "deal_id",
+          "label": "Deal ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "string"
+        },
+        {
+          "key": "value",
+          "label": "Value",
+          "type": "number"
+        },
+        {
+          "key": "stage_id",
+          "label": "Stage ID",
+          "type": "number"
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "options": [
+            {
+              "value": "open",
+              "label": "Open"
+            },
+            {
+              "value": "won",
+              "label": "Won"
+            },
+            {
+              "value": "lost",
+              "label": "Lost"
+            }
+          ]
+        },
+        {
+          "key": "lost_reason",
+          "label": "Lost reason",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "create_activity",
+      "name": "Create activity",
+      "method": "POST",
+      "endpoint": "/v2/activities",
+      "body": {
+        "subject": "{{ inputs.subject }}",
+        "type": "{{ inputs.type }}",
+        "due_date": "{{ inputs.due_date }}",
+        "due_time": "{{ inputs.due_time }}",
+        "deal_id": "{{ inputs.deal_id }}",
+        "org_id": "{{ inputs.org_id }}",
+        "note": "{{ inputs.note }}"
+      },
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "subject",
+          "label": "Subject",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "type",
+          "label": "Type",
+          "type": "string",
+          "default": "call",
+          "placeholder": "call, meeting, task, email"
+        },
+        {
+          "key": "due_date",
+          "label": "Due date",
+          "type": "string",
+          "placeholder": "2026-12-31"
+        },
+        {
+          "key": "due_time",
+          "label": "Due time",
+          "type": "string",
+          "placeholder": "14:30"
+        },
+        {
+          "key": "deal_id",
+          "label": "Deal ID",
+          "type": "number"
+        },
+        {
+          "key": "org_id",
+          "label": "Organization ID",
+          "type": "number"
+        },
+        {
+          "key": "note",
+          "label": "Note",
+          "type": "text"
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_deal",
+      "name": "New deal",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/v2/deals",
+      "query": {
+        "sort_by": "add_time",
+        "sort_direction": "desc",
+        "limit": 50
+      },
+      "items_path": "data",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    },
+    {
+      "key": "new_person",
+      "name": "New person",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/v2/persons",
+      "query": {
+        "sort_by": "add_time",
+        "sort_direction": "desc",
+        "limit": 50
+      },
+      "items_path": "data",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    },
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

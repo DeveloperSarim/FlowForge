@@ -1,0 +1,61 @@
+{
+  "key": "posthog",
+  "name": "PostHog",
+  "category": "Analytics",
+  "description": "Capture events, run HogQL queries and list feature flags (cloud or self-hosted).",
+  "brand": "posthog",
+  "website": "https://posthog.com",
+  "docs_url": "https://posthog.com/docs/api",
+  "popular": true,
+  "base_url": "{{ credentials.host }}",
+  "auth": { "type": "bearer", "fields": [
+    { "key": "host", "label": "App host", "type": "string", "required": true, "default": "https://us.posthog.com", "help": "EU: https://eu.posthog.com. Self-hosted: your instance URL." },
+    { "key": "token", "label": "Personal API key", "type": "password", "required": true, "help": "Settings > Personal API keys (phx_…)." },
+    { "key": "project_id", "label": "Project ID", "type": "string", "required": true },
+    { "key": "project_api_key", "label": "Project API key (phc_…)", "type": "password", "help": "Needed only for \"Capture event\"." },
+    { "key": "capture_url", "label": "Capture endpoint", "type": "string", "default": "https://us.i.posthog.com/i/v0/e/", "help": "EU: https://eu.i.posthog.com/i/v0/e/. Self-hosted: https://<host>/i/v0/e/" }
+  ] },
+  "actions": [
+    {
+      "key": "capture_event",
+      "name": "Capture event",
+      "method": "POST",
+      "endpoint": "{{ credentials.capture_url }}",
+      "body": { "api_key": "{{ credentials.project_api_key }}", "event": "{{ inputs.event }}", "distinct_id": "{{ inputs.distinct_id }}", "properties": "{{ inputs.properties }}", "timestamp": "{{ inputs.timestamp }}" },
+      "inputs": [
+        { "key": "event", "label": "Event name", "type": "string", "required": true },
+        { "key": "distinct_id", "label": "Distinct ID", "type": "string", "required": true },
+        { "key": "properties", "label": "Properties", "type": "json", "placeholder": "{ \"plan\": \"pro\", \"$set\": { \"email\": \"ada@example.com\" } }" },
+        { "key": "timestamp", "label": "Timestamp (ISO 8601)", "type": "string" }
+      ]
+    },
+    {
+      "key": "hogql_query",
+      "name": "Run HogQL query",
+      "method": "POST",
+      "endpoint": "/api/projects/{{ credentials.project_id }}/query/",
+      "body": { "query": { "kind": "HogQLQuery", "query": "{{ inputs.query }}" } },
+      "inputs": [
+        { "key": "query", "label": "HogQL (SQL)", "type": "code", "required": true,
+          "placeholder": "SELECT event, count() FROM events WHERE timestamp > now() - INTERVAL 1 DAY GROUP BY event ORDER BY count() DESC LIMIT 10" }
+      ]
+    },
+    {
+      "key": "list_feature_flags",
+      "name": "List feature flags",
+      "method": "GET",
+      "endpoint": "/api/projects/{{ credentials.project_id }}/feature_flags/",
+      "output_path": "results",
+      "inputs": []
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook destination",
+      "description": "Data pipelines > Destinations > HTTP Webhook, pointed at this URL.",
+      "type": "webhook",
+      "inputs": [{ "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }]
+    }
+  ]
+}

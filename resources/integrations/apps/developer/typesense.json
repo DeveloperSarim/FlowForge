@@ -1,0 +1,78 @@
+{
+  "key": "typesense",
+  "name": "Typesense",
+  "category": "Developer Tools",
+  "description": "Search a collection and create, update, get or delete documents.",
+  "brand": "typesense",
+  "website": "https://typesense.org",
+  "docs_url": "https://typesense.org/docs/latest/api/",
+  "base_url": "{{ credentials.base_url }}",
+  "auth": { "type": "api_key", "in": "header", "name": "X-TYPESENSE-API-KEY", "fields": [
+    { "key": "base_url", "label": "Typesense URL", "type": "string", "required": true, "placeholder": "https://xxx.a1.typesense.net", "help": "Cloud node or self-hosted address (include :8108 if needed), without a trailing slash." },
+    { "key": "api_key", "label": "API key", "type": "password", "required": true }
+  ] },
+  "actions": [
+    {
+      "key": "search",
+      "name": "Search collection",
+      "method": "GET",
+      "endpoint": "/collections/{{ inputs.collection }}/documents/search",
+      "query": { "q": "{{ inputs.q }}", "query_by": "{{ inputs.query_by }}", "filter_by": "{{ inputs.filter_by }}", "sort_by": "{{ inputs.sort_by }}", "per_page": "{{ inputs.per_page }}" },
+      "inputs": [
+        { "key": "collection", "label": "Collection", "type": "string", "required": true },
+        { "key": "q", "label": "Query", "type": "string", "required": true, "default": "*" },
+        { "key": "query_by", "label": "Search fields", "type": "string", "required": true, "placeholder": "title,description" },
+        { "key": "filter_by", "label": "Filter", "type": "string", "placeholder": "price:<100" },
+        { "key": "sort_by", "label": "Sort", "type": "string", "placeholder": "price:asc" },
+        { "key": "per_page", "label": "Results per page", "type": "number", "default": 20 }
+      ]
+    },
+    {
+      "key": "index_document",
+      "name": "Create / upsert document",
+      "method": "POST",
+      "endpoint": "/collections/{{ inputs.collection }}/documents",
+      "query": { "action": "{{ inputs.action }}" },
+      "body": "{{ inputs.document }}",
+      "inputs": [
+        { "key": "collection", "label": "Collection", "type": "string", "required": true },
+        { "key": "document", "label": "Document (JSON)", "type": "json", "required": true, "placeholder": "{ \"id\": \"124\", \"title\": \"Hello\" }" },
+        { "key": "action", "label": "Mode", "type": "select", "default": "upsert", "options": [
+          { "value": "create", "label": "Create (fail if exists)" }, { "value": "upsert", "label": "Upsert (replace)" }, { "value": "emplace", "label": "Emplace (create or merge)" }
+        ] }
+      ]
+    },
+    {
+      "key": "update_document",
+      "name": "Update document",
+      "method": "PATCH",
+      "endpoint": "/collections/{{ inputs.collection }}/documents/{{ inputs.document_id }}",
+      "body": "{{ inputs.fields }}",
+      "inputs": [
+        { "key": "collection", "label": "Collection", "type": "string", "required": true },
+        { "key": "document_id", "label": "Document ID", "type": "string", "required": true },
+        { "key": "fields", "label": "Fields to change (JSON)", "type": "json", "required": true }
+      ]
+    },
+    {
+      "key": "get_document",
+      "name": "Get document",
+      "method": "GET",
+      "endpoint": "/collections/{{ inputs.collection }}/documents/{{ inputs.document_id }}",
+      "inputs": [
+        { "key": "collection", "label": "Collection", "type": "string", "required": true },
+        { "key": "document_id", "label": "Document ID", "type": "string", "required": true }
+      ]
+    },
+    {
+      "key": "delete_document",
+      "name": "Delete document",
+      "method": "DELETE",
+      "endpoint": "/collections/{{ inputs.collection }}/documents/{{ inputs.document_id }}",
+      "inputs": [
+        { "key": "collection", "label": "Collection", "type": "string", "required": true },
+        { "key": "document_id", "label": "Document ID", "type": "string", "required": true }
+      ]
+    }
+  ]
+}

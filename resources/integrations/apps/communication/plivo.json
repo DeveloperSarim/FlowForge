@@ -1,0 +1,71 @@
+{
+  "key": "plivo",
+  "name": "Plivo",
+  "category": "Communication",
+  "description": "Send SMS, place voice calls and look up messages with Plivo.",
+  "brand": "plivo",
+  "website": "https://www.plivo.com",
+  "docs_url": "https://www.plivo.com/docs/messaging/api/message",
+  "base_url": "https://api.plivo.com/v1/Account/{{ credentials.username }}",
+  "auth": [
+    {
+      "type": "basic",
+      "fields": [
+        { "key": "username", "label": "Auth ID", "type": "string", "required": true },
+        { "key": "password", "label": "Auth Token", "type": "password", "required": true }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "send_sms",
+      "name": "Send SMS",
+      "method": "POST",
+      "endpoint": "/Message/",
+      "body": { "src": "{{ inputs.src }}", "powerpack_uuid": "{{ inputs.powerpack_uuid }}", "dst": "{{ inputs.dst }}", "text": "{{ inputs.text }}", "url": "{{ inputs.status_url }}" },
+      "inputs": [
+        { "key": "dst", "label": "To", "type": "string", "required": true, "placeholder": "14155551234", "help": "Several numbers: separate with <" },
+        { "key": "src", "label": "From", "type": "string", "help": "Your Plivo number or sender ID. Leave empty if you use a Powerpack." },
+        { "key": "powerpack_uuid", "label": "Powerpack UUID", "type": "string" },
+        { "key": "text", "label": "Message", "type": "text", "required": true },
+        { "key": "status_url", "label": "Status callback URL", "type": "string" }
+      ]
+    },
+    {
+      "key": "make_call",
+      "name": "Make phone call",
+      "method": "POST",
+      "endpoint": "/Call/",
+      "body": { "from": "{{ inputs.from }}", "to": "{{ inputs.to }}", "answer_url": "{{ inputs.answer_url }}", "answer_method": "{{ inputs.answer_method }}" },
+      "inputs": [
+        { "key": "from", "label": "From (Plivo number)", "type": "string", "required": true },
+        { "key": "to", "label": "To", "type": "string", "required": true },
+        { "key": "answer_url", "label": "Answer URL (returns Plivo XML)", "type": "string", "required": true },
+        { "key": "answer_method", "label": "Answer method", "type": "select", "default": "POST", "options": [
+          { "value": "POST", "label": "POST" }, { "value": "GET", "label": "GET" }
+        ] }
+      ]
+    },
+    {
+      "key": "get_message",
+      "name": "Get message",
+      "method": "GET",
+      "endpoint": "/Message/{{ inputs.message_uuid }}/",
+      "inputs": [{ "key": "message_uuid", "label": "Message UUID", "type": "string", "required": true }]
+    },
+    {
+      "key": "list_messages",
+      "name": "List messages",
+      "method": "GET",
+      "endpoint": "/Message/",
+      "query": { "message_direction": "{{ inputs.direction }}", "limit": "{{ inputs.limit }}" },
+      "output_path": "objects",
+      "inputs": [
+        { "key": "direction", "label": "Direction", "type": "select", "options": [
+          { "value": "", "label": "Both" }, { "value": "inbound", "label": "Inbound" }, { "value": "outbound", "label": "Outbound" }
+        ] },
+        { "key": "limit", "label": "Max results", "type": "number", "default": 20 }
+      ]
+    }
+  ]
+}

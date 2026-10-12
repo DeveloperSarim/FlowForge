@@ -1,0 +1,61 @@
+{
+  "key": "jenkins",
+  "name": "Jenkins",
+  "category": "Developer Tools",
+  "description": "Start jobs (with or without parameters) and check build results.",
+  "brand": "jenkins",
+  "website": "https://www.jenkins.io",
+  "docs_url": "https://www.jenkins.io/doc/book/using/remote-access-api/",
+  "base_url": "{{ credentials.base_url }}",
+  "auth": { "type": "basic", "fields": [
+    { "key": "base_url", "label": "Jenkins URL", "type": "string", "required": true, "placeholder": "https://jenkins.example.com", "help": "Without a trailing slash." },
+    { "key": "username", "label": "Username", "type": "string", "required": true },
+    { "key": "password", "label": "API token", "type": "password", "required": true, "help": "User menu → Security → API Token." }
+  ] },
+  "actions": [
+    {
+      "key": "build_job",
+      "name": "Build job",
+      "method": "POST",
+      "endpoint": "/job/{{ inputs.job }}/build",
+      "inputs": [
+        { "key": "job", "label": "Job name", "type": "string", "required": true, "help": "Top-level job. For jobs in folders use Make an API call with /job/<folder>/job/<name>/build." }
+      ]
+    },
+    {
+      "key": "build_with_parameters",
+      "name": "Build job with parameters",
+      "method": "POST",
+      "endpoint": "/job/{{ inputs.job }}/buildWithParameters",
+      "query": "{{ inputs.parameters }}",
+      "inputs": [
+        { "key": "job", "label": "Job name", "type": "string", "required": true },
+        { "key": "parameters", "label": "Parameters", "type": "keyvalue" }
+      ]
+    },
+    {
+      "key": "get_job",
+      "name": "Get job",
+      "method": "GET",
+      "endpoint": "/job/{{ inputs.job }}/api/json",
+      "inputs": [{ "key": "job", "label": "Job name", "type": "string", "required": true }]
+    },
+    {
+      "key": "get_last_build",
+      "name": "Get last build",
+      "method": "GET",
+      "endpoint": "/job/{{ inputs.job }}/lastBuild/api/json",
+      "inputs": [{ "key": "job", "label": "Job name", "type": "string", "required": true }]
+    },
+    {
+      "key": "get_build",
+      "name": "Get build",
+      "method": "GET",
+      "endpoint": "/job/{{ inputs.job }}/{{ inputs.number }}/api/json",
+      "inputs": [
+        { "key": "job", "label": "Job name", "type": "string", "required": true },
+        { "key": "number", "label": "Build number", "type": "number", "required": true }
+      ]
+    }
+  ]
+}

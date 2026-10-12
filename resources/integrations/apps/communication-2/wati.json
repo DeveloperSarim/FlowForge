@@ -1,0 +1,76 @@
+{
+  "key": "wati",
+  "name": "WATI",
+  "category": "Communication",
+  "description": "Send WhatsApp session and template messages and manage contacts in WATI.",
+  "brand": "wati",
+  "website": "https://www.wati.io",
+  "docs_url": "https://docs.wati.io/reference/introduction",
+  "base_url": "{{ credentials.api_endpoint }}",
+  "auth": [
+    { "type": "bearer", "fields": [
+      { "key": "api_endpoint", "label": "API endpoint", "type": "string", "required": true, "placeholder": "https://live-mt-server.wati.io/123456", "help": "WATI → API Docs: the API Endpoint URL, no trailing slash." },
+      { "key": "token", "label": "Access token", "type": "password", "required": true, "help": "From the same page, without the leading \"Bearer \"." }
+    ] }
+  ],
+  "actions": [
+    {
+      "key": "send_session_message",
+      "name": "Send session message",
+      "description": "Only works within 24 hours of the contact's last message.",
+      "method": "POST",
+      "endpoint": "/api/v1/sendSessionMessage/{{ inputs.whatsapp_number }}",
+      "query": { "messageText": "{{ inputs.message }}" },
+      "inputs": [
+        { "key": "whatsapp_number", "label": "WhatsApp number (with country code)", "type": "string", "required": true, "placeholder": "14155552671" },
+        { "key": "message", "label": "Message", "type": "text", "required": true }
+      ]
+    },
+    {
+      "key": "send_template_message",
+      "name": "Send template message",
+      "method": "POST",
+      "endpoint": "/api/v1/sendTemplateMessage",
+      "query": { "whatsappNumber": "{{ inputs.whatsapp_number }}" },
+      "body": { "template_name": "{{ inputs.template_name }}", "broadcast_name": "{{ inputs.broadcast_name }}", "parameters": "{{ inputs.parameters }}" },
+      "inputs": [
+        { "key": "whatsapp_number", "label": "WhatsApp number (with country code)", "type": "string", "required": true },
+        { "key": "template_name", "label": "Template name", "type": "string", "required": true },
+        { "key": "broadcast_name", "label": "Broadcast name", "type": "string", "required": true, "help": "Any label; groups the sends in WATI reports." },
+        { "key": "parameters", "label": "Parameters (JSON)", "type": "json", "placeholder": "[{\"name\":\"name\",\"value\":\"Ada\"}]" }
+      ]
+    },
+    {
+      "key": "add_contact",
+      "name": "Add contact",
+      "method": "POST",
+      "endpoint": "/api/v1/addContact/{{ inputs.whatsapp_number }}",
+      "body": { "name": "{{ inputs.name }}", "customParams": "{{ inputs.custom_params }}" },
+      "inputs": [
+        { "key": "whatsapp_number", "label": "WhatsApp number (with country code)", "type": "string", "required": true },
+        { "key": "name", "label": "Name", "type": "string" },
+        { "key": "custom_params", "label": "Custom attributes (JSON)", "type": "json", "placeholder": "[{\"name\":\"city\",\"value\":\"Lisbon\"}]" }
+      ]
+    },
+    {
+      "key": "get_contacts",
+      "name": "List contacts",
+      "method": "GET",
+      "endpoint": "/api/v1/getContacts",
+      "query": { "pageSize": "{{ inputs.page_size }}", "pageNumber": "{{ inputs.page_number }}" },
+      "inputs": [
+        { "key": "page_size", "label": "Page size", "type": "number", "default": 50 },
+        { "key": "page_number", "label": "Page", "type": "number", "default": 1 }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "description": "Add this URL under WATI → Webhooks (e.g. Message Received).",
+      "type": "webhook",
+      "inputs": [{ "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }]
+    }
+  ]
+}

@@ -1,0 +1,70 @@
+{
+  "key": "linkedin_ads",
+  "name": "LinkedIn Ads",
+  "category": "Social Media",
+  "description": "List ad accounts and campaigns and pause or resume campaigns.",
+  "brand": "linkedin",
+  "website": "https://business.linkedin.com/marketing-solutions/ads",
+  "docs_url": "https://learn.microsoft.com/en-us/linkedin/marketing/integrations/ads/account-structure/create-and-manage-campaigns",
+  "base_url": "https://api.linkedin.com/rest",
+  "headers": { "LinkedIn-Version": "{{ credentials.api_version }}", "X-Restli-Protocol-Version": "2.0.0" },
+  "auth": [
+    {
+      "type": "oauth2",
+      "authorize_url": "https://www.linkedin.com/oauth/v2/authorization",
+      "token_url": "https://www.linkedin.com/oauth/v2/accessToken",
+      "scopes": ["r_ads", "rw_ads", "r_ads_reporting"],
+      "fields": [{ "key": "api_version", "label": "LinkedIn API version (YYYYMM)", "type": "string", "required": true, "default": "202609",
+        "help": "Each version is supported for about a year. Bump it if LinkedIn answers NONEXISTENT_VERSION." }]
+    },
+    {
+      "type": "bearer",
+      "fields": [
+        { "key": "token", "label": "Access token", "type": "password", "required": true },
+        { "key": "api_version", "label": "LinkedIn API version (YYYYMM)", "type": "string", "required": true, "default": "202609" }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_ad_accounts",
+      "name": "List ad accounts",
+      "method": "GET",
+      "endpoint": "/adAccounts",
+      "query": { "q": "search" },
+      "output_path": "elements",
+      "inputs": []
+    },
+    {
+      "key": "get_ad_account",
+      "name": "Get ad account",
+      "method": "GET",
+      "endpoint": "/adAccounts/{{ inputs.ad_account_id }}",
+      "inputs": [{ "key": "ad_account_id", "label": "Ad account ID", "type": "string", "required": true }]
+    },
+    {
+      "key": "list_campaigns",
+      "name": "List campaigns",
+      "method": "GET",
+      "endpoint": "/adAccounts/{{ inputs.ad_account_id }}/adCampaigns",
+      "query": { "q": "search" },
+      "output_path": "elements",
+      "inputs": [{ "key": "ad_account_id", "label": "Ad account ID", "type": "string", "required": true }]
+    },
+    {
+      "key": "update_campaign_status",
+      "name": "Pause or resume campaign",
+      "method": "POST",
+      "endpoint": "/adAccounts/{{ inputs.ad_account_id }}/adCampaigns/{{ inputs.campaign_id }}",
+      "headers": { "X-RestLi-Method": "PARTIAL_UPDATE" },
+      "body": { "patch": { "$set": { "status": "{{ inputs.status }}" } } },
+      "inputs": [
+        { "key": "ad_account_id", "label": "Ad account ID", "type": "string", "required": true },
+        { "key": "campaign_id", "label": "Campaign ID", "type": "string", "required": true },
+        { "key": "status", "label": "Status", "type": "select", "required": true, "options": [
+          { "value": "ACTIVE", "label": "Active" }, { "value": "PAUSED", "label": "Paused" }, { "value": "ARCHIVED", "label": "Archived" }
+        ] }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,39 @@
+{
+  "key": "cloudflare_d1",
+  "name": "Cloudflare D1",
+  "category": "Databases",
+  "description": "Run parameterized SQL against a Cloudflare D1 (SQLite) database.",
+  "brand": "cloudflare",
+  "website": "https://developers.cloudflare.com/d1/",
+  "docs_url": "https://developers.cloudflare.com/api/resources/d1/",
+  "base_url": "https://api.cloudflare.com/client/v4",
+  "auth": { "type": "bearer", "fields": [{ "key": "token", "label": "API token", "type": "password", "required": true, "help": "My Profile → API Tokens, with the D1 Edit (or Read) permission." }] },
+  "actions": [
+    {
+      "key": "query",
+      "name": "Run SQL",
+      "method": "POST",
+      "endpoint": "/accounts/{{ inputs.account_id }}/d1/database/{{ inputs.database_id }}/query",
+      "body": { "sql": "{{ inputs.sql }}", "params": "{{ inputs.params }}" },
+      "output_path": "result.0",
+      "inputs": [
+        { "key": "account_id", "label": "Account ID", "type": "string", "required": true },
+        { "key": "database_id", "label": "Database ID", "type": "string", "required": true },
+        { "key": "sql", "label": "SQL", "type": "code", "required": true, "placeholder": "SELECT * FROM users WHERE email = ?" },
+        { "key": "params", "label": "Parameters", "type": "list", "help": "Values for the ? placeholders, in order." }
+      ]
+    },
+    {
+      "key": "list_databases",
+      "name": "List databases",
+      "method": "GET",
+      "endpoint": "/accounts/{{ inputs.account_id }}/d1/database",
+      "query": { "name": "{{ inputs.name }}" },
+      "output_path": "result",
+      "inputs": [
+        { "key": "account_id", "label": "Account ID", "type": "string", "required": true },
+        { "key": "name", "label": "Name", "type": "string" }
+      ]
+    }
+  ]
+}

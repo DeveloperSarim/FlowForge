@@ -1,0 +1,74 @@
+{
+  "key": "semaphore_ci",
+  "name": "Semaphore",
+  "category": "Developer Tools",
+  "description": "Run and stop workflows, list projects and check pipeline status.",
+  "brand": "semaphoreci",
+  "website": "https://semaphore.io",
+  "docs_url": "https://docs.semaphoreci.com/reference/api",
+  "base_url": "https://{{ credentials.organization }}.semaphoreci.com/api/v1alpha",
+  "auth": { "type": "api_key", "in": "header", "name": "Authorization", "prefix": "Token ", "fields": [
+    { "key": "organization", "label": "Organization name", "type": "string", "required": true, "help": "The subdomain in https://<organization>.semaphoreci.com." },
+    { "key": "api_key", "label": "API token", "type": "password", "required": true, "help": "Profile → Settings → API Token, or a service account token." }
+  ] },
+  "actions": [
+    {
+      "key": "run_workflow",
+      "name": "Run workflow",
+      "method": "POST",
+      "endpoint": "/plumber-workflows",
+      "body": { "project_id": "{{ inputs.project_id }}", "reference": "{{ inputs.reference }}", "commit_sha": "{{ inputs.commit_sha }}", "pipeline_file": "{{ inputs.pipeline_file }}", "parameters": "{{ inputs.parameters }}" },
+      "inputs": [
+        { "key": "project_id", "label": "Project ID", "type": "string", "required": true },
+        { "key": "reference", "label": "Git reference", "type": "string", "required": true, "placeholder": "refs/heads/main", "help": "refs/heads/<branch>, refs/tags/<tag> or refs/pull/<number>/head." },
+        { "key": "commit_sha", "label": "Commit SHA", "type": "string", "help": "Defaults to the head of the reference." },
+        { "key": "pipeline_file", "label": "Pipeline file", "type": "string", "placeholder": ".semaphore/semaphore.yml" },
+        { "key": "parameters", "label": "Parameters", "type": "keyvalue" }
+      ]
+    },
+    {
+      "key": "list_workflows",
+      "name": "List workflows",
+      "method": "GET",
+      "endpoint": "/plumber-workflows",
+      "query": { "project_id": "{{ inputs.project_id }}", "branch_name": "{{ inputs.branch_name }}" },
+      "inputs": [
+        { "key": "project_id", "label": "Project ID", "type": "string", "required": true },
+        { "key": "branch_name", "label": "Branch", "type": "string" }
+      ]
+    },
+    {
+      "key": "terminate_workflow",
+      "name": "Stop workflow",
+      "method": "POST",
+      "endpoint": "/plumber-workflows/{{ inputs.workflow_id }}/terminate",
+      "inputs": [{ "key": "workflow_id", "label": "Workflow ID", "type": "string", "required": true }]
+    },
+    {
+      "key": "get_pipeline",
+      "name": "Get pipeline",
+      "method": "GET",
+      "endpoint": "/pipelines/{{ inputs.pipeline_id }}",
+      "query": { "detailed": "{{ inputs.detailed }}" },
+      "inputs": [
+        { "key": "pipeline_id", "label": "Pipeline ID", "type": "string", "required": true },
+        { "key": "detailed", "label": "Include blocks and jobs", "type": "boolean" }
+      ]
+    },
+    {
+      "key": "list_projects",
+      "name": "List projects",
+      "method": "GET",
+      "endpoint": "/projects",
+      "inputs": []
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Notification webhook",
+      "type": "webhook",
+      "inputs": [{ "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }]
+    }
+  ]
+}

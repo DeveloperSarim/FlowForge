@@ -1,0 +1,89 @@
+{
+  "key": "bigquery",
+  "name": "BigQuery",
+  "category": "Databases",
+  "description": "Run SQL queries, fetch results, stream rows into tables and list datasets.",
+  "brand": "googlebigquery",
+  "website": "https://cloud.google.com/bigquery",
+  "docs_url": "https://cloud.google.com/bigquery/docs/reference/rest",
+  "popular": true,
+  "base_url": "https://bigquery.googleapis.com/bigquery/v2",
+  "auth": [
+    {
+      "type": "oauth2",
+      "authorize_url": "https://accounts.google.com/o/oauth2/v2/auth",
+      "token_url": "https://oauth2.googleapis.com/token",
+      "scopes": ["https://www.googleapis.com/auth/bigquery"],
+      "authorize_params": { "access_type": "offline", "prompt": "consent" }
+    },
+    { "type": "google_service_account", "scopes": ["https://www.googleapis.com/auth/bigquery"], "fields": [
+      { "key": "service_account_json", "label": "Service Account JSON key", "type": "code", "required": true, "help": "Grant it BigQuery Job User plus data access (e.g. BigQuery Data Editor) on your datasets." }
+    ] }
+  ],
+  "actions": [
+    {
+      "key": "run_query",
+      "name": "Run query",
+      "description": "Runs GoogleSQL and returns rows (if the job finishes within the wait time).",
+      "method": "POST",
+      "endpoint": "/projects/{{ inputs.project_id }}/queries",
+      "timeout": 120,
+      "body": { "query": "{{ inputs.query }}", "useLegacySql": false, "maxResults": "{{ inputs.max_results }}", "timeoutMs": "{{ inputs.timeout_ms }}", "location": "{{ inputs.location }}" },
+      "inputs": [
+        { "key": "project_id", "label": "Project ID", "type": "string", "required": true },
+        { "key": "query", "label": "SQL", "type": "code", "required": true, "placeholder": "SELECT name, total FROM `my_dataset.orders` ORDER BY total DESC LIMIT 10" },
+        { "key": "max_results", "label": "Max rows", "type": "number", "default": 1000 },
+        { "key": "timeout_ms", "label": "Wait (ms)", "type": "number", "default": 60000 },
+        { "key": "location", "label": "Location", "type": "string", "placeholder": "US, EU" }
+      ]
+    },
+    {
+      "key": "get_query_results",
+      "name": "Get query results",
+      "method": "GET",
+      "endpoint": "/projects/{{ inputs.project_id }}/queries/{{ inputs.job_id }}",
+      "query": { "location": "{{ inputs.location }}", "maxResults": "{{ inputs.max_results }}", "pageToken": "{{ inputs.page_token }}" },
+      "inputs": [
+        { "key": "project_id", "label": "Project ID", "type": "string", "required": true },
+        { "key": "job_id", "label": "Job ID", "type": "string", "required": true },
+        { "key": "location", "label": "Location", "type": "string" },
+        { "key": "max_results", "label": "Max rows", "type": "number", "default": 1000 },
+        { "key": "page_token", "label": "Page token", "type": "string" }
+      ]
+    },
+    {
+      "key": "insert_row",
+      "name": "Insert row (streaming)",
+      "method": "POST",
+      "endpoint": "/projects/{{ inputs.project_id }}/datasets/{{ inputs.dataset_id }}/tables/{{ inputs.table_id }}/insertAll",
+      "error_path": "insertErrors",
+      "body": { "rows": [{ "insertId": "{{ inputs.insert_id }}", "json": "{{ inputs.row }}" }] },
+      "inputs": [
+        { "key": "project_id", "label": "Project ID", "type": "string", "required": true },
+        { "key": "dataset_id", "label": "Dataset ID", "type": "string", "required": true },
+        { "key": "table_id", "label": "Table ID", "type": "string", "required": true },
+        { "key": "row", "label": "Row (JSON)", "type": "json", "required": true, "placeholder": "{ \"name\": \"Ada\", \"total\": 42.5 }", "help": "Keys are column names." },
+        { "key": "insert_id", "label": "Insert ID (dedup)", "type": "string" }
+      ]
+    },
+    {
+      "key": "list_datasets",
+      "name": "List datasets",
+      "method": "GET",
+      "endpoint": "/projects/{{ inputs.project_id }}/datasets",
+      "output_path": "datasets",
+      "inputs": [{ "key": "project_id", "label": "Project ID", "type": "string", "required": true }]
+    },
+    {
+      "key": "list_tables",
+      "name": "List tables",
+      "method": "GET",
+      "endpoint": "/projects/{{ inputs.project_id }}/datasets/{{ inputs.dataset_id }}/tables",
+      "output_path": "tables",
+      "inputs": [
+        { "key": "project_id", "label": "Project ID", "type": "string", "required": true },
+        { "key": "dataset_id", "label": "Dataset ID", "type": "string", "required": true }
+      ]
+    }
+  ]
+}

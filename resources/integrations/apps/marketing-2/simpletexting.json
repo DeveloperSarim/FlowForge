@@ -1,0 +1,83 @@
+{
+  "key": "simpletexting",
+  "name": "SimpleTexting",
+  "category": "Marketing & Email",
+  "description": "Send SMS/MMS, upsert contacts into lists and look up contacts.",
+  "brand": "simpletexting",
+  "website": "https://simpletexting.com",
+  "docs_url": "https://simpletexting.com/api/docs/v2/",
+  "base_url": "https://api-app2.simpletexting.com/v2/api",
+  "auth": { "type": "bearer", "fields": [{ "key": "token", "label": "API token", "type": "password", "required": true, "help": "Settings > API." }] },
+  "actions": [
+    {
+      "key": "send_message",
+      "name": "Send message",
+      "method": "POST",
+      "endpoint": "/messages",
+      "body": {
+        "contactPhone": "{{ inputs.contact_phone }}",
+        "accountPhone": "{{ inputs.account_phone }}",
+        "mode": "{{ inputs.mode }}",
+        "text": "{{ inputs.text }}",
+        "subject": "{{ inputs.subject }}"
+      },
+      "inputs": [
+        { "key": "contact_phone", "label": "To phone", "type": "string", "required": true },
+        { "key": "text", "label": "Text", "type": "text", "required": true },
+        { "key": "account_phone", "label": "From number", "type": "string", "help": "Empty = your account's primary number." },
+        { "key": "mode", "label": "Mode", "type": "select", "default": "AutoDetect", "options": [
+          { "value": "AutoDetect", "label": "Auto-detect" }, { "value": "SingleSMSStrictly", "label": "Single SMS only" }, { "value": "MMS", "label": "MMS" }
+        ] },
+        { "key": "subject", "label": "MMS subject", "type": "string" }
+      ]
+    },
+    {
+      "key": "upsert_contact",
+      "name": "Create or update contact",
+      "method": "POST",
+      "endpoint": "/contacts",
+      "query": { "upsert": "true", "listsReplacement": "false" },
+      "body": {
+        "contactPhone": "{{ inputs.contact_phone }}",
+        "firstName": "{{ inputs.first_name }}",
+        "lastName": "{{ inputs.last_name }}",
+        "email": "{{ inputs.email }}",
+        "listIds": "{{ inputs.list_ids }}",
+        "customFields": "{{ inputs.custom_fields }}",
+        "comment": "{{ inputs.comment }}"
+      },
+      "inputs": [
+        { "key": "contact_phone", "label": "Phone", "type": "string", "required": true },
+        { "key": "first_name", "label": "First name", "type": "string" },
+        { "key": "last_name", "label": "Last name", "type": "string" },
+        { "key": "email", "label": "Email", "type": "string" },
+        { "key": "list_ids", "label": "List IDs or names", "type": "list" },
+        { "key": "custom_fields", "label": "Custom fields", "type": "keyvalue" },
+        { "key": "comment", "label": "Note", "type": "string" }
+      ]
+    },
+    {
+      "key": "get_contact",
+      "name": "Get contact",
+      "method": "GET",
+      "endpoint": "/contacts/{{ inputs.contact_phone }}",
+      "inputs": [{ "key": "contact_phone", "label": "Phone or contact ID", "type": "string", "required": true }]
+    },
+    {
+      "key": "list_lists",
+      "name": "List contact lists",
+      "method": "GET",
+      "endpoint": "/contact-lists",
+      "output_path": "content",
+      "inputs": []
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "inputs": [{ "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }]
+    }
+  ]
+}

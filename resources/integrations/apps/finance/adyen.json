@@ -1,0 +1,182 @@
+{
+  "key": "adyen",
+  "name": "Adyen",
+  "category": "Payments & Finance",
+  "description": "Create payment links and refund payments with the Adyen Checkout API.",
+  "brand": "adyen",
+  "website": "https://www.adyen.com",
+  "docs_url": "https://docs.adyen.com/api-explorer/Checkout/latest/overview",
+  "base_url": "{{ credentials.checkout_url }}",
+  "auth": [
+    {
+      "type": "api_key",
+      "in": "header",
+      "name": "X-API-Key",
+      "fields": [
+        {
+          "key": "api_key",
+          "label": "API key",
+          "type": "password",
+          "required": true,
+          "help": "Customer Area > Developers > API credentials."
+        },
+        {
+          "key": "merchant_account",
+          "label": "Merchant account",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "checkout_url",
+          "label": "Checkout API URL",
+          "type": "string",
+          "required": true,
+          "default": "https://checkout-test.adyen.com/v71",
+          "help": "Test: https://checkout-test.adyen.com/v71. Live: https://[prefix]-checkout-live.adyenpayments.com/checkout/v71"
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "create_payment_link",
+      "name": "Create payment link",
+      "method": "POST",
+      "endpoint": "/paymentLinks",
+      "output_fields": {
+        "link": "url"
+      },
+      "body": {
+        "merchantAccount": "{{ credentials.merchant_account }}",
+        "reference": "{{ inputs.reference }}",
+        "amount": {
+          "value": "{{ inputs.amount }}",
+          "currency": "{{ inputs.currency }}"
+        },
+        "description": "{{ inputs.description }}",
+        "shopperEmail": "{{ inputs.shopper_email }}",
+        "shopperReference": "{{ inputs.shopper_reference }}",
+        "countryCode": "{{ inputs.country_code }}",
+        "returnUrl": "{{ inputs.return_url }}"
+      },
+      "inputs": [
+        {
+          "key": "reference",
+          "label": "Reference",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "amount",
+          "label": "Amount (minor units)",
+          "type": "number",
+          "required": true,
+          "help": "e.g. 1000 = €10.00."
+        },
+        {
+          "key": "currency",
+          "label": "Currency",
+          "type": "string",
+          "required": true,
+          "default": "EUR"
+        },
+        {
+          "key": "description",
+          "label": "Description",
+          "type": "string"
+        },
+        {
+          "key": "shopper_email",
+          "label": "Shopper email",
+          "type": "string"
+        },
+        {
+          "key": "shopper_reference",
+          "label": "Shopper reference",
+          "type": "string"
+        },
+        {
+          "key": "country_code",
+          "label": "Country code",
+          "type": "string",
+          "placeholder": "NL"
+        },
+        {
+          "key": "return_url",
+          "label": "Return URL",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "get_payment_link",
+      "name": "Get payment link",
+      "method": "GET",
+      "endpoint": "/paymentLinks/{{ inputs.link_id }}",
+      "inputs": [
+        {
+          "key": "link_id",
+          "label": "Payment link ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "refund_payment",
+      "name": "Refund payment",
+      "method": "POST",
+      "endpoint": "/payments/{{ inputs.psp_reference }}/refunds",
+      "body": {
+        "merchantAccount": "{{ credentials.merchant_account }}",
+        "amount": {
+          "value": "{{ inputs.amount }}",
+          "currency": "{{ inputs.currency }}"
+        },
+        "reference": "{{ inputs.reference }}"
+      },
+      "inputs": [
+        {
+          "key": "psp_reference",
+          "label": "PSP reference of the payment",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "amount",
+          "label": "Amount (minor units)",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "currency",
+          "label": "Currency",
+          "type": "string",
+          "required": true,
+          "default": "EUR"
+        },
+        {
+          "key": "reference",
+          "label": "Your refund reference",
+          "type": "string"
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Customer Area > Developers > Webhooks: add a Standard webhook with this URL (JSON).",
+      "data_path": "notificationItems",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,72 @@
+{
+  "key": "grafana",
+  "name": "Grafana",
+  "category": "Developer Tools",
+  "description": "Add annotations, search dashboards and list alert rules.",
+  "brand": "grafana",
+  "website": "https://grafana.com",
+  "docs_url": "https://grafana.com/docs/grafana/latest/developers/http_api/",
+  "base_url": "{{ credentials.base_url }}/api",
+  "auth": { "type": "bearer", "fields": [
+    { "key": "base_url", "label": "Grafana URL", "type": "string", "required": true, "placeholder": "https://your-stack.grafana.net", "help": "Grafana Cloud stack or self-hosted URL, without a trailing slash." },
+    { "key": "token", "label": "Service account token", "type": "password", "required": true, "help": "Administration → Service accounts → Add token." }
+  ] },
+  "actions": [
+    {
+      "key": "create_annotation",
+      "name": "Create annotation",
+      "method": "POST",
+      "endpoint": "/annotations",
+      "body": { "text": "{{ inputs.text }}", "tags": "{{ inputs.tags }}", "dashboardUID": "{{ inputs.dashboard_uid }}", "panelId": "{{ inputs.panel_id }}", "time": "{{ inputs.time }}", "timeEnd": "{{ inputs.time_end }}" },
+      "inputs": [
+        { "key": "text", "label": "Text", "type": "text", "required": true },
+        { "key": "tags", "label": "Tags", "type": "list", "placeholder": "deploy" },
+        { "key": "dashboard_uid", "label": "Dashboard UID", "type": "string", "help": "Leave empty for an organization-wide annotation." },
+        { "key": "panel_id", "label": "Panel ID", "type": "number" },
+        { "key": "time", "label": "Time (epoch ms)", "type": "number", "help": "Defaults to now." },
+        { "key": "time_end", "label": "End time (epoch ms)", "type": "number" }
+      ]
+    },
+    {
+      "key": "search_dashboards",
+      "name": "Search dashboards",
+      "method": "GET",
+      "endpoint": "/search",
+      "query": { "query": "{{ inputs.query }}", "tag": "{{ inputs.tag }}", "type": "dash-db", "limit": "{{ inputs.limit }}" },
+      "inputs": [
+        { "key": "query", "label": "Title contains", "type": "string" },
+        { "key": "tag", "label": "Tag", "type": "string" },
+        { "key": "limit", "label": "Limit", "type": "number", "default": 50 }
+      ]
+    },
+    {
+      "key": "get_dashboard",
+      "name": "Get dashboard",
+      "method": "GET",
+      "endpoint": "/dashboards/uid/{{ inputs.uid }}",
+      "inputs": [{ "key": "uid", "label": "Dashboard UID", "type": "string", "required": true }]
+    },
+    {
+      "key": "list_alert_rules",
+      "name": "List alert rules",
+      "method": "GET",
+      "endpoint": "/v1/provisioning/alert-rules",
+      "inputs": []
+    },
+    {
+      "key": "list_datasources",
+      "name": "List data sources",
+      "method": "GET",
+      "endpoint": "/datasources",
+      "inputs": []
+    }
+  ],
+  "triggers": [
+    {
+      "key": "alert_webhook",
+      "name": "Alert notification (webhook contact point)",
+      "type": "webhook",
+      "inputs": [{ "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }]
+    }
+  ]
+}

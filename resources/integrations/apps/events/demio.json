@@ -1,0 +1,207 @@
+{
+  "key": "demio",
+  "name": "Demio",
+  "category": "Events & Webinars",
+  "description": "List Demio events, register attendees and fetch session participants.",
+  "brand": "demio",
+  "website": "https://www.demio.com",
+  "docs_url": "https://publicdemioapi.docs.apiary.io",
+  "base_url": "https://my.demio.com/api/v1",
+  "headers": {
+    "Api-Secret": "{{ credentials.api_secret }}"
+  },
+  "auth": [
+    {
+      "type": "api_key",
+      "in": "header",
+      "name": "Api-Key",
+      "fields": [
+        {
+          "key": "api_key",
+          "label": "API key",
+          "type": "password",
+          "required": true,
+          "help": "Settings > API."
+        },
+        {
+          "key": "api_secret",
+          "label": "API secret",
+          "type": "password",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "ping",
+      "name": "Check credentials",
+      "method": "GET",
+      "endpoint": "/ping",
+      "inputs": []
+    },
+    {
+      "key": "list_events",
+      "name": "List events",
+      "method": "GET",
+      "endpoint": "/events",
+      "query": {
+        "type": "{{ inputs.type }}"
+      },
+      "inputs": [
+        {
+          "key": "type",
+          "label": "Type",
+          "type": "select",
+          "required": true,
+          "default": "upcoming",
+          "options": [
+            {
+              "value": "upcoming",
+              "label": "Upcoming"
+            },
+            {
+              "value": "past",
+              "label": "Past"
+            },
+            {
+              "value": "automated",
+              "label": "Automated"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "get_event",
+      "name": "Get event",
+      "method": "GET",
+      "endpoint": "/event/{{ inputs.event_id }}",
+      "query": {
+        "active": "{{ inputs.active }}"
+      },
+      "inputs": [
+        {
+          "key": "event_id",
+          "label": "Event ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "active",
+          "label": "Active sessions only",
+          "type": "boolean"
+        }
+      ]
+    },
+    {
+      "key": "register",
+      "name": "Register attendee",
+      "description": "Returns the join link.",
+      "method": "PUT",
+      "endpoint": "/event/register",
+      "body": {
+        "id": "{{ inputs.event_id }}",
+        "name": "{{ inputs.name }}",
+        "email": "{{ inputs.email }}",
+        "last_name": "{{ inputs.last_name }}",
+        "date_id": "{{ inputs.date_id }}",
+        "company": "{{ inputs.company }}",
+        "phone_number": "{{ inputs.phone_number }}",
+        "...": "{{ inputs.custom_fields }}"
+      },
+      "inputs": [
+        {
+          "key": "event_id",
+          "label": "Event ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "name",
+          "label": "First name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string"
+        },
+        {
+          "key": "date_id",
+          "label": "Session (date) ID",
+          "type": "string",
+          "help": "Defaults to the nearest session."
+        },
+        {
+          "key": "company",
+          "label": "Company",
+          "type": "string"
+        },
+        {
+          "key": "phone_number",
+          "label": "Phone",
+          "type": "string"
+        },
+        {
+          "key": "custom_fields",
+          "label": "Custom fields",
+          "type": "keyvalue",
+          "help": "Custom field ID = value."
+        }
+      ]
+    },
+    {
+      "key": "list_participants",
+      "name": "List session participants",
+      "method": "GET",
+      "endpoint": "/report/{{ inputs.date_id }}/participants",
+      "query": {
+        "status": "{{ inputs.status }}"
+      },
+      "output_path": "participants",
+      "inputs": [
+        {
+          "key": "date_id",
+          "label": "Session (date) ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "options": [
+            {
+              "value": "attended",
+              "label": "Attended"
+            },
+            {
+              "value": "did not attend",
+              "label": "Did not attend"
+            },
+            {
+              "value": "completed",
+              "label": "Completed"
+            },
+            {
+              "value": "left early",
+              "label": "Left early"
+            },
+            {
+              "value": "banned",
+              "label": "Banned"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

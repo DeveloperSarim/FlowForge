@@ -1,0 +1,90 @@
+{
+  "key": "novita_ai",
+  "name": "Novita AI",
+  "category": "AI",
+  "description": "Chat with open-source LLMs served by Novita AI.",
+  "brand": "novita",
+  "website": "https://novita.ai",
+  "docs_url": "https://docs.novita.ai/guides/llm-api",
+  "base_url": "https://api.novita.ai/openai/v1",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "API key",
+        "type": "password",
+        "required": true
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "chat_completion",
+      "name": "Chat completion",
+      "description": "Send a prompt and get the reply as {{ steps.<id>.text }}.",
+      "method": "POST",
+      "endpoint": "/chat/completions",
+      "timeout": 300,
+      "body": {
+        "model": "{{ inputs.model }}",
+        "messages": [
+          {
+            "role": "system",
+            "content": "{{ inputs.system }}"
+          },
+          {
+            "role": "user",
+            "content": "{{ inputs.prompt }}"
+          }
+        ],
+        "temperature": "{{ inputs.temperature }}",
+        "max_tokens": "{{ inputs.max_tokens }}"
+      },
+      "output_fields": {
+        "text": "choices.0.message.content"
+      },
+      "inputs": [
+        {
+          "key": "model",
+          "label": "Model",
+          "type": "string",
+          "required": true,
+          "default": "deepseek/deepseek-v4.1-flash"
+        },
+        {
+          "key": "prompt",
+          "label": "Prompt",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "system",
+          "label": "System prompt",
+          "type": "text",
+          "required": true,
+          "default": "You are a helpful assistant.",
+          "help": "Sent as the system message."
+        },
+        {
+          "key": "temperature",
+          "label": "Temperature",
+          "type": "number",
+          "placeholder": "0.7"
+        },
+        {
+          "key": "max_tokens",
+          "label": "Max output tokens",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "list_models",
+      "name": "List models",
+      "method": "GET",
+      "endpoint": "/models",
+      "inputs": []
+    }
+  ]
+}

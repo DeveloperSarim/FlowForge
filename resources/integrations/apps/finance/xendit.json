@@ -1,0 +1,165 @@
+{
+  "key": "xendit",
+  "name": "Xendit",
+  "category": "Payments & Finance",
+  "description": "Create and look up payment invoices with Xendit.",
+  "brand": "xendit",
+  "website": "https://www.xendit.co",
+  "docs_url": "https://developers.xendit.co/api-reference/",
+  "base_url": "https://api.xendit.co",
+  "auth": [
+    {
+      "type": "basic",
+      "fields": [
+        {
+          "key": "username",
+          "label": "Secret API key",
+          "type": "password",
+          "required": true,
+          "help": "Settings > Developers > API keys (xnd_production_… or xnd_development_…)."
+        },
+        {
+          "key": "password",
+          "label": "Password",
+          "type": "password",
+          "required": false,
+          "default": "",
+          "help": "Leave blank."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "create_invoice",
+      "name": "Create invoice",
+      "method": "POST",
+      "endpoint": "/v2/invoices",
+      "output_fields": {
+        "url": "invoice_url"
+      },
+      "body": {
+        "external_id": "{{ inputs.external_id }}",
+        "amount": "{{ inputs.amount }}",
+        "currency": "{{ inputs.currency }}",
+        "payer_email": "{{ inputs.payer_email }}",
+        "description": "{{ inputs.description }}",
+        "success_redirect_url": "{{ inputs.success_redirect_url }}",
+        "invoice_duration": "{{ inputs.invoice_duration }}"
+      },
+      "inputs": [
+        {
+          "key": "external_id",
+          "label": "External ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "amount",
+          "label": "Amount",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "currency",
+          "label": "Currency",
+          "type": "string",
+          "placeholder": "IDR"
+        },
+        {
+          "key": "payer_email",
+          "label": "Payer email",
+          "type": "string"
+        },
+        {
+          "key": "description",
+          "label": "Description",
+          "type": "string"
+        },
+        {
+          "key": "success_redirect_url",
+          "label": "Success redirect URL",
+          "type": "string"
+        },
+        {
+          "key": "invoice_duration",
+          "label": "Expires in (seconds)",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "get_invoice",
+      "name": "Get invoice",
+      "method": "GET",
+      "endpoint": "/v2/invoices/{{ inputs.invoice_id }}",
+      "inputs": [
+        {
+          "key": "invoice_id",
+          "label": "Invoice ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_invoices",
+      "name": "List invoices",
+      "method": "GET",
+      "endpoint": "/v2/invoices",
+      "query": {
+        "external_id": "{{ inputs.external_id }}",
+        "statuses": "{{ inputs.statuses }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "inputs": [
+        {
+          "key": "external_id",
+          "label": "External ID",
+          "type": "string"
+        },
+        {
+          "key": "statuses",
+          "label": "Statuses",
+          "type": "string",
+          "placeholder": "[\"PAID\",\"SETTLED\"]"
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 10
+        }
+      ]
+    },
+    {
+      "key": "expire_invoice",
+      "name": "Expire invoice",
+      "method": "POST",
+      "endpoint": "/invoices/{{ inputs.invoice_id }}/expire!",
+      "inputs": [
+        {
+          "key": "invoice_id",
+          "label": "Invoice ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Settings > Developers > Webhooks: set this URL for \"Invoices paid\".",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

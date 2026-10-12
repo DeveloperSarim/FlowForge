@@ -1,0 +1,211 @@
+{
+  "key": "mighty_networks",
+  "name": "Mighty Networks",
+  "category": "Education",
+  "description": "Add and invite members, look them up and create posts in Mighty Networks.",
+  "brand": "mightynetworks",
+  "website": "https://www.mightynetworks.com",
+  "docs_url": "https://help.mightynetworks.com",
+  "base_url": "https://api.mn.co/admin/v1/networks/{{ credentials.network_id }}",
+  "auth": [
+    {
+      "type": "bearer",
+      "fields": [
+        {
+          "key": "network_id",
+          "label": "Network ID or subdomain",
+          "type": "string",
+          "required": true,
+          "placeholder": "my-community"
+        },
+        {
+          "key": "token",
+          "label": "API key",
+          "type": "password",
+          "required": true,
+          "help": "Network settings > API keys (shown once)."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_members",
+      "name": "List members",
+      "method": "GET",
+      "endpoint": "/members",
+      "query": {
+        "per_page": "{{ inputs.per_page }}",
+        "page": "{{ inputs.page }}"
+      },
+      "output_path": "items",
+      "inputs": [
+        {
+          "key": "per_page",
+          "label": "Per page",
+          "type": "number",
+          "default": 100
+        },
+        {
+          "key": "page",
+          "label": "Page",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "find_member",
+      "name": "Find member by email",
+      "method": "GET",
+      "endpoint": "/members/by_email",
+      "query": {
+        "email": "{{ inputs.email }}"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "create_member",
+      "name": "Add member",
+      "method": "POST",
+      "endpoint": "/members",
+      "body": {
+        "email": "{{ inputs.email }}",
+        "first_name": "{{ inputs.first_name }}",
+        "last_name": "{{ inputs.last_name }}",
+        "role": "{{ inputs.role }}",
+        "space_ids": "{{ inputs.space_ids }}",
+        "send_welcome_email": "{{ inputs.send_welcome_email }}"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "first_name",
+          "label": "First name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "role",
+          "label": "Role",
+          "type": "select",
+          "options": [
+            {
+              "value": "contributor",
+              "label": "Contributor"
+            },
+            {
+              "value": "moderator",
+              "label": "Moderator"
+            },
+            {
+              "value": "host",
+              "label": "Host"
+            }
+          ]
+        },
+        {
+          "key": "space_ids",
+          "label": "Space IDs",
+          "type": "list"
+        },
+        {
+          "key": "send_welcome_email",
+          "label": "Send welcome email",
+          "type": "boolean"
+        }
+      ]
+    },
+    {
+      "key": "invite",
+      "name": "Send invite",
+      "method": "POST",
+      "endpoint": "/invites",
+      "body": {
+        "recipient_email": "{{ inputs.recipient_email }}",
+        "recipient_first_name": "{{ inputs.recipient_first_name }}",
+        "recipient_last_name": "{{ inputs.recipient_last_name }}"
+      },
+      "inputs": [
+        {
+          "key": "recipient_email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "recipient_first_name",
+          "label": "First name",
+          "type": "string"
+        },
+        {
+          "key": "recipient_last_name",
+          "label": "Last name",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "create_post",
+      "name": "Create post",
+      "method": "POST",
+      "endpoint": "/posts",
+      "body": {
+        "space_id": "{{ inputs.space_id }}",
+        "title": "{{ inputs.title }}",
+        "description": "{{ inputs.description }}"
+      },
+      "inputs": [
+        {
+          "key": "space_id",
+          "label": "Space ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "description",
+          "label": "Body",
+          "type": "text"
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Network settings > Webhooks: add this URL (MemberJoined, PostCreated, course progress…).",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,63 @@
+{
+  "key": "dataforseo",
+  "name": "DataForSEO",
+  "category": "Analytics",
+  "description": "Live Google SERPs, keyword search volume and backlink summaries.",
+  "brand": "dataforseo",
+  "website": "https://dataforseo.com",
+  "docs_url": "https://docs.dataforseo.com/v3/",
+  "base_url": "https://api.dataforseo.com/v3",
+  "auth": { "type": "basic", "fields": [
+    { "key": "username", "label": "API login", "type": "string", "required": true },
+    { "key": "password", "label": "API password", "type": "password", "required": true, "help": "app.dataforseo.com > API access (not your account password)." }
+  ] },
+  "actions": [
+    {
+      "key": "google_serp",
+      "name": "Google organic SERP (live)",
+      "method": "POST",
+      "endpoint": "/serp/google/organic/live/advanced",
+      "body": [{ "keyword": "{{ inputs.keyword }}", "location_code": "{{ inputs.location_code }}", "language_code": "{{ inputs.language_code }}", "device": "{{ inputs.device }}", "depth": "{{ inputs.depth }}" }],
+      "output_path": "tasks.0",
+      "inputs": [
+        { "key": "keyword", "label": "Keyword", "type": "string", "required": true },
+        { "key": "location_code", "label": "Location code", "type": "number", "required": true, "default": 2840, "help": "2840 = United States. See /v3/serp/google/locations." },
+        { "key": "language_code", "label": "Language code", "type": "string", "required": true, "default": "en" },
+        { "key": "device", "label": "Device", "type": "select", "default": "desktop", "options": [
+          { "value": "desktop", "label": "Desktop" }, { "value": "mobile", "label": "Mobile" }
+        ] },
+        { "key": "depth", "label": "Results depth", "type": "number", "default": 10 }
+      ]
+    },
+    {
+      "key": "search_volume",
+      "name": "Keyword search volume (live)",
+      "method": "POST",
+      "endpoint": "/keywords_data/google_ads/search_volume/live",
+      "body": [{ "keywords": "{{ inputs.keywords }}", "location_code": "{{ inputs.location_code }}", "language_code": "{{ inputs.language_code }}" }],
+      "output_path": "tasks.0",
+      "inputs": [
+        { "key": "keywords", "label": "Keywords (max 1000)", "type": "list", "required": true },
+        { "key": "location_code", "label": "Location code", "type": "number", "default": 2840 },
+        { "key": "language_code", "label": "Language code", "type": "string", "default": "en" }
+      ]
+    },
+    {
+      "key": "backlinks_summary",
+      "name": "Backlinks summary (live)",
+      "method": "POST",
+      "endpoint": "/backlinks/summary/live",
+      "body": [{ "target": "{{ inputs.target }}" }],
+      "output_path": "tasks.0",
+      "inputs": [{ "key": "target", "label": "Domain or URL", "type": "string", "required": true }]
+    },
+    {
+      "key": "account_info",
+      "name": "Account balance and limits",
+      "method": "GET",
+      "endpoint": "/appendix/user_data",
+      "output_path": "tasks.0.result.0",
+      "inputs": []
+    }
+  ]
+}

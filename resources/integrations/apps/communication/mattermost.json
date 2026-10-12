@@ -1,0 +1,59 @@
+{
+  "key": "mattermost",
+  "name": "Mattermost",
+  "category": "Communication",
+  "description": "Post messages and look up channels and users on your Mattermost server.",
+  "brand": "mattermost",
+  "website": "https://mattermost.com",
+  "docs_url": "https://api.mattermost.com",
+  "base_url": "{{ credentials.server_url }}/api/v4",
+  "auth": [
+    {
+      "type": "bearer",
+      "fields": [
+        { "key": "server_url", "label": "Server URL", "type": "string", "required": true, "placeholder": "https://chat.example.com", "help": "No trailing slash." },
+        { "key": "token", "label": "Personal access token or bot token", "type": "password", "required": true }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "create_post",
+      "name": "Post message",
+      "method": "POST",
+      "endpoint": "/posts",
+      "body": { "channel_id": "{{ inputs.channel_id }}", "message": "{{ inputs.message }}", "root_id": "{{ inputs.root_id }}" },
+      "inputs": [
+        { "key": "channel_id", "label": "Channel ID", "type": "string", "required": true, "help": "Use Get channel by name to find it." },
+        { "key": "message", "label": "Message (Markdown)", "type": "text", "required": true },
+        { "key": "root_id", "label": "Reply to post ID", "type": "string", "help": "Set to post in a thread." }
+      ]
+    },
+    {
+      "key": "get_channel_by_name",
+      "name": "Get channel by name",
+      "method": "GET",
+      "endpoint": "/teams/name/{{ inputs.team_name }}/channels/name/{{ inputs.channel_name }}",
+      "inputs": [
+        { "key": "team_name", "label": "Team name", "type": "string", "required": true, "placeholder": "my-team", "help": "The team's URL name." },
+        { "key": "channel_name", "label": "Channel name", "type": "string", "required": true, "placeholder": "town-square" }
+      ]
+    },
+    {
+      "key": "get_user_by_email",
+      "name": "Find user by email",
+      "method": "GET",
+      "endpoint": "/users/email/{{ inputs.email }}",
+      "inputs": [{ "key": "email", "label": "Email", "type": "string", "required": true }]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "outgoing_webhook",
+      "name": "Outgoing webhook",
+      "description": "Paste this URL into an Outgoing Webhook (Integrations > Outgoing Webhooks).",
+      "type": "webhook",
+      "inputs": [{ "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }]
+    }
+  ]
+}

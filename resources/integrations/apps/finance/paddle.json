@@ -1,0 +1,232 @@
+{
+  "key": "paddle",
+  "name": "Paddle",
+  "category": "Payments & Finance",
+  "description": "Manage customers, subscriptions and transactions with Paddle Billing.",
+  "brand": "paddle",
+  "website": "https://www.paddle.com",
+  "docs_url": "https://developer.paddle.com/api-reference/overview",
+  "popular": true,
+  "base_url": "https://{{ credentials.environment }}",
+  "auth": [
+    {
+      "type": "bearer",
+      "fields": [
+        {
+          "key": "environment",
+          "label": "Environment",
+          "type": "select",
+          "required": true,
+          "default": "api.paddle.com",
+          "options": [
+            {
+              "value": "api.paddle.com",
+              "label": "Live"
+            },
+            {
+              "value": "sandbox-api.paddle.com",
+              "label": "Sandbox"
+            }
+          ]
+        },
+        {
+          "key": "token",
+          "label": "API key",
+          "type": "password",
+          "required": true,
+          "help": "Paddle > Developer tools > Authentication."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "create_customer",
+      "name": "Create customer",
+      "method": "POST",
+      "endpoint": "/customers",
+      "output_path": "data",
+      "body": {
+        "email": "{{ inputs.email }}",
+        "name": "{{ inputs.name }}",
+        "custom_data": "{{ inputs.custom_data }}"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string"
+        },
+        {
+          "key": "custom_data",
+          "label": "Custom data",
+          "type": "json"
+        }
+      ]
+    },
+    {
+      "key": "list_customers",
+      "name": "Find customers",
+      "method": "GET",
+      "endpoint": "/customers",
+      "output_path": "data",
+      "query": {
+        "email": "{{ inputs.email }}",
+        "search": "{{ inputs.search }}"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string"
+        },
+        {
+          "key": "search",
+          "label": "Search",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "get_subscription",
+      "name": "Get subscription",
+      "method": "GET",
+      "endpoint": "/subscriptions/{{ inputs.subscription_id }}",
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "subscription_id",
+          "label": "Subscription ID",
+          "type": "string",
+          "required": true,
+          "placeholder": "sub_…"
+        }
+      ]
+    },
+    {
+      "key": "cancel_subscription",
+      "name": "Cancel subscription",
+      "method": "POST",
+      "endpoint": "/subscriptions/{{ inputs.subscription_id }}/cancel",
+      "output_path": "data",
+      "body": {
+        "effective_from": "{{ inputs.effective_from }}"
+      },
+      "inputs": [
+        {
+          "key": "subscription_id",
+          "label": "Subscription ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "effective_from",
+          "label": "When",
+          "type": "select",
+          "options": [
+            {
+              "value": "next_billing_period",
+              "label": "At end of billing period"
+            },
+            {
+              "value": "immediately",
+              "label": "Immediately"
+            }
+          ],
+          "default": "next_billing_period"
+        }
+      ]
+    },
+    {
+      "key": "list_transactions",
+      "name": "List transactions",
+      "method": "GET",
+      "endpoint": "/transactions",
+      "output_path": "data",
+      "query": {
+        "customer_id": "{{ inputs.customer_id }}",
+        "status": "{{ inputs.status }}",
+        "order_by": "created_at[DESC]",
+        "per_page": "{{ inputs.per_page }}"
+      },
+      "inputs": [
+        {
+          "key": "customer_id",
+          "label": "Customer ID",
+          "type": "string"
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "string",
+          "placeholder": "completed"
+        },
+        {
+          "key": "per_page",
+          "label": "Per page",
+          "type": "number",
+          "default": 30
+        }
+      ]
+    },
+    {
+      "key": "get_transaction",
+      "name": "Get transaction",
+      "method": "GET",
+      "endpoint": "/transactions/{{ inputs.transaction_id }}",
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "transaction_id",
+          "label": "Transaction ID",
+          "type": "string",
+          "required": true,
+          "placeholder": "txn_…"
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_transaction",
+      "name": "New transaction",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/transactions",
+      "query": {
+        "order_by": "created_at[DESC]",
+        "per_page": 50
+      },
+      "items_path": "data",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    },
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Developer tools > Notifications > New destination: webhook with this URL.",
+      "data_path": "data",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

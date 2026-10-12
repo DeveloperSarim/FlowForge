@@ -1,0 +1,77 @@
+{
+  "key": "pirsch",
+  "name": "Pirsch Analytics",
+  "category": "Analytics",
+  "description": "Send server-side page views and events and read visitor statistics.",
+  "brand": "pirsch",
+  "website": "https://pirsch.io",
+  "docs_url": "https://docs.pirsch.io/api-sdks/api-v1",
+  "base_url": "https://api.pirsch.io/api/v1",
+  "auth": { "type": "bearer", "fields": [{ "key": "token", "label": "Access key or access token", "type": "password", "required": true,
+    "help": "Access keys (Settings > Integration) are write-only: hits and events. Statistics need a token from POST /api/v1/token." }] },
+  "actions": [
+    {
+      "key": "send_pageview",
+      "name": "Send page view",
+      "method": "POST",
+      "endpoint": "/hit",
+      "body": { "url": "{{ inputs.url }}", "ip": "{{ inputs.ip }}", "user_agent": "{{ inputs.user_agent }}", "accept_language": "{{ inputs.accept_language }}", "referrer": "{{ inputs.referrer }}" },
+      "inputs": [
+        { "key": "url", "label": "Page URL", "type": "string", "required": true },
+        { "key": "ip", "label": "Visitor IP", "type": "string", "required": true },
+        { "key": "user_agent", "label": "Visitor User-Agent", "type": "string", "required": true },
+        { "key": "accept_language", "label": "Accept-Language", "type": "string" },
+        { "key": "referrer", "label": "Referrer", "type": "string" }
+      ]
+    },
+    {
+      "key": "send_event",
+      "name": "Send event",
+      "method": "POST",
+      "endpoint": "/event",
+      "body": { "event_name": "{{ inputs.event_name }}", "event_duration": "{{ inputs.event_duration }}", "event_meta": "{{ inputs.event_meta }}", "url": "{{ inputs.url }}", "ip": "{{ inputs.ip }}", "user_agent": "{{ inputs.user_agent }}" },
+      "inputs": [
+        { "key": "event_name", "label": "Event name", "type": "string", "required": true },
+        { "key": "event_meta", "label": "Metadata", "type": "keyvalue" },
+        { "key": "event_duration", "label": "Duration (seconds)", "type": "number" },
+        { "key": "url", "label": "Page URL", "type": "string", "required": true },
+        { "key": "ip", "label": "Visitor IP", "type": "string", "required": true },
+        { "key": "user_agent", "label": "Visitor User-Agent", "type": "string", "required": true }
+      ]
+    },
+    {
+      "key": "list_domains",
+      "name": "List domains",
+      "method": "GET",
+      "endpoint": "/domain",
+      "inputs": []
+    },
+    {
+      "key": "total_stats",
+      "name": "Get total statistics",
+      "method": "GET",
+      "endpoint": "/statistics/total",
+      "query": { "id": "{{ inputs.domain_id }}", "from": "{{ inputs.from }}", "to": "{{ inputs.to }}" },
+      "inputs": [
+        { "key": "domain_id", "label": "Domain ID", "type": "string", "required": true },
+        { "key": "from", "label": "From (YYYY-MM-DD)", "type": "string", "required": true },
+        { "key": "to", "label": "To (YYYY-MM-DD)", "type": "string", "required": true }
+      ]
+    },
+    {
+      "key": "visitor_stats",
+      "name": "Get visitors over time",
+      "method": "GET",
+      "endpoint": "/statistics/visitor",
+      "query": { "id": "{{ inputs.domain_id }}", "from": "{{ inputs.from }}", "to": "{{ inputs.to }}", "scale": "{{ inputs.scale }}" },
+      "inputs": [
+        { "key": "domain_id", "label": "Domain ID", "type": "string", "required": true },
+        { "key": "from", "label": "From (YYYY-MM-DD)", "type": "string", "required": true },
+        { "key": "to", "label": "To (YYYY-MM-DD)", "type": "string", "required": true },
+        { "key": "scale", "label": "Scale", "type": "select", "default": "day", "options": [
+          { "value": "day", "label": "Day" }, { "value": "week", "label": "Week" }, { "value": "month", "label": "Month" }, { "value": "year", "label": "Year" }
+        ] }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,117 @@
+{
+  "key": "mux",
+  "name": "Mux",
+  "category": "Video & Media",
+  "description": "Create video assets from URLs, direct uploads and live streams on Mux Video.",
+  "brand": "mux",
+  "website": "https://www.mux.com",
+  "docs_url": "https://www.mux.com/docs/api-reference",
+  "popular": true,
+  "base_url": "https://api.mux.com",
+  "auth": { "type": "basic", "fields": [
+    { "key": "username", "label": "Access token ID", "type": "string", "required": true, "help": "Settings > Access Tokens in the Mux dashboard." },
+    { "key": "password", "label": "Secret key", "type": "password", "required": true }
+  ] },
+  "actions": [
+    {
+      "key": "create_asset",
+      "name": "Create asset from URL",
+      "description": "Ingests a video file from a public URL.",
+      "method": "POST",
+      "endpoint": "/video/v1/assets",
+      "output_path": "data",
+      "body": {
+        "inputs": [{ "url": "{{ inputs.url }}" }],
+        "playback_policies": ["{{ inputs.playback_policy }}"],
+        "video_quality": "{{ inputs.video_quality }}",
+        "passthrough": "{{ inputs.passthrough }}",
+        "meta": { "title": "{{ inputs.title }}" }
+      },
+      "inputs": [
+        { "key": "url", "label": "Video URL", "type": "string", "required": true, "placeholder": "https://example.com/video.mp4" },
+        { "key": "playback_policy", "label": "Playback policy", "type": "select", "default": "public", "options": [
+          { "value": "public", "label": "Public" }, { "value": "signed", "label": "Signed" }
+        ] },
+        { "key": "video_quality", "label": "Video quality", "type": "select", "options": [
+          { "value": "", "label": "Account default" }, { "value": "basic", "label": "Basic" }, { "value": "plus", "label": "Plus" }, { "value": "premium", "label": "Premium" }
+        ] },
+        { "key": "title", "label": "Title", "type": "string" },
+        { "key": "passthrough", "label": "Passthrough (your own ID)", "type": "string" }
+      ]
+    },
+    {
+      "key": "get_asset",
+      "name": "Get asset",
+      "method": "GET",
+      "endpoint": "/video/v1/assets/{{ inputs.asset_id }}",
+      "output_path": "data",
+      "inputs": [{ "key": "asset_id", "label": "Asset ID", "type": "string", "required": true }]
+    },
+    {
+      "key": "list_assets",
+      "name": "List assets",
+      "method": "GET",
+      "endpoint": "/video/v1/assets",
+      "output_path": "data",
+      "query": { "limit": "{{ inputs.limit }}", "page": "{{ inputs.page }}" },
+      "inputs": [
+        { "key": "limit", "label": "Limit", "type": "number", "default": 25 },
+        { "key": "page", "label": "Page", "type": "number" }
+      ]
+    },
+    {
+      "key": "delete_asset",
+      "name": "Delete asset",
+      "method": "DELETE",
+      "endpoint": "/video/v1/assets/{{ inputs.asset_id }}",
+      "inputs": [{ "key": "asset_id", "label": "Asset ID", "type": "string", "required": true }]
+    },
+    {
+      "key": "create_direct_upload",
+      "name": "Create direct upload URL",
+      "description": "Returns a one-time URL a browser or device can PUT a video file to.",
+      "method": "POST",
+      "endpoint": "/video/v1/uploads",
+      "output_path": "data",
+      "body": {
+        "cors_origin": "{{ inputs.cors_origin }}",
+        "new_asset_settings": { "playback_policies": ["{{ inputs.playback_policy }}"] }
+      },
+      "inputs": [
+        { "key": "cors_origin", "label": "CORS origin", "type": "string", "placeholder": "https://yourapp.com", "help": "Required when uploading from a browser." },
+        { "key": "playback_policy", "label": "Playback policy", "type": "select", "default": "public", "options": [
+          { "value": "public", "label": "Public" }, { "value": "signed", "label": "Signed" }
+        ] }
+      ]
+    },
+    {
+      "key": "create_live_stream",
+      "name": "Create live stream",
+      "method": "POST",
+      "endpoint": "/video/v1/live-streams",
+      "output_path": "data",
+      "body": {
+        "playback_policies": ["{{ inputs.playback_policy }}"],
+        "new_asset_settings": { "playback_policies": ["{{ inputs.playback_policy }}"] },
+        "latency_mode": "{{ inputs.latency_mode }}"
+      },
+      "inputs": [
+        { "key": "playback_policy", "label": "Playback policy", "type": "select", "default": "public", "options": [
+          { "value": "public", "label": "Public" }, { "value": "signed", "label": "Signed" }
+        ] },
+        { "key": "latency_mode", "label": "Latency mode", "type": "select", "options": [
+          { "value": "", "label": "Default" }, { "value": "low", "label": "Low" }, { "value": "reduced", "label": "Reduced" }, { "value": "standard", "label": "Standard" }
+        ] }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "description": "Add this URL under Settings > Webhooks (e.g. video.asset.ready).",
+      "type": "webhook",
+      "inputs": [{ "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }]
+    }
+  ]
+}

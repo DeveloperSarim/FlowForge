@@ -1,0 +1,80 @@
+{
+  "key": "musixmatch",
+  "name": "Musixmatch",
+  "category": "Video & Media",
+  "description": "Search tracks, fetch lyrics and get music charts from Musixmatch.",
+  "brand": "musixmatch",
+  "website": "https://www.musixmatch.com",
+  "docs_url": "https://developer.musixmatch.com/documentation",
+  "base_url": "https://api.musixmatch.com/ws/1.1",
+  "auth": { "type": "api_key", "in": "query", "name": "apikey" },
+  "actions": [
+    {
+      "key": "search_tracks",
+      "name": "Search tracks",
+      "method": "GET",
+      "endpoint": "/track.search",
+      "output_path": "message.body.track_list",
+      "query": { "q_track": "{{ inputs.q_track }}", "q_artist": "{{ inputs.q_artist }}", "q_lyrics": "{{ inputs.q_lyrics }}", "s_track_rating": "desc", "page_size": "{{ inputs.page_size }}", "page": "{{ inputs.page }}" },
+      "inputs": [
+        { "key": "q_track", "label": "Track title", "type": "string" },
+        { "key": "q_artist", "label": "Artist", "type": "string" },
+        { "key": "q_lyrics", "label": "Words in the lyrics", "type": "string" },
+        { "key": "page_size", "label": "Page size", "type": "number", "default": 10 },
+        { "key": "page", "label": "Page", "type": "number" }
+      ]
+    },
+    {
+      "key": "get_track",
+      "name": "Get track",
+      "method": "GET",
+      "endpoint": "/track.get",
+      "output_path": "message.body.track",
+      "query": { "track_id": "{{ inputs.track_id }}", "commontrack_id": "{{ inputs.commontrack_id }}", "track_isrc": "{{ inputs.track_isrc }}" },
+      "inputs": [
+        { "key": "track_id", "label": "Track ID", "type": "string" },
+        { "key": "commontrack_id", "label": "Common track ID", "type": "string" },
+        { "key": "track_isrc", "label": "ISRC", "type": "string" }
+      ]
+    },
+    {
+      "key": "get_lyrics",
+      "name": "Get lyrics",
+      "method": "GET",
+      "endpoint": "/track.lyrics.get",
+      "output_path": "message.body.lyrics",
+      "query": { "track_id": "{{ inputs.track_id }}", "commontrack_id": "{{ inputs.commontrack_id }}" },
+      "inputs": [
+        { "key": "track_id", "label": "Track ID", "type": "string" },
+        { "key": "commontrack_id", "label": "Common track ID", "type": "string" }
+      ]
+    },
+    {
+      "key": "match_lyrics",
+      "name": "Find lyrics by title and artist",
+      "method": "GET",
+      "endpoint": "/matcher.lyrics.get",
+      "output_path": "message.body.lyrics",
+      "query": { "q_track": "{{ inputs.q_track }}", "q_artist": "{{ inputs.q_artist }}" },
+      "inputs": [
+        { "key": "q_track", "label": "Track title", "type": "string", "required": true },
+        { "key": "q_artist", "label": "Artist", "type": "string", "required": true }
+      ]
+    },
+    {
+      "key": "get_top_tracks_chart",
+      "name": "Get top tracks chart",
+      "method": "GET",
+      "endpoint": "/chart.tracks.get",
+      "output_path": "message.body.track_list",
+      "query": { "chart_name": "{{ inputs.chart_name }}", "country": "{{ inputs.country }}", "page_size": "{{ inputs.page_size }}" },
+      "inputs": [
+        { "key": "chart_name", "label": "Chart", "type": "select", "default": "top", "options": [
+          { "value": "top", "label": "Top" }, { "value": "hot", "label": "Hot" }, { "value": "mxmweekly", "label": "Musixmatch weekly" }, { "value": "mxmweekly_new", "label": "Musixmatch weekly (new)" }
+        ] },
+        { "key": "country", "label": "Country (ISO 3166)", "type": "string", "placeholder": "us" },
+        { "key": "page_size", "label": "Page size", "type": "number", "default": 10 }
+      ]
+    }
+  ]
+}

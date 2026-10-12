@@ -1,0 +1,172 @@
+{
+  "key": "inflow",
+  "name": "inFlow Inventory",
+  "category": "E-commerce",
+  "description": "Look up products, customers and sales orders in inFlow Inventory.",
+  "brand": "inflow",
+  "website": "https://www.inflowinventory.com",
+  "docs_url": "https://cloudapi.inflowinventory.com/docs/index.html",
+  "base_url": "https://cloudapi.inflowinventory.com/{{ credentials.company_id }}",
+  "headers": {
+    "Accept": "application/json;version=2026-09-29"
+  },
+  "auth": [
+    {
+      "type": "bearer",
+      "fields": [
+        {
+          "key": "token",
+          "label": "API key",
+          "type": "password",
+          "required": true,
+          "help": "app.inflowinventory.com/options/integrations (API add-on)."
+        },
+        {
+          "key": "company_id",
+          "label": "Company ID",
+          "type": "string",
+          "required": true,
+          "help": "Shown next to your API key."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_products",
+      "name": "List products",
+      "method": "GET",
+      "endpoint": "/products",
+      "query": {
+        "filter[name]": "{{ inputs.name }}",
+        "count": "{{ inputs.count }}",
+        "include": "{{ inputs.include }}"
+      },
+      "inputs": [
+        {
+          "key": "name",
+          "label": "Name contains",
+          "type": "string"
+        },
+        {
+          "key": "count",
+          "label": "Count",
+          "type": "number",
+          "default": 100,
+          "help": "Max 100."
+        },
+        {
+          "key": "include",
+          "label": "Include",
+          "type": "string",
+          "placeholder": "inventoryLines.location,defaultPrice"
+        }
+      ]
+    },
+    {
+      "key": "get_product",
+      "name": "Get product",
+      "method": "GET",
+      "endpoint": "/products/{{ inputs.product_id }}",
+      "query": {
+        "include": "{{ inputs.include }}"
+      },
+      "inputs": [
+        {
+          "key": "product_id",
+          "label": "Product ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "include",
+          "label": "Include",
+          "type": "string",
+          "placeholder": "inventoryLines.location"
+        }
+      ]
+    },
+    {
+      "key": "list_sales_orders",
+      "name": "List sales orders",
+      "method": "GET",
+      "endpoint": "/sales-orders",
+      "query": {
+        "count": "{{ inputs.count }}",
+        "sort": "orderDate",
+        "sortDesc": "true"
+      },
+      "inputs": [
+        {
+          "key": "count",
+          "label": "Count",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    },
+    {
+      "key": "get_sales_order",
+      "name": "Get sales order",
+      "method": "GET",
+      "endpoint": "/sales-orders/{{ inputs.sales_order_id }}",
+      "query": {
+        "include": "{{ inputs.include }}"
+      },
+      "inputs": [
+        {
+          "key": "sales_order_id",
+          "label": "Sales order ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "include",
+          "label": "Include",
+          "type": "string",
+          "placeholder": "lines,customer"
+        }
+      ]
+    },
+    {
+      "key": "list_customers",
+      "name": "List customers",
+      "method": "GET",
+      "endpoint": "/customers",
+      "query": {
+        "count": "{{ inputs.count }}"
+      },
+      "inputs": [
+        {
+          "key": "count",
+          "label": "Count",
+          "type": "number",
+          "default": 100
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_sales_order",
+      "name": "New sales order",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/sales-orders",
+      "query": {
+        "count": 50,
+        "sort": "orderDate",
+        "sortDesc": "true"
+      },
+      "id_field": "salesOrderId",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

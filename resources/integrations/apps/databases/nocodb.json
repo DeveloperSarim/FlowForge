@@ -1,0 +1,99 @@
+{
+  "key": "nocodb",
+  "name": "NocoDB",
+  "category": "Databases",
+  "description": "List, get, create, update and delete records in NocoDB tables.",
+  "brand": "nocodb",
+  "website": "https://nocodb.com",
+  "docs_url": "https://meta-apis-v2.nocodb.com",
+  "popular": true,
+  "base_url": "{{ credentials.base_url }}/api/v2",
+  "auth": { "type": "api_key", "in": "header", "name": "xc-token", "fields": [
+    { "key": "base_url", "label": "NocoDB URL", "type": "string", "required": true, "default": "https://app.nocodb.com", "help": "NocoDB Cloud or your self-hosted URL, without a trailing slash." },
+    { "key": "api_key", "label": "API token", "type": "password", "required": true, "help": "Account settings → Tokens." }
+  ] },
+  "actions": [
+    {
+      "key": "list_records",
+      "name": "List records",
+      "method": "GET",
+      "endpoint": "/tables/{{ inputs.table_id }}/records",
+      "query": { "where": "{{ inputs.where }}", "sort": "{{ inputs.sort }}", "fields": "{{ inputs.fields }}", "viewId": "{{ inputs.view_id }}", "limit": "{{ inputs.limit }}" },
+      "output_path": "list",
+      "inputs": [
+        { "key": "table_id", "label": "Table ID", "type": "string", "required": true, "help": "Table → Details → API snippets show the ID." },
+        { "key": "where", "label": "Where", "type": "string", "placeholder": "(Status,eq,Open)~and(Priority,gt,2)" },
+        { "key": "sort", "label": "Sort", "type": "string", "placeholder": "-CreatedAt" },
+        { "key": "fields", "label": "Fields", "type": "string", "placeholder": "Title,Status" },
+        { "key": "view_id", "label": "View ID", "type": "string" },
+        { "key": "limit", "label": "Limit", "type": "number", "default": 25 }
+      ]
+    },
+    {
+      "key": "get_record",
+      "name": "Get record",
+      "method": "GET",
+      "endpoint": "/tables/{{ inputs.table_id }}/records/{{ inputs.record_id }}",
+      "inputs": [
+        { "key": "table_id", "label": "Table ID", "type": "string", "required": true },
+        { "key": "record_id", "label": "Record ID", "type": "string", "required": true }
+      ]
+    },
+    {
+      "key": "create_records",
+      "name": "Create record(s)",
+      "method": "POST",
+      "endpoint": "/tables/{{ inputs.table_id }}/records",
+      "body": "{{ inputs.records }}",
+      "inputs": [
+        { "key": "table_id", "label": "Table ID", "type": "string", "required": true },
+        { "key": "records", "label": "Record or records (JSON)", "type": "json", "required": true, "placeholder": "{ \"Title\": \"New task\", \"Status\": \"Open\" }" }
+      ]
+    },
+    {
+      "key": "update_records",
+      "name": "Update record(s)",
+      "method": "PATCH",
+      "endpoint": "/tables/{{ inputs.table_id }}/records",
+      "body": "{{ inputs.records }}",
+      "inputs": [
+        { "key": "table_id", "label": "Table ID", "type": "string", "required": true },
+        { "key": "records", "label": "Record or records (JSON)", "type": "json", "required": true, "placeholder": "{ \"Id\": 12, \"Status\": \"Done\" }", "help": "Include the primary key (Id) of each record." }
+      ]
+    },
+    {
+      "key": "delete_record",
+      "name": "Delete record",
+      "method": "DELETE",
+      "endpoint": "/tables/{{ inputs.table_id }}/records",
+      "body": { "Id": "{{ inputs.record_id }}" },
+      "inputs": [
+        { "key": "table_id", "label": "Table ID", "type": "string", "required": true },
+        { "key": "record_id", "label": "Record ID", "type": "number", "required": true }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_record",
+      "name": "New record (polling)",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/tables/{{ inputs.table_id }}/records",
+      "query": { "sort": "-Id", "limit": 25 },
+      "items_path": "list",
+      "id_field": "Id",
+      "inputs": [
+        { "key": "table_id", "label": "Table ID", "type": "string", "required": true, "help": "Table must use the default Id primary key." },
+        { "key": "poll_interval", "label": "Check every (minutes)", "type": "number", "default": 5 }
+      ]
+    },
+    {
+      "key": "table_webhook",
+      "name": "Table webhook",
+      "type": "webhook",
+      "data_path": "data",
+      "inputs": [{ "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }]
+    }
+  ]
+}

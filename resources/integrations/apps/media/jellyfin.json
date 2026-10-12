@@ -1,0 +1,53 @@
+{
+  "key": "jellyfin",
+  "name": "Jellyfin",
+  "category": "Video & Media",
+  "description": "Refresh libraries, search items and list sessions on your Jellyfin server.",
+  "brand": "jellyfin",
+  "website": "https://jellyfin.org",
+  "docs_url": "https://api.jellyfin.org",
+  "base_url": "{{ credentials.server_url }}",
+  "headers": { "Authorization": "MediaBrowser Token=\"{{ credentials.api_key }}\"" },
+  "auth": { "type": "api_key", "fields": [
+    { "key": "server_url", "label": "Server URL", "type": "string", "required": true, "placeholder": "http://192.168.1.10:8096" },
+    { "key": "api_key", "label": "API key", "type": "password", "required": true, "help": "Dashboard > API Keys." }
+  ] },
+  "actions": [
+    {
+      "key": "get_system_info",
+      "name": "Get server info",
+      "method": "GET",
+      "endpoint": "/System/Info",
+      "inputs": []
+    },
+    {
+      "key": "refresh_library",
+      "name": "Scan all libraries",
+      "method": "POST",
+      "endpoint": "/Library/Refresh",
+      "inputs": []
+    },
+    {
+      "key": "search_items",
+      "name": "Search items",
+      "method": "GET",
+      "endpoint": "/Items",
+      "output_path": "Items",
+      "query": { "searchTerm": "{{ inputs.search_term }}", "includeItemTypes": "{{ inputs.item_types }}", "recursive": "true", "limit": "{{ inputs.limit }}", "userId": "{{ inputs.user_id }}" },
+      "inputs": [
+        { "key": "search_term", "label": "Search", "type": "string", "required": true },
+        { "key": "item_types", "label": "Item types", "type": "string", "placeholder": "Movie,Series,Episode" },
+        { "key": "limit", "label": "Limit", "type": "number", "default": 20 },
+        { "key": "user_id", "label": "User ID", "type": "string" }
+      ]
+    },
+    {
+      "key": "list_sessions",
+      "name": "List sessions",
+      "description": "Connected clients and what they are playing.",
+      "method": "GET",
+      "endpoint": "/Sessions",
+      "inputs": []
+    }
+  ]
+}

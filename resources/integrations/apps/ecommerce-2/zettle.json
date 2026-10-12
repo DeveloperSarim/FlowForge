@@ -1,0 +1,101 @@
+{
+  "key": "zettle",
+  "name": "Zettle by PayPal",
+  "category": "E-commerce",
+  "description": "List point-of-sale purchases and products from Zettle.",
+  "brand": "zettle",
+  "website": "https://www.zettle.com",
+  "docs_url": "https://developer.zettle.com/docs/api",
+  "base_url": "https://purchase.izettle.com",
+  "auth": [
+    {
+      "type": "oauth2",
+      "authorize_url": "https://oauth.zettle.com/authorize",
+      "token_url": "https://oauth.zettle.com/token",
+      "scopes": [
+        "READ:PURCHASE",
+        "READ:PRODUCT"
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_purchases",
+      "name": "List purchases",
+      "method": "GET",
+      "endpoint": "/purchases/v2",
+      "query": {
+        "limit": "{{ inputs.limit }}",
+        "descending": "true",
+        "startDate": "{{ inputs.start_date }}",
+        "endDate": "{{ inputs.end_date }}"
+      },
+      "output_path": "purchases",
+      "inputs": [
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 50,
+          "help": "1–1000."
+        },
+        {
+          "key": "start_date",
+          "label": "Start date",
+          "type": "string",
+          "placeholder": "2026-01-31"
+        },
+        {
+          "key": "end_date",
+          "label": "End date",
+          "type": "string",
+          "placeholder": "2026-02-28"
+        }
+      ]
+    },
+    {
+      "key": "get_purchase",
+      "name": "Get purchase",
+      "method": "GET",
+      "endpoint": "/purchase/v2/{{ inputs.purchase_uuid }}",
+      "inputs": [
+        {
+          "key": "purchase_uuid",
+          "label": "Purchase UUID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_products",
+      "name": "List products",
+      "method": "GET",
+      "endpoint": "https://products.izettle.com/organizations/self/products/v2",
+      "inputs": []
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_purchase",
+      "name": "New purchase",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/purchases/v2",
+      "query": {
+        "limit": 50,
+        "descending": "true"
+      },
+      "items_path": "purchases",
+      "id_field": "purchaseUUID1",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

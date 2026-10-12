@@ -1,0 +1,224 @@
+{
+  "key": "mailgun",
+  "name": "Mailgun",
+  "category": "Marketing & Email",
+  "description": "Send email, manage mailing list members and unsubscribes.",
+  "brand": "mailgun",
+  "website": "https://www.mailgun.com",
+  "docs_url": "https://documentation.mailgun.com/docs/mailgun/api-reference/",
+  "popular": true,
+  "base_url": "https://{{ credentials.region }}/v3",
+  "auth": {
+    "type": "basic",
+    "fields": [
+      {
+        "key": "region",
+        "label": "Region",
+        "type": "select",
+        "required": true,
+        "default": "api.mailgun.net",
+        "options": [
+          {
+            "value": "api.mailgun.net",
+            "label": "US (api.mailgun.net)"
+          },
+          {
+            "value": "api.eu.mailgun.net",
+            "label": "EU (api.eu.mailgun.net)"
+          }
+        ]
+      },
+      {
+        "key": "domain",
+        "label": "Sending domain",
+        "type": "string",
+        "required": true,
+        "placeholder": "mg.example.com"
+      },
+      {
+        "key": "username",
+        "label": "Username",
+        "type": "string",
+        "required": true,
+        "default": "api",
+        "help": "Always \"api\"."
+      },
+      {
+        "key": "password",
+        "label": "Private API key",
+        "type": "password",
+        "required": true
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "send_email",
+      "name": "Send email",
+      "method": "POST",
+      "endpoint": "/{{ credentials.domain }}/messages",
+      "body_format": "form",
+      "body": {
+        "from": "{{ inputs.from }}",
+        "to": "{{ inputs.to }}",
+        "cc": "{{ inputs.cc }}",
+        "bcc": "{{ inputs.bcc }}",
+        "subject": "{{ inputs.subject }}",
+        "text": "{{ inputs.text }}",
+        "html": "{{ inputs.html }}",
+        "template": "{{ inputs.template }}",
+        "o:tag": "{{ inputs.tag }}",
+        "h:Reply-To": "{{ inputs.reply_to }}"
+      },
+      "inputs": [
+        {
+          "key": "from",
+          "label": "From",
+          "type": "string",
+          "required": true,
+          "placeholder": "Acme <hello@mg.example.com>"
+        },
+        {
+          "key": "to",
+          "label": "To",
+          "type": "string",
+          "required": true,
+          "help": "Comma-separated for several recipients."
+        },
+        {
+          "key": "cc",
+          "label": "Cc",
+          "type": "string"
+        },
+        {
+          "key": "bcc",
+          "label": "Bcc",
+          "type": "string"
+        },
+        {
+          "key": "subject",
+          "label": "Subject",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "text",
+          "label": "Plain-text body",
+          "type": "text"
+        },
+        {
+          "key": "html",
+          "label": "HTML body",
+          "type": "text"
+        },
+        {
+          "key": "template",
+          "label": "Template name",
+          "type": "string",
+          "help": "Use a stored template instead of text/html."
+        },
+        {
+          "key": "tag",
+          "label": "Tag",
+          "type": "string"
+        },
+        {
+          "key": "reply_to",
+          "label": "Reply-to",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "add_list_member",
+      "name": "Add or update mailing list member",
+      "method": "POST",
+      "endpoint": "/lists/{{ inputs.list }}/members",
+      "body_format": "form",
+      "body": {
+        "address": "{{ inputs.address }}",
+        "name": "{{ inputs.name }}",
+        "subscribed": "{{ inputs.subscribed }}",
+        "upsert": "yes"
+      },
+      "inputs": [
+        {
+          "key": "list",
+          "label": "Mailing list address",
+          "type": "string",
+          "required": true,
+          "placeholder": "newsletter@mg.example.com"
+        },
+        {
+          "key": "address",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string"
+        },
+        {
+          "key": "subscribed",
+          "label": "Subscribed",
+          "type": "select",
+          "options": [
+            {
+              "value": "yes",
+              "label": "Yes"
+            },
+            {
+              "value": "no",
+              "label": "No"
+            }
+          ],
+          "default": "yes"
+        }
+      ]
+    },
+    {
+      "key": "add_unsubscribe",
+      "name": "Unsubscribe address",
+      "method": "POST",
+      "endpoint": "/{{ credentials.domain }}/unsubscribes",
+      "body_format": "form",
+      "description": "Adds the address to the domain's unsubscribe list (optionally for one tag only).",
+      "body": {
+        "address": "{{ inputs.address }}",
+        "tag": "{{ inputs.tag }}"
+      },
+      "inputs": [
+        {
+          "key": "address",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "tag",
+          "label": "Tag",
+          "type": "string",
+          "help": "Leave empty to unsubscribe from all mail."
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Sending → Webhooks (delivered, opened, clicked, failed…).",
+      "data_path": "event-data",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

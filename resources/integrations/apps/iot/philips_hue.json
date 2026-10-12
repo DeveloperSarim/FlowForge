@@ -1,0 +1,80 @@
+{
+  "key": "philips_hue",
+  "name": "Philips Hue",
+  "category": "IoT & Smart Home",
+  "description": "Switch and dim Hue lights and recall scenes through the Hue Remote API.",
+  "brand": "philipshue",
+  "website": "https://www.philips-hue.com",
+  "docs_url": "https://developers.meethue.com",
+  "base_url": "https://api.meethue.com/route/clip/v2",
+  "headers": { "hue-application-key": "{{ credentials.application_key }}" },
+  "auth": [
+    {
+      "type": "oauth2",
+      "authorize_url": "https://api.meethue.com/v2/oauth2/authorize",
+      "token_url": "https://api.meethue.com/v2/oauth2/token",
+      "client_auth": "basic",
+      "fields": [
+        { "key": "client_id", "label": "Client ID", "type": "string", "required": true, "help": "From your Remote Hue API app at developers.meethue.com." },
+        { "key": "client_secret", "label": "Client secret", "type": "password", "required": true },
+        { "key": "application_key", "label": "Bridge application key", "type": "password", "required": false, "help": "The bridge username (needed for every call). After connecting, create it once with the HTTP Request node and your access token: PUT https://api.meethue.com/route/api/0/config {\"linkbutton\":true}, then POST https://api.meethue.com/route/api {\"devicetype\":\"flowforge\"}; paste success.username here." }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_lights",
+      "name": "List lights",
+      "method": "GET",
+      "endpoint": "/resource/light",
+      "output_path": "data",
+      "error_path": "errors.0.description",
+      "inputs": []
+    },
+    {
+      "key": "update_light",
+      "name": "Update light",
+      "description": "Turn a light on or off and set brightness or colour temperature.",
+      "method": "PUT",
+      "endpoint": "/resource/light/{{ inputs.light_id }}",
+      "body": {
+        "on": { "on": "{{ inputs.on }}" },
+        "dimming": { "brightness": "{{ inputs.brightness }}" },
+        "color_temperature": { "mirek": "{{ inputs.mirek }}" },
+        "dynamics": { "duration": "{{ inputs.duration }}" }
+      },
+      "error_path": "errors.0.description",
+      "inputs": [
+        { "key": "light_id", "label": "Light ID", "type": "string", "required": true, "help": "The id (UUID) from List lights." },
+        { "key": "on", "label": "On", "type": "boolean" },
+        { "key": "brightness", "label": "Brightness (%)", "type": "number", "placeholder": "75" },
+        { "key": "mirek", "label": "Colour temperature (mirek 153-500)", "type": "number" },
+        { "key": "duration", "label": "Transition (ms)", "type": "number" }
+      ]
+    },
+    {
+      "key": "list_scenes",
+      "name": "List scenes",
+      "method": "GET",
+      "endpoint": "/resource/scene",
+      "output_path": "data",
+      "error_path": "errors.0.description",
+      "inputs": []
+    },
+    {
+      "key": "recall_scene",
+      "name": "Activate scene",
+      "method": "PUT",
+      "endpoint": "/resource/scene/{{ inputs.scene_id }}",
+      "body": { "recall": { "action": "{{ inputs.action }}", "duration": "{{ inputs.duration }}" } },
+      "error_path": "errors.0.description",
+      "inputs": [
+        { "key": "scene_id", "label": "Scene ID", "type": "string", "required": true },
+        { "key": "action", "label": "Mode", "type": "select", "required": true, "default": "active", "options": [
+          { "value": "active", "label": "Active" }, { "value": "dynamic_palette", "label": "Dynamic palette" }, { "value": "static", "label": "Static" }
+        ] },
+        { "key": "duration", "label": "Transition (ms)", "type": "number" }
+      ]
+    }
+  ]
+}

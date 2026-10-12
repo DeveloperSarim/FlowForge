@@ -1,0 +1,64 @@
+{
+  "key": "mention",
+  "name": "Mention",
+  "category": "Ads & SEO",
+  "description": "Watch brand alerts for new web and social mentions.",
+  "brand": "mention",
+  "website": "https://mention.com",
+  "docs_url": "https://dev.mention.com/",
+  "base_url": "https://api.mention.net/api",
+  "headers": { "Accept": "application/json" },
+  "auth": [
+    { "type": "oauth2", "authorize_url": "https://web.mention.net/authorize", "token_url": "https://web.mention.net/oauth/v2/token" },
+    { "type": "bearer", "fields": [{ "key": "token", "label": "Access token", "type": "password", "required": true }] }
+  ],
+  "actions": [
+    {
+      "key": "get_account",
+      "name": "Get my account",
+      "description": "Returns your account, including the account ID other calls need.",
+      "method": "GET",
+      "endpoint": "/accounts/me",
+      "inputs": []
+    },
+    {
+      "key": "list_alerts",
+      "name": "List alerts",
+      "method": "GET",
+      "endpoint": "/accounts/{{ inputs.account_id }}/alerts",
+      "output_path": "alerts",
+      "inputs": [{ "key": "account_id", "label": "Account ID", "type": "string", "required": true }]
+    },
+    {
+      "key": "list_mentions",
+      "name": "List mentions",
+      "method": "GET",
+      "endpoint": "/accounts/{{ inputs.account_id }}/alerts/{{ inputs.alert_id }}/mentions",
+      "query": { "limit": "{{ inputs.limit }}", "since_id": "{{ inputs.since_id }}" },
+      "output_path": "mentions",
+      "inputs": [
+        { "key": "account_id", "label": "Account ID", "type": "string", "required": true },
+        { "key": "alert_id", "label": "Alert ID", "type": "string", "required": true },
+        { "key": "limit", "label": "Limit (max 1000)", "type": "number", "default": 20 },
+        { "key": "since_id", "label": "Only mentions newer than ID", "type": "string" }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_mention",
+      "name": "New mention",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/accounts/{{ inputs.account_id }}/alerts/{{ inputs.alert_id }}/mentions",
+      "query": { "limit": 50 },
+      "items_path": "mentions",
+      "id_field": "id",
+      "inputs": [
+        { "key": "account_id", "label": "Account ID", "type": "string", "required": true },
+        { "key": "alert_id", "label": "Alert ID", "type": "string", "required": true },
+        { "key": "poll_interval", "label": "Check every (minutes)", "type": "number", "default": 5 }
+      ]
+    }
+  ]
+}

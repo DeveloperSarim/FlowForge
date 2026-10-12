@@ -1,0 +1,252 @@
+{
+  "key": "redmine",
+  "name": "Redmine",
+  "category": "Project Management",
+  "description": "Create, update and list issues on your Redmine server.",
+  "brand": "redmine",
+  "website": "https://www.redmine.org",
+  "docs_url": "https://www.redmine.org/projects/redmine/wiki/Rest_api",
+  "base_url": "{{ credentials.url }}",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "X-Redmine-API-Key",
+    "fields": [
+      {
+        "key": "url",
+        "label": "Redmine URL",
+        "type": "string",
+        "required": true,
+        "placeholder": "https://redmine.example.com"
+      },
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "My account > API access key (REST API must be enabled by an admin)."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "create_issue",
+      "name": "Create issue",
+      "method": "POST",
+      "endpoint": "/issues.json",
+      "body": {
+        "issue": {
+          "project_id": "{{ inputs.project_id }}",
+          "subject": "{{ inputs.subject }}",
+          "description": "{{ inputs.description }}",
+          "tracker_id": "{{ inputs.tracker_id }}",
+          "priority_id": "{{ inputs.priority_id }}",
+          "status_id": "{{ inputs.status_id }}",
+          "assigned_to_id": "{{ inputs.assigned_to_id }}",
+          "due_date": "{{ inputs.due_date }}"
+        }
+      },
+      "output_path": "issue",
+      "inputs": [
+        {
+          "key": "project_id",
+          "label": "Project ID or identifier",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "subject",
+          "label": "Subject",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "description",
+          "label": "Description",
+          "type": "text"
+        },
+        {
+          "key": "tracker_id",
+          "label": "Tracker ID",
+          "type": "number"
+        },
+        {
+          "key": "priority_id",
+          "label": "Priority ID",
+          "type": "number"
+        },
+        {
+          "key": "status_id",
+          "label": "Status ID",
+          "type": "number"
+        },
+        {
+          "key": "assigned_to_id",
+          "label": "Assignee user ID",
+          "type": "number"
+        },
+        {
+          "key": "due_date",
+          "label": "Due date",
+          "type": "string",
+          "placeholder": "2026-10-12"
+        }
+      ]
+    },
+    {
+      "key": "update_issue",
+      "name": "Update issue",
+      "description": "Changes only the fields you fill in; a note becomes a journal entry.",
+      "method": "PUT",
+      "endpoint": "/issues/{{ inputs.issue_id }}.json",
+      "body": {
+        "issue": {
+          "subject": "{{ inputs.subject }}",
+          "description": "{{ inputs.description }}",
+          "status_id": "{{ inputs.status_id }}",
+          "assigned_to_id": "{{ inputs.assigned_to_id }}",
+          "done_ratio": "{{ inputs.done_ratio }}",
+          "notes": "{{ inputs.notes }}"
+        }
+      },
+      "inputs": [
+        {
+          "key": "issue_id",
+          "label": "Issue ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "subject",
+          "label": "Subject",
+          "type": "string"
+        },
+        {
+          "key": "description",
+          "label": "Description",
+          "type": "text"
+        },
+        {
+          "key": "status_id",
+          "label": "Status ID",
+          "type": "number"
+        },
+        {
+          "key": "assigned_to_id",
+          "label": "Assignee user ID",
+          "type": "number"
+        },
+        {
+          "key": "done_ratio",
+          "label": "% done",
+          "type": "number"
+        },
+        {
+          "key": "notes",
+          "label": "Add note",
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "key": "get_issue",
+      "name": "Get issue",
+      "method": "GET",
+      "endpoint": "/issues/{{ inputs.issue_id }}.json",
+      "query": {
+        "include": "journals,attachments"
+      },
+      "output_path": "issue",
+      "inputs": [
+        {
+          "key": "issue_id",
+          "label": "Issue ID",
+          "type": "number",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_issues",
+      "name": "List issues",
+      "method": "GET",
+      "endpoint": "/issues.json",
+      "query": {
+        "project_id": "{{ inputs.project_id }}",
+        "status_id": "{{ inputs.status_id }}",
+        "assigned_to_id": "{{ inputs.assigned_to_id }}",
+        "limit": "{{ inputs.limit }}",
+        "sort": "updated_on:desc"
+      },
+      "output_path": "issues",
+      "inputs": [
+        {
+          "key": "project_id",
+          "label": "Project ID or identifier",
+          "type": "string"
+        },
+        {
+          "key": "status_id",
+          "label": "Status",
+          "type": "string",
+          "default": "open",
+          "help": "open, closed, * or a status id."
+        },
+        {
+          "key": "assigned_to_id",
+          "label": "Assignee",
+          "type": "string",
+          "placeholder": "me"
+        },
+        {
+          "key": "limit",
+          "label": "Max results",
+          "type": "number",
+          "default": 25
+        }
+      ]
+    },
+    {
+      "key": "list_projects",
+      "name": "List projects",
+      "method": "GET",
+      "endpoint": "/projects.json",
+      "query": {
+        "limit": 100
+      },
+      "output_path": "projects",
+      "inputs": []
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_issue",
+      "name": "New issue",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/issues.json",
+      "query": {
+        "project_id": "{{ inputs.project_id }}",
+        "status_id": "*",
+        "sort": "id:desc",
+        "limit": 50
+      },
+      "items_path": "issues",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "project_id",
+          "label": "Project ID or identifier",
+          "type": "string",
+          "help": "Empty = all projects."
+        },
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

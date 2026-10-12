@@ -1,0 +1,132 @@
+{
+  "key": "twenty",
+  "name": "Twenty",
+  "category": "CRM & Sales",
+  "description": "Create people and companies in Twenty CRM (cloud or self-hosted).",
+  "brand": "twenty",
+  "website": "https://twenty.com",
+  "docs_url": "https://twenty.com/developers",
+  "base_url": "{{ credentials.server_url }}/rest",
+  "auth": [
+    {
+      "type": "bearer",
+      "fields": [
+        {
+          "key": "server_url",
+          "label": "API URL",
+          "type": "string",
+          "required": true,
+          "default": "https://api.twenty.com",
+          "help": "Your server URL if self-hosted, no trailing slash."
+        },
+        {
+          "key": "token",
+          "label": "API key",
+          "type": "password",
+          "required": true,
+          "help": "Settings > APIs & Webhooks."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "create_person",
+      "name": "Create person",
+      "method": "POST",
+      "endpoint": "/people",
+      "body": {
+        "name": {
+          "firstName": "{{ inputs.first_name }}",
+          "lastName": "{{ inputs.last_name }}"
+        },
+        "emails": {
+          "primaryEmail": "{{ inputs.email }}"
+        },
+        "jobTitle": "{{ inputs.job_title }}",
+        "companyId": "{{ inputs.company_id }}"
+      },
+      "inputs": [
+        {
+          "key": "first_name",
+          "label": "First name",
+          "type": "string"
+        },
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string"
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string"
+        },
+        {
+          "key": "job_title",
+          "label": "Job title",
+          "type": "string"
+        },
+        {
+          "key": "company_id",
+          "label": "Company ID",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "get_person",
+      "name": "Get person",
+      "method": "GET",
+      "endpoint": "/people/{{ inputs.person_id }}",
+      "inputs": [
+        {
+          "key": "person_id",
+          "label": "Person ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "create_company",
+      "name": "Create company",
+      "method": "POST",
+      "endpoint": "/companies",
+      "body": {
+        "name": "{{ inputs.name }}",
+        "domainName": {
+          "primaryLinkUrl": "{{ inputs.domain }}"
+        }
+      },
+      "inputs": [
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "domain",
+          "label": "Website",
+          "type": "string",
+          "placeholder": "https://acme.com"
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

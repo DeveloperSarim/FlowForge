@@ -1,0 +1,80 @@
+{
+  "key": "shopify-order-sms",
+  "name": "Text customers when their Shopify order is placed",
+  "description": "Sends an SMS confirmation through Twilio as soon as Shopify reports a new order.",
+  "category": "E-commerce",
+  "featured": false,
+  "graph": {
+    "nodes": [
+      {
+        "id": "trigger",
+        "type": "trigger",
+        "position": {
+          "x": 0,
+          "y": 200
+        },
+        "data": {
+          "integration": "shopify",
+          "trigger": "order_created",
+          "label": "Order created",
+          "config": {}
+        }
+      },
+      {
+        "id": "step_1",
+        "type": "action",
+        "position": {
+          "x": 240,
+          "y": 200
+        },
+        "data": {
+          "integration": "logic",
+          "action": "filter",
+          "label": "Has a phone number",
+          "config": {
+            "combinator": "all",
+            "conditions": [
+              {
+                "left": "{{ steps.trigger.data.phone }}",
+                "operator": "is_not_empty",
+                "right": ""
+              }
+            ]
+          }
+        }
+      },
+      {
+        "id": "step_2",
+        "type": "action",
+        "position": {
+          "x": 480,
+          "y": 200
+        },
+        "data": {
+          "integration": "twilio",
+          "action": "send_sms",
+          "label": "Send confirmation",
+          "config": {
+            "to": "{{ steps.trigger.data.phone }}",
+            "from": "",
+            "body": "Thanks for your order {{ steps.trigger.data.name }}! We'll let you know when it ships."
+          }
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "e-trigger-step_1",
+        "source": "trigger",
+        "target": "step_1",
+        "sourceHandle": null
+      },
+      {
+        "id": "e-step_1-step_2",
+        "source": "step_1",
+        "target": "step_2",
+        "sourceHandle": null
+      }
+    ]
+  }
+}

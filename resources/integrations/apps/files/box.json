@@ -1,0 +1,241 @@
+{
+  "key": "box",
+  "name": "Box",
+  "category": "Files & Documents",
+  "description": "Search Box content, create folders, copy files and create shared links.",
+  "brand": "box",
+  "website": "https://www.box.com",
+  "docs_url": "https://developer.box.com/reference/",
+  "base_url": "https://api.box.com/2.0",
+  "auth": [
+    {
+      "type": "oauth2",
+      "authorize_url": "https://account.box.com/api/oauth2/authorize",
+      "token_url": "https://api.box.com/oauth2/token",
+      "scopes": [
+        "root_readwrite"
+      ]
+    },
+    {
+      "type": "bearer",
+      "fields": [
+        {
+          "key": "token",
+          "label": "Developer token",
+          "type": "password",
+          "required": true,
+          "help": "Valid for 60 minutes; use OAuth for production."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "search",
+      "name": "Search",
+      "method": "GET",
+      "endpoint": "/search",
+      "query": {
+        "query": "{{ inputs.query }}",
+        "type": "{{ inputs.type }}",
+        "ancestor_folder_ids": "{{ inputs.folder_id }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "inputs": [
+        {
+          "key": "query",
+          "label": "Search text",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "type",
+          "label": "Type",
+          "type": "select",
+          "options": [
+            {
+              "value": "file",
+              "label": "Files"
+            },
+            {
+              "value": "folder",
+              "label": "Folders"
+            },
+            {
+              "value": "web_link",
+              "label": "Web links"
+            }
+          ]
+        },
+        {
+          "key": "folder_id",
+          "label": "Only in folder ID",
+          "type": "string"
+        },
+        {
+          "key": "limit",
+          "label": "Max results",
+          "type": "number",
+          "default": 30
+        }
+      ]
+    },
+    {
+      "key": "list_folder_items",
+      "name": "List folder items",
+      "method": "GET",
+      "endpoint": "/folders/{{ inputs.folder_id }}/items",
+      "query": {
+        "limit": "{{ inputs.limit }}"
+      },
+      "inputs": [
+        {
+          "key": "folder_id",
+          "label": "Folder ID",
+          "type": "string",
+          "required": true,
+          "default": "0",
+          "help": "0 is the root folder."
+        },
+        {
+          "key": "limit",
+          "label": "Max items",
+          "type": "number",
+          "default": 100
+        }
+      ]
+    },
+    {
+      "key": "create_folder",
+      "name": "Create folder",
+      "method": "POST",
+      "endpoint": "/folders",
+      "body": {
+        "name": "{{ inputs.name }}",
+        "parent": {
+          "id": "{{ inputs.parent_id }}"
+        }
+      },
+      "inputs": [
+        {
+          "key": "name",
+          "label": "Folder name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "parent_id",
+          "label": "Parent folder ID",
+          "type": "string",
+          "required": true,
+          "default": "0"
+        }
+      ]
+    },
+    {
+      "key": "get_file",
+      "name": "Get file info",
+      "method": "GET",
+      "endpoint": "/files/{{ inputs.file_id }}",
+      "inputs": [
+        {
+          "key": "file_id",
+          "label": "File ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "copy_file",
+      "name": "Copy file",
+      "method": "POST",
+      "endpoint": "/files/{{ inputs.file_id }}/copy",
+      "body": {
+        "parent": {
+          "id": "{{ inputs.parent_id }}"
+        },
+        "name": "{{ inputs.name }}"
+      },
+      "inputs": [
+        {
+          "key": "file_id",
+          "label": "File ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "parent_id",
+          "label": "Destination folder ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "name",
+          "label": "New name",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "create_shared_link",
+      "name": "Create shared link",
+      "method": "PUT",
+      "endpoint": "/files/{{ inputs.file_id }}",
+      "query": {
+        "fields": "shared_link"
+      },
+      "body": {
+        "shared_link": {
+          "access": "{{ inputs.access }}"
+        }
+      },
+      "output_fields": {
+        "url": "shared_link.url"
+      },
+      "inputs": [
+        {
+          "key": "file_id",
+          "label": "File ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "access",
+          "label": "Who can open it",
+          "type": "select",
+          "options": [
+            {
+              "value": "open",
+              "label": "Anyone with the link"
+            },
+            {
+              "value": "company",
+              "label": "People in my company"
+            },
+            {
+              "value": "collaborators",
+              "label": "Collaborators only"
+            }
+          ],
+          "default": "open"
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Box webhook (V2) events such as FILE.UPLOADED.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

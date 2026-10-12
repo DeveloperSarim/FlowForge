@@ -1,0 +1,73 @@
+{
+  "key": "typeform-to-hubspot-slack",
+  "name": "Typeform leads to HubSpot and Slack",
+  "description": "Turn form responses into CRM contacts and tell sales right away.",
+  "category": "Sales & CRM",
+  "featured": false,
+  "graph": {
+    "nodes": [
+      {
+        "id": "trigger",
+        "type": "trigger",
+        "position": {
+          "x": 0,
+          "y": 200
+        },
+        "data": {
+          "integration": "typeform",
+          "trigger": "new_response_webhook",
+          "label": "New response",
+          "config": {}
+        }
+      },
+      {
+        "id": "step_1",
+        "type": "action",
+        "position": {
+          "x": 240,
+          "y": 200
+        },
+        "data": {
+          "integration": "hubspot",
+          "action": "create_contact",
+          "label": "Create contact",
+          "config": {
+            "email": "{{ steps.trigger.data.answers.0.email }}",
+            "first_name": "{{ steps.trigger.data.answers.1.text }}"
+          }
+        }
+      },
+      {
+        "id": "step_2",
+        "type": "action",
+        "position": {
+          "x": 480,
+          "y": 200
+        },
+        "data": {
+          "integration": "slack",
+          "action": "post_message",
+          "label": "Tell #sales",
+          "config": {
+            "channel": "#sales",
+            "text": "New Typeform lead: {{ steps.trigger.data.answers.0.email }}"
+          }
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "e-trigger-step_1",
+        "source": "trigger",
+        "target": "step_1",
+        "sourceHandle": null
+      },
+      {
+        "id": "e-step_1-step_2",
+        "source": "step_1",
+        "target": "step_2",
+        "sourceHandle": null
+      }
+    ]
+  }
+}

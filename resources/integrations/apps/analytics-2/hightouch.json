@@ -1,0 +1,58 @@
+{
+  "key": "hightouch",
+  "name": "Hightouch",
+  "category": "Analytics",
+  "description": "Trigger reverse-ETL syncs and check sync runs.",
+  "brand": "hightouch",
+  "website": "https://hightouch.com",
+  "docs_url": "https://hightouch.com/docs/developer-tools/api-guide",
+  "base_url": "https://api.hightouch.com/api/v1",
+  "auth": { "type": "bearer", "fields": [
+    { "key": "token", "label": "API key", "type": "password", "required": true, "help": "Workspace settings → API keys." }
+  ] },
+  "actions": [
+    {
+      "key": "list_syncs",
+      "name": "List syncs",
+      "method": "GET",
+      "endpoint": "/syncs",
+      "query": { "slug": "{{ inputs.slug }}", "modelId": "{{ inputs.model_id }}", "limit": "{{ inputs.limit }}" },
+      "output_path": "data",
+      "inputs": [
+        { "key": "slug", "label": "Slug", "type": "string" },
+        { "key": "model_id", "label": "Model ID", "type": "string" },
+        { "key": "limit", "label": "Limit", "type": "number" }
+      ]
+    },
+    {
+      "key": "get_sync",
+      "name": "Get sync",
+      "method": "GET",
+      "endpoint": "/syncs/{{ inputs.sync_id }}",
+      "inputs": [{ "key": "sync_id", "label": "Sync ID", "type": "string", "required": true }]
+    },
+    {
+      "key": "trigger_sync",
+      "name": "Trigger sync",
+      "method": "POST",
+      "endpoint": "/syncs/{{ inputs.sync_id }}/trigger",
+      "body": { "fullResync": "{{ inputs.full_resync }}" },
+      "inputs": [
+        { "key": "sync_id", "label": "Sync ID", "type": "string", "required": true },
+        { "key": "full_resync", "label": "Full resync", "type": "boolean" }
+      ]
+    },
+    {
+      "key": "list_sync_runs",
+      "name": "List sync runs",
+      "method": "GET",
+      "endpoint": "/syncs/{{ inputs.sync_id }}/runs",
+      "query": { "limit": "{{ inputs.limit }}" },
+      "output_path": "data",
+      "inputs": [
+        { "key": "sync_id", "label": "Sync ID", "type": "string", "required": true },
+        { "key": "limit", "label": "Limit", "type": "number" }
+      ]
+    }
+  ]
+}

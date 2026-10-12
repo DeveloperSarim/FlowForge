@@ -1,0 +1,218 @@
+{
+  "key": "pretix",
+  "name": "pretix",
+  "category": "Events & Webinars",
+  "description": "List pretix events and orders and subscribe to order webhooks.",
+  "brand": "pretix",
+  "website": "https://pretix.eu",
+  "docs_url": "https://docs.pretix.eu/en/latest/api/",
+  "base_url": "{{ credentials.host }}/api/v1",
+  "auth": [
+    {
+      "type": "api_key",
+      "in": "header",
+      "name": "Authorization",
+      "prefix": "Token ",
+      "fields": [
+        {
+          "key": "host",
+          "label": "pretix URL",
+          "type": "string",
+          "required": true,
+          "default": "https://pretix.eu",
+          "help": "Change for self-hosted pretix."
+        },
+        {
+          "key": "api_key",
+          "label": "Team API token",
+          "type": "password",
+          "required": true,
+          "help": "Organizer > Teams > your team > API tokens."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_events",
+      "name": "List events",
+      "method": "GET",
+      "endpoint": "/organizers/{{ inputs.organizer }}/events/",
+      "output_path": "results",
+      "inputs": [
+        {
+          "key": "organizer",
+          "label": "Organizer slug",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_orders",
+      "name": "List event orders",
+      "description": "Newest first.",
+      "method": "GET",
+      "endpoint": "/organizers/{{ inputs.organizer }}/events/{{ inputs.event }}/orders/",
+      "query": {
+        "status": "{{ inputs.status }}",
+        "email": "{{ inputs.email }}",
+        "ordering": "-datetime"
+      },
+      "output_path": "results",
+      "inputs": [
+        {
+          "key": "organizer",
+          "label": "Organizer slug",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "event",
+          "label": "Event slug",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "options": [
+            {
+              "value": "n",
+              "label": "Pending"
+            },
+            {
+              "value": "p",
+              "label": "Paid"
+            },
+            {
+              "value": "e",
+              "label": "Expired"
+            },
+            {
+              "value": "c",
+              "label": "Canceled"
+            }
+          ]
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "get_order",
+      "name": "Get order",
+      "method": "GET",
+      "endpoint": "/organizers/{{ inputs.organizer }}/events/{{ inputs.event }}/orders/{{ inputs.code }}/",
+      "inputs": [
+        {
+          "key": "organizer",
+          "label": "Organizer slug",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "event",
+          "label": "Event slug",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "code",
+          "label": "Order code",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "create_webhook",
+      "name": "Create webhook",
+      "method": "POST",
+      "endpoint": "/organizers/{{ inputs.organizer }}/webhooks/",
+      "body": {
+        "enabled": true,
+        "target_url": "{{ inputs.target_url }}",
+        "all_events": true,
+        "limit_events": [],
+        "action_types": "{{ inputs.action_types }}"
+      },
+      "inputs": [
+        {
+          "key": "organizer",
+          "label": "Organizer slug",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "target_url",
+          "label": "Target URL",
+          "type": "string",
+          "required": true,
+          "help": "Paste a workflow's pretix webhook trigger URL."
+        },
+        {
+          "key": "action_types",
+          "label": "Actions",
+          "type": "list",
+          "required": true,
+          "default": [
+            "pretix.event.order.placed",
+            "pretix.event.order.paid"
+          ]
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_order",
+      "name": "New order",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/organizers/{{ inputs.organizer }}/events/{{ inputs.event }}/orders/",
+      "query": {
+        "ordering": "-datetime"
+      },
+      "items_path": "results",
+      "id_field": "code",
+      "inputs": [
+        {
+          "key": "organizer",
+          "label": "Organizer slug",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "event",
+          "label": "Event slug",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    },
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Register the URL with Create webhook. The payload contains the order code and action.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

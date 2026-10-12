@@ -1,0 +1,275 @@
+{
+  "key": "zoho_crm",
+  "name": "Zoho CRM",
+  "category": "CRM & Sales",
+  "description": "Create, update and search leads, contacts, deals and any module.",
+  "brand": "zoho",
+  "website": "https://www.zoho.com/crm/",
+  "docs_url": "https://www.zoho.com/crm/developer/docs/api/v6/",
+  "popular": true,
+  "base_url": "https://www.zohoapis.{{ credentials.dc }}/crm/v6",
+  "auth": [
+    {
+      "type": "oauth2",
+      "authorize_url": "https://accounts.zoho.{{ credentials.dc }}/oauth/v2/auth",
+      "token_url": "https://accounts.zoho.{{ credentials.dc }}/oauth/v2/token",
+      "scopes": [
+        "ZohoCRM.modules.ALL",
+        "ZohoCRM.settings.READ"
+      ],
+      "scope_separator": ",",
+      "authorize_params": {
+        "access_type": "offline",
+        "prompt": "consent"
+      },
+      "fields": [
+        {
+          "key": "dc",
+          "label": "Data center",
+          "type": "select",
+          "required": true,
+          "default": "com",
+          "options": [
+            {
+              "value": "com",
+              "label": "US (.com)"
+            },
+            {
+              "value": "eu",
+              "label": "EU (.eu)"
+            },
+            {
+              "value": "in",
+              "label": "India (.in)"
+            },
+            {
+              "value": "com.au",
+              "label": "Australia (.com.au)"
+            },
+            {
+              "value": "jp",
+              "label": "Japan (.jp)"
+            },
+            {
+              "value": "ca",
+              "label": "Canada (.ca)"
+            },
+            {
+              "value": "com.cn",
+              "label": "China (.com.cn)"
+            },
+            {
+              "value": "sa",
+              "label": "Saudi Arabia (.sa)"
+            }
+          ],
+          "help": "The domain your Zoho account lives on (zoho.com, zoho.eu, ...)."
+        }
+      ],
+      "token_type": "Zoho-oauthtoken"
+    }
+  ],
+  "actions": [
+    {
+      "key": "create_record",
+      "name": "Create record",
+      "method": "POST",
+      "endpoint": "/{{ inputs.module }}",
+      "body": {
+        "data": [
+          "{{ inputs.record }}"
+        ]
+      },
+      "inputs": [
+        {
+          "key": "module",
+          "label": "Module",
+          "type": "string",
+          "required": true,
+          "default": "Leads",
+          "help": "API name of the module."
+        },
+        {
+          "key": "record",
+          "label": "Record fields",
+          "type": "json",
+          "required": true,
+          "help": "Field API names, e.g. {\"Last_Name\": \"Smith\", \"Email\": \"a@b.com\", \"Company\": \"Acme\"}"
+        }
+      ]
+    },
+    {
+      "key": "update_record",
+      "name": "Update record",
+      "method": "PUT",
+      "endpoint": "/{{ inputs.module }}/{{ inputs.record_id }}",
+      "body": {
+        "data": [
+          "{{ inputs.record }}"
+        ]
+      },
+      "inputs": [
+        {
+          "key": "module",
+          "label": "Module",
+          "type": "string",
+          "required": true,
+          "default": "Leads",
+          "help": "API name of the module."
+        },
+        {
+          "key": "record_id",
+          "label": "Record ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "record",
+          "label": "Record fields",
+          "type": "json",
+          "required": true,
+          "help": "Field API names, e.g. {\"Last_Name\": \"Smith\", \"Email\": \"a@b.com\", \"Company\": \"Acme\"}"
+        }
+      ]
+    },
+    {
+      "key": "get_record",
+      "name": "Get record",
+      "method": "GET",
+      "endpoint": "/{{ inputs.module }}/{{ inputs.record_id }}",
+      "output_path": "data.0",
+      "inputs": [
+        {
+          "key": "module",
+          "label": "Module",
+          "type": "string",
+          "required": true,
+          "default": "Leads",
+          "help": "API name of the module."
+        },
+        {
+          "key": "record_id",
+          "label": "Record ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "search_records",
+      "name": "Search records",
+      "method": "GET",
+      "endpoint": "/{{ inputs.module }}/search",
+      "query": {
+        "email": "{{ inputs.email }}",
+        "phone": "{{ inputs.phone }}",
+        "word": "{{ inputs.word }}",
+        "criteria": "{{ inputs.criteria }}"
+      },
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "module",
+          "label": "Module",
+          "type": "string",
+          "required": true,
+          "default": "Leads",
+          "help": "API name of the module."
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string"
+        },
+        {
+          "key": "phone",
+          "label": "Phone",
+          "type": "string"
+        },
+        {
+          "key": "word",
+          "label": "Keyword",
+          "type": "string"
+        },
+        {
+          "key": "criteria",
+          "label": "Criteria",
+          "type": "string",
+          "placeholder": "(Last_Name:equals:Smith)"
+        }
+      ]
+    },
+    {
+      "key": "upsert_record",
+      "name": "Upsert record",
+      "method": "POST",
+      "endpoint": "/{{ inputs.module }}/upsert",
+      "body": {
+        "data": [
+          "{{ inputs.record }}"
+        ],
+        "duplicate_check_fields": "{{ inputs.duplicate_check_fields }}"
+      },
+      "inputs": [
+        {
+          "key": "module",
+          "label": "Module",
+          "type": "string",
+          "required": true,
+          "default": "Leads"
+        },
+        {
+          "key": "record",
+          "label": "Record fields",
+          "type": "json",
+          "required": true
+        },
+        {
+          "key": "duplicate_check_fields",
+          "label": "Match on fields",
+          "type": "list",
+          "help": "e.g. Email"
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_record",
+      "name": "New record",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/{{ inputs.module }}",
+      "query": {
+        "fields": "{{ inputs.fields }}",
+        "sort_by": "Created_Time",
+        "sort_order": "desc",
+        "per_page": 50
+      },
+      "items_path": "data",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "module",
+          "label": "Module",
+          "type": "string",
+          "required": true,
+          "default": "Leads"
+        },
+        {
+          "key": "fields",
+          "label": "Fields",
+          "type": "string",
+          "required": true,
+          "default": "Last_Name,First_Name,Email,Created_Time"
+        },
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

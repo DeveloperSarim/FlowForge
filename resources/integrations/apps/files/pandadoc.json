@@ -1,0 +1,214 @@
+{
+  "key": "pandadoc",
+  "name": "PandaDoc",
+  "category": "Files & Documents",
+  "description": "Create documents from templates, send them for signature and check status.",
+  "brand": "pandadoc",
+  "website": "https://www.pandadoc.com",
+  "docs_url": "https://developers.pandadoc.com/reference/about",
+  "popular": true,
+  "base_url": "https://api.pandadoc.com/public/v1",
+  "auth": [
+    {
+      "type": "api_key",
+      "in": "header",
+      "name": "Authorization",
+      "prefix": "API-Key "
+    },
+    {
+      "type": "oauth2",
+      "authorize_url": "https://app.pandadoc.com/oauth2/authorize",
+      "token_url": "https://api.pandadoc.com/oauth2/access_token",
+      "scopes": [
+        "read",
+        "write"
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "create_from_template",
+      "name": "Create document from template",
+      "method": "POST",
+      "endpoint": "/documents",
+      "body": {
+        "name": "{{ inputs.name }}",
+        "template_uuid": "{{ inputs.template_id }}",
+        "recipients": "{{ inputs.recipients }}",
+        "tokens": "{{ inputs.tokens }}",
+        "fields": "{{ inputs.fields }}",
+        "metadata": "{{ inputs.metadata }}",
+        "tags": "{{ inputs.tags }}"
+      },
+      "inputs": [
+        {
+          "key": "template_id",
+          "label": "Template ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "name",
+          "label": "Document name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "recipients",
+          "label": "Recipients (JSON)",
+          "type": "json",
+          "required": true,
+          "placeholder": "[{ \"email\": \"jane@example.com\", \"first_name\": \"Jane\", \"last_name\": \"Doe\", \"role\": \"Client\" }]"
+        },
+        {
+          "key": "tokens",
+          "label": "Variables (JSON)",
+          "type": "json",
+          "placeholder": "[{ \"name\": \"Client.Company\", \"value\": \"Acme\" }]"
+        },
+        {
+          "key": "fields",
+          "label": "Fields (JSON)",
+          "type": "json",
+          "placeholder": "{ \"field_name\": { \"value\": \"...\" } }"
+        },
+        {
+          "key": "metadata",
+          "label": "Metadata (JSON)",
+          "type": "json"
+        },
+        {
+          "key": "tags",
+          "label": "Tags",
+          "type": "list"
+        }
+      ]
+    },
+    {
+      "key": "send_document",
+      "name": "Send document",
+      "description": "Sends a draft document. New documents need a few seconds to reach draft.",
+      "method": "POST",
+      "endpoint": "/documents/{{ inputs.document_id }}/send",
+      "body": {
+        "subject": "{{ inputs.subject }}",
+        "message": "{{ inputs.message }}",
+        "silent": "{{ inputs.silent }}"
+      },
+      "inputs": [
+        {
+          "key": "document_id",
+          "label": "Document ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "subject",
+          "label": "Email subject",
+          "type": "string"
+        },
+        {
+          "key": "message",
+          "label": "Message",
+          "type": "text"
+        },
+        {
+          "key": "silent",
+          "label": "Don't email recipients",
+          "type": "boolean",
+          "default": false
+        }
+      ]
+    },
+    {
+      "key": "get_document",
+      "name": "Get document status",
+      "method": "GET",
+      "endpoint": "/documents/{{ inputs.document_id }}",
+      "inputs": [
+        {
+          "key": "document_id",
+          "label": "Document ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "get_document_details",
+      "name": "Get document details",
+      "method": "GET",
+      "endpoint": "/documents/{{ inputs.document_id }}/details",
+      "inputs": [
+        {
+          "key": "document_id",
+          "label": "Document ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_documents",
+      "name": "List documents",
+      "method": "GET",
+      "endpoint": "/documents",
+      "query": {
+        "q": "{{ inputs.q }}",
+        "template_id": "{{ inputs.template_id }}",
+        "count": "{{ inputs.count }}"
+      },
+      "output_path": "results",
+      "inputs": [
+        {
+          "key": "q",
+          "label": "Search text",
+          "type": "string"
+        },
+        {
+          "key": "template_id",
+          "label": "Template ID",
+          "type": "string"
+        },
+        {
+          "key": "count",
+          "label": "Max results",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    },
+    {
+      "key": "list_templates",
+      "name": "List templates",
+      "method": "GET",
+      "endpoint": "/templates",
+      "query": {
+        "q": "{{ inputs.q }}"
+      },
+      "output_path": "results",
+      "inputs": [
+        {
+          "key": "q",
+          "label": "Search text",
+          "type": "string"
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Document events from a PandaDoc webhook subscription.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

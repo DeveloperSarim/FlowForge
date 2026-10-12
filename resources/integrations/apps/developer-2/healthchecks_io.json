@@ -1,0 +1,101 @@
+{
+  "key": "healthchecks_io",
+  "name": "Healthchecks.io",
+  "category": "Developer Tools",
+  "description": "Ping checks and create, list, pause or resume cron job monitors.",
+  "brand": "healthchecksio",
+  "website": "https://healthchecks.io",
+  "docs_url": "https://healthchecks.io/docs/api/",
+  "base_url": "{{ credentials.base_url }}",
+  "auth": { "type": "api_key", "in": "header", "name": "X-Api-Key", "fields": [
+    { "key": "base_url", "label": "Healthchecks URL", "type": "string", "required": true, "default": "https://healthchecks.io", "help": "Change only for a self-hosted instance (no trailing slash)." },
+    { "key": "api_key", "label": "Project API key", "type": "password", "required": true, "help": "Project settings → API access → Create API key (not read-only)." }
+  ] },
+  "actions": [
+    {
+      "key": "ping",
+      "name": "Ping check (success)",
+      "method": "POST",
+      "endpoint": "/ping/{{ inputs.uuid }}",
+      "body": "{{ inputs.body }}",
+      "inputs": [
+        { "key": "uuid", "label": "Check UUID", "type": "string", "required": true },
+        { "key": "body", "label": "Log output", "type": "text", "help": "Optional text stored with the ping." }
+      ]
+    },
+    {
+      "key": "ping_signal",
+      "name": "Ping check (start / fail / log)",
+      "method": "POST",
+      "endpoint": "/ping/{{ inputs.uuid }}/{{ inputs.signal }}",
+      "body": "{{ inputs.body }}",
+      "inputs": [
+        { "key": "uuid", "label": "Check UUID", "type": "string", "required": true },
+        { "key": "signal", "label": "Signal", "type": "select", "required": true, "default": "fail", "options": [
+          { "value": "start", "label": "Start" }, { "value": "fail", "label": "Fail" }, { "value": "log", "label": "Log (no state change)" }
+        ] },
+        { "key": "body", "label": "Log output", "type": "text" }
+      ]
+    },
+    {
+      "key": "list_checks",
+      "name": "List checks",
+      "method": "GET",
+      "endpoint": "/api/v3/checks/",
+      "query": { "tag": "{{ inputs.tag }}", "slug": "{{ inputs.slug }}" },
+      "output_path": "checks",
+      "inputs": [
+        { "key": "tag", "label": "Tag", "type": "string" },
+        { "key": "slug", "label": "Slug", "type": "string" }
+      ]
+    },
+    {
+      "key": "create_check",
+      "name": "Create check",
+      "method": "POST",
+      "endpoint": "/api/v3/checks/",
+      "body": { "name": "{{ inputs.name }}", "slug": "{{ inputs.slug }}", "tags": "{{ inputs.tags }}", "desc": "{{ inputs.desc }}", "timeout": "{{ inputs.timeout }}", "grace": "{{ inputs.grace }}", "schedule": "{{ inputs.schedule }}", "tz": "{{ inputs.tz }}", "channels": "{{ inputs.channels }}", "unique": "{{ inputs.unique }}" },
+      "inputs": [
+        { "key": "name", "label": "Name", "type": "string", "required": true },
+        { "key": "slug", "label": "Slug", "type": "string" },
+        { "key": "tags", "label": "Tags (space-separated)", "type": "string" },
+        { "key": "desc", "label": "Description", "type": "text" },
+        { "key": "timeout", "label": "Period (seconds)", "type": "number", "help": "For simple checks. Ignored when a cron schedule is set." },
+        { "key": "grace", "label": "Grace (seconds)", "type": "number" },
+        { "key": "schedule", "label": "Cron schedule", "type": "string", "placeholder": "0 3 * * *" },
+        { "key": "tz", "label": "Time zone", "type": "string", "placeholder": "Europe/Berlin" },
+        { "key": "channels", "label": "Integrations", "type": "string", "help": "* for all, or comma-separated integration IDs." },
+        { "key": "unique", "label": "Unique by", "type": "list", "help": "e.g. name — return the existing check instead of creating a duplicate." }
+      ]
+    },
+    {
+      "key": "get_check",
+      "name": "Get check",
+      "method": "GET",
+      "endpoint": "/api/v3/checks/{{ inputs.uuid }}",
+      "inputs": [{ "key": "uuid", "label": "Check UUID", "type": "string", "required": true }]
+    },
+    {
+      "key": "pause_check",
+      "name": "Pause check",
+      "method": "POST",
+      "endpoint": "/api/v3/checks/{{ inputs.uuid }}/pause",
+      "inputs": [{ "key": "uuid", "label": "Check UUID", "type": "string", "required": true }]
+    },
+    {
+      "key": "resume_check",
+      "name": "Resume check",
+      "method": "POST",
+      "endpoint": "/api/v3/checks/{{ inputs.uuid }}/resume",
+      "inputs": [{ "key": "uuid", "label": "Check UUID", "type": "string", "required": true }]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "status_change",
+      "name": "Check goes down / up (webhook)",
+      "type": "webhook",
+      "inputs": [{ "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }]
+    }
+  ]
+}

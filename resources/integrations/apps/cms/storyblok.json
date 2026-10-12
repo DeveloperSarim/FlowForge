@@ -1,0 +1,216 @@
+{
+  "key": "storyblok",
+  "name": "Storyblok",
+  "category": "CMS & Websites",
+  "description": "Create, update, publish and list stories with the Management API.",
+  "brand": "storyblok",
+  "website": "https://www.storyblok.com",
+  "docs_url": "https://www.storyblok.com/docs/api/management",
+  "base_url": "{{ credentials.api_host }}/v1/spaces/{{ credentials.space_id }}",
+  "auth": [
+    {
+      "type": "api_key",
+      "in": "header",
+      "name": "Authorization",
+      "fields": [
+        {
+          "key": "api_key",
+          "label": "Personal access token",
+          "type": "password",
+          "required": true,
+          "help": "My account > Personal access tokens."
+        },
+        {
+          "key": "space_id",
+          "label": "Space ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "api_host",
+          "label": "API host",
+          "type": "string",
+          "required": true,
+          "default": "https://mapi.storyblok.com",
+          "help": "EU: https://mapi.storyblok.com, US: https://api-us.storyblok.com, CA: https://api-ca.storyblok.com, AP: https://api-ap.storyblok.com"
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_stories",
+      "name": "List stories",
+      "method": "GET",
+      "endpoint": "/stories/",
+      "output_path": "stories",
+      "query": {
+        "text_search": "{{ inputs.search }}",
+        "starts_with": "{{ inputs.starts_with }}",
+        "with_tag": "{{ inputs.with_tag }}",
+        "sort_by": "created_at:desc",
+        "per_page": "{{ inputs.per_page }}"
+      },
+      "inputs": [
+        {
+          "key": "search",
+          "label": "Search text",
+          "type": "string"
+        },
+        {
+          "key": "starts_with",
+          "label": "Folder slug",
+          "type": "string",
+          "placeholder": "blog/"
+        },
+        {
+          "key": "with_tag",
+          "label": "Tag",
+          "type": "string"
+        },
+        {
+          "key": "per_page",
+          "label": "Max stories",
+          "type": "number",
+          "default": 25
+        }
+      ]
+    },
+    {
+      "key": "get_story",
+      "name": "Get story",
+      "method": "GET",
+      "endpoint": "/stories/{{ inputs.story_id }}",
+      "output_path": "story",
+      "inputs": [
+        {
+          "key": "story_id",
+          "label": "Story ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "create_story",
+      "name": "Create story",
+      "method": "POST",
+      "endpoint": "/stories/",
+      "output_path": "story",
+      "body": {
+        "story": {
+          "name": "{{ inputs.name }}",
+          "slug": "{{ inputs.slug }}",
+          "parent_id": "{{ inputs.parent_id }}",
+          "content": "{{ inputs.content }}"
+        },
+        "publish": "{{ inputs.publish }}"
+      },
+      "inputs": [
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "slug",
+          "label": "Slug",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "parent_id",
+          "label": "Folder ID",
+          "type": "number"
+        },
+        {
+          "key": "content",
+          "label": "Content (JSON)",
+          "type": "json",
+          "required": true,
+          "placeholder": "{ \"component\": \"page\", \"body\": [] }"
+        },
+        {
+          "key": "publish",
+          "label": "Publish",
+          "type": "boolean",
+          "default": false
+        }
+      ]
+    },
+    {
+      "key": "update_story",
+      "name": "Update story",
+      "method": "PUT",
+      "endpoint": "/stories/{{ inputs.story_id }}",
+      "output_path": "story",
+      "body": {
+        "story": {
+          "name": "{{ inputs.name }}",
+          "slug": "{{ inputs.slug }}",
+          "content": "{{ inputs.content }}"
+        },
+        "publish": "{{ inputs.publish }}"
+      },
+      "inputs": [
+        {
+          "key": "story_id",
+          "label": "Story ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string"
+        },
+        {
+          "key": "slug",
+          "label": "Slug",
+          "type": "string"
+        },
+        {
+          "key": "content",
+          "label": "Content (JSON)",
+          "type": "json"
+        },
+        {
+          "key": "publish",
+          "label": "Publish",
+          "type": "boolean",
+          "default": false
+        }
+      ]
+    },
+    {
+      "key": "publish_story",
+      "name": "Publish story",
+      "method": "GET",
+      "endpoint": "/stories/{{ inputs.story_id }}/publish",
+      "inputs": [
+        {
+          "key": "story_id",
+          "label": "Story ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Storyblok webhooks (story published, unpublished, deleted, ...).",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,135 @@
+{
+  "key": "bannerbear",
+  "name": "Bannerbear",
+  "category": "Files & Documents",
+  "description": "Generate images from templates for social posts and banners.",
+  "brand": "bannerbear",
+  "website": "https://www.bannerbear.com",
+  "docs_url": "https://developers.bannerbear.com/",
+  "base_url": "https://api.bannerbear.com/v2",
+  "auth": [
+    {
+      "type": "bearer",
+      "fields": [
+        {
+          "key": "token",
+          "label": "Project API key",
+          "type": "password",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "create_image_sync",
+      "name": "Create image (wait)",
+      "description": "Renders the image and returns it (up to ~10 seconds).",
+      "method": "POST",
+      "endpoint": "https://sync.api.bannerbear.com/v2/images",
+      "timeout": 60,
+      "body": {
+        "template": "{{ inputs.template_id }}",
+        "modifications": "{{ inputs.modifications }}",
+        "metadata": "{{ inputs.metadata }}"
+      },
+      "output_fields": {
+        "url": "image_url"
+      },
+      "inputs": [
+        {
+          "key": "template_id",
+          "label": "Template ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "modifications",
+          "label": "Modifications (JSON)",
+          "type": "json",
+          "required": true,
+          "placeholder": "[{ \"name\": \"title\", \"text\": \"Hello\" }, { \"name\": \"photo\", \"image_url\": \"https://...\" }]"
+        },
+        {
+          "key": "metadata",
+          "label": "Metadata",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "create_image",
+      "name": "Create image (async)",
+      "method": "POST",
+      "endpoint": "/images",
+      "body": {
+        "template": "{{ inputs.template_id }}",
+        "modifications": "{{ inputs.modifications }}",
+        "webhook_url": "{{ inputs.webhook_url }}",
+        "metadata": "{{ inputs.metadata }}"
+      },
+      "inputs": [
+        {
+          "key": "template_id",
+          "label": "Template ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "modifications",
+          "label": "Modifications (JSON)",
+          "type": "json",
+          "required": true,
+          "placeholder": "[{ \"name\": \"title\", \"text\": \"Hello\" }, { \"name\": \"photo\", \"image_url\": \"https://...\" }]"
+        },
+        {
+          "key": "metadata",
+          "label": "Metadata",
+          "type": "string"
+        },
+        {
+          "key": "webhook_url",
+          "label": "Webhook URL",
+          "type": "string",
+          "help": "Bannerbear posts the finished image here."
+        }
+      ]
+    },
+    {
+      "key": "get_image",
+      "name": "Get image",
+      "method": "GET",
+      "endpoint": "/images/{{ inputs.uid }}",
+      "inputs": [
+        {
+          "key": "uid",
+          "label": "Image UID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_templates",
+      "name": "List templates",
+      "method": "GET",
+      "endpoint": "/templates",
+      "inputs": []
+    }
+  ],
+  "triggers": [
+    {
+      "key": "image_completed",
+      "name": "Image completed",
+      "type": "webhook",
+      "description": "Finished image posted to your webhook_url.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

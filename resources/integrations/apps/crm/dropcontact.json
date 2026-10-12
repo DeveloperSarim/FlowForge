@@ -1,0 +1,116 @@
+{
+  "key": "dropcontact",
+  "name": "Dropcontact",
+  "category": "CRM & Sales",
+  "description": "Find and enrich B2B emails, then fetch the results.",
+  "brand": "dropcontact",
+  "website": "https://www.dropcontact.com",
+  "docs_url": "https://developer.dropcontact.com/",
+  "base_url": "https://api.dropcontact.com",
+  "auth": [
+    {
+      "type": "api_key",
+      "in": "header",
+      "name": "X-Access-Token",
+      "fields": [
+        {
+          "key": "api_key",
+          "label": "API key",
+          "type": "password",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "enrich",
+      "name": "Submit contact for enrichment",
+      "description": "Returns a request_id; fetch the result with Get enrichment result.",
+      "method": "POST",
+      "endpoint": "/v1/enrich/all",
+      "body": {
+        "data": [
+          {
+            "first_name": "{{ inputs.first_name }}",
+            "last_name": "{{ inputs.last_name }}",
+            "email": "{{ inputs.email }}",
+            "company": "{{ inputs.company }}",
+            "website": "{{ inputs.website }}",
+            "linkedin": "{{ inputs.linkedin }}"
+          }
+        ],
+        "siren": "{{ inputs.siren }}",
+        "language": "{{ inputs.language }}"
+      },
+      "inputs": [
+        {
+          "key": "first_name",
+          "label": "First name",
+          "type": "string"
+        },
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string"
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string"
+        },
+        {
+          "key": "company",
+          "label": "Company",
+          "type": "string"
+        },
+        {
+          "key": "website",
+          "label": "Company website",
+          "type": "string"
+        },
+        {
+          "key": "linkedin",
+          "label": "LinkedIn URL",
+          "type": "string"
+        },
+        {
+          "key": "siren",
+          "label": "Add French company data",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "key": "language",
+          "label": "Language",
+          "type": "select",
+          "options": [
+            {
+              "value": "en",
+              "label": "English"
+            },
+            {
+              "value": "fr",
+              "label": "French"
+            }
+          ],
+          "default": "en"
+        }
+      ]
+    },
+    {
+      "key": "get_result",
+      "name": "Get enrichment result",
+      "method": "GET",
+      "endpoint": "/v1/enrich/all/{{ inputs.request_id }}",
+      "inputs": [
+        {
+          "key": "request_id",
+          "label": "Request ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ]
+}

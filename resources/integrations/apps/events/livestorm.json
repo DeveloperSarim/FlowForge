@@ -1,0 +1,260 @@
+{
+  "key": "livestorm",
+  "name": "Livestorm",
+  "category": "Events & Webinars",
+  "description": "List events and sessions, register people and manage Livestorm webhooks.",
+  "brand": "livestorm",
+  "website": "https://livestorm.co",
+  "docs_url": "https://developers.livestorm.co",
+  "base_url": "https://api.livestorm.co/v1",
+  "headers": {
+    "Accept": "application/vnd.api+json",
+    "Content-Type": "application/vnd.api+json"
+  },
+  "auth": [
+    {
+      "type": "api_key",
+      "in": "header",
+      "name": "Authorization",
+      "fields": [
+        {
+          "key": "api_key",
+          "label": "API token",
+          "type": "password",
+          "required": true,
+          "help": "Account settings > Integrations > Public API > Generate a token."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "ping",
+      "name": "Check token",
+      "method": "GET",
+      "endpoint": "/ping",
+      "inputs": []
+    },
+    {
+      "key": "list_events",
+      "name": "List events",
+      "method": "GET",
+      "endpoint": "/events",
+      "query": {
+        "filter[title]": "{{ inputs.title }}",
+        "filter[scheduling_status]": "{{ inputs.scheduling_status }}",
+        "page[size]": "{{ inputs.page_size }}"
+      },
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "title",
+          "label": "Title contains",
+          "type": "string"
+        },
+        {
+          "key": "scheduling_status",
+          "label": "Scheduling status",
+          "type": "select",
+          "options": [
+            {
+              "value": "draft",
+              "label": "Draft"
+            },
+            {
+              "value": "upcoming",
+              "label": "Upcoming"
+            },
+            {
+              "value": "ended",
+              "label": "Ended"
+            },
+            {
+              "value": "on_demand",
+              "label": "On demand"
+            }
+          ]
+        },
+        {
+          "key": "page_size",
+          "label": "Per page",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    },
+    {
+      "key": "list_sessions",
+      "name": "List event sessions",
+      "method": "GET",
+      "endpoint": "/events/{{ inputs.event_id }}/sessions",
+      "query": {
+        "filter[status]": "{{ inputs.status }}"
+      },
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "event_id",
+          "label": "Event ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "options": [
+            {
+              "value": "upcoming",
+              "label": "Upcoming"
+            },
+            {
+              "value": "live",
+              "label": "Live"
+            },
+            {
+              "value": "past",
+              "label": "Past"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "register_person",
+      "name": "Register person to session",
+      "method": "POST",
+      "endpoint": "/sessions/{{ inputs.session_id }}/people",
+      "body": {
+        "data": {
+          "type": "people",
+          "attributes": {
+            "fields": [
+              {
+                "id": "email",
+                "value": "{{ inputs.email }}"
+              },
+              {
+                "id": "first_name",
+                "value": "{{ inputs.first_name }}"
+              },
+              {
+                "id": "last_name",
+                "value": "{{ inputs.last_name }}"
+              }
+            ],
+            "referrer": "{{ inputs.referrer }}",
+            "utm_source": "{{ inputs.utm_source }}"
+          }
+        }
+      },
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "session_id",
+          "label": "Session ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "first_name",
+          "label": "First name",
+          "type": "string"
+        },
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string"
+        },
+        {
+          "key": "referrer",
+          "label": "Referrer",
+          "type": "string"
+        },
+        {
+          "key": "utm_source",
+          "label": "UTM source",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "list_session_people",
+      "name": "List session registrants",
+      "method": "GET",
+      "endpoint": "/sessions/{{ inputs.session_id }}/people",
+      "query": {
+        "page[size]": "{{ inputs.page_size }}"
+      },
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "session_id",
+          "label": "Session ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "page_size",
+          "label": "Per page",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    },
+    {
+      "key": "create_webhook",
+      "name": "Create webhook",
+      "method": "POST",
+      "endpoint": "/webhooks",
+      "body": {
+        "data": {
+          "type": "webhooks",
+          "attributes": {
+            "url": "{{ inputs.url }}",
+            "event": "{{ inputs.event }}"
+          }
+        }
+      },
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "url",
+          "label": "URL",
+          "type": "string",
+          "required": true,
+          "help": "Paste a workflow's Livestorm webhook trigger URL."
+        },
+        {
+          "key": "event",
+          "label": "Event",
+          "type": "string",
+          "required": true,
+          "placeholder": "event.published",
+          "help": "One webhook per event type (see the Livestorm webhooks reference)."
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Register the URL with Create webhook.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

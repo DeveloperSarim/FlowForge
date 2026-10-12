@@ -1,0 +1,62 @@
+{
+  "key": "hetzner_cloud",
+  "name": "Hetzner Cloud",
+  "category": "Developer Tools",
+  "description": "Create, power-cycle and delete Hetzner Cloud servers.",
+  "brand": "hetzner",
+  "website": "https://www.hetzner.com/cloud",
+  "docs_url": "https://docs.hetzner.cloud",
+  "base_url": "https://api.hetzner.cloud/v1",
+  "auth": { "type": "bearer", "fields": [{ "key": "token", "label": "API token", "type": "password", "required": true, "help": "Project → Security → API tokens (Read & Write)." }] },
+  "actions": [
+    {
+      "key": "list_servers",
+      "name": "List servers",
+      "method": "GET",
+      "endpoint": "/servers",
+      "query": { "name": "{{ inputs.name }}", "label_selector": "{{ inputs.label_selector }}", "per_page": 50 },
+      "output_path": "servers",
+      "inputs": [
+        { "key": "name", "label": "Name", "type": "string" },
+        { "key": "label_selector", "label": "Label selector", "type": "string", "placeholder": "env=prod" }
+      ]
+    },
+    {
+      "key": "create_server",
+      "name": "Create server",
+      "method": "POST",
+      "endpoint": "/servers",
+      "body": { "name": "{{ inputs.name }}", "server_type": "{{ inputs.server_type }}", "image": "{{ inputs.image }}", "location": "{{ inputs.location }}", "ssh_keys": "{{ inputs.ssh_keys }}", "labels": "{{ inputs.labels }}", "user_data": "{{ inputs.user_data }}" },
+      "inputs": [
+        { "key": "name", "label": "Name", "type": "string", "required": true },
+        { "key": "server_type", "label": "Server type", "type": "string", "required": true, "placeholder": "cx22" },
+        { "key": "image", "label": "Image", "type": "string", "required": true, "placeholder": "ubuntu-24.04" },
+        { "key": "location", "label": "Location", "type": "string", "placeholder": "fsn1, nbg1, hel1, ash, hil, sin" },
+        { "key": "ssh_keys", "label": "SSH key names or IDs", "type": "list" },
+        { "key": "labels", "label": "Labels", "type": "keyvalue" },
+        { "key": "user_data", "label": "User data (cloud-init)", "type": "code" }
+      ]
+    },
+    {
+      "key": "server_action",
+      "name": "Power on / off / reboot server",
+      "method": "POST",
+      "endpoint": "/servers/{{ inputs.server_id }}/actions/{{ inputs.action }}",
+      "output_path": "action",
+      "inputs": [
+        { "key": "server_id", "label": "Server ID", "type": "number", "required": true },
+        { "key": "action", "label": "Action", "type": "select", "required": true, "default": "reboot", "options": [
+          { "value": "poweron", "label": "Power on" }, { "value": "shutdown", "label": "Shut down (graceful)" }, { "value": "poweroff", "label": "Power off" },
+          { "value": "reboot", "label": "Reboot (soft)" }, { "value": "reset", "label": "Reset (hard)" }
+        ] }
+      ]
+    },
+    {
+      "key": "delete_server",
+      "name": "Delete server",
+      "method": "DELETE",
+      "endpoint": "/servers/{{ inputs.server_id }}",
+      "inputs": [{ "key": "server_id", "label": "Server ID", "type": "number", "required": true }]
+    }
+  ]
+}

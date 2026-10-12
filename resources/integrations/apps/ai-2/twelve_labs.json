@@ -1,0 +1,143 @@
+{
+  "key": "twelve_labs",
+  "name": "TwelveLabs",
+  "category": "AI",
+  "description": "Analyze videos with Pegasus and manage Marengo video indexes.",
+  "brand": "twelvelabs",
+  "website": "https://www.twelvelabs.io",
+  "docs_url": "https://docs.twelvelabs.io/api-reference",
+  "base_url": "https://api.twelvelabs.io/v1.3",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "x-api-key",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "analyze_video",
+      "name": "Analyze video",
+      "description": "Ask a question about a video URL; the answer is {{ steps.<id>.text }}.",
+      "method": "POST",
+      "endpoint": "/analyze",
+      "timeout": 300,
+      "body": {
+        "video": {
+          "type": "url",
+          "url": "{{ inputs.video_url }}"
+        },
+        "prompt": "{{ inputs.prompt }}",
+        "stream": false,
+        "model_name": "{{ inputs.model_name }}",
+        "temperature": "{{ inputs.temperature }}",
+        "max_tokens": "{{ inputs.max_tokens }}"
+      },
+      "output_fields": {
+        "text": "data"
+      },
+      "inputs": [
+        {
+          "key": "video_url",
+          "label": "Video URL",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "prompt",
+          "label": "Prompt",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "model_name",
+          "label": "Model",
+          "type": "string",
+          "placeholder": "pegasus1.5"
+        },
+        {
+          "key": "temperature",
+          "label": "Temperature",
+          "type": "number",
+          "placeholder": "0.7"
+        },
+        {
+          "key": "max_tokens",
+          "label": "Max output tokens",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "create_index",
+      "name": "Create index",
+      "method": "POST",
+      "endpoint": "/indexes",
+      "body": {
+        "index_name": "{{ inputs.index_name }}",
+        "models": [
+          {
+            "model_name": "{{ inputs.model_name }}",
+            "model_options": "{{ inputs.model_options }}"
+          }
+        ]
+      },
+      "inputs": [
+        {
+          "key": "index_name",
+          "label": "Index name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "model_name",
+          "label": "Model",
+          "type": "string",
+          "required": true,
+          "default": "marengo3.0"
+        },
+        {
+          "key": "model_options",
+          "label": "Model options",
+          "type": "list",
+          "required": true,
+          "default": [
+            "visual",
+            "audio"
+          ],
+          "help": "visual and/or audio."
+        }
+      ]
+    },
+    {
+      "key": "list_indexes",
+      "name": "List indexes",
+      "method": "GET",
+      "endpoint": "/indexes",
+      "query": {
+        "page_limit": "{{ inputs.page_limit }}",
+        "index_name": "{{ inputs.index_name }}"
+      },
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "index_name",
+          "label": "Index name",
+          "type": "string"
+        },
+        {
+          "key": "page_limit",
+          "label": "Page size",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,139 @@
+{
+  "key": "recruitee",
+  "name": "Recruitee",
+  "category": "HR & Recruiting",
+  "description": "Search, read and add candidates and list offers in Recruitee.",
+  "brand": "recruitee",
+  "website": "https://recruitee.com",
+  "docs_url": "https://docs.recruitee.com/reference/intro-to-careers-site-api",
+  "base_url": "https://api.recruitee.com/c/{{ credentials.company_id }}",
+  "auth": [
+    {
+      "type": "bearer",
+      "fields": [
+        {
+          "key": "company_id",
+          "label": "Company ID",
+          "type": "string",
+          "required": true,
+          "help": "Shown next to your token under Settings > Apps and plugins > Personal API tokens."
+        },
+        {
+          "key": "token",
+          "label": "Personal API token",
+          "type": "password",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "search_candidates",
+      "name": "Search candidates",
+      "method": "GET",
+      "endpoint": "/candidates",
+      "query": {
+        "query": "{{ inputs.query }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_path": "candidates",
+      "inputs": [
+        {
+          "key": "query",
+          "label": "Search",
+          "type": "string"
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    },
+    {
+      "key": "get_candidate",
+      "name": "Get candidate",
+      "method": "GET",
+      "endpoint": "/candidates/{{ inputs.candidate_id }}",
+      "output_path": "candidate",
+      "inputs": [
+        {
+          "key": "candidate_id",
+          "label": "Candidate ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "create_candidate",
+      "name": "Create candidate",
+      "method": "POST",
+      "endpoint": "/candidates",
+      "body": {
+        "candidate": {
+          "name": "{{ inputs.name }}",
+          "emails": "{{ inputs.emails }}",
+          "phones": "{{ inputs.phones }}",
+          "sources": "{{ inputs.sources }}"
+        },
+        "offers": "{{ inputs.offer_ids }}"
+      },
+      "output_path": "candidate",
+      "inputs": [
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "emails",
+          "label": "Emails",
+          "type": "list"
+        },
+        {
+          "key": "phones",
+          "label": "Phones",
+          "type": "list"
+        },
+        {
+          "key": "sources",
+          "label": "Sources",
+          "type": "list"
+        },
+        {
+          "key": "offer_ids",
+          "label": "Job / talent pool IDs",
+          "type": "json",
+          "placeholder": "[12345]"
+        }
+      ]
+    },
+    {
+      "key": "list_offers",
+      "name": "List jobs",
+      "method": "GET",
+      "endpoint": "/offers",
+      "output_path": "offers",
+      "inputs": []
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "data_path": "payload",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

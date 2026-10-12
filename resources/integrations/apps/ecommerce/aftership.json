@@ -1,0 +1,136 @@
+{
+  "key": "aftership",
+  "name": "AfterShip",
+  "category": "E-commerce",
+  "description": "Add shipments to AfterShip tracking and look up their delivery status.",
+  "brand": "aftership",
+  "website": "https://www.aftership.com",
+  "docs_url": "https://www.aftership.com/docs/tracking/quickstart/api-quick-start",
+  "base_url": "https://api.aftership.com/tracking/2026-07",
+  "auth": [
+    {
+      "type": "api_key",
+      "in": "header",
+      "name": "as-api-key",
+      "fields": [
+        {
+          "key": "api_key",
+          "label": "API key",
+          "type": "password",
+          "required": true,
+          "help": "Admin > Settings > API keys."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "create_tracking",
+      "name": "Create tracking",
+      "method": "POST",
+      "endpoint": "/trackings",
+      "output_path": "data",
+      "body": {
+        "tracking_number": "{{ inputs.tracking_number }}",
+        "slug": "{{ inputs.slug }}",
+        "title": "{{ inputs.title }}",
+        "order_id": "{{ inputs.order_id }}",
+        "order_number": "{{ inputs.order_number }}"
+      },
+      "inputs": [
+        {
+          "key": "tracking_number",
+          "label": "Tracking number",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "slug",
+          "label": "Courier slug",
+          "type": "string",
+          "placeholder": "ups",
+          "help": "Leave blank to auto-detect."
+        },
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "string"
+        },
+        {
+          "key": "order_id",
+          "label": "Order ID",
+          "type": "string"
+        },
+        {
+          "key": "order_number",
+          "label": "Order number",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "get_tracking",
+      "name": "Get tracking",
+      "method": "GET",
+      "endpoint": "/trackings/{{ inputs.tracking_id }}",
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "tracking_id",
+          "label": "Tracking ID",
+          "type": "string",
+          "required": true,
+          "help": "AfterShip tracking ID returned when the tracking was created."
+        }
+      ]
+    },
+    {
+      "key": "list_trackings",
+      "name": "List trackings",
+      "method": "GET",
+      "endpoint": "/trackings",
+      "output_path": "data",
+      "query": {
+        "keyword": "{{ inputs.keyword }}",
+        "tag": "{{ inputs.tag }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "inputs": [
+        {
+          "key": "keyword",
+          "label": "Keyword",
+          "type": "string",
+          "help": "Matches tracking number, title, order ID…"
+        },
+        {
+          "key": "tag",
+          "label": "Status tag",
+          "type": "string",
+          "placeholder": "Delivered"
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 100
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Settings > Notifications > Webhooks: add this URL. The tracking object is passed on.",
+      "data_path": "msg",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

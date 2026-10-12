@@ -1,0 +1,171 @@
+{
+  "key": "habitica",
+  "name": "Habitica",
+  "category": "Productivity",
+  "description": "Create, list and score Habitica to-dos, dailies and habits.",
+  "brand": "habitica",
+  "website": "https://habitica.com",
+  "docs_url": "https://habitica.com/apidoc/",
+  "base_url": "https://habitica.com/api/v3",
+  "headers": {
+    "x-api-user": "{{ credentials.user_id }}",
+    "x-api-key": "{{ credentials.api_key }}",
+    "x-client": "{{ credentials.user_id }}-FlowForge"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "key": "user_id",
+        "label": "User ID",
+        "type": "string",
+        "required": true,
+        "help": "Settings > Site Data (API)."
+      },
+      {
+        "key": "api_key",
+        "label": "API token",
+        "type": "password",
+        "required": true
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "create_task",
+      "name": "Create task",
+      "method": "POST",
+      "endpoint": "/tasks/user",
+      "body": {
+        "text": "{{ inputs.text }}",
+        "type": "{{ inputs.type }}",
+        "notes": "{{ inputs.notes }}",
+        "date": "{{ inputs.date }}",
+        "priority": "{{ inputs.priority }}"
+      },
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "text",
+          "label": "Title",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "type",
+          "label": "Type",
+          "type": "select",
+          "required": true,
+          "default": "todo",
+          "options": [
+            {
+              "value": "todo",
+              "label": "To-do"
+            },
+            {
+              "value": "daily",
+              "label": "Daily"
+            },
+            {
+              "value": "habit",
+              "label": "Habit"
+            },
+            {
+              "value": "reward",
+              "label": "Reward"
+            }
+          ]
+        },
+        {
+          "key": "notes",
+          "label": "Notes",
+          "type": "text"
+        },
+        {
+          "key": "date",
+          "label": "Due date (to-dos)",
+          "type": "string",
+          "placeholder": "2026-10-12"
+        },
+        {
+          "key": "priority",
+          "label": "Difficulty",
+          "type": "number",
+          "help": "0.1 trivial, 1 easy, 1.5 medium, 2 hard."
+        }
+      ]
+    },
+    {
+      "key": "list_tasks",
+      "name": "List tasks",
+      "method": "GET",
+      "endpoint": "/tasks/user",
+      "query": {
+        "type": "{{ inputs.type }}"
+      },
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "type",
+          "label": "Type",
+          "type": "select",
+          "options": [
+            {
+              "value": "todos",
+              "label": "To-dos"
+            },
+            {
+              "value": "dailys",
+              "label": "Dailies"
+            },
+            {
+              "value": "habits",
+              "label": "Habits"
+            },
+            {
+              "value": "rewards",
+              "label": "Rewards"
+            },
+            {
+              "value": "completedTodos",
+              "label": "Completed to-dos"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "score_task",
+      "name": "Score task",
+      "description": "Checks off a to-do/daily or scores a habit.",
+      "method": "POST",
+      "endpoint": "/tasks/{{ inputs.task_id }}/score/{{ inputs.direction }}",
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "task_id",
+          "label": "Task ID or alias",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "direction",
+          "label": "Direction",
+          "type": "select",
+          "required": true,
+          "default": "up",
+          "options": [
+            {
+              "value": "up",
+              "label": "Up / complete"
+            },
+            {
+              "value": "down",
+              "label": "Down"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,204 @@
+{
+  "key": "kirby",
+  "name": "Kirby",
+  "category": "CMS & Websites",
+  "description": "Read, create and update pages on a Kirby CMS site via its REST API.",
+  "brand": "kirby",
+  "website": "https://getkirby.com",
+  "docs_url": "https://getkirby.com/docs/reference/api",
+  "base_url": "{{ credentials.site_url }}/api",
+  "auth": [
+    {
+      "type": "basic",
+      "fields": [
+        {
+          "key": "site_url",
+          "label": "Site URL",
+          "type": "string",
+          "required": true,
+          "placeholder": "https://www.example.com",
+          "help": "No trailing slash."
+        },
+        {
+          "key": "username",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "password",
+          "label": "Password",
+          "type": "password",
+          "required": true,
+          "help": "Requires 'api' => ['basicAuth' => true] in config and HTTPS."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "get_page",
+      "name": "Get page",
+      "method": "GET",
+      "endpoint": "/pages/{{ inputs.page_id }}",
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "page_id",
+          "label": "Page ID",
+          "type": "string",
+          "required": true,
+          "placeholder": "blog+my-post",
+          "help": "Use + instead of / for nested pages."
+        }
+      ]
+    },
+    {
+      "key": "list_children",
+      "name": "List child pages",
+      "method": "GET",
+      "endpoint": "/pages/{{ inputs.page_id }}/children",
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "page_id",
+          "label": "Parent page ID",
+          "type": "string",
+          "required": true,
+          "placeholder": "blog"
+        }
+      ]
+    },
+    {
+      "key": "create_page",
+      "name": "Create page",
+      "description": "Creates a draft page under the parent.",
+      "method": "POST",
+      "endpoint": "/pages/{{ inputs.page_id }}/children",
+      "body": {
+        "slug": "{{ inputs.slug }}",
+        "template": "{{ inputs.template }}",
+        "content": "{{ inputs.content }}"
+      },
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "page_id",
+          "label": "Parent page ID",
+          "type": "string",
+          "required": true,
+          "placeholder": "blog"
+        },
+        {
+          "key": "slug",
+          "label": "Slug",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "template",
+          "label": "Template",
+          "type": "string",
+          "required": true,
+          "placeholder": "article"
+        },
+        {
+          "key": "content",
+          "label": "Content",
+          "type": "json",
+          "required": true,
+          "placeholder": "{\"title\": \"Hello\", \"text\": \"...\"}"
+        }
+      ]
+    },
+    {
+      "key": "update_page",
+      "name": "Update page content",
+      "method": "PATCH",
+      "endpoint": "/pages/{{ inputs.page_id }}",
+      "body": "{{ inputs.content }}",
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "page_id",
+          "label": "Page ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "content",
+          "label": "Changed fields",
+          "type": "json",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "change_status",
+      "name": "Change page status",
+      "method": "PATCH",
+      "endpoint": "/pages/{{ inputs.page_id }}/status",
+      "body": {
+        "status": "{{ inputs.status }}",
+        "position": "{{ inputs.position }}"
+      },
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "page_id",
+          "label": "Page ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "options": [
+            {
+              "value": "listed",
+              "label": "Listed (published)"
+            },
+            {
+              "value": "unlisted",
+              "label": "Unlisted"
+            },
+            {
+              "value": "draft",
+              "label": "Draft"
+            }
+          ],
+          "required": true,
+          "default": "listed"
+        },
+        {
+          "key": "position",
+          "label": "Position",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "delete_page",
+      "name": "Delete page",
+      "method": "DELETE",
+      "endpoint": "/pages/{{ inputs.page_id }}",
+      "inputs": [
+        {
+          "key": "page_id",
+          "label": "Page ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "get_site",
+      "name": "Get site",
+      "method": "GET",
+      "endpoint": "/site",
+      "output_path": "data",
+      "inputs": []
+    }
+  ]
+}

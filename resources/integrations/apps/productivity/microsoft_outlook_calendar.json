@@ -1,0 +1,221 @@
+{
+  "key": "microsoft_outlook_calendar",
+  "name": "Microsoft Outlook Calendar",
+  "category": "Productivity",
+  "description": "Create, list, update and delete Outlook calendar events.",
+  "brand": "microsoftoutlook",
+  "website": "https://outlook.office.com/calendar",
+  "docs_url": "https://learn.microsoft.com/en-us/graph/api/resources/event",
+  "base_url": "https://graph.microsoft.com/v1.0",
+  "auth": [
+    {
+      "type": "oauth2",
+      "authorize_url": "https://login.microsoftonline.com/common/oauth2/v2.0/authorize",
+      "token_url": "https://login.microsoftonline.com/common/oauth2/v2.0/token",
+      "scopes": [
+        "offline_access",
+        "User.Read",
+        "Calendars.ReadWrite"
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "create_event",
+      "name": "Create event",
+      "description": "Adds an event to the signed-in user's default calendar.",
+      "method": "POST",
+      "endpoint": "/me/events",
+      "body": {
+        "subject": "{{ inputs.subject }}",
+        "body": {
+          "contentType": "HTML",
+          "content": "{{ inputs.body }}"
+        },
+        "start": {
+          "dateTime": "{{ inputs.start }}",
+          "timeZone": "{{ inputs.time_zone }}"
+        },
+        "end": {
+          "dateTime": "{{ inputs.end }}",
+          "timeZone": "{{ inputs.time_zone }}"
+        },
+        "location": {
+          "displayName": "{{ inputs.location }}"
+        },
+        "attendees": "{{ inputs.attendees }}",
+        "isOnlineMeeting": "{{ inputs.is_online_meeting }}"
+      },
+      "inputs": [
+        {
+          "key": "subject",
+          "label": "Subject",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "start",
+          "label": "Start",
+          "type": "string",
+          "required": true,
+          "placeholder": "2026-10-12T09:00:00"
+        },
+        {
+          "key": "end",
+          "label": "End",
+          "type": "string",
+          "required": true,
+          "placeholder": "2026-10-12T10:00:00"
+        },
+        {
+          "key": "time_zone",
+          "label": "Time zone",
+          "type": "string",
+          "required": true,
+          "default": "UTC",
+          "help": "Windows or IANA name, e.g. \"Pacific Standard Time\" or \"Europe/London\"."
+        },
+        {
+          "key": "body",
+          "label": "Body (HTML)",
+          "type": "text"
+        },
+        {
+          "key": "location",
+          "label": "Location",
+          "type": "string"
+        },
+        {
+          "key": "attendees",
+          "label": "Attendees",
+          "type": "json",
+          "placeholder": "[{ \"emailAddress\": { \"address\": \"guest@example.com\" }, \"type\": \"required\" }]"
+        },
+        {
+          "key": "is_online_meeting",
+          "label": "Create Teams meeting",
+          "type": "boolean"
+        }
+      ]
+    },
+    {
+      "key": "list_events",
+      "name": "List events in range",
+      "description": "Lists events (recurrences expanded) between two times.",
+      "method": "GET",
+      "endpoint": "/me/calendarView",
+      "query": {
+        "startDateTime": "{{ inputs.start }}",
+        "endDateTime": "{{ inputs.end }}",
+        "$top": "{{ inputs.top }}",
+        "$orderby": "start/dateTime"
+      },
+      "output_path": "value",
+      "inputs": [
+        {
+          "key": "start",
+          "label": "From",
+          "type": "string",
+          "required": true,
+          "placeholder": "2026-10-12T00:00:00Z"
+        },
+        {
+          "key": "end",
+          "label": "Until",
+          "type": "string",
+          "required": true,
+          "placeholder": "2026-10-19T00:00:00Z"
+        },
+        {
+          "key": "top",
+          "label": "Max results",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    },
+    {
+      "key": "get_event",
+      "name": "Get event",
+      "method": "GET",
+      "endpoint": "/me/events/{{ inputs.event_id }}",
+      "inputs": [
+        {
+          "key": "event_id",
+          "label": "Event ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "update_event",
+      "name": "Update event",
+      "description": "Changes only the fields you fill in.",
+      "method": "PATCH",
+      "endpoint": "/me/events/{{ inputs.event_id }}",
+      "body": {
+        "subject": "{{ inputs.subject }}",
+        "start": {
+          "dateTime": "{{ inputs.start }}",
+          "timeZone": "{{ inputs.time_zone }}"
+        },
+        "end": {
+          "dateTime": "{{ inputs.end }}",
+          "timeZone": "{{ inputs.time_zone }}"
+        },
+        "location": {
+          "displayName": "{{ inputs.location }}"
+        }
+      },
+      "inputs": [
+        {
+          "key": "event_id",
+          "label": "Event ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "subject",
+          "label": "Subject",
+          "type": "string"
+        },
+        {
+          "key": "start",
+          "label": "New start",
+          "type": "string"
+        },
+        {
+          "key": "end",
+          "label": "New end",
+          "type": "string"
+        },
+        {
+          "key": "time_zone",
+          "label": "Time zone",
+          "type": "string",
+          "help": "Required when you change start or end."
+        },
+        {
+          "key": "location",
+          "label": "Location",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "delete_event",
+      "name": "Delete event",
+      "method": "DELETE",
+      "endpoint": "/me/events/{{ inputs.event_id }}",
+      "inputs": [
+        {
+          "key": "event_id",
+          "label": "Event ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ]
+}

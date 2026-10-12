@@ -1,0 +1,135 @@
+{
+  "key": "smartlead",
+  "name": "Smartlead",
+  "category": "Marketing & Email",
+  "description": "Add leads to campaigns, find leads and unsubscribe them.",
+  "brand": "smartlead",
+  "website": "https://www.smartlead.ai",
+  "docs_url": "https://api.smartlead.ai/reference/references",
+  "base_url": "https://server.smartlead.ai/api/v1",
+  "auth": {
+    "type": "api_key",
+    "in": "query",
+    "name": "api_key",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "add_lead",
+      "name": "Add lead to campaign",
+      "method": "POST",
+      "endpoint": "/campaigns/{{ inputs.campaign_id }}/leads",
+      "body": {
+        "lead_list": [
+          {
+            "email": "{{ inputs.email }}",
+            "first_name": "{{ inputs.first_name }}",
+            "last_name": "{{ inputs.last_name }}",
+            "company_name": "{{ inputs.company_name }}",
+            "custom_fields": "{{ inputs.custom_fields }}"
+          }
+        ]
+      },
+      "inputs": [
+        {
+          "key": "campaign_id",
+          "label": "Campaign ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "first_name",
+          "label": "First name",
+          "type": "string"
+        },
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string"
+        },
+        {
+          "key": "company_name",
+          "label": "Company",
+          "type": "string"
+        },
+        {
+          "key": "custom_fields",
+          "label": "Custom fields",
+          "type": "keyvalue"
+        }
+      ]
+    },
+    {
+      "key": "find_lead",
+      "name": "Find lead by email",
+      "method": "GET",
+      "endpoint": "/leads/",
+      "query": {
+        "email": "{{ inputs.email }}"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "unsubscribe_lead",
+      "name": "Unsubscribe lead from campaign",
+      "method": "POST",
+      "endpoint": "/campaigns/{{ inputs.campaign_id }}/leads/{{ inputs.lead_id }}/unsubscribe",
+      "inputs": [
+        {
+          "key": "campaign_id",
+          "label": "Campaign ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "lead_id",
+          "label": "Lead ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_campaigns",
+      "name": "List campaigns",
+      "method": "GET",
+      "endpoint": "/campaigns",
+      "inputs": []
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Campaign → Webhooks (EMAIL_REPLY, LEAD_UNSUBSCRIBED…).",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

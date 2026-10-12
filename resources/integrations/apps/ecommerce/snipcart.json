@@ -1,0 +1,196 @@
+{
+  "key": "snipcart",
+  "name": "Snipcart",
+  "category": "E-commerce",
+  "description": "List and update orders and customers of your Snipcart shop.",
+  "brand": "snipcart",
+  "website": "https://snipcart.com",
+  "docs_url": "https://docs.snipcart.com/v3/api-reference/introduction",
+  "base_url": "https://app.snipcart.com/api",
+  "auth": [
+    {
+      "type": "basic",
+      "fields": [
+        {
+          "key": "username",
+          "label": "Secret API key",
+          "type": "password",
+          "required": true,
+          "help": "Dashboard > Account > API keys."
+        },
+        {
+          "key": "password",
+          "label": "Password",
+          "type": "password",
+          "required": false,
+          "default": "",
+          "help": "Leave blank."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_orders",
+      "name": "List orders",
+      "method": "GET",
+      "endpoint": "/orders",
+      "output_path": "items",
+      "query": {
+        "status": "{{ inputs.status }}",
+        "from": "{{ inputs.from }}",
+        "to": "{{ inputs.to }}",
+        "limit": "{{ inputs.limit }}",
+        "offset": "{{ inputs.offset }}"
+      },
+      "inputs": [
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "string",
+          "placeholder": "Processed"
+        },
+        {
+          "key": "from",
+          "label": "From date",
+          "type": "string",
+          "placeholder": "2025-01-01"
+        },
+        {
+          "key": "to",
+          "label": "To date",
+          "type": "string"
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 20
+        },
+        {
+          "key": "offset",
+          "label": "Offset",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "get_order",
+      "name": "Get order",
+      "method": "GET",
+      "endpoint": "/orders/{{ inputs.token }}",
+      "inputs": [
+        {
+          "key": "token",
+          "label": "Order token",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "update_order",
+      "name": "Update order",
+      "method": "PUT",
+      "endpoint": "/orders/{{ inputs.token }}",
+      "body": {
+        "status": "{{ inputs.status }}",
+        "trackingNumber": "{{ inputs.tracking_number }}",
+        "trackingUrl": "{{ inputs.tracking_url }}"
+      },
+      "inputs": [
+        {
+          "key": "token",
+          "label": "Order token",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "options": [
+            {
+              "value": "InProgress",
+              "label": "In progress"
+            },
+            {
+              "value": "Processed",
+              "label": "Processed"
+            },
+            {
+              "value": "Disputed",
+              "label": "Disputed"
+            },
+            {
+              "value": "Shipped",
+              "label": "Shipped"
+            },
+            {
+              "value": "Delivered",
+              "label": "Delivered"
+            },
+            {
+              "value": "Pending",
+              "label": "Pending"
+            },
+            {
+              "value": "Cancelled",
+              "label": "Cancelled"
+            }
+          ]
+        },
+        {
+          "key": "tracking_number",
+          "label": "Tracking number",
+          "type": "string"
+        },
+        {
+          "key": "tracking_url",
+          "label": "Tracking URL",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "list_customers",
+      "name": "List customers",
+      "method": "GET",
+      "endpoint": "/customers",
+      "output_path": "items",
+      "query": {
+        "email": "{{ inputs.email }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string"
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 20
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Dashboard > Account > Webhooks: paste this URL.",
+      "data_path": "content",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

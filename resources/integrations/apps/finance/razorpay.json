@@ -1,0 +1,279 @@
+{
+  "key": "razorpay",
+  "name": "Razorpay",
+  "category": "Payments & Finance",
+  "description": "Create orders, payment links and customers, fetch and refund payments.",
+  "brand": "razorpay",
+  "website": "https://razorpay.com",
+  "docs_url": "https://razorpay.com/docs/api/",
+  "popular": true,
+  "base_url": "https://api.razorpay.com/v1",
+  "auth": [
+    {
+      "type": "basic",
+      "fields": [
+        {
+          "key": "username",
+          "label": "Key ID",
+          "type": "string",
+          "required": true,
+          "help": "Dashboard > Account & Settings > API keys (rzp_live_… or rzp_test_…)."
+        },
+        {
+          "key": "password",
+          "label": "Key secret",
+          "type": "password",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "create_order",
+      "name": "Create order",
+      "method": "POST",
+      "endpoint": "/orders",
+      "body": {
+        "amount": "{{ inputs.amount }}",
+        "currency": "{{ inputs.currency }}",
+        "receipt": "{{ inputs.receipt }}",
+        "notes": "{{ inputs.notes }}"
+      },
+      "inputs": [
+        {
+          "key": "amount",
+          "label": "Amount (paise)",
+          "type": "number",
+          "required": true,
+          "help": "Smallest currency unit: 50000 = ₹500."
+        },
+        {
+          "key": "currency",
+          "label": "Currency",
+          "type": "string",
+          "required": true,
+          "default": "INR"
+        },
+        {
+          "key": "receipt",
+          "label": "Receipt",
+          "type": "string"
+        },
+        {
+          "key": "notes",
+          "label": "Notes",
+          "type": "keyvalue"
+        }
+      ]
+    },
+    {
+      "key": "create_payment_link",
+      "name": "Create payment link",
+      "method": "POST",
+      "endpoint": "/payment_links",
+      "output_fields": {
+        "url": "short_url"
+      },
+      "body": {
+        "amount": "{{ inputs.amount }}",
+        "currency": "{{ inputs.currency }}",
+        "description": "{{ inputs.description }}",
+        "reference_id": "{{ inputs.reference_id }}",
+        "callback_url": "{{ inputs.callback_url }}",
+        "customer": {
+          "name": "{{ inputs.name }}",
+          "email": "{{ inputs.email }}",
+          "contact": "{{ inputs.contact }}"
+        },
+        "notify": {
+          "sms": "{{ inputs.notify_sms }}",
+          "email": "{{ inputs.notify_email }}"
+        }
+      },
+      "inputs": [
+        {
+          "key": "amount",
+          "label": "Amount (paise)",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "currency",
+          "label": "Currency",
+          "type": "string",
+          "required": true,
+          "default": "INR"
+        },
+        {
+          "key": "description",
+          "label": "Description",
+          "type": "string"
+        },
+        {
+          "key": "name",
+          "label": "Customer name",
+          "type": "string"
+        },
+        {
+          "key": "email",
+          "label": "Customer email",
+          "type": "string"
+        },
+        {
+          "key": "contact",
+          "label": "Customer phone",
+          "type": "string",
+          "placeholder": "+919000090000"
+        },
+        {
+          "key": "notify_sms",
+          "label": "Notify by SMS",
+          "type": "boolean"
+        },
+        {
+          "key": "notify_email",
+          "label": "Notify by email",
+          "type": "boolean"
+        },
+        {
+          "key": "reference_id",
+          "label": "Reference ID",
+          "type": "string"
+        },
+        {
+          "key": "callback_url",
+          "label": "Callback URL",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "get_payment",
+      "name": "Get payment",
+      "method": "GET",
+      "endpoint": "/payments/{{ inputs.payment_id }}",
+      "inputs": [
+        {
+          "key": "payment_id",
+          "label": "Payment ID",
+          "type": "string",
+          "required": true,
+          "placeholder": "pay_…"
+        }
+      ]
+    },
+    {
+      "key": "refund_payment",
+      "name": "Refund payment",
+      "method": "POST",
+      "endpoint": "/payments/{{ inputs.payment_id }}/refund",
+      "body": {
+        "amount": "{{ inputs.amount }}",
+        "speed": "{{ inputs.speed }}",
+        "notes": "{{ inputs.notes }}"
+      },
+      "inputs": [
+        {
+          "key": "payment_id",
+          "label": "Payment ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "amount",
+          "label": "Amount (paise)",
+          "type": "number",
+          "help": "Leave blank for a full refund."
+        },
+        {
+          "key": "speed",
+          "label": "Speed",
+          "type": "select",
+          "options": [
+            {
+              "value": "normal",
+              "label": "Normal"
+            },
+            {
+              "value": "optimum",
+              "label": "Optimum (instant when possible)"
+            }
+          ]
+        },
+        {
+          "key": "notes",
+          "label": "Notes",
+          "type": "keyvalue"
+        }
+      ]
+    },
+    {
+      "key": "create_customer",
+      "name": "Create customer",
+      "description": "Returns the existing customer if one matches.",
+      "method": "POST",
+      "endpoint": "/customers",
+      "body": {
+        "name": "{{ inputs.name }}",
+        "email": "{{ inputs.email }}",
+        "contact": "{{ inputs.contact }}",
+        "fail_existing": "0"
+      },
+      "inputs": [
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string"
+        },
+        {
+          "key": "contact",
+          "label": "Phone",
+          "type": "string"
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_payment",
+      "name": "New payment",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/payments",
+      "query": {
+        "count": 50
+      },
+      "items_path": "items",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    },
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Dashboard > Account & Settings > Webhooks: add this URL and choose events.",
+      "data_path": "payload",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

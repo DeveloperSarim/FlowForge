@@ -1,0 +1,96 @@
+{
+  "key": "helpcrunch",
+  "name": "HelpCrunch",
+  "category": "Customer Support",
+  "description": "Create customers, start chats and send messages in HelpCrunch.",
+  "brand": "helpcrunch",
+  "website": "https://helpcrunch.com",
+  "docs_url": "https://docs.helpcrunch.com/en/rest-api-v1",
+  "base_url": "https://api.helpcrunch.com/v1",
+  "auth": {
+    "type": "bearer",
+    "fields": [{ "key": "token", "label": "API key", "type": "password", "required": true }]
+  },
+  "actions": [
+    {
+      "key": "create_customer",
+      "name": "Create customer",
+      "method": "POST",
+      "endpoint": "/customers",
+      "body": {
+        "name": "{{ inputs.name }}",
+        "email": "{{ inputs.email }}",
+        "phone": "{{ inputs.phone }}",
+        "company": "{{ inputs.company }}",
+        "userId": "{{ inputs.user_id }}",
+        "notes": "{{ inputs.notes }}",
+        "customData": "{{ inputs.custom_data }}"
+      },
+      "inputs": [
+        { "key": "name", "label": "Name", "type": "string" },
+        { "key": "email", "label": "Email", "type": "string" },
+        { "key": "phone", "label": "Phone", "type": "string" },
+        { "key": "company", "label": "Company", "type": "string" },
+        { "key": "user_id", "label": "Your user ID", "type": "string" },
+        { "key": "notes", "label": "Notes", "type": "text" },
+        { "key": "custom_data", "label": "Custom data", "type": "json", "placeholder": "[{\"property\": \"plan\", \"value\": \"pro\"}]" }
+      ]
+    },
+    {
+      "key": "create_chat",
+      "name": "Create chat",
+      "method": "POST",
+      "endpoint": "/chats",
+      "body": {
+        "customer": "{{ inputs.customer_id }}",
+        "application": "{{ inputs.application_id }}",
+        "assignee": "{{ inputs.assignee_id }}",
+        "department": "{{ inputs.department_id }}"
+      },
+      "inputs": [
+        { "key": "customer_id", "label": "Customer ID", "type": "number", "required": true },
+        { "key": "application_id", "label": "Application ID", "type": "number", "required": true },
+        { "key": "assignee_id", "label": "Assignee agent ID", "type": "number" },
+        { "key": "department_id", "label": "Department ID", "type": "number" }
+      ]
+    },
+    {
+      "key": "send_message",
+      "name": "Send message",
+      "method": "POST",
+      "endpoint": "/messages",
+      "body": {
+        "chat": "{{ inputs.chat_id }}",
+        "text": "{{ inputs.text }}",
+        "agent": "{{ inputs.agent_id }}",
+        "type": "{{ inputs.type }}"
+      },
+      "inputs": [
+        { "key": "chat_id", "label": "Chat ID", "type": "number", "required": true },
+        { "key": "text", "label": "Message", "type": "text", "required": true },
+        { "key": "agent_id", "label": "Agent ID", "type": "number" },
+        { "key": "type", "label": "Type", "type": "select", "default": "message", "options": [{ "value": "message", "label": "Message to customer" }, { "value": "private", "label": "Private note" }] }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_chat",
+      "name": "New chat",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/chats",
+      "query": { "sort": "chats.createdAt", "order": "desc", "limit": 50 },
+      "items_path": "data",
+      "id_field": "id",
+      "inputs": [{ "key": "poll_interval", "label": "Check every (minutes)", "type": "number", "default": 5 }]
+    },
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Add this URL as a webhook in HelpCrunch settings (e.g. chat.new).",
+      "inputs": [{ "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }]
+    }
+  ]
+}

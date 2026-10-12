@@ -1,0 +1,87 @@
+{
+  "key": "bunny_stream",
+  "name": "Bunny Stream",
+  "category": "Video & Media",
+  "description": "Fetch videos from URLs and manage videos and collections in a Bunny Stream library.",
+  "brand": "bunny",
+  "website": "https://bunny.net/stream/",
+  "docs_url": "https://docs.bunny.net/reference/api-overview",
+  "base_url": "https://video.bunnycdn.com/library/{{ credentials.library_id }}",
+  "auth": { "type": "api_key", "in": "header", "name": "AccessKey", "fields": [
+    { "key": "library_id", "label": "Video library ID", "type": "string", "required": true },
+    { "key": "api_key", "label": "Library API key", "type": "password", "required": true, "help": "Stream > your library > API." }
+  ] },
+  "actions": [
+    {
+      "key": "fetch_video",
+      "name": "Fetch video from URL",
+      "method": "POST",
+      "endpoint": "/videos/fetch",
+      "query": { "collectionId": "{{ inputs.collection_id }}", "thumbnailTime": "{{ inputs.thumbnail_time }}" },
+      "body": { "url": "{{ inputs.url }}", "title": "{{ inputs.title }}", "headers": "{{ inputs.headers }}" },
+      "inputs": [
+        { "key": "url", "label": "Video URL", "type": "string", "required": true, "placeholder": "https://example.com/video.mp4" },
+        { "key": "title", "label": "Title", "type": "string" },
+        { "key": "collection_id", "label": "Collection ID", "type": "string" },
+        { "key": "thumbnail_time", "label": "Thumbnail time (ms)", "type": "number" },
+        { "key": "headers", "label": "Headers for the fetch request", "type": "keyvalue" }
+      ]
+    },
+    {
+      "key": "list_videos",
+      "name": "List videos",
+      "method": "GET",
+      "endpoint": "/videos",
+      "query": { "page": "{{ inputs.page }}", "itemsPerPage": "{{ inputs.items_per_page }}", "search": "{{ inputs.search }}", "collection": "{{ inputs.collection_id }}", "orderBy": "date" },
+      "inputs": [
+        { "key": "search", "label": "Search", "type": "string" },
+        { "key": "collection_id", "label": "Collection ID", "type": "string" },
+        { "key": "page", "label": "Page", "type": "number", "default": 1 },
+        { "key": "items_per_page", "label": "Items per page", "type": "number", "default": 100 }
+      ]
+    },
+    {
+      "key": "get_video",
+      "name": "Get video",
+      "method": "GET",
+      "endpoint": "/videos/{{ inputs.video_id }}",
+      "inputs": [{ "key": "video_id", "label": "Video GUID", "type": "string", "required": true }]
+    },
+    {
+      "key": "update_video",
+      "name": "Update video",
+      "method": "POST",
+      "endpoint": "/videos/{{ inputs.video_id }}",
+      "body": { "title": "{{ inputs.title }}", "collectionId": "{{ inputs.collection_id }}" },
+      "inputs": [
+        { "key": "video_id", "label": "Video GUID", "type": "string", "required": true },
+        { "key": "title", "label": "Title", "type": "string" },
+        { "key": "collection_id", "label": "Collection ID", "type": "string" }
+      ]
+    },
+    {
+      "key": "delete_video",
+      "name": "Delete video",
+      "method": "DELETE",
+      "endpoint": "/videos/{{ inputs.video_id }}",
+      "inputs": [{ "key": "video_id", "label": "Video GUID", "type": "string", "required": true }]
+    },
+    {
+      "key": "create_collection",
+      "name": "Create collection",
+      "method": "POST",
+      "endpoint": "/collections",
+      "body": { "name": "{{ inputs.name }}" },
+      "inputs": [{ "key": "name", "label": "Name", "type": "string", "required": true }]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Video status changed (webhook)",
+      "description": "Set this URL as the library's webhook URL (Stream > library > API).",
+      "type": "webhook",
+      "inputs": [{ "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }]
+    }
+  ]
+}

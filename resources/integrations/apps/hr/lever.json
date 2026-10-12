@@ -1,0 +1,253 @@
+{
+  "key": "lever",
+  "name": "Lever",
+  "category": "HR & Recruiting",
+  "description": "Create and find opportunities, add notes and list postings in Lever.",
+  "brand": "lever",
+  "website": "https://www.lever.co",
+  "docs_url": "https://hire.lever.co/developer/documentation",
+  "popular": true,
+  "base_url": "https://api.lever.co/v1",
+  "auth": [
+    {
+      "type": "basic",
+      "fields": [
+        {
+          "key": "username",
+          "label": "API key",
+          "type": "password",
+          "required": true,
+          "help": "Settings > Integrations and API > API Credentials."
+        },
+        {
+          "key": "password",
+          "label": "Password",
+          "type": "password",
+          "required": false,
+          "default": "",
+          "help": "Leave empty."
+        }
+      ]
+    },
+    {
+      "type": "oauth2",
+      "authorize_url": "https://auth.lever.co/authorize",
+      "token_url": "https://auth.lever.co/oauth/token",
+      "scopes": [
+        "offline_access",
+        "opportunities:read:admin",
+        "opportunities:write:admin",
+        "notes:write:admin",
+        "postings:read:admin"
+      ],
+      "authorize_params": {
+        "audience": "https://api.lever.co/v1/"
+      }
+    }
+  ],
+  "actions": [
+    {
+      "key": "create_opportunity",
+      "name": "Create opportunity",
+      "method": "POST",
+      "endpoint": "/opportunities",
+      "query": {
+        "perform_as": "{{ inputs.perform_as }}"
+      },
+      "body": {
+        "name": "{{ inputs.name }}",
+        "emails": "{{ inputs.emails }}",
+        "headline": "{{ inputs.headline }}",
+        "postings": "{{ inputs.postings }}",
+        "tags": "{{ inputs.tags }}",
+        "sources": "{{ inputs.sources }}",
+        "origin": "{{ inputs.origin }}"
+      },
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "perform_as",
+          "label": "Acting user ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "emails",
+          "label": "Emails",
+          "type": "list"
+        },
+        {
+          "key": "headline",
+          "label": "Headline",
+          "type": "string"
+        },
+        {
+          "key": "postings",
+          "label": "Posting IDs",
+          "type": "list"
+        },
+        {
+          "key": "tags",
+          "label": "Tags",
+          "type": "list"
+        },
+        {
+          "key": "sources",
+          "label": "Sources",
+          "type": "list"
+        },
+        {
+          "key": "origin",
+          "label": "Origin",
+          "type": "select",
+          "options": [
+            {
+              "value": "sourced",
+              "label": "Sourced"
+            },
+            {
+              "value": "applied",
+              "label": "Applied"
+            },
+            {
+              "value": "referred",
+              "label": "Referred"
+            },
+            {
+              "value": "agency",
+              "label": "Agency"
+            },
+            {
+              "value": "internal",
+              "label": "Internal"
+            }
+          ],
+          "default": "sourced"
+        }
+      ]
+    },
+    {
+      "key": "get_opportunity",
+      "name": "Get opportunity",
+      "method": "GET",
+      "endpoint": "/opportunities/{{ inputs.opportunity_id }}",
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "opportunity_id",
+          "label": "Opportunity ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "find_opportunities",
+      "name": "Find opportunities by email",
+      "method": "GET",
+      "endpoint": "/opportunities",
+      "query": {
+        "email": "{{ inputs.email }}"
+      },
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "add_note",
+      "name": "Add note",
+      "method": "POST",
+      "endpoint": "/opportunities/{{ inputs.opportunity_id }}/notes",
+      "query": {
+        "perform_as": "{{ inputs.perform_as }}"
+      },
+      "body": {
+        "value": "{{ inputs.value }}"
+      },
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "opportunity_id",
+          "label": "Opportunity ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "perform_as",
+          "label": "Acting user ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "value",
+          "label": "Note",
+          "type": "text",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_postings",
+      "name": "List postings",
+      "method": "GET",
+      "endpoint": "/postings",
+      "query": {
+        "state": "{{ inputs.state }}"
+      },
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "state",
+          "label": "State",
+          "type": "select",
+          "options": [
+            {
+              "value": "published",
+              "label": "Published"
+            },
+            {
+              "value": "internal",
+              "label": "Internal"
+            },
+            {
+              "value": "closed",
+              "label": "Closed"
+            },
+            {
+              "value": "draft",
+              "label": "Draft"
+            }
+          ],
+          "default": "published"
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "data_path": "data",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

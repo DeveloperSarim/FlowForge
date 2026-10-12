@@ -1,0 +1,67 @@
+{
+  "key": "browserstack",
+  "name": "BrowserStack",
+  "category": "Developer Tools",
+  "description": "Check Automate usage, list builds and sessions, and mark sessions passed or failed.",
+  "brand": "browserstack",
+  "website": "https://www.browserstack.com",
+  "docs_url": "https://www.browserstack.com/docs/automate/api-reference/selenium/introduction",
+  "base_url": "https://api.browserstack.com",
+  "auth": { "type": "basic", "fields": [
+    { "key": "username", "label": "Username", "type": "string", "required": true, "help": "Account settings → Automate → Username and access key." },
+    { "key": "password", "label": "Access key", "type": "password", "required": true }
+  ] },
+  "actions": [
+    {
+      "key": "get_plan",
+      "name": "Get Automate plan usage",
+      "method": "GET",
+      "endpoint": "/automate/plan.json",
+      "inputs": []
+    },
+    {
+      "key": "list_builds",
+      "name": "List builds",
+      "method": "GET",
+      "endpoint": "/automate/builds.json",
+      "query": { "limit": "{{ inputs.limit }}", "status": "{{ inputs.status }}" },
+      "inputs": [
+        { "key": "limit", "label": "Limit", "type": "number", "default": 10 },
+        { "key": "status", "label": "Status", "type": "select", "options": [
+          { "value": "running", "label": "Running" }, { "value": "done", "label": "Done" }, { "value": "failed", "label": "Failed" }, { "value": "timeout", "label": "Timed out" }
+        ] }
+      ]
+    },
+    {
+      "key": "list_sessions",
+      "name": "List build sessions",
+      "method": "GET",
+      "endpoint": "/automate/builds/{{ inputs.build_id }}/sessions.json",
+      "query": { "limit": "{{ inputs.limit }}" },
+      "inputs": [
+        { "key": "build_id", "label": "Build ID", "type": "string", "required": true },
+        { "key": "limit", "label": "Limit", "type": "number", "default": 10 }
+      ]
+    },
+    {
+      "key": "get_session",
+      "name": "Get session",
+      "method": "GET",
+      "endpoint": "/automate/sessions/{{ inputs.session_id }}.json",
+      "output_path": "automation_session",
+      "inputs": [{ "key": "session_id", "label": "Session ID", "type": "string", "required": true }]
+    },
+    {
+      "key": "set_session_status",
+      "name": "Mark session passed / failed",
+      "method": "PUT",
+      "endpoint": "/automate/sessions/{{ inputs.session_id }}.json",
+      "body": { "status": "{{ inputs.status }}", "reason": "{{ inputs.reason }}" },
+      "inputs": [
+        { "key": "session_id", "label": "Session ID", "type": "string", "required": true },
+        { "key": "status", "label": "Status", "type": "select", "required": true, "default": "passed", "options": [{ "value": "passed", "label": "Passed" }, { "value": "failed", "label": "Failed" }] },
+        { "key": "reason", "label": "Reason", "type": "string" }
+      ]
+    }
+  ]
+}

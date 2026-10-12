@@ -1,0 +1,233 @@
+{
+  "key": "asana",
+  "name": "Asana",
+  "category": "Project Management",
+  "description": "Create, update, complete and comment on Asana tasks.",
+  "brand": "asana",
+  "website": "https://asana.com",
+  "docs_url": "https://developers.asana.com/reference/rest-api-reference",
+  "popular": true,
+  "base_url": "https://app.asana.com/api/1.0",
+  "auth": [
+    {
+      "type": "bearer",
+      "fields": [
+        {
+          "key": "token",
+          "label": "Personal access token",
+          "type": "password",
+          "required": true,
+          "help": "My settings > Apps > Developer apps."
+        }
+      ]
+    },
+    {
+      "type": "oauth2",
+      "authorize_url": "https://app.asana.com/-/oauth_authorize",
+      "token_url": "https://app.asana.com/-/oauth_token",
+      "scopes": [
+        "default"
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "create_task",
+      "name": "Create task",
+      "method": "POST",
+      "endpoint": "/tasks",
+      "body": {
+        "data": {
+          "name": "{{ inputs.name }}",
+          "notes": "{{ inputs.notes }}",
+          "projects": "{{ inputs.projects }}",
+          "workspace": "{{ inputs.workspace }}",
+          "assignee": "{{ inputs.assignee }}",
+          "due_on": "{{ inputs.due_on }}",
+          "parent": "{{ inputs.parent }}"
+        }
+      },
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "notes",
+          "label": "Description",
+          "type": "text"
+        },
+        {
+          "key": "projects",
+          "label": "Project GIDs",
+          "type": "list",
+          "help": "Give a project or a workspace."
+        },
+        {
+          "key": "workspace",
+          "label": "Workspace GID",
+          "type": "string"
+        },
+        {
+          "key": "assignee",
+          "label": "Assignee",
+          "type": "string",
+          "placeholder": "me, a user GID or email"
+        },
+        {
+          "key": "due_on",
+          "label": "Due date",
+          "type": "string",
+          "placeholder": "2026-10-12"
+        },
+        {
+          "key": "parent",
+          "label": "Parent task GID",
+          "type": "string",
+          "help": "Creates a subtask."
+        }
+      ]
+    },
+    {
+      "key": "get_task",
+      "name": "Get task",
+      "method": "GET",
+      "endpoint": "/tasks/{{ inputs.task_gid }}",
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "task_gid",
+          "label": "Task GID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "update_task",
+      "name": "Update task",
+      "description": "Changes only the fields you fill in.",
+      "method": "PUT",
+      "endpoint": "/tasks/{{ inputs.task_gid }}",
+      "body": {
+        "data": {
+          "name": "{{ inputs.name }}",
+          "notes": "{{ inputs.notes }}",
+          "assignee": "{{ inputs.assignee }}",
+          "due_on": "{{ inputs.due_on }}"
+        }
+      },
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "task_gid",
+          "label": "Task GID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string"
+        },
+        {
+          "key": "notes",
+          "label": "Description",
+          "type": "text"
+        },
+        {
+          "key": "assignee",
+          "label": "Assignee",
+          "type": "string"
+        },
+        {
+          "key": "due_on",
+          "label": "Due date",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "complete_task",
+      "name": "Complete task",
+      "method": "PUT",
+      "endpoint": "/tasks/{{ inputs.task_gid }}",
+      "body": {
+        "data": {
+          "completed": true
+        }
+      },
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "task_gid",
+          "label": "Task GID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "add_comment",
+      "name": "Add comment",
+      "method": "POST",
+      "endpoint": "/tasks/{{ inputs.task_gid }}/stories",
+      "body": {
+        "data": {
+          "text": "{{ inputs.text }}"
+        }
+      },
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "task_gid",
+          "label": "Task GID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "text",
+          "label": "Comment",
+          "type": "text",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_project_tasks",
+      "name": "List project tasks",
+      "method": "GET",
+      "endpoint": "/tasks",
+      "query": {
+        "project": "{{ inputs.project }}",
+        "completed_since": "{{ inputs.completed_since }}",
+        "opt_fields": "{{ inputs.opt_fields }}"
+      },
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "project",
+          "label": "Project GID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "completed_since",
+          "label": "Completed since",
+          "type": "string",
+          "default": "now",
+          "help": "\"now\" returns only incomplete tasks; empty returns all."
+        },
+        {
+          "key": "opt_fields",
+          "label": "Fields",
+          "type": "string",
+          "default": "name,completed,assignee.name,due_on,permalink_url"
+        }
+      ]
+    }
+  ]
+}

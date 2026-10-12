@@ -1,0 +1,79 @@
+{
+  "key": "heroku",
+  "name": "Heroku",
+  "category": "Developer Tools",
+  "description": "Restart and scale dynos, and read or update app config vars.",
+  "brand": "heroku",
+  "website": "https://www.heroku.com",
+  "docs_url": "https://devcenter.heroku.com/articles/platform-api-reference",
+  "base_url": "https://api.heroku.com",
+  "headers": { "Accept": "application/vnd.heroku+json; version=3" },
+  "auth": { "type": "bearer", "fields": [{ "key": "token", "label": "API key or authorization token", "type": "password", "required": true, "help": "Account settings → API key, or heroku authorizations:create." }] },
+  "actions": [
+    {
+      "key": "get_app",
+      "name": "Get app",
+      "method": "GET",
+      "endpoint": "/apps/{{ inputs.app }}",
+      "inputs": [{ "key": "app", "label": "App name or ID", "type": "string", "required": true }]
+    },
+    {
+      "key": "restart_all_dynos",
+      "name": "Restart all dynos",
+      "method": "DELETE",
+      "endpoint": "/apps/{{ inputs.app }}/dynos",
+      "inputs": [{ "key": "app", "label": "App name or ID", "type": "string", "required": true }]
+    },
+    {
+      "key": "restart_dyno",
+      "name": "Restart dyno",
+      "method": "DELETE",
+      "endpoint": "/apps/{{ inputs.app }}/dynos/{{ inputs.dyno }}",
+      "inputs": [
+        { "key": "app", "label": "App name or ID", "type": "string", "required": true },
+        { "key": "dyno", "label": "Dyno name or ID", "type": "string", "required": true, "placeholder": "web.1" }
+      ]
+    },
+    {
+      "key": "scale_formation",
+      "name": "Scale process type",
+      "method": "PATCH",
+      "endpoint": "/apps/{{ inputs.app }}/formation/{{ inputs.type }}",
+      "body": { "quantity": "{{ inputs.quantity }}", "size": "{{ inputs.size }}" },
+      "inputs": [
+        { "key": "app", "label": "App name or ID", "type": "string", "required": true },
+        { "key": "type", "label": "Process type", "type": "string", "required": true, "default": "web" },
+        { "key": "quantity", "label": "Dyno count", "type": "number", "required": true },
+        { "key": "size", "label": "Dyno size", "type": "string", "placeholder": "basic, standard-1x, standard-2x, performance-m" }
+      ]
+    },
+    {
+      "key": "get_config_vars",
+      "name": "Get config vars",
+      "method": "GET",
+      "endpoint": "/apps/{{ inputs.app }}/config-vars",
+      "inputs": [{ "key": "app", "label": "App name or ID", "type": "string", "required": true }]
+    },
+    {
+      "key": "update_config_vars",
+      "name": "Set config vars",
+      "description": "Adds or changes the given vars (restarts the app).",
+      "method": "PATCH",
+      "endpoint": "/apps/{{ inputs.app }}/config-vars",
+      "body": "{{ inputs.vars }}",
+      "inputs": [
+        { "key": "app", "label": "App name or ID", "type": "string", "required": true },
+        { "key": "vars", "label": "Config vars", "type": "keyvalue", "required": true }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "app_webhook",
+      "name": "App webhook",
+      "type": "webhook",
+      "data_path": "data",
+      "inputs": [{ "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }]
+    }
+  ]
+}

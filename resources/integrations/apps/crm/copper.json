@@ -1,0 +1,219 @@
+{
+  "key": "copper",
+  "name": "Copper",
+  "category": "CRM & Sales",
+  "description": "Create people, leads and opportunities in Copper.",
+  "brand": "copper",
+  "website": "https://www.copper.com",
+  "docs_url": "https://developer.copper.com/",
+  "base_url": "https://api.copper.com/developer_api/v1",
+  "headers": {
+    "X-PW-Application": "developer_api",
+    "X-PW-UserEmail": "{{ credentials.email }}"
+  },
+  "auth": [
+    {
+      "type": "api_key",
+      "in": "header",
+      "name": "X-PW-AccessToken",
+      "fields": [
+        {
+          "key": "email",
+          "label": "Your Copper login email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "api_key",
+          "label": "API key",
+          "type": "password",
+          "required": true,
+          "help": "Settings > Integrations > API Keys."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "create_person",
+      "name": "Create person",
+      "method": "POST",
+      "endpoint": "/people",
+      "body": {
+        "name": "{{ inputs.name }}",
+        "emails": [
+          {
+            "email": "{{ inputs.email }}",
+            "category": "work"
+          }
+        ],
+        "title": "{{ inputs.title }}",
+        "company_name": "{{ inputs.company_name }}"
+      },
+      "inputs": [
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "string"
+        },
+        {
+          "key": "company_name",
+          "label": "Company name",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "find_person_by_email",
+      "name": "Find person by email",
+      "method": "POST",
+      "endpoint": "/people/fetch_by_email",
+      "body": {
+        "email": "{{ inputs.email }}"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "get_person",
+      "name": "Get person",
+      "method": "GET",
+      "endpoint": "/people/{{ inputs.person_id }}",
+      "inputs": [
+        {
+          "key": "person_id",
+          "label": "Person ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "create_lead",
+      "name": "Create lead",
+      "method": "POST",
+      "endpoint": "/leads",
+      "body": {
+        "name": "{{ inputs.name }}",
+        "email": {
+          "email": "{{ inputs.email }}",
+          "category": "work"
+        },
+        "company_name": "{{ inputs.company_name }}",
+        "title": "{{ inputs.title }}",
+        "monetary_value": "{{ inputs.monetary_value }}"
+      },
+      "inputs": [
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "company_name",
+          "label": "Company name",
+          "type": "string"
+        },
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "string"
+        },
+        {
+          "key": "monetary_value",
+          "label": "Value",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "create_opportunity",
+      "name": "Create opportunity",
+      "method": "POST",
+      "endpoint": "/opportunities",
+      "body": {
+        "name": "{{ inputs.name }}",
+        "primary_contact_id": "{{ inputs.primary_contact_id }}",
+        "monetary_value": "{{ inputs.monetary_value }}",
+        "pipeline_id": "{{ inputs.pipeline_id }}",
+        "pipeline_stage_id": "{{ inputs.pipeline_stage_id }}"
+      },
+      "inputs": [
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "primary_contact_id",
+          "label": "Primary person ID",
+          "type": "number"
+        },
+        {
+          "key": "monetary_value",
+          "label": "Value",
+          "type": "number"
+        },
+        {
+          "key": "pipeline_id",
+          "label": "Pipeline ID",
+          "type": "number"
+        },
+        {
+          "key": "pipeline_stage_id",
+          "label": "Stage ID",
+          "type": "number"
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_person",
+      "name": "New person",
+      "type": "polling",
+      "method": "POST",
+      "endpoint": "/people/search",
+      "body": {
+        "sort_by": "date_created",
+        "sort_direction": "desc",
+        "page_size": 50
+      },
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

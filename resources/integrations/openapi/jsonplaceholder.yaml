@@ -1,0 +1,58 @@
+# Any OpenAPI v3 document dropped into resources/integrations becomes an integration automatically.
+# x-flowforge overrides the derived key/name/icon/category.
+openapi: 3.0.3
+info:
+  title: JSONPlaceholder
+  description: Free fake REST API for testing and prototyping.
+  version: 1.0.0
+x-flowforge:
+  key: jsonplaceholder
+  icon: flask-conical
+  category: Developer Tools
+servers:
+  - url: https://jsonplaceholder.typicode.com
+paths:
+  /posts:
+    get:
+      operationId: listPosts
+      summary: List posts
+      parameters:
+        - name: userId
+          in: query
+          schema: { type: integer }
+      responses: { '200': { description: OK } }
+    post:
+      operationId: createPost
+      summary: Create post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/NewPost' }
+      responses: { '201': { description: Created } }
+  /posts/{id}:
+    parameters:
+      - $ref: '#/components/parameters/PostId'
+    get:
+      operationId: getPost
+      summary: Get post
+      responses: { '200': { description: OK } }
+    delete:
+      operationId: deletePost
+      summary: Delete post
+      responses: { '200': { description: OK } }
+components:
+  parameters:
+    PostId:
+      name: id
+      in: path
+      required: true
+      schema: { type: integer }
+  schemas:
+    NewPost:
+      type: object
+      required: [title, body, userId]
+      properties:
+        title: { type: string, example: Hello }
+        body: { type: string }
+        userId: { type: integer, example: 1 }

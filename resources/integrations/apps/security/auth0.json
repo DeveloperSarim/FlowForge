@@ -1,0 +1,115 @@
+{
+  "key": "auth0",
+  "name": "Auth0",
+  "category": "Security & IT",
+  "description": "Create, find, update, block and delete users and assign roles.",
+  "brand": "auth0",
+  "website": "https://auth0.com",
+  "docs_url": "https://auth0.com/docs/api/management/v2",
+  "popular": true,
+  "base_url": "https://{{ credentials.domain }}/api/v2",
+  "auth": { "type": "bearer", "fields": [
+    { "key": "domain", "label": "Tenant domain", "type": "string", "required": true, "placeholder": "acme.us.auth0.com", "help": "Your tenant or custom domain without https://." },
+    { "key": "token", "label": "Management API token", "type": "password", "required": true, "help": "Applications → APIs → Auth0 Management API → API Explorer. Raise the token expiration there; tokens expire." }
+  ] },
+  "actions": [
+    {
+      "key": "create_user",
+      "name": "Create user",
+      "method": "POST",
+      "endpoint": "/users",
+      "body": { "connection": "{{ inputs.connection }}", "email": "{{ inputs.email }}", "password": "{{ inputs.password }}", "name": "{{ inputs.name }}", "given_name": "{{ inputs.given_name }}", "family_name": "{{ inputs.family_name }}", "email_verified": "{{ inputs.email_verified }}", "verify_email": "{{ inputs.verify_email }}", "user_metadata": "{{ inputs.user_metadata }}", "app_metadata": "{{ inputs.app_metadata }}" },
+      "inputs": [
+        { "key": "connection", "label": "Connection", "type": "string", "required": true, "default": "Username-Password-Authentication" },
+        { "key": "email", "label": "Email", "type": "string", "required": true },
+        { "key": "password", "label": "Password", "type": "password", "help": "Required for database connections." },
+        { "key": "name", "label": "Full name", "type": "string" },
+        { "key": "given_name", "label": "First name", "type": "string" },
+        { "key": "family_name", "label": "Last name", "type": "string" },
+        { "key": "email_verified", "label": "Mark email as verified", "type": "boolean" },
+        { "key": "verify_email", "label": "Send verification email", "type": "boolean" },
+        { "key": "user_metadata", "label": "User metadata", "type": "keyvalue" },
+        { "key": "app_metadata", "label": "App metadata", "type": "keyvalue" }
+      ]
+    },
+    {
+      "key": "get_user",
+      "name": "Get user",
+      "method": "GET",
+      "endpoint": "/users/{{ inputs.user_id }}",
+      "inputs": [{ "key": "user_id", "label": "User ID", "type": "string", "required": true, "placeholder": "auth0|64f1..." }]
+    },
+    {
+      "key": "find_users_by_email",
+      "name": "Find users by email",
+      "method": "GET",
+      "endpoint": "/users-by-email",
+      "query": { "email": "{{ inputs.email }}" },
+      "inputs": [{ "key": "email", "label": "Email", "type": "string", "required": true }]
+    },
+    {
+      "key": "search_users",
+      "name": "Search users",
+      "method": "GET",
+      "endpoint": "/users",
+      "query": { "q": "{{ inputs.q }}", "search_engine": "v3", "per_page": "{{ inputs.per_page }}", "page": "{{ inputs.page }}" },
+      "inputs": [
+        { "key": "q", "label": "Lucene query", "type": "string", "placeholder": "app_metadata.plan:\"pro\" AND logins_count:[10 TO *]" },
+        { "key": "per_page", "label": "Per page", "type": "number", "default": 50 },
+        { "key": "page", "label": "Page (0-based)", "type": "number" }
+      ]
+    },
+    {
+      "key": "update_user",
+      "name": "Update user",
+      "description": "Metadata objects are merged; set blocked to lock the account.",
+      "method": "PATCH",
+      "endpoint": "/users/{{ inputs.user_id }}",
+      "body": { "blocked": "{{ inputs.blocked }}", "name": "{{ inputs.name }}", "email": "{{ inputs.email }}", "user_metadata": "{{ inputs.user_metadata }}", "app_metadata": "{{ inputs.app_metadata }}" },
+      "inputs": [
+        { "key": "user_id", "label": "User ID", "type": "string", "required": true },
+        { "key": "blocked", "label": "Blocked", "type": "boolean" },
+        { "key": "name", "label": "Full name", "type": "string" },
+        { "key": "email", "label": "Email", "type": "string" },
+        { "key": "user_metadata", "label": "User metadata", "type": "keyvalue" },
+        { "key": "app_metadata", "label": "App metadata", "type": "keyvalue" }
+      ]
+    },
+    {
+      "key": "delete_user",
+      "name": "Delete user",
+      "method": "DELETE",
+      "endpoint": "/users/{{ inputs.user_id }}",
+      "inputs": [{ "key": "user_id", "label": "User ID", "type": "string", "required": true }]
+    },
+    {
+      "key": "assign_roles",
+      "name": "Assign roles to user",
+      "method": "POST",
+      "endpoint": "/users/{{ inputs.user_id }}/roles",
+      "body": { "roles": "{{ inputs.roles }}" },
+      "inputs": [
+        { "key": "user_id", "label": "User ID", "type": "string", "required": true },
+        { "key": "roles", "label": "Role IDs", "type": "list", "required": true }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_user",
+      "name": "New user (polling)",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/users",
+      "query": { "sort": "created_at:-1", "per_page": 50, "search_engine": "v3" },
+      "id_field": "user_id",
+      "inputs": [{ "key": "poll_interval", "label": "Check every (minutes)", "type": "number", "default": 5 }]
+    },
+    {
+      "key": "log_stream",
+      "name": "Log stream event (webhook)",
+      "type": "webhook",
+      "inputs": [{ "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }]
+    }
+  ]
+}

@@ -1,0 +1,383 @@
+{
+  "key": "woocommerce",
+  "name": "WooCommerce",
+  "category": "E-commerce",
+  "description": "Create and update orders, products and customers in your WooCommerce store.",
+  "brand": "woocommerce",
+  "website": "https://woocommerce.com",
+  "docs_url": "https://woocommerce.github.io/woocommerce-rest-api-docs/",
+  "popular": true,
+  "base_url": "{{ credentials.store_url }}/wp-json/wc/v3",
+  "auth": [
+    {
+      "type": "basic",
+      "fields": [
+        {
+          "key": "store_url",
+          "label": "Store URL",
+          "type": "string",
+          "required": true,
+          "placeholder": "https://shop.example.com",
+          "help": "Your WordPress site URL, https, no trailing slash."
+        },
+        {
+          "key": "username",
+          "label": "Consumer key",
+          "type": "string",
+          "required": true,
+          "help": "WooCommerce > Settings > Advanced > REST API (starts with ck_)."
+        },
+        {
+          "key": "password",
+          "label": "Consumer secret",
+          "type": "password",
+          "required": true,
+          "help": "Starts with cs_."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "create_order",
+      "name": "Create order",
+      "method": "POST",
+      "endpoint": "/orders",
+      "body": {
+        "status": "{{ inputs.status }}",
+        "customer_id": "{{ inputs.customer_id }}",
+        "set_paid": "{{ inputs.set_paid }}",
+        "billing": "{{ inputs.billing }}",
+        "shipping": "{{ inputs.shipping }}",
+        "line_items": "{{ inputs.line_items }}",
+        "customer_note": "{{ inputs.customer_note }}"
+      },
+      "inputs": [
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "options": [
+            {
+              "value": "pending",
+              "label": "Pending payment"
+            },
+            {
+              "value": "processing",
+              "label": "Processing"
+            },
+            {
+              "value": "on-hold",
+              "label": "On hold"
+            },
+            {
+              "value": "completed",
+              "label": "Completed"
+            },
+            {
+              "value": "cancelled",
+              "label": "Cancelled"
+            },
+            {
+              "value": "refunded",
+              "label": "Refunded"
+            },
+            {
+              "value": "failed",
+              "label": "Failed"
+            }
+          ],
+          "default": "pending"
+        },
+        {
+          "key": "customer_id",
+          "label": "Customer ID",
+          "type": "number"
+        },
+        {
+          "key": "set_paid",
+          "label": "Mark as paid",
+          "type": "boolean"
+        },
+        {
+          "key": "billing",
+          "label": "Billing address",
+          "type": "json",
+          "placeholder": "{\"first_name\": \"Jane\", \"email\": \"jane@example.com\", \"country\": \"US\"}"
+        },
+        {
+          "key": "shipping",
+          "label": "Shipping address",
+          "type": "json"
+        },
+        {
+          "key": "line_items",
+          "label": "Line items",
+          "type": "json",
+          "required": true,
+          "placeholder": "[{\"product_id\": 93, \"quantity\": 2}]"
+        },
+        {
+          "key": "customer_note",
+          "label": "Customer note",
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "key": "get_order",
+      "name": "Get order",
+      "method": "GET",
+      "endpoint": "/orders/{{ inputs.order_id }}",
+      "inputs": [
+        {
+          "key": "order_id",
+          "label": "Order ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "update_order_status",
+      "name": "Update order status",
+      "method": "PUT",
+      "endpoint": "/orders/{{ inputs.order_id }}",
+      "body": {
+        "status": "{{ inputs.status }}"
+      },
+      "inputs": [
+        {
+          "key": "order_id",
+          "label": "Order ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "options": [
+            {
+              "value": "pending",
+              "label": "Pending payment"
+            },
+            {
+              "value": "processing",
+              "label": "Processing"
+            },
+            {
+              "value": "on-hold",
+              "label": "On hold"
+            },
+            {
+              "value": "completed",
+              "label": "Completed"
+            },
+            {
+              "value": "cancelled",
+              "label": "Cancelled"
+            },
+            {
+              "value": "refunded",
+              "label": "Refunded"
+            },
+            {
+              "value": "failed",
+              "label": "Failed"
+            }
+          ],
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "create_product",
+      "name": "Create product",
+      "method": "POST",
+      "endpoint": "/products",
+      "body": {
+        "name": "{{ inputs.name }}",
+        "type": "{{ inputs.type }}",
+        "regular_price": "{{ inputs.regular_price }}",
+        "sku": "{{ inputs.sku }}",
+        "description": "{{ inputs.description }}",
+        "short_description": "{{ inputs.short_description }}",
+        "status": "{{ inputs.status }}"
+      },
+      "inputs": [
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "type",
+          "label": "Type",
+          "type": "select",
+          "options": [
+            {
+              "value": "simple",
+              "label": "Simple"
+            },
+            {
+              "value": "variable",
+              "label": "Variable"
+            },
+            {
+              "value": "grouped",
+              "label": "Grouped"
+            },
+            {
+              "value": "external",
+              "label": "External"
+            }
+          ],
+          "default": "simple"
+        },
+        {
+          "key": "regular_price",
+          "label": "Regular price",
+          "type": "string",
+          "placeholder": "21.99",
+          "help": "Sent as a string, as WooCommerce expects."
+        },
+        {
+          "key": "sku",
+          "label": "SKU",
+          "type": "string"
+        },
+        {
+          "key": "description",
+          "label": "Description",
+          "type": "text"
+        },
+        {
+          "key": "short_description",
+          "label": "Short description",
+          "type": "text"
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "options": [
+            {
+              "value": "publish",
+              "label": "Published"
+            },
+            {
+              "value": "draft",
+              "label": "Draft"
+            },
+            {
+              "value": "pending",
+              "label": "Pending"
+            },
+            {
+              "value": "private",
+              "label": "Private"
+            }
+          ],
+          "default": "publish"
+        }
+      ]
+    },
+    {
+      "key": "create_customer",
+      "name": "Create customer",
+      "method": "POST",
+      "endpoint": "/customers",
+      "body": {
+        "email": "{{ inputs.email }}",
+        "first_name": "{{ inputs.first_name }}",
+        "last_name": "{{ inputs.last_name }}",
+        "username": "{{ inputs.username }}",
+        "billing": "{{ inputs.billing }}"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "first_name",
+          "label": "First name",
+          "type": "string"
+        },
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string"
+        },
+        {
+          "key": "username",
+          "label": "Username",
+          "type": "string"
+        },
+        {
+          "key": "billing",
+          "label": "Billing address",
+          "type": "json"
+        }
+      ]
+    },
+    {
+      "key": "find_customer",
+      "name": "Find customer by email",
+      "method": "GET",
+      "endpoint": "/customers",
+      "query": {
+        "email": "{{ inputs.email }}",
+        "role": "all"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_order",
+      "name": "New order",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/orders",
+      "query": {
+        "orderby": "date",
+        "order": "desc",
+        "per_page": 50
+      },
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    },
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "WooCommerce > Settings > Advanced > Webhooks > Add webhook, then paste this URL as the delivery URL.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

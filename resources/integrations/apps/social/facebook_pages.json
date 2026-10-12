@@ -1,0 +1,97 @@
+{
+  "key": "facebook_pages",
+  "name": "Facebook Pages",
+  "category": "Social Media",
+  "description": "Publish posts and photos to a Facebook Page and manage comments.",
+  "brand": "facebook",
+  "website": "https://www.facebook.com",
+  "docs_url": "https://developers.facebook.com/docs/pages-api",
+  "popular": true,
+  "base_url": "https://graph.facebook.com/v25.0",
+  "auth": { "type": "bearer", "fields": [{ "key": "token", "label": "Page access token", "type": "password", "required": true,
+    "help": "A long-lived Page token with pages_manage_posts, pages_read_engagement and pages_manage_engagement. Get it from GET /me/accounts in Graph API Explorer." }] },
+  "actions": [
+    {
+      "key": "create_post",
+      "name": "Create post",
+      "description": "Publishes a text or link post to the Page feed.",
+      "method": "POST",
+      "endpoint": "/{{ inputs.page_id }}/feed",
+      "body_format": "form",
+      "body": { "message": "{{ inputs.message }}", "link": "{{ inputs.link }}" },
+      "inputs": [
+        { "key": "page_id", "label": "Page ID", "type": "string", "required": true },
+        { "key": "message", "label": "Message", "type": "text", "required": true },
+        { "key": "link", "label": "Link URL", "type": "string", "placeholder": "https://example.com/article" }
+      ]
+    },
+    {
+      "key": "create_photo_post",
+      "name": "Create photo post",
+      "description": "Publishes a photo from a public URL to the Page.",
+      "method": "POST",
+      "endpoint": "/{{ inputs.page_id }}/photos",
+      "body_format": "form",
+      "body": { "url": "{{ inputs.image_url }}", "caption": "{{ inputs.caption }}" },
+      "inputs": [
+        { "key": "page_id", "label": "Page ID", "type": "string", "required": true },
+        { "key": "image_url", "label": "Image URL", "type": "string", "required": true, "help": "Must be publicly reachable." },
+        { "key": "caption", "label": "Caption", "type": "text" }
+      ]
+    },
+    {
+      "key": "list_posts",
+      "name": "List Page posts",
+      "method": "GET",
+      "endpoint": "/{{ inputs.page_id }}/posts",
+      "query": { "fields": "{{ inputs.fields }}", "limit": "{{ inputs.limit }}" },
+      "output_path": "data",
+      "inputs": [
+        { "key": "page_id", "label": "Page ID", "type": "string", "required": true },
+        { "key": "fields", "label": "Fields", "type": "string", "default": "id,message,created_time,permalink_url" },
+        { "key": "limit", "label": "Limit", "type": "number", "default": 25 }
+      ]
+    },
+    {
+      "key": "add_comment",
+      "name": "Comment on post",
+      "description": "Adds a comment (or reply to a comment) as the Page.",
+      "method": "POST",
+      "endpoint": "/{{ inputs.object_id }}/comments",
+      "body_format": "form",
+      "body": { "message": "{{ inputs.message }}" },
+      "inputs": [
+        { "key": "object_id", "label": "Post or comment ID", "type": "string", "required": true, "placeholder": "123_456" },
+        { "key": "message", "label": "Comment", "type": "text", "required": true }
+      ]
+    },
+    {
+      "key": "list_comments",
+      "name": "List comments",
+      "method": "GET",
+      "endpoint": "/{{ inputs.object_id }}/comments",
+      "query": { "fields": "id,message,from,created_time", "order": "reverse_chronological", "limit": "{{ inputs.limit }}" },
+      "output_path": "data",
+      "inputs": [
+        { "key": "object_id", "label": "Post ID", "type": "string", "required": true },
+        { "key": "limit", "label": "Limit", "type": "number", "default": 25 }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_post",
+      "name": "New Page post",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/{{ inputs.page_id }}/posts",
+      "query": { "fields": "id,message,created_time,permalink_url", "limit": 25 },
+      "items_path": "data",
+      "id_field": "id",
+      "inputs": [
+        { "key": "page_id", "label": "Page ID", "type": "string", "required": true },
+        { "key": "poll_interval", "label": "Check every (minutes)", "type": "number", "default": 5 }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,157 @@
+{
+  "key": "lightspeed_ecom",
+  "name": "Lightspeed eCom",
+  "category": "E-commerce",
+  "description": "Read orders and products and create customers in Lightspeed eCom (C-Series).",
+  "brand": "lightspeed",
+  "website": "https://www.lightspeedhq.com/ecommerce/",
+  "docs_url": "https://developers.lightspeedhq.com/ecom/introduction/introduction/",
+  "base_url": "{{ credentials.cluster }}",
+  "auth": [
+    {
+      "type": "basic",
+      "fields": [
+        {
+          "key": "cluster",
+          "label": "Cluster",
+          "type": "select",
+          "required": true,
+          "options": [
+            {
+              "value": "https://api.webshopapp.com/en",
+              "label": "EU (api.webshopapp.com)"
+            },
+            {
+              "value": "https://api.shoplightspeed.com/en",
+              "label": "US (api.shoplightspeed.com)"
+            }
+          ],
+          "default": "https://api.webshopapp.com/en"
+        },
+        {
+          "key": "username",
+          "label": "API key",
+          "type": "string",
+          "required": true,
+          "help": "Back office > Settings > Developers > API keys."
+        },
+        {
+          "key": "password",
+          "label": "API secret",
+          "type": "password",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_orders",
+      "name": "List orders",
+      "method": "GET",
+      "endpoint": "/orders.json",
+      "query": {
+        "limit": "{{ inputs.limit }}",
+        "page": "{{ inputs.page }}",
+        "created_at_min": "{{ inputs.created_at_min }}"
+      },
+      "output_path": "orders",
+      "inputs": [
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 50
+        },
+        {
+          "key": "page",
+          "label": "Page",
+          "type": "number"
+        },
+        {
+          "key": "created_at_min",
+          "label": "Created after",
+          "type": "string",
+          "placeholder": "2026-01-31 00:00:00"
+        }
+      ]
+    },
+    {
+      "key": "get_order",
+      "name": "Get order",
+      "method": "GET",
+      "endpoint": "/orders/{{ inputs.order_id }}.json",
+      "output_path": "order",
+      "inputs": [
+        {
+          "key": "order_id",
+          "label": "Order ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_products",
+      "name": "List products",
+      "method": "GET",
+      "endpoint": "/products.json",
+      "query": {
+        "limit": "{{ inputs.limit }}",
+        "page": "{{ inputs.page }}"
+      },
+      "output_path": "products",
+      "inputs": [
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 50
+        },
+        {
+          "key": "page",
+          "label": "Page",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "create_customer",
+      "name": "Create customer",
+      "method": "POST",
+      "endpoint": "/customers.json",
+      "body": {
+        "customer": {
+          "email": "{{ inputs.email }}",
+          "firstname": "{{ inputs.first_name }}",
+          "lastname": "{{ inputs.last_name }}",
+          "phone": "{{ inputs.phone }}"
+        }
+      },
+      "output_path": "customer",
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "first_name",
+          "label": "First name",
+          "type": "string"
+        },
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string"
+        },
+        {
+          "key": "phone",
+          "label": "Phone",
+          "type": "string"
+        }
+      ]
+    }
+  ]
+}

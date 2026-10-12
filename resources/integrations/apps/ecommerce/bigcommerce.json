@@ -1,0 +1,256 @@
+{
+  "key": "bigcommerce",
+  "name": "BigCommerce",
+  "category": "E-commerce",
+  "description": "Manage orders, products and customers in your BigCommerce store.",
+  "brand": "bigcommerce",
+  "website": "https://www.bigcommerce.com",
+  "docs_url": "https://developer.bigcommerce.com/docs/rest-management",
+  "popular": true,
+  "base_url": "https://api.bigcommerce.com/stores/{{ credentials.store_hash }}",
+  "auth": [
+    {
+      "type": "api_key",
+      "in": "header",
+      "name": "X-Auth-Token",
+      "fields": [
+        {
+          "key": "store_hash",
+          "label": "Store hash",
+          "type": "string",
+          "required": true,
+          "placeholder": "abc123",
+          "help": "From your API path: api.bigcommerce.com/stores/{store_hash}/v3/."
+        },
+        {
+          "key": "api_key",
+          "label": "Access token",
+          "type": "password",
+          "required": true,
+          "help": "Settings > Store-level API accounts > Create API account."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_orders",
+      "name": "List orders",
+      "description": "Lists orders, newest first.",
+      "method": "GET",
+      "endpoint": "/v2/orders",
+      "query": {
+        "status_id": "{{ inputs.status_id }}",
+        "min_date_created": "{{ inputs.min_date_created }}",
+        "sort": "date_created:desc",
+        "limit": "{{ inputs.limit }}"
+      },
+      "inputs": [
+        {
+          "key": "status_id",
+          "label": "Status ID",
+          "type": "number"
+        },
+        {
+          "key": "min_date_created",
+          "label": "Created after",
+          "type": "string",
+          "placeholder": "2025-01-01T00:00:00Z"
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    },
+    {
+      "key": "get_order",
+      "name": "Get order",
+      "method": "GET",
+      "endpoint": "/v2/orders/{{ inputs.order_id }}",
+      "inputs": [
+        {
+          "key": "order_id",
+          "label": "Order ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "update_order_status",
+      "name": "Update order status",
+      "method": "PUT",
+      "endpoint": "/v2/orders/{{ inputs.order_id }}",
+      "body": {
+        "status_id": "{{ inputs.status_id }}"
+      },
+      "inputs": [
+        {
+          "key": "order_id",
+          "label": "Order ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "status_id",
+          "label": "Status ID",
+          "type": "number",
+          "required": true,
+          "help": "e.g. 2 Shipped, 10 Completed, 11 Awaiting Fulfillment, 5 Cancelled."
+        }
+      ]
+    },
+    {
+      "key": "create_product",
+      "name": "Create product",
+      "method": "POST",
+      "endpoint": "/v3/catalog/products",
+      "output_path": "data",
+      "body": {
+        "name": "{{ inputs.name }}",
+        "type": "{{ inputs.type }}",
+        "sku": "{{ inputs.sku }}",
+        "price": "{{ inputs.price }}",
+        "weight": "{{ inputs.weight }}",
+        "description": "{{ inputs.description }}",
+        "is_visible": "{{ inputs.is_visible }}"
+      },
+      "inputs": [
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "type",
+          "label": "Type",
+          "type": "select",
+          "options": [
+            {
+              "value": "physical",
+              "label": "Physical"
+            },
+            {
+              "value": "digital",
+              "label": "Digital"
+            }
+          ],
+          "default": "physical",
+          "required": true
+        },
+        {
+          "key": "sku",
+          "label": "SKU",
+          "type": "string"
+        },
+        {
+          "key": "price",
+          "label": "Price",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "weight",
+          "label": "Weight",
+          "type": "number",
+          "required": true,
+          "default": 0
+        },
+        {
+          "key": "description",
+          "label": "Description (HTML)",
+          "type": "text"
+        },
+        {
+          "key": "is_visible",
+          "label": "Visible on storefront",
+          "type": "boolean"
+        }
+      ]
+    },
+    {
+      "key": "find_customer",
+      "name": "Find customer by email",
+      "method": "GET",
+      "endpoint": "/v3/customers",
+      "output_path": "data",
+      "query": {
+        "email:in": "{{ inputs.email }}"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "create_customer",
+      "name": "Create customer",
+      "method": "POST",
+      "endpoint": "/v3/customers",
+      "output_path": "data.0",
+      "body": [
+        {
+          "email": "{{ inputs.email }}",
+          "first_name": "{{ inputs.first_name }}",
+          "last_name": "{{ inputs.last_name }}",
+          "phone": "{{ inputs.phone }}"
+        }
+      ],
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "first_name",
+          "label": "First name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "phone",
+          "label": "Phone",
+          "type": "string"
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_order",
+      "name": "New order",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/v2/orders",
+      "query": {
+        "sort": "date_created:desc",
+        "limit": 50
+      },
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

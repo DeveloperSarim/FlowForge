@@ -1,0 +1,257 @@
+{
+  "key": "clickup",
+  "name": "ClickUp",
+  "category": "Project Management",
+  "description": "Create, update and comment on ClickUp tasks; receive task webhooks.",
+  "brand": "clickup",
+  "website": "https://clickup.com",
+  "docs_url": "https://developer.clickup.com/reference",
+  "popular": true,
+  "base_url": "https://api.clickup.com/api/v2",
+  "auth": [
+    {
+      "type": "api_key",
+      "in": "header",
+      "name": "Authorization",
+      "fields": [
+        {
+          "key": "api_key",
+          "label": "Personal API token",
+          "type": "password",
+          "required": true,
+          "placeholder": "pk_…",
+          "help": "Settings > Apps > API Token."
+        }
+      ]
+    },
+    {
+      "type": "oauth2",
+      "authorize_url": "https://app.clickup.com/api",
+      "token_url": "https://api.clickup.com/api/v2/oauth/token"
+    }
+  ],
+  "actions": [
+    {
+      "key": "create_task",
+      "name": "Create task",
+      "method": "POST",
+      "endpoint": "/list/{{ inputs.list_id }}/task",
+      "body": {
+        "name": "{{ inputs.name }}",
+        "markdown_content": "{{ inputs.description }}",
+        "status": "{{ inputs.status }}",
+        "priority": "{{ inputs.priority }}",
+        "assignees": "{{ inputs.assignees }}",
+        "tags": "{{ inputs.tags }}",
+        "due_date": "{{ inputs.due_date }}"
+      },
+      "inputs": [
+        {
+          "key": "list_id",
+          "label": "List ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "description",
+          "label": "Description (Markdown)",
+          "type": "text"
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "string"
+        },
+        {
+          "key": "priority",
+          "label": "Priority",
+          "type": "number",
+          "help": "1 urgent, 2 high, 3 normal, 4 low."
+        },
+        {
+          "key": "assignees",
+          "label": "Assignee user IDs",
+          "type": "json",
+          "placeholder": "[123456]"
+        },
+        {
+          "key": "tags",
+          "label": "Tags",
+          "type": "list"
+        },
+        {
+          "key": "due_date",
+          "label": "Due date (Unix ms)",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "get_task",
+      "name": "Get task",
+      "method": "GET",
+      "endpoint": "/task/{{ inputs.task_id }}",
+      "inputs": [
+        {
+          "key": "task_id",
+          "label": "Task ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "update_task",
+      "name": "Update task",
+      "description": "Changes only the fields you fill in.",
+      "method": "PUT",
+      "endpoint": "/task/{{ inputs.task_id }}",
+      "body": {
+        "name": "{{ inputs.name }}",
+        "description": "{{ inputs.description }}",
+        "status": "{{ inputs.status }}",
+        "priority": "{{ inputs.priority }}",
+        "due_date": "{{ inputs.due_date }}"
+      },
+      "inputs": [
+        {
+          "key": "task_id",
+          "label": "Task ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string"
+        },
+        {
+          "key": "description",
+          "label": "Description",
+          "type": "text"
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "string"
+        },
+        {
+          "key": "priority",
+          "label": "Priority",
+          "type": "number"
+        },
+        {
+          "key": "due_date",
+          "label": "Due date (Unix ms)",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "add_comment",
+      "name": "Add comment",
+      "method": "POST",
+      "endpoint": "/task/{{ inputs.task_id }}/comment",
+      "body": {
+        "comment_text": "{{ inputs.comment_text }}",
+        "notify_all": "{{ inputs.notify_all }}"
+      },
+      "inputs": [
+        {
+          "key": "task_id",
+          "label": "Task ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "comment_text",
+          "label": "Comment",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "notify_all",
+          "label": "Notify everyone",
+          "type": "boolean"
+        }
+      ]
+    },
+    {
+      "key": "list_workspaces",
+      "name": "List workspaces",
+      "description": "Workspace (team) IDs are needed for webhooks.",
+      "method": "GET",
+      "endpoint": "/team",
+      "output_path": "teams",
+      "inputs": []
+    },
+    {
+      "key": "create_webhook",
+      "name": "Create webhook",
+      "method": "POST",
+      "endpoint": "/team/{{ inputs.team_id }}/webhook",
+      "body": {
+        "endpoint": "{{ inputs.endpoint }}",
+        "events": "{{ inputs.events }}",
+        "list_id": "{{ inputs.list_id }}",
+        "space_id": "{{ inputs.space_id }}"
+      },
+      "inputs": [
+        {
+          "key": "team_id",
+          "label": "Workspace ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "endpoint",
+          "label": "Callback URL",
+          "type": "string",
+          "required": true,
+          "help": "The URL of a workflow's ClickUp webhook trigger."
+        },
+        {
+          "key": "events",
+          "label": "Events",
+          "type": "list",
+          "required": true,
+          "default": [
+            "taskCreated",
+            "taskUpdated"
+          ]
+        },
+        {
+          "key": "list_id",
+          "label": "Only for list ID",
+          "type": "string"
+        },
+        {
+          "key": "space_id",
+          "label": "Only for space ID",
+          "type": "string"
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Task event (webhook)",
+      "type": "webhook",
+      "description": "Register the URL with the Create webhook action.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

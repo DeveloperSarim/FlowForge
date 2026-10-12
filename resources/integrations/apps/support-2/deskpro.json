@@ -1,0 +1,95 @@
+{
+  "key": "deskpro",
+  "name": "Deskpro",
+  "category": "Customer Support",
+  "description": "Create, update and reply to tickets in Deskpro.",
+  "brand": "deskpro",
+  "website": "https://www.deskpro.com",
+  "docs_url": "https://support.deskpro.com/en/guides/developers/deskpro-api",
+  "base_url": "https://{{ credentials.helpdesk }}/api/v2",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "Authorization",
+    "prefix": "key ",
+    "fields": [
+      { "key": "helpdesk", "label": "Helpdesk host", "type": "string", "required": true, "placeholder": "yourcompany.deskpro.com", "help": "Host only, no https://" },
+      { "key": "api_key", "label": "API key", "type": "password", "required": true, "placeholder": "12:ABCDEFGHIJ", "help": "In the form id:code (Admin > Apps & Integrations > API Keys)" }
+    ]
+  },
+  "actions": [
+    {
+      "key": "create_ticket",
+      "name": "Create ticket",
+      "method": "POST",
+      "endpoint": "/tickets",
+      "output_path": "data",
+      "body": {
+        "subject": "{{ inputs.subject }}",
+        "person": { "email": "{{ inputs.email }}", "name": "{{ inputs.name }}" },
+        "message": { "message": "{{ inputs.message }}", "format": "{{ inputs.format }}" },
+        "department": "{{ inputs.department_id }}",
+        "labels": "{{ inputs.labels }}"
+      },
+      "inputs": [
+        { "key": "subject", "label": "Subject", "type": "string", "required": true },
+        { "key": "email", "label": "Requester email", "type": "string", "required": true },
+        { "key": "name", "label": "Requester name", "type": "string" },
+        { "key": "message", "label": "Message", "type": "text", "required": true },
+        { "key": "format", "label": "Message format", "type": "select", "default": "html", "options": [{ "value": "html", "label": "HTML" }, { "value": "text", "label": "Plain text" }] },
+        { "key": "department_id", "label": "Department ID", "type": "number" },
+        { "key": "labels", "label": "Labels", "type": "list" }
+      ]
+    },
+    {
+      "key": "update_ticket",
+      "name": "Update ticket",
+      "method": "PUT",
+      "endpoint": "/tickets/{{ inputs.ticket_id }}",
+      "body": {
+        "status": "{{ inputs.status }}",
+        "agent": "{{ inputs.agent_id }}",
+        "department": "{{ inputs.department_id }}",
+        "labels": "{{ inputs.labels }}"
+      },
+      "inputs": [
+        { "key": "ticket_id", "label": "Ticket ID", "type": "number", "required": true },
+        { "key": "status", "label": "Status", "type": "string", "placeholder": "resolved", "help": "e.g. awaiting_agent, awaiting_user, resolved" },
+        { "key": "agent_id", "label": "Agent ID", "type": "number" },
+        { "key": "department_id", "label": "Department ID", "type": "number" },
+        { "key": "labels", "label": "Labels", "type": "list" }
+      ]
+    },
+    {
+      "key": "get_ticket",
+      "name": "Get ticket",
+      "method": "GET",
+      "endpoint": "/tickets/{{ inputs.ticket_id }}",
+      "output_path": "data",
+      "inputs": [{ "key": "ticket_id", "label": "Ticket ID", "type": "number", "required": true }]
+    },
+    {
+      "key": "add_message",
+      "name": "Reply or add note",
+      "method": "POST",
+      "endpoint": "/tickets/{{ inputs.ticket_id }}/messages",
+      "output_path": "data",
+      "body": { "message": "{{ inputs.message }}", "format": "{{ inputs.format }}", "is_note": "{{ inputs.is_note }}" },
+      "inputs": [
+        { "key": "ticket_id", "label": "Ticket ID", "type": "number", "required": true },
+        { "key": "message", "label": "Message", "type": "text", "required": true },
+        { "key": "format", "label": "Message format", "type": "select", "default": "html", "options": [{ "value": "html", "label": "HTML" }, { "value": "text", "label": "Plain text" }] },
+        { "key": "is_note", "label": "Internal note", "type": "boolean" }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Add a webhook (Admin > Apps & Integrations > Webhooks) or a trigger action pointing at this URL.",
+      "inputs": [{ "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }]
+    }
+  ]
+}

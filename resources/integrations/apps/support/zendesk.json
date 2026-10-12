@@ -1,0 +1,392 @@
+{
+  "key": "zendesk",
+  "name": "Zendesk",
+  "category": "Customer Support",
+  "description": "Create, update and search Zendesk Support tickets and users.",
+  "brand": "zendesk",
+  "website": "https://www.zendesk.com",
+  "docs_url": "https://developer.zendesk.com/api-reference/ticketing/introduction/",
+  "popular": true,
+  "base_url": "https://{{ credentials.subdomain }}.zendesk.com/api/v2",
+  "auth": [
+    {
+      "type": "basic",
+      "fields": [
+        {
+          "key": "subdomain",
+          "label": "Subdomain",
+          "type": "string",
+          "required": true,
+          "placeholder": "yourcompany",
+          "help": "The part before .zendesk.com"
+        },
+        {
+          "key": "username",
+          "label": "Email/token",
+          "type": "string",
+          "required": true,
+          "placeholder": "you@company.com/token",
+          "help": "Your agent email followed by /token, e.g. you@company.com/token"
+        },
+        {
+          "key": "password",
+          "label": "API token",
+          "type": "password",
+          "required": true,
+          "help": "Admin Center > Apps and integrations > APIs > Zendesk API"
+        }
+      ]
+    },
+    {
+      "type": "bearer",
+      "fields": [
+        {
+          "key": "subdomain",
+          "label": "Subdomain",
+          "type": "string",
+          "required": true,
+          "placeholder": "yourcompany",
+          "help": "The part before .zendesk.com"
+        },
+        {
+          "key": "token",
+          "label": "OAuth access token",
+          "type": "password",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "create_ticket",
+      "name": "Create ticket",
+      "description": "Opens a new ticket.",
+      "method": "POST",
+      "endpoint": "/tickets.json",
+      "output_path": "ticket",
+      "body": {
+        "ticket": {
+          "subject": "{{ inputs.subject }}",
+          "comment": {
+            "body": "{{ inputs.body }}"
+          },
+          "requester": {
+            "email": "{{ inputs.requester_email }}",
+            "name": "{{ inputs.requester_name }}"
+          },
+          "priority": "{{ inputs.priority }}",
+          "type": "{{ inputs.type }}",
+          "tags": "{{ inputs.tags }}"
+        }
+      },
+      "inputs": [
+        {
+          "key": "subject",
+          "label": "Subject",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "body",
+          "label": "Description",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "requester_email",
+          "label": "Requester email",
+          "type": "string",
+          "help": "Created as an end user if new. Defaults to you."
+        },
+        {
+          "key": "requester_name",
+          "label": "Requester name",
+          "type": "string"
+        },
+        {
+          "key": "priority",
+          "label": "Priority",
+          "type": "select",
+          "options": [
+            {
+              "value": "urgent",
+              "label": "Urgent"
+            },
+            {
+              "value": "high",
+              "label": "High"
+            },
+            {
+              "value": "normal",
+              "label": "Normal"
+            },
+            {
+              "value": "low",
+              "label": "Low"
+            }
+          ]
+        },
+        {
+          "key": "type",
+          "label": "Type",
+          "type": "select",
+          "options": [
+            {
+              "value": "question",
+              "label": "Question"
+            },
+            {
+              "value": "incident",
+              "label": "Incident"
+            },
+            {
+              "value": "problem",
+              "label": "Problem"
+            },
+            {
+              "value": "task",
+              "label": "Task"
+            }
+          ]
+        },
+        {
+          "key": "tags",
+          "label": "Tags",
+          "type": "list"
+        }
+      ]
+    },
+    {
+      "key": "update_ticket",
+      "name": "Update ticket",
+      "description": "Changes status, priority, assignee or tags.",
+      "method": "PUT",
+      "endpoint": "/tickets/{{ inputs.ticket_id }}.json",
+      "output_path": "ticket",
+      "body": {
+        "ticket": {
+          "status": "{{ inputs.status }}",
+          "priority": "{{ inputs.priority }}",
+          "assignee_id": "{{ inputs.assignee_id }}",
+          "tags": "{{ inputs.tags }}"
+        }
+      },
+      "inputs": [
+        {
+          "key": "ticket_id",
+          "label": "Ticket ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "options": [
+            {
+              "value": "new",
+              "label": "New"
+            },
+            {
+              "value": "open",
+              "label": "Open"
+            },
+            {
+              "value": "pending",
+              "label": "Pending"
+            },
+            {
+              "value": "hold",
+              "label": "On hold"
+            },
+            {
+              "value": "solved",
+              "label": "Solved"
+            },
+            {
+              "value": "closed",
+              "label": "Closed"
+            }
+          ]
+        },
+        {
+          "key": "priority",
+          "label": "Priority",
+          "type": "select",
+          "options": [
+            {
+              "value": "urgent",
+              "label": "Urgent"
+            },
+            {
+              "value": "high",
+              "label": "High"
+            },
+            {
+              "value": "normal",
+              "label": "Normal"
+            },
+            {
+              "value": "low",
+              "label": "Low"
+            }
+          ]
+        },
+        {
+          "key": "assignee_id",
+          "label": "Assignee user ID",
+          "type": "number"
+        },
+        {
+          "key": "tags",
+          "label": "Tags (replaces existing)",
+          "type": "list"
+        }
+      ]
+    },
+    {
+      "key": "add_comment",
+      "name": "Add comment",
+      "description": "Adds a public reply or internal note to a ticket.",
+      "method": "PUT",
+      "endpoint": "/tickets/{{ inputs.ticket_id }}.json",
+      "output_path": "ticket",
+      "body": {
+        "ticket": {
+          "comment": {
+            "body": "{{ inputs.body }}",
+            "public": "{{ inputs.public }}"
+          }
+        }
+      },
+      "inputs": [
+        {
+          "key": "ticket_id",
+          "label": "Ticket ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "body",
+          "label": "Comment",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "public",
+          "label": "Public reply",
+          "type": "boolean",
+          "default": true,
+          "help": "Off = internal note"
+        }
+      ]
+    },
+    {
+      "key": "get_ticket",
+      "name": "Get ticket",
+      "method": "GET",
+      "endpoint": "/tickets/{{ inputs.ticket_id }}.json",
+      "output_path": "ticket",
+      "inputs": [
+        {
+          "key": "ticket_id",
+          "label": "Ticket ID",
+          "type": "number",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "search",
+      "name": "Search",
+      "description": "Searches tickets, users and organizations.",
+      "method": "GET",
+      "endpoint": "/search.json",
+      "query": {
+        "query": "{{ inputs.query }}"
+      },
+      "output_path": "results",
+      "inputs": [
+        {
+          "key": "query",
+          "label": "Query",
+          "type": "string",
+          "required": true,
+          "placeholder": "type:ticket status:open requester:jane@example.com"
+        }
+      ]
+    },
+    {
+      "key": "create_or_update_user",
+      "name": "Create or update user",
+      "description": "Upserts an end user by email.",
+      "method": "POST",
+      "endpoint": "/users/create_or_update.json",
+      "output_path": "user",
+      "body": {
+        "user": {
+          "name": "{{ inputs.name }}",
+          "email": "{{ inputs.email }}",
+          "phone": "{{ inputs.phone }}"
+        }
+      },
+      "inputs": [
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "phone",
+          "label": "Phone",
+          "type": "string"
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_ticket",
+      "name": "New ticket (polling)",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/tickets.json",
+      "query": {
+        "sort_by": "created_at",
+        "sort_order": "desc",
+        "per_page": 50
+      },
+      "items_path": "tickets",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    },
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Point a Zendesk webhook (Admin Center > Webhooks) at this URL and fire it from a trigger.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,174 @@
+{
+  "key": "bigmarker",
+  "name": "BigMarker",
+  "category": "Events & Webinars",
+  "description": "List BigMarker webinars, register attendees and fetch registrations.",
+  "brand": "bigmarker",
+  "website": "https://www.bigmarker.com",
+  "docs_url": "https://docs.bigmarker.com",
+  "base_url": "https://www.bigmarker.com/api/v1",
+  "auth": [
+    {
+      "type": "api_key",
+      "in": "header",
+      "name": "API-KEY",
+      "fields": [
+        {
+          "key": "api_key",
+          "label": "API key",
+          "type": "password",
+          "required": true,
+          "help": "Channel admin > Integrations > API."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_conferences",
+      "name": "List webinars",
+      "method": "GET",
+      "endpoint": "/conferences/",
+      "query": {
+        "role": "{{ inputs.role }}",
+        "query": "{{ inputs.query }}",
+        "per_page": "{{ inputs.per_page }}",
+        "page": "{{ inputs.page }}"
+      },
+      "output_path": "conferences",
+      "inputs": [
+        {
+          "key": "role",
+          "label": "Role",
+          "type": "select",
+          "options": [
+            {
+              "value": "all",
+              "label": "All"
+            },
+            {
+              "value": "hosting",
+              "label": "Hosting"
+            },
+            {
+              "value": "attending",
+              "label": "Attending"
+            }
+          ]
+        },
+        {
+          "key": "query",
+          "label": "Search",
+          "type": "string"
+        },
+        {
+          "key": "per_page",
+          "label": "Per page",
+          "type": "number",
+          "default": 20
+        },
+        {
+          "key": "page",
+          "label": "Page",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "get_conference",
+      "name": "Get webinar",
+      "method": "GET",
+      "endpoint": "/conferences/{{ inputs.conference_id }}",
+      "inputs": [
+        {
+          "key": "conference_id",
+          "label": "Webinar ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "register",
+      "name": "Register attendee",
+      "description": "Returns the attendee conference_url.",
+      "method": "PUT",
+      "endpoint": "/conferences/register",
+      "body_format": "form",
+      "body": {
+        "id": "{{ inputs.conference_id }}",
+        "email": "{{ inputs.email }}",
+        "first_name": "{{ inputs.first_name }}",
+        "last_name": "{{ inputs.last_name }}",
+        "custom_user_id": "{{ inputs.custom_user_id }}",
+        "utm_bmcr_source": "{{ inputs.utm_bmcr_source }}"
+      },
+      "inputs": [
+        {
+          "key": "conference_id",
+          "label": "Webinar ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "first_name",
+          "label": "First name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "custom_user_id",
+          "label": "Your user ID",
+          "type": "string"
+        },
+        {
+          "key": "utm_bmcr_source",
+          "label": "Source (UTM)",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "list_registrations",
+      "name": "List registrations",
+      "method": "GET",
+      "endpoint": "/conferences/registrations/{{ inputs.conference_id }}",
+      "output_path": "registrations",
+      "inputs": [
+        {
+          "key": "conference_id",
+          "label": "Webinar ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Set this URL as the webinar's new-registration webhook in BigMarker.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

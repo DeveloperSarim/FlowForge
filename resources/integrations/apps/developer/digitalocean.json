@@ -1,0 +1,96 @@
+{
+  "key": "digitalocean",
+  "name": "DigitalOcean",
+  "category": "Developer Tools",
+  "description": "Create and manage Droplets, DNS records and App Platform deployments.",
+  "brand": "digitalocean",
+  "website": "https://www.digitalocean.com",
+  "docs_url": "https://docs.digitalocean.com/reference/api/",
+  "popular": true,
+  "base_url": "https://api.digitalocean.com/v2",
+  "auth": [
+    { "type": "bearer", "fields": [{ "key": "token", "label": "Personal access token", "type": "password", "required": true, "help": "API → Tokens → Generate new token." }] },
+    { "type": "oauth2", "authorize_url": "https://cloud.digitalocean.com/v1/oauth/authorize", "token_url": "https://cloud.digitalocean.com/v1/oauth/token", "scopes": ["read", "write"] }
+  ],
+  "actions": [
+    {
+      "key": "list_droplets",
+      "name": "List Droplets",
+      "method": "GET",
+      "endpoint": "/droplets",
+      "query": { "tag_name": "{{ inputs.tag }}", "per_page": 200 },
+      "output_path": "droplets",
+      "inputs": [{ "key": "tag", "label": "Tag", "type": "string" }]
+    },
+    {
+      "key": "create_droplet",
+      "name": "Create Droplet",
+      "method": "POST",
+      "endpoint": "/droplets",
+      "output_path": "droplet",
+      "body": { "name": "{{ inputs.name }}", "region": "{{ inputs.region }}", "size": "{{ inputs.size }}", "image": "{{ inputs.image }}", "ssh_keys": "{{ inputs.ssh_keys }}", "tags": "{{ inputs.tags }}", "user_data": "{{ inputs.user_data }}" },
+      "inputs": [
+        { "key": "name", "label": "Name", "type": "string", "required": true },
+        { "key": "region", "label": "Region slug", "type": "string", "required": true, "placeholder": "nyc3" },
+        { "key": "size", "label": "Size slug", "type": "string", "required": true, "placeholder": "s-1vcpu-1gb" },
+        { "key": "image", "label": "Image slug or ID", "type": "string", "required": true, "placeholder": "ubuntu-24-04-x64" },
+        { "key": "ssh_keys", "label": "SSH key fingerprints", "type": "list" },
+        { "key": "tags", "label": "Tags", "type": "list" },
+        { "key": "user_data", "label": "User data (cloud-init)", "type": "code" }
+      ]
+    },
+    {
+      "key": "droplet_action",
+      "name": "Power / reboot Droplet",
+      "method": "POST",
+      "endpoint": "/droplets/{{ inputs.droplet_id }}/actions",
+      "output_path": "action",
+      "body": { "type": "{{ inputs.type }}" },
+      "inputs": [
+        { "key": "droplet_id", "label": "Droplet ID", "type": "number", "required": true },
+        { "key": "type", "label": "Action", "type": "select", "required": true, "default": "reboot", "options": [
+          { "value": "reboot", "label": "Reboot" }, { "value": "power_cycle", "label": "Power cycle" }, { "value": "shutdown", "label": "Shut down" },
+          { "value": "power_off", "label": "Power off" }, { "value": "power_on", "label": "Power on" }
+        ] }
+      ]
+    },
+    {
+      "key": "delete_droplet",
+      "name": "Delete Droplet",
+      "method": "DELETE",
+      "endpoint": "/droplets/{{ inputs.droplet_id }}",
+      "inputs": [{ "key": "droplet_id", "label": "Droplet ID", "type": "number", "required": true }]
+    },
+    {
+      "key": "create_dns_record",
+      "name": "Create DNS record",
+      "method": "POST",
+      "endpoint": "/domains/{{ inputs.domain }}/records",
+      "output_path": "domain_record",
+      "body": { "type": "{{ inputs.type }}", "name": "{{ inputs.name }}", "data": "{{ inputs.data }}", "ttl": "{{ inputs.ttl }}", "priority": "{{ inputs.priority }}" },
+      "inputs": [
+        { "key": "domain", "label": "Domain", "type": "string", "required": true, "placeholder": "example.com" },
+        { "key": "type", "label": "Type", "type": "select", "required": true, "default": "A", "options": [
+          { "value": "A", "label": "A" }, { "value": "AAAA", "label": "AAAA" }, { "value": "CNAME", "label": "CNAME" }, { "value": "TXT", "label": "TXT" },
+          { "value": "MX", "label": "MX" }, { "value": "NS", "label": "NS" }, { "value": "SRV", "label": "SRV" }, { "value": "CAA", "label": "CAA" }
+        ] },
+        { "key": "name", "label": "Name", "type": "string", "required": true, "placeholder": "www or @" },
+        { "key": "data", "label": "Value", "type": "string", "required": true },
+        { "key": "ttl", "label": "TTL (seconds)", "type": "number", "default": 1800 },
+        { "key": "priority", "label": "Priority (MX/SRV)", "type": "number" }
+      ]
+    },
+    {
+      "key": "create_app_deployment",
+      "name": "Deploy App Platform app",
+      "method": "POST",
+      "endpoint": "/apps/{{ inputs.app_id }}/deployments",
+      "output_path": "deployment",
+      "body": { "force_build": "{{ inputs.force_build }}" },
+      "inputs": [
+        { "key": "app_id", "label": "App ID", "type": "string", "required": true },
+        { "key": "force_build", "label": "Force rebuild", "type": "boolean", "default": false }
+      ]
+    }
+  ]
+}

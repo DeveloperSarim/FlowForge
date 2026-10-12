@@ -1,0 +1,215 @@
+{
+  "key": "ticket_tailor",
+  "name": "Ticket Tailor",
+  "category": "Events & Webinars",
+  "description": "List events and orders, issue tickets and react to new orders in Ticket Tailor.",
+  "brand": "tickettailor",
+  "website": "https://www.tickettailor.com",
+  "docs_url": "https://developers.tickettailor.com",
+  "base_url": "https://api.tickettailor.com/v1",
+  "auth": [
+    {
+      "type": "basic",
+      "fields": [
+        {
+          "key": "username",
+          "label": "API key",
+          "type": "password",
+          "required": true,
+          "help": "Box office settings > API > Generate key."
+        },
+        {
+          "key": "password",
+          "label": "Password",
+          "type": "password",
+          "required": false,
+          "default": "x",
+          "help": "Not used; leave as is."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_events",
+      "name": "List events",
+      "method": "GET",
+      "endpoint": "/events",
+      "query": {
+        "status": "{{ inputs.status }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "string",
+          "placeholder": "published"
+        },
+        {
+          "key": "limit",
+          "label": "Max results",
+          "type": "number",
+          "default": 100
+        }
+      ]
+    },
+    {
+      "key": "list_orders",
+      "name": "List orders",
+      "description": "Newest first.",
+      "method": "GET",
+      "endpoint": "/orders",
+      "query": {
+        "email": "{{ inputs.email }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string"
+        },
+        {
+          "key": "limit",
+          "label": "Max results",
+          "type": "number",
+          "default": 100
+        }
+      ]
+    },
+    {
+      "key": "get_order",
+      "name": "Get order",
+      "method": "GET",
+      "endpoint": "/orders/{{ inputs.order_id }}",
+      "inputs": [
+        {
+          "key": "order_id",
+          "label": "Order ID",
+          "type": "string",
+          "required": true,
+          "placeholder": "or_123"
+        }
+      ]
+    },
+    {
+      "key": "list_issued_tickets",
+      "name": "List issued tickets",
+      "method": "GET",
+      "endpoint": "/issued_tickets",
+      "query": {
+        "event_id": "{{ inputs.event_id }}",
+        "order_id": "{{ inputs.order_id }}",
+        "email": "{{ inputs.email }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "event_id",
+          "label": "Event ID",
+          "type": "string"
+        },
+        {
+          "key": "order_id",
+          "label": "Order ID",
+          "type": "string"
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string"
+        },
+        {
+          "key": "limit",
+          "label": "Max results",
+          "type": "number",
+          "default": 100
+        }
+      ]
+    },
+    {
+      "key": "issue_ticket",
+      "name": "Issue ticket",
+      "description": "Issues a complimentary ticket without an order.",
+      "method": "POST",
+      "endpoint": "/issued_tickets",
+      "body_format": "form",
+      "body": {
+        "event_id": "{{ inputs.event_id }}",
+        "ticket_type_id": "{{ inputs.ticket_type_id }}",
+        "full_name": "{{ inputs.full_name }}",
+        "email": "{{ inputs.email }}",
+        "reference": "{{ inputs.reference }}"
+      },
+      "inputs": [
+        {
+          "key": "event_id",
+          "label": "Event ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "ticket_type_id",
+          "label": "Ticket type ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "full_name",
+          "label": "Full name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string"
+        },
+        {
+          "key": "reference",
+          "label": "Reference",
+          "type": "string"
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_order",
+      "name": "New order",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/orders",
+      "query": {
+        "limit": 50
+      },
+      "items_path": "data",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    },
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Box office settings > Webhooks: add this URL.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

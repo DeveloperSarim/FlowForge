@@ -1,0 +1,170 @@
+{
+  "key": "mautic",
+  "name": "Mautic",
+  "category": "Marketing & Email",
+  "description": "Create contacts, manage segments and do-not-contact (self-hosted).",
+  "brand": "mautic",
+  "website": "https://www.mautic.org",
+  "docs_url": "https://devdocs.mautic.org/en/latest/rest_api/getting_started.html",
+  "base_url": "{{ credentials.url }}/api",
+  "auth": {
+    "type": "basic",
+    "fields": [
+      {
+        "key": "url",
+        "label": "Mautic URL",
+        "type": "string",
+        "required": true,
+        "placeholder": "https://mautic.example.com",
+        "help": "No trailing slash. Enable the API and HTTP basic auth in Configuration → API Settings."
+      },
+      {
+        "key": "username",
+        "label": "Username",
+        "type": "string",
+        "required": true
+      },
+      {
+        "key": "password",
+        "label": "Password",
+        "type": "password",
+        "required": true
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "create_contact",
+      "name": "Create or update contact",
+      "description": "Matches existing contacts by email.",
+      "method": "POST",
+      "endpoint": "/contacts/new",
+      "output_path": "contact",
+      "body": {
+        "email": "{{ inputs.email }}",
+        "firstname": "{{ inputs.firstname }}",
+        "lastname": "{{ inputs.lastname }}",
+        "tags": "{{ inputs.tags }}"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "firstname",
+          "label": "First name",
+          "type": "string"
+        },
+        {
+          "key": "lastname",
+          "label": "Last name",
+          "type": "string"
+        },
+        {
+          "key": "tags",
+          "label": "Tags",
+          "type": "list"
+        }
+      ]
+    },
+    {
+      "key": "find_contact",
+      "name": "Search contacts",
+      "method": "GET",
+      "endpoint": "/contacts",
+      "query": {
+        "search": "{{ inputs.search }}"
+      },
+      "output_path": "contacts",
+      "inputs": [
+        {
+          "key": "search",
+          "label": "Search",
+          "type": "string",
+          "required": true,
+          "placeholder": "email:ada@example.com"
+        }
+      ]
+    },
+    {
+      "key": "add_to_segment",
+      "name": "Add contact to segment",
+      "method": "POST",
+      "endpoint": "/segments/{{ inputs.segment_id }}/contact/{{ inputs.contact_id }}/add",
+      "inputs": [
+        {
+          "key": "segment_id",
+          "label": "Segment ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "contact_id",
+          "label": "Contact ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "remove_from_segment",
+      "name": "Remove contact from segment",
+      "method": "POST",
+      "endpoint": "/segments/{{ inputs.segment_id }}/contact/{{ inputs.contact_id }}/remove",
+      "inputs": [
+        {
+          "key": "segment_id",
+          "label": "Segment ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "contact_id",
+          "label": "Contact ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "add_dnc",
+      "name": "Unsubscribe (do not contact)",
+      "method": "POST",
+      "endpoint": "/contacts/{{ inputs.contact_id }}/dnc/email/add",
+      "body": {
+        "comments": "{{ inputs.comments }}"
+      },
+      "inputs": [
+        {
+          "key": "contact_id",
+          "label": "Contact ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "comments",
+          "label": "Comment",
+          "type": "string"
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Settings → Webhooks (contact identified, updated, form submitted…).",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

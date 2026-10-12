@@ -1,0 +1,53 @@
+{
+  "key": "snyk",
+  "name": "Snyk",
+  "category": "Developer Tools",
+  "description": "List organizations, projects and security issues.",
+  "brand": "snyk",
+  "website": "https://snyk.io",
+  "docs_url": "https://docs.snyk.io/snyk-api",
+  "base_url": "https://{{ credentials.api_host }}",
+  "auth": { "type": "api_key", "in": "header", "name": "Authorization", "prefix": "token ", "fields": [
+    { "key": "api_host", "label": "Region", "type": "select", "required": true, "default": "api.snyk.io", "options": [
+      { "value": "api.snyk.io", "label": "US (default)" }, { "value": "api.us.snyk.io", "label": "US-02" }, { "value": "api.eu.snyk.io", "label": "EU" }, { "value": "api.au.snyk.io", "label": "AU" }
+    ] },
+    { "key": "api_key", "label": "API token", "type": "password", "required": true, "help": "Account settings → API token, or a service account token." }
+  ] },
+  "actions": [
+    {
+      "key": "list_orgs",
+      "name": "List organizations",
+      "method": "GET",
+      "endpoint": "/rest/orgs",
+      "query": { "version": "2024-10-15", "limit": 100 },
+      "output_path": "data",
+      "inputs": []
+    },
+    {
+      "key": "list_projects",
+      "name": "List projects",
+      "method": "GET",
+      "endpoint": "/rest/orgs/{{ inputs.org_id }}/projects",
+      "query": { "version": "2024-10-15", "limit": "{{ inputs.limit }}" },
+      "output_path": "data",
+      "inputs": [
+        { "key": "org_id", "label": "Organization ID", "type": "string", "required": true },
+        { "key": "limit", "label": "Limit", "type": "number", "default": 100 }
+      ]
+    },
+    {
+      "key": "list_issues",
+      "name": "List issues",
+      "method": "GET",
+      "endpoint": "/rest/orgs/{{ inputs.org_id }}/issues",
+      "query": { "version": "2024-10-15", "effective_severity_level": "{{ inputs.severity }}", "status": "{{ inputs.status }}", "limit": "{{ inputs.limit }}" },
+      "output_path": "data",
+      "inputs": [
+        { "key": "org_id", "label": "Organization ID", "type": "string", "required": true },
+        { "key": "severity", "label": "Severity", "type": "string", "placeholder": "critical,high" },
+        { "key": "status", "label": "Status", "type": "select", "default": "open", "options": [{ "value": "open", "label": "Open" }, { "value": "resolved", "label": "Resolved" }] },
+        { "key": "limit", "label": "Limit", "type": "number", "default": 100 }
+      ]
+    }
+  ]
+}

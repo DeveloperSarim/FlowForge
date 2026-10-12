@@ -1,0 +1,93 @@
+{
+  "key": "opensearch",
+  "name": "OpenSearch",
+  "category": "Databases",
+  "description": "Search, index, update and delete documents in an OpenSearch cluster.",
+  "brand": "opensearch",
+  "website": "https://opensearch.org",
+  "docs_url": "https://docs.opensearch.org/latest/api-reference/",
+  "base_url": "{{ credentials.base_url }}",
+  "auth": { "type": "basic", "fields": [
+    { "key": "base_url", "label": "Cluster URL", "type": "string", "required": true, "placeholder": "https://search.example.com:9200", "help": "No trailing slash. AWS-managed domains need fine-grained access control with an internal user." },
+    { "key": "username", "label": "Username", "type": "string", "required": true },
+    { "key": "password", "label": "Password", "type": "password", "required": true }
+  ] },
+  "actions": [
+    {
+      "key": "search",
+      "name": "Search documents",
+      "method": "POST",
+      "endpoint": "/{{ inputs.index }}/_search",
+      "body": { "query": "{{ inputs.query }}", "size": "{{ inputs.size }}", "from": "{{ inputs.from }}", "sort": "{{ inputs.sort }}" },
+      "inputs": [
+        { "key": "index", "label": "Index", "type": "string", "required": true },
+        { "key": "query", "label": "Query DSL (JSON)", "type": "json", "placeholder": "{ \"match\": { \"title\": \"wind\" } }", "help": "Empty = match all." },
+        { "key": "size", "label": "Size", "type": "number" },
+        { "key": "from", "label": "From", "type": "number" },
+        { "key": "sort", "label": "Sort (JSON)", "type": "json", "placeholder": "[{ \"created_at\": \"desc\" }]" }
+      ]
+    },
+    {
+      "key": "index_document",
+      "name": "Index document",
+      "description": "Adds a document with an auto-generated ID.",
+      "method": "POST",
+      "endpoint": "/{{ inputs.index }}/_doc",
+      "query": { "refresh": "{{ inputs.refresh }}" },
+      "body": "{{ inputs.document }}",
+      "inputs": [
+        { "key": "index", "label": "Index", "type": "string", "required": true },
+        { "key": "document", "label": "Document (JSON)", "type": "json", "required": true },
+        { "key": "refresh", "label": "Refresh", "type": "select", "options": [{ "value": "true", "label": "Immediately" }, { "value": "wait_for", "label": "Wait for refresh" }, { "value": "false", "label": "No" }] }
+      ]
+    },
+    {
+      "key": "put_document",
+      "name": "Create / replace document by ID",
+      "method": "PUT",
+      "endpoint": "/{{ inputs.index }}/_doc/{{ inputs.id }}",
+      "query": { "refresh": "{{ inputs.refresh }}" },
+      "body": "{{ inputs.document }}",
+      "inputs": [
+        { "key": "index", "label": "Index", "type": "string", "required": true },
+        { "key": "id", "label": "Document ID", "type": "string", "required": true },
+        { "key": "document", "label": "Document (JSON)", "type": "json", "required": true },
+        { "key": "refresh", "label": "Refresh", "type": "select", "options": [{ "value": "true", "label": "Immediately" }, { "value": "wait_for", "label": "Wait for refresh" }, { "value": "false", "label": "No" }] }
+      ]
+    },
+    {
+      "key": "get_document",
+      "name": "Get document",
+      "method": "GET",
+      "endpoint": "/{{ inputs.index }}/_doc/{{ inputs.id }}",
+      "inputs": [
+        { "key": "index", "label": "Index", "type": "string", "required": true },
+        { "key": "id", "label": "Document ID", "type": "string", "required": true }
+      ]
+    },
+    {
+      "key": "update_document",
+      "name": "Update document",
+      "description": "Merges fields into an existing document (optionally creating it).",
+      "method": "POST",
+      "endpoint": "/{{ inputs.index }}/_update/{{ inputs.id }}",
+      "body": { "doc": "{{ inputs.doc }}", "doc_as_upsert": "{{ inputs.upsert }}" },
+      "inputs": [
+        { "key": "index", "label": "Index", "type": "string", "required": true },
+        { "key": "id", "label": "Document ID", "type": "string", "required": true },
+        { "key": "doc", "label": "Fields (JSON)", "type": "json", "required": true },
+        { "key": "upsert", "label": "Create if missing", "type": "boolean" }
+      ]
+    },
+    {
+      "key": "delete_document",
+      "name": "Delete document",
+      "method": "DELETE",
+      "endpoint": "/{{ inputs.index }}/_doc/{{ inputs.id }}",
+      "inputs": [
+        { "key": "index", "label": "Index", "type": "string", "required": true },
+        { "key": "id", "label": "Document ID", "type": "string", "required": true }
+      ]
+    }
+  ]
+}

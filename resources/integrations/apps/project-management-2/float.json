@@ -1,0 +1,183 @@
+{
+  "key": "float",
+  "name": "Float",
+  "category": "Project Management",
+  "description": "Schedule Float allocations and list people and projects.",
+  "brand": "float",
+  "website": "https://www.float.com",
+  "docs_url": "https://developer.float.com",
+  "popular": true,
+  "base_url": "https://api.float.com/v3",
+  "headers": {
+    "User-Agent": "FlowForge ({{ credentials.email }})"
+  },
+  "auth": [
+    {
+      "type": "bearer",
+      "fields": [
+        {
+          "key": "token",
+          "label": "API key",
+          "type": "password",
+          "required": true,
+          "help": "Team settings > Integrations > API."
+        },
+        {
+          "key": "email",
+          "label": "Contact email",
+          "type": "string",
+          "required": true,
+          "help": "Float requires it in the User-Agent header."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_people",
+      "name": "List people",
+      "method": "GET",
+      "endpoint": "/people",
+      "inputs": []
+    },
+    {
+      "key": "list_projects",
+      "name": "List projects",
+      "method": "GET",
+      "endpoint": "/projects",
+      "inputs": []
+    },
+    {
+      "key": "create_project",
+      "name": "Create project",
+      "method": "POST",
+      "endpoint": "/projects",
+      "body": {
+        "name": "{{ inputs.name }}",
+        "client_id": "{{ inputs.client_id }}",
+        "notes": "{{ inputs.notes }}",
+        "...": "{{ inputs.extra }}"
+      },
+      "inputs": [
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "client_id",
+          "label": "Client ID",
+          "type": "number"
+        },
+        {
+          "key": "notes",
+          "label": "Notes",
+          "type": "text"
+        },
+        {
+          "key": "extra",
+          "label": "Extra fields",
+          "type": "json",
+          "help": "Any other fields the API accepts, merged into the request."
+        }
+      ]
+    },
+    {
+      "key": "list_allocations",
+      "name": "List allocations",
+      "method": "GET",
+      "endpoint": "/tasks",
+      "query": {
+        "start_date": "{{ inputs.start_date }}",
+        "end_date": "{{ inputs.end_date }}",
+        "people_id": "{{ inputs.people_id }}",
+        "project_id": "{{ inputs.project_id }}"
+      },
+      "inputs": [
+        {
+          "key": "start_date",
+          "label": "From",
+          "type": "string",
+          "placeholder": "2026-10-01"
+        },
+        {
+          "key": "end_date",
+          "label": "To",
+          "type": "string",
+          "placeholder": "2026-10-31"
+        },
+        {
+          "key": "people_id",
+          "label": "Person ID",
+          "type": "number"
+        },
+        {
+          "key": "project_id",
+          "label": "Project ID",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "create_allocation",
+      "name": "Create allocation",
+      "method": "POST",
+      "endpoint": "/tasks",
+      "description": "Schedules a person on a project (Float calls allocations \"tasks\").",
+      "body": {
+        "project_id": "{{ inputs.project_id }}",
+        "people_id": "{{ inputs.people_id }}",
+        "start_date": "{{ inputs.start_date }}",
+        "end_date": "{{ inputs.end_date }}",
+        "hours": "{{ inputs.hours }}",
+        "name": "{{ inputs.name }}",
+        "notes": "{{ inputs.notes }}"
+      },
+      "inputs": [
+        {
+          "key": "project_id",
+          "label": "Project ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "people_id",
+          "label": "Person ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "start_date",
+          "label": "Start date",
+          "type": "string",
+          "required": true,
+          "placeholder": "2026-10-12"
+        },
+        {
+          "key": "end_date",
+          "label": "End date",
+          "type": "string",
+          "required": true,
+          "placeholder": "2026-10-16"
+        },
+        {
+          "key": "hours",
+          "label": "Hours per day",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "name",
+          "label": "Task name",
+          "type": "string"
+        },
+        {
+          "key": "notes",
+          "label": "Notes",
+          "type": "text"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,221 @@
+{
+  "key": "hubspot_cms",
+  "name": "HubSpot CMS",
+  "category": "CMS & Websites",
+  "description": "Create, update, publish and list HubSpot blog posts and site pages.",
+  "brand": "hubspot",
+  "website": "https://www.hubspot.com/products/cms",
+  "docs_url": "https://developers.hubspot.com/docs/api/cms/blog-post",
+  "base_url": "https://api.hubapi.com",
+  "auth": [
+    {
+      "type": "bearer",
+      "fields": [
+        {
+          "key": "token",
+          "label": "Private app access token",
+          "type": "password",
+          "required": true,
+          "help": "Settings > Integrations > Private apps (scope: content)."
+        }
+      ]
+    },
+    {
+      "type": "oauth2",
+      "authorize_url": "https://app.hubspot.com/oauth/authorize",
+      "token_url": "https://api.hubapi.com/oauth/v1/token",
+      "scopes": [
+        "content"
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "create_blog_post",
+      "name": "Create blog post",
+      "description": "Creates a draft blog post.",
+      "method": "POST",
+      "endpoint": "/cms/v3/blogs/posts",
+      "body": {
+        "name": "{{ inputs.name }}",
+        "contentGroupId": "{{ inputs.content_group_id }}",
+        "postBody": "{{ inputs.post_body }}",
+        "slug": "{{ inputs.slug }}",
+        "blogAuthorId": "{{ inputs.blog_author_id }}",
+        "metaDescription": "{{ inputs.meta_description }}",
+        "featuredImage": "{{ inputs.featured_image }}",
+        "...": "{{ inputs.extra }}"
+      },
+      "inputs": [
+        {
+          "key": "name",
+          "label": "Title",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "content_group_id",
+          "label": "Blog ID",
+          "type": "string",
+          "required": true,
+          "help": "contentGroupId of the blog."
+        },
+        {
+          "key": "post_body",
+          "label": "Body (HTML)",
+          "type": "text"
+        },
+        {
+          "key": "slug",
+          "label": "Slug",
+          "type": "string"
+        },
+        {
+          "key": "blog_author_id",
+          "label": "Author ID",
+          "type": "string"
+        },
+        {
+          "key": "meta_description",
+          "label": "Meta description",
+          "type": "string"
+        },
+        {
+          "key": "featured_image",
+          "label": "Featured image URL",
+          "type": "string"
+        },
+        {
+          "key": "extra",
+          "label": "Other fields (JSON)",
+          "type": "json",
+          "placeholder": "{\"tagIds\": [123]}"
+        }
+      ]
+    },
+    {
+      "key": "update_blog_post",
+      "name": "Update blog post",
+      "method": "PATCH",
+      "endpoint": "/cms/v3/blogs/posts/{{ inputs.post_id }}",
+      "body": {
+        "name": "{{ inputs.name }}",
+        "postBody": "{{ inputs.post_body }}",
+        "metaDescription": "{{ inputs.meta_description }}",
+        "...": "{{ inputs.extra }}"
+      },
+      "inputs": [
+        {
+          "key": "post_id",
+          "label": "Post ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "name",
+          "label": "Title",
+          "type": "string"
+        },
+        {
+          "key": "post_body",
+          "label": "Body (HTML)",
+          "type": "text"
+        },
+        {
+          "key": "meta_description",
+          "label": "Meta description",
+          "type": "string"
+        },
+        {
+          "key": "extra",
+          "label": "Other fields (JSON)",
+          "type": "json"
+        }
+      ]
+    },
+    {
+      "key": "schedule_blog_post",
+      "name": "Publish or schedule blog post",
+      "method": "POST",
+      "endpoint": "/cms/v3/blogs/posts/schedule",
+      "body": {
+        "id": "{{ inputs.post_id }}",
+        "publishDate": "{{ inputs.publish_date }}"
+      },
+      "inputs": [
+        {
+          "key": "post_id",
+          "label": "Post ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "publish_date",
+          "label": "Publish date",
+          "type": "string",
+          "required": true,
+          "placeholder": "2026-11-01T09:00:00Z",
+          "help": "ISO 8601; use now to publish immediately."
+        }
+      ]
+    },
+    {
+      "key": "get_blog_post",
+      "name": "Get blog post",
+      "method": "GET",
+      "endpoint": "/cms/v3/blogs/posts/{{ inputs.post_id }}",
+      "inputs": [
+        {
+          "key": "post_id",
+          "label": "Post ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_blog_posts",
+      "name": "List blog posts",
+      "method": "GET",
+      "endpoint": "/cms/v3/blogs/posts",
+      "query": {
+        "limit": "{{ inputs.limit }}",
+        "after": "{{ inputs.after }}"
+      },
+      "inputs": [
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number"
+        },
+        {
+          "key": "after",
+          "label": "After (paging cursor)",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "list_site_pages",
+      "name": "List site pages",
+      "method": "GET",
+      "endpoint": "/cms/v3/pages/site-pages",
+      "query": {
+        "limit": "{{ inputs.limit }}",
+        "after": "{{ inputs.after }}"
+      },
+      "inputs": [
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number"
+        },
+        {
+          "key": "after",
+          "label": "After (paging cursor)",
+          "type": "string"
+        }
+      ]
+    }
+  ]
+}

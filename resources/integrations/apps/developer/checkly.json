@@ -1,0 +1,67 @@
+{
+  "key": "checkly",
+  "name": "Checkly",
+  "category": "Developer Tools",
+  "description": "List checks, their latest status and recent results.",
+  "brand": "checkly",
+  "website": "https://www.checklyhq.com",
+  "docs_url": "https://developers.checklyhq.com/reference",
+  "base_url": "https://api.checklyhq.com",
+  "headers": { "X-Checkly-Account": "{{ credentials.account_id }}" },
+  "auth": { "type": "bearer", "fields": [
+    { "key": "account_id", "label": "Account ID", "type": "string", "required": true, "help": "Account settings → General." },
+    { "key": "token", "label": "API key", "type": "password", "required": true, "help": "User settings → API keys." }
+  ] },
+  "actions": [
+    {
+      "key": "list_checks",
+      "name": "List checks",
+      "method": "GET",
+      "endpoint": "/v1/checks",
+      "query": { "limit": "{{ inputs.limit }}" },
+      "inputs": [{ "key": "limit", "label": "Limit", "type": "number", "default": 100 }]
+    },
+    {
+      "key": "get_check",
+      "name": "Get check",
+      "method": "GET",
+      "endpoint": "/v1/checks/{{ inputs.check_id }}",
+      "inputs": [{ "key": "check_id", "label": "Check ID", "type": "string", "required": true }]
+    },
+    {
+      "key": "list_check_statuses",
+      "name": "List check statuses",
+      "description": "Current passing / failing / degraded state of every check.",
+      "method": "GET",
+      "endpoint": "/v1/check-statuses",
+      "inputs": []
+    },
+    {
+      "key": "get_check_status",
+      "name": "Get check status",
+      "method": "GET",
+      "endpoint": "/v1/check-statuses/{{ inputs.check_id }}",
+      "inputs": [{ "key": "check_id", "label": "Check ID", "type": "string", "required": true }]
+    },
+    {
+      "key": "list_check_results",
+      "name": "List check results",
+      "method": "GET",
+      "endpoint": "/v1/check-results/{{ inputs.check_id }}",
+      "query": { "limit": "{{ inputs.limit }}", "hasFailures": "{{ inputs.has_failures }}" },
+      "inputs": [
+        { "key": "check_id", "label": "Check ID", "type": "string", "required": true },
+        { "key": "limit", "label": "Limit", "type": "number", "default": 10 },
+        { "key": "has_failures", "label": "Only failures", "type": "select", "options": [{ "value": "true", "label": "Yes" }] }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "alert_webhook",
+      "name": "Alert channel webhook",
+      "type": "webhook",
+      "inputs": [{ "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }]
+    }
+  ]
+}

@@ -1,0 +1,184 @@
+{
+  "key": "zilliz",
+  "name": "Zilliz Cloud",
+  "category": "AI",
+  "description": "Insert, search, query and delete entities in managed Milvus.",
+  "brand": "zilliz",
+  "website": "https://zilliz.com",
+  "docs_url": "https://docs.zilliz.com/reference/restful",
+  "base_url": "{{ credentials.endpoint }}/v2/vectordb",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "endpoint",
+        "label": "Cluster endpoint",
+        "type": "string",
+        "required": true,
+        "placeholder": "https://in03-xxxx.serverless.gcp-us-west1.cloud.zilliz.com"
+      },
+      {
+        "key": "token",
+        "label": "API key",
+        "type": "password",
+        "required": true
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "search",
+      "name": "Search entities",
+      "method": "POST",
+      "endpoint": "/entities/search",
+      "body": {
+        "collectionName": "{{ inputs.collection }}",
+        "data": "{{ inputs.vectors }}",
+        "annsField": "{{ inputs.anns_field }}",
+        "limit": "{{ inputs.limit }}",
+        "filter": "{{ inputs.filter }}",
+        "outputFields": "{{ inputs.output_fields }}"
+      },
+      "inputs": [
+        {
+          "key": "collection",
+          "label": "Collection",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "vectors",
+          "label": "Query vectors (JSON)",
+          "type": "json",
+          "required": true,
+          "placeholder": "[[0.1, 0.2, 0.3]]"
+        },
+        {
+          "key": "anns_field",
+          "label": "Vector field",
+          "type": "string"
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 10
+        },
+        {
+          "key": "filter",
+          "label": "Filter",
+          "type": "string",
+          "placeholder": "color == \"red\""
+        },
+        {
+          "key": "output_fields",
+          "label": "Output fields",
+          "type": "list"
+        }
+      ]
+    },
+    {
+      "key": "insert",
+      "name": "Insert entities",
+      "method": "POST",
+      "endpoint": "/entities/insert",
+      "body": {
+        "collectionName": "{{ inputs.collection }}",
+        "data": "{{ inputs.data }}"
+      },
+      "inputs": [
+        {
+          "key": "collection",
+          "label": "Collection",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "data",
+          "label": "Entities (JSON array)",
+          "type": "json",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "query",
+      "name": "Query entities",
+      "method": "POST",
+      "endpoint": "/entities/query",
+      "body": {
+        "collectionName": "{{ inputs.collection }}",
+        "filter": "{{ inputs.filter }}",
+        "limit": "{{ inputs.limit }}",
+        "outputFields": "{{ inputs.output_fields }}"
+      },
+      "inputs": [
+        {
+          "key": "collection",
+          "label": "Collection",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "filter",
+          "label": "Filter",
+          "type": "string",
+          "required": true,
+          "placeholder": "id in [1, 2]"
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number"
+        },
+        {
+          "key": "output_fields",
+          "label": "Output fields",
+          "type": "list"
+        }
+      ]
+    },
+    {
+      "key": "delete",
+      "name": "Delete entities",
+      "method": "POST",
+      "endpoint": "/entities/delete",
+      "body": {
+        "collectionName": "{{ inputs.collection }}",
+        "filter": "{{ inputs.filter }}"
+      },
+      "inputs": [
+        {
+          "key": "collection",
+          "label": "Collection",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "filter",
+          "label": "Filter",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_collections",
+      "name": "List collections",
+      "method": "POST",
+      "endpoint": "/collections/list",
+      "body": {
+        "dbName": "{{ inputs.db_name }}"
+      },
+      "inputs": [
+        {
+          "key": "db_name",
+          "label": "Database",
+          "type": "string",
+          "required": true,
+          "default": "default"
+        }
+      ]
+    }
+  ]
+}

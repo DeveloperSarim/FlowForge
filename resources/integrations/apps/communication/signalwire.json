@@ -1,0 +1,62 @@
+{
+  "key": "signalwire",
+  "name": "SignalWire",
+  "category": "Communication",
+  "description": "Send SMS/MMS, place calls and list messages via SignalWire's compatibility API.",
+  "brand": "signalwire",
+  "website": "https://signalwire.com",
+  "docs_url": "https://developer.signalwire.com/compatibility-api/rest/",
+  "base_url": "https://{{ credentials.space }}.signalwire.com/api/laml/2010-04-01/Accounts/{{ credentials.username }}",
+  "auth": [
+    {
+      "type": "basic",
+      "fields": [
+        { "key": "space", "label": "Space name", "type": "string", "required": true, "placeholder": "example", "help": "The example in example.signalwire.com." },
+        { "key": "username", "label": "Project ID", "type": "string", "required": true },
+        { "key": "password", "label": "API token", "type": "password", "required": true }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "send_sms",
+      "name": "Send SMS / MMS",
+      "method": "POST",
+      "endpoint": "/Messages.json",
+      "body_format": "form",
+      "body": { "To": "{{ inputs.to }}", "From": "{{ inputs.from }}", "Body": "{{ inputs.body }}", "MediaUrl": "{{ inputs.media_url }}" },
+      "inputs": [
+        { "key": "to", "label": "To", "type": "string", "required": true, "placeholder": "+15551234567" },
+        { "key": "from", "label": "From (SignalWire number)", "type": "string", "required": true },
+        { "key": "body", "label": "Message", "type": "text", "required": true },
+        { "key": "media_url", "label": "Media URL (MMS)", "type": "string" }
+      ]
+    },
+    {
+      "key": "make_call",
+      "name": "Make phone call",
+      "method": "POST",
+      "endpoint": "/Calls.json",
+      "body_format": "form",
+      "body": { "To": "{{ inputs.to }}", "From": "{{ inputs.from }}", "Url": "{{ inputs.url }}" },
+      "inputs": [
+        { "key": "to", "label": "To", "type": "string", "required": true },
+        { "key": "from", "label": "From (SignalWire number)", "type": "string", "required": true },
+        { "key": "url", "label": "LaML / cXML URL", "type": "string", "required": true }
+      ]
+    },
+    {
+      "key": "list_messages",
+      "name": "List messages",
+      "method": "GET",
+      "endpoint": "/Messages.json",
+      "query": { "To": "{{ inputs.to }}", "From": "{{ inputs.from }}", "PageSize": "{{ inputs.page_size }}" },
+      "output_path": "messages",
+      "inputs": [
+        { "key": "to", "label": "To", "type": "string" },
+        { "key": "from", "label": "From", "type": "string" },
+        { "key": "page_size", "label": "Max results", "type": "number", "default": 20 }
+      ]
+    }
+  ]
+}

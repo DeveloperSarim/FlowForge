@@ -1,0 +1,43 @@
+{
+  "key": "loggly",
+  "name": "Loggly",
+  "category": "Developer Tools",
+  "description": "Send log events and search your Loggly logs.",
+  "brand": "loggly",
+  "website": "https://www.loggly.com",
+  "docs_url": "https://documentation.solarwinds.com/en/success_center/loggly/content/admin/api-overview.htm",
+  "base_url": "https://{{ credentials.subdomain }}.loggly.com/apiv2",
+  "auth": { "type": "bearer", "fields": [
+    { "key": "subdomain", "label": "Account subdomain", "type": "string", "required": true, "help": "The <subdomain> in https://<subdomain>.loggly.com." },
+    { "key": "token", "label": "API token", "type": "password", "required": true, "help": "Source setup → API tokens (used for search)." },
+    { "key": "customer_token", "label": "Customer token", "type": "password", "help": "Source setup → Customer tokens (used to send events)." }
+  ] },
+  "actions": [
+    {
+      "key": "send_event",
+      "name": "Send event",
+      "method": "POST",
+      "endpoint": "https://logs-01.loggly.com/inputs/{{ credentials.customer_token }}/tag/{{ inputs.tag }}/",
+      "body": "{{ inputs.event }}",
+      "inputs": [
+        { "key": "event", "label": "Event (JSON)", "type": "json", "required": true, "placeholder": "{\"level\": \"info\", \"message\": \"Deploy finished\"}" },
+        { "key": "tag", "label": "Tag", "type": "string", "required": true, "default": "http" }
+      ]
+    },
+    {
+      "key": "search_events",
+      "name": "Search events",
+      "method": "GET",
+      "endpoint": "/events/iterate",
+      "query": { "q": "{{ inputs.q }}", "from": "{{ inputs.from }}", "until": "{{ inputs.until }}", "order": "{{ inputs.order }}", "size": "{{ inputs.size }}" },
+      "output_path": "events",
+      "inputs": [
+        { "key": "q", "label": "Query", "type": "string", "required": true, "default": "*" },
+        { "key": "from", "label": "From", "type": "string", "default": "-24h" },
+        { "key": "until", "label": "Until", "type": "string", "default": "now" },
+        { "key": "order", "label": "Order", "type": "select", "default": "desc", "options": [{ "value": "desc", "label": "Newest first" }, { "value": "asc", "label": "Oldest first" }] },
+        { "key": "size", "label": "Page size", "type": "number", "default": 50, "help": "Up to 1000." }
+      ]
+    }
+  ]
+}

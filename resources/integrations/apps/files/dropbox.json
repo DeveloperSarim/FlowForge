@@ -1,0 +1,195 @@
+{
+  "key": "dropbox",
+  "name": "Dropbox",
+  "category": "Files & Documents",
+  "description": "List, search and share files, create folders and get download links.",
+  "brand": "dropbox",
+  "website": "https://www.dropbox.com",
+  "docs_url": "https://www.dropbox.com/developers/documentation/http/documentation",
+  "popular": true,
+  "base_url": "https://api.dropboxapi.com/2",
+  "auth": [
+    {
+      "type": "oauth2",
+      "authorize_url": "https://www.dropbox.com/oauth2/authorize",
+      "token_url": "https://api.dropboxapi.com/oauth2/token",
+      "scopes": [
+        "account_info.read",
+        "files.metadata.read",
+        "files.content.read",
+        "files.content.write",
+        "sharing.write"
+      ],
+      "authorize_params": {
+        "token_access_type": "offline"
+      }
+    },
+    {
+      "type": "bearer",
+      "fields": [
+        {
+          "key": "token",
+          "label": "Access token",
+          "type": "password",
+          "required": true,
+          "help": "Generated in the App Console (expires after a few hours)."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_folder",
+      "name": "List folder",
+      "method": "POST",
+      "endpoint": "/files/list_folder",
+      "body": {
+        "path": "{{ inputs.path }}",
+        "recursive": "{{ inputs.recursive }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "inputs": [
+        {
+          "key": "path",
+          "label": "Folder path",
+          "type": "string",
+          "required": true,
+          "placeholder": "/Invoices",
+          "help": "The root folder can't be listed here; use Make an API call with body {\"path\": \"\"}."
+        },
+        {
+          "key": "recursive",
+          "label": "Include subfolders",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "key": "limit",
+          "label": "Max entries",
+          "type": "number",
+          "default": 100
+        }
+      ]
+    },
+    {
+      "key": "search_files",
+      "name": "Search files",
+      "method": "POST",
+      "endpoint": "/files/search_v2",
+      "body": {
+        "query": "{{ inputs.query }}",
+        "options": {
+          "path": "{{ inputs.path }}",
+          "max_results": "{{ inputs.max_results }}",
+          "file_status": "active"
+        }
+      },
+      "inputs": [
+        {
+          "key": "query",
+          "label": "Search text",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "path",
+          "label": "Only in folder",
+          "type": "string",
+          "placeholder": "/Invoices"
+        },
+        {
+          "key": "max_results",
+          "label": "Max results",
+          "type": "number",
+          "default": 100
+        }
+      ]
+    },
+    {
+      "key": "create_folder",
+      "name": "Create folder",
+      "method": "POST",
+      "endpoint": "/files/create_folder_v2",
+      "body": {
+        "path": "{{ inputs.path }}",
+        "autorename": "{{ inputs.autorename }}"
+      },
+      "inputs": [
+        {
+          "key": "path",
+          "label": "Folder path",
+          "type": "string",
+          "required": true,
+          "placeholder": "/Clients/Acme"
+        },
+        {
+          "key": "autorename",
+          "label": "Rename if it already exists",
+          "type": "boolean",
+          "default": false
+        }
+      ]
+    },
+    {
+      "key": "get_temporary_link",
+      "name": "Get temporary download link",
+      "description": "A direct download link valid for 4 hours.",
+      "method": "POST",
+      "endpoint": "/files/get_temporary_link",
+      "body": {
+        "path": "{{ inputs.path }}"
+      },
+      "output_fields": {
+        "url": "link"
+      },
+      "inputs": [
+        {
+          "key": "path",
+          "label": "Path",
+          "type": "string",
+          "required": true,
+          "placeholder": "/Invoices/2024.pdf",
+          "help": "Starts with /. Also accepts id:... ids."
+        }
+      ]
+    },
+    {
+      "key": "create_shared_link",
+      "name": "Create shared link",
+      "method": "POST",
+      "endpoint": "/sharing/create_shared_link_with_settings",
+      "body": {
+        "path": "{{ inputs.path }}"
+      },
+      "inputs": [
+        {
+          "key": "path",
+          "label": "Path",
+          "type": "string",
+          "required": true,
+          "placeholder": "/Invoices/2024.pdf",
+          "help": "Starts with /. Also accepts id:... ids."
+        }
+      ]
+    },
+    {
+      "key": "delete",
+      "name": "Delete file or folder",
+      "method": "POST",
+      "endpoint": "/files/delete_v2",
+      "body": {
+        "path": "{{ inputs.path }}"
+      },
+      "inputs": [
+        {
+          "key": "path",
+          "label": "Path",
+          "type": "string",
+          "required": true,
+          "placeholder": "/Invoices/2024.pdf",
+          "help": "Starts with /. Also accepts id:... ids."
+        }
+      ]
+    }
+  ]
+}

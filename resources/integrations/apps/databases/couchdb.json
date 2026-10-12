@@ -1,0 +1,94 @@
+{
+  "key": "couchdb",
+  "name": "Apache CouchDB",
+  "category": "Databases",
+  "description": "Create, get, update, delete and find documents, and watch for changes.",
+  "brand": "apachecouchdb",
+  "website": "https://couchdb.apache.org",
+  "docs_url": "https://docs.couchdb.org/en/stable/api/index.html",
+  "base_url": "{{ credentials.base_url }}",
+  "auth": { "type": "basic", "fields": [
+    { "key": "base_url", "label": "CouchDB URL", "type": "string", "required": true, "placeholder": "https://couch.example.com:6984", "help": "Without a trailing slash." },
+    { "key": "username", "label": "Username", "type": "string", "required": true },
+    { "key": "password", "label": "Password", "type": "password", "required": true }
+  ] },
+  "actions": [
+    {
+      "key": "create_document",
+      "name": "Create document",
+      "method": "POST",
+      "endpoint": "/{{ inputs.db }}",
+      "body": "{{ inputs.document }}",
+      "inputs": [
+        { "key": "db", "label": "Database", "type": "string", "required": true },
+        { "key": "document", "label": "Document (JSON)", "type": "json", "required": true, "help": "Include _id to choose the ID." }
+      ]
+    },
+    {
+      "key": "get_document",
+      "name": "Get document",
+      "method": "GET",
+      "endpoint": "/{{ inputs.db }}/{{ inputs.doc_id }}",
+      "inputs": [
+        { "key": "db", "label": "Database", "type": "string", "required": true },
+        { "key": "doc_id", "label": "Document ID", "type": "string", "required": true }
+      ]
+    },
+    {
+      "key": "update_document",
+      "name": "Update document",
+      "description": "Saves a new revision; the body must contain the current _rev.",
+      "method": "PUT",
+      "endpoint": "/{{ inputs.db }}/{{ inputs.doc_id }}",
+      "body": "{{ inputs.document }}",
+      "inputs": [
+        { "key": "db", "label": "Database", "type": "string", "required": true },
+        { "key": "doc_id", "label": "Document ID", "type": "string", "required": true },
+        { "key": "document", "label": "Document (JSON, with _rev)", "type": "json", "required": true }
+      ]
+    },
+    {
+      "key": "delete_document",
+      "name": "Delete document",
+      "method": "DELETE",
+      "endpoint": "/{{ inputs.db }}/{{ inputs.doc_id }}",
+      "query": { "rev": "{{ inputs.rev }}" },
+      "inputs": [
+        { "key": "db", "label": "Database", "type": "string", "required": true },
+        { "key": "doc_id", "label": "Document ID", "type": "string", "required": true },
+        { "key": "rev", "label": "Current revision (_rev)", "type": "string", "required": true }
+      ]
+    },
+    {
+      "key": "find_documents",
+      "name": "Find documents (Mango query)",
+      "method": "POST",
+      "endpoint": "/{{ inputs.db }}/_find",
+      "body": { "selector": "{{ inputs.selector }}", "fields": "{{ inputs.fields }}", "sort": "{{ inputs.sort }}", "limit": "{{ inputs.limit }}" },
+      "output_path": "docs",
+      "inputs": [
+        { "key": "db", "label": "Database", "type": "string", "required": true },
+        { "key": "selector", "label": "Selector (JSON)", "type": "json", "required": true, "placeholder": "{ \"type\": \"order\", \"total\": { \"$gt\": 100 } }" },
+        { "key": "fields", "label": "Fields", "type": "list" },
+        { "key": "sort", "label": "Sort (JSON)", "type": "json", "placeholder": "[{ \"created_at\": \"desc\" }]" },
+        { "key": "limit", "label": "Limit", "type": "number", "default": 25 }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "document_changed",
+      "name": "Document created or changed (polling)",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/{{ inputs.db }}/_changes",
+      "query": { "descending": "true", "limit": 50, "include_docs": "true" },
+      "items_path": "results",
+      "id_field": "seq",
+      "inputs": [
+        { "key": "db", "label": "Database", "type": "string", "required": true },
+        { "key": "poll_interval", "label": "Check every (minutes)", "type": "number", "default": 5 }
+      ]
+    }
+  ]
+}

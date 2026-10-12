@@ -1,0 +1,73 @@
+{
+  "key": "hex",
+  "name": "Hex",
+  "category": "Analytics",
+  "description": "Run published Hex projects with input parameters and check run status.",
+  "brand": "hex",
+  "website": "https://hex.tech",
+  "docs_url": "https://learn.hex.tech/docs/api/api-reference",
+  "base_url": "https://app.hex.tech/api/v1",
+  "auth": { "type": "bearer", "fields": [
+    { "key": "token", "label": "API token", "type": "password", "required": true, "help": "User settings → API keys (workspace tokens need the Run projects scope)." }
+  ] },
+  "actions": [
+    {
+      "key": "list_projects",
+      "name": "List projects",
+      "method": "GET",
+      "endpoint": "/projects",
+      "query": { "limit": "{{ inputs.limit }}" },
+      "output_path": "values",
+      "inputs": [{ "key": "limit", "label": "Limit", "type": "number" }]
+    },
+    {
+      "key": "run_project",
+      "name": "Run project",
+      "method": "POST",
+      "endpoint": "/projects/{{ inputs.project_id }}/runs",
+      "body": { "inputParams": "{{ inputs.input_params }}", "updatePublishedResults": "{{ inputs.update_published }}", "useCachedSqlResults": "{{ inputs.use_cache }}", "dryRun": "{{ inputs.dry_run }}" },
+      "inputs": [
+        { "key": "project_id", "label": "Project ID", "type": "string", "required": true },
+        { "key": "input_params", "label": "Input parameters", "type": "keyvalue" },
+        { "key": "update_published", "label": "Update published app results", "type": "boolean" },
+        { "key": "use_cache", "label": "Use cached SQL results", "type": "boolean" },
+        { "key": "dry_run", "label": "Dry run", "type": "boolean" }
+      ]
+    },
+    {
+      "key": "get_run",
+      "name": "Get run status",
+      "method": "GET",
+      "endpoint": "/projects/{{ inputs.project_id }}/runs/{{ inputs.run_id }}",
+      "inputs": [
+        { "key": "project_id", "label": "Project ID", "type": "string", "required": true },
+        { "key": "run_id", "label": "Run ID", "type": "string", "required": true }
+      ]
+    },
+    {
+      "key": "list_runs",
+      "name": "List project runs",
+      "method": "GET",
+      "endpoint": "/projects/{{ inputs.project_id }}/runs",
+      "query": { "limit": "{{ inputs.limit }}", "statusFilter": "{{ inputs.status }}" },
+      "inputs": [
+        { "key": "project_id", "label": "Project ID", "type": "string", "required": true },
+        { "key": "limit", "label": "Limit", "type": "number" },
+        { "key": "status", "label": "Status", "type": "select", "options": [
+          { "value": "PENDING", "label": "Pending" }, { "value": "RUNNING", "label": "Running" }, { "value": "COMPLETED", "label": "Completed" },
+          { "value": "ERRORED", "label": "Errored" }, { "value": "KILLED", "label": "Killed" }
+        ] }
+      ]
+    },
+    {
+      "key": "cancel_run",
+      "name": "Cancel run",
+      "method": "DELETE",
+      "endpoint": "/projects/{{ inputs.project_id }}/runs/{{ inputs.run_id }}",
+      "inputs": [
+        { "key": "project_id", "label": "Project ID", "type": "string", "required": true },
+        { "key": "run_id", "label": "Run ID", "type": "string", "required": true }
+      ]
+    }
+  ]
+}

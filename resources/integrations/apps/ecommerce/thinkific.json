@@ -1,0 +1,190 @@
+{
+  "key": "thinkific",
+  "name": "Thinkific",
+  "category": "E-commerce",
+  "description": "Create users, enroll them in courses and read orders in Thinkific.",
+  "brand": "thinkific",
+  "website": "https://www.thinkific.com",
+  "docs_url": "https://developers.thinkific.com/api/api-documentation/",
+  "base_url": "https://api.thinkific.com/api/public/v1",
+  "headers": {
+    "X-Auth-Subdomain": "{{ credentials.subdomain }}"
+  },
+  "auth": [
+    {
+      "type": "api_key",
+      "in": "header",
+      "name": "X-Auth-API-Key",
+      "fields": [
+        {
+          "key": "subdomain",
+          "label": "School subdomain",
+          "type": "string",
+          "required": true,
+          "placeholder": "myschool",
+          "help": "The part before .thinkific.com."
+        },
+        {
+          "key": "api_key",
+          "label": "API key",
+          "type": "password",
+          "required": true,
+          "help": "Settings > Code & analytics > API."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "create_user",
+      "name": "Create user",
+      "method": "POST",
+      "endpoint": "/users",
+      "body": {
+        "first_name": "{{ inputs.first_name }}",
+        "last_name": "{{ inputs.last_name }}",
+        "email": "{{ inputs.email }}",
+        "password": "{{ inputs.password }}",
+        "send_welcome_email": "{{ inputs.send_welcome_email }}"
+      },
+      "inputs": [
+        {
+          "key": "first_name",
+          "label": "First name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "password",
+          "label": "Password",
+          "type": "password"
+        },
+        {
+          "key": "send_welcome_email",
+          "label": "Send welcome email",
+          "type": "boolean"
+        }
+      ]
+    },
+    {
+      "key": "find_user",
+      "name": "Find user by email",
+      "method": "GET",
+      "endpoint": "/users",
+      "output_path": "items",
+      "query": {
+        "query[email]": "{{ inputs.email }}"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "enroll_user",
+      "name": "Enroll user in course",
+      "method": "POST",
+      "endpoint": "/enrollments",
+      "body": {
+        "user_id": "{{ inputs.user_id }}",
+        "course_id": "{{ inputs.course_id }}",
+        "activated_at": "{{ inputs.activated_at }}",
+        "expiry_date": "{{ inputs.expiry_date }}"
+      },
+      "inputs": [
+        {
+          "key": "user_id",
+          "label": "User ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "course_id",
+          "label": "Course ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "activated_at",
+          "label": "Activated at",
+          "type": "string",
+          "required": true,
+          "placeholder": "2025-06-01T00:00:00Z"
+        },
+        {
+          "key": "expiry_date",
+          "label": "Expires at",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "list_courses",
+      "name": "List courses",
+      "method": "GET",
+      "endpoint": "/courses",
+      "output_path": "items",
+      "query": {
+        "limit": "{{ inputs.limit }}"
+      },
+      "inputs": [
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 25
+        }
+      ]
+    },
+    {
+      "key": "list_orders",
+      "name": "List orders",
+      "method": "GET",
+      "endpoint": "/orders",
+      "output_path": "items",
+      "query": {
+        "limit": "{{ inputs.limit }}"
+      },
+      "inputs": [
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 25
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Settings > Code & analytics > Webhooks: add this URL for a topic such as order.created.",
+      "data_path": "payload",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

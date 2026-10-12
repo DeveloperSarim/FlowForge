@@ -1,0 +1,54 @@
+{
+  "key": "pushover",
+  "name": "Pushover",
+  "category": "Communication",
+  "description": "Send push notifications to your phone or desktop with Pushover.",
+  "brand": "pushover",
+  "website": "https://pushover.net",
+  "docs_url": "https://pushover.net/api",
+  "base_url": "https://api.pushover.net/1",
+  "auth": [
+    { "type": "api_key", "fields": [{ "key": "api_key", "label": "Application API token", "type": "password", "required": true, "help": "Create an application at pushover.net/apps." }] }
+  ],
+  "actions": [
+    {
+      "key": "send_notification",
+      "name": "Send notification",
+      "method": "POST",
+      "endpoint": "/messages.json",
+      "body_format": "form",
+      "body": {
+        "token": "{{ credentials.api_key }}",
+        "user": "{{ inputs.user }}",
+        "message": "{{ inputs.message }}",
+        "title": "{{ inputs.title }}",
+        "url": "{{ inputs.url }}",
+        "url_title": "{{ inputs.url_title }}",
+        "priority": "{{ inputs.priority }}",
+        "sound": "{{ inputs.sound }}",
+        "device": "{{ inputs.device }}"
+      },
+      "inputs": [
+        { "key": "user", "label": "User or group key", "type": "string", "required": true },
+        { "key": "message", "label": "Message", "type": "text", "required": true },
+        { "key": "title", "label": "Title", "type": "string" },
+        { "key": "url", "label": "Link URL", "type": "string" },
+        { "key": "url_title", "label": "Link title", "type": "string" },
+        { "key": "priority", "label": "Priority", "type": "select", "default": "0", "options": [
+          { "value": "-2", "label": "Lowest" }, { "value": "-1", "label": "Low" }, { "value": "0", "label": "Normal" }, { "value": "1", "label": "High" }
+        ] },
+        { "key": "sound", "label": "Sound", "type": "string", "placeholder": "pushover" },
+        { "key": "device", "label": "Device name", "type": "string", "help": "Empty = all of the user's devices." }
+      ]
+    },
+    {
+      "key": "validate_user",
+      "name": "Validate user key",
+      "method": "POST",
+      "endpoint": "/users/validate.json",
+      "body_format": "form",
+      "body": { "token": "{{ credentials.api_key }}", "user": "{{ inputs.user }}" },
+      "inputs": [{ "key": "user", "label": "User or group key", "type": "string", "required": true }]
+    }
+  ]
+}

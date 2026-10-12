@@ -1,0 +1,235 @@
+{
+  "key": "workable",
+  "name": "Workable",
+  "category": "HR & Recruiting",
+  "description": "List jobs and add, move and comment on candidates in Workable.",
+  "brand": "workable",
+  "website": "https://www.workable.com",
+  "docs_url": "https://workable.readme.io/reference/",
+  "popular": true,
+  "base_url": "https://{{ credentials.subdomain }}.workable.com/spi/v3",
+  "auth": [
+    {
+      "type": "bearer",
+      "fields": [
+        {
+          "key": "subdomain",
+          "label": "Subdomain",
+          "type": "string",
+          "required": true,
+          "placeholder": "yourcompany",
+          "help": "The part before .workable.com."
+        },
+        {
+          "key": "token",
+          "label": "API access token",
+          "type": "password",
+          "required": true,
+          "help": "Settings > Integrations > Apps > Access token."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_jobs",
+      "name": "List jobs",
+      "method": "GET",
+      "endpoint": "/jobs",
+      "query": {
+        "state": "{{ inputs.state }}"
+      },
+      "output_path": "jobs",
+      "inputs": [
+        {
+          "key": "state",
+          "label": "State",
+          "type": "select",
+          "options": [
+            {
+              "value": "published",
+              "label": "Published"
+            },
+            {
+              "value": "draft",
+              "label": "Draft"
+            },
+            {
+              "value": "closed",
+              "label": "Closed"
+            },
+            {
+              "value": "archived",
+              "label": "Archived"
+            }
+          ],
+          "default": "published"
+        }
+      ]
+    },
+    {
+      "key": "list_candidates",
+      "name": "List candidates",
+      "method": "GET",
+      "endpoint": "/candidates",
+      "query": {
+        "shortcode": "{{ inputs.shortcode }}",
+        "stage": "{{ inputs.stage }}",
+        "email": "{{ inputs.email }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_path": "candidates",
+      "inputs": [
+        {
+          "key": "shortcode",
+          "label": "Job shortcode",
+          "type": "string"
+        },
+        {
+          "key": "stage",
+          "label": "Stage slug",
+          "type": "string"
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string"
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    },
+    {
+      "key": "get_candidate",
+      "name": "Get candidate",
+      "method": "GET",
+      "endpoint": "/candidates/{{ inputs.candidate_id }}",
+      "output_path": "candidate",
+      "inputs": [
+        {
+          "key": "candidate_id",
+          "label": "Candidate ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "create_candidate",
+      "name": "Add candidate to job",
+      "method": "POST",
+      "endpoint": "/jobs/{{ inputs.shortcode }}/candidates",
+      "body": {
+        "sourced": "{{ inputs.sourced }}",
+        "candidate": {
+          "name": "{{ inputs.name }}",
+          "email": "{{ inputs.email }}",
+          "phone": "{{ inputs.phone }}",
+          "summary": "{{ inputs.summary }}"
+        }
+      },
+      "output_path": "candidate",
+      "inputs": [
+        {
+          "key": "shortcode",
+          "label": "Job shortcode",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "name",
+          "label": "Full name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string"
+        },
+        {
+          "key": "phone",
+          "label": "Phone",
+          "type": "string"
+        },
+        {
+          "key": "summary",
+          "label": "Summary",
+          "type": "text"
+        },
+        {
+          "key": "sourced",
+          "label": "Sourced (not applied)",
+          "type": "boolean",
+          "default": true
+        }
+      ]
+    },
+    {
+      "key": "move_candidate",
+      "name": "Move candidate",
+      "method": "POST",
+      "endpoint": "/candidates/{{ inputs.candidate_id }}/move",
+      "body": {
+        "member_id": "{{ inputs.member_id }}",
+        "target_stage": "{{ inputs.target_stage }}"
+      },
+      "inputs": [
+        {
+          "key": "candidate_id",
+          "label": "Candidate ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "member_id",
+          "label": "Acting member ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "target_stage",
+          "label": "Target stage slug",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "add_comment",
+      "name": "Comment on candidate",
+      "method": "POST",
+      "endpoint": "/candidates/{{ inputs.candidate_id }}/comments",
+      "body": {
+        "member_id": "{{ inputs.member_id }}",
+        "comment": {
+          "body": "{{ inputs.body }}"
+        }
+      },
+      "inputs": [
+        {
+          "key": "candidate_id",
+          "label": "Candidate ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "member_id",
+          "label": "Acting member ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "body",
+          "label": "Comment",
+          "type": "text",
+          "required": true
+        }
+      ]
+    }
+  ]
+}

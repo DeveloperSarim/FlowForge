@@ -1,0 +1,88 @@
+{
+  "key": "reviews_io",
+  "name": "REVIEWS.io",
+  "category": "Marketing & Email",
+  "description": "Read company and product reviews and queue review invitations.",
+  "brand": "reviewsio",
+  "website": "https://www.reviews.io",
+  "docs_url": "https://api.reviews.io/documentation/",
+  "base_url": "https://api.reviews.io",
+  "headers": { "store": "{{ credentials.store }}" },
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "apikey",
+    "fields": [
+      { "key": "store", "label": "Store ID", "type": "string", "required": true, "help": "Integrations > API in the REVIEWS.io dashboard." },
+      { "key": "api_key", "label": "API key", "type": "password", "required": true }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_company_reviews",
+      "name": "List company reviews",
+      "method": "GET",
+      "endpoint": "/merchant/reviews",
+      "query": { "store": "{{ credentials.store }}", "page": "{{ inputs.page }}", "per_page": "{{ inputs.per_page }}", "min_date": "{{ inputs.min_date }}" },
+      "output_path": "reviews",
+      "inputs": [
+        { "key": "page", "label": "Page (0-based)", "type": "number", "default": 0 },
+        { "key": "per_page", "label": "Per page", "type": "number", "default": 20 },
+        { "key": "min_date", "label": "Since (YYYY-MM-DD)", "type": "string" }
+      ]
+    },
+    {
+      "key": "list_product_reviews",
+      "name": "List product reviews",
+      "method": "GET",
+      "endpoint": "/product/review",
+      "query": { "store": "{{ credentials.store }}", "sku": "{{ inputs.sku }}", "page": "{{ inputs.page }}", "per_page": "{{ inputs.per_page }}" },
+      "inputs": [
+        { "key": "sku", "label": "SKU(s)", "type": "string", "required": true, "help": "Separate several SKUs with ;" },
+        { "key": "page", "label": "Page (0-based)", "type": "number", "default": 0 },
+        { "key": "per_page", "label": "Per page", "type": "number", "default": 20 }
+      ]
+    },
+    {
+      "key": "queue_company_invitation",
+      "name": "Send company review invitation",
+      "method": "POST",
+      "endpoint": "/invitation",
+      "body": {
+        "name": "{{ inputs.name }}",
+        "email": "{{ inputs.email }}",
+        "order_id": "{{ inputs.order_id }}",
+        "template_id": "{{ inputs.template_id }}",
+        "date_send": "{{ inputs.date_send }}"
+      },
+      "inputs": [
+        { "key": "name", "label": "Customer name", "type": "string", "required": true },
+        { "key": "email", "label": "Customer email", "type": "string", "required": true },
+        { "key": "order_id", "label": "Order ID", "type": "string", "required": true },
+        { "key": "template_id", "label": "Template ID", "type": "string" },
+        { "key": "date_send", "label": "Send on (YYYY-MM-DD)", "type": "string", "help": "Empty = use your invitation delay." }
+      ]
+    },
+    {
+      "key": "queue_product_invitation",
+      "name": "Send product review invitation",
+      "method": "POST",
+      "endpoint": "/product/invitation",
+      "body": {
+        "name": "{{ inputs.name }}",
+        "email": "{{ inputs.email }}",
+        "order_id": "{{ inputs.order_id }}",
+        "products": "{{ inputs.products }}",
+        "template_id": "{{ inputs.template_id }}"
+      },
+      "inputs": [
+        { "key": "name", "label": "Customer name", "type": "string", "required": true },
+        { "key": "email", "label": "Customer email", "type": "string", "required": true },
+        { "key": "order_id", "label": "Order ID", "type": "string", "required": true },
+        { "key": "products", "label": "Products", "type": "json", "required": true,
+          "placeholder": "[{ \"sku\": \"SKU1\", \"name\": \"Blue T-shirt\", \"image\": \"https://example.com/1.jpg\", \"pageUrl\": \"https://example.com/p/1\" }]" },
+        { "key": "template_id", "label": "Template ID", "type": "string" }
+      ]
+    }
+  ]
+}

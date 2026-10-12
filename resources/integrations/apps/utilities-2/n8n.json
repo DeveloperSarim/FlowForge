@@ -1,0 +1,99 @@
+{
+  "key": "n8n",
+  "name": "n8n",
+  "category": "Utilities",
+  "description": "Manage n8n workflows and check their executions through the public API.",
+  "brand": "n8n",
+  "website": "https://n8n.io",
+  "docs_url": "https://docs.n8n.io/api/",
+  "popular": true,
+  "base_url": "{{ credentials.base_url }}/api/v1",
+  "auth": { "type": "api_key", "in": "header", "name": "X-N8N-API-KEY", "fields": [
+    { "key": "base_url", "label": "Instance URL", "type": "string", "required": true, "placeholder": "https://n8n.example.com", "help": "No trailing slash. n8n Cloud: https://<name>.app.n8n.cloud" },
+    { "key": "api_key", "label": "API key", "type": "password", "required": true, "help": "Settings → n8n API → Create an API key." }
+  ] },
+  "actions": [
+    {
+      "key": "list_workflows",
+      "name": "List workflows",
+      "method": "GET",
+      "endpoint": "/workflows",
+      "query": { "active": "{{ inputs.active }}", "tags": "{{ inputs.tags }}", "name": "{{ inputs.name }}", "limit": "{{ inputs.limit }}" },
+      "output_path": "data",
+      "inputs": [
+        { "key": "active", "label": "Status", "type": "select", "options": [{ "value": "true", "label": "Active" }, { "value": "false", "label": "Inactive" }] },
+        { "key": "tags", "label": "Tags", "type": "string", "placeholder": "prod,billing" },
+        { "key": "name", "label": "Name", "type": "string" },
+        { "key": "limit", "label": "Limit", "type": "number" }
+      ]
+    },
+    {
+      "key": "get_workflow",
+      "name": "Get workflow",
+      "method": "GET",
+      "endpoint": "/workflows/{{ inputs.workflow_id }}",
+      "inputs": [{ "key": "workflow_id", "label": "Workflow ID", "type": "string", "required": true }]
+    },
+    {
+      "key": "activate_workflow",
+      "name": "Activate workflow",
+      "method": "POST",
+      "endpoint": "/workflows/{{ inputs.workflow_id }}/activate",
+      "inputs": [{ "key": "workflow_id", "label": "Workflow ID", "type": "string", "required": true }]
+    },
+    {
+      "key": "deactivate_workflow",
+      "name": "Deactivate workflow",
+      "method": "POST",
+      "endpoint": "/workflows/{{ inputs.workflow_id }}/deactivate",
+      "inputs": [{ "key": "workflow_id", "label": "Workflow ID", "type": "string", "required": true }]
+    },
+    {
+      "key": "list_executions",
+      "name": "List executions",
+      "method": "GET",
+      "endpoint": "/executions",
+      "query": { "workflowId": "{{ inputs.workflow_id }}", "status": "{{ inputs.status }}", "limit": "{{ inputs.limit }}" },
+      "output_path": "data",
+      "inputs": [
+        { "key": "workflow_id", "label": "Workflow ID", "type": "string" },
+        { "key": "status", "label": "Status", "type": "select", "options": [
+          { "value": "success", "label": "Success" }, { "value": "error", "label": "Error" }, { "value": "running", "label": "Running" },
+          { "value": "waiting", "label": "Waiting" }, { "value": "canceled", "label": "Canceled" }
+        ] },
+        { "key": "limit", "label": "Limit", "type": "number" }
+      ]
+    },
+    {
+      "key": "get_execution",
+      "name": "Get execution",
+      "method": "GET",
+      "endpoint": "/executions/{{ inputs.execution_id }}",
+      "query": { "includeData": "{{ inputs.include_data }}" },
+      "inputs": [
+        { "key": "execution_id", "label": "Execution ID", "type": "string", "required": true },
+        { "key": "include_data", "label": "Include node data", "type": "select", "options": [{ "value": "true", "label": "Yes" }, { "value": "false", "label": "No" }] }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_execution",
+      "name": "New execution",
+      "description": "Fires for each new execution, e.g. only failed ones of one workflow.",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/executions",
+      "query": { "workflowId": "{{ inputs.workflow_id }}", "status": "{{ inputs.status }}", "limit": 50 },
+      "items_path": "data",
+      "id_field": "id",
+      "inputs": [
+        { "key": "workflow_id", "label": "Workflow ID", "type": "string" },
+        { "key": "status", "label": "Only status", "type": "select", "options": [
+          { "value": "success", "label": "Success" }, { "value": "error", "label": "Error" }, { "value": "waiting", "label": "Waiting" }
+        ] },
+        { "key": "poll_interval", "label": "Check every (minutes)", "type": "number", "default": 5 }
+      ]
+    }
+  ]
+}

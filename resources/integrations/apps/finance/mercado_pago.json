@@ -1,0 +1,159 @@
+{
+  "key": "mercado_pago",
+  "name": "Mercado Pago",
+  "category": "Payments & Finance",
+  "description": "Create checkout links and look up payments in Mercado Pago.",
+  "brand": "mercadopago",
+  "website": "https://www.mercadopago.com",
+  "docs_url": "https://www.mercadopago.com/developers/en/reference",
+  "base_url": "https://api.mercadopago.com",
+  "auth": [
+    {
+      "type": "bearer",
+      "fields": [
+        {
+          "key": "token",
+          "label": "Access token",
+          "type": "password",
+          "required": true,
+          "help": "Your integrations > your app > Production credentials (APP_USR-…)."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "create_preference",
+      "name": "Create checkout preference",
+      "method": "POST",
+      "endpoint": "/checkout/preferences",
+      "output_fields": {
+        "url": "init_point"
+      },
+      "body": {
+        "items": "{{ inputs.items }}",
+        "payer": {
+          "email": "{{ inputs.email }}"
+        },
+        "external_reference": "{{ inputs.external_reference }}",
+        "notification_url": "{{ inputs.notification_url }}",
+        "back_urls": "{{ inputs.back_urls }}"
+      },
+      "inputs": [
+        {
+          "key": "items",
+          "label": "Items",
+          "type": "json",
+          "required": true,
+          "placeholder": "[{\"title\": \"T-shirt\", \"quantity\": 1, \"unit_price\": 100, \"currency_id\": \"BRL\"}]"
+        },
+        {
+          "key": "email",
+          "label": "Payer email",
+          "type": "string"
+        },
+        {
+          "key": "external_reference",
+          "label": "External reference",
+          "type": "string"
+        },
+        {
+          "key": "notification_url",
+          "label": "Notification URL",
+          "type": "string"
+        },
+        {
+          "key": "back_urls",
+          "label": "Back URLs",
+          "type": "json",
+          "placeholder": "{\"success\": \"https://…\", \"failure\": \"https://…\", \"pending\": \"https://…\"}"
+        }
+      ]
+    },
+    {
+      "key": "get_payment",
+      "name": "Get payment",
+      "method": "GET",
+      "endpoint": "/v1/payments/{{ inputs.payment_id }}",
+      "inputs": [
+        {
+          "key": "payment_id",
+          "label": "Payment ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "search_payments",
+      "name": "Search payments",
+      "method": "GET",
+      "endpoint": "/v1/payments/search",
+      "output_path": "results",
+      "query": {
+        "external_reference": "{{ inputs.external_reference }}",
+        "status": "{{ inputs.status }}",
+        "sort": "date_created",
+        "criteria": "desc",
+        "limit": "{{ inputs.limit }}"
+      },
+      "inputs": [
+        {
+          "key": "external_reference",
+          "label": "External reference",
+          "type": "string"
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "string",
+          "placeholder": "approved"
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 30
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_payment",
+      "name": "New payment",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/v1/payments/search",
+      "query": {
+        "sort": "date_created",
+        "criteria": "desc",
+        "limit": 50
+      },
+      "items_path": "results",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    },
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Your integrations > your app > Webhooks: add this URL. Payload carries the resource id.",
+      "data_path": "data",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

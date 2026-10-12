@@ -1,0 +1,245 @@
+{
+  "key": "cloudinary",
+  "name": "Cloudinary",
+  "category": "Files & Documents",
+  "description": "Upload media from a URL, search assets and check usage.",
+  "brand": "cloudinary",
+  "website": "https://cloudinary.com",
+  "docs_url": "https://cloudinary.com/documentation/admin_api",
+  "base_url": "https://api.cloudinary.com/v1_1/{{ credentials.cloud_name }}",
+  "auth": [
+    {
+      "type": "basic",
+      "fields": [
+        {
+          "key": "cloud_name",
+          "label": "Cloud name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "username",
+          "label": "API key",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "password",
+          "label": "API secret",
+          "type": "password",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "upload_from_url",
+      "name": "Upload from URL",
+      "description": "Uploads a remote file using an unsigned upload preset.",
+      "method": "POST",
+      "endpoint": "/{{ inputs.resource_type }}/upload",
+      "body_format": "form",
+      "body": {
+        "file": "{{ inputs.file_url }}",
+        "upload_preset": "{{ inputs.upload_preset }}",
+        "folder": "{{ inputs.folder }}",
+        "public_id": "{{ inputs.public_id }}",
+        "tags": "{{ inputs.tags }}"
+      },
+      "output_fields": {
+        "url": "secure_url"
+      },
+      "inputs": [
+        {
+          "key": "file_url",
+          "label": "File URL",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "upload_preset",
+          "label": "Unsigned upload preset",
+          "type": "string",
+          "required": true,
+          "help": "Settings > Upload > Upload presets (mode: Unsigned)."
+        },
+        {
+          "key": "resource_type",
+          "label": "Asset type",
+          "type": "select",
+          "options": [
+            {
+              "value": "auto",
+              "label": "Auto-detect"
+            },
+            {
+              "value": "image",
+              "label": "Image"
+            },
+            {
+              "value": "video",
+              "label": "Video / audio"
+            },
+            {
+              "value": "raw",
+              "label": "Raw file"
+            }
+          ],
+          "required": true,
+          "default": "auto"
+        },
+        {
+          "key": "folder",
+          "label": "Folder",
+          "type": "string"
+        },
+        {
+          "key": "public_id",
+          "label": "Public ID",
+          "type": "string"
+        },
+        {
+          "key": "tags",
+          "label": "Tags",
+          "type": "string",
+          "placeholder": "tag1,tag2"
+        }
+      ]
+    },
+    {
+      "key": "search_assets",
+      "name": "Search assets",
+      "method": "POST",
+      "endpoint": "/resources/search",
+      "body": {
+        "expression": "{{ inputs.expression }}",
+        "sort_by": [
+          {
+            "created_at": "desc"
+          }
+        ],
+        "max_results": "{{ inputs.max_results }}",
+        "next_cursor": "{{ inputs.next_cursor }}"
+      },
+      "inputs": [
+        {
+          "key": "expression",
+          "label": "Search expression",
+          "type": "string",
+          "placeholder": "folder:products AND tags:sale"
+        },
+        {
+          "key": "max_results",
+          "label": "Max results",
+          "type": "number",
+          "default": 50
+        },
+        {
+          "key": "next_cursor",
+          "label": "Next cursor",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "list_assets",
+      "name": "List assets",
+      "method": "GET",
+      "endpoint": "/resources/{{ inputs.resource_type }}/upload",
+      "query": {
+        "prefix": "{{ inputs.prefix }}",
+        "max_results": "{{ inputs.max_results }}"
+      },
+      "inputs": [
+        {
+          "key": "resource_type",
+          "label": "Asset type",
+          "type": "select",
+          "options": [
+            {
+              "value": "image",
+              "label": "Image"
+            },
+            {
+              "value": "video",
+              "label": "Video / audio"
+            },
+            {
+              "value": "raw",
+              "label": "Raw file"
+            }
+          ],
+          "required": true,
+          "default": "image"
+        },
+        {
+          "key": "prefix",
+          "label": "Public ID prefix",
+          "type": "string",
+          "placeholder": "products/"
+        },
+        {
+          "key": "max_results",
+          "label": "Max results",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    },
+    {
+      "key": "get_usage",
+      "name": "Get usage",
+      "method": "GET",
+      "endpoint": "/usage",
+      "inputs": []
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_asset",
+      "name": "New asset",
+      "type": "polling",
+      "method": "POST",
+      "endpoint": "/resources/search",
+      "body": {
+        "expression": "{{ inputs.expression }}",
+        "sort_by": [
+          {
+            "created_at": "desc"
+          }
+        ],
+        "max_results": 30
+      },
+      "items_path": "resources",
+      "id_field": "asset_id",
+      "inputs": [
+        {
+          "key": "expression",
+          "label": "Only assets matching",
+          "type": "string",
+          "placeholder": "folder:uploads"
+        },
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    },
+    {
+      "key": "notification",
+      "name": "Upload notification",
+      "type": "webhook",
+      "description": "Cloudinary notification URL events.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

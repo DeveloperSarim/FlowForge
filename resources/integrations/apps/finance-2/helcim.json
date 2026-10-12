@@ -1,0 +1,232 @@
+{
+  "key": "helcim",
+  "name": "Helcim",
+  "category": "Payments & Finance",
+  "description": "Start HelcimPay checkouts, list card transactions and manage customers in Helcim.",
+  "brand": "helcim",
+  "website": "https://www.helcim.com",
+  "docs_url": "https://devdocs.helcim.com/reference",
+  "base_url": "https://api.helcim.com/v2",
+  "auth": [
+    {
+      "type": "api_key",
+      "in": "header",
+      "name": "api-token",
+      "fields": [
+        {
+          "key": "api_key",
+          "label": "API token",
+          "type": "password",
+          "required": true,
+          "help": "Helcim > All tools > Integrations > API access configurations."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "initialize_checkout",
+      "name": "Start HelcimPay.js checkout",
+      "method": "POST",
+      "endpoint": "/helcim-pay/initialize",
+      "body": {
+        "paymentType": "{{ inputs.payment_type }}",
+        "amount": "{{ inputs.amount }}",
+        "currency": "{{ inputs.currency }}",
+        "customerCode": "{{ inputs.customer_code }}",
+        "invoiceNumber": "{{ inputs.invoice_number }}"
+      },
+      "inputs": [
+        {
+          "key": "payment_type",
+          "label": "Payment type",
+          "type": "select",
+          "options": [
+            {
+              "value": "purchase",
+              "label": "Purchase"
+            },
+            {
+              "value": "preauth",
+              "label": "Pre-authorization"
+            },
+            {
+              "value": "verify",
+              "label": "Verify card"
+            }
+          ],
+          "default": "purchase",
+          "required": true
+        },
+        {
+          "key": "amount",
+          "label": "Amount",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "currency",
+          "label": "Currency",
+          "type": "select",
+          "options": [
+            {
+              "value": "CAD",
+              "label": "CAD"
+            },
+            {
+              "value": "USD",
+              "label": "USD"
+            }
+          ],
+          "default": "CAD",
+          "required": true
+        },
+        {
+          "key": "customer_code",
+          "label": "Customer code",
+          "type": "string"
+        },
+        {
+          "key": "invoice_number",
+          "label": "Invoice number",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "list_card_transactions",
+      "name": "List card transactions",
+      "method": "GET",
+      "endpoint": "/card-transactions",
+      "query": {
+        "dateFrom": "{{ inputs.date_from }}",
+        "dateTo": "{{ inputs.date_to }}",
+        "customerCode": "{{ inputs.customer_code }}",
+        "invoiceNumber": "{{ inputs.invoice_number }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "inputs": [
+        {
+          "key": "date_from",
+          "label": "From date",
+          "type": "string",
+          "placeholder": "2026-01-31"
+        },
+        {
+          "key": "date_to",
+          "label": "To date",
+          "type": "string",
+          "placeholder": "2026-02-28"
+        },
+        {
+          "key": "customer_code",
+          "label": "Customer code",
+          "type": "string"
+        },
+        {
+          "key": "invoice_number",
+          "label": "Invoice number",
+          "type": "string"
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 100
+        }
+      ]
+    },
+    {
+      "key": "get_card_transaction",
+      "name": "Get card transaction",
+      "method": "GET",
+      "endpoint": "/card-transactions/{{ inputs.transaction_id }}",
+      "inputs": [
+        {
+          "key": "transaction_id",
+          "label": "Transaction ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_customers",
+      "name": "Find customers",
+      "method": "GET",
+      "endpoint": "/customers",
+      "query": {
+        "search": "{{ inputs.search }}",
+        "customerCode": "{{ inputs.customer_code }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "inputs": [
+        {
+          "key": "search",
+          "label": "Search",
+          "type": "string"
+        },
+        {
+          "key": "customer_code",
+          "label": "Customer code",
+          "type": "string"
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 100
+        }
+      ]
+    },
+    {
+      "key": "create_customer",
+      "name": "Create customer",
+      "method": "POST",
+      "endpoint": "/customers",
+      "body": {
+        "customerCode": "{{ inputs.customer_code }}",
+        "contactName": "{{ inputs.contact_name }}",
+        "businessName": "{{ inputs.business_name }}",
+        "cellPhone": "{{ inputs.phone }}"
+      },
+      "inputs": [
+        {
+          "key": "contact_name",
+          "label": "Contact name",
+          "type": "string"
+        },
+        {
+          "key": "business_name",
+          "label": "Business name",
+          "type": "string"
+        },
+        {
+          "key": "customer_code",
+          "label": "Customer code",
+          "type": "string"
+        },
+        {
+          "key": "phone",
+          "label": "Cell phone",
+          "type": "string"
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Helcim > All tools > Integrations > Webhooks: paste this URL and enable notifications.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,111 @@
+{
+  "key": "transistor",
+  "name": "Transistor",
+  "category": "Video & Media",
+  "description": "Create, update and publish podcast episodes on Transistor.fm.",
+  "brand": "transistor",
+  "website": "https://transistor.fm",
+  "docs_url": "https://developers.transistor.fm",
+  "base_url": "https://api.transistor.fm/v1",
+  "auth": { "type": "api_key", "in": "header", "name": "x-api-key", "fields": [
+    { "key": "api_key", "label": "API key", "type": "password", "required": true, "help": "Account > API Key in the Transistor dashboard." }
+  ] },
+  "actions": [
+    {
+      "key": "list_shows",
+      "name": "List shows",
+      "method": "GET",
+      "endpoint": "/shows",
+      "output_path": "data",
+      "inputs": []
+    },
+    {
+      "key": "list_episodes",
+      "name": "List episodes",
+      "method": "GET",
+      "endpoint": "/episodes",
+      "output_path": "data",
+      "query": { "show_id": "{{ inputs.show_id }}", "query": "{{ inputs.query }}", "status": "{{ inputs.status }}" },
+      "inputs": [
+        { "key": "show_id", "label": "Show ID", "type": "string", "required": true },
+        { "key": "query", "label": "Search", "type": "string" },
+        { "key": "status", "label": "Status", "type": "select", "options": [
+          { "value": "", "label": "Any" }, { "value": "published", "label": "Published" }, { "value": "scheduled", "label": "Scheduled" }, { "value": "draft", "label": "Draft" }
+        ] }
+      ]
+    },
+    {
+      "key": "get_episode",
+      "name": "Get episode",
+      "method": "GET",
+      "endpoint": "/episodes/{{ inputs.episode_id }}",
+      "output_path": "data",
+      "inputs": [{ "key": "episode_id", "label": "Episode ID", "type": "string", "required": true }]
+    },
+    {
+      "key": "create_episode",
+      "name": "Create episode (draft)",
+      "description": "Creates a draft episode; pass an audio URL to attach audio.",
+      "method": "POST",
+      "endpoint": "/episodes",
+      "output_path": "data",
+      "body": { "episode": {
+        "show_id": "{{ inputs.show_id }}", "title": "{{ inputs.title }}", "summary": "{{ inputs.summary }}", "description": "{{ inputs.description }}",
+        "audio_url": "{{ inputs.audio_url }}", "season": "{{ inputs.season }}", "number": "{{ inputs.number }}", "type": "{{ inputs.type }}",
+        "keywords": "{{ inputs.keywords }}", "explicit": "{{ inputs.explicit }}"
+      } },
+      "inputs": [
+        { "key": "show_id", "label": "Show ID", "type": "string", "required": true },
+        { "key": "title", "label": "Title", "type": "string", "required": true },
+        { "key": "summary", "label": "Summary", "type": "text" },
+        { "key": "description", "label": "Description (HTML allowed)", "type": "text" },
+        { "key": "audio_url", "label": "Audio file URL", "type": "string" },
+        { "key": "season", "label": "Season", "type": "number" },
+        { "key": "number", "label": "Episode number", "type": "number" },
+        { "key": "type", "label": "Type", "type": "select", "options": [
+          { "value": "", "label": "Default (full)" }, { "value": "full", "label": "Full" }, { "value": "trailer", "label": "Trailer" }, { "value": "bonus", "label": "Bonus" }
+        ] },
+        { "key": "keywords", "label": "Keywords (comma-separated)", "type": "string" },
+        { "key": "explicit", "label": "Explicit", "type": "boolean" }
+      ]
+    },
+    {
+      "key": "update_episode",
+      "name": "Update episode",
+      "method": "PATCH",
+      "endpoint": "/episodes/{{ inputs.episode_id }}",
+      "output_path": "data",
+      "body": { "episode": { "title": "{{ inputs.title }}", "summary": "{{ inputs.summary }}", "description": "{{ inputs.description }}", "audio_url": "{{ inputs.audio_url }}" } },
+      "inputs": [
+        { "key": "episode_id", "label": "Episode ID", "type": "string", "required": true },
+        { "key": "title", "label": "Title", "type": "string" },
+        { "key": "summary", "label": "Summary", "type": "text" },
+        { "key": "description", "label": "Description", "type": "text" },
+        { "key": "audio_url", "label": "Audio file URL", "type": "string" }
+      ]
+    },
+    {
+      "key": "publish_episode",
+      "name": "Publish / unpublish episode",
+      "method": "PATCH",
+      "endpoint": "/episodes/{{ inputs.episode_id }}/publish",
+      "output_path": "data",
+      "body": { "episode": { "status": "{{ inputs.status }}" } },
+      "inputs": [
+        { "key": "episode_id", "label": "Episode ID", "type": "string", "required": true },
+        { "key": "status", "label": "Status", "type": "select", "default": "published", "options": [
+          { "value": "published", "label": "Published" }, { "value": "draft", "label": "Draft (unpublish)" }
+        ] }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "description": "Subscribe this URL via POST /v1/webhooks (episode_created, episode_published, subscriber_created…).",
+      "type": "webhook",
+      "inputs": [{ "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }]
+    }
+  ]
+}

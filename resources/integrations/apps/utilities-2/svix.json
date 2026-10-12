@@ -1,0 +1,75 @@
+{
+  "key": "svix",
+  "name": "Svix",
+  "category": "Utilities",
+  "description": "Send webhooks to your customers: manage applications, endpoints and messages.",
+  "brand": "svix",
+  "website": "https://www.svix.com",
+  "docs_url": "https://api.svix.com/docs",
+  "base_url": "{{ credentials.server_url }}/api/v1",
+  "auth": { "type": "bearer", "fields": [
+    { "key": "token", "label": "API key", "type": "password", "required": true, "help": "Dashboard → API Access." },
+    { "key": "server_url", "label": "Region", "type": "select", "required": true, "default": "https://api.svix.com", "options": [
+      { "value": "https://api.svix.com", "label": "Default" }, { "value": "https://api.us.svix.com", "label": "US" },
+      { "value": "https://api.eu.svix.com", "label": "EU" }, { "value": "https://api.ca.svix.com", "label": "Canada" },
+      { "value": "https://api.au.svix.com", "label": "Australia" }, { "value": "https://api.in.svix.com", "label": "India" }
+    ], "help": "Match the region suffix of your key (e.g. .eu)." }
+  ] },
+  "actions": [
+    {
+      "key": "send_message",
+      "name": "Send message",
+      "description": "Sends a webhook event to every endpoint of the application subscribed to its type.",
+      "method": "POST",
+      "endpoint": "/app/{{ inputs.app_id }}/msg",
+      "body": { "eventType": "{{ inputs.event_type }}", "payload": "{{ inputs.payload }}", "eventId": "{{ inputs.event_id }}", "channels": "{{ inputs.channels }}" },
+      "inputs": [
+        { "key": "app_id", "label": "Application ID or UID", "type": "string", "required": true },
+        { "key": "event_type", "label": "Event type", "type": "string", "required": true, "placeholder": "invoice.paid" },
+        { "key": "payload", "label": "Payload (JSON)", "type": "json", "required": true },
+        { "key": "event_id", "label": "Idempotent event ID", "type": "string" },
+        { "key": "channels", "label": "Channels", "type": "list" }
+      ]
+    },
+    {
+      "key": "create_application",
+      "name": "Create application",
+      "method": "POST",
+      "endpoint": "/app",
+      "body": { "name": "{{ inputs.name }}", "uid": "{{ inputs.uid }}" },
+      "inputs": [
+        { "key": "name", "label": "Name", "type": "string", "required": true },
+        { "key": "uid", "label": "Your UID", "type": "string", "help": "Optional unique ID from your system (e.g. customer ID)." }
+      ]
+    },
+    {
+      "key": "list_applications",
+      "name": "List applications",
+      "method": "GET",
+      "endpoint": "/app",
+      "query": { "limit": "{{ inputs.limit }}" },
+      "inputs": [{ "key": "limit", "label": "Limit", "type": "number" }]
+    },
+    {
+      "key": "create_endpoint",
+      "name": "Create endpoint",
+      "method": "POST",
+      "endpoint": "/app/{{ inputs.app_id }}/endpoint",
+      "body": { "url": "{{ inputs.url }}", "description": "{{ inputs.description }}", "filterTypes": "{{ inputs.filter_types }}", "channels": "{{ inputs.channels }}" },
+      "inputs": [
+        { "key": "app_id", "label": "Application ID or UID", "type": "string", "required": true },
+        { "key": "url", "label": "Endpoint URL", "type": "string", "required": true },
+        { "key": "description", "label": "Description", "type": "string" },
+        { "key": "filter_types", "label": "Only these event types", "type": "list" },
+        { "key": "channels", "label": "Channels", "type": "list" }
+      ]
+    },
+    {
+      "key": "list_endpoints",
+      "name": "List endpoints",
+      "method": "GET",
+      "endpoint": "/app/{{ inputs.app_id }}/endpoint",
+      "inputs": [{ "key": "app_id", "label": "Application ID or UID", "type": "string", "required": true }]
+    }
+  ]
+}

@@ -1,0 +1,277 @@
+{
+  "key": "bitrix24",
+  "name": "Bitrix24",
+  "category": "CRM & Sales",
+  "description": "Create and find leads, contacts and deals in Bitrix24 CRM.",
+  "brand": "bitrix24",
+  "website": "https://www.bitrix24.com",
+  "docs_url": "https://apidocs.bitrix24.com/",
+  "base_url": "{{ credentials.api_key }}",
+  "auth": [
+    {
+      "type": "api_key",
+      "fields": [
+        {
+          "key": "api_key",
+          "label": "Inbound webhook URL",
+          "type": "password",
+          "required": true,
+          "placeholder": "https://yourcompany.bitrix24.com/rest/1/abc123xyz/",
+          "help": "Developer resources > Other > Inbound webhook, with CRM permission."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "create_lead",
+      "name": "Create lead",
+      "description": "Returns the new lead ID.",
+      "method": "POST",
+      "endpoint": "/crm.lead.add.json",
+      "body": {
+        "fields": {
+          "TITLE": "{{ inputs.title }}",
+          "NAME": "{{ inputs.name }}",
+          "LAST_NAME": "{{ inputs.last_name }}",
+          "EMAIL": [
+            {
+              "VALUE": "{{ inputs.email }}",
+              "VALUE_TYPE": "WORK"
+            }
+          ],
+          "PHONE": [
+            {
+              "VALUE": "{{ inputs.phone }}",
+              "VALUE_TYPE": "WORK"
+            }
+          ],
+          "COMMENTS": "{{ inputs.comments }}"
+        }
+      },
+      "output_path": "result",
+      "inputs": [
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "name",
+          "label": "First name",
+          "type": "string"
+        },
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string"
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string"
+        },
+        {
+          "key": "phone",
+          "label": "Phone",
+          "type": "string"
+        },
+        {
+          "key": "comments",
+          "label": "Comments",
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "key": "update_lead",
+      "name": "Update lead",
+      "method": "POST",
+      "endpoint": "/crm.lead.update.json",
+      "body": {
+        "id": "{{ inputs.id }}",
+        "fields": "{{ inputs.fields }}"
+      },
+      "output_path": "result",
+      "inputs": [
+        {
+          "key": "id",
+          "label": "Lead ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "fields",
+          "label": "Fields",
+          "type": "json",
+          "required": true,
+          "help": "e.g. {\"STATUS_ID\": \"IN_PROCESS\"}"
+        }
+      ]
+    },
+    {
+      "key": "get_lead",
+      "name": "Get lead",
+      "method": "GET",
+      "endpoint": "/crm.lead.get.json",
+      "query": {
+        "id": "{{ inputs.id }}"
+      },
+      "output_path": "result",
+      "inputs": [
+        {
+          "key": "id",
+          "label": "Lead ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "create_contact",
+      "name": "Create contact",
+      "method": "POST",
+      "endpoint": "/crm.contact.add.json",
+      "body": {
+        "fields": {
+          "NAME": "{{ inputs.name }}",
+          "LAST_NAME": "{{ inputs.last_name }}",
+          "EMAIL": [
+            {
+              "VALUE": "{{ inputs.email }}",
+              "VALUE_TYPE": "WORK"
+            }
+          ],
+          "PHONE": [
+            {
+              "VALUE": "{{ inputs.phone }}",
+              "VALUE_TYPE": "WORK"
+            }
+          ]
+        }
+      },
+      "output_path": "result",
+      "inputs": [
+        {
+          "key": "name",
+          "label": "First name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string"
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string"
+        },
+        {
+          "key": "phone",
+          "label": "Phone",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "find_contact",
+      "name": "Find contact by email",
+      "method": "POST",
+      "endpoint": "/crm.contact.list.json",
+      "body": {
+        "filter": {
+          "EMAIL": "{{ inputs.email }}"
+        },
+        "select": [
+          "ID",
+          "NAME",
+          "LAST_NAME",
+          "EMAIL",
+          "PHONE"
+        ]
+      },
+      "output_path": "result",
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "create_deal",
+      "name": "Create deal",
+      "method": "POST",
+      "endpoint": "/crm.deal.add.json",
+      "body": {
+        "fields": {
+          "TITLE": "{{ inputs.title }}",
+          "CONTACT_ID": "{{ inputs.contact_id }}",
+          "OPPORTUNITY": "{{ inputs.opportunity }}",
+          "CURRENCY_ID": "{{ inputs.currency_id }}",
+          "STAGE_ID": "{{ inputs.stage_id }}"
+        }
+      },
+      "output_path": "result",
+      "inputs": [
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "contact_id",
+          "label": "Contact ID",
+          "type": "string"
+        },
+        {
+          "key": "opportunity",
+          "label": "Amount",
+          "type": "number"
+        },
+        {
+          "key": "currency_id",
+          "label": "Currency",
+          "type": "string",
+          "placeholder": "USD"
+        },
+        {
+          "key": "stage_id",
+          "label": "Stage ID",
+          "type": "string",
+          "placeholder": "NEW"
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_lead",
+      "name": "New lead",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/crm.lead.list.json",
+      "query": {
+        "order": {
+          "ID": "DESC"
+        }
+      },
+      "items_path": "result",
+      "id_field": "ID",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,199 @@
+{
+  "key": "wix",
+  "name": "Wix",
+  "category": "CMS & Websites",
+  "description": "Query and write Wix Data collections, list blog posts and add contacts.",
+  "brand": "wix",
+  "website": "https://www.wix.com",
+  "docs_url": "https://dev.wix.com/docs/rest",
+  "base_url": "https://www.wixapis.com",
+  "headers": {
+    "wix-site-id": "{{ credentials.site_id }}"
+  },
+  "auth": [
+    {
+      "type": "api_key",
+      "in": "header",
+      "name": "Authorization",
+      "fields": [
+        {
+          "key": "api_key",
+          "label": "API key",
+          "type": "password",
+          "required": true,
+          "help": "Account settings > API Keys."
+        },
+        {
+          "key": "site_id",
+          "label": "Site ID",
+          "type": "string",
+          "required": true,
+          "help": "The GUID after /dashboard/ in your site's dashboard URL."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "query_data_items",
+      "name": "Query data items",
+      "method": "POST",
+      "endpoint": "/wix-data/v2/items/query",
+      "output_path": "dataItems",
+      "body": {
+        "dataCollectionId": "{{ inputs.collection_id }}",
+        "query": {
+          "filter": "{{ inputs.filter }}",
+          "sort": "{{ inputs.sort }}",
+          "paging": {
+            "limit": "{{ inputs.limit }}"
+          }
+        }
+      },
+      "inputs": [
+        {
+          "key": "collection_id",
+          "label": "Collection ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "filter",
+          "label": "Filter (JSON)",
+          "type": "json",
+          "placeholder": "{ \"status\": \"active\" }"
+        },
+        {
+          "key": "sort",
+          "label": "Sort (JSON)",
+          "type": "json",
+          "placeholder": "[{ \"fieldName\": \"_createdDate\", \"order\": \"DESC\" }]"
+        },
+        {
+          "key": "limit",
+          "label": "Max items",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    },
+    {
+      "key": "insert_data_item",
+      "name": "Insert data item",
+      "method": "POST",
+      "endpoint": "/wix-data/v2/items",
+      "body": {
+        "dataCollectionId": "{{ inputs.collection_id }}",
+        "dataItem": {
+          "data": "{{ inputs.data }}"
+        }
+      },
+      "inputs": [
+        {
+          "key": "collection_id",
+          "label": "Collection ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "data",
+          "label": "Fields (JSON)",
+          "type": "json",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "update_data_item",
+      "name": "Update data item",
+      "description": "Replaces the item's data.",
+      "method": "PUT",
+      "endpoint": "/wix-data/v2/items/{{ inputs.item_id }}",
+      "body": {
+        "dataCollectionId": "{{ inputs.collection_id }}",
+        "dataItem": {
+          "id": "{{ inputs.item_id }}",
+          "data": "{{ inputs.data }}"
+        }
+      },
+      "inputs": [
+        {
+          "key": "collection_id",
+          "label": "Collection ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "item_id",
+          "label": "Item ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "data",
+          "label": "Fields (JSON)",
+          "type": "json",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_blog_posts",
+      "name": "List blog posts",
+      "method": "GET",
+      "endpoint": "/blog/v3/posts",
+      "query": {
+        "paging.limit": "{{ inputs.limit }}"
+      },
+      "output_path": "posts",
+      "inputs": [
+        {
+          "key": "limit",
+          "label": "Max posts",
+          "type": "number",
+          "default": 20
+        }
+      ]
+    },
+    {
+      "key": "create_contact",
+      "name": "Create contact",
+      "method": "POST",
+      "endpoint": "/contacts/v4/contacts",
+      "body": {
+        "info": {
+          "name": {
+            "first": "{{ inputs.first_name }}",
+            "last": "{{ inputs.last_name }}"
+          },
+          "emails": {
+            "items": [
+              {
+                "tag": "MAIN",
+                "email": "{{ inputs.email }}"
+              }
+            ]
+          }
+        }
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "first_name",
+          "label": "First name",
+          "type": "string"
+        },
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string"
+        }
+      ]
+    }
+  ]
+}

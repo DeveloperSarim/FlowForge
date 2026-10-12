@@ -1,0 +1,105 @@
+{
+  "key": "liveagent",
+  "name": "LiveAgent",
+  "category": "Customer Support",
+  "description": "Create, update and look up tickets in LiveAgent.",
+  "brand": "liveagent",
+  "website": "https://www.liveagent.com",
+  "docs_url": "https://support.liveagent.com/061754-How-to-make-REST-API-v3-calls",
+  "base_url": "https://{{ credentials.account }}.ladesk.com/api/v3",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "apikey",
+    "fields": [
+      { "key": "account", "label": "Account", "type": "string", "required": true, "placeholder": "yourcompany", "help": "The part before .ladesk.com" },
+      { "key": "api_key", "label": "API v3 key", "type": "password", "required": true, "help": "Configuration > System > API (a v1 key will not work)" }
+    ]
+  },
+  "actions": [
+    {
+      "key": "create_ticket",
+      "name": "Create ticket",
+      "method": "POST",
+      "endpoint": "/tickets",
+      "body": {
+        "useridentifier": "{{ inputs.from }}",
+        "recipient": "{{ inputs.recipient }}",
+        "recipient_name": "{{ inputs.recipient_name }}",
+        "departmentid": "{{ inputs.department_id }}",
+        "subject": "{{ inputs.subject }}",
+        "message": "{{ inputs.message }}",
+        "is_html_message": "{{ inputs.is_html }}",
+        "status": "{{ inputs.status }}",
+        "do_not_send_mail": "{{ inputs.do_not_send_mail }}",
+        "tags": "{{ inputs.tags }}"
+      },
+      "inputs": [
+        { "key": "from", "label": "From (user ID or email)", "type": "string", "required": true },
+        { "key": "recipient", "label": "To (recipient email)", "type": "string", "required": true },
+        { "key": "recipient_name", "label": "Recipient name", "type": "string" },
+        { "key": "department_id", "label": "Department ID", "type": "string", "required": true },
+        { "key": "subject", "label": "Subject", "type": "string", "required": true },
+        { "key": "message", "label": "Message", "type": "text", "required": true },
+        { "key": "is_html", "label": "Message is HTML", "type": "select", "options": [{ "value": "Y", "label": "Yes" }, { "value": "N", "label": "No" }] },
+        { "key": "status", "label": "Status", "type": "select", "options": [{ "value": "N", "label": "New" }, { "value": "T", "label": "Chatting" }, { "value": "P", "label": "Calling" }, { "value": "A", "label": "Answered" }, { "value": "C", "label": "Open" }, { "value": "W", "label": "Postponed" }, { "value": "R", "label": "Resolved" }, { "value": "X", "label": "Deleted" }, { "value": "B", "label": "Spam" }] },
+        { "key": "do_not_send_mail", "label": "Don't send email", "type": "select", "options": [{ "value": "Y", "label": "Yes" }, { "value": "N", "label": "No" }] },
+        { "key": "tags", "label": "Tags", "type": "list" }
+      ]
+    },
+    {
+      "key": "update_ticket",
+      "name": "Update ticket",
+      "method": "PUT",
+      "endpoint": "/tickets/{{ inputs.ticket_id }}",
+      "body": {
+        "departmentid": "{{ inputs.department_id }}",
+        "agentid": "{{ inputs.agent_id }}",
+        "status": "{{ inputs.status }}",
+        "subject": "{{ inputs.subject }}",
+        "tags": "{{ inputs.tags }}"
+      },
+      "inputs": [
+        { "key": "ticket_id", "label": "Ticket ID", "type": "string", "required": true },
+        { "key": "department_id", "label": "Department ID", "type": "string" },
+        { "key": "agent_id", "label": "Agent ID", "type": "string" },
+        { "key": "status", "label": "Status", "type": "select", "options": [{ "value": "N", "label": "New" }, { "value": "A", "label": "Answered" }, { "value": "C", "label": "Open" }, { "value": "W", "label": "Postponed" }, { "value": "R", "label": "Resolved" }, { "value": "X", "label": "Deleted" }, { "value": "B", "label": "Spam" }] },
+        { "key": "subject", "label": "Subject", "type": "string" },
+        { "key": "tags", "label": "Tags", "type": "list" }
+      ]
+    },
+    {
+      "key": "get_ticket",
+      "name": "Get ticket",
+      "method": "GET",
+      "endpoint": "/tickets/{{ inputs.ticket_id }}",
+      "inputs": [{ "key": "ticket_id", "label": "Ticket ID", "type": "string", "required": true }]
+    },
+    {
+      "key": "get_ticket_messages",
+      "name": "Get ticket messages",
+      "method": "GET",
+      "endpoint": "/tickets/{{ inputs.ticket_id }}/messages",
+      "inputs": [{ "key": "ticket_id", "label": "Ticket ID", "type": "string", "required": true }]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_ticket",
+      "name": "New ticket",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/tickets",
+      "query": { "_sortField": "date_created", "_sortDir": "DESC", "_perPage": 50 },
+      "id_field": "id",
+      "inputs": [{ "key": "poll_interval", "label": "Check every (minutes)", "type": "number", "default": 5 }]
+    },
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Add an automation rule with an 'HTTP request' action pointing at this URL.",
+      "inputs": [{ "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }]
+    }
+  ]
+}

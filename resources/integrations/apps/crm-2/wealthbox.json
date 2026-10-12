@@ -1,0 +1,176 @@
+{
+  "key": "wealthbox",
+  "name": "Wealthbox",
+  "category": "CRM & Sales",
+  "description": "Create contacts, notes and tasks in the Wealthbox CRM for financial advisors.",
+  "brand": "wealthbox",
+  "website": "https://www.wealthbox.com",
+  "docs_url": "https://dev.wealthbox.com/",
+  "base_url": "https://api.crmworkspace.com/v1",
+  "auth": [
+    {
+      "type": "api_key",
+      "in": "header",
+      "name": "ACCESS_TOKEN",
+      "fields": [
+        {
+          "key": "api_key",
+          "label": "API access token",
+          "type": "password",
+          "required": true
+        }
+      ]
+    },
+    {
+      "type": "oauth2",
+      "authorize_url": "https://app.crmworkspace.com/oauth/authorize",
+      "token_url": "https://app.crmworkspace.com/oauth/token",
+      "scopes": [
+        "login",
+        "data"
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "create_contact",
+      "name": "Create contact",
+      "method": "POST",
+      "endpoint": "/contacts",
+      "body": {
+        "first_name": "{{ inputs.first_name }}",
+        "last_name": "{{ inputs.last_name }}",
+        "email_addresses": [
+          {
+            "address": "{{ inputs.email }}",
+            "principal": true
+          }
+        ],
+        "company_name": "{{ inputs.company_name }}",
+        "job_title": "{{ inputs.job_title }}",
+        "background_information": "{{ inputs.background }}",
+        "tags": "{{ inputs.tags }}"
+      },
+      "inputs": [
+        {
+          "key": "first_name",
+          "label": "First name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "company_name",
+          "label": "Company",
+          "type": "string"
+        },
+        {
+          "key": "job_title",
+          "label": "Job title",
+          "type": "string"
+        },
+        {
+          "key": "background",
+          "label": "Background information",
+          "type": "text"
+        },
+        {
+          "key": "tags",
+          "label": "Tags",
+          "type": "list"
+        }
+      ]
+    },
+    {
+      "key": "get_contact",
+      "name": "Get contact",
+      "method": "GET",
+      "endpoint": "/contacts/{{ inputs.contact_id }}",
+      "inputs": [
+        {
+          "key": "contact_id",
+          "label": "Contact ID",
+          "type": "number",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "create_note",
+      "name": "Add note",
+      "method": "POST",
+      "endpoint": "/notes",
+      "body": {
+        "content": "{{ inputs.content }}",
+        "linked_to": [
+          {
+            "id": "{{ inputs.contact_id }}",
+            "type": "Contact"
+          }
+        ]
+      },
+      "inputs": [
+        {
+          "key": "contact_id",
+          "label": "Contact ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "content",
+          "label": "Note",
+          "type": "text",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "create_task",
+      "name": "Create task",
+      "method": "POST",
+      "endpoint": "/tasks",
+      "body": {
+        "name": "{{ inputs.name }}",
+        "due_date": "{{ inputs.due_date }}",
+        "linked_to": [
+          {
+            "id": "{{ inputs.contact_id }}",
+            "type": "Contact"
+          }
+        ]
+      },
+      "inputs": [
+        {
+          "key": "name",
+          "label": "Task",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "due_date",
+          "label": "Due date",
+          "type": "string",
+          "required": true,
+          "placeholder": "2026-12-31 10:00 AM -0500"
+        },
+        {
+          "key": "contact_id",
+          "label": "Contact ID",
+          "type": "number",
+          "required": true
+        }
+      ]
+    }
+  ]
+}

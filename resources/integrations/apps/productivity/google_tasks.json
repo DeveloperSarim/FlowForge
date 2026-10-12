@@ -1,0 +1,176 @@
+{
+  "key": "google_tasks",
+  "name": "Google Tasks",
+  "category": "Productivity",
+  "description": "Create, list and complete tasks in Google Tasks.",
+  "brand": "googletasks",
+  "website": "https://tasks.google.com",
+  "docs_url": "https://developers.google.com/tasks/reference/rest",
+  "base_url": "https://tasks.googleapis.com/tasks/v1",
+  "auth": [
+    {
+      "type": "oauth2",
+      "authorize_url": "https://accounts.google.com/o/oauth2/v2/auth",
+      "token_url": "https://oauth2.googleapis.com/token",
+      "scopes": [
+        "https://www.googleapis.com/auth/tasks"
+      ],
+      "authorize_params": {
+        "access_type": "offline",
+        "prompt": "consent"
+      }
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_task_lists",
+      "name": "List task lists",
+      "method": "GET",
+      "endpoint": "/users/@me/lists",
+      "output_path": "items",
+      "inputs": []
+    },
+    {
+      "key": "create_task",
+      "name": "Create task",
+      "method": "POST",
+      "endpoint": "/lists/{{ inputs.task_list }}/tasks",
+      "body": {
+        "title": "{{ inputs.title }}",
+        "notes": "{{ inputs.notes }}",
+        "due": "{{ inputs.due }}"
+      },
+      "inputs": [
+        {
+          "key": "task_list",
+          "label": "Task list ID",
+          "type": "string",
+          "required": true,
+          "default": "@default",
+          "help": "\"@default\" or an id from List task lists."
+        },
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "notes",
+          "label": "Notes",
+          "type": "text"
+        },
+        {
+          "key": "due",
+          "label": "Due date",
+          "type": "string",
+          "placeholder": "2026-10-12T00:00:00.000Z",
+          "help": "RFC 3339; only the date part is kept."
+        }
+      ]
+    },
+    {
+      "key": "list_tasks",
+      "name": "List tasks",
+      "method": "GET",
+      "endpoint": "/lists/{{ inputs.task_list }}/tasks",
+      "query": {
+        "showCompleted": "{{ inputs.show_completed }}",
+        "dueMin": "{{ inputs.due_min }}",
+        "dueMax": "{{ inputs.due_max }}",
+        "maxResults": "{{ inputs.max_results }}"
+      },
+      "output_path": "items",
+      "inputs": [
+        {
+          "key": "task_list",
+          "label": "Task list ID",
+          "type": "string",
+          "required": true,
+          "default": "@default",
+          "help": "\"@default\" or an id from List task lists."
+        },
+        {
+          "key": "show_completed",
+          "label": "Include completed",
+          "type": "select",
+          "default": "true",
+          "options": [
+            {
+              "value": "true",
+              "label": "Yes"
+            },
+            {
+              "value": "false",
+              "label": "No"
+            }
+          ]
+        },
+        {
+          "key": "due_min",
+          "label": "Due after",
+          "type": "string",
+          "placeholder": "2026-10-01T00:00:00Z"
+        },
+        {
+          "key": "due_max",
+          "label": "Due before",
+          "type": "string"
+        },
+        {
+          "key": "max_results",
+          "label": "Max results",
+          "type": "number",
+          "default": 100
+        }
+      ]
+    },
+    {
+      "key": "complete_task",
+      "name": "Complete task",
+      "method": "PATCH",
+      "endpoint": "/lists/{{ inputs.task_list }}/tasks/{{ inputs.task_id }}",
+      "body": {
+        "status": "completed"
+      },
+      "inputs": [
+        {
+          "key": "task_list",
+          "label": "Task list ID",
+          "type": "string",
+          "required": true,
+          "default": "@default",
+          "help": "\"@default\" or an id from List task lists."
+        },
+        {
+          "key": "task_id",
+          "label": "Task ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "delete_task",
+      "name": "Delete task",
+      "method": "DELETE",
+      "endpoint": "/lists/{{ inputs.task_list }}/tasks/{{ inputs.task_id }}",
+      "inputs": [
+        {
+          "key": "task_list",
+          "label": "Task list ID",
+          "type": "string",
+          "required": true,
+          "default": "@default",
+          "help": "\"@default\" or an id from List task lists."
+        },
+        {
+          "key": "task_id",
+          "label": "Task ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ]
+}

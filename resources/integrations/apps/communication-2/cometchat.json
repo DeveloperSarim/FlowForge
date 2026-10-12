@@ -1,0 +1,70 @@
+{
+  "key": "cometchat",
+  "name": "CometChat",
+  "category": "Communication",
+  "description": "Send messages on behalf of users and create users in your CometChat app.",
+  "brand": "cometchat",
+  "website": "https://www.cometchat.com",
+  "docs_url": "https://www.cometchat.com/docs/rest-api/",
+  "base_url": "https://{{ credentials.app_id }}.api-{{ credentials.region }}.cometchat.io/v3",
+  "auth": [
+    { "type": "api_key", "in": "header", "name": "apikey", "fields": [
+      { "key": "app_id", "label": "App ID", "type": "string", "required": true },
+      { "key": "region", "label": "Region", "type": "select", "required": true, "default": "us", "options": [
+        { "value": "us", "label": "US" }, { "value": "eu", "label": "EU" }, { "value": "in", "label": "India" }
+      ] },
+      { "key": "api_key", "label": "REST API key", "type": "password", "required": true, "help": "Dashboard → API & Auth Keys (full-access REST API key)." }
+    ] }
+  ],
+  "actions": [
+    {
+      "key": "send_message",
+      "name": "Send text message",
+      "method": "POST",
+      "endpoint": "/messages",
+      "headers": { "onBehalfOf": "{{ inputs.sender_uid }}" },
+      "body": {
+        "receiver": "{{ inputs.receiver }}",
+        "receiverType": "{{ inputs.receiver_type }}",
+        "category": "message",
+        "type": "text",
+        "data": { "text": "{{ inputs.text }}" }
+      },
+      "output_path": "data",
+      "inputs": [
+        { "key": "sender_uid", "label": "Sender UID", "type": "string", "required": true },
+        { "key": "receiver_type", "label": "Send to", "type": "select", "default": "user", "options": [
+          { "value": "user", "label": "User" }, { "value": "group", "label": "Group" }
+        ] },
+        { "key": "receiver", "label": "Receiver UID or GUID", "type": "string", "required": true },
+        { "key": "text", "label": "Message", "type": "text", "required": true }
+      ]
+    },
+    {
+      "key": "create_user",
+      "name": "Create user",
+      "method": "POST",
+      "endpoint": "/users",
+      "body": { "uid": "{{ inputs.uid }}", "name": "{{ inputs.name }}", "avatar": "{{ inputs.avatar }}", "metadata": "{{ inputs.metadata }}" },
+      "output_path": "data",
+      "inputs": [
+        { "key": "uid", "label": "UID", "type": "string", "required": true },
+        { "key": "name", "label": "Name", "type": "string", "required": true },
+        { "key": "avatar", "label": "Avatar URL", "type": "string" },
+        { "key": "metadata", "label": "Metadata (JSON)", "type": "json" }
+      ]
+    },
+    {
+      "key": "list_users",
+      "name": "List users",
+      "method": "GET",
+      "endpoint": "/users",
+      "query": { "perPage": "{{ inputs.per_page }}", "searchKey": "{{ inputs.search }}" },
+      "output_path": "data",
+      "inputs": [
+        { "key": "per_page", "label": "Per page", "type": "number", "default": 100 },
+        { "key": "search", "label": "Search", "type": "string" }
+      ]
+    }
+  ]
+}

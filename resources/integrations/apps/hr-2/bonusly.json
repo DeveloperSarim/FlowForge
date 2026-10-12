@@ -1,0 +1,131 @@
+{
+  "key": "bonusly",
+  "name": "Bonusly",
+  "category": "HR & Recruiting",
+  "description": "Give bonuses, look up users and react to new recognition in Bonusly.",
+  "brand": "bonusly",
+  "website": "https://bonus.ly",
+  "docs_url": "https://docs.bonus.ly",
+  "base_url": "https://bonus.ly/api/v1",
+  "auth": [
+    {
+      "type": "bearer",
+      "fields": [
+        {
+          "key": "token",
+          "label": "API access token",
+          "type": "password",
+          "required": true,
+          "help": "Create one at bonus.ly/api (Settings > Integrations > API)."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "give_bonus",
+      "name": "Give bonus",
+      "description": "Posts a bonus. Write it all in the reason (\"+10 @jane for #teamwork\") or fill receiver and amount.",
+      "method": "POST",
+      "endpoint": "/bonuses",
+      "body": {
+        "reason": "{{ inputs.reason }}",
+        "receiver_email": "{{ inputs.receiver_email }}",
+        "amount": "{{ inputs.amount }}",
+        "giver_email": "{{ inputs.giver_email }}",
+        "parent_bonus_id": "{{ inputs.parent_bonus_id }}"
+      },
+      "output_path": "result",
+      "inputs": [
+        {
+          "key": "reason",
+          "label": "Reason",
+          "type": "text",
+          "required": true,
+          "placeholder": "+10 @jane for shipping the release #teamwork"
+        },
+        {
+          "key": "receiver_email",
+          "label": "Receiver email",
+          "type": "string"
+        },
+        {
+          "key": "amount",
+          "label": "Amount",
+          "type": "number"
+        },
+        {
+          "key": "giver_email",
+          "label": "Giver email",
+          "type": "string",
+          "help": "Admin tokens only: give on behalf of someone."
+        },
+        {
+          "key": "parent_bonus_id",
+          "label": "Add on to bonus ID",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "list_bonuses",
+      "name": "List bonuses",
+      "method": "GET",
+      "endpoint": "/bonuses",
+      "query": {
+        "limit": "{{ inputs.limit }}",
+        "giver_email": "{{ inputs.giver_email }}",
+        "receiver_email": "{{ inputs.receiver_email }}",
+        "hashtag": "{{ inputs.hashtag }}"
+      },
+      "output_path": "result",
+      "inputs": [
+        {
+          "key": "limit",
+          "label": "Max results",
+          "type": "number",
+          "default": 20
+        },
+        {
+          "key": "giver_email",
+          "label": "Giver email",
+          "type": "string"
+        },
+        {
+          "key": "receiver_email",
+          "label": "Receiver email",
+          "type": "string"
+        },
+        {
+          "key": "hashtag",
+          "label": "Hashtag",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "list_users",
+      "name": "List users",
+      "method": "GET",
+      "endpoint": "/users",
+      "query": {
+        "email": "{{ inputs.email }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_path": "result",
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string"
+        },
+        {
+          "key": "limit",
+          "label": "Max results",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    }
+  ]
+}

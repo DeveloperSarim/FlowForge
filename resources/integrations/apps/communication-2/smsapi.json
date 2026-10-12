@@ -1,0 +1,60 @@
+{
+  "key": "smsapi",
+  "name": "SMSAPI",
+  "category": "Communication",
+  "description": "Send SMS, add contacts and check your points balance with SMSAPI.com or SMSAPI.pl.",
+  "brand": "smsapi",
+  "website": "https://www.smsapi.com",
+  "docs_url": "https://www.smsapi.com/docs/",
+  "base_url": "https://api.smsapi.{{ credentials.domain }}",
+  "auth": [
+    { "type": "bearer", "fields": [
+      { "key": "domain", "label": "Platform", "type": "select", "required": true, "default": "com", "options": [
+        { "value": "com", "label": "SMSAPI.com (international)" }, { "value": "pl", "label": "SMSAPI.pl (Poland)" }
+      ] },
+      { "key": "token", "label": "OAuth token", "type": "password", "required": true, "help": "Customer Portal → API Settings → OAuth tokens." }
+    ] }
+  ],
+  "actions": [
+    {
+      "key": "send_sms",
+      "name": "Send SMS",
+      "method": "POST",
+      "endpoint": "/sms.do",
+      "body_format": "form",
+      "body": { "to": "{{ inputs.to }}", "message": "{{ inputs.message }}", "from": "{{ inputs.from }}", "format": "json" },
+      "error_path": "error",
+      "inputs": [
+        { "key": "to", "label": "To", "type": "string", "required": true, "placeholder": "48500000000", "help": "Comma-separate several numbers." },
+        { "key": "message", "label": "Message", "type": "text", "required": true },
+        { "key": "from", "label": "Sender name", "type": "string", "help": "A registered sender name; empty uses the account default." }
+      ]
+    },
+    {
+      "key": "create_contact",
+      "name": "Create contact",
+      "method": "POST",
+      "endpoint": "/contacts",
+      "body_format": "form",
+      "body": {
+        "phone_number": "{{ inputs.phone_number }}",
+        "email": "{{ inputs.email }}",
+        "first_name": "{{ inputs.first_name }}",
+        "last_name": "{{ inputs.last_name }}"
+      },
+      "inputs": [
+        { "key": "phone_number", "label": "Phone number", "type": "string", "required": true },
+        { "key": "email", "label": "Email", "type": "string" },
+        { "key": "first_name", "label": "First name", "type": "string" },
+        { "key": "last_name", "label": "Last name", "type": "string" }
+      ]
+    },
+    {
+      "key": "get_profile",
+      "name": "Get account balance",
+      "method": "GET",
+      "endpoint": "/profile",
+      "inputs": []
+    }
+  ]
+}

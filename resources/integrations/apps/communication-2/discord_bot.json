@@ -1,0 +1,113 @@
+{
+  "key": "discord_bot",
+  "name": "Discord Bot",
+  "category": "Communication",
+  "description": "Send messages, open threads, react and assign roles with a Discord bot token.",
+  "brand": "discord",
+  "website": "https://discord.com/developers/applications",
+  "docs_url": "https://discord.com/developers/docs/reference",
+  "popular": true,
+  "base_url": "https://discord.com/api/v10",
+  "auth": [
+    { "type": "api_key", "in": "header", "name": "Authorization", "prefix": "Bot ", "fields": [
+      { "key": "api_key", "label": "Bot token", "type": "password", "required": true, "help": "Developer Portal → your app → Bot → Reset Token. Invite the bot to your server with the permissions it needs." }
+    ] }
+  ],
+  "actions": [
+    {
+      "key": "send_message",
+      "name": "Send channel message",
+      "method": "POST",
+      "endpoint": "/channels/{{ inputs.channel_id }}/messages",
+      "body": {
+        "content": "{{ inputs.content }}",
+        "embeds": "{{ inputs.embeds }}",
+        "tts": "{{ inputs.tts }}",
+        "message_reference": { "message_id": "{{ inputs.reply_to }}" }
+      },
+      "inputs": [
+        { "key": "channel_id", "label": "Channel ID", "type": "string", "required": true, "help": "Enable Developer Mode, then right-click the channel → Copy Channel ID. Also works with thread and DM channel IDs." },
+        { "key": "content", "label": "Message", "type": "text", "help": "Up to 2000 characters. Message or embeds is required." },
+        { "key": "embeds", "label": "Embeds (JSON)", "type": "json", "placeholder": "[{\"title\":\"Deploy finished\",\"description\":\"All green\",\"color\":5763719}]" },
+        { "key": "reply_to", "label": "Reply to message ID", "type": "string" },
+        { "key": "tts", "label": "Text-to-speech", "type": "boolean" }
+      ]
+    },
+    {
+      "key": "create_dm_channel",
+      "name": "Open DM channel",
+      "description": "Returns the DM channel (use its id with Send channel message). The user must share a server with the bot.",
+      "method": "POST",
+      "endpoint": "/users/@me/channels",
+      "body": { "recipient_id": "{{ inputs.user_id }}" },
+      "inputs": [
+        { "key": "user_id", "label": "User ID", "type": "string", "required": true }
+      ]
+    },
+    {
+      "key": "create_thread_from_message",
+      "name": "Start thread from message",
+      "method": "POST",
+      "endpoint": "/channels/{{ inputs.channel_id }}/messages/{{ inputs.message_id }}/threads",
+      "body": { "name": "{{ inputs.name }}", "auto_archive_duration": "{{ inputs.auto_archive_duration }}" },
+      "inputs": [
+        { "key": "channel_id", "label": "Channel ID", "type": "string", "required": true },
+        { "key": "message_id", "label": "Message ID", "type": "string", "required": true },
+        { "key": "name", "label": "Thread name", "type": "string", "required": true },
+        { "key": "auto_archive_duration", "label": "Auto-archive after (minutes)", "type": "number", "help": "60, 1440, 4320 or 10080." }
+      ]
+    },
+    {
+      "key": "create_thread",
+      "name": "Create public thread",
+      "description": "Starts a public thread in a text channel without a parent message.",
+      "method": "POST",
+      "endpoint": "/channels/{{ inputs.channel_id }}/threads",
+      "body": { "name": "{{ inputs.name }}", "type": 11, "auto_archive_duration": "{{ inputs.auto_archive_duration }}" },
+      "inputs": [
+        { "key": "channel_id", "label": "Channel ID", "type": "string", "required": true },
+        { "key": "name", "label": "Thread name", "type": "string", "required": true },
+        { "key": "auto_archive_duration", "label": "Auto-archive after (minutes)", "type": "number", "help": "60, 1440, 4320 or 10080." }
+      ]
+    },
+    {
+      "key": "add_reaction",
+      "name": "Add reaction",
+      "method": "PUT",
+      "endpoint": "/channels/{{ inputs.channel_id }}/messages/{{ inputs.message_id }}/reactions/{{ inputs.emoji }}/@me",
+      "inputs": [
+        { "key": "channel_id", "label": "Channel ID", "type": "string", "required": true },
+        { "key": "message_id", "label": "Message ID", "type": "string", "required": true },
+        { "key": "emoji", "label": "Emoji", "type": "string", "required": true, "placeholder": "👍", "help": "A Unicode emoji, or name:id for a custom emoji." }
+      ]
+    },
+    {
+      "key": "add_member_role",
+      "name": "Add role to member",
+      "description": "Needs the Manage Roles permission; the bot's role must be above the role it assigns.",
+      "method": "PUT",
+      "endpoint": "/guilds/{{ inputs.guild_id }}/members/{{ inputs.user_id }}/roles/{{ inputs.role_id }}",
+      "inputs": [
+        { "key": "guild_id", "label": "Server ID", "type": "string", "required": true },
+        { "key": "user_id", "label": "User ID", "type": "string", "required": true },
+        { "key": "role_id", "label": "Role ID", "type": "string", "required": true }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_message",
+      "name": "New message in channel",
+      "description": "Reading message text needs the Message Content intent enabled for the bot.",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/channels/{{ inputs.channel_id }}/messages",
+      "query": { "limit": 50 },
+      "id_field": "id",
+      "inputs": [
+        { "key": "channel_id", "label": "Channel ID", "type": "string", "required": true },
+        { "key": "poll_interval", "label": "Check every (minutes)", "type": "number", "default": 5 }
+      ]
+    }
+  ]
+}

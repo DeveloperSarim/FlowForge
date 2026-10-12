@@ -1,0 +1,93 @@
+{
+  "key": "incident_io",
+  "name": "incident.io",
+  "category": "Developer Tools",
+  "description": "Declare, update and look up incidents and list severities.",
+  "brand": "incidentio",
+  "website": "https://incident.io",
+  "docs_url": "https://api-docs.incident.io/",
+  "base_url": "https://api.incident.io",
+  "auth": { "type": "bearer", "fields": [{ "key": "token", "label": "API key", "type": "password", "required": true, "help": "Settings → API keys, with the permissions you need (e.g. create incidents)." }] },
+  "actions": [
+    {
+      "key": "create_incident",
+      "name": "Declare incident",
+      "method": "POST",
+      "endpoint": "/v2/incidents",
+      "body": { "idempotency_key": "{{ inputs.idempotency_key }}", "visibility": "{{ inputs.visibility }}", "name": "{{ inputs.name }}", "summary": "{{ inputs.summary }}", "severity_id": "{{ inputs.severity_id }}", "incident_type_id": "{{ inputs.incident_type_id }}", "incident_status_id": "{{ inputs.incident_status_id }}", "mode": "{{ inputs.mode }}" },
+      "output_path": "incident",
+      "inputs": [
+        { "key": "idempotency_key", "label": "Idempotency key", "type": "string", "required": true, "help": "Unique per incident, e.g. the alert ID; repeats return the existing incident." },
+        { "key": "name", "label": "Name", "type": "string", "required": true },
+        { "key": "summary", "label": "Summary", "type": "text" },
+        { "key": "visibility", "label": "Visibility", "type": "select", "required": true, "default": "public", "options": [{ "value": "public", "label": "Public" }, { "value": "private", "label": "Private" }] },
+        { "key": "severity_id", "label": "Severity ID", "type": "string" },
+        { "key": "incident_type_id", "label": "Incident type ID", "type": "string" },
+        { "key": "incident_status_id", "label": "Status ID", "type": "string" },
+        { "key": "mode", "label": "Mode", "type": "select", "options": [
+          { "value": "standard", "label": "Standard" }, { "value": "test", "label": "Test" }, { "value": "retrospective", "label": "Retrospective" }
+        ] }
+      ]
+    },
+    {
+      "key": "update_incident",
+      "name": "Update incident",
+      "method": "POST",
+      "endpoint": "/v2/incidents/{{ inputs.incident_id }}/actions/edit",
+      "body": { "incident": { "name": "{{ inputs.name }}", "summary": "{{ inputs.summary }}", "severity_id": "{{ inputs.severity_id }}", "incident_status_id": "{{ inputs.incident_status_id }}" }, "notify_incident_channel": "{{ inputs.notify }}" },
+      "output_path": "incident",
+      "inputs": [
+        { "key": "incident_id", "label": "Incident ID", "type": "string", "required": true },
+        { "key": "name", "label": "Name", "type": "string" },
+        { "key": "summary", "label": "Summary", "type": "text" },
+        { "key": "severity_id", "label": "Severity ID", "type": "string" },
+        { "key": "incident_status_id", "label": "Status ID", "type": "string" },
+        { "key": "notify", "label": "Notify the incident channel", "type": "boolean", "required": true, "default": true }
+      ]
+    },
+    {
+      "key": "get_incident",
+      "name": "Get incident",
+      "method": "GET",
+      "endpoint": "/v2/incidents/{{ inputs.incident_id }}",
+      "output_path": "incident",
+      "inputs": [{ "key": "incident_id", "label": "Incident ID", "type": "string", "required": true }]
+    },
+    {
+      "key": "list_incidents",
+      "name": "List incidents",
+      "method": "GET",
+      "endpoint": "/v2/incidents",
+      "query": { "page_size": "{{ inputs.page_size }}", "after": "{{ inputs.after }}" },
+      "output_path": "incidents",
+      "inputs": [
+        { "key": "page_size", "label": "Page size", "type": "number", "default": 25 },
+        { "key": "after", "label": "After (cursor)", "type": "string" }
+      ]
+    },
+    {
+      "key": "list_severities",
+      "name": "List severities",
+      "method": "GET",
+      "endpoint": "/v1/severities",
+      "output_path": "severities",
+      "inputs": []
+    },
+    {
+      "key": "list_incident_statuses",
+      "name": "List incident statuses",
+      "method": "GET",
+      "endpoint": "/v1/incident_statuses",
+      "output_path": "incident_statuses",
+      "inputs": []
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "inputs": [{ "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }]
+    }
+  ]
+}

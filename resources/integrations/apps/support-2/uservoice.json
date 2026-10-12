@@ -1,0 +1,68 @@
+{
+  "key": "uservoice",
+  "name": "UserVoice",
+  "category": "Customer Support",
+  "description": "Create suggestions and add comments or internal notes in UserVoice.",
+  "brand": "uservoice",
+  "website": "https://www.uservoice.com",
+  "docs_url": "https://developer.uservoice.com/docs/api/v2/getting-started/",
+  "base_url": "https://{{ credentials.subdomain }}.uservoice.com/api/v2/admin",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      { "key": "subdomain", "label": "Subdomain", "type": "string", "required": true, "placeholder": "yourcompany", "help": "The part before .uservoice.com" },
+      { "key": "token", "label": "API access token", "type": "password", "required": true, "help": "A non-expiring token created for an API key in the admin console" }
+    ]
+  },
+  "actions": [
+    {
+      "key": "create_suggestion",
+      "name": "Create suggestion",
+      "method": "POST",
+      "endpoint": "/suggestions",
+      "body": {
+        "title": "{{ inputs.title }}",
+        "body": "{{ inputs.body }}",
+        "links": { "forum": "{{ inputs.forum_id }}", "category": "{{ inputs.category_id }}", "status": "{{ inputs.status_id }}" },
+        "creator": { "email": "{{ inputs.creator_email }}" }
+      },
+      "inputs": [
+        { "key": "forum_id", "label": "Forum ID", "type": "number", "required": true },
+        { "key": "title", "label": "Title", "type": "string", "required": true },
+        { "key": "body", "label": "Description", "type": "text" },
+        { "key": "category_id", "label": "Category ID", "type": "number" },
+        { "key": "status_id", "label": "Status ID", "type": "number" },
+        { "key": "creator_email", "label": "Creator email", "type": "string" }
+      ]
+    },
+    {
+      "key": "get_suggestion",
+      "name": "Get suggestion",
+      "method": "GET",
+      "endpoint": "/suggestions/{{ inputs.suggestion_id }}",
+      "inputs": [{ "key": "suggestion_id", "label": "Suggestion ID", "type": "number", "required": true }]
+    },
+    {
+      "key": "create_comment",
+      "name": "Add comment",
+      "method": "POST",
+      "endpoint": "/comments",
+      "body": { "body": "{{ inputs.body }}", "links": { "suggestion": "{{ inputs.suggestion_id }}" } },
+      "inputs": [
+        { "key": "suggestion_id", "label": "Suggestion ID", "type": "number", "required": true },
+        { "key": "body", "label": "Comment", "type": "text", "required": true }
+      ]
+    },
+    {
+      "key": "create_note",
+      "name": "Add internal note",
+      "method": "POST",
+      "endpoint": "/notes",
+      "body": { "body": "{{ inputs.body }}", "links": { "suggestion": "{{ inputs.suggestion_id }}" } },
+      "inputs": [
+        { "key": "suggestion_id", "label": "Suggestion ID", "type": "number", "required": true },
+        { "key": "body", "label": "Note", "type": "text", "required": true }
+      ]
+    }
+  ]
+}

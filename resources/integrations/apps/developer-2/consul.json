@@ -1,0 +1,83 @@
+{
+  "key": "consul",
+  "name": "HashiCorp Consul",
+  "category": "Developer Tools",
+  "description": "Read, write and delete KV entries and check service health.",
+  "brand": "consul",
+  "website": "https://www.consul.io",
+  "docs_url": "https://developer.hashicorp.com/consul/api-docs",
+  "base_url": "{{ credentials.base_url }}/v1",
+  "auth": { "type": "api_key", "in": "header", "name": "X-Consul-Token", "fields": [
+    { "key": "base_url", "label": "Consul address", "type": "string", "required": true, "placeholder": "https://consul.example.com:8501", "help": "Without a trailing slash." },
+    { "key": "api_key", "label": "ACL token (secret ID)", "type": "password", "required": true }
+  ] },
+  "actions": [
+    {
+      "key": "get_key",
+      "name": "Read key",
+      "description": "Returns the raw stored value.",
+      "method": "GET",
+      "endpoint": "/kv/{{ inputs.key }}",
+      "query": { "raw": "true", "dc": "{{ inputs.dc }}" },
+      "inputs": [
+        { "key": "key", "label": "Key", "type": "string", "required": true, "placeholder": "config/my-app/feature" },
+        { "key": "dc", "label": "Datacenter", "type": "string" }
+      ]
+    },
+    {
+      "key": "list_keys",
+      "name": "List keys",
+      "method": "GET",
+      "endpoint": "/kv/{{ inputs.prefix }}",
+      "query": { "keys": "true", "dc": "{{ inputs.dc }}" },
+      "inputs": [
+        { "key": "prefix", "label": "Prefix", "type": "string", "required": true, "placeholder": "config/" },
+        { "key": "dc", "label": "Datacenter", "type": "string" }
+      ]
+    },
+    {
+      "key": "put_key",
+      "name": "Write key",
+      "method": "PUT",
+      "endpoint": "/kv/{{ inputs.key }}",
+      "query": { "dc": "{{ inputs.dc }}" },
+      "body": "{{ inputs.value }}",
+      "inputs": [
+        { "key": "key", "label": "Key", "type": "string", "required": true },
+        { "key": "value", "label": "Value", "type": "text", "required": true },
+        { "key": "dc", "label": "Datacenter", "type": "string" }
+      ]
+    },
+    {
+      "key": "delete_key",
+      "name": "Delete key",
+      "method": "DELETE",
+      "endpoint": "/kv/{{ inputs.key }}",
+      "query": { "dc": "{{ inputs.dc }}" },
+      "inputs": [
+        { "key": "key", "label": "Key", "type": "string", "required": true },
+        { "key": "dc", "label": "Datacenter", "type": "string" }
+      ]
+    },
+    {
+      "key": "list_services",
+      "name": "List services",
+      "method": "GET",
+      "endpoint": "/catalog/services",
+      "query": { "dc": "{{ inputs.dc }}" },
+      "inputs": [{ "key": "dc", "label": "Datacenter", "type": "string" }]
+    },
+    {
+      "key": "service_health",
+      "name": "Get service health",
+      "method": "GET",
+      "endpoint": "/health/service/{{ inputs.service }}",
+      "query": { "passing": "{{ inputs.passing }}", "dc": "{{ inputs.dc }}" },
+      "inputs": [
+        { "key": "service", "label": "Service name", "type": "string", "required": true },
+        { "key": "passing", "label": "Only passing instances", "type": "boolean" },
+        { "key": "dc", "label": "Datacenter", "type": "string" }
+      ]
+    }
+  ]
+}

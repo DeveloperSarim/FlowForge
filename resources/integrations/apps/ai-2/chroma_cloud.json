@@ -1,0 +1,151 @@
+{
+  "key": "chroma_cloud",
+  "name": "Chroma Cloud",
+  "category": "AI",
+  "description": "Upsert and query embeddings in Chroma Cloud collections.",
+  "brand": "chroma",
+  "website": "https://www.trychroma.com",
+  "docs_url": "https://docs.trychroma.com/reference/chroma-api",
+  "base_url": "https://api.trychroma.com/api/v2/tenants/{{ credentials.tenant }}/databases/{{ credentials.database }}",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "x-chroma-token",
+    "fields": [
+      {
+        "key": "tenant",
+        "label": "Tenant ID",
+        "type": "string",
+        "required": true,
+        "help": "Chroma Cloud → Settings."
+      },
+      {
+        "key": "database",
+        "label": "Database",
+        "type": "string",
+        "required": true
+      },
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_collections",
+      "name": "List collections",
+      "method": "GET",
+      "endpoint": "/collections",
+      "query": {
+        "limit": "{{ inputs.limit }}"
+      },
+      "inputs": [
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 100
+        }
+      ]
+    },
+    {
+      "key": "upsert_record",
+      "name": "Upsert record",
+      "method": "POST",
+      "endpoint": "/collections/{{ inputs.collection_id }}/upsert",
+      "body": {
+        "ids": [
+          "{{ inputs.id }}"
+        ],
+        "embeddings": [
+          "{{ inputs.embedding }}"
+        ],
+        "documents": [
+          "{{ inputs.document }}"
+        ],
+        "metadatas": [
+          "{{ inputs.metadata }}"
+        ]
+      },
+      "inputs": [
+        {
+          "key": "collection_id",
+          "label": "Collection ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "id",
+          "label": "Record ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "embedding",
+          "label": "Embedding (JSON array)",
+          "type": "json",
+          "required": true,
+          "placeholder": "{{ steps.embed.embedding }}"
+        },
+        {
+          "key": "document",
+          "label": "Document text",
+          "type": "text"
+        },
+        {
+          "key": "metadata",
+          "label": "Metadata",
+          "type": "keyvalue"
+        }
+      ]
+    },
+    {
+      "key": "query",
+      "name": "Query collection",
+      "method": "POST",
+      "endpoint": "/collections/{{ inputs.collection_id }}/query",
+      "body": {
+        "query_embeddings": [
+          "{{ inputs.embedding }}"
+        ],
+        "n_results": "{{ inputs.n_results }}",
+        "where": "{{ inputs.where }}",
+        "include": [
+          "documents",
+          "metadatas",
+          "distances"
+        ]
+      },
+      "inputs": [
+        {
+          "key": "collection_id",
+          "label": "Collection ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "embedding",
+          "label": "Query embedding (JSON array)",
+          "type": "json",
+          "required": true,
+          "placeholder": "{{ steps.embed.embedding }}"
+        },
+        {
+          "key": "n_results",
+          "label": "Results",
+          "type": "number",
+          "default": 10
+        },
+        {
+          "key": "where",
+          "label": "Metadata filter (JSON)",
+          "type": "json",
+          "placeholder": "{\"source\": \"docs\"}"
+        }
+      ]
+    }
+  ]
+}

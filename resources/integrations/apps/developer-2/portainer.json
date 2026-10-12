@@ -1,0 +1,88 @@
+{
+  "key": "portainer",
+  "name": "Portainer",
+  "category": "Developer Tools",
+  "description": "Start, stop and redeploy stacks and restart containers.",
+  "brand": "portainer",
+  "website": "https://www.portainer.io",
+  "docs_url": "https://docs.portainer.io/api/docs",
+  "base_url": "{{ credentials.base_url }}/api",
+  "auth": { "type": "api_key", "in": "header", "name": "X-API-Key", "fields": [
+    { "key": "base_url", "label": "Portainer URL", "type": "string", "required": true, "placeholder": "https://portainer.example.com:9443", "help": "Without a trailing slash." },
+    { "key": "api_key", "label": "Access token", "type": "password", "required": true, "help": "My account → Access tokens → Add access token." }
+  ] },
+  "actions": [
+    {
+      "key": "list_environments",
+      "name": "List environments",
+      "method": "GET",
+      "endpoint": "/endpoints",
+      "inputs": []
+    },
+    {
+      "key": "list_stacks",
+      "name": "List stacks",
+      "method": "GET",
+      "endpoint": "/stacks",
+      "inputs": []
+    },
+    {
+      "key": "start_stack",
+      "name": "Start stack",
+      "method": "POST",
+      "endpoint": "/stacks/{{ inputs.stack_id }}/start",
+      "query": { "endpointId": "{{ inputs.endpoint_id }}" },
+      "inputs": [
+        { "key": "stack_id", "label": "Stack ID", "type": "number", "required": true },
+        { "key": "endpoint_id", "label": "Environment ID", "type": "number", "required": true }
+      ]
+    },
+    {
+      "key": "stop_stack",
+      "name": "Stop stack",
+      "method": "POST",
+      "endpoint": "/stacks/{{ inputs.stack_id }}/stop",
+      "query": { "endpointId": "{{ inputs.endpoint_id }}" },
+      "inputs": [
+        { "key": "stack_id", "label": "Stack ID", "type": "number", "required": true },
+        { "key": "endpoint_id", "label": "Environment ID", "type": "number", "required": true }
+      ]
+    },
+    {
+      "key": "redeploy_git_stack",
+      "name": "Redeploy Git stack",
+      "description": "Pulls the latest commit of a Git-based stack and redeploys it.",
+      "method": "PUT",
+      "endpoint": "/stacks/{{ inputs.stack_id }}/git/redeploy",
+      "query": { "endpointId": "{{ inputs.endpoint_id }}" },
+      "body": { "pullImage": "{{ inputs.pull_image }}", "prune": "{{ inputs.prune }}" },
+      "inputs": [
+        { "key": "stack_id", "label": "Stack ID", "type": "number", "required": true },
+        { "key": "endpoint_id", "label": "Environment ID", "type": "number", "required": true },
+        { "key": "pull_image", "label": "Re-pull images", "type": "boolean" },
+        { "key": "prune", "label": "Prune removed services", "type": "boolean" }
+      ]
+    },
+    {
+      "key": "list_containers",
+      "name": "List containers",
+      "method": "GET",
+      "endpoint": "/endpoints/{{ inputs.endpoint_id }}/docker/containers/json",
+      "query": { "all": "{{ inputs.all }}" },
+      "inputs": [
+        { "key": "endpoint_id", "label": "Environment ID", "type": "number", "required": true },
+        { "key": "all", "label": "Include stopped containers", "type": "boolean" }
+      ]
+    },
+    {
+      "key": "restart_container",
+      "name": "Restart container",
+      "method": "POST",
+      "endpoint": "/endpoints/{{ inputs.endpoint_id }}/docker/containers/{{ inputs.container_id }}/restart",
+      "inputs": [
+        { "key": "endpoint_id", "label": "Environment ID", "type": "number", "required": true },
+        { "key": "container_id", "label": "Container ID or name", "type": "string", "required": true }
+      ]
+    }
+  ]
+}

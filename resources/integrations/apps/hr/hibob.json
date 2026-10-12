@@ -1,0 +1,153 @@
+{
+  "key": "hibob",
+  "name": "HiBob",
+  "category": "HR & Recruiting",
+  "description": "Search and create employees and check who's out in HiBob.",
+  "brand": "hibob",
+  "website": "https://www.hibob.com",
+  "docs_url": "https://apidocs.hibob.com/",
+  "base_url": "https://api.hibob.com/v1",
+  "auth": [
+    {
+      "type": "basic",
+      "fields": [
+        {
+          "key": "username",
+          "label": "Service user ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "password",
+          "label": "Service user token",
+          "type": "password",
+          "required": true,
+          "help": "Settings > Integrations > Service users."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "search_people",
+      "name": "Search employees",
+      "method": "POST",
+      "endpoint": "/people/search",
+      "body": {
+        "fields": "{{ inputs.fields }}",
+        "filters": "{{ inputs.filters }}",
+        "showInactive": "{{ inputs.show_inactive }}"
+      },
+      "output_path": "employees",
+      "inputs": [
+        {
+          "key": "fields",
+          "label": "Fields",
+          "type": "list",
+          "help": "e.g. root.id, root.email, root.fullName, work.title"
+        },
+        {
+          "key": "filters",
+          "label": "Filters",
+          "type": "json",
+          "placeholder": "[{\"fieldPath\": \"root.email\", \"operator\": \"equals\", \"values\": [\"jane@acme.com\"]}]"
+        },
+        {
+          "key": "show_inactive",
+          "label": "Include inactive",
+          "type": "boolean",
+          "default": false
+        }
+      ]
+    },
+    {
+      "key": "create_employee",
+      "name": "Create employee",
+      "method": "POST",
+      "endpoint": "/people",
+      "body": {
+        "firstName": "{{ inputs.first_name }}",
+        "surname": "{{ inputs.surname }}",
+        "email": "{{ inputs.email }}",
+        "work": {
+          "site": "{{ inputs.site }}",
+          "startDate": "{{ inputs.start_date }}"
+        }
+      },
+      "inputs": [
+        {
+          "key": "first_name",
+          "label": "First name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "surname",
+          "label": "Surname",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "site",
+          "label": "Site",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "start_date",
+          "label": "Start date",
+          "type": "string",
+          "required": true,
+          "placeholder": "2026-01-15"
+        }
+      ]
+    },
+    {
+      "key": "whos_out",
+      "name": "Who's out",
+      "method": "GET",
+      "endpoint": "/timeoff/whosout",
+      "query": {
+        "from": "{{ inputs.from }}",
+        "to": "{{ inputs.to }}"
+      },
+      "output_path": "outs",
+      "inputs": [
+        {
+          "key": "from",
+          "label": "From",
+          "type": "string",
+          "required": true,
+          "placeholder": "2026-01-01"
+        },
+        {
+          "key": "to",
+          "label": "To",
+          "type": "string",
+          "required": true,
+          "placeholder": "2026-01-31"
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

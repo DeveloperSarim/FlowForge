@@ -1,0 +1,305 @@
+{
+  "key": "billomat",
+  "name": "Billomat",
+  "category": "Payments & Finance",
+  "description": "Create clients and invoices, complete and email invoices in Billomat.",
+  "brand": "billomat",
+  "website": "https://www.billomat.com",
+  "docs_url": "https://www.billomat.com/en/api/",
+  "base_url": "https://{{ credentials.billomat_id }}.billomat.net/api",
+  "auth": [
+    {
+      "type": "api_key",
+      "in": "header",
+      "name": "X-BillomatApiKey",
+      "fields": [
+        {
+          "key": "billomat_id",
+          "label": "Billomat ID",
+          "type": "string",
+          "required": true,
+          "help": "The subdomain of your account: <id>.billomat.net"
+        },
+        {
+          "key": "api_key",
+          "label": "API key",
+          "type": "password",
+          "required": true,
+          "help": "Settings > Administration > Users > your user > API key."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_clients",
+      "name": "Find clients",
+      "method": "GET",
+      "endpoint": "/clients",
+      "query": {
+        "email": "{{ inputs.email }}",
+        "name": "{{ inputs.name }}",
+        "per_page": "{{ inputs.per_page }}"
+      },
+      "output_path": "clients",
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string"
+        },
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string"
+        },
+        {
+          "key": "per_page",
+          "label": "Per page",
+          "type": "number",
+          "default": 100
+        }
+      ]
+    },
+    {
+      "key": "create_client",
+      "name": "Create client",
+      "method": "POST",
+      "endpoint": "/clients",
+      "body": {
+        "client": {
+          "name": "{{ inputs.name }}",
+          "first_name": "{{ inputs.first_name }}",
+          "last_name": "{{ inputs.last_name }}",
+          "email": "{{ inputs.email }}",
+          "phone": "{{ inputs.phone }}",
+          "street": "{{ inputs.street }}",
+          "zip": "{{ inputs.zip }}",
+          "city": "{{ inputs.city }}",
+          "country_code": "{{ inputs.country_code }}",
+          "vat_number": "{{ inputs.vat_number }}"
+        }
+      },
+      "output_path": "client",
+      "inputs": [
+        {
+          "key": "name",
+          "label": "Company name",
+          "type": "string"
+        },
+        {
+          "key": "first_name",
+          "label": "First name",
+          "type": "string"
+        },
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string"
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string"
+        },
+        {
+          "key": "phone",
+          "label": "Phone",
+          "type": "string"
+        },
+        {
+          "key": "street",
+          "label": "Street",
+          "type": "string"
+        },
+        {
+          "key": "zip",
+          "label": "Postcode",
+          "type": "string"
+        },
+        {
+          "key": "city",
+          "label": "City",
+          "type": "string"
+        },
+        {
+          "key": "country_code",
+          "label": "Country code",
+          "type": "string",
+          "placeholder": "DE"
+        },
+        {
+          "key": "vat_number",
+          "label": "VAT number",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "list_invoices",
+      "name": "List invoices",
+      "method": "GET",
+      "endpoint": "/invoices",
+      "query": {
+        "client_id": "{{ inputs.client_id }}",
+        "status": "{{ inputs.status }}",
+        "order_by": "id DESC",
+        "per_page": "{{ inputs.per_page }}"
+      },
+      "output_path": "invoices",
+      "inputs": [
+        {
+          "key": "client_id",
+          "label": "Client ID",
+          "type": "string"
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "options": [
+            {
+              "value": "DRAFT",
+              "label": "Draft"
+            },
+            {
+              "value": "OPEN",
+              "label": "Open"
+            },
+            {
+              "value": "OVERDUE",
+              "label": "Overdue"
+            },
+            {
+              "value": "PAID",
+              "label": "Paid"
+            },
+            {
+              "value": "CANCELED",
+              "label": "Canceled"
+            }
+          ]
+        },
+        {
+          "key": "per_page",
+          "label": "Per page",
+          "type": "number",
+          "default": 100
+        }
+      ]
+    },
+    {
+      "key": "create_invoice",
+      "name": "Create invoice",
+      "method": "POST",
+      "endpoint": "/invoices",
+      "body": {
+        "invoice": {
+          "client_id": "{{ inputs.client_id }}",
+          "date": "{{ inputs.date }}",
+          "title": "{{ inputs.title }}",
+          "label": "{{ inputs.label }}",
+          "invoice-items": {
+            "invoice-item": "{{ inputs.items }}"
+          }
+        }
+      },
+      "output_path": "invoice",
+      "inputs": [
+        {
+          "key": "client_id",
+          "label": "Client ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "date",
+          "label": "Date",
+          "type": "string",
+          "placeholder": "2026-01-31"
+        },
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "string"
+        },
+        {
+          "key": "label",
+          "label": "Label",
+          "type": "string"
+        },
+        {
+          "key": "items",
+          "label": "Items",
+          "type": "json",
+          "required": true,
+          "placeholder": "[{\"title\": \"Consulting\", \"unit\": \"hours\", \"quantity\": 2, \"unit_price\": 90}]"
+        }
+      ]
+    },
+    {
+      "key": "complete_invoice",
+      "name": "Complete invoice",
+      "description": "Turns a draft into an open invoice with a number.",
+      "method": "PUT",
+      "endpoint": "/invoices/{{ inputs.invoice_id }}/complete",
+      "body": {
+        "complete": {
+          "template_id": "{{ inputs.template_id }}"
+        }
+      },
+      "inputs": [
+        {
+          "key": "invoice_id",
+          "label": "Invoice ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "template_id",
+          "label": "Template ID",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "email_invoice",
+      "name": "Email invoice",
+      "method": "POST",
+      "endpoint": "/invoices/{{ inputs.invoice_id }}/email",
+      "body": {
+        "email": {
+          "recipients": {
+            "to": "{{ inputs.to }}"
+          },
+          "subject": "{{ inputs.subject }}",
+          "body": "{{ inputs.body }}"
+        }
+      },
+      "inputs": [
+        {
+          "key": "invoice_id",
+          "label": "Invoice ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "to",
+          "label": "To",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "subject",
+          "label": "Subject",
+          "type": "string"
+        },
+        {
+          "key": "body",
+          "label": "Message",
+          "type": "text"
+        }
+      ]
+    }
+  ]
+}

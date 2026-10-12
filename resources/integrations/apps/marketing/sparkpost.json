@@ -1,0 +1,200 @@
+{
+  "key": "sparkpost",
+  "name": "SparkPost",
+  "category": "Marketing & Email",
+  "description": "Send transmissions and manage the suppression list.",
+  "brand": "sparkpost",
+  "website": "https://www.sparkpost.com",
+  "docs_url": "https://developers.sparkpost.com/api/",
+  "base_url": "https://{{ credentials.host }}/api/v1",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "Authorization",
+    "fields": [
+      {
+        "key": "host",
+        "label": "Region",
+        "type": "select",
+        "required": true,
+        "default": "api.sparkpost.com",
+        "options": [
+          {
+            "value": "api.sparkpost.com",
+            "label": "US"
+          },
+          {
+            "value": "api.eu.sparkpost.com",
+            "label": "EU"
+          }
+        ]
+      },
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "send_email",
+      "name": "Send email",
+      "method": "POST",
+      "endpoint": "/transmissions",
+      "output_path": "results",
+      "body": {
+        "recipients": [
+          {
+            "address": {
+              "email": "{{ inputs.to }}"
+            }
+          }
+        ],
+        "content": {
+          "from": "{{ inputs.from }}",
+          "subject": "{{ inputs.subject }}",
+          "html": "{{ inputs.html }}",
+          "text": "{{ inputs.text }}",
+          "reply_to": "{{ inputs.reply_to }}"
+        }
+      },
+      "inputs": [
+        {
+          "key": "to",
+          "label": "To",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "from",
+          "label": "From",
+          "type": "string",
+          "required": true,
+          "placeholder": "Acme <hello@example.com>"
+        },
+        {
+          "key": "subject",
+          "label": "Subject",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "html",
+          "label": "HTML",
+          "type": "text"
+        },
+        {
+          "key": "text",
+          "label": "Text",
+          "type": "text"
+        },
+        {
+          "key": "reply_to",
+          "label": "Reply-to",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "send_template",
+      "name": "Send stored template",
+      "method": "POST",
+      "endpoint": "/transmissions",
+      "output_path": "results",
+      "body": {
+        "recipients": [
+          {
+            "address": {
+              "email": "{{ inputs.to }}"
+            }
+          }
+        ],
+        "content": {
+          "template_id": "{{ inputs.template_id }}"
+        },
+        "substitution_data": "{{ inputs.substitution_data }}"
+      },
+      "inputs": [
+        {
+          "key": "to",
+          "label": "To",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "template_id",
+          "label": "Template ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "substitution_data",
+          "label": "Substitution data",
+          "type": "json"
+        }
+      ]
+    },
+    {
+      "key": "suppress",
+      "name": "Add to suppression list",
+      "method": "PUT",
+      "endpoint": "/suppression-list",
+      "body": {
+        "recipients": [
+          {
+            "recipient": "{{ inputs.email }}",
+            "type": "{{ inputs.type }}",
+            "description": "{{ inputs.description }}"
+          }
+        ]
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "type",
+          "label": "Type",
+          "type": "select",
+          "required": true,
+          "options": [
+            {
+              "value": "non_transactional",
+              "label": "Non-transactional"
+            },
+            {
+              "value": "transactional",
+              "label": "Transactional"
+            }
+          ],
+          "default": "non_transactional"
+        },
+        {
+          "key": "description",
+          "label": "Description",
+          "type": "string"
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Receives batches of message events (delivery, bounce, open, click…).",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

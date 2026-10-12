@@ -1,0 +1,80 @@
+{
+  "key": "rebrandly",
+  "name": "Rebrandly",
+  "category": "Utilities",
+  "description": "Create, update and track branded short links.",
+  "brand": "rebrandly",
+  "website": "https://www.rebrandly.com",
+  "docs_url": "https://developers.rebrandly.com/docs",
+  "base_url": "https://api.rebrandly.com/v1",
+  "headers": { "workspace": "{{ credentials.workspace }}" },
+  "auth": { "type": "api_key", "in": "header", "name": "apikey", "fields": [
+    { "key": "api_key", "label": "API key", "type": "password", "required": true },
+    { "key": "workspace", "label": "Workspace ID", "type": "string", "help": "Optional. Leave empty to use your default workspace." }
+  ] },
+  "actions": [
+    {
+      "key": "create_link",
+      "name": "Create link",
+      "method": "POST",
+      "endpoint": "/links",
+      "body": { "destination": "{{ inputs.destination }}", "slashtag": "{{ inputs.slashtag }}", "title": "{{ inputs.title }}", "domain": { "fullName": "{{ inputs.domain }}" } },
+      "output_fields": { "short_url": "shortUrl" },
+      "inputs": [
+        { "key": "destination", "label": "Destination URL", "type": "string", "required": true },
+        { "key": "slashtag", "label": "Slashtag", "type": "string", "help": "The part after the slash. Random when empty." },
+        { "key": "title", "label": "Title", "type": "string" },
+        { "key": "domain", "label": "Branded domain", "type": "string", "placeholder": "rebrand.ly" }
+      ]
+    },
+    {
+      "key": "get_link",
+      "name": "Get link",
+      "method": "GET",
+      "endpoint": "/links/{{ inputs.link_id }}",
+      "inputs": [{ "key": "link_id", "label": "Link ID", "type": "string", "required": true }]
+    },
+    {
+      "key": "update_link",
+      "name": "Update link",
+      "method": "POST",
+      "endpoint": "/links/{{ inputs.link_id }}",
+      "body": { "destination": "{{ inputs.destination }}", "title": "{{ inputs.title }}" },
+      "inputs": [
+        { "key": "link_id", "label": "Link ID", "type": "string", "required": true },
+        { "key": "destination", "label": "Destination URL", "type": "string", "required": true },
+        { "key": "title", "label": "Title", "type": "string" }
+      ]
+    },
+    {
+      "key": "delete_link",
+      "name": "Delete link",
+      "method": "DELETE",
+      "endpoint": "/links/{{ inputs.link_id }}",
+      "inputs": [{ "key": "link_id", "label": "Link ID", "type": "string", "required": true }]
+    },
+    {
+      "key": "list_links",
+      "name": "List links",
+      "method": "GET",
+      "endpoint": "/links",
+      "query": { "orderBy": "createdAt", "orderDir": "desc", "limit": "{{ inputs.limit }}", "domain.fullName": "{{ inputs.domain }}" },
+      "inputs": [
+        { "key": "limit", "label": "Max results", "type": "number", "default": 25 },
+        { "key": "domain", "label": "Branded domain", "type": "string" }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_link",
+      "name": "New link",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/links",
+      "query": { "orderBy": "createdAt", "orderDir": "desc", "limit": 25 },
+      "id_field": "id",
+      "inputs": [{ "key": "poll_interval", "label": "Check every (minutes)", "type": "number", "default": 5 }]
+    }
+  ]
+}

@@ -1,0 +1,55 @@
+{
+  "key": "docker_hub",
+  "name": "Docker Hub",
+  "category": "Developer Tools",
+  "description": "Look up public repositories and image tags, and react to image pushes.",
+  "brand": "docker",
+  "website": "https://hub.docker.com",
+  "docs_url": "https://docs.docker.com/reference/api/hub/latest/",
+  "base_url": "https://hub.docker.com/v2",
+  "auth": { "type": "none" },
+  "actions": [
+    {
+      "key": "get_repository",
+      "name": "Get repository",
+      "method": "GET",
+      "endpoint": "/namespaces/{{ inputs.namespace }}/repositories/{{ inputs.repository }}",
+      "inputs": [
+        { "key": "namespace", "label": "Namespace", "type": "string", "required": true, "default": "library", "help": "Use library for official images." },
+        { "key": "repository", "label": "Repository", "type": "string", "required": true, "placeholder": "nginx" }
+      ]
+    },
+    {
+      "key": "list_tags",
+      "name": "List tags",
+      "method": "GET",
+      "endpoint": "/namespaces/{{ inputs.namespace }}/repositories/{{ inputs.repository }}/tags",
+      "query": { "page_size": "{{ inputs.page_size }}" },
+      "output_path": "results",
+      "inputs": [
+        { "key": "namespace", "label": "Namespace", "type": "string", "required": true, "default": "library" },
+        { "key": "repository", "label": "Repository", "type": "string", "required": true },
+        { "key": "page_size", "label": "Limit", "type": "number", "default": 25 }
+      ]
+    },
+    {
+      "key": "get_tag",
+      "name": "Get tag",
+      "method": "GET",
+      "endpoint": "/namespaces/{{ inputs.namespace }}/repositories/{{ inputs.repository }}/tags/{{ inputs.tag }}",
+      "inputs": [
+        { "key": "namespace", "label": "Namespace", "type": "string", "required": true, "default": "library" },
+        { "key": "repository", "label": "Repository", "type": "string", "required": true },
+        { "key": "tag", "label": "Tag", "type": "string", "required": true, "default": "latest" }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "image_pushed",
+      "name": "Image pushed (repository webhook)",
+      "type": "webhook",
+      "inputs": [{ "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }]
+    }
+  ]
+}

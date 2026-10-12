@@ -1,0 +1,166 @@
+{
+  "key": "getresponse",
+  "name": "GetResponse",
+  "category": "Marketing & Email",
+  "description": "Add, find, tag and delete contacts; list campaigns (lists).",
+  "brand": "getresponse",
+  "website": "https://www.getresponse.com",
+  "docs_url": "https://apireference.getresponse.com/",
+  "base_url": "https://api.getresponse.com/v3",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "X-Auth-Token",
+    "prefix": "api-key ",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "create_contact",
+      "name": "Add contact to list",
+      "description": "Queued; returns 202 Accepted.",
+      "method": "POST",
+      "endpoint": "/contacts",
+      "body": {
+        "email": "{{ inputs.email }}",
+        "name": "{{ inputs.name }}",
+        "campaign": {
+          "campaignId": "{{ inputs.campaign_id }}"
+        },
+        "dayOfCycle": "{{ inputs.day_of_cycle }}"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string"
+        },
+        {
+          "key": "campaign_id",
+          "label": "List (campaign) ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "day_of_cycle",
+          "label": "Autoresponder day",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "find_contact",
+      "name": "Find contact by email",
+      "method": "GET",
+      "endpoint": "/contacts",
+      "query": {
+        "query[email]": "{{ inputs.email }}"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "add_tag",
+      "name": "Add tag to contact",
+      "method": "POST",
+      "endpoint": "/contacts/{{ inputs.contact_id }}/tags",
+      "body": {
+        "tags": [
+          {
+            "tagId": "{{ inputs.tag_id }}"
+          }
+        ]
+      },
+      "inputs": [
+        {
+          "key": "contact_id",
+          "label": "Contact ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "tag_id",
+          "label": "Tag ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "delete_contact",
+      "name": "Remove contact (unsubscribe)",
+      "method": "DELETE",
+      "endpoint": "/contacts/{{ inputs.contact_id }}",
+      "inputs": [
+        {
+          "key": "contact_id",
+          "label": "Contact ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_campaigns",
+      "name": "List lists (campaigns)",
+      "method": "GET",
+      "endpoint": "/campaigns",
+      "inputs": []
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_contact",
+      "name": "New contact",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/contacts",
+      "query": {
+        "sort[createdOn]": "DESC",
+        "perPage": 50
+      },
+      "items_path": "",
+      "id_field": "contactId",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    },
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Tools → Webhooks (subscribe, unsubscribe, open, click…).",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

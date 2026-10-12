@@ -1,0 +1,81 @@
+{
+  "key": "talkjs",
+  "name": "TalkJS",
+  "category": "Communication",
+  "description": "Send messages, sync users and create conversations in your TalkJS in-app chat.",
+  "brand": "talkjs",
+  "website": "https://talkjs.com",
+  "docs_url": "https://talkjs.com/docs/Reference/REST_API/Getting_Started/Introduction/",
+  "base_url": "https://api.talkjs.com/v1/{{ credentials.app_id }}",
+  "auth": [
+    { "type": "bearer", "fields": [
+      { "key": "app_id", "label": "App ID", "type": "string", "required": true },
+      { "key": "token", "label": "Secret key", "type": "password", "required": true, "help": "TalkJS dashboard → Settings → Secret key." }
+    ] }
+  ],
+  "actions": [
+    {
+      "key": "send_message",
+      "name": "Send message",
+      "method": "POST",
+      "endpoint": "/conversations/{{ inputs.conversation_id }}/messages",
+      "body": [{ "text": "{{ inputs.text }}", "sender": "{{ inputs.sender }}", "type": "{{ inputs.type }}" }],
+      "inputs": [
+        { "key": "conversation_id", "label": "Conversation ID", "type": "string", "required": true },
+        { "key": "text", "label": "Message", "type": "text", "required": true },
+        { "key": "type", "label": "Type", "type": "select", "default": "UserMessage", "options": [
+          { "value": "UserMessage", "label": "User message" }, { "value": "SystemMessage", "label": "System message" }
+        ] },
+        { "key": "sender", "label": "Sender user ID", "type": "string", "help": "Required for user messages; leave empty for system messages." }
+      ]
+    },
+    {
+      "key": "upsert_user",
+      "name": "Create or update user",
+      "method": "PUT",
+      "endpoint": "/users/{{ inputs.user_id }}",
+      "body": { "name": "{{ inputs.name }}", "email": "{{ inputs.email }}", "photoUrl": "{{ inputs.photo_url }}", "role": "{{ inputs.role }}" },
+      "inputs": [
+        { "key": "user_id", "label": "User ID", "type": "string", "required": true },
+        { "key": "name", "label": "Name", "type": "string", "required": true },
+        { "key": "email", "label": "Emails", "type": "list" },
+        { "key": "photo_url", "label": "Photo URL", "type": "string" },
+        { "key": "role", "label": "Role", "type": "string" }
+      ]
+    },
+    {
+      "key": "upsert_conversation",
+      "name": "Create or update conversation",
+      "method": "PUT",
+      "endpoint": "/conversations/{{ inputs.conversation_id }}",
+      "body": { "participants": "{{ inputs.participants }}", "subject": "{{ inputs.subject }}" },
+      "inputs": [
+        { "key": "conversation_id", "label": "Conversation ID", "type": "string", "required": true },
+        { "key": "participants", "label": "Participant user IDs", "type": "list" },
+        { "key": "subject", "label": "Subject", "type": "string" }
+      ]
+    },
+    {
+      "key": "get_messages",
+      "name": "Get messages",
+      "method": "GET",
+      "endpoint": "/conversations/{{ inputs.conversation_id }}/messages",
+      "query": { "limit": "{{ inputs.limit }}" },
+      "output_path": "data",
+      "inputs": [
+        { "key": "conversation_id", "label": "Conversation ID", "type": "string", "required": true },
+        { "key": "limit", "label": "Max messages", "type": "number", "default": 30 }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "description": "Add this URL under Settings → Webhooks in the TalkJS dashboard (e.g. message.sent).",
+      "type": "webhook",
+      "data_path": "data",
+      "inputs": [{ "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }]
+    }
+  ]
+}

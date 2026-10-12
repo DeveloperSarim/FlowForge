@@ -1,0 +1,71 @@
+{
+  "key": "daily_co",
+  "name": "Daily",
+  "category": "Communication",
+  "description": "Create and manage Daily video rooms and meeting tokens.",
+  "brand": "daily",
+  "website": "https://www.daily.co",
+  "docs_url": "https://docs.daily.co/reference/rest-api",
+  "base_url": "https://api.daily.co/v1",
+  "auth": [
+    { "type": "bearer", "fields": [{ "key": "token", "label": "API key", "type": "password", "required": true }] }
+  ],
+  "actions": [
+    {
+      "key": "create_room",
+      "name": "Create room",
+      "method": "POST",
+      "endpoint": "/rooms",
+      "body": {
+        "name": "{{ inputs.name }}",
+        "privacy": "{{ inputs.privacy }}",
+        "properties": { "exp": "{{ inputs.exp }}", "max_participants": "{{ inputs.max_participants }}", "enable_chat": "{{ inputs.enable_chat }}" }
+      },
+      "inputs": [
+        { "key": "name", "label": "Room name", "type": "string", "help": "Empty = random name." },
+        { "key": "privacy", "label": "Privacy", "type": "select", "default": "public", "options": [
+          { "value": "public", "label": "Public" }, { "value": "private", "label": "Private (needs a meeting token)" }
+        ] },
+        { "key": "exp", "label": "Expires at (Unix timestamp)", "type": "number" },
+        { "key": "max_participants", "label": "Max participants", "type": "number" },
+        { "key": "enable_chat", "label": "Enable chat", "type": "boolean", "default": false }
+      ]
+    },
+    {
+      "key": "list_rooms",
+      "name": "List rooms",
+      "method": "GET",
+      "endpoint": "/rooms",
+      "query": { "limit": "{{ inputs.limit }}" },
+      "output_path": "data",
+      "inputs": [{ "key": "limit", "label": "Max results", "type": "number", "default": 100 }]
+    },
+    {
+      "key": "get_room",
+      "name": "Get room",
+      "method": "GET",
+      "endpoint": "/rooms/{{ inputs.name }}",
+      "inputs": [{ "key": "name", "label": "Room name", "type": "string", "required": true }]
+    },
+    {
+      "key": "delete_room",
+      "name": "Delete room",
+      "method": "DELETE",
+      "endpoint": "/rooms/{{ inputs.name }}",
+      "inputs": [{ "key": "name", "label": "Room name", "type": "string", "required": true }]
+    },
+    {
+      "key": "create_meeting_token",
+      "name": "Create meeting token",
+      "method": "POST",
+      "endpoint": "/meeting-tokens",
+      "body": { "properties": { "room_name": "{{ inputs.room_name }}", "user_name": "{{ inputs.user_name }}", "is_owner": "{{ inputs.is_owner }}", "exp": "{{ inputs.exp }}" } },
+      "inputs": [
+        { "key": "room_name", "label": "Room name", "type": "string", "required": true },
+        { "key": "user_name", "label": "Participant name", "type": "string" },
+        { "key": "is_owner", "label": "Meeting owner", "type": "boolean", "default": false },
+        { "key": "exp", "label": "Expires at (Unix timestamp)", "type": "number" }
+      ]
+    }
+  ]
+}

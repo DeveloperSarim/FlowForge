@@ -1,0 +1,195 @@
+{
+  "key": "webflow",
+  "name": "Webflow",
+  "category": "CMS & Websites",
+  "description": "Create, update and publish CMS collection items and catch form submissions.",
+  "brand": "webflow",
+  "website": "https://webflow.com",
+  "docs_url": "https://developers.webflow.com/data/reference",
+  "popular": true,
+  "base_url": "https://api.webflow.com/v2",
+  "auth": [
+    {
+      "type": "bearer",
+      "fields": [
+        {
+          "key": "token",
+          "label": "Site API token",
+          "type": "password",
+          "required": true,
+          "help": "Site settings > Apps & Integrations > API access."
+        }
+      ]
+    },
+    {
+      "type": "oauth2",
+      "authorize_url": "https://webflow.com/oauth/authorize",
+      "token_url": "https://api.webflow.com/oauth/access_token",
+      "scopes": [
+        "sites:read",
+        "cms:read",
+        "cms:write",
+        "forms:read"
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_sites",
+      "name": "List sites",
+      "method": "GET",
+      "endpoint": "/sites",
+      "output_path": "sites",
+      "inputs": []
+    },
+    {
+      "key": "list_collections",
+      "name": "List collections",
+      "method": "GET",
+      "endpoint": "/sites/{{ inputs.site_id }}/collections",
+      "output_path": "collections",
+      "inputs": [
+        {
+          "key": "site_id",
+          "label": "Site ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_items",
+      "name": "List items",
+      "method": "GET",
+      "endpoint": "/collections/{{ inputs.collection_id }}/items",
+      "query": {
+        "limit": "{{ inputs.limit }}",
+        "offset": "{{ inputs.offset }}"
+      },
+      "output_path": "items",
+      "inputs": [
+        {
+          "key": "collection_id",
+          "label": "Collection ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "limit",
+          "label": "Max items",
+          "type": "number",
+          "default": 100
+        },
+        {
+          "key": "offset",
+          "label": "Offset",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "create_item",
+      "name": "Create item",
+      "description": "Creates a staged item; use Publish items to make it live.",
+      "method": "POST",
+      "endpoint": "/collections/{{ inputs.collection_id }}/items",
+      "body": {
+        "isArchived": false,
+        "isDraft": "{{ inputs.is_draft }}",
+        "fieldData": "{{ inputs.field_data }}"
+      },
+      "inputs": [
+        {
+          "key": "collection_id",
+          "label": "Collection ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "field_data",
+          "label": "Field data (JSON)",
+          "type": "json",
+          "placeholder": "{ \"name\": \"Hello\", \"slug\": \"hello\" }",
+          "help": "Keys are field slugs. New items need name and slug.",
+          "required": true
+        },
+        {
+          "key": "is_draft",
+          "label": "Draft",
+          "type": "boolean",
+          "default": false
+        }
+      ]
+    },
+    {
+      "key": "update_item",
+      "name": "Update item",
+      "method": "PATCH",
+      "endpoint": "/collections/{{ inputs.collection_id }}/items/{{ inputs.item_id }}",
+      "body": {
+        "fieldData": "{{ inputs.field_data }}"
+      },
+      "inputs": [
+        {
+          "key": "collection_id",
+          "label": "Collection ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "item_id",
+          "label": "Item ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "field_data",
+          "label": "Field data (JSON)",
+          "type": "json",
+          "placeholder": "{ \"name\": \"Hello\", \"slug\": \"hello\" }",
+          "help": "Keys are field slugs. New items need name and slug.",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "publish_items",
+      "name": "Publish items",
+      "method": "POST",
+      "endpoint": "/collections/{{ inputs.collection_id }}/items/publish",
+      "body": {
+        "itemIds": "{{ inputs.item_ids }}"
+      },
+      "inputs": [
+        {
+          "key": "collection_id",
+          "label": "Collection ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "item_ids",
+          "label": "Item IDs",
+          "type": "list",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Form submissions, item changes and site publish events.",
+      "data_path": "payload",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

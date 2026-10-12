@@ -1,0 +1,96 @@
+{
+  "key": "freepik",
+  "name": "Freepik",
+  "category": "Video & Media",
+  "description": "Search and download Freepik stock assets, remove backgrounds, generate AI images.",
+  "brand": "freepik",
+  "website": "https://www.freepik.com/api",
+  "docs_url": "https://docs.magnific.com/introduction",
+  "base_url": "https://api.magnific.com/v1",
+  "auth": { "type": "api_key", "in": "header", "name": "x-magnific-api-key", "fields": [
+    { "key": "api_key", "label": "API key", "type": "password", "required": true, "help": "The Freepik API is now served as the Magnific API; use your API key from its dashboard." }
+  ] },
+  "actions": [
+    {
+      "key": "search_resources",
+      "name": "Search stock resources",
+      "method": "GET",
+      "endpoint": "/resources",
+      "query": { "term": "{{ inputs.term }}", "order": "{{ inputs.order }}", "page": "{{ inputs.page }}", "limit": "{{ inputs.limit }}" },
+      "inputs": [
+        { "key": "term", "label": "Search", "type": "string", "required": true },
+        { "key": "order", "label": "Order", "type": "select", "default": "relevance", "options": [
+          { "value": "relevance", "label": "Relevance" }, { "value": "recent", "label": "Recent" }
+        ] },
+        { "key": "page", "label": "Page", "type": "number" },
+        { "key": "limit", "label": "Limit", "type": "number", "default": 20 }
+      ]
+    },
+    {
+      "key": "get_resource",
+      "name": "Get resource",
+      "method": "GET",
+      "endpoint": "/resources/{{ inputs.resource_id }}",
+      "inputs": [{ "key": "resource_id", "label": "Resource ID", "type": "string", "required": true }]
+    },
+    {
+      "key": "download_resource",
+      "name": "Get resource download URL",
+      "method": "GET",
+      "endpoint": "/resources/{{ inputs.resource_id }}/download",
+      "inputs": [{ "key": "resource_id", "label": "Resource ID", "type": "string", "required": true }]
+    },
+    {
+      "key": "remove_background",
+      "name": "Remove background",
+      "description": "Returns URLs of the cut-out image.",
+      "method": "POST",
+      "endpoint": "/ai/beta/remove-background",
+      "body_format": "form",
+      "timeout": 60,
+      "body": { "image_url": "{{ inputs.image_url }}" },
+      "inputs": [{ "key": "image_url", "label": "Image URL", "type": "string", "required": true }]
+    },
+    {
+      "key": "generate_image",
+      "name": "Generate image (Mystic)",
+      "description": "Starts an AI image task; poll it or receive the webhook.",
+      "method": "POST",
+      "endpoint": "/ai/mystic",
+      "output_path": "data",
+      "body": { "prompt": "{{ inputs.prompt }}", "resolution": "{{ inputs.resolution }}", "aspect_ratio": "{{ inputs.aspect_ratio }}", "model": "{{ inputs.model }}", "webhook_url": "{{ inputs.webhook_url }}" },
+      "inputs": [
+        { "key": "prompt", "label": "Prompt", "type": "text", "required": true },
+        { "key": "resolution", "label": "Resolution", "type": "select", "default": "2k", "options": [
+          { "value": "1k", "label": "1K" }, { "value": "2k", "label": "2K" }, { "value": "4k", "label": "4K" }
+        ] },
+        { "key": "aspect_ratio", "label": "Aspect ratio", "type": "select", "default": "square_1_1", "options": [
+          { "value": "square_1_1", "label": "Square 1:1" }, { "value": "widescreen_16_9", "label": "Widescreen 16:9" },
+          { "value": "social_story_9_16", "label": "Story 9:16" }, { "value": "classic_4_3", "label": "Classic 4:3" }
+        ] },
+        { "key": "model", "label": "Model", "type": "select", "default": "realism", "options": [
+          { "value": "realism", "label": "Realism" }, { "value": "fluid", "label": "Fluid" }, { "value": "zen", "label": "Zen" },
+          { "value": "flexible", "label": "Flexible" }, { "value": "super_real", "label": "Super real" }, { "value": "editorial_portraits", "label": "Editorial portraits" }
+        ] },
+        { "key": "webhook_url", "label": "Webhook URL", "type": "string" }
+      ]
+    },
+    {
+      "key": "get_image_task",
+      "name": "Get image task (Mystic)",
+      "method": "GET",
+      "endpoint": "/ai/mystic/{{ inputs.task_id }}",
+      "output_path": "data",
+      "inputs": [{ "key": "task_id", "label": "Task ID", "type": "string", "required": true }]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "task_webhook",
+      "name": "AI task status changed (webhook)",
+      "description": "Pass this URL as the webhook URL when generating.",
+      "type": "webhook",
+      "inputs": [{ "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }]
+    }
+  ]
+}

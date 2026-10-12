@@ -1,0 +1,289 @@
+{
+  "key": "linear",
+  "name": "Linear",
+  "category": "Project Management",
+  "description": "Create, update, comment on and search Linear issues.",
+  "brand": "linear",
+  "website": "https://linear.app",
+  "docs_url": "https://linear.app/developers/graphql",
+  "popular": true,
+  "base_url": "https://api.linear.app",
+  "auth": [
+    {
+      "type": "api_key",
+      "in": "header",
+      "name": "Authorization",
+      "fields": [
+        {
+          "key": "api_key",
+          "label": "Personal API key",
+          "type": "password",
+          "required": true,
+          "placeholder": "lin_api_…",
+          "help": "Settings > Security & access > Personal API keys."
+        }
+      ]
+    },
+    {
+      "type": "oauth2",
+      "authorize_url": "https://linear.app/oauth/authorize",
+      "token_url": "https://api.linear.app/oauth/token",
+      "scopes": [
+        "read",
+        "write"
+      ],
+      "scope_separator": ","
+    }
+  ],
+  "actions": [
+    {
+      "key": "create_issue",
+      "name": "Create issue",
+      "method": "POST",
+      "endpoint": "/graphql",
+      "body": {
+        "query": "mutation IssueCreate($input: IssueCreateInput!) { issueCreate(input: $input) { success issue { id identifier title url priority dueDate createdAt state { name } assignee { name email } team { key } } } }",
+        "variables": {
+          "input": {
+            "teamId": "{{ inputs.team_id }}",
+            "title": "{{ inputs.title }}",
+            "description": "{{ inputs.description }}",
+            "priority": "{{ inputs.priority }}",
+            "assigneeId": "{{ inputs.assignee_id }}",
+            "stateId": "{{ inputs.state_id }}",
+            "labelIds": "{{ inputs.label_ids }}",
+            "projectId": "{{ inputs.project_id }}",
+            "dueDate": "{{ inputs.due_date }}"
+          }
+        }
+      },
+      "error_path": "errors",
+      "output_path": "data.issueCreate.issue",
+      "inputs": [
+        {
+          "key": "team_id",
+          "label": "Team ID",
+          "type": "string",
+          "required": true,
+          "help": "UUID from List teams."
+        },
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "description",
+          "label": "Description (Markdown)",
+          "type": "text"
+        },
+        {
+          "key": "priority",
+          "label": "Priority",
+          "type": "number",
+          "help": "0 none, 1 urgent, 2 high, 3 medium, 4 low."
+        },
+        {
+          "key": "assignee_id",
+          "label": "Assignee ID",
+          "type": "string"
+        },
+        {
+          "key": "state_id",
+          "label": "Workflow state ID",
+          "type": "string"
+        },
+        {
+          "key": "label_ids",
+          "label": "Label IDs",
+          "type": "list"
+        },
+        {
+          "key": "project_id",
+          "label": "Project ID",
+          "type": "string"
+        },
+        {
+          "key": "due_date",
+          "label": "Due date",
+          "type": "string",
+          "placeholder": "2026-10-12"
+        }
+      ]
+    },
+    {
+      "key": "update_issue",
+      "name": "Update issue",
+      "description": "Changes only the fields you fill in.",
+      "method": "POST",
+      "endpoint": "/graphql",
+      "body": {
+        "query": "mutation IssueUpdate($id: String!, $input: IssueUpdateInput!) { issueUpdate(id: $id, input: $input) { success issue { id identifier title url priority dueDate createdAt state { name } assignee { name email } team { key } } } }",
+        "variables": {
+          "id": "{{ inputs.issue_id }}",
+          "input": {
+            "title": "{{ inputs.title }}",
+            "description": "{{ inputs.description }}",
+            "priority": "{{ inputs.priority }}",
+            "assigneeId": "{{ inputs.assignee_id }}",
+            "stateId": "{{ inputs.state_id }}",
+            "dueDate": "{{ inputs.due_date }}"
+          }
+        }
+      },
+      "error_path": "errors",
+      "output_path": "data.issueUpdate.issue",
+      "inputs": [
+        {
+          "key": "issue_id",
+          "label": "Issue ID or key",
+          "type": "string",
+          "required": true,
+          "placeholder": "ENG-123"
+        },
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "string"
+        },
+        {
+          "key": "description",
+          "label": "Description",
+          "type": "text"
+        },
+        {
+          "key": "priority",
+          "label": "Priority",
+          "type": "number"
+        },
+        {
+          "key": "assignee_id",
+          "label": "Assignee ID",
+          "type": "string"
+        },
+        {
+          "key": "state_id",
+          "label": "Workflow state ID",
+          "type": "string"
+        },
+        {
+          "key": "due_date",
+          "label": "Due date",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "add_comment",
+      "name": "Add comment",
+      "method": "POST",
+      "endpoint": "/graphql",
+      "body": {
+        "query": "mutation CommentCreate($input: CommentCreateInput!) { commentCreate(input: $input) { success comment { id url body } } }",
+        "variables": {
+          "input": {
+            "issueId": "{{ inputs.issue_id }}",
+            "body": "{{ inputs.body }}"
+          }
+        }
+      },
+      "error_path": "errors",
+      "output_path": "data.commentCreate.comment",
+      "inputs": [
+        {
+          "key": "issue_id",
+          "label": "Issue ID or key",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "body",
+          "label": "Comment (Markdown)",
+          "type": "text",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "get_issue",
+      "name": "Get issue",
+      "method": "POST",
+      "endpoint": "/graphql",
+      "body": {
+        "query": "query Issue($id: String!) { issue(id: $id) { id identifier title url priority dueDate createdAt state { name } assignee { name email } team { key } description labels { nodes { name } } } }",
+        "variables": {
+          "id": "{{ inputs.issue_id }}"
+        }
+      },
+      "error_path": "errors",
+      "output_path": "data.issue",
+      "inputs": [
+        {
+          "key": "issue_id",
+          "label": "Issue ID or key",
+          "type": "string",
+          "required": true,
+          "placeholder": "ENG-123"
+        }
+      ]
+    },
+    {
+      "key": "search_issues",
+      "name": "Find issues",
+      "method": "POST",
+      "endpoint": "/graphql",
+      "body": {
+        "query": "query Issues($filter: IssueFilter, $first: Int) { issues(filter: $filter, first: $first) { nodes { id identifier title url priority dueDate createdAt state { name } assignee { name email } team { key } } } }",
+        "variables": {
+          "filter": "{{ inputs.filter }}",
+          "first": "{{ inputs.first }}"
+        }
+      },
+      "error_path": "errors",
+      "output_path": "data.issues.nodes",
+      "inputs": [
+        {
+          "key": "filter",
+          "label": "Filter (IssueFilter JSON)",
+          "type": "json",
+          "placeholder": "{ \"team\": { \"key\": { \"eq\": \"ENG\" } }, \"state\": { \"type\": { \"eq\": \"started\" } } }"
+        },
+        {
+          "key": "first",
+          "label": "Max results",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    },
+    {
+      "key": "list_teams",
+      "name": "List teams",
+      "method": "POST",
+      "endpoint": "/graphql",
+      "body": {
+        "query": "query { teams { nodes { id key name } } }",
+        "variables": {}
+      },
+      "error_path": "errors",
+      "output_path": "data.teams.nodes",
+      "inputs": []
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Add this URL under Settings > API > Webhooks.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

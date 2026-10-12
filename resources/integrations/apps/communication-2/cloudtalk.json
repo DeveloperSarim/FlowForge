@@ -1,0 +1,73 @@
+{
+  "key": "cloudtalk",
+  "name": "CloudTalk",
+  "category": "Communication",
+  "description": "Start click-to-call calls and list calls, contacts and agents in CloudTalk.",
+  "brand": "cloudtalk",
+  "website": "https://www.cloudtalk.io",
+  "docs_url": "https://developers.cloudtalk.io",
+  "base_url": "https://my.cloudtalk.io/api",
+  "auth": [
+    { "type": "basic", "fields": [
+      { "key": "username", "label": "API key ID", "type": "string", "required": true, "help": "CloudTalk → Account → Settings → API keys." },
+      { "key": "password", "label": "API key secret", "type": "password", "required": true }
+    ] }
+  ],
+  "actions": [
+    {
+      "key": "make_call",
+      "name": "Make call (click-to-call)",
+      "description": "Rings the agent first, then dials the number.",
+      "method": "POST",
+      "endpoint": "/calls/create.json",
+      "body": { "agent_id": "{{ inputs.agent_id }}", "callee_number": "{{ inputs.callee_number }}" },
+      "inputs": [
+        { "key": "agent_id", "label": "Agent ID", "type": "number", "required": true },
+        { "key": "callee_number", "label": "Number to call (E.164)", "type": "string", "required": true }
+      ]
+    },
+    {
+      "key": "list_calls",
+      "name": "List calls",
+      "method": "GET",
+      "endpoint": "/calls/index.json",
+      "query": { "limit": "{{ inputs.limit }}", "page": "{{ inputs.page }}", "date_from": "{{ inputs.date_from }}", "date_to": "{{ inputs.date_to }}" },
+      "output_path": "responseData",
+      "inputs": [
+        { "key": "limit", "label": "Per page", "type": "number", "default": 50 },
+        { "key": "page", "label": "Page", "type": "number" },
+        { "key": "date_from", "label": "From", "type": "string", "placeholder": "2026-01-31 00:00:00" },
+        { "key": "date_to", "label": "To", "type": "string", "placeholder": "2026-01-31 23:59:59" }
+      ]
+    },
+    {
+      "key": "list_contacts",
+      "name": "List contacts",
+      "method": "GET",
+      "endpoint": "/contacts/index.json",
+      "query": { "keyword": "{{ inputs.keyword }}", "limit": "{{ inputs.limit }}" },
+      "output_path": "responseData",
+      "inputs": [
+        { "key": "keyword", "label": "Search", "type": "string" },
+        { "key": "limit", "label": "Per page", "type": "number", "default": 50 }
+      ]
+    },
+    {
+      "key": "list_agents",
+      "name": "List agents",
+      "method": "GET",
+      "endpoint": "/agents/index.json",
+      "output_path": "responseData",
+      "inputs": []
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "description": "Create a Workflow Automation webhook in CloudTalk that posts to this URL.",
+      "type": "webhook",
+      "inputs": [{ "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }]
+    }
+  ]
+}

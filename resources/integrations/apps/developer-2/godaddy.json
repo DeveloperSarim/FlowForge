@@ -1,0 +1,102 @@
+{
+  "key": "godaddy",
+  "name": "GoDaddy",
+  "category": "Developer Tools",
+  "description": "Manage DNS records, list domains and check domain availability.",
+  "brand": "godaddy",
+  "website": "https://www.godaddy.com",
+  "docs_url": "https://developer.godaddy.com/doc/endpoint/domains",
+  "base_url": "https://api.godaddy.com",
+  "headers": { "Authorization": "sso-key {{ credentials.api_key }}:{{ credentials.api_secret }}" },
+  "auth": { "type": "api_key", "fields": [
+    { "key": "api_key", "label": "API key", "type": "password", "required": true, "help": "developer.godaddy.com → API Keys (Production). GoDaddy limits the Domains API to qualifying accounts." },
+    { "key": "api_secret", "label": "API secret", "type": "password", "required": true }
+  ] },
+  "actions": [
+    {
+      "key": "list_domains",
+      "name": "List domains",
+      "method": "GET",
+      "endpoint": "/v1/domains",
+      "query": { "statuses": "{{ inputs.statuses }}", "limit": "{{ inputs.limit }}" },
+      "inputs": [
+        { "key": "statuses", "label": "Statuses", "type": "string", "placeholder": "ACTIVE" },
+        { "key": "limit", "label": "Limit", "type": "number" }
+      ]
+    },
+    {
+      "key": "check_availability",
+      "name": "Check domain availability",
+      "method": "GET",
+      "endpoint": "/v1/domains/available",
+      "query": { "domain": "{{ inputs.domain }}" },
+      "inputs": [{ "key": "domain", "label": "Domain", "type": "string", "required": true, "placeholder": "example.com" }]
+    },
+    {
+      "key": "get_records",
+      "name": "Get DNS records",
+      "method": "GET",
+      "endpoint": "/v1/domains/{{ inputs.domain }}/records/{{ inputs.type }}/{{ inputs.name }}",
+      "inputs": [
+        { "key": "domain", "label": "Domain", "type": "string", "required": true },
+        { "key": "type", "label": "Type", "type": "select", "required": true, "default": "A", "options": [
+          { "value": "A", "label": "A" }, { "value": "AAAA", "label": "AAAA" }, { "value": "CNAME", "label": "CNAME" }, { "value": "MX", "label": "MX" },
+          { "value": "TXT", "label": "TXT" }, { "value": "NS", "label": "NS" }, { "value": "SRV", "label": "SRV" }, { "value": "CAA", "label": "CAA" }
+        ] },
+        { "key": "name", "label": "Name", "type": "string", "required": true, "default": "@", "help": "@ for the root domain." }
+      ]
+    },
+    {
+      "key": "replace_records",
+      "name": "Set DNS record",
+      "description": "Replaces all records with this type and name by one value.",
+      "method": "PUT",
+      "endpoint": "/v1/domains/{{ inputs.domain }}/records/{{ inputs.type }}/{{ inputs.name }}",
+      "body": [{ "data": "{{ inputs.data }}", "ttl": "{{ inputs.ttl }}", "priority": "{{ inputs.priority }}" }],
+      "inputs": [
+        { "key": "domain", "label": "Domain", "type": "string", "required": true },
+        { "key": "type", "label": "Type", "type": "select", "required": true, "default": "A", "options": [
+          { "value": "A", "label": "A" }, { "value": "AAAA", "label": "AAAA" }, { "value": "CNAME", "label": "CNAME" }, { "value": "MX", "label": "MX" },
+          { "value": "TXT", "label": "TXT" }, { "value": "NS", "label": "NS" }, { "value": "SRV", "label": "SRV" }, { "value": "CAA", "label": "CAA" }
+        ] },
+        { "key": "name", "label": "Name", "type": "string", "required": true, "default": "@" },
+        { "key": "data", "label": "Value", "type": "string", "required": true, "placeholder": "203.0.113.10" },
+        { "key": "ttl", "label": "TTL (seconds)", "type": "number", "default": 600, "help": "Minimum 600." },
+        { "key": "priority", "label": "Priority", "type": "number", "help": "MX / SRV only." }
+      ]
+    },
+    {
+      "key": "add_record",
+      "name": "Add DNS record",
+      "method": "PATCH",
+      "endpoint": "/v1/domains/{{ inputs.domain }}/records",
+      "body": [{ "type": "{{ inputs.type }}", "name": "{{ inputs.name }}", "data": "{{ inputs.data }}", "ttl": "{{ inputs.ttl }}", "priority": "{{ inputs.priority }}" }],
+      "inputs": [
+        { "key": "domain", "label": "Domain", "type": "string", "required": true },
+        { "key": "type", "label": "Type", "type": "select", "required": true, "default": "A", "options": [
+          { "value": "A", "label": "A" }, { "value": "AAAA", "label": "AAAA" }, { "value": "CNAME", "label": "CNAME" }, { "value": "MX", "label": "MX" },
+          { "value": "TXT", "label": "TXT" }, { "value": "NS", "label": "NS" }, { "value": "SRV", "label": "SRV" }, { "value": "CAA", "label": "CAA" }
+        ] },
+        { "key": "name", "label": "Name", "type": "string", "required": true, "default": "@" },
+        { "key": "data", "label": "Value", "type": "string", "required": true },
+        { "key": "ttl", "label": "TTL (seconds)", "type": "number", "default": 600 },
+        { "key": "priority", "label": "Priority", "type": "number", "help": "MX / SRV only." }
+      ]
+    },
+    {
+      "key": "delete_records",
+      "name": "Delete DNS records",
+      "description": "Deletes all records with this type and name.",
+      "method": "DELETE",
+      "endpoint": "/v1/domains/{{ inputs.domain }}/records/{{ inputs.type }}/{{ inputs.name }}",
+      "inputs": [
+        { "key": "domain", "label": "Domain", "type": "string", "required": true },
+        { "key": "type", "label": "Type", "type": "select", "required": true, "default": "A", "options": [
+          { "value": "A", "label": "A" }, { "value": "AAAA", "label": "AAAA" }, { "value": "CNAME", "label": "CNAME" }, { "value": "MX", "label": "MX" },
+          { "value": "TXT", "label": "TXT" }, { "value": "SRV", "label": "SRV" }, { "value": "CAA", "label": "CAA" }
+        ] },
+        { "key": "name", "label": "Name", "type": "string", "required": true }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,226 @@
+{
+  "key": "boldsign",
+  "name": "BoldSign",
+  "category": "Files & Documents",
+  "description": "Send documents from templates, list documents, remind and revoke.",
+  "brand": "boldsign",
+  "website": "https://boldsign.com",
+  "docs_url": "https://developers.boldsign.com/",
+  "base_url": "https://{{ credentials.host }}/v1",
+  "auth": [
+    {
+      "type": "api_key",
+      "in": "header",
+      "name": "X-API-KEY",
+      "fields": [
+        {
+          "key": "host",
+          "label": "Region",
+          "type": "select",
+          "required": true,
+          "default": "api.boldsign.com",
+          "options": [
+            {
+              "value": "api.boldsign.com",
+              "label": "US"
+            },
+            {
+              "value": "api-eu.boldsign.com",
+              "label": "EU"
+            }
+          ]
+        },
+        {
+          "key": "api_key",
+          "label": "API key",
+          "type": "password",
+          "required": true,
+          "help": "API > API key."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "send_from_template",
+      "name": "Send document from template",
+      "method": "POST",
+      "endpoint": "/template/send",
+      "query": {
+        "templateId": "{{ inputs.template_id }}"
+      },
+      "body": {
+        "title": "{{ inputs.title }}",
+        "message": "{{ inputs.message }}",
+        "roles": "{{ inputs.roles }}",
+        "labels": "{{ inputs.labels }}"
+      },
+      "inputs": [
+        {
+          "key": "template_id",
+          "label": "Template ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "string"
+        },
+        {
+          "key": "message",
+          "label": "Message",
+          "type": "text"
+        },
+        {
+          "key": "roles",
+          "label": "Roles",
+          "type": "json",
+          "required": true,
+          "placeholder": "[{\"roleIndex\": 1, \"signerName\": \"Jane Doe\", \"signerEmail\": \"jane@example.com\"}]"
+        },
+        {
+          "key": "labels",
+          "label": "Labels",
+          "type": "list"
+        }
+      ]
+    },
+    {
+      "key": "list_documents",
+      "name": "List documents",
+      "method": "GET",
+      "endpoint": "/document/list",
+      "query": {
+        "Page": "{{ inputs.page }}",
+        "PageSize": "{{ inputs.page_size }}",
+        "SearchKey": "{{ inputs.search }}"
+      },
+      "inputs": [
+        {
+          "key": "page",
+          "label": "Page",
+          "type": "number",
+          "required": true,
+          "default": 1
+        },
+        {
+          "key": "page_size",
+          "label": "Page size",
+          "type": "number"
+        },
+        {
+          "key": "search",
+          "label": "Search",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "get_document",
+      "name": "Get document",
+      "method": "GET",
+      "endpoint": "/document/properties",
+      "query": {
+        "documentId": "{{ inputs.document_id }}"
+      },
+      "inputs": [
+        {
+          "key": "document_id",
+          "label": "Document ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "remind",
+      "name": "Send reminder",
+      "method": "POST",
+      "endpoint": "/document/remind",
+      "query": {
+        "documentId": "{{ inputs.document_id }}"
+      },
+      "body": {
+        "message": "{{ inputs.message }}"
+      },
+      "inputs": [
+        {
+          "key": "document_id",
+          "label": "Document ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "message",
+          "label": "Message",
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "key": "revoke",
+      "name": "Revoke document",
+      "method": "POST",
+      "endpoint": "/document/revoke",
+      "query": {
+        "documentId": "{{ inputs.document_id }}"
+      },
+      "body": {
+        "message": "{{ inputs.message }}"
+      },
+      "inputs": [
+        {
+          "key": "document_id",
+          "label": "Document ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "message",
+          "label": "Reason",
+          "type": "text",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_templates",
+      "name": "List templates",
+      "method": "GET",
+      "endpoint": "/template/list",
+      "query": {
+        "Page": "{{ inputs.page }}",
+        "SearchKey": "{{ inputs.search }}"
+      },
+      "inputs": [
+        {
+          "key": "page",
+          "label": "Page",
+          "type": "number",
+          "required": true,
+          "default": 1
+        },
+        {
+          "key": "search",
+          "label": "Search",
+          "type": "string"
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

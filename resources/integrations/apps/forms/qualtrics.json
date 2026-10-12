@@ -1,0 +1,125 @@
+{
+  "key": "qualtrics",
+  "name": "Qualtrics",
+  "category": "Forms & Surveys",
+  "description": "Read Qualtrics surveys and responses; subscribe to completed responses.",
+  "brand": "qualtrics",
+  "website": "https://www.qualtrics.com",
+  "docs_url": "https://api.qualtrics.com/",
+  "base_url": "https://{{ credentials.datacenter }}.qualtrics.com/API/v3",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "X-API-TOKEN",
+    "fields": [
+      {
+        "key": "datacenter",
+        "label": "Datacenter ID",
+        "type": "string",
+        "required": true,
+        "placeholder": "iad1",
+        "help": "Account settings > Qualtrics IDs > User > Datacenter ID (e.g. iad1, fra1, yourorg.ca1)"
+      },
+      {
+        "key": "api_key",
+        "label": "API token",
+        "type": "password",
+        "required": true,
+        "help": "Account settings > Qualtrics IDs > API"
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_surveys",
+      "name": "List surveys",
+      "method": "GET",
+      "endpoint": "/surveys",
+      "output_path": "result.elements",
+      "inputs": []
+    },
+    {
+      "key": "get_survey",
+      "name": "Get survey",
+      "method": "GET",
+      "endpoint": "/surveys/{{ inputs.survey_id }}",
+      "output_path": "result",
+      "inputs": [
+        {
+          "key": "survey_id",
+          "label": "Survey ID",
+          "type": "string",
+          "required": true,
+          "placeholder": "SV_…"
+        }
+      ]
+    },
+    {
+      "key": "get_response",
+      "name": "Get response",
+      "method": "GET",
+      "endpoint": "/surveys/{{ inputs.survey_id }}/responses/{{ inputs.response_id }}",
+      "output_path": "result",
+      "inputs": [
+        {
+          "key": "survey_id",
+          "label": "Survey ID",
+          "type": "string",
+          "required": true,
+          "placeholder": "SV_…"
+        },
+        {
+          "key": "response_id",
+          "label": "Response ID",
+          "type": "string",
+          "required": true,
+          "placeholder": "R_…"
+        }
+      ]
+    },
+    {
+      "key": "create_event_subscription",
+      "name": "Subscribe to completed responses",
+      "description": "Sends each completed response of a survey to a URL.",
+      "method": "POST",
+      "endpoint": "/eventsubscriptions",
+      "output_path": "result",
+      "body": {
+        "topics": "surveyengine.completedResponse.{{ inputs.survey_id }}",
+        "publicationUrl": "{{ inputs.url }}",
+        "encrypt": false
+      },
+      "inputs": [
+        {
+          "key": "survey_id",
+          "label": "Survey ID",
+          "type": "string",
+          "required": true,
+          "placeholder": "SV_…"
+        },
+        {
+          "key": "url",
+          "label": "Webhook URL",
+          "type": "string",
+          "required": true,
+          "help": "Paste this workflow's webhook URL."
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "completed_response",
+      "name": "Completed response (webhook)",
+      "type": "webhook",
+      "description": "Register this URL with the 'Subscribe to completed responses' action.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

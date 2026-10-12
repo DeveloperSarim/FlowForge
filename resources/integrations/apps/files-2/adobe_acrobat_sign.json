@@ -1,0 +1,259 @@
+{
+  "key": "adobe_acrobat_sign",
+  "name": "Adobe Acrobat Sign",
+  "category": "Files & Documents",
+  "description": "Send library documents for signature and track or cancel agreements.",
+  "brand": "adobeacrobatreader",
+  "website": "https://www.adobe.com/sign.html",
+  "docs_url": "https://secure.na1.adobesign.com/public/docs/restapi/v6",
+  "base_url": "https://api.{{ credentials.shard }}.adobesign.com/api/rest/v6",
+  "auth": [
+    {
+      "type": "oauth2",
+      "authorize_url": "https://secure.{{ credentials.shard }}.adobesign.com/public/oauth/v2",
+      "token_url": "https://api.{{ credentials.shard }}.adobesign.com/oauth/v2/token",
+      "scopes": [
+        "user_login:self",
+        "agreement_read:self",
+        "agreement_write:self",
+        "agreement_send:self",
+        "library_read:self"
+      ],
+      "fields": [
+        {
+          "key": "shard",
+          "label": "Account shard",
+          "type": "select",
+          "required": true,
+          "default": "na1",
+          "options": [
+            {
+              "value": "na1",
+              "label": "na1"
+            },
+            {
+              "value": "na2",
+              "label": "na2"
+            },
+            {
+              "value": "na3",
+              "label": "na3"
+            },
+            {
+              "value": "na4",
+              "label": "na4"
+            },
+            {
+              "value": "eu1",
+              "label": "eu1"
+            },
+            {
+              "value": "eu2",
+              "label": "eu2"
+            },
+            {
+              "value": "jp1",
+              "label": "jp1"
+            },
+            {
+              "value": "au1",
+              "label": "au1"
+            },
+            {
+              "value": "in1",
+              "label": "in1"
+            }
+          ],
+          "help": "From your Acrobat Sign URL, e.g. secure.na1.adobesign.com -> na1."
+        }
+      ]
+    },
+    {
+      "type": "bearer",
+      "fields": [
+        {
+          "key": "shard",
+          "label": "Account shard",
+          "type": "select",
+          "required": true,
+          "default": "na1",
+          "options": [
+            {
+              "value": "na1",
+              "label": "na1"
+            },
+            {
+              "value": "na2",
+              "label": "na2"
+            },
+            {
+              "value": "na3",
+              "label": "na3"
+            },
+            {
+              "value": "na4",
+              "label": "na4"
+            },
+            {
+              "value": "eu1",
+              "label": "eu1"
+            },
+            {
+              "value": "eu2",
+              "label": "eu2"
+            },
+            {
+              "value": "jp1",
+              "label": "jp1"
+            },
+            {
+              "value": "au1",
+              "label": "au1"
+            },
+            {
+              "value": "in1",
+              "label": "in1"
+            }
+          ],
+          "help": "From your Acrobat Sign URL, e.g. secure.na1.adobesign.com -> na1."
+        },
+        {
+          "key": "token",
+          "label": "Integration key",
+          "type": "password",
+          "required": true,
+          "help": "Account > Acrobat Sign API > API information > Integration key."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "send_agreement",
+      "name": "Send library document for signature",
+      "method": "POST",
+      "endpoint": "/agreements",
+      "body": {
+        "fileInfos": [
+          {
+            "libraryDocumentId": "{{ inputs.library_document_id }}"
+          }
+        ],
+        "name": "{{ inputs.name }}",
+        "participantSetsInfo": [
+          {
+            "memberInfos": [
+              {
+                "email": "{{ inputs.signer_email }}"
+              }
+            ],
+            "order": 1,
+            "role": "SIGNER"
+          }
+        ],
+        "signatureType": "ESIGN",
+        "state": "IN_PROCESS",
+        "message": "{{ inputs.message }}"
+      },
+      "inputs": [
+        {
+          "key": "library_document_id",
+          "label": "Library document ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "name",
+          "label": "Agreement name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "signer_email",
+          "label": "Signer email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "message",
+          "label": "Message",
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "key": "get_agreement",
+      "name": "Get agreement",
+      "method": "GET",
+      "endpoint": "/agreements/{{ inputs.agreement_id }}",
+      "inputs": [
+        {
+          "key": "agreement_id",
+          "label": "Agreement ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_agreements",
+      "name": "List agreements",
+      "method": "GET",
+      "endpoint": "/agreements",
+      "query": {
+        "pageSize": "{{ inputs.page_size }}",
+        "cursor": "{{ inputs.cursor }}"
+      },
+      "inputs": [
+        {
+          "key": "page_size",
+          "label": "Page size",
+          "type": "number"
+        },
+        {
+          "key": "cursor",
+          "label": "Cursor",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "list_library_documents",
+      "name": "List library documents",
+      "method": "GET",
+      "endpoint": "/libraryDocuments",
+      "inputs": []
+    },
+    {
+      "key": "cancel_agreement",
+      "name": "Cancel agreement",
+      "method": "PUT",
+      "endpoint": "/agreements/{{ inputs.agreement_id }}/state",
+      "body": {
+        "state": "CANCELLED",
+        "agreementCancellationInfo": {
+          "comment": "{{ inputs.comment }}",
+          "notifyOthers": "{{ inputs.notify_others }}"
+        }
+      },
+      "inputs": [
+        {
+          "key": "agreement_id",
+          "label": "Agreement ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "comment",
+          "label": "Comment",
+          "type": "string"
+        },
+        {
+          "key": "notify_others",
+          "label": "Notify participants",
+          "type": "boolean"
+        }
+      ]
+    }
+  ]
+}

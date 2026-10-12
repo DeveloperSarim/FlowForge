@@ -1,0 +1,108 @@
+{
+  "key": "cloudflare_stream",
+  "name": "Cloudflare Stream",
+  "category": "Video & Media",
+  "description": "Upload videos from URLs, create direct uploads and live inputs on Cloudflare Stream.",
+  "brand": "cloudflare",
+  "website": "https://www.cloudflare.com/products/cloudflare-stream/",
+  "docs_url": "https://developers.cloudflare.com/api/resources/stream/",
+  "base_url": "https://api.cloudflare.com/client/v4/accounts/{{ credentials.account_id }}",
+  "auth": { "type": "bearer", "fields": [
+    { "key": "account_id", "label": "Account ID", "type": "string", "required": true, "help": "Shown in the dashboard sidebar / URL." },
+    { "key": "token", "label": "API token", "type": "password", "required": true, "help": "Needs the Stream: Edit permission." }
+  ] },
+  "actions": [
+    {
+      "key": "upload_from_url",
+      "name": "Upload video from URL",
+      "method": "POST",
+      "endpoint": "/stream/copy",
+      "output_path": "result",
+      "body": { "url": "{{ inputs.url }}", "meta": { "name": "{{ inputs.name }}" }, "creator": "{{ inputs.creator }}", "requireSignedURLs": "{{ inputs.require_signed_urls }}" },
+      "inputs": [
+        { "key": "url", "label": "Video URL", "type": "string", "required": true, "placeholder": "https://example.com/video.mp4" },
+        { "key": "name", "label": "Name", "type": "string" },
+        { "key": "creator", "label": "Creator ID", "type": "string" },
+        { "key": "require_signed_urls", "label": "Require signed URLs", "type": "boolean" }
+      ]
+    },
+    {
+      "key": "get_video",
+      "name": "Get video",
+      "method": "GET",
+      "endpoint": "/stream/{{ inputs.video_id }}",
+      "output_path": "result",
+      "inputs": [{ "key": "video_id", "label": "Video UID", "type": "string", "required": true }]
+    },
+    {
+      "key": "list_videos",
+      "name": "List videos",
+      "method": "GET",
+      "endpoint": "/stream",
+      "output_path": "result",
+      "query": { "search": "{{ inputs.search }}", "status": "{{ inputs.status }}", "limit": "{{ inputs.limit }}" },
+      "inputs": [
+        { "key": "search", "label": "Name contains", "type": "string" },
+        { "key": "status", "label": "Status", "type": "select", "options": [
+          { "value": "", "label": "Any" }, { "value": "ready", "label": "Ready" }, { "value": "inprogress", "label": "In progress" },
+          { "value": "queued", "label": "Queued" }, { "value": "downloading", "label": "Downloading" }, { "value": "error", "label": "Error" }
+        ] },
+        { "key": "limit", "label": "Limit", "type": "number", "default": 50 }
+      ]
+    },
+    {
+      "key": "delete_video",
+      "name": "Delete video",
+      "method": "DELETE",
+      "endpoint": "/stream/{{ inputs.video_id }}",
+      "inputs": [{ "key": "video_id", "label": "Video UID", "type": "string", "required": true }]
+    },
+    {
+      "key": "create_direct_upload",
+      "name": "Create direct upload URL",
+      "description": "One-time URL a user can upload a video file to.",
+      "method": "POST",
+      "endpoint": "/stream/direct_upload",
+      "output_path": "result",
+      "body": { "maxDurationSeconds": "{{ inputs.max_duration_seconds }}", "meta": { "name": "{{ inputs.name }}" } },
+      "inputs": [
+        { "key": "max_duration_seconds", "label": "Max duration (seconds)", "type": "number", "required": true, "default": 3600 },
+        { "key": "name", "label": "Name", "type": "string" }
+      ]
+    },
+    {
+      "key": "create_live_input",
+      "name": "Create live input",
+      "method": "POST",
+      "endpoint": "/stream/live_inputs",
+      "output_path": "result",
+      "body": { "meta": { "name": "{{ inputs.name }}" }, "recording": { "mode": "{{ inputs.recording_mode }}" } },
+      "inputs": [
+        { "key": "name", "label": "Name", "type": "string" },
+        { "key": "recording_mode", "label": "Recording", "type": "select", "default": "automatic", "options": [
+          { "value": "automatic", "label": "Record automatically" }, { "value": "off", "label": "Off" }
+        ] }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_video",
+      "name": "New video",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/stream",
+      "query": { "limit": 50 },
+      "items_path": "result",
+      "id_field": "uid",
+      "inputs": [{ "key": "poll_interval", "label": "Check every (minutes)", "type": "number", "default": 5 }]
+    },
+    {
+      "key": "webhook_event",
+      "name": "Video ready / failed (webhook)",
+      "description": "Register this URL with PUT /accounts/{account_id}/stream/webhook.",
+      "type": "webhook",
+      "inputs": [{ "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }]
+    }
+  ]
+}

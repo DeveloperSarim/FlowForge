@@ -1,0 +1,194 @@
+{
+  "key": "figma",
+  "name": "Figma",
+  "category": "Productivity",
+  "description": "Read files, export images and manage comments in Figma.",
+  "brand": "figma",
+  "website": "https://www.figma.com",
+  "docs_url": "https://www.figma.com/developers/api",
+  "base_url": "https://api.figma.com",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "X-Figma-Token",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "Personal access token",
+        "type": "password",
+        "required": true,
+        "help": "Figma > Settings > Security > Personal access tokens."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "get_file",
+      "name": "Get file",
+      "method": "GET",
+      "endpoint": "/v1/files/{{ inputs.file_key }}",
+      "query": {
+        "depth": "{{ inputs.depth }}",
+        "ids": "{{ inputs.ids }}"
+      },
+      "inputs": [
+        {
+          "key": "file_key",
+          "label": "File key",
+          "type": "string",
+          "required": true,
+          "help": "From the file URL: figma.com/design/<KEY>/…"
+        },
+        {
+          "key": "depth",
+          "label": "Depth",
+          "type": "number",
+          "default": 1,
+          "help": "How deep into the node tree to return; 1 = pages only."
+        },
+        {
+          "key": "ids",
+          "label": "Node IDs",
+          "type": "string",
+          "placeholder": "1:2,1:3"
+        }
+      ]
+    },
+    {
+      "key": "export_images",
+      "name": "Export images",
+      "description": "Returns temporary image URLs for the given nodes.",
+      "method": "GET",
+      "endpoint": "/v1/images/{{ inputs.file_key }}",
+      "query": {
+        "ids": "{{ inputs.ids }}",
+        "format": "{{ inputs.format }}",
+        "scale": "{{ inputs.scale }}"
+      },
+      "output_path": "images",
+      "inputs": [
+        {
+          "key": "file_key",
+          "label": "File key",
+          "type": "string",
+          "required": true,
+          "help": "From the file URL: figma.com/design/<KEY>/…"
+        },
+        {
+          "key": "ids",
+          "label": "Node IDs",
+          "type": "string",
+          "required": true,
+          "placeholder": "1:2,1:3"
+        },
+        {
+          "key": "format",
+          "label": "Format",
+          "type": "select",
+          "default": "png",
+          "options": [
+            {
+              "value": "png",
+              "label": "png"
+            },
+            {
+              "value": "jpg",
+              "label": "jpg"
+            },
+            {
+              "value": "svg",
+              "label": "svg"
+            },
+            {
+              "value": "pdf",
+              "label": "pdf"
+            }
+          ]
+        },
+        {
+          "key": "scale",
+          "label": "Scale",
+          "type": "number",
+          "default": 1
+        }
+      ]
+    },
+    {
+      "key": "list_comments",
+      "name": "List comments",
+      "method": "GET",
+      "endpoint": "/v1/files/{{ inputs.file_key }}/comments",
+      "output_path": "comments",
+      "inputs": [
+        {
+          "key": "file_key",
+          "label": "File key",
+          "type": "string",
+          "required": true,
+          "help": "From the file URL: figma.com/design/<KEY>/…"
+        }
+      ]
+    },
+    {
+      "key": "post_comment",
+      "name": "Post comment",
+      "method": "POST",
+      "endpoint": "/v1/files/{{ inputs.file_key }}/comments",
+      "body": {
+        "message": "{{ inputs.message }}",
+        "comment_id": "{{ inputs.comment_id }}"
+      },
+      "inputs": [
+        {
+          "key": "file_key",
+          "label": "File key",
+          "type": "string",
+          "required": true,
+          "help": "From the file URL: figma.com/design/<KEY>/…"
+        },
+        {
+          "key": "message",
+          "label": "Message",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "comment_id",
+          "label": "Reply to comment ID",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "list_team_projects",
+      "name": "List team projects",
+      "method": "GET",
+      "endpoint": "/v1/teams/{{ inputs.team_id }}/projects",
+      "output_path": "projects",
+      "inputs": [
+        {
+          "key": "team_id",
+          "label": "Team ID",
+          "type": "string",
+          "required": true,
+          "help": "From the team URL: figma.com/files/team/<ID>/…"
+        }
+      ]
+    },
+    {
+      "key": "list_project_files",
+      "name": "List project files",
+      "method": "GET",
+      "endpoint": "/v1/projects/{{ inputs.project_id }}/files",
+      "output_path": "files",
+      "inputs": [
+        {
+          "key": "project_id",
+          "label": "Project ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,64 @@
+{
+  "key": "telnyx",
+  "name": "Telnyx",
+  "category": "Communication",
+  "description": "Send SMS/MMS, look up messages and list your Telnyx phone numbers.",
+  "brand": "telnyx",
+  "website": "https://telnyx.com",
+  "docs_url": "https://developers.telnyx.com/api/messaging/send-message",
+  "base_url": "https://api.telnyx.com/v2",
+  "auth": [
+    { "type": "bearer", "fields": [{ "key": "token", "label": "API key (KEY…)", "type": "password", "required": true }] }
+  ],
+  "actions": [
+    {
+      "key": "send_message",
+      "name": "Send SMS / MMS",
+      "method": "POST",
+      "endpoint": "/messages",
+      "body": {
+        "from": "{{ inputs.from }}",
+        "messaging_profile_id": "{{ inputs.messaging_profile_id }}",
+        "to": "{{ inputs.to }}",
+        "text": "{{ inputs.text }}",
+        "subject": "{{ inputs.subject }}",
+        "media_urls": "{{ inputs.media_urls }}"
+      },
+      "output_path": "data",
+      "inputs": [
+        { "key": "to", "label": "To", "type": "string", "required": true, "placeholder": "+15551234567" },
+        { "key": "from", "label": "From", "type": "string", "help": "Your Telnyx number or sender ID. Leave empty to use a messaging profile's number pool." },
+        { "key": "messaging_profile_id", "label": "Messaging profile ID", "type": "string" },
+        { "key": "text", "label": "Message", "type": "text", "required": true },
+        { "key": "subject", "label": "Subject (MMS)", "type": "string" },
+        { "key": "media_urls", "label": "Media URLs (MMS)", "type": "list" }
+      ]
+    },
+    {
+      "key": "get_message",
+      "name": "Get message",
+      "method": "GET",
+      "endpoint": "/messages/{{ inputs.message_id }}",
+      "output_path": "data",
+      "inputs": [{ "key": "message_id", "label": "Message ID", "type": "string", "required": true }]
+    },
+    {
+      "key": "list_phone_numbers",
+      "name": "List phone numbers",
+      "method": "GET",
+      "endpoint": "/phone_numbers",
+      "output_path": "data",
+      "inputs": []
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "description": "Set this URL as the messaging profile's webhook (e.g. message.received).",
+      "type": "webhook",
+      "data_path": "data.payload",
+      "inputs": [{ "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }]
+    }
+  ]
+}

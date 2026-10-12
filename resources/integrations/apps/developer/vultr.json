@@ -1,0 +1,58 @@
+{
+  "key": "vultr",
+  "name": "Vultr",
+  "category": "Developer Tools",
+  "description": "Create, start, reboot, halt and delete Vultr cloud instances.",
+  "brand": "vultr",
+  "website": "https://www.vultr.com",
+  "docs_url": "https://www.vultr.com/api/",
+  "base_url": "https://api.vultr.com/v2",
+  "auth": { "type": "bearer", "fields": [{ "key": "token", "label": "API key", "type": "password", "required": true, "help": "Account → API. Allow your server's IP in the access control list." }] },
+  "actions": [
+    {
+      "key": "list_instances",
+      "name": "List instances",
+      "method": "GET",
+      "endpoint": "/instances",
+      "query": { "label": "{{ inputs.label }}", "per_page": 100 },
+      "output_path": "instances",
+      "inputs": [{ "key": "label", "label": "Label", "type": "string" }]
+    },
+    {
+      "key": "create_instance",
+      "name": "Create instance",
+      "method": "POST",
+      "endpoint": "/instances",
+      "output_path": "instance",
+      "body": { "region": "{{ inputs.region }}", "plan": "{{ inputs.plan }}", "os_id": "{{ inputs.os_id }}", "label": "{{ inputs.label }}", "hostname": "{{ inputs.hostname }}", "sshkey_id": "{{ inputs.sshkey_ids }}", "tags": "{{ inputs.tags }}" },
+      "inputs": [
+        { "key": "region", "label": "Region", "type": "string", "required": true, "placeholder": "ewr" },
+        { "key": "plan", "label": "Plan", "type": "string", "required": true, "placeholder": "vc2-1c-1gb" },
+        { "key": "os_id", "label": "OS ID", "type": "number", "required": true, "help": "From GET /os, e.g. 2284 for Ubuntu 24.04." },
+        { "key": "label", "label": "Label", "type": "string" },
+        { "key": "hostname", "label": "Hostname", "type": "string" },
+        { "key": "sshkey_ids", "label": "SSH key IDs", "type": "list" },
+        { "key": "tags", "label": "Tags", "type": "list" }
+      ]
+    },
+    {
+      "key": "power_action",
+      "name": "Start / reboot / halt instance",
+      "method": "POST",
+      "endpoint": "/instances/{{ inputs.instance_id }}/{{ inputs.action }}",
+      "inputs": [
+        { "key": "instance_id", "label": "Instance ID", "type": "string", "required": true },
+        { "key": "action", "label": "Action", "type": "select", "required": true, "default": "reboot", "options": [
+          { "value": "start", "label": "Start" }, { "value": "reboot", "label": "Reboot" }, { "value": "halt", "label": "Halt" }
+        ] }
+      ]
+    },
+    {
+      "key": "delete_instance",
+      "name": "Delete instance",
+      "method": "DELETE",
+      "endpoint": "/instances/{{ inputs.instance_id }}",
+      "inputs": [{ "key": "instance_id", "label": "Instance ID", "type": "string", "required": true }]
+    }
+  ]
+}

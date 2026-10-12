@@ -1,0 +1,77 @@
+{
+  "key": "zendesk-ai-reply-note",
+  "name": "Suggest AI replies on new Zendesk tickets",
+  "description": "OpenAI drafts a reply and adds it to the ticket as a private note for your agents to review.",
+  "category": "AI",
+  "featured": true,
+  "graph": {
+    "nodes": [
+      {
+        "id": "trigger",
+        "type": "trigger",
+        "position": {
+          "x": 0,
+          "y": 200
+        },
+        "data": {
+          "integration": "zendesk",
+          "trigger": "new_ticket",
+          "label": "New ticket",
+          "config": {
+            "poll_interval": 5
+          }
+        }
+      },
+      {
+        "id": "step_1",
+        "type": "action",
+        "position": {
+          "x": 240,
+          "y": 200
+        },
+        "data": {
+          "integration": "openai",
+          "action": "chat_completion",
+          "label": "Draft reply",
+          "config": {
+            "model": "gpt-5-mini",
+            "system": "You are a friendly support agent. Draft a short reply. If you are unsure, ask a clarifying question.",
+            "prompt": "{{ steps.trigger.data.subject }}\n\n{{ steps.trigger.data.description }}"
+          }
+        }
+      },
+      {
+        "id": "step_2",
+        "type": "action",
+        "position": {
+          "x": 480,
+          "y": 200
+        },
+        "data": {
+          "integration": "zendesk",
+          "action": "add_comment",
+          "label": "Add private note",
+          "config": {
+            "ticket_id": "{{ steps.trigger.data.id }}",
+            "body": "Suggested reply:\n\n{{ steps.step_1.text }}",
+            "public": false
+          }
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "e-trigger-step_1",
+        "source": "trigger",
+        "target": "step_1",
+        "sourceHandle": null
+      },
+      {
+        "id": "e-step_1-step_2",
+        "source": "step_1",
+        "target": "step_2",
+        "sourceHandle": null
+      }
+    ]
+  }
+}

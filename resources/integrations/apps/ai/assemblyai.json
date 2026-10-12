@@ -1,0 +1,133 @@
+{
+  "key": "assemblyai",
+  "name": "AssemblyAI",
+  "category": "AI",
+  "description": "Transcribe audio from a URL and fetch transcripts.",
+  "brand": "assemblyai",
+  "website": "https://www.assemblyai.com",
+  "docs_url": "https://www.assemblyai.com/docs/api-reference",
+  "base_url": "https://api.assemblyai.com/v2",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "Authorization",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "transcribe",
+      "name": "Transcribe audio URL",
+      "description": "Queues a transcript; fetch it with Get transcript or receive it by webhook.",
+      "method": "POST",
+      "endpoint": "/transcript",
+      "body": {
+        "audio_url": "{{ inputs.audio_url }}",
+        "language_code": "{{ inputs.language_code }}",
+        "speaker_labels": "{{ inputs.speaker_labels }}",
+        "webhook_url": "{{ inputs.webhook_url }}"
+      },
+      "inputs": [
+        {
+          "key": "audio_url",
+          "label": "Audio URL",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "language_code",
+          "label": "Language code",
+          "type": "string",
+          "placeholder": "en_us"
+        },
+        {
+          "key": "speaker_labels",
+          "label": "Identify speakers",
+          "type": "boolean"
+        },
+        {
+          "key": "webhook_url",
+          "label": "Webhook URL",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "get_transcript",
+      "name": "Get transcript",
+      "method": "GET",
+      "endpoint": "/transcript/{{ inputs.transcript_id }}",
+      "output_fields": {
+        "text": "text"
+      },
+      "inputs": [
+        {
+          "key": "transcript_id",
+          "label": "Transcript ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_transcripts",
+      "name": "List transcripts",
+      "method": "GET",
+      "endpoint": "/transcript",
+      "query": {
+        "limit": "{{ inputs.limit }}",
+        "status": "{{ inputs.status }}"
+      },
+      "inputs": [
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number"
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "options": [
+            {
+              "value": "queued",
+              "label": "Queued"
+            },
+            {
+              "value": "processing",
+              "label": "Processing"
+            },
+            {
+              "value": "completed",
+              "label": "Completed"
+            },
+            {
+              "value": "error",
+              "label": "Error"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "transcript_ready",
+      "name": "Transcript webhook",
+      "type": "webhook",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

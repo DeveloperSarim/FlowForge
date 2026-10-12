@@ -1,0 +1,218 @@
+{
+  "key": "contentful",
+  "name": "Contentful",
+  "category": "CMS & Websites",
+  "description": "Create, update, publish and list entries in a Contentful space.",
+  "brand": "contentful",
+  "website": "https://www.contentful.com",
+  "docs_url": "https://www.contentful.com/developers/docs/references/content-management-api/",
+  "popular": true,
+  "base_url": "https://api.contentful.com/spaces/{{ credentials.space_id }}/environments/{{ credentials.environment_id }}",
+  "headers": {
+    "Content-Type": "application/vnd.contentful.management.v1+json"
+  },
+  "auth": [
+    {
+      "type": "bearer",
+      "fields": [
+        {
+          "key": "token",
+          "label": "Content Management token",
+          "type": "password",
+          "required": true,
+          "help": "Settings > CMA tokens."
+        },
+        {
+          "key": "space_id",
+          "label": "Space ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "environment_id",
+          "label": "Environment",
+          "type": "string",
+          "required": true,
+          "default": "master"
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_entries",
+      "name": "List entries",
+      "method": "GET",
+      "endpoint": "/entries",
+      "output_path": "items",
+      "query": {
+        "content_type": "{{ inputs.content_type }}",
+        "query": "{{ inputs.query }}",
+        "limit": "{{ inputs.limit }}",
+        "order": "-sys.createdAt"
+      },
+      "inputs": [
+        {
+          "key": "content_type",
+          "label": "Content type ID",
+          "type": "string"
+        },
+        {
+          "key": "query",
+          "label": "Full-text search",
+          "type": "string"
+        },
+        {
+          "key": "limit",
+          "label": "Max entries",
+          "type": "number",
+          "default": 100
+        }
+      ]
+    },
+    {
+      "key": "get_entry",
+      "name": "Get entry",
+      "method": "GET",
+      "endpoint": "/entries/{{ inputs.entry_id }}",
+      "inputs": [
+        {
+          "key": "entry_id",
+          "label": "Entry ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "create_entry",
+      "name": "Create entry",
+      "method": "POST",
+      "endpoint": "/entries",
+      "headers": {
+        "X-Contentful-Content-Type": "{{ inputs.content_type }}"
+      },
+      "body": {
+        "fields": "{{ inputs.fields }}"
+      },
+      "inputs": [
+        {
+          "key": "content_type",
+          "label": "Content type ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "fields",
+          "label": "Fields (JSON)",
+          "type": "json",
+          "required": true,
+          "placeholder": "{ \"title\": { \"en-US\": \"Hello\" } }",
+          "help": "Each field keyed by locale."
+        }
+      ]
+    },
+    {
+      "key": "update_entry",
+      "name": "Update entry",
+      "description": "Replaces all fields of the entry.",
+      "method": "PUT",
+      "endpoint": "/entries/{{ inputs.entry_id }}",
+      "headers": {
+        "X-Contentful-Version": "{{ inputs.version }}"
+      },
+      "body": {
+        "fields": "{{ inputs.fields }}"
+      },
+      "inputs": [
+        {
+          "key": "entry_id",
+          "label": "Entry ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "version",
+          "label": "Current version",
+          "type": "number",
+          "required": true,
+          "help": "sys.version from Get entry."
+        },
+        {
+          "key": "fields",
+          "label": "Fields (JSON)",
+          "type": "json",
+          "required": true,
+          "placeholder": "{ \"title\": { \"en-US\": \"Hello\" } }",
+          "help": "Each field keyed by locale."
+        }
+      ]
+    },
+    {
+      "key": "publish_entry",
+      "name": "Publish entry",
+      "method": "PUT",
+      "endpoint": "/entries/{{ inputs.entry_id }}/published",
+      "headers": {
+        "X-Contentful-Version": "{{ inputs.version }}"
+      },
+      "inputs": [
+        {
+          "key": "entry_id",
+          "label": "Entry ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "version",
+          "label": "Current version",
+          "type": "number",
+          "required": true,
+          "help": "sys.version from Get entry."
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_entry",
+      "name": "New entry",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/entries",
+      "query": {
+        "content_type": "{{ inputs.content_type }}",
+        "order": "-sys.createdAt",
+        "limit": 50
+      },
+      "items_path": "items",
+      "id_field": "sys.id",
+      "inputs": [
+        {
+          "key": "content_type",
+          "label": "Content type ID",
+          "type": "string"
+        },
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    },
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Contentful webhooks (Entry.publish, Entry.create, ...).",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

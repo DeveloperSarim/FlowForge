@@ -1,0 +1,99 @@
+{
+  "key": "pylon",
+  "name": "Pylon",
+  "category": "Customer Support",
+  "description": "Create, update and add notes to B2B support issues in Pylon.",
+  "brand": "pylon",
+  "website": "https://www.usepylon.com",
+  "docs_url": "https://docs.usepylon.com/pylon-docs/developer/api/api-reference",
+  "base_url": "https://{{ credentials.host }}",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      { "key": "host", "label": "Region", "type": "select", "required": true, "default": "api.usepylon.com", "options": [{ "value": "api.usepylon.com", "label": "US (api.usepylon.com)" }, { "value": "api.eu.usepylon.com", "label": "EU (api.eu.usepylon.com)" }] },
+      { "key": "token", "label": "API token", "type": "password", "required": true, "help": "Settings > API Tokens (admin only)" }
+    ]
+  },
+  "actions": [
+    {
+      "key": "create_issue",
+      "name": "Create issue",
+      "method": "POST",
+      "endpoint": "/issues",
+      "output_path": "data",
+      "body": {
+        "title": "{{ inputs.title }}",
+        "body_html": "{{ inputs.body_html }}",
+        "requester_email": "{{ inputs.requester_email }}",
+        "requester_name": "{{ inputs.requester_name }}",
+        "account_id": "{{ inputs.account_id }}",
+        "priority": "{{ inputs.priority }}",
+        "assignee_id": "{{ inputs.assignee_id }}",
+        "team_id": "{{ inputs.team_id }}",
+        "tags": "{{ inputs.tags }}"
+      },
+      "inputs": [
+        { "key": "title", "label": "Title", "type": "string", "required": true },
+        { "key": "body_html", "label": "Body (HTML)", "type": "text", "required": true },
+        { "key": "requester_email", "label": "Requester email", "type": "string", "help": "Give a requester email or an account ID." },
+        { "key": "requester_name", "label": "Requester name", "type": "string" },
+        { "key": "account_id", "label": "Account ID", "type": "string" },
+        { "key": "priority", "label": "Priority", "type": "select", "options": [{ "value": "urgent", "label": "Urgent" }, { "value": "high", "label": "High" }, { "value": "medium", "label": "Medium" }, { "value": "low", "label": "Low" }] },
+        { "key": "assignee_id", "label": "Assignee user ID", "type": "string" },
+        { "key": "team_id", "label": "Team ID", "type": "string" },
+        { "key": "tags", "label": "Tags", "type": "list" }
+      ]
+    },
+    {
+      "key": "update_issue",
+      "name": "Update issue",
+      "method": "PATCH",
+      "endpoint": "/issues/{{ inputs.issue_id }}",
+      "output_path": "data",
+      "body": {
+        "state": "{{ inputs.state }}",
+        "title": "{{ inputs.title }}",
+        "assignee_id": "{{ inputs.assignee_id }}",
+        "team_id": "{{ inputs.team_id }}",
+        "tags": "{{ inputs.tags }}"
+      },
+      "inputs": [
+        { "key": "issue_id", "label": "Issue ID", "type": "string", "required": true },
+        { "key": "state", "label": "State", "type": "string", "placeholder": "closed", "help": "e.g. new, waiting_on_you, waiting_on_customer, on_hold, closed" },
+        { "key": "title", "label": "Title", "type": "string" },
+        { "key": "assignee_id", "label": "Assignee user ID", "type": "string" },
+        { "key": "team_id", "label": "Team ID", "type": "string" },
+        { "key": "tags", "label": "Tags (replaces existing)", "type": "list" }
+      ]
+    },
+    {
+      "key": "get_issue",
+      "name": "Get issue",
+      "method": "GET",
+      "endpoint": "/issues/{{ inputs.issue_id }}",
+      "output_path": "data",
+      "inputs": [{ "key": "issue_id", "label": "Issue ID", "type": "string", "required": true }]
+    },
+    {
+      "key": "add_note",
+      "name": "Add internal note",
+      "method": "POST",
+      "endpoint": "/issues/{{ inputs.issue_id }}/note",
+      "output_path": "data",
+      "body": { "body_html": "{{ inputs.body_html }}" },
+      "inputs": [
+        { "key": "issue_id", "label": "Issue ID", "type": "string", "required": true },
+        { "key": "body_html", "label": "Note (HTML)", "type": "text", "required": true }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Create a Pylon trigger with a 'Send webhook' action pointing at this URL.",
+      "inputs": [{ "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }]
+    }
+  ]
+}

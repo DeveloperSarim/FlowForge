@@ -1,0 +1,95 @@
+{
+  "key": "smartthings",
+  "name": "SmartThings",
+  "category": "IoT & Smart Home",
+  "description": "List devices, read their status, send commands and run scenes in SmartThings.",
+  "brand": "smartthings",
+  "website": "https://www.smartthings.com",
+  "docs_url": "https://developer.smartthings.com/docs/api/public",
+  "base_url": "https://api.smartthings.com/v1",
+  "auth": [
+    {
+      "type": "bearer",
+      "fields": [
+        { "key": "token", "label": "Personal access token", "type": "password", "required": true, "help": "Create one at account.smartthings.com/tokens. New tokens expire after 24 hours, so use OAuth for long-running workflows." }
+      ]
+    },
+    {
+      "type": "oauth2",
+      "authorize_url": "https://api.smartthings.com/v1/oauth/authorize",
+      "token_url": "https://api.smartthings.com/v1/oauth/token",
+      "client_auth": "basic",
+      "scopes": ["r:devices:*", "x:devices:*", "r:locations:*", "r:scenes:*", "x:scenes:*"]
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_devices",
+      "name": "List devices",
+      "method": "GET",
+      "endpoint": "/devices",
+      "query": { "locationId": "{{ inputs.location_id }}", "capability": "{{ inputs.capability }}" },
+      "output_path": "items",
+      "inputs": [
+        { "key": "location_id", "label": "Location ID", "type": "string" },
+        { "key": "capability", "label": "Capability", "type": "string", "placeholder": "switch" }
+      ]
+    },
+    {
+      "key": "get_device_status",
+      "name": "Get device status",
+      "method": "GET",
+      "endpoint": "/devices/{{ inputs.device_id }}/status",
+      "inputs": [
+        { "key": "device_id", "label": "Device ID", "type": "string", "required": true }
+      ]
+    },
+    {
+      "key": "send_command",
+      "name": "Send device command",
+      "description": "e.g. capability switch, command on; or switchLevel / setLevel with argument 50.",
+      "method": "POST",
+      "endpoint": "/devices/{{ inputs.device_id }}/commands",
+      "body": {
+        "commands": [
+          { "component": "{{ inputs.component }}", "capability": "{{ inputs.capability }}", "command": "{{ inputs.command }}", "arguments": "{{ inputs.arguments }}" }
+        ]
+      },
+      "inputs": [
+        { "key": "device_id", "label": "Device ID", "type": "string", "required": true },
+        { "key": "component", "label": "Component", "type": "string", "required": true, "default": "main" },
+        { "key": "capability", "label": "Capability", "type": "string", "required": true, "placeholder": "switch" },
+        { "key": "command", "label": "Command", "type": "string", "required": true, "placeholder": "on" },
+        { "key": "arguments", "label": "Arguments", "type": "json", "placeholder": "[50]", "help": "JSON array of arguments, if the command takes any." }
+      ]
+    },
+    {
+      "key": "list_scenes",
+      "name": "List scenes",
+      "method": "GET",
+      "endpoint": "/scenes",
+      "query": { "locationId": "{{ inputs.location_id }}" },
+      "output_path": "items",
+      "inputs": [
+        { "key": "location_id", "label": "Location ID", "type": "string" }
+      ]
+    },
+    {
+      "key": "execute_scene",
+      "name": "Run scene",
+      "method": "POST",
+      "endpoint": "/scenes/{{ inputs.scene_id }}/execute",
+      "inputs": [
+        { "key": "scene_id", "label": "Scene ID", "type": "string", "required": true }
+      ]
+    },
+    {
+      "key": "list_locations",
+      "name": "List locations",
+      "method": "GET",
+      "endpoint": "/locations",
+      "output_path": "items",
+      "inputs": []
+    }
+  ]
+}

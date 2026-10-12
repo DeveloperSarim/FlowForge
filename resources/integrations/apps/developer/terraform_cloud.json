@@ -1,0 +1,70 @@
+{
+  "key": "terraform_cloud",
+  "name": "HCP Terraform",
+  "category": "Developer Tools",
+  "description": "Start, inspect and apply runs in HCP Terraform (Terraform Cloud) workspaces.",
+  "brand": "terraform",
+  "website": "https://www.hashicorp.com/products/terraform",
+  "docs_url": "https://developer.hashicorp.com/terraform/cloud-docs/api-docs",
+  "base_url": "https://app.terraform.io/api/v2",
+  "auth": { "type": "bearer", "fields": [{ "key": "token", "label": "API token", "type": "password", "required": true, "help": "User, team or organization token (User settings → Tokens)." }] },
+  "actions": [
+    {
+      "key": "list_workspaces",
+      "name": "List workspaces",
+      "method": "GET",
+      "endpoint": "/organizations/{{ inputs.organization }}/workspaces",
+      "query": { "search[name]": "{{ inputs.search }}", "page[size]": 100 },
+      "output_path": "data",
+      "inputs": [
+        { "key": "organization", "label": "Organization", "type": "string", "required": true },
+        { "key": "search", "label": "Name contains", "type": "string" }
+      ]
+    },
+    {
+      "key": "get_workspace",
+      "name": "Get workspace",
+      "method": "GET",
+      "endpoint": "/organizations/{{ inputs.organization }}/workspaces/{{ inputs.workspace }}",
+      "output_path": "data",
+      "inputs": [
+        { "key": "organization", "label": "Organization", "type": "string", "required": true },
+        { "key": "workspace", "label": "Workspace name", "type": "string", "required": true }
+      ]
+    },
+    {
+      "key": "create_run",
+      "name": "Start run",
+      "description": "Queues a plan (and apply, if the workspace auto-applies).",
+      "method": "POST",
+      "endpoint": "/runs",
+      "headers": { "Content-Type": "application/vnd.api+json" },
+      "body": "{\"data\":{\"type\":\"runs\",\"relationships\":{\"workspace\":{\"data\":{\"type\":\"workspaces\",\"id\":\"{{ inputs.workspace_id }}\"}}}}}",
+      "output_path": "data",
+      "inputs": [{ "key": "workspace_id", "label": "Workspace ID", "type": "string", "required": true, "placeholder": "ws-…" }]
+    },
+    {
+      "key": "get_run",
+      "name": "Get run",
+      "method": "GET",
+      "endpoint": "/runs/{{ inputs.run_id }}",
+      "output_path": "data",
+      "inputs": [{ "key": "run_id", "label": "Run ID", "type": "string", "required": true, "placeholder": "run-…" }]
+    },
+    {
+      "key": "apply_run",
+      "name": "Apply run",
+      "method": "POST",
+      "endpoint": "/runs/{{ inputs.run_id }}/actions/apply",
+      "inputs": [{ "key": "run_id", "label": "Run ID", "type": "string", "required": true }]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "run_notification",
+      "name": "Run notification (webhook)",
+      "type": "webhook",
+      "inputs": [{ "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }]
+    }
+  ]
+}

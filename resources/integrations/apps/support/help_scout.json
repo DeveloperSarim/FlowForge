@@ -1,0 +1,222 @@
+{
+  "key": "help_scout",
+  "name": "Help Scout",
+  "category": "Customer Support",
+  "description": "Create conversations, add notes and manage customers in Help Scout.",
+  "brand": "helpscout",
+  "website": "https://www.helpscout.com",
+  "docs_url": "https://developer.helpscout.com/mailbox-api/",
+  "popular": true,
+  "base_url": "https://api.helpscout.net/v2",
+  "auth": {
+    "type": "oauth2",
+    "authorize_url": "https://secure.helpscout.net/authentication/authorizeClientApplication",
+    "token_url": "https://api.helpscout.net/v2/oauth2/token",
+    "scopes": []
+  },
+  "actions": [
+    {
+      "key": "create_conversation",
+      "name": "Create conversation",
+      "description": "Opens an email conversation from a customer.",
+      "method": "POST",
+      "endpoint": "/conversations",
+      "body": {
+        "subject": "{{ inputs.subject }}",
+        "customer": {
+          "email": "{{ inputs.email }}"
+        },
+        "mailboxId": "{{ inputs.mailbox_id }}",
+        "type": "email",
+        "status": "{{ inputs.status }}",
+        "tags": "{{ inputs.tags }}",
+        "threads": [
+          {
+            "type": "customer",
+            "customer": {
+              "email": "{{ inputs.email }}"
+            },
+            "text": "{{ inputs.text }}"
+          }
+        ]
+      },
+      "inputs": [
+        {
+          "key": "mailbox_id",
+          "label": "Mailbox ID",
+          "type": "number",
+          "required": true,
+          "help": "Use the List mailboxes action to find it."
+        },
+        {
+          "key": "email",
+          "label": "Customer email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "subject",
+          "label": "Subject",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "text",
+          "label": "Message",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "default": "active",
+          "options": [
+            {
+              "value": "active",
+              "label": "Active"
+            },
+            {
+              "value": "pending",
+              "label": "Pending"
+            },
+            {
+              "value": "closed",
+              "label": "Closed"
+            }
+          ]
+        },
+        {
+          "key": "tags",
+          "label": "Tags",
+          "type": "list"
+        }
+      ]
+    },
+    {
+      "key": "get_conversation",
+      "name": "Get conversation",
+      "method": "GET",
+      "endpoint": "/conversations/{{ inputs.conversation_id }}",
+      "query": {
+        "embed": "threads"
+      },
+      "inputs": [
+        {
+          "key": "conversation_id",
+          "label": "Conversation ID",
+          "type": "number",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "add_note",
+      "name": "Add note",
+      "method": "POST",
+      "endpoint": "/conversations/{{ inputs.conversation_id }}/notes",
+      "body": {
+        "text": "{{ inputs.text }}"
+      },
+      "inputs": [
+        {
+          "key": "conversation_id",
+          "label": "Conversation ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "text",
+          "label": "Note",
+          "type": "text",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "create_customer",
+      "name": "Create customer",
+      "method": "POST",
+      "endpoint": "/customers",
+      "body": {
+        "firstName": "{{ inputs.first_name }}",
+        "lastName": "{{ inputs.last_name }}",
+        "emails": [
+          {
+            "type": "work",
+            "value": "{{ inputs.email }}"
+          }
+        ]
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "first_name",
+          "label": "First name",
+          "type": "string"
+        },
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "list_mailboxes",
+      "name": "List mailboxes",
+      "method": "GET",
+      "endpoint": "/mailboxes",
+      "output_path": "_embedded.mailboxes",
+      "inputs": []
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_conversation",
+      "name": "New conversation (polling)",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/conversations",
+      "query": {
+        "status": "all",
+        "sortField": "createdAt",
+        "sortOrder": "desc",
+        "mailbox": "{{ inputs.mailbox_id }}"
+      },
+      "items_path": "_embedded.conversations",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "mailbox_id",
+          "label": "Mailbox ID (optional)",
+          "type": "number"
+        },
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    },
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Add this URL under Manage > Apps > Webhooks.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

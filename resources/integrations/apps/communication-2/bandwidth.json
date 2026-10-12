@@ -1,0 +1,50 @@
+{
+  "key": "bandwidth",
+  "name": "Bandwidth",
+  "category": "Communication",
+  "description": "Send SMS and MMS from your Bandwidth numbers and receive message callbacks.",
+  "brand": "bandwidth",
+  "website": "https://www.bandwidth.com",
+  "docs_url": "https://dev.bandwidth.com/apis/messaging-apis/messaging/",
+  "base_url": "https://messaging.bandwidth.com/api/v2/users/{{ credentials.account_id }}",
+  "auth": [
+    { "type": "basic", "fields": [
+      { "key": "account_id", "label": "Account ID", "type": "string", "required": true },
+      { "key": "username", "label": "API username", "type": "string", "required": true },
+      { "key": "password", "label": "API password", "type": "password", "required": true }
+    ] }
+  ],
+  "actions": [
+    {
+      "key": "send_message",
+      "name": "Send message",
+      "method": "POST",
+      "endpoint": "/messages",
+      "body": {
+        "applicationId": "{{ inputs.application_id }}",
+        "from": "{{ inputs.from }}",
+        "to": "{{ inputs.to }}",
+        "text": "{{ inputs.text }}",
+        "media": "{{ inputs.media }}",
+        "tag": "{{ inputs.tag }}"
+      },
+      "inputs": [
+        { "key": "application_id", "label": "Messaging application ID", "type": "string", "required": true },
+        { "key": "from", "label": "From (E.164)", "type": "string", "required": true, "placeholder": "+19195551234" },
+        { "key": "to", "label": "To (E.164)", "type": "list", "required": true, "help": "Several numbers create a group message." },
+        { "key": "text", "label": "Message", "type": "text" },
+        { "key": "media", "label": "Media URLs (MMS)", "type": "list" },
+        { "key": "tag", "label": "Tag", "type": "string", "help": "Echoed back in callbacks." }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "message_callback",
+      "name": "Message callback",
+      "description": "Set this URL as the callback URL of your Bandwidth messaging application (inbound messages and delivery events).",
+      "type": "webhook",
+      "inputs": [{ "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }]
+    }
+  ]
+}

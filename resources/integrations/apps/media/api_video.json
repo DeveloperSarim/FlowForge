@@ -1,0 +1,112 @@
+{
+  "key": "api_video",
+  "name": "api.video",
+  "category": "Video & Media",
+  "description": "Create, update and track videos and live streams on api.video.",
+  "brand": "apivideo",
+  "website": "https://api.video",
+  "docs_url": "https://docs.api.video/reference",
+  "base_url": "https://ws.api.video",
+  "auth": { "type": "basic", "fields": [
+    { "key": "username", "label": "API key", "type": "password", "required": true, "help": "Production key from the dashboard (sandbox keys need sandbox.api.video)." },
+    { "key": "password", "label": "Password", "type": "password", "required": false, "default": "", "help": "Leave empty: api.video uses the API key as the Basic auth username." }
+  ] },
+  "actions": [
+    {
+      "key": "create_video",
+      "name": "Create video from URL",
+      "description": "Creates a video object; with a source URL api.video ingests the file.",
+      "method": "POST",
+      "endpoint": "/videos",
+      "body": { "title": "{{ inputs.title }}", "description": "{{ inputs.description }}", "source": "{{ inputs.source }}", "public": "{{ inputs.public }}", "tags": "{{ inputs.tags }}" },
+      "inputs": [
+        { "key": "title", "label": "Title", "type": "string", "required": true },
+        { "key": "source", "label": "Source URL", "type": "string", "placeholder": "https://example.com/video.mp4" },
+        { "key": "description", "label": "Description", "type": "text" },
+        { "key": "public", "label": "Public", "type": "boolean" },
+        { "key": "tags", "label": "Tags", "type": "list" }
+      ]
+    },
+    {
+      "key": "get_video",
+      "name": "Get video",
+      "method": "GET",
+      "endpoint": "/videos/{{ inputs.video_id }}",
+      "inputs": [{ "key": "video_id", "label": "Video ID", "type": "string", "required": true }]
+    },
+    {
+      "key": "get_video_status",
+      "name": "Get video status",
+      "description": "Ingest and encoding progress.",
+      "method": "GET",
+      "endpoint": "/videos/{{ inputs.video_id }}/status",
+      "inputs": [{ "key": "video_id", "label": "Video ID", "type": "string", "required": true }]
+    },
+    {
+      "key": "list_videos",
+      "name": "List videos",
+      "method": "GET",
+      "endpoint": "/videos",
+      "output_path": "data",
+      "query": { "title": "{{ inputs.title }}", "sortBy": "createdAt", "sortOrder": "desc", "currentPage": "{{ inputs.page }}", "pageSize": "{{ inputs.page_size }}" },
+      "inputs": [
+        { "key": "title", "label": "Title", "type": "string" },
+        { "key": "page", "label": "Page", "type": "number" },
+        { "key": "page_size", "label": "Page size (max 100)", "type": "number", "default": 25 }
+      ]
+    },
+    {
+      "key": "update_video",
+      "name": "Update video",
+      "method": "PATCH",
+      "endpoint": "/videos/{{ inputs.video_id }}",
+      "body": { "title": "{{ inputs.title }}", "description": "{{ inputs.description }}", "public": "{{ inputs.public }}", "tags": "{{ inputs.tags }}" },
+      "inputs": [
+        { "key": "video_id", "label": "Video ID", "type": "string", "required": true },
+        { "key": "title", "label": "Title", "type": "string" },
+        { "key": "description", "label": "Description", "type": "text" },
+        { "key": "public", "label": "Public", "type": "boolean" },
+        { "key": "tags", "label": "Tags", "type": "list" }
+      ]
+    },
+    {
+      "key": "delete_video",
+      "name": "Delete video",
+      "method": "DELETE",
+      "endpoint": "/videos/{{ inputs.video_id }}",
+      "inputs": [{ "key": "video_id", "label": "Video ID", "type": "string", "required": true }]
+    },
+    {
+      "key": "create_live_stream",
+      "name": "Create live stream",
+      "method": "POST",
+      "endpoint": "/live-streams",
+      "body": { "name": "{{ inputs.name }}", "record": "{{ inputs.record }}", "public": "{{ inputs.public }}" },
+      "inputs": [
+        { "key": "name", "label": "Name", "type": "string", "required": true },
+        { "key": "record", "label": "Record the stream", "type": "boolean" },
+        { "key": "public", "label": "Public", "type": "boolean" }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_video",
+      "name": "New video",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/videos",
+      "query": { "sortBy": "createdAt", "sortOrder": "desc", "pageSize": 25 },
+      "items_path": "data",
+      "id_field": "videoId",
+      "inputs": [{ "key": "poll_interval", "label": "Check every (minutes)", "type": "number", "default": 5 }]
+    },
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "description": "Register this URL with POST /webhooks (e.g. video.encoding.quality.completed).",
+      "type": "webhook",
+      "inputs": [{ "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }]
+    }
+  ]
+}

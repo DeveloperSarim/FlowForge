@@ -1,0 +1,67 @@
+{
+  "key": "openhab",
+  "name": "openHAB",
+  "category": "IoT & Smart Home",
+  "description": "Send commands to openHAB items and read or update their states.",
+  "brand": "openhab",
+  "website": "https://www.openhab.org",
+  "docs_url": "https://www.openhab.org/docs/configuration/restdocs.html",
+  "base_url": "{{ credentials.url }}/rest",
+  "auth": [
+    {
+      "type": "bearer",
+      "fields": [
+        { "key": "url", "label": "openHAB URL", "type": "string", "required": true, "placeholder": "http://openhab.local:8080", "help": "Without /rest. Must be reachable from FlowForge." },
+        { "key": "token", "label": "API token", "type": "password", "required": true, "help": "Your profile (bottom left) > Create new API token." }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_items",
+      "name": "List items",
+      "method": "GET",
+      "endpoint": "/items",
+      "query": { "type": "{{ inputs.type }}", "tags": "{{ inputs.tags }}" },
+      "inputs": [
+        { "key": "type", "label": "Item type", "type": "string", "placeholder": "Switch" },
+        { "key": "tags", "label": "Tags", "type": "string", "placeholder": "Lighting" }
+      ]
+    },
+    {
+      "key": "get_item",
+      "name": "Get item",
+      "method": "GET",
+      "endpoint": "/items/{{ inputs.item }}",
+      "inputs": [
+        { "key": "item", "label": "Item name", "type": "string", "required": true, "placeholder": "LivingRoom_Light" }
+      ]
+    },
+    {
+      "key": "send_command",
+      "name": "Send command",
+      "description": "Sends a command (ON, OFF, 50, TOGGLE…) to an item, which forwards it to the device.",
+      "method": "POST",
+      "endpoint": "/items/{{ inputs.item }}",
+      "headers": { "Content-Type": "text/plain" },
+      "body": "{{ inputs.command }}",
+      "inputs": [
+        { "key": "item", "label": "Item name", "type": "string", "required": true },
+        { "key": "command", "label": "Command", "type": "string", "required": true, "placeholder": "ON" }
+      ]
+    },
+    {
+      "key": "update_state",
+      "name": "Update item state",
+      "description": "Changes the item's state without sending a command to the device.",
+      "method": "PUT",
+      "endpoint": "/items/{{ inputs.item }}/state",
+      "headers": { "Content-Type": "text/plain" },
+      "body": "{{ inputs.state }}",
+      "inputs": [
+        { "key": "item", "label": "Item name", "type": "string", "required": true },
+        { "key": "state", "label": "State", "type": "string", "required": true }
+      ]
+    }
+  ]
+}

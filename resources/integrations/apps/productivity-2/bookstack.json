@@ -1,0 +1,196 @@
+{
+  "key": "bookstack",
+  "name": "BookStack",
+  "category": "Productivity",
+  "description": "Create, update and search pages in a self-hosted BookStack wiki.",
+  "brand": "bookstack",
+  "website": "https://www.bookstackapp.com",
+  "docs_url": "https://demo.bookstackapp.com/api/docs",
+  "base_url": "{{ credentials.url }}/api",
+  "headers": {
+    "Authorization": "Token {{ credentials.api_key }}:{{ credentials.token_secret }}"
+  },
+  "auth": [
+    {
+      "type": "api_key",
+      "fields": [
+        {
+          "key": "url",
+          "label": "BookStack URL",
+          "type": "string",
+          "required": true,
+          "placeholder": "https://wiki.example.com",
+          "help": "Base URL without a trailing slash."
+        },
+        {
+          "key": "api_key",
+          "label": "Token ID",
+          "type": "string",
+          "required": true,
+          "help": "My account > Access & security > API tokens."
+        },
+        {
+          "key": "token_secret",
+          "label": "Token secret",
+          "type": "password",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "search",
+      "name": "Search",
+      "method": "GET",
+      "endpoint": "/search",
+      "query": {
+        "query": "{{ inputs.query }}",
+        "count": "{{ inputs.count }}"
+      },
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "query",
+          "label": "Search query",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "count",
+          "label": "Max results",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "list_books",
+      "name": "List books",
+      "method": "GET",
+      "endpoint": "/books",
+      "query": {
+        "count": "{{ inputs.count }}"
+      },
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "count",
+          "label": "Max results",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "get_page",
+      "name": "Get page",
+      "method": "GET",
+      "endpoint": "/pages/{{ inputs.page_id }}",
+      "inputs": [
+        {
+          "key": "page_id",
+          "label": "Page ID",
+          "type": "number",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "create_page",
+      "name": "Create page",
+      "method": "POST",
+      "endpoint": "/pages",
+      "body": {
+        "book_id": "{{ inputs.book_id }}",
+        "chapter_id": "{{ inputs.chapter_id }}",
+        "name": "{{ inputs.name }}",
+        "markdown": "{{ inputs.markdown }}",
+        "html": "{{ inputs.html }}",
+        "tags": "{{ inputs.tags }}"
+      },
+      "inputs": [
+        {
+          "key": "book_id",
+          "label": "Book ID",
+          "type": "number",
+          "help": "Set this or a chapter ID."
+        },
+        {
+          "key": "chapter_id",
+          "label": "Chapter ID",
+          "type": "number"
+        },
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "markdown",
+          "label": "Content (Markdown)",
+          "type": "text"
+        },
+        {
+          "key": "html",
+          "label": "Content (HTML)",
+          "type": "text",
+          "help": "Used when Markdown is empty."
+        },
+        {
+          "key": "tags",
+          "label": "Tags",
+          "type": "json",
+          "placeholder": "[{\"name\": \"status\", \"value\": \"draft\"}]"
+        }
+      ]
+    },
+    {
+      "key": "update_page",
+      "name": "Update page",
+      "method": "PUT",
+      "endpoint": "/pages/{{ inputs.page_id }}",
+      "body": {
+        "name": "{{ inputs.name }}",
+        "markdown": "{{ inputs.markdown }}",
+        "html": "{{ inputs.html }}"
+      },
+      "inputs": [
+        {
+          "key": "page_id",
+          "label": "Page ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string"
+        },
+        {
+          "key": "markdown",
+          "label": "Content (Markdown)",
+          "type": "text"
+        },
+        {
+          "key": "html",
+          "label": "Content (HTML)",
+          "type": "text"
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

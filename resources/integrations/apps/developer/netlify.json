@@ -1,0 +1,81 @@
+{
+  "key": "netlify",
+  "name": "Netlify",
+  "category": "Developer Tools",
+  "description": "Trigger builds, list and restore deploys on your Netlify sites.",
+  "brand": "netlify",
+  "website": "https://www.netlify.com",
+  "docs_url": "https://docs.netlify.com/api/get-started/",
+  "base_url": "https://api.netlify.com/api/v1",
+  "auth": { "type": "bearer", "fields": [{ "key": "token", "label": "Personal access token", "type": "password", "required": true, "help": "User settings → Applications → Personal access tokens." }] },
+  "actions": [
+    {
+      "key": "list_sites",
+      "name": "List sites",
+      "method": "GET",
+      "endpoint": "/sites",
+      "query": { "name": "{{ inputs.name }}", "per_page": 100 },
+      "inputs": [{ "key": "name", "label": "Name contains", "type": "string" }]
+    },
+    {
+      "key": "trigger_build",
+      "name": "Trigger build",
+      "method": "POST",
+      "endpoint": "/sites/{{ inputs.site_id }}/builds",
+      "body": { "clear_cache": "{{ inputs.clear_cache }}" },
+      "inputs": [
+        { "key": "site_id", "label": "Site ID", "type": "string", "required": true, "help": "Site configuration → Site details → Site ID (or the site's domain)." },
+        { "key": "clear_cache", "label": "Clear cache", "type": "boolean", "default": false }
+      ]
+    },
+    {
+      "key": "list_deploys",
+      "name": "List deploys",
+      "method": "GET",
+      "endpoint": "/sites/{{ inputs.site_id }}/deploys",
+      "query": { "per_page": "{{ inputs.per_page }}" },
+      "inputs": [
+        { "key": "site_id", "label": "Site ID", "type": "string", "required": true },
+        { "key": "per_page", "label": "Limit", "type": "number", "default": 20 }
+      ]
+    },
+    {
+      "key": "get_deploy",
+      "name": "Get deploy",
+      "method": "GET",
+      "endpoint": "/deploys/{{ inputs.deploy_id }}",
+      "inputs": [{ "key": "deploy_id", "label": "Deploy ID", "type": "string", "required": true }]
+    },
+    {
+      "key": "restore_deploy",
+      "name": "Publish (roll back to) deploy",
+      "method": "POST",
+      "endpoint": "/sites/{{ inputs.site_id }}/deploys/{{ inputs.deploy_id }}/restore",
+      "inputs": [
+        { "key": "site_id", "label": "Site ID", "type": "string", "required": true },
+        { "key": "deploy_id", "label": "Deploy ID", "type": "string", "required": true }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_deploy",
+      "name": "New deploy (polling)",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/sites/{{ inputs.site_id }}/deploys",
+      "query": { "per_page": 20 },
+      "id_field": "id",
+      "inputs": [
+        { "key": "site_id", "label": "Site ID", "type": "string", "required": true },
+        { "key": "poll_interval", "label": "Check every (minutes)", "type": "number", "default": 5 }
+      ]
+    },
+    {
+      "key": "deploy_notification",
+      "name": "Deploy notification (webhook)",
+      "type": "webhook",
+      "inputs": [{ "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }]
+    }
+  ]
+}

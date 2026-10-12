@@ -1,0 +1,77 @@
+{
+  "key": "freshdesk-ai-triage",
+  "name": "Triage new Freshdesk tickets with AI",
+  "description": "Gemini summarizes each new ticket and suggests a priority as a private note.",
+  "category": "AI",
+  "featured": false,
+  "graph": {
+    "nodes": [
+      {
+        "id": "trigger",
+        "type": "trigger",
+        "position": {
+          "x": 0,
+          "y": 200
+        },
+        "data": {
+          "integration": "freshdesk",
+          "trigger": "new_ticket",
+          "label": "New ticket",
+          "config": {
+            "poll_interval": 5
+          }
+        }
+      },
+      {
+        "id": "step_1",
+        "type": "action",
+        "position": {
+          "x": 240,
+          "y": 200
+        },
+        "data": {
+          "integration": "google_gemini",
+          "action": "generate_content",
+          "label": "Summarize",
+          "config": {
+            "model": "gemini-2.5-flash",
+            "system": "Summarize the ticket in two lines and suggest a priority (low/medium/high/urgent).",
+            "prompt": "{{ steps.trigger.data.subject }}\n{{ steps.trigger.data.description_text }}"
+          }
+        }
+      },
+      {
+        "id": "step_2",
+        "type": "action",
+        "position": {
+          "x": 480,
+          "y": 200
+        },
+        "data": {
+          "integration": "freshdesk",
+          "action": "add_note",
+          "label": "Add note",
+          "config": {
+            "ticket_id": "{{ steps.trigger.data.id }}",
+            "body": "{{ steps.step_1.text }}",
+            "private": true
+          }
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "e-trigger-step_1",
+        "source": "trigger",
+        "target": "step_1",
+        "sourceHandle": null
+      },
+      {
+        "id": "e-step_1-step_2",
+        "source": "step_1",
+        "target": "step_2",
+        "sourceHandle": null
+      }
+    ]
+  }
+}

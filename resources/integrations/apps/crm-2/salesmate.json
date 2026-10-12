@@ -1,0 +1,114 @@
+{
+  "key": "salesmate",
+  "name": "Salesmate",
+  "category": "CRM & Sales",
+  "description": "Create and update contacts, create deals and add notes in Salesmate.",
+  "brand": "salesmate",
+  "website": "https://www.salesmate.io",
+  "docs_url": "https://apidocs.salesmate.io/",
+  "base_url": "https://{{ credentials.link_name }}.salesmate.io/apis",
+  "headers": { "x-linkname": "{{ credentials.link_name }}.salesmate.io" },
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "accessToken",
+    "fields": [
+      { "key": "link_name", "label": "Link name", "type": "string", "required": true, "placeholder": "yourcompany", "help": "The part before .salesmate.io" },
+      { "key": "api_key", "label": "Session token", "type": "password", "required": true, "help": "My Account > Access Key > Session Token" }
+    ]
+  },
+  "actions": [
+    {
+      "key": "create_contact",
+      "name": "Create contact",
+      "method": "POST",
+      "endpoint": "/contact/v4",
+      "output_path": "Data",
+      "body": {
+        "firstName": "{{ inputs.first_name }}",
+        "lastName": "{{ inputs.last_name }}",
+        "email": "{{ inputs.email }}",
+        "mobile": "{{ inputs.mobile }}",
+        "company": "{{ inputs.company }}",
+        "owner": "{{ inputs.owner }}",
+        "tags": "{{ inputs.tags }}",
+        "description": "{{ inputs.description }}",
+        "...": "{{ inputs.extra }}"
+      },
+      "inputs": [
+        { "key": "first_name", "label": "First name", "type": "string" },
+        { "key": "last_name", "label": "Last name", "type": "string", "required": true },
+        { "key": "email", "label": "Email", "type": "string" },
+        { "key": "mobile", "label": "Mobile", "type": "string" },
+        { "key": "company", "label": "Company", "type": "string" },
+        { "key": "owner", "label": "Owner user ID", "type": "number", "required": true },
+        { "key": "tags", "label": "Tags", "type": "string", "placeholder": "lead,webinar" },
+        { "key": "description", "label": "Description", "type": "text" },
+        { "key": "extra", "label": "Other fields", "type": "keyvalue", "help": "API field names, e.g. website, billingCity, textCustomField1" }
+      ]
+    },
+    {
+      "key": "update_contact",
+      "name": "Update contact",
+      "method": "PUT",
+      "endpoint": "/contact/v4/{{ inputs.contact_id }}",
+      "output_path": "Data",
+      "body": "{{ inputs.fields }}",
+      "inputs": [
+        { "key": "contact_id", "label": "Contact ID", "type": "number", "required": true },
+        { "key": "fields", "label": "Fields", "type": "keyvalue", "required": true, "help": "API field names, e.g. firstName, email, mobile" }
+      ]
+    },
+    {
+      "key": "get_contact",
+      "name": "Get contact",
+      "method": "GET",
+      "endpoint": "/contact/v4/{{ inputs.contact_id }}",
+      "output_path": "Data",
+      "inputs": [{ "key": "contact_id", "label": "Contact ID", "type": "number", "required": true }]
+    },
+    {
+      "key": "create_deal",
+      "name": "Create deal",
+      "method": "POST",
+      "endpoint": "/deal/v4",
+      "output_path": "Data",
+      "body": {
+        "title": "{{ inputs.title }}",
+        "primaryContact": "{{ inputs.primary_contact }}",
+        "owner": "{{ inputs.owner }}",
+        "pipeline": "{{ inputs.pipeline }}",
+        "stage": "{{ inputs.stage }}",
+        "status": "{{ inputs.status }}",
+        "dealValue": "{{ inputs.deal_value }}",
+        "currency": "{{ inputs.currency }}",
+        "estimatedCloseDate": "{{ inputs.estimated_close_date }}",
+        "description": "{{ inputs.description }}"
+      },
+      "inputs": [
+        { "key": "title", "label": "Title", "type": "string", "required": true },
+        { "key": "primary_contact", "label": "Primary contact ID", "type": "number", "required": true },
+        { "key": "owner", "label": "Owner user ID", "type": "number", "required": true },
+        { "key": "pipeline", "label": "Pipeline name", "type": "string", "required": true, "placeholder": "Sales" },
+        { "key": "stage", "label": "Stage name", "type": "string", "required": true, "placeholder": "New (Untouched)" },
+        { "key": "status", "label": "Status", "type": "select", "required": true, "default": "Open", "options": [{ "value": "Open", "label": "Open" }, { "value": "Won", "label": "Won" }, { "value": "Lost", "label": "Lost" }] },
+        { "key": "deal_value", "label": "Value", "type": "number" },
+        { "key": "currency", "label": "Currency", "type": "string", "placeholder": "USD" },
+        { "key": "estimated_close_date", "label": "Estimated close date", "type": "string", "placeholder": "2026-12-31" },
+        { "key": "description", "label": "Description", "type": "text" }
+      ]
+    },
+    {
+      "key": "add_contact_note",
+      "name": "Add note to contact",
+      "method": "POST",
+      "endpoint": "/contact/v4/modules/1/object/{{ inputs.contact_id }}/notes",
+      "output_path": "Data",
+      "body": { "note": "{{ inputs.note }}", "type": "Note" },
+      "inputs": [
+        { "key": "contact_id", "label": "Contact ID", "type": "number", "required": true },
+        { "key": "note", "label": "Note (HTML)", "type": "text", "required": true }
+      ]
+    }
+  ]
+}

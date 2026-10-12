@@ -1,0 +1,83 @@
+{
+  "key": "shodan",
+  "name": "Shodan",
+  "category": "Security & IT",
+  "description": "Look up hosts, search internet-exposed services and resolve DNS.",
+  "brand": "shodan",
+  "website": "https://www.shodan.io",
+  "docs_url": "https://developer.shodan.io/api",
+  "base_url": "https://api.shodan.io",
+  "auth": { "type": "api_key", "in": "query", "name": "key", "fields": [
+    { "key": "api_key", "label": "API key", "type": "password", "required": true, "help": "account.shodan.io → API key." }
+  ] },
+  "actions": [
+    {
+      "key": "get_host",
+      "name": "Get host",
+      "method": "GET",
+      "endpoint": "/shodan/host/{{ inputs.ip }}",
+      "query": { "minify": "{{ inputs.minify }}", "history": "{{ inputs.history }}" },
+      "inputs": [
+        { "key": "ip", "label": "IP address", "type": "string", "required": true },
+        { "key": "minify", "label": "Only ports and basic info", "type": "boolean" },
+        { "key": "history", "label": "Include historical banners", "type": "boolean" }
+      ]
+    },
+    {
+      "key": "search",
+      "name": "Search hosts",
+      "description": "Uses query credits for filters or pages beyond the first.",
+      "method": "GET",
+      "endpoint": "/shodan/host/search",
+      "query": { "query": "{{ inputs.query }}", "facets": "{{ inputs.facets }}", "page": "{{ inputs.page }}", "minify": "{{ inputs.minify }}" },
+      "inputs": [
+        { "key": "query", "label": "Query", "type": "string", "required": true, "placeholder": "org:\"Example Inc\" port:3389" },
+        { "key": "facets", "label": "Facets", "type": "string", "placeholder": "country,port" },
+        { "key": "page", "label": "Page", "type": "number" },
+        { "key": "minify", "label": "Minify results", "type": "boolean" }
+      ]
+    },
+    {
+      "key": "count",
+      "name": "Count results",
+      "description": "Like search but returns only totals and facets (no query credits).",
+      "method": "GET",
+      "endpoint": "/shodan/host/count",
+      "query": { "query": "{{ inputs.query }}", "facets": "{{ inputs.facets }}" },
+      "inputs": [
+        { "key": "query", "label": "Query", "type": "string", "required": true },
+        { "key": "facets", "label": "Facets", "type": "string" }
+      ]
+    },
+    {
+      "key": "dns_resolve",
+      "name": "Resolve hostnames",
+      "method": "GET",
+      "endpoint": "/dns/resolve",
+      "query": { "hostnames": "{{ inputs.hostnames }}" },
+      "inputs": [{ "key": "hostnames", "label": "Hostnames", "type": "string", "required": true, "placeholder": "example.com,www.example.com" }]
+    },
+    {
+      "key": "dns_reverse",
+      "name": "Reverse DNS lookup",
+      "method": "GET",
+      "endpoint": "/dns/reverse",
+      "query": { "ips": "{{ inputs.ips }}" },
+      "inputs": [{ "key": "ips", "label": "IP addresses", "type": "string", "required": true, "placeholder": "8.8.8.8,1.1.1.1" }]
+    },
+    {
+      "key": "get_domain",
+      "name": "Get domain subdomains and records",
+      "method": "GET",
+      "endpoint": "/dns/domain/{{ inputs.domain }}",
+      "inputs": [{ "key": "domain", "label": "Domain", "type": "string", "required": true }]
+    },
+    {
+      "key": "api_info",
+      "name": "Get API plan info",
+      "method": "GET",
+      "endpoint": "/api-info",
+      "inputs": []
+    }
+  ]
+}

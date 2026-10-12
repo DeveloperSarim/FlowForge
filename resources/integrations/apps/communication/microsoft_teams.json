@@ -1,0 +1,91 @@
+{
+  "key": "microsoft_teams",
+  "name": "Microsoft Teams",
+  "category": "Communication",
+  "description": "Post to channels and chats, and list your teams, channels and chats.",
+  "brand": "microsoftteams",
+  "website": "https://www.microsoft.com/microsoft-teams",
+  "docs_url": "https://learn.microsoft.com/en-us/graph/api/resources/teams-api-overview",
+  "popular": true,
+  "base_url": "https://graph.microsoft.com/v1.0",
+  "auth": [
+    {
+      "type": "oauth2",
+      "authorize_url": "https://login.microsoftonline.com/common/oauth2/v2.0/authorize",
+      "token_url": "https://login.microsoftonline.com/common/oauth2/v2.0/token",
+      "scopes": ["offline_access", "User.Read", "Team.ReadBasic.All", "Channel.ReadBasic.All", "ChannelMessage.Send", "Chat.ReadBasic", "ChatMessage.Send"]
+    }
+  ],
+  "actions": [
+    {
+      "key": "send_channel_message",
+      "name": "Send channel message",
+      "description": "Posts as the signed-in user. For an incoming webhook / Workflows URL, use the HTTP Request node.",
+      "method": "POST",
+      "endpoint": "/teams/{{ inputs.team_id }}/channels/{{ inputs.channel_id }}/messages",
+      "body": { "body": { "contentType": "{{ inputs.content_type }}", "content": "{{ inputs.content }}" } },
+      "inputs": [
+        { "key": "team_id", "label": "Team ID", "type": "string", "required": true, "help": "From List joined teams." },
+        { "key": "channel_id", "label": "Channel ID", "type": "string", "required": true, "placeholder": "19:…@thread.tacv2" },
+        { "key": "content", "label": "Message", "type": "text", "required": true },
+        { "key": "content_type", "label": "Format", "type": "select", "default": "text", "options": [
+          { "value": "text", "label": "Plain text" }, { "value": "html", "label": "HTML" }
+        ] }
+      ]
+    },
+    {
+      "key": "reply_to_channel_message",
+      "name": "Reply to channel message",
+      "method": "POST",
+      "endpoint": "/teams/{{ inputs.team_id }}/channels/{{ inputs.channel_id }}/messages/{{ inputs.message_id }}/replies",
+      "body": { "body": { "contentType": "{{ inputs.content_type }}", "content": "{{ inputs.content }}" } },
+      "inputs": [
+        { "key": "team_id", "label": "Team ID", "type": "string", "required": true },
+        { "key": "channel_id", "label": "Channel ID", "type": "string", "required": true },
+        { "key": "message_id", "label": "Message ID", "type": "string", "required": true },
+        { "key": "content", "label": "Reply", "type": "text", "required": true },
+        { "key": "content_type", "label": "Format", "type": "select", "default": "text", "options": [
+          { "value": "text", "label": "Plain text" }, { "value": "html", "label": "HTML" }
+        ] }
+      ]
+    },
+    {
+      "key": "send_chat_message",
+      "name": "Send chat message",
+      "method": "POST",
+      "endpoint": "/chats/{{ inputs.chat_id }}/messages",
+      "body": { "body": { "contentType": "{{ inputs.content_type }}", "content": "{{ inputs.content }}" } },
+      "inputs": [
+        { "key": "chat_id", "label": "Chat ID", "type": "string", "required": true, "help": "From List chats." },
+        { "key": "content", "label": "Message", "type": "text", "required": true },
+        { "key": "content_type", "label": "Format", "type": "select", "default": "text", "options": [
+          { "value": "text", "label": "Plain text" }, { "value": "html", "label": "HTML" }
+        ] }
+      ]
+    },
+    {
+      "key": "list_joined_teams",
+      "name": "List joined teams",
+      "method": "GET",
+      "endpoint": "/me/joinedTeams",
+      "output_path": "value",
+      "inputs": []
+    },
+    {
+      "key": "list_channels",
+      "name": "List channels",
+      "method": "GET",
+      "endpoint": "/teams/{{ inputs.team_id }}/channels",
+      "output_path": "value",
+      "inputs": [{ "key": "team_id", "label": "Team ID", "type": "string", "required": true }]
+    },
+    {
+      "key": "list_chats",
+      "name": "List chats",
+      "method": "GET",
+      "endpoint": "/me/chats",
+      "output_path": "value",
+      "inputs": []
+    }
+  ]
+}

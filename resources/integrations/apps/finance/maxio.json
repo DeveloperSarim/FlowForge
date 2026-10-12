@@ -1,0 +1,168 @@
+{
+  "key": "maxio",
+  "name": "Maxio Advanced Billing",
+  "category": "Payments & Finance",
+  "description": "Create customers and look up subscriptions in Maxio (formerly Chargify).",
+  "brand": "maxio",
+  "website": "https://www.maxio.com",
+  "docs_url": "https://developers.maxio.com/http/getting-started/overview",
+  "base_url": "https://{{ credentials.subdomain }}.chargify.com",
+  "auth": [
+    {
+      "type": "basic",
+      "fields": [
+        {
+          "key": "subdomain",
+          "label": "Site subdomain",
+          "type": "string",
+          "required": true,
+          "placeholder": "acme",
+          "help": "The part before .chargify.com."
+        },
+        {
+          "key": "username",
+          "label": "API key",
+          "type": "password",
+          "required": true,
+          "help": "Config > Integrations > API keys."
+        },
+        {
+          "key": "password",
+          "label": "Password",
+          "type": "password",
+          "required": false,
+          "default": "x",
+          "help": "Leave as x."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "create_customer",
+      "name": "Create customer",
+      "method": "POST",
+      "endpoint": "/customers.json",
+      "output_path": "customer",
+      "body": {
+        "customer": {
+          "first_name": "{{ inputs.first_name }}",
+          "last_name": "{{ inputs.last_name }}",
+          "email": "{{ inputs.email }}",
+          "organization": "{{ inputs.organization }}",
+          "reference": "{{ inputs.reference }}"
+        }
+      },
+      "inputs": [
+        {
+          "key": "first_name",
+          "label": "First name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "organization",
+          "label": "Organization",
+          "type": "string"
+        },
+        {
+          "key": "reference",
+          "label": "Reference",
+          "type": "string",
+          "help": "Your unique ID for the customer."
+        }
+      ]
+    },
+    {
+      "key": "find_customers",
+      "name": "Find customers",
+      "method": "GET",
+      "endpoint": "/customers.json",
+      "query": {
+        "q": "{{ inputs.q }}"
+      },
+      "inputs": [
+        {
+          "key": "q",
+          "label": "Search",
+          "type": "string",
+          "required": true,
+          "help": "Email, name, organization or reference."
+        }
+      ]
+    },
+    {
+      "key": "get_subscription",
+      "name": "Get subscription",
+      "method": "GET",
+      "endpoint": "/subscriptions/{{ inputs.subscription_id }}.json",
+      "output_path": "subscription",
+      "inputs": [
+        {
+          "key": "subscription_id",
+          "label": "Subscription ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_subscriptions",
+      "name": "List subscriptions",
+      "method": "GET",
+      "endpoint": "/subscriptions.json",
+      "query": {
+        "state": "{{ inputs.state }}",
+        "per_page": "{{ inputs.per_page }}",
+        "page": "{{ inputs.page }}"
+      },
+      "inputs": [
+        {
+          "key": "state",
+          "label": "State",
+          "type": "string",
+          "placeholder": "active"
+        },
+        {
+          "key": "per_page",
+          "label": "Per page",
+          "type": "number",
+          "default": 20
+        },
+        {
+          "key": "page",
+          "label": "Page",
+          "type": "number"
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Config > Settings > Webhooks: add this URL as an endpoint.",
+      "data_path": "payload",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

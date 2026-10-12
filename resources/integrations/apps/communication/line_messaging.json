@@ -1,0 +1,74 @@
+{
+  "key": "line_messaging",
+  "name": "LINE Messaging API",
+  "category": "Communication",
+  "description": "Push, multicast, broadcast and reply to messages from a LINE Official Account.",
+  "brand": "line",
+  "website": "https://developers.line.biz/en/services/messaging-api/",
+  "docs_url": "https://developers.line.biz/en/reference/messaging-api/",
+  "base_url": "https://api.line.me/v2/bot",
+  "auth": [
+    { "type": "bearer", "fields": [{ "key": "token", "label": "Channel access token (long-lived)", "type": "password", "required": true }] }
+  ],
+  "actions": [
+    {
+      "key": "push_message",
+      "name": "Send text to a user / group",
+      "method": "POST",
+      "endpoint": "/message/push",
+      "body": { "to": "{{ inputs.to }}", "messages": [{ "type": "text", "text": "{{ inputs.text }}" }] },
+      "inputs": [
+        { "key": "to", "label": "User, group or room ID", "type": "string", "required": true, "placeholder": "U4af4980629…" },
+        { "key": "text", "label": "Message", "type": "text", "required": true }
+      ]
+    },
+    {
+      "key": "reply_message",
+      "name": "Reply to event",
+      "description": "Free of charge, but the reply token from the webhook event expires quickly.",
+      "method": "POST",
+      "endpoint": "/message/reply",
+      "body": { "replyToken": "{{ inputs.reply_token }}", "messages": [{ "type": "text", "text": "{{ inputs.text }}" }] },
+      "inputs": [
+        { "key": "reply_token", "label": "Reply token", "type": "string", "required": true },
+        { "key": "text", "label": "Message", "type": "text", "required": true }
+      ]
+    },
+    {
+      "key": "multicast_message",
+      "name": "Send text to several users",
+      "method": "POST",
+      "endpoint": "/message/multicast",
+      "body": { "to": "{{ inputs.to }}", "messages": [{ "type": "text", "text": "{{ inputs.text }}" }] },
+      "inputs": [
+        { "key": "to", "label": "User IDs", "type": "list", "required": true },
+        { "key": "text", "label": "Message", "type": "text", "required": true }
+      ]
+    },
+    {
+      "key": "broadcast_message",
+      "name": "Broadcast text to all friends",
+      "method": "POST",
+      "endpoint": "/message/broadcast",
+      "body": { "messages": [{ "type": "text", "text": "{{ inputs.text }}" }] },
+      "inputs": [{ "key": "text", "label": "Message", "type": "text", "required": true }]
+    },
+    {
+      "key": "get_profile",
+      "name": "Get user profile",
+      "method": "GET",
+      "endpoint": "/profile/{{ inputs.user_id }}",
+      "inputs": [{ "key": "user_id", "label": "User ID", "type": "string", "required": true }]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook events",
+      "description": "Set this URL as the channel's Webhook URL. Yields the events array.",
+      "type": "webhook",
+      "data_path": "events",
+      "inputs": [{ "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }]
+    }
+  ]
+}

@@ -1,0 +1,86 @@
+{
+  "key": "tailscale",
+  "name": "Tailscale",
+  "category": "Security & IT",
+  "description": "List, authorize, tag and remove devices and create auth keys.",
+  "brand": "tailscale",
+  "website": "https://tailscale.com",
+  "docs_url": "https://tailscale.com/api",
+  "base_url": "https://api.tailscale.com/api/v2",
+  "auth": { "type": "bearer", "fields": [{ "key": "token", "label": "API access token (tskey-api-…)", "type": "password", "required": true, "help": "Admin console → Settings → Keys → Generate access token (expires after up to 90 days)." }] },
+  "actions": [
+    {
+      "key": "list_devices",
+      "name": "List devices",
+      "method": "GET",
+      "endpoint": "/tailnet/{{ inputs.tailnet }}/devices",
+      "query": { "fields": "{{ inputs.fields }}" },
+      "output_path": "devices",
+      "inputs": [
+        { "key": "tailnet", "label": "Tailnet", "type": "string", "required": true, "default": "-", "help": "- means the token's default tailnet." },
+        { "key": "fields", "label": "Fields", "type": "select", "options": [{ "value": "default", "label": "Default" }, { "value": "all", "label": "All" }] }
+      ]
+    },
+    {
+      "key": "get_device",
+      "name": "Get device",
+      "method": "GET",
+      "endpoint": "/device/{{ inputs.device_id }}",
+      "query": { "fields": "all" },
+      "inputs": [{ "key": "device_id", "label": "Device ID", "type": "string", "required": true }]
+    },
+    {
+      "key": "authorize_device",
+      "name": "Authorize or deauthorize device",
+      "method": "POST",
+      "endpoint": "/device/{{ inputs.device_id }}/authorized",
+      "body": { "authorized": "{{ inputs.authorized }}" },
+      "inputs": [
+        { "key": "device_id", "label": "Device ID", "type": "string", "required": true },
+        { "key": "authorized", "label": "Authorized", "type": "boolean", "required": true, "default": true }
+      ]
+    },
+    {
+      "key": "set_device_tags",
+      "name": "Set device tags",
+      "method": "POST",
+      "endpoint": "/device/{{ inputs.device_id }}/tags",
+      "body": { "tags": "{{ inputs.tags }}" },
+      "inputs": [
+        { "key": "device_id", "label": "Device ID", "type": "string", "required": true },
+        { "key": "tags", "label": "Tags", "type": "list", "required": true, "placeholder": "tag:server" }
+      ]
+    },
+    {
+      "key": "delete_device",
+      "name": "Delete device",
+      "method": "DELETE",
+      "endpoint": "/device/{{ inputs.device_id }}",
+      "inputs": [{ "key": "device_id", "label": "Device ID", "type": "string", "required": true }]
+    },
+    {
+      "key": "create_auth_key",
+      "name": "Create auth key",
+      "method": "POST",
+      "endpoint": "/tailnet/{{ inputs.tailnet }}/keys",
+      "body": { "capabilities": { "devices": { "create": { "reusable": "{{ inputs.reusable }}", "ephemeral": "{{ inputs.ephemeral }}", "preauthorized": "{{ inputs.preauthorized }}", "tags": "{{ inputs.tags }}" } } }, "expirySeconds": "{{ inputs.expiry_seconds }}", "description": "{{ inputs.description }}" },
+      "inputs": [
+        { "key": "tailnet", "label": "Tailnet", "type": "string", "required": true, "default": "-" },
+        { "key": "reusable", "label": "Reusable", "type": "boolean" },
+        { "key": "ephemeral", "label": "Ephemeral", "type": "boolean" },
+        { "key": "preauthorized", "label": "Pre-authorized", "type": "boolean" },
+        { "key": "tags", "label": "Tags", "type": "list", "placeholder": "tag:ci" },
+        { "key": "expiry_seconds", "label": "Expires in (seconds)", "type": "number", "default": 86400 },
+        { "key": "description", "label": "Description", "type": "string" }
+      ]
+    },
+    {
+      "key": "list_users",
+      "name": "List users",
+      "method": "GET",
+      "endpoint": "/tailnet/{{ inputs.tailnet }}/users",
+      "output_path": "users",
+      "inputs": [{ "key": "tailnet", "label": "Tailnet", "type": "string", "required": true, "default": "-" }]
+    }
+  ]
+}

@@ -1,0 +1,103 @@
+{
+  "key": "wistia",
+  "name": "Wistia",
+  "category": "Video & Media",
+  "description": "Import, update and organise videos in Wistia folders.",
+  "brand": "wistia",
+  "website": "https://wistia.com",
+  "docs_url": "https://docs.wistia.com/reference",
+  "popular": true,
+  "base_url": "https://api.wistia.com/modern",
+  "headers": { "X-Wistia-API-Version": "2026-09" },
+  "auth": { "type": "bearer", "fields": [
+    { "key": "token", "label": "API access token", "type": "password", "required": true, "help": "Account > Settings > API Access." }
+  ] },
+  "actions": [
+    {
+      "key": "import_from_url",
+      "name": "Import media from URL",
+      "description": "Queues a background import of a public video or audio file.",
+      "method": "POST",
+      "endpoint": "/medias/import_url",
+      "body": { "url": "{{ inputs.url }}", "folder_id": "{{ inputs.folder_id }}" },
+      "inputs": [
+        { "key": "url", "label": "File URL", "type": "string", "required": true, "placeholder": "https://example.com/video.mp4" },
+        { "key": "folder_id", "label": "Folder hashed ID", "type": "string", "help": "Leave empty to create a new folder." }
+      ]
+    },
+    {
+      "key": "list_medias",
+      "name": "List media",
+      "method": "GET",
+      "endpoint": "/medias",
+      "query": { "folder_id": "{{ inputs.folder_id }}", "sort_by": "created", "sort_direction": 0, "per_page": "{{ inputs.per_page }}" },
+      "inputs": [
+        { "key": "folder_id", "label": "Folder hashed ID", "type": "string" },
+        { "key": "per_page", "label": "Per page", "type": "number", "default": 25 }
+      ]
+    },
+    {
+      "key": "get_media",
+      "name": "Get media",
+      "method": "GET",
+      "endpoint": "/medias/{{ inputs.media_id }}",
+      "inputs": [{ "key": "media_id", "label": "Media hashed ID", "type": "string", "required": true }]
+    },
+    {
+      "key": "update_media",
+      "name": "Update media",
+      "method": "PUT",
+      "endpoint": "/medias/{{ inputs.media_id }}",
+      "body": { "name": "{{ inputs.name }}", "description": "{{ inputs.description }}", "tags": "{{ inputs.tags }}" },
+      "inputs": [
+        { "key": "media_id", "label": "Media hashed ID", "type": "string", "required": true },
+        { "key": "name", "label": "Name", "type": "string" },
+        { "key": "description", "label": "Description", "type": "text" },
+        { "key": "tags", "label": "Tags (replaces existing)", "type": "list" }
+      ]
+    },
+    {
+      "key": "delete_media",
+      "name": "Delete media",
+      "method": "DELETE",
+      "endpoint": "/medias/{{ inputs.media_id }}",
+      "inputs": [{ "key": "media_id", "label": "Media hashed ID", "type": "string", "required": true }]
+    },
+    {
+      "key": "list_folders",
+      "name": "List folders",
+      "method": "GET",
+      "endpoint": "/folders",
+      "inputs": []
+    },
+    {
+      "key": "create_folder",
+      "name": "Create folder",
+      "method": "POST",
+      "endpoint": "/folders",
+      "body": { "name": "{{ inputs.name }}", "description": "{{ inputs.description }}" },
+      "inputs": [
+        { "key": "name", "label": "Name", "type": "string", "required": true },
+        { "key": "description", "label": "Description", "type": "text" }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_media",
+      "name": "New media",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/medias",
+      "query": { "sort_by": "created", "sort_direction": 0, "per_page": 25 },
+      "id_field": "hashed_id",
+      "inputs": [{ "key": "poll_interval", "label": "Check every (minutes)", "type": "number", "default": 5 }]
+    },
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "inputs": [{ "key": "sample_payload", "label": "Test payload (JSON)", "type": "json" }]
+    }
+  ]
+}

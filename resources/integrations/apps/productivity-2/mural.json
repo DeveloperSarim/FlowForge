@@ -1,0 +1,146 @@
+{
+  "key": "mural",
+  "name": "Mural",
+  "category": "Productivity",
+  "description": "Create murals and add sticky notes in Mural workspaces.",
+  "brand": "mural",
+  "website": "https://www.mural.co",
+  "docs_url": "https://developers.mural.co/public/docs",
+  "base_url": "https://app.mural.co/api/public/v1",
+  "auth": [
+    {
+      "type": "oauth2",
+      "authorize_url": "https://app.mural.co/api/public/v1/authorization/oauth2/",
+      "token_url": "https://app.mural.co/api/public/v1/authorization/oauth2/token",
+      "scopes": [
+        "identity:read",
+        "workspaces:read",
+        "rooms:read",
+        "murals:read",
+        "murals:write"
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "get_current_user",
+      "name": "Get current user",
+      "method": "GET",
+      "endpoint": "/users/me",
+      "inputs": []
+    },
+    {
+      "key": "list_workspaces",
+      "name": "List workspaces",
+      "method": "GET",
+      "endpoint": "/workspaces",
+      "output_path": "value",
+      "inputs": []
+    },
+    {
+      "key": "list_murals",
+      "name": "List murals in workspace",
+      "method": "GET",
+      "endpoint": "/workspaces/{{ inputs.workspace_id }}/murals",
+      "output_path": "value",
+      "inputs": [
+        {
+          "key": "workspace_id",
+          "label": "Workspace ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "create_mural",
+      "name": "Create mural",
+      "method": "POST",
+      "endpoint": "/murals",
+      "body": {
+        "workspaceId": "{{ inputs.workspace_id }}",
+        "roomId": "{{ inputs.room_id }}",
+        "title": "{{ inputs.title }}"
+      },
+      "inputs": [
+        {
+          "key": "workspace_id",
+          "label": "Workspace ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "room_id",
+          "label": "Room ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "add_sticky_note",
+      "name": "Add sticky note",
+      "method": "POST",
+      "endpoint": "/murals/{{ inputs.mural_id }}/widgets/sticky-note",
+      "body": [
+        {
+          "shape": "{{ inputs.shape }}",
+          "x": "{{ inputs.x }}",
+          "y": "{{ inputs.y }}",
+          "text": "{{ inputs.text }}"
+        }
+      ],
+      "output_path": "value",
+      "inputs": [
+        {
+          "key": "mural_id",
+          "label": "Mural ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "text",
+          "label": "Text",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "x",
+          "label": "X position",
+          "type": "number",
+          "required": true,
+          "default": 0
+        },
+        {
+          "key": "y",
+          "label": "Y position",
+          "type": "number",
+          "required": true,
+          "default": 0
+        },
+        {
+          "key": "shape",
+          "label": "Shape",
+          "type": "select",
+          "required": true,
+          "default": "rectangle",
+          "options": [
+            {
+              "value": "rectangle",
+              "label": "Rectangle"
+            },
+            {
+              "value": "circle",
+              "label": "Circle"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

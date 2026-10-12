@@ -1,0 +1,49 @@
+{
+  "key": "hasura",
+  "name": "Hasura",
+  "category": "Databases",
+  "description": "Run GraphQL queries and mutations, or raw SQL, against a Hasura GraphQL Engine.",
+  "brand": "hasura",
+  "website": "https://hasura.io",
+  "docs_url": "https://hasura.io/docs/2.0/api-reference/overview/",
+  "popular": true,
+  "base_url": "{{ credentials.endpoint }}",
+  "auth": [
+    { "type": "api_key", "in": "header", "name": "x-hasura-admin-secret", "fields": [
+      { "key": "endpoint", "label": "Hasura URL", "type": "string", "required": true, "placeholder": "https://my-project.hasura.app", "help": "Project origin without /v1/graphql or a trailing slash." },
+      { "key": "api_key", "label": "Admin secret", "type": "password", "required": true }
+    ] },
+    { "type": "bearer", "fields": [
+      { "key": "endpoint", "label": "Hasura URL", "type": "string", "required": true, "placeholder": "https://my-project.hasura.app" },
+      { "key": "token", "label": "JWT", "type": "password", "required": true, "help": "A user JWT; permissions follow its role claims." }
+    ] }
+  ],
+  "actions": [
+    {
+      "key": "graphql",
+      "name": "Run GraphQL query / mutation",
+      "method": "POST",
+      "endpoint": "/v1/graphql",
+      "body": { "query": "{{ inputs.query }}", "variables": "{{ inputs.variables }}", "operationName": "{{ inputs.operation_name }}" },
+      "error_path": "errors",
+      "inputs": [
+        { "key": "query", "label": "Query", "type": "code", "required": true, "placeholder": "query { users(limit: 10) { id name } }" },
+        { "key": "variables", "label": "Variables (JSON)", "type": "json" },
+        { "key": "operation_name", "label": "Operation name", "type": "string" }
+      ]
+    },
+    {
+      "key": "run_sql",
+      "name": "Run SQL",
+      "description": "Runs SQL on a connected Postgres source (admin secret required).",
+      "method": "POST",
+      "endpoint": "/v2/query",
+      "body": { "type": "run_sql", "args": { "source": "{{ inputs.source }}", "sql": "{{ inputs.sql }}", "read_only": "{{ inputs.read_only }}" } },
+      "inputs": [
+        { "key": "sql", "label": "SQL", "type": "code", "required": true },
+        { "key": "source", "label": "Source", "type": "string", "required": true, "default": "default" },
+        { "key": "read_only", "label": "Read only", "type": "boolean" }
+      ]
+    }
+  ]
+}

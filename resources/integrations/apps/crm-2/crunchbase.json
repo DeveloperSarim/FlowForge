@@ -1,0 +1,172 @@
+{
+  "key": "crunchbase",
+  "name": "Crunchbase",
+  "category": "CRM & Sales",
+  "description": "Look up companies and people, and search organizations in Crunchbase.",
+  "brand": "crunchbase",
+  "website": "https://www.crunchbase.com",
+  "docs_url": "https://data.crunchbase.com/docs/using-the-api",
+  "popular": true,
+  "base_url": "https://api.crunchbase.com/api/v4",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "X-cb-user-key",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "get_organization",
+      "name": "Get organization",
+      "method": "GET",
+      "endpoint": "/entities/organizations/{{ inputs.organization }}",
+      "query": {
+        "field_ids": "{{ inputs.field_ids }}",
+        "card_ids": "{{ inputs.card_ids }}"
+      },
+      "inputs": [
+        {
+          "key": "organization",
+          "label": "Organization permalink or UUID",
+          "type": "string",
+          "required": true,
+          "placeholder": "airbnb"
+        },
+        {
+          "key": "field_ids",
+          "label": "Fields",
+          "type": "string",
+          "placeholder": "short_description,website_url,categories,num_employees_enum,funding_total"
+        },
+        {
+          "key": "card_ids",
+          "label": "Cards",
+          "type": "string",
+          "placeholder": "founders,raised_funding_rounds"
+        }
+      ]
+    },
+    {
+      "key": "get_person",
+      "name": "Get person",
+      "method": "GET",
+      "endpoint": "/entities/people/{{ inputs.person }}",
+      "query": {
+        "field_ids": "{{ inputs.field_ids }}"
+      },
+      "inputs": [
+        {
+          "key": "person",
+          "label": "Person permalink or UUID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "field_ids",
+          "label": "Fields",
+          "type": "string",
+          "placeholder": "first_name,last_name,primary_job_title,primary_organization,linkedin"
+        }
+      ]
+    },
+    {
+      "key": "autocomplete",
+      "name": "Find entity by name",
+      "description": "Autocomplete a company, person or investor name to its permalink.",
+      "method": "GET",
+      "endpoint": "/autocompletes",
+      "output_path": "entities",
+      "query": {
+        "query": "{{ inputs.query }}",
+        "collection_ids": "{{ inputs.collection_ids }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "inputs": [
+        {
+          "key": "query",
+          "label": "Name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "collection_ids",
+          "label": "Collection",
+          "type": "select",
+          "default": "organizations",
+          "options": [
+            {
+              "value": "organizations",
+              "label": "Organizations"
+            },
+            {
+              "value": "people",
+              "label": "People"
+            },
+            {
+              "value": "principal.investors",
+              "label": "Investors"
+            },
+            {
+              "value": "funding_rounds",
+              "label": "Funding rounds"
+            }
+          ]
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 10
+        }
+      ]
+    },
+    {
+      "key": "search_organizations",
+      "name": "Search organizations",
+      "method": "POST",
+      "endpoint": "/searches/organizations",
+      "output_path": "entities",
+      "body": {
+        "field_ids": "{{ inputs.field_ids }}",
+        "query": "{{ inputs.query }}",
+        "order": "{{ inputs.order }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "inputs": [
+        {
+          "key": "field_ids",
+          "label": "Fields",
+          "type": "list",
+          "required": true,
+          "help": "e.g. identifier, short_description, website_url, location_identifiers"
+        },
+        {
+          "key": "query",
+          "label": "Query predicates",
+          "type": "json",
+          "required": true,
+          "placeholder": "[{\"type\":\"predicate\",\"field_id\":\"facet_ids\",\"operator_id\":\"includes\",\"values\":[\"company\"]}]"
+        },
+        {
+          "key": "order",
+          "label": "Order",
+          "type": "json",
+          "placeholder": "[{\"field_id\":\"rank_org\",\"sort\":\"asc\"}]"
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    }
+  ]
+}

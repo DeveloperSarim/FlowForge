@@ -1,0 +1,57 @@
+{
+  "key": "google_ads",
+  "name": "Google Ads",
+  "category": "Social Media",
+  "description": "Run GAQL reports and list the customer accounts you can access.",
+  "brand": "googleads",
+  "website": "https://ads.google.com",
+  "docs_url": "https://developers.google.com/google-ads/api/rest/overview",
+  "base_url": "https://googleads.googleapis.com/{{ credentials.api_version }}",
+  "headers": { "developer-token": "{{ credentials.developer_token }}", "login-customer-id": "{{ credentials.login_customer_id }}" },
+  "auth": [
+    {
+      "type": "oauth2",
+      "authorize_url": "https://accounts.google.com/o/oauth2/v2/auth",
+      "token_url": "https://oauth2.googleapis.com/token",
+      "scopes": ["https://www.googleapis.com/auth/adwords"],
+      "authorize_params": { "access_type": "offline", "prompt": "consent" },
+      "fields": [
+        { "key": "developer_token", "label": "Developer token", "type": "password", "required": true, "help": "Google Ads > Tools > API Center." },
+        { "key": "login_customer_id", "label": "Manager (MCC) customer ID", "type": "string", "help": "Digits only. Needed when accessing accounts through a manager account." },
+        { "key": "api_version", "label": "API version", "type": "string", "required": true, "default": "v25", "help": "Major versions live about a year; bump when Google sunsets yours." }
+      ]
+    },
+    {
+      "type": "google_service_account",
+      "scopes": ["https://www.googleapis.com/auth/adwords"],
+      "fields": [
+        { "key": "developer_token", "label": "Developer token", "type": "password", "required": true },
+        { "key": "login_customer_id", "label": "Manager (MCC) customer ID", "type": "string" },
+        { "key": "api_version", "label": "API version", "type": "string", "required": true, "default": "v25" }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_accessible_customers",
+      "name": "List accessible customers",
+      "method": "GET",
+      "endpoint": "/customers:listAccessibleCustomers",
+      "output_path": "resourceNames",
+      "inputs": []
+    },
+    {
+      "key": "search",
+      "name": "Run GAQL report",
+      "method": "POST",
+      "endpoint": "/customers/{{ inputs.customer_id }}/googleAds:search",
+      "body": { "query": "{{ inputs.query }}" },
+      "output_path": "results",
+      "inputs": [
+        { "key": "customer_id", "label": "Customer ID (digits only)", "type": "string", "required": true },
+        { "key": "query", "label": "GAQL query", "type": "code", "required": true,
+          "placeholder": "SELECT campaign.id, campaign.name, metrics.clicks, metrics.cost_micros FROM campaign WHERE segments.date DURING LAST_7_DAYS" }
+      ]
+    }
+  ]
+}
