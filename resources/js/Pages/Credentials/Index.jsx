@@ -87,6 +87,9 @@ function AppPicker({ integrations, onPick }) {
     );
 }
 
+/** Field defaults go into the form state up front: what the inputs show is what gets saved. */
+const defaultsOf = (auth) => Object.fromEntries((auth?.fields ?? []).filter((f) => f.default !== undefined && f.default !== null).map((f) => [f.key, f.default]));
+
 function CredentialDialog({ dialog, integrations, redirectUri, onClose }) {
     const editing = dialog.mode === 'edit';
     const existing = dialog.credential;
@@ -100,9 +103,13 @@ function CredentialDialog({ dialog, integrations, redirectUri, onClose }) {
         setManifest(null);
         fetchIntegration(appKey).then((m) => {
             setManifest(m);
+            const firstAuth = m.auth.find((a) => a.type !== 'none');
             if (!editing) {
-                const firstAuth = m.auth.find((a) => a.type !== 'none');
-                form.setData((d) => ({ ...d, integration: appKey, auth_type: firstAuth?.type ?? '', name: d.name || `${m.name} account`, data: {} }));
+                form.setData((d) => ({ ...d, integration: appKey, auth_type: firstAuth?.type ?? '', name: d.name || `${m.name} account`, data: defaultsOf(firstAuth) }));
+            } else {
+                // Fields added to the app after this credential was saved start at their defaults too.
+                const current = m.auth.find((a) => a.type === existing.auth_type);
+                form.setData((d) => ({ ...d, data: { ...defaultsOf(current), ...Object.fromEntries(Object.entries(d.data).filter(([, v]) => v !== null && v !== undefined)) } }));
             }
         }).catch((e) => setLoadError(errorMessage(e)));
     }, [appKey]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -140,7 +147,7 @@ function CredentialDialog({ dialog, integrations, redirectUri, onClose }) {
                     {!editing && authOptions.length > 1 && (
                         <Field label="Sign-in method">
                             {(id) => (
-                                <Select id={id} value={form.data.auth_type} onChange={(e) => form.setData((d) => ({ ...d, auth_type: e.target.value, data: {} }))}>
+                                <Select id={id} value={form.data.auth_type} onChange={(e) => form.setData((d) => ({ ...d, auth_type: e.target.value, data: defaultsOf(authOptions.find((a) => a.type === e.target.value)) }))}>
                                     {authOptions.map((a) => <option key={a.type} value={a.type}>{AUTH_LABELS[a.type] ?? a.type}</option>)}
                                 </Select>
                             )}

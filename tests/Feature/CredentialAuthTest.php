@@ -6,6 +6,7 @@ use App\Domain\Integrations\ActionException;
 use App\Domain\Integrations\CredentialVault;
 use App\Domain\Integrations\Models\Credential;
 use App\Domain\Integrations\WorkflowActionExecutor;
+use App\Domain\Workflows\Models\Workflow;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
@@ -119,6 +120,26 @@ class CredentialAuthTest extends TestCase
         } catch (ActionException $e) {
             $this->assertStringContainsString('Leave "Post as" empty', $e->getMessage());
         }
+    }
+
+    public function test_a_shown_default_is_saved_even_if_the_field_was_never_edited(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        // The form showed "202609" for the API version; the user never touched it, so it wasn't posted.
+        $this->post('/credentials', ['name' => 'LinkedIn account', 'integration' => 'linkedin', 'auth_type' => 'oauth2',
+            'data' => ['client_id' => 'cid', 'client_secret' => 'sec']])->assertSessionHasNoErrors();
+
+        $this->assertSame('202609', Credential::query()->sole()->data['api_version']);
+    }
+
+    public function test_trigger_settings_fall_back_to_the_defaults_the_editor_shows(): void
+    {
+        $workflow = new Workflow(['name' => 'w', 'graph' => ['nodes' => [
+            ['id' => 'trigger', 'type' => 'trigger', 'data' => ['integration' => 'schedule', 'trigger' => 'cron', 'config' => []]],
+        ], 'edges' => []]]);
+
+        $this->assertSame('0 9 * * *', $workflow->triggerConfig()['cron']);
     }
 
     public function test_token_can_be_sent_as_a_query_parameter(): void

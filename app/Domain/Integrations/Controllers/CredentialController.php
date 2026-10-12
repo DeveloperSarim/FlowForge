@@ -180,6 +180,9 @@ class CredentialController extends Controller
             if (($value === null || $value === '') && in_array($field['type'] ?? 'string', self::SECRET_TYPES, true) && isset($existing[$key])) {
                 $value = $existing[$key]; // blank secret on edit = keep
             }
+            if (($value === null || $value === '') && isset($field['default']) && $field['default'] !== '') {
+                $value = $field['default']; // the form showed this value, so a blank submit means "keep the default"
+            }
             if (($value === null || $value === '') && ! empty($field['required'])) {
                 $errors["data.$key"] = ($field['label'] ?? $key).' is required.';
             }
@@ -190,7 +193,7 @@ class CredentialController extends Controller
                 }
             }
 
-            $values[$key] = $value ?? ($field['default'] ?? null);
+            $values[$key] = $value;
         }
 
         if ($errors) {

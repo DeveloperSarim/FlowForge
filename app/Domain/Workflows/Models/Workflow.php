@@ -78,9 +78,15 @@ class Workflow extends Model
         return collect($this->graph['nodes'] ?? [])->firstWhere('type', 'trigger');
     }
 
+    /** The trigger's settings, with the manifest defaults the editor shows for anything never edited. */
     public function triggerConfig(): array
     {
-        return $this->triggerNode()['data']['config'] ?? [];
+        $defaults = collect($this->triggerSpec()['inputs'] ?? [])
+            ->filter(fn ($input) => array_key_exists('default', $input))
+            ->mapWithKeys(fn ($input) => [$input['key'] => $input['default']])
+            ->all();
+
+        return array_merge($defaults, array_filter($this->triggerNode()['data']['config'] ?? [], fn ($value) => $value !== null));
     }
 
     /** The manifest trigger definition the trigger node points at. */
