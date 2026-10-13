@@ -2,7 +2,7 @@
 
 All notable changes to FlowForge. Versions follow [semantic versioning](https://semver.org).
 
-## [Unreleased]
+## [1.5.0] - 2026-10-14
 
 - **Voice agents** (sidebar → Voice agents): AI agents that answer and make phone calls through Vapi or ElevenLabs.
   - FlowForge publishes the agent, its booking tool and phone number to the platform.
@@ -37,5 +37,6 @@ First public release, open source under the AGPL-3.0.
 - Public demo mode (`FLOWFORGE_DEMO=true`).
 - Mobile-friendly layout, light and dark themes.
 
+[1.5.0]: https://github.com/DeveloperSarim/FlowForge/releases/tag/v1.5.0
 [1.4.0]: https://github.com/DeveloperSarim/FlowForge/releases/tag/v1.4.0
 [1.0.0]: https://github.com/DeveloperSarim/FlowForge/releases/tag/v1.0.0
