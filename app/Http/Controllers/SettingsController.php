@@ -18,6 +18,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
@@ -58,6 +59,8 @@ class SettingsController extends Controller
                 'version' => app(Updater::class)->current(),
                 'history' => (array) $this->settings->get('update_history', []),
                 'runner' => url('update-runner.php'),
+                'latest' => Cache::get(Updater::LATEST), // from the last check; the panel refreshes it
+                'repo' => config('flowforge.updates.repo'),
             ],
             'ai' => Arr::except($ai, ['api_key']) + ['has_key' => ! empty($ai['api_key'])],
             'providers' => collect(Providers::ALL)->map(fn ($p, $key) => Arr::only($p, ['name', 'model', 'models', 'base_url', 'base_urls', 'key_url']) + [

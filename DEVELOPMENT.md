@@ -46,7 +46,12 @@ What's included:
 
 Configured `.env` by hand and ran `php artisan migrate --force` yourself? Set `FLOWFORGE_INSTALLED=true` to skip the wizard.
 
-**Updating:** Settings → Updates → drop `flowforge-update-<version>.zip`. The zip is uploaded in 1.5 MB pieces (so `upload_max_filesize` doesn't matter), unpacked in batches into `storage/app/updates/staging`, then `public/update-runner.php` (no Laravel, one-time token) swaps the new code in, moving the old code to `storage/app/updates/backup-<old version>-<time>` and restoring it if any move fails. Finally migrations run on the new code. `.env`, `storage/` and `bootstrap/cache` are never in an update package, so settings, credentials, workflows and history stay. Older versions won't install over newer ones. Installs older than 1.1.0 (no Updates tab yet) update once with the install zip + `extract-flowforge.php`, which keeps `.env` and `storage/`.
+**Updating:** Settings → Updates checks the latest GitHub release (`FLOWFORGE_UPDATE_REPO`, default `DeveloperSarim/FlowForge`). The check uses the API, or the `releases/latest` redirect when a shared host has used up the API's 60 calls an hour. Results are cached 6 hours and refreshed by a daily scheduled check, which feeds the "Update" badge on Settings. On an admin's click, `Updater::download()` streams `flowforge-update-<version>.zip` from the release and verifies it against the release's `SHA256SUMS.txt`. The manual path is the same pipeline: drop the zip under "Install from a zip file instead" and it uploads in 1.5 MB pieces, so `upload_max_filesize` doesn't matter. From there both paths:
+1. Unpack in batches into `storage/app/updates/staging`.
+2. Swap the new code in with `public/update-runner.php` (no Laravel, one-time token). The old code moves to `storage/app/updates/backup-<old version>-<time>` and is restored if any move fails.
+3. Run migrations on the new code.
+
+`.env`, `storage/` and `bootstrap/cache` are never in an update package, so settings, credentials, workflows and history stay. Older versions won't install over newer ones. Installs older than 1.1.0 (no Updates tab yet) update once with the install zip + `extract-flowforge.php`, which keeps `.env` and `storage/`. **Releases:** run `bash scripts/make-release.sh x.y.z`, then upload both zips, `extract-flowforge.php` and `SHA256SUMS.txt` from `dist/` to a GitHub release tagged `vx.y.z`.
 
 **Forgot your password?** "Forgot password?" on the sign-in page emails a 6-digit code (valid 15 minutes, 5 tries, single use). Without email configured, run `php artisan flowforge:reset-password you@example.com` from a terminal.
 

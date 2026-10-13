@@ -5,6 +5,7 @@ namespace App\Http\Middleware;
 use App\Domain\Demo\DemoMode;
 use App\Domain\Integrations\ManifestLoader;
 use App\Domain\System\SystemSettings;
+use App\Domain\System\Updater;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Inertia\Middleware;
@@ -31,6 +32,8 @@ class HandleInertiaRequests extends Middleware
                 ? app(DemoMode::class)->credentials() : null,
             'timezone' => fn () => $request->user() ? app(SystemSettings::class)->timezone() : null,
             'scheduler' => fn () => $request->user() ? rescue(fn () => Cache::get('flowforge:heartbeat'), null, false) : null,
+            // A newer release seen by the daily check, so admins get a dot on Settings (no network call here).
+            'updateAvailable' => fn () => $request->user()?->isAdmin() ? rescue(fn () => app(Updater::class)->availableFromCache(), null, false) : null,
         ];
     }
 }

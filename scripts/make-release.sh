@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # Builds the two release zips for shared hosting:
 #   dist/flowforge-install-<version>.zip  fresh install: extract on the server, open /install
-#   dist/flowforge-update-<version>.zip   existing install: Settings → Updates → upload
-# plus dist/extract-flowforge.php for hosts whose File Manager can't extract the install zip.
+#   dist/flowforge-update-<version>.zip   existing install: Settings → Updates (downloaded from the GitHub release, or uploaded)
+# plus dist/extract-flowforge.php for hosts whose File Manager can't extract the install zip, and dist/SHA256SUMS.txt.
 # Neither zip contains secrets or local state (.env, install flag, logs, sessions, caches, test credentials).
 #
 # Usage: bash scripts/make-release.sh [version]   (e.g. 1.2.0; writes VERSION. Omit to reuse VERSION.)
@@ -50,8 +50,11 @@ printf '{"product":"flowforge","version":"%s","php":"%s","built_at":"%s"}\n' "$v
 (cd "$stage" && zip -qr "$update_zip" . -x 'storage/*' 'bootstrap/cache/*' '.env*' '*.DS_Store')
 
 cp "$root/scripts/extract-flowforge.php" "$root/dist/extract-flowforge.php"
+# Settings → Updates verifies the downloaded zip against this file, so upload it with every GitHub release.
+(cd "$root/dist" && shasum -a 256 "flowforge-install-$version.zip" "flowforge-update-$version.zip" extract-flowforge.php > SHA256SUMS.txt)
 
 echo "✓ v$version (PHP $php_min+)"
 echo "  fresh install: $install_zip ($(du -h "$install_zip" | cut -f1))"
 echo "  update:        $update_zip ($(du -h "$update_zip" | cut -f1))"
 echo "  + dist/extract-flowforge.php: upload it next to the install zip if the File Manager can't extract it"
+echo "  + dist/SHA256SUMS.txt: attach it to the GitHub release with both zips (one-click updates verify against it)"

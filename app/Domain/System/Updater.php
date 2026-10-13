@@ -2,16 +2,20 @@
 
 namespace App\Domain\System;
 
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 use RuntimeException;
 use ZipArchive;
 
 /**
- * In-app updates from an uploaded flowforge-update-x.y.z.zip:
- *   1. receiveChunk: the zip arrives in small chunks (stays under any upload_max_filesize) and is checked;
+ * In-app updates from flowforge-update-x.y.z.zip, either downloaded from the latest GitHub release or uploaded:
+ *   1. download (from GitHub, checksum-verified) or receiveChunk (uploaded in small chunks, under any
+ *      upload_max_filesize) puts the zip in place, and it is checked;
  *   2. extract: unpacked in batches into storage/app/updates/staging;
  *   3. public/update-runner.php (outside Laravel, one-time token) swaps the staged code in and keeps a backup;
  *   4. finish: runs on the new code: migrations, caches, history.
@@ -20,6 +24,8 @@ use ZipArchive;
 class Updater
 {
     public const MANIFEST = 'flowforge-update.json';
+
+    public const LATEST = 'flowforge:latest-release';
 
     private const BATCH = 1500;
 
@@ -73,6 +79,102 @@ class Updater
         } catch (RuntimeException $e) {
             File::delete($package);
             throw $e;
+        }
+    }
+
+    /**
+     * The newest release on GitHub, cached for 6 hours (the settings page and the daily check share it).
+     *
+     * @return array{version: string, notes: ?string, published_at: ?string, url: string, zip: ?string, sums: ?string, checked_at: string}
+     */
+    public function latest(bool $fresh = false): array
+    {
+        if (! $fresh && is_array($cached = Cache::get(self::LATEST))) {
+            return $cached;
+        }
+        $repo = config('flowforge.updates.repo');
+        $http = fn () => Http::timeout(15)->withHeaders(['User-Agent' => 'FlowForge/'.$this->current()]);
+        $release = null;
+        try {
+            $api = $http()->accept('application/vnd.github+json')->get("https://api.github.com/repos/{$repo}/releases/latest");
+            if ($api->ok() && is_string($api->json('tag_name'))) {
+                $version = ltrim($api->json('tag_name'), 'v');
+                $assets = collect($api->json('assets', []))->pluck('browser_download_url', 'name');
+                $release = ['version' => $version, 'notes' => Str::limit(trim((string) $api->json('body')), 4000) ?: null, 'published_at' => $api->json('published_at'),
+                    'url' => $api->json('html_url'), 'zip' => $assets["flowforge-update-{$version}.zip"] ?? null, 'sums' => $assets['SHA256SUMS.txt'] ?? null];
+            }
+        } catch (ConnectionException) {
+        }
+        if (! $release) {
+            // The API allows 60 calls an hour per IP, which a shared host can use up; the release page redirect has no such limit.
+            try {
+                $location = (string) $http()->withoutRedirecting()->get("https://github.com/{$repo}/releases/latest")->header('Location');
+            } catch (ConnectionException) {
+                $location = '';
+            }
+            if (! preg_match('#/releases/tag/(v?(\d+\.\d+\.\d+))$#', $location, $m)) {
+                throw new RuntimeException("Couldn't reach GitHub to check for updates. Try again in a few minutes, or upload the update zip below.");
+            }
+            $base = "https://github.com/{$repo}/releases/download/{$m[1]}";
+            $release = ['version' => $m[2], 'notes' => null, 'published_at' => null, 'url' => "https://github.com/{$repo}/releases/tag/{$m[1]}",
+                'zip' => "{$base}/flowforge-update-{$m[2]}.zip", 'sums' => "{$base}/SHA256SUMS.txt"];
+        }
+        $release['checked_at'] = now()->toIso8601String();
+        Cache::put(self::LATEST, $release, now()->addHours(6));
+
+        return $release;
+    }
+
+    /** A newer version than this one, from the last check (no network call), or null. */
+    public function availableFromCache(): ?string
+    {
+        $latest = Cache::get(self::LATEST);
+
+        return is_array($latest) && ! empty($latest['zip']) && version_compare($latest['version'], $this->current(), '>') ? $latest['version'] : null;
+    }
+
+    /** Downloads the latest release's update zip from GitHub, verifies its checksum, and checks it like an upload. */
+    public function download(): array
+    {
+        $release = $this->latest(true);
+        if (! version_compare($release['version'], $this->current(), '>')) {
+            throw new RuntimeException("You're already on the latest version ({$this->current()}).");
+        }
+        if (! $release['zip']) {
+            throw new RuntimeException("Version {$release['version']} has no update package on GitHub yet. Upload the zip below instead.");
+        }
+
+        $package = $this->dir('incoming/package.zip');
+        File::ensureDirectoryExists(dirname($package));
+        File::delete($package);
+        $fail = function (string $message) use ($package) {
+            File::delete($package);
+            throw new RuntimeException($message);
+        };
+        try {
+            $response = Http::timeout(600)->withHeaders(['User-Agent' => 'FlowForge/'.$this->current()])->sink($package)->get($release['zip']);
+        } catch (ConnectionException) {
+            $fail('The download from GitHub was interrupted. Try again, or upload the zip below.');
+        }
+        if (! $response->successful()) {
+            $fail("GitHub answered HTTP {$response->status()} for the update package. Try again later, or upload the zip below.");
+        }
+        clearstatcache();
+        if (! is_file($package) || filesize($package) > self::MAX_BYTES) {
+            $fail('The downloaded file is not a FlowForge update.');
+        }
+
+        // Each release lists the SHA-256 of its files; a mismatch means a broken or altered download.
+        $sums = $release['sums'] ? rescue(fn () => Http::timeout(15)->get($release['sums']), null, false) : null;
+        $name = preg_quote(basename((string) parse_url($release['zip'], PHP_URL_PATH)), '/');
+        if ($sums?->successful() && preg_match('/^([a-f0-9]{64})\s+\*?'.$name.'\s*$/mi', $sums->body(), $m) && ! hash_equals(strtolower($m[1]), hash_file('sha256', $package))) {
+            $fail('The downloaded package failed its checksum check, so it was not installed. Try again.');
+        }
+
+        try {
+            return $this->inspect($package);
+        } catch (RuntimeException $e) {
+            $fail($e->getMessage());
         }
     }
 

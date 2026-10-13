@@ -20,14 +20,17 @@ const BUTTON_SIZES = {
     icon: 'size-8 rounded-lg justify-center',
 };
 
+/** Button styling for links that should look like a Button. */
+export const buttonClass = (variant = 'secondary', size = 'md', className) =>
+    cn('inline-flex shrink-0 items-center whitespace-nowrap transition-colors disabled:pointer-events-none disabled:opacity-50', BUTTON_VARIANTS[variant], BUTTON_SIZES[size], className);
+
 export const Button = forwardRef(function Button({ variant = 'secondary', size = 'md', loading = false, className, children, disabled, ...props }, ref) {
     return (
         <button
             ref={ref}
             type="button"
             disabled={disabled || loading}
-            className={cn('inline-flex shrink-0 items-center whitespace-nowrap transition-colors disabled:pointer-events-none disabled:opacity-50',
-                BUTTON_VARIANTS[variant], BUTTON_SIZES[size], className)}
+            className={buttonClass(variant, size, className)}
             {...props}
         >
             {loading && <Loader2 className="size-4 animate-spin" aria-hidden />}

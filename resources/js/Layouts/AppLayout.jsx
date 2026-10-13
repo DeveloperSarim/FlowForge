@@ -126,7 +126,7 @@ function MobileTabBar({ can, isActive, onMore }) {
 }
 
 export default function AppLayout({ title, description, actions, children, wide = false }) {
-    const { auth, scheduler, appCount } = usePage().props;
+    const { auth, scheduler, appCount, updateAvailable } = usePage().props;
     const path = usePage().url;
     const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -174,9 +174,10 @@ export default function AppLayout({ title, description, actions, children, wide 
             </nav>
             <div className="space-y-2 p-3">
                 {can.admin && <SchedulerStatus lastRun={scheduler} />}
-                <Link href="/settings" className={cn('flex items-center gap-3 rounded-lg px-2.5 py-2 text-[13.5px] font-medium',
+                <Link href={updateAvailable ? '/settings?tab=updates' : '/settings'} className={cn('flex items-center gap-3 rounded-lg px-2.5 py-2 text-[13.5px] font-medium',
                     path.startsWith('/settings') ? 'bg-primary-soft text-primary' : 'text-fg-muted hover:bg-surface-2 hover:text-fg')}>
                     <Settings className="size-[18px]" strokeWidth={1.9} />Settings
+                    {updateAvailable && <span className="ml-auto rounded-md bg-primary px-1.5 py-px text-[11px] font-semibold text-primary-fg" title={`Version ${updateAvailable} is available`}>Update</span>}
                 </Link>
                 <div className="flex items-center gap-2.5 border-t border-line px-1 pt-3">
                     <Avatar name={auth.user?.name} />

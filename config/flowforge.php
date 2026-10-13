@@ -16,6 +16,11 @@ return [
     // Folder the in-app updater replaces code in (tests point it at a temp copy). Null = the app itself.
     'update_root' => null,
 
+    // Where Settings → Updates looks for new releases (forks can point this at their own repository).
+    'updates' => [
+        'repo' => env('FLOWFORGE_UPDATE_REPO', 'DeveloperSarim/FlowForge'),
+    ],
+
     // Step inputs/outputs larger than this (bytes of JSON) are truncated in execution logs.
     'max_log_bytes' => 64 * 1024,
 ];

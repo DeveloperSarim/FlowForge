@@ -73,6 +73,8 @@ Route::middleware('auth')->group(function () {
         Route::post('settings/demo/snapshot', [DemoController::class, 'snapshot']);
         Route::put('settings/general', [SettingsController::class, 'updateGeneral']);
         Route::post('settings/scheduler/auto', [SettingsController::class, 'autoCron'])->middleware('throttle:5,1');
+        Route::get('settings/updates/check', [UpdateController::class, 'check'])->middleware('throttle:20,1');
+        Route::post('settings/updates/download', [UpdateController::class, 'download'])->middleware('throttle:5,1');
         Route::post('settings/updates/upload', [UpdateController::class, 'upload'])->middleware('throttle:300,1');
         Route::post('settings/updates/extract', [UpdateController::class, 'extract']);
         Route::post('settings/updates/finish', [UpdateController::class, 'finish']);
