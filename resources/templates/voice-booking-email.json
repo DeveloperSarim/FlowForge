@@ -1,0 +1,54 @@
+{
+  "key": "voice-booking-email",
+  "name": "Email me every new voice booking",
+  "description": "Get an email with the caller's details as soon as your voice agent books an appointment.",
+  "category": "Voice agents",
+  "featured": false,
+  "graph": {
+    "nodes": [
+      {
+        "id": "trigger",
+        "type": "trigger",
+        "position": {
+          "x": 0,
+          "y": 200
+        },
+        "data": {
+          "integration": "voice",
+          "trigger": "booking_created",
+          "label": "Caller booked",
+          "config": {
+            "sample_payload": "{\n  \"booking\": {\n    \"id\": 7,\n    \"name\": \"Sara Khan\",\n    \"phone\": \"+923001234567\",\n    \"email\": \"sara@example.com\",\n    \"service\": \"Check-up\",\n    \"starts_at\": \"2026-10-20T15:00:00+05:00\",\n    \"ends_at\": \"2026-10-20T15:30:00+05:00\",\n    \"when\": \"Tuesday, 20 October 2026 at 3:00 PM\",\n    \"notes\": \"First visit\",\n    \"agent\": {\n      \"name\": \"Clinic receptionist\"\n    }\n  }\n}"
+          }
+        }
+      },
+      {
+        "id": "step_1",
+        "type": "action",
+        "position": {
+          "x": 240,
+          "y": 200
+        },
+        "data": {
+          "integration": "smtp",
+          "action": "send",
+          "label": "Send email",
+          "config": {
+            "to": "you@example.com",
+            "subject": "New booking: {{ steps.trigger.data.booking.name }}, {{ steps.trigger.data.booking.when }}",
+            "body": "{{ steps.trigger.data.booking.name }} booked {{ steps.trigger.data.booking.service }} for {{ steps.trigger.data.booking.when }}.\n\nPhone: {{ steps.trigger.data.booking.phone }}\nEmail: {{ steps.trigger.data.booking.email }}\nNotes: {{ steps.trigger.data.booking.notes }}\n\nAll bookings: {{ steps.trigger.data.booking.url }}",
+            "format": "text"
+          }
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "e-trigger-step_1",
+        "source": "trigger",
+        "target": "step_1",
+        "sourceHandle": null
+      }
+    ]
+  }
+}

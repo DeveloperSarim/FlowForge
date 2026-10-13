@@ -5,6 +5,7 @@ namespace App\Domain\Integrations;
 use App\Domain\Integrations\Handlers\DatabaseHandler;
 use App\Domain\Integrations\Handlers\LogicHandler;
 use App\Domain\Integrations\Handlers\MailHandler;
+use App\Domain\Integrations\Handlers\VoiceHandler;
 use App\Domain\Integrations\Models\Credential;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
@@ -26,6 +27,7 @@ class WorkflowActionExecutor
         'text_format' => LogicHandler::class,
         'smtp' => MailHandler::class,
         'mysql' => DatabaseHandler::class,
+        'voice_call' => VoiceHandler::class,
     ];
 
     private const METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD'];

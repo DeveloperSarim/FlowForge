@@ -1,0 +1,55 @@
+{
+  "key": "voice-bookings-google-calendar",
+  "name": "Add voice agent bookings to Google Calendar",
+  "description": "Every appointment your voice agent books becomes a Google Calendar event with the caller's details.",
+  "category": "Voice agents",
+  "featured": true,
+  "graph": {
+    "nodes": [
+      {
+        "id": "trigger",
+        "type": "trigger",
+        "position": {
+          "x": 0,
+          "y": 200
+        },
+        "data": {
+          "integration": "voice",
+          "trigger": "booking_created",
+          "label": "Caller booked",
+          "config": {
+            "sample_payload": "{\n  \"booking\": {\n    \"id\": 7,\n    \"name\": \"Sara Khan\",\n    \"phone\": \"+923001234567\",\n    \"email\": \"sara@example.com\",\n    \"service\": \"Check-up\",\n    \"starts_at\": \"2026-10-20T15:00:00+05:00\",\n    \"ends_at\": \"2026-10-20T15:30:00+05:00\",\n    \"when\": \"Tuesday, 20 October 2026 at 3:00 PM\",\n    \"notes\": \"First visit\",\n    \"agent\": {\n      \"name\": \"Clinic receptionist\"\n    }\n  }\n}"
+          }
+        }
+      },
+      {
+        "id": "step_1",
+        "type": "action",
+        "position": {
+          "x": 240,
+          "y": 200
+        },
+        "data": {
+          "integration": "google_calendar",
+          "action": "create_event",
+          "label": "Create event",
+          "config": {
+            "calendar_id": "primary",
+            "summary": "{{ steps.trigger.data.booking.service }}: {{ steps.trigger.data.booking.name }}",
+            "start": "{{ steps.trigger.data.booking.starts_at }}",
+            "end": "{{ steps.trigger.data.booking.ends_at }}",
+            "description": "Booked by phone ({{ steps.trigger.data.booking.agent.name }}).\nPhone: {{ steps.trigger.data.booking.phone }}\nEmail: {{ steps.trigger.data.booking.email }}\nNotes: {{ steps.trigger.data.booking.notes }}"
+          }
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "e-trigger-step_1",
+        "source": "trigger",
+        "target": "step_1",
+        "sourceHandle": null
+      }
+    ]
+  }
+}

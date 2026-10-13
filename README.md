@@ -6,7 +6,7 @@
 
 <p align="center">
   <strong>Open-source workflow automation that runs on PHP shared hosting.</strong><br>
-  A self-hosted alternative to n8n, Zapier and Make: connect 1,190 apps on a visual canvas, or describe a workflow and let AI build it.<br>
+  A self-hosted alternative to n8n, Zapier and Make: connect 1,190 apps on a visual canvas, describe a workflow and let AI build it, or create AI voice agents that answer your calls.<br>
   No Docker, no Node.js, no per-task fees. One cron job runs everything.
 </p>
 
@@ -41,6 +41,7 @@ FlowForge is a **self-hosted workflow automation platform** for people who alrea
 
 - **Connect your apps.** Gmail, Slack, Google Sheets, HubSpot, Shopify, WooCommerce, Stripe, OpenAI, Telegram, WhatsApp and 1,180 more.
 - **Build visually or with AI.** Drag steps onto a canvas, or type *"When a Typeform is submitted, add the person to HubSpot and tell #sales on Slack"* and the AI Builder makes it.
+- **Answer the phone with AI.** Voice agents answer and make calls, book appointments and pass every call (recording, transcript, summary) to your workflows.
 - **Own your data.** Workflows, credentials and run history stay in your own MySQL database. Credentials are encrypted and never sent to the browser.
 
 ## 🧩 Features
@@ -204,6 +205,16 @@ Step-by-step guides with screenshots: [Hostinger hPanel](https://developersarim.
 | No per-task or per-operation fees | ✅ | ✅ when self-hosted | ❌ | ❌ |
 
 <sub>Based on each product's public information as of October 2026.</sub>
+
+## 📞 Voice agents
+
+Build AI agents that **answer and make phone calls**: a receptionist that books appointments, a caller that qualifies new leads, a reminder line.
+
+- **Start in seconds:** 8 templates (clinic, salon, restaurant, lead qualification, reminders, support, real estate, feedback), or describe the agent and AI writes it.
+- **Try it free:** talk to any agent in your browser, using your own AI model. No phone number needed.
+- **Real calls** through [Vapi](https://vapi.ai) or [ElevenLabs](https://elevenlabs.io). Both have free tiers to start, and FlowForge sets up the agent, booking tool and number for you.
+- **Everything in one place:** call history with recordings, transcripts, summaries and captured details, plus a Bookings page.
+- **Workflows:** "When a voice call ends", "When a caller books" and "Call a phone number". Send bookings to Google Calendar, summaries to Slack, or call every new lead automatically.
 
 ## 🤖 AI Builder and MCP
 

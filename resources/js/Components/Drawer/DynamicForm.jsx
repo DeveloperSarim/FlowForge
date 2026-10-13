@@ -1,4 +1,4 @@
-import { createContext, useContext, useRef, useState } from 'react';
+import { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { Braces, Plus, Trash2 } from 'lucide-react';
 import { Button, Field, Input, Select, Switch, Textarea } from '@/Components/ui';
 import ScheduleField from '@/Components/Drawer/ScheduleField';
@@ -136,6 +136,27 @@ function ConditionsField({ value, onChange, operators }) {
     );
 }
 
+let voiceAgents; // fetched once per page load
+
+/** A voice agent picker (the agents from Voice agents), so nobody types an id. */
+function VoiceAgentSelect({ id, value, onChange, required }) {
+    const [agents, setAgents] = useState(voiceAgents ?? null);
+    useEffect(() => {
+        if (agents) return;
+        voiceAgents = window.axios.get('/voice/options').then(({ data }) => data.agents).catch(() => []);
+        Promise.resolve(voiceAgents).then((list) => { voiceAgents = list; setAgents(list); });
+    }, []);
+    if (agents && agents.length === 0) {
+        return <p className="rounded-lg border border-dashed border-line px-3 py-2 text-[13px] text-fg-muted">No voice agents yet. <a href="/voice" className="font-medium text-primary hover:underline">Create one under Voice agents</a>.</p>;
+    }
+    return (
+        <Select id={id} value={value == null ? '' : String(value)} onChange={(e) => onChange(e.target.value === '' ? null : Number(e.target.value))} disabled={!agents}>
+            <option value="">{agents ? (required ? 'Choose an agent…' : 'Any agent') : 'Loading agents…'}</option>
+            {(agents ?? []).map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
+        </Select>
+    );
+}
+
 /** One control per manifest input definition. */
 export function InputControl({ input, value, onChange, id, operators = [] }) {
     const current = value ?? input.default;
@@ -161,6 +182,8 @@ export function InputControl({ input, value, onChange, id, operators = [] }) {
             return <KeyValueField value={current} onChange={onChange} />;
         case 'cron':
             return <ScheduleField id={id} value={value} fallback={input.default} onChange={onChange} />;
+        case 'voice_agent':
+            return <VoiceAgentSelect id={id} value={current} onChange={onChange} required={input.required} />;
         case 'conditions':
             return <ConditionsField value={current} onChange={onChange} operators={operators} />;
         case 'number':

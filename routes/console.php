@@ -8,6 +8,7 @@ use App\Domain\Integrations\ManifestLoader;
 use App\Domain\System\Notifier;
 use App\Domain\System\SchemaUpgrader;
 use App\Domain\System\Updater;
+use App\Domain\Voice\VoiceService;
 use App\Domain\Workflows\Models\WorkflowExecution;
 use App\Domain\Workflows\TemplateLibrary;
 use App\Models\User;
@@ -102,6 +103,9 @@ Artisan::command('flowforge:reset-password {email : The account to reset}', func
     $user->forceFill(['password' => $password, 'remember_token' => Str::random(60)])->save();
     $this->info("Password changed for $email.");
 })->purpose('Set a new password when email-based reset is not available');
+
+// Voice agents: catch up on finished calls (ElevenLabs reports only this way; Vapi also reports live).
+Schedule::call(fn () => app(VoiceService::class)->poll())->everyMinute()->name('flowforge:voice-poll')->withoutOverlapping(5);
 
 // Daily look at GitHub for a newer release; Settings shows a dot. Installing always waits for an admin's click.
 Schedule::call(fn () => rescue(fn () => app(Updater::class)->latest(true), null, false))->dailyAt('04:17')->name('flowforge:update-check');

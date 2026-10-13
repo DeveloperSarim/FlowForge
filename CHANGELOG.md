@@ -2,6 +2,17 @@
 
 All notable changes to FlowForge. Versions follow [semantic versioning](https://semver.org).
 
+## [Unreleased]
+
+- **Voice agents** (sidebar → Voice agents): AI agents that answer and make phone calls through Vapi or ElevenLabs.
+  - FlowForge publishes the agent, its booking tool and phone number to the platform.
+  - It keeps the call history: recordings, transcripts, summaries and captured details.
+  - Bookings made during calls are saved and listed on their own page.
+- Free browser conversations with any voice agent, using the AI model from Settings → AI builder.
+- Eight voice agent templates, and "Describe it / Rewrite with AI" to write agents.
+- The AI builder and MCP can create voice agents (`create_voice_agent`, `list_voice_agents`).
+- Workflow triggers "When a voice call ends" and "When a caller books", an action "Call a phone number", and four templates (Google Calendar, Slack, email, call new leads).
+
 ## [1.4.0] - 2026-10-14
 
 The version jumps from 1.0.0 to 1.4.0 so installs from before the public release (1.3.x) can update in place.

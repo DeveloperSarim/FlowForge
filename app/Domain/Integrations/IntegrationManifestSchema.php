@@ -17,7 +17,7 @@ use Illuminate\Support\Str;
  *   actions: [{key, name, description?, method, endpoint, query?, headers?, body?, body_format? (json|form),
  *              output_path?, output_fields?, output? (closed list of returned keys, built-ins), error_path?, timeout?,
  *              handler?, outputs?, inputs: [Input]}],
- *   triggers: [{key, name, type (webhook|polling|schedule|manual), inputs?, data_path?,       // webhook
+ *   triggers: [{key, name, type (webhook|polling|schedule|manual|error|voice_call|voice_booking), inputs?, data_path?,       // webhook
  *               method?, endpoint?, query?, headers?, items_path?, id_field?}]                 // polling
  * }
  * Input = {key, label?, type, required?, default?, placeholder?, help?, options? [{value,label}],
@@ -30,9 +30,9 @@ class IntegrationManifestSchema
 {
     public const AUTH_TYPES = ['none', 'api_key', 'bearer', 'basic', 'oauth2', 'oauth2_client_credentials', 'google_service_account', 'smtp', 'mysql'];
 
-    public const INPUT_TYPES = ['string', 'text', 'password', 'number', 'boolean', 'select', 'json', 'code', 'list', 'keyvalue', 'conditions', 'cron'];
+    public const INPUT_TYPES = ['string', 'text', 'password', 'number', 'boolean', 'select', 'json', 'code', 'list', 'keyvalue', 'conditions', 'cron', 'voice_agent'];
 
-    public const TRIGGER_TYPES = ['webhook', 'polling', 'schedule', 'manual', 'error'];
+    public const TRIGGER_TYPES = ['webhook', 'polling', 'schedule', 'manual', 'error', 'voice_call', 'voice_booking'];
 
     public function normalize(array $manifest): array
     {

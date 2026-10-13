@@ -1,0 +1,52 @@
+{
+  "key": "voice-call-summary-slack",
+  "name": "Post voice call summaries to Slack",
+  "description": "When a voice agent's call ends, post who called, the summary and a link to the recording in Slack.",
+  "category": "Voice agents",
+  "featured": false,
+  "graph": {
+    "nodes": [
+      {
+        "id": "trigger",
+        "type": "trigger",
+        "position": {
+          "x": 0,
+          "y": 200
+        },
+        "data": {
+          "integration": "voice",
+          "trigger": "call_ended",
+          "label": "Call ended",
+          "config": {
+            "sample_payload": "{\n  \"call\": {\n    \"id\": 12,\n    \"agent\": {\n      \"name\": \"Clinic receptionist\"\n    },\n    \"direction\": \"inbound\",\n    \"from\": \"+923001234567\",\n    \"duration_seconds\": 94,\n    \"summary\": \"Sara asked about a check-up and booked Tuesday at 3pm.\",\n    \"outcome\": \"success\",\n    \"data\": {\n      \"reason\": \"Check-up\"\n    },\n    \"url\": \"https://your-domain.com/voice/calls?open=12\"\n  }\n}"
+          }
+        }
+      },
+      {
+        "id": "step_1",
+        "type": "action",
+        "position": {
+          "x": 240,
+          "y": 200
+        },
+        "data": {
+          "integration": "slack",
+          "action": "post_message",
+          "label": "Post summary",
+          "config": {
+            "channel": "#calls",
+            "text": "📞 {{ steps.trigger.data.call.agent.name }}: call with {{ steps.trigger.data.call.from }} ({{ steps.trigger.data.call.duration_seconds }}s)\n{{ steps.trigger.data.call.summary }}\n{{ steps.trigger.data.call.url }}"
+          }
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "e-trigger-step_1",
+        "source": "trigger",
+        "target": "step_1",
+        "sourceHandle": null
+      }
+    ]
+  }
+}

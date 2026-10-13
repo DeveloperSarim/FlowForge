@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Link, router } from '@inertiajs/react';
-import { Clock, Copy, MoreHorizontal, MousePointerClick, PencilLine, Plus, RefreshCw, Trash2, Webhook, Workflow as WorkflowIcon } from 'lucide-react';
+import { Clock, Copy, MoreHorizontal, MousePointerClick, PencilLine, Plus, RefreshCw, Trash2, Webhook, Workflow as WorkflowIcon, PhoneCall, CalendarCheck, TriangleAlert } from 'lucide-react';
 import AppLayout, { openCreateWorkflow } from '@/Layouts/AppLayout';
 import IntegrationIcon, { AppStack } from '@/Components/IntegrationIcon';
 import { Button, Card, Dialog, EmptyState, Menu, SearchInput, Select, StatusBadge, Switch, Tabs } from '@/Components/ui';
@@ -12,6 +12,9 @@ const TRIGGERS = {
     schedule: { icon: Clock, label: 'Schedule' },
     polling: { icon: RefreshCw, label: 'Polling' },
     manual: { icon: MousePointerClick, label: 'Manual' },
+    error: { icon: TriangleAlert, label: 'On failure' },
+    voice_call: { icon: PhoneCall, label: 'Call ended' },
+    voice_booking: { icon: CalendarCheck, label: 'New booking' },
 };
 
 export default function Index({ workflows }) {

@@ -1,0 +1,45 @@
+{
+  "key": "voice",
+  "name": "Voice agents",
+  "icon": "phone-call",
+  "category": "Core",
+  "description": "Have one of your voice agents call someone, and start workflows when a call ends or a caller books.",
+  "actions": [
+    {
+      "key": "place_call",
+      "name": "Call a phone number",
+      "description": "Your voice agent calls this number now. The call shows up under Voice agents → Calls when it ends.",
+      "handler": "voice_call",
+      "inputs": [
+        { "key": "agent_id", "label": "Voice agent", "type": "voice_agent", "required": true },
+        { "key": "to", "label": "Phone number to call", "type": "string", "required": true, "placeholder": "+14155550123", "help": "International format, with + and the country code." },
+        { "key": "variables", "label": "Details for the agent", "type": "keyvalue", "help": "For example customer_name or appointment_time. The agent's texts use them as {{customer_name}}." }
+      ],
+      "output": ["call_id", "status", "agent", "to", "url"]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "call_ended",
+      "name": "When a voice call ends",
+      "type": "voice_call",
+      "inputs": [
+        { "key": "agent_id", "label": "Voice agent", "type": "voice_agent", "help": "Leave empty to run for every agent's calls." },
+        { "key": "sample_payload", "label": "Test payload (JSON)", "type": "json",
+          "placeholder": "{\n  \"call\": { \"id\": 12, \"agent\": { \"name\": \"Clinic receptionist\" }, \"direction\": \"inbound\", \"from\": \"+14155550123\", \"duration_seconds\": 94, \"summary\": \"The caller booked a check-up for Tuesday at 3pm.\", \"outcome\": \"success\", \"data\": { \"reason\": \"Check-up\" } }\n}",
+          "help": "Use {{ steps.trigger.data.call.summary }}, {{ steps.trigger.data.call.from }}, {{ steps.trigger.data.call.transcript }}, {{ steps.trigger.data.call.data.reason }} (your collected details), {{ steps.trigger.data.call.recording_url }}." }
+      ]
+    },
+    {
+      "key": "booking_created",
+      "name": "When a caller books",
+      "type": "voice_booking",
+      "inputs": [
+        { "key": "agent_id", "label": "Voice agent", "type": "voice_agent", "help": "Leave empty to run for every agent's bookings." },
+        { "key": "sample_payload", "label": "Test payload (JSON)", "type": "json",
+          "placeholder": "{\n  \"booking\": { \"id\": 7, \"name\": \"Sara Khan\", \"phone\": \"+923001234567\", \"service\": \"Check-up\", \"starts_at\": \"2026-10-20T15:00:00+05:00\", \"ends_at\": \"2026-10-20T15:30:00+05:00\", \"when\": \"Tuesday, 20 October 2026 at 3:00 PM\" }\n}",
+          "help": "Use {{ steps.trigger.data.booking.name }}, {{ steps.trigger.data.booking.when }}, {{ steps.trigger.data.booking.starts_at }} and ends_at (for calendars), phone, email, service, notes." }
+      ]
+    }
+  ]
+}

@@ -6,6 +6,8 @@ use App\Domain\Assistant\Models\AiConversation;
 use App\Domain\Engine\GraphRunner;
 use App\Domain\Integrations\ManifestLoader;
 use App\Domain\Integrations\Models\Credential;
+use App\Domain\Voice\Models\VoiceAgent;
+use App\Domain\Voice\VoiceService;
 use App\Domain\Workflows\GraphValidator;
 use App\Domain\Workflows\Models\Workflow;
 use App\Domain\Workflows\Models\WorkflowExecution;
@@ -68,6 +70,16 @@ class WorkflowTools
                 'parameters' => ['type' => 'object', 'properties' => ['id' => ['type' => 'integer'], 'node' => ['type' => 'string', 'description' => 'Only run up to this step']], 'required' => ['id']]],
             ['name' => 'get_execution', 'description' => 'Per-step result of a past run (to explain or fix a failure).',
                 'parameters' => ['type' => 'object', 'properties' => ['id' => ['type' => 'integer']], 'required' => ['id']]],
+            ['name' => 'list_voice_agents', 'description' => 'Voice agents (AI phone agents): id, name, provider, whether they book appointments. Also lists the voice agent templates. Use an agent id in voice.place_call and the voice triggers.',
+                'parameters' => ['type' => 'object', 'properties' => (object) []]],
+            ['name' => 'create_voice_agent', 'description' => 'Create a voice agent that answers or makes phone calls. Start from a template when one fits; otherwise write complete instructions (role, goals, tone, rules). Turn booking on when it schedules appointments, reservations, viewings or calls; bookings appear under Voice agents → Bookings. It starts as a free browser agent the user can talk to; for real calls they connect Vapi or ElevenLabs on its Phone tab. Returns its id and link.',
+                'parameters' => ['type' => 'object', 'properties' => [
+                    'name' => ['type' => 'string'], 'template' => ['type' => 'string', 'description' => 'Template key from list_voice_agents (optional)'],
+                    'business_name' => ['type' => 'string'], 'first_message' => ['type' => 'string', 'description' => 'What it says first; {{customer_name}} style variables are filled per call'],
+                    'instructions' => ['type' => 'string'], 'language' => ['type' => 'string', 'description' => 'ISO code, default en'],
+                    'booking' => ['type' => 'object', 'properties' => ['enabled' => ['type' => 'boolean'], 'ask_email' => ['type' => 'boolean'], 'hours' => ['type' => 'string']]],
+                    'collect' => ['type' => 'array', 'description' => 'Details to capture from each call', 'items' => ['type' => 'object', 'properties' => ['key' => ['type' => 'string'], 'description' => ['type' => 'string']]]],
+                ], 'required' => ['name']]],
         ];
     }
 
@@ -79,11 +91,11 @@ class WorkflowTools
         // The assistant acts with the signed-in person's access, never more.
         $needs = match ($name) {
             'search_apps', 'get_app' => null,
-            'save_workflow', 'use_template', 'set_workflow_active', 'test_workflow' => 'workflows.edit',
+            'save_workflow', 'use_template', 'set_workflow_active', 'test_workflow', 'create_voice_agent' => 'workflows.edit',
             'delete_workflow' => 'workflows.delete',
             default => 'workflows.view',
         };
-        if (in_array($name, ['test_workflow', 'set_workflow_active', 'delete_workflow'], true) && auth()->user()?->isDemo()) {
+        if (in_array($name, ['test_workflow', 'set_workflow_active', 'delete_workflow', 'create_voice_agent'], true) && auth()->user()?->isDemo()) {
             return [['error' => 'Running, switching on and deleting workflows are turned off in the live demo. Tell the user to build and inspect; the full version does the rest.'], null, true];
         }
         if ($needs && ($user = auth()->user()) && ! $user->hasPermission($needs)) {
@@ -104,6 +116,8 @@ class WorkflowTools
                 'use_template' => $this->useTemplate((string) ($input['key'] ?? ''), $input['name'] ?? null, $conversation),
                 'test_workflow' => $this->testWorkflow((int) ($input['id'] ?? 0), $input['node'] ?? null),
                 'get_execution' => [$this->summarize(WorkflowExecution::query()->findOrFail((int) ($input['id'] ?? 0))), null, false],
+                'list_voice_agents' => [$this->listVoiceAgents(), null, false],
+                'create_voice_agent' => [$this->createVoiceAgent($input), null, false],
                 default => [['error' => "Unknown tool $name"], null, true],
             };
         } catch (ValidationException $e) {
@@ -111,6 +125,23 @@ class WorkflowTools
         } catch (Throwable $e) {
             return [['error' => $e->getMessage()], null, true];
         }
+    }
+
+    private function listVoiceAgents(): array
+    {
+        return [
+            'agents' => VoiceAgent::query()->orderBy('name')->get()->map(fn (VoiceAgent $a) => ['id' => $a->id, 'name' => $a->name, 'provider' => $a->provider, 'booking' => $a->bookingEnabled()])->all(),
+            'templates' => collect(app(VoiceService::class)->templates())->map(fn ($t) => ['key' => $t['key'], 'name' => $t['name'], 'direction' => $t['direction']])->all(),
+        ];
+    }
+
+    private function createVoiceAgent(array $input): array
+    {
+        $config = array_filter(array_intersect_key($input, array_flip(['business_name', 'first_message', 'instructions', 'language', 'booking', 'collect'])), fn ($v) => $v !== null && $v !== '');
+        $agent = app(VoiceService::class)->create((string) ($input['name'] ?? ''), $input['template'] ?? null, $config);
+
+        return ['id' => $agent->id, 'name' => $agent->name, 'url' => url("/voice/agents/{$agent->id}"),
+            'next' => 'Tell the user to open the link, press "Talk to it" to try it in the browser for free, and connect Vapi or ElevenLabs on the Phone tab for real calls.'];
     }
 
     private function searchApps(string $query, int $limit): array

@@ -1,0 +1,62 @@
+{
+  "key": "voice-call-new-leads",
+  "name": "Call new leads with a voice agent",
+  "description": "When a lead arrives from your website form (by webhook), your voice agent calls them right away to qualify them and book a meeting.",
+  "category": "Voice agents",
+  "featured": true,
+  "graph": {
+    "nodes": [
+      {
+        "id": "trigger",
+        "type": "trigger",
+        "position": {
+          "x": 0,
+          "y": 200
+        },
+        "data": {
+          "integration": "webhook",
+          "trigger": "catch",
+          "label": "New lead",
+          "config": {
+            "method": "POST",
+            "sample_payload": "{\n  \"name\": \"Ali Raza\",\n  \"phone\": \"+923001234567\",\n  \"interest\": \"Website redesign\"\n}"
+          }
+        }
+      },
+      {
+        "id": "step_1",
+        "type": "action",
+        "position": {
+          "x": 240,
+          "y": 200
+        },
+        "data": {
+          "integration": "voice",
+          "action": "place_call",
+          "label": "Call the lead",
+          "config": {
+            "to": "{{ steps.trigger.data.phone }}",
+            "variables": [
+              {
+                "key": "customer_name",
+                "value": "{{ steps.trigger.data.name }}"
+              },
+              {
+                "key": "interest",
+                "value": "{{ steps.trigger.data.interest }}"
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "e-trigger-step_1",
+        "source": "trigger",
+        "target": "step_1",
+        "sourceHandle": null
+      }
+    ]
+  }
+}

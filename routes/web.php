@@ -6,6 +6,7 @@ use App\Domain\Installer\InstallerController;
 use App\Domain\Integrations\Controllers\AppDirectoryController;
 use App\Domain\Integrations\Controllers\CredentialController;
 use App\Domain\Integrations\Controllers\IntegrationController;
+use App\Domain\Voice\Controllers\VoiceController;
 use App\Domain\Workflows\Controllers\ExecutionController;
 use App\Domain\Workflows\Controllers\OverviewController;
 use App\Domain\Workflows\Controllers\TemplateController;
@@ -107,6 +108,13 @@ Route::middleware('auth')->group(function () {
         Route::get('executions', [ExecutionController::class, 'index']);
         Route::get('executions/{execution}', [ExecutionController::class, 'show']);
         Route::get('integrations/{key}', IntegrationController::class);
+        Route::get('voice', [VoiceController::class, 'index']);
+        Route::get('voice/agents/{agent}', [VoiceController::class, 'show']);
+        Route::get('voice/calls', [VoiceController::class, 'calls']);
+        Route::get('voice/calls/{call}', [VoiceController::class, 'callShow']);
+        Route::get('voice/calls/{call}/recording', [VoiceController::class, 'recording']);
+        Route::get('voice/bookings', [VoiceController::class, 'bookings']);
+        Route::get('voice/options', [VoiceController::class, 'options']);
     });
 
     // Editing includes using and adding credentials (their secrets are never sent to the browser).
@@ -122,10 +130,19 @@ Route::middleware('auth')->group(function () {
         Route::put('credentials/{credential}', [CredentialController::class, 'update']);
         Route::get('credentials/{credential}/connect', [CredentialController::class, 'connect']);
         Route::get('oauth/callback', [CredentialController::class, 'callback']);
+        Route::post('voice/agents', [VoiceController::class, 'store']);
+        Route::post('voice/generate', [VoiceController::class, 'generate'])->middleware('throttle:20,1');
+        Route::put('voice/agents/{agent}', [VoiceController::class, 'update']);
+        Route::get('voice/agents/{agent}/numbers', [VoiceController::class, 'numbers'])->middleware('throttle:30,1');
+        Route::post('voice/agents/{agent}/call', [VoiceController::class, 'call'])->middleware('throttle:20,1');
+        Route::post('voice/agents/{agent}/talk', [VoiceController::class, 'talk'])->middleware('throttle:60,1');
+        Route::post('voice/agents/{agent}/talk/{call}/end', [VoiceController::class, 'endTalk']);
+        Route::put('voice/bookings/{booking}', [VoiceController::class, 'updateBooking']);
     });
 
     Route::middleware('can:workflows.delete')->group(function () {
         Route::delete('workflows/{workflow}', [WorkflowController::class, 'destroy']);
         Route::delete('credentials/{credential}', [CredentialController::class, 'destroy']);
+        Route::delete('voice/agents/{agent}', [VoiceController::class, 'destroy']);
     });
 });

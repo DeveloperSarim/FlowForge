@@ -3,7 +3,7 @@ import AiIcon from '@/Components/AiIcon';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import {
     Blocks, CheckCircle2, History, KeyRound, LayoutDashboard, LayoutTemplate, LogOut, Menu as MenuIcon, Plus, Settings,
-    Workflow, X, XCircle,
+    Workflow, X, XCircle, PhoneCall,
 } from 'lucide-react';
 import { Avatar, Button, Dialog, Field, Input, Textarea } from '@/Components/ui';
 import { cn, compact, timeAgo } from '@/lib/utils';
@@ -134,6 +134,7 @@ export default function AppLayout({ title, description, actions, children, wide 
     const nav = [
         { href: '/', label: 'Overview', icon: LayoutDashboard, exact: true },
         can['workflows.view'] && { href: '/workflows', label: 'Workflows', icon: Workflow },
+        can['workflows.view'] && { href: '/voice', label: 'Voice agents', icon: PhoneCall },
         can.ai && { href: '/assistant', label: 'AI Builder', icon: AiIcon },
         can['workflows.view'] && { href: '/templates', label: 'Templates', icon: LayoutTemplate },
         can['workflows.view'] && { href: '/executions', label: 'Executions', icon: History },
