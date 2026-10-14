@@ -150,6 +150,33 @@ class VoiceTest extends TestCase
         $this->assertSame('Hi Sara!', $call->transcript[0]['text']);
     }
 
+    public function test_the_elevenlabs_voice_library_can_be_searched_added_and_heard(): void
+    {
+        $credential = Credential::query()->create(['name' => 'ElevenLabs', 'integration' => 'elevenlabs', 'auth_type' => 'api_key', 'data' => ['api_key' => 'xi-key']]);
+        $agent = $this->agent('elevenlabs', ['credential_id' => $credential->id]);
+        Http::fake([
+            'api.elevenlabs.io/v1/shared-voices*' => Http::response(['has_more' => true, 'voices' => [['voice_id' => 'v_reva', 'public_owner_id' => 'own_1', 'name' => 'Reva', 'gender' => 'female',
+                'age' => 'young', 'accent' => 'standard', 'use_case' => 'conversational', 'language' => 'ur', 'free_users_allowed' => true, 'is_added_by_user' => false,
+                'preview_url' => 'https://cdn/en.mp3', 'verified_languages' => [['language' => 'ur', 'model_id' => 'eleven_flash_v2_5', 'preview_url' => 'https://cdn/ur.mp3']]]]]),
+            'api.elevenlabs.io/v1/voices/add/own_1/v_reva' => Http::response(['voice_id' => 'v_reva']),
+            'api.elevenlabs.io/v1/text-to-speech/*' => Http::response('MP3DATA', 200, ['Content-Type' => 'audio/mpeg']),
+        ]);
+
+        $this->getJson("/voice/agents/{$agent->id}/voices?provider=elevenlabs&credential_id={$credential->id}&language=ur&search=warm&gender=female")
+            ->assertOk()->assertJsonPath('has_more', true)->assertJsonPath('voices.0.preview', 'https://cdn/ur.mp3')->assertJsonPath('voices.0.owner', 'own_1');
+        Http::assertSent(fn ($r) => str_contains($r->url(), 'shared-voices') && $r['language'] === 'ur' && $r['search'] === 'warm' && $r['gender'] === 'female');
+
+        $this->postJson("/voice/agents/{$agent->id}/voices/add", ['credential_id' => $credential->id, 'owner' => 'own_1', 'voice_id' => 'v_reva', 'name' => 'Reva'])
+            ->assertOk()->assertJsonPath('voice_id', 'v_reva');
+
+        $agent->forceFill(['config' => ['voice' => 'v_reva'] + $agent->config])->save();
+        $audio = $this->post("/voice/agents/{$agent->id}/speak", ['text' => 'Assalam o alaikum!'])->assertOk()->assertHeader('Content-Type', 'audio/mpeg');
+        $this->assertSame('MP3DATA', $audio->getContent());
+        Http::assertSent(fn ($r) => str_contains($r->url(), '/text-to-speech/v_reva') && $r['text'] === 'Assalam o alaikum!' && $r->hasHeader('xi-api-key', 'xi-key'));
+
+        $this->postJson('/voice/agents/'.$this->agent()->id.'/speak', ['text' => 'Hi'])->assertStatus(422);
+    }
+
     public function test_the_free_browser_conversation_books_and_summarises(): void
     {
         app(SystemSettings::class)->set('ai', ['provider' => 'deepseek', 'api_key' => 'k', 'model' => 'deepseek-chat', 'base_url' => Providers::get('deepseek')['base_url']]);

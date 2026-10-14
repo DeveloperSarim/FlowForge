@@ -17,7 +17,7 @@ class ElevenLabsProvider implements VoiceProvider
     private const API = 'https://api.elevenlabs.io/v1/convai';
 
     /** "Rachel", a stock ElevenLabs voice available on every account. */
-    private const DEFAULT_VOICE = '21m00Tcm4TlvDq8ikWAM';
+    public const DEFAULT_VOICE = '21m00Tcm4TlvDq8ikWAM';
 
     private function http(VoiceAgent $agent): PendingRequest
     {

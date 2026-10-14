@@ -134,7 +134,9 @@ Route::middleware('auth')->group(function () {
         Route::post('voice/generate', [VoiceController::class, 'generate'])->middleware('throttle:20,1');
         Route::put('voice/agents/{agent}', [VoiceController::class, 'update']);
         Route::get('voice/agents/{agent}/numbers', [VoiceController::class, 'numbers'])->middleware('throttle:30,1');
-        Route::get('voice/agents/{agent}/voices', [VoiceController::class, 'voices'])->middleware('throttle:30,1');
+        Route::get('voice/agents/{agent}/voices', [VoiceController::class, 'voices'])->middleware('throttle:60,1');
+        Route::post('voice/agents/{agent}/voices/add', [VoiceController::class, 'addVoice'])->middleware('throttle:20,1');
+        Route::post('voice/agents/{agent}/speak', [VoiceController::class, 'speak'])->middleware('throttle:60,1');
         Route::post('voice/agents/{agent}/call', [VoiceController::class, 'call'])->middleware('throttle:20,1');
         Route::post('voice/agents/{agent}/talk', [VoiceController::class, 'talk'])->middleware('throttle:60,1');
         Route::post('voice/agents/{agent}/talk/{call}/end', [VoiceController::class, 'endTalk']);

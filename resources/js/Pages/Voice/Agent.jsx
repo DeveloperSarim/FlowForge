@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, router, useForm } from '@inertiajs/react';
 import {
-    ArrowLeft, BookOpen, CalendarCheck, Check, CheckCircle2, ExternalLink, Keyboard, Laptop, ListChecks, Loader2, Mic, MessageSquareText, PhoneCall,
-    PhoneOff, Play, Plus, Save, Send, Sparkles, Square, Trash2, TriangleAlert, UserRound, Volume2, VolumeX,
+    ArrowLeft, AudioLines, BookOpen, CalendarCheck, Check, CheckCircle2, ExternalLink, Keyboard, Laptop, ListChecks, Loader2, Mic, MessageSquareText, PhoneCall,
+    PhoneOff, Play, Plus, Save, Search, Send, Sparkles, Square, Trash2, TriangleAlert, UserRound, Volume2, VolumeX,
 } from 'lucide-react';
 import AppLayout from '@/Layouts/AppLayout';
 import { Button, Card, ConfirmButton, Dialog, Field, Input, Select, Switch, Textarea } from '@/Components/ui';
@@ -291,12 +291,29 @@ function CollectList({ collect, onChange }) {
     );
 }
 
+// macOS ships joke voices (Albert, Boing, Bad News…) that list first and sound broken on a call.
+const NOVELTY = /^(Albert|Bad News|Bahh|Bells|Boing|Bubbles|Cellos|Good News|Jester|Organ|Superstar|Trinoids|Whisper|Wobble|Zarvox|Fred|Junior|Kathy|Ralph)\b/;
+
+/** The browser's voices for a language, natural-sounding ones first. */
+function rankedVoices(lang) {
+    if (!('speechSynthesis' in window)) return [];
+    const rank = (v) => (/google|natural|neural|online|premium|enhanced|siri/i.test(v.name) ? 0 : /^(Samantha|Daniel|Karen|Moira|Tessa|Rishi|Veena|Lekha|Alex|Aaron|Nicky|Ava|Zoe|Evan|Allison|Susan|Serena)\b/.test(v.name) ? 2 : 4)
+        + (v.lang?.replace('_', '-') === lang ? 0 : 1);
+    return window.speechSynthesis.getVoices()
+        .filter((v) => v.lang?.toLowerCase().startsWith(lang.slice(0, 2).toLowerCase()) && !NOVELTY.test(v.name))
+        .sort((a, b) => rank(a) - rank(b));
+}
+
+function browserVoice(lang, name) {
+    return window.speechSynthesis.getVoices().find((v) => v.name === name) ?? rankedVoices(lang)[0];
+}
+
 function speakSample(text, { lang, voiceName }) {
     if (!('speechSynthesis' in window)) return;
     window.speechSynthesis.cancel();
     const u = new SpeechSynthesisUtterance(text);
     u.lang = lang;
-    const voice = window.speechSynthesis.getVoices().find((v) => v.name === voiceName);
+    const voice = browserVoice(lang, voiceName);
     if (voice) u.voice = voice;
     window.speechSynthesis.speak(u);
 }
@@ -305,7 +322,7 @@ function useBrowserVoices(lang) {
     const [voices, setVoices] = useState([]);
     useEffect(() => {
         if (!('speechSynthesis' in window)) return undefined;
-        const load = () => setVoices(window.speechSynthesis.getVoices().filter((v) => v.lang?.toLowerCase().startsWith(lang.slice(0, 2))));
+        const load = () => setVoices(rankedVoices(lang));
         load();
         window.speechSynthesis.addEventListener('voiceschanged', load);
         return () => window.speechSynthesis.removeEventListener('voiceschanged', load);
@@ -321,6 +338,7 @@ function PhoneSetup({ agent, form, config, setConfig, credentials }) {
     const [loading, setLoading] = useState(null);
     const [voices, setVoices] = useState(null);
     const [playing, setPlaying] = useState(null);
+    const [picking, setPicking] = useState(false);
     const audio = useRef(null);
     const lang = locale(config.language);
     const browserVoices = useBrowserVoices(lang);
@@ -404,10 +422,26 @@ function PhoneSetup({ agent, form, config, setConfig, credentials }) {
                             )}
                         </Field>
                     </div>
+                    {provider === 'elevenlabs' ? (
+                        <div>
+                            <p className="mb-2 text-[13px] font-medium">Voice</p>
+                            <div className="flex flex-wrap items-center gap-3 rounded-xl border border-line p-3">
+                                <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary-soft text-primary"><AudioLines className="size-5" /></span>
+                                <div className="min-w-0 flex-1">
+                                    <p className="truncate text-[13.5px] font-semibold">{config.voice_name || (config.voice ? 'Your chosen voice' : 'Rachel')}</p>
+                                    <p className="text-[12px] text-fg-muted">{config.voice ? 'ElevenLabs voice. Test calls use it too.' : 'Default ElevenLabs voice'}</p>
+                                </div>
+                                <Button size="sm" onClick={() => setPicking(true)} disabled={!form.data.credential_id}><Search className="size-3.5" />Choose a voice</Button>
+                            </div>
+                            {!form.data.credential_id && <p className="mt-1.5 text-[12px] text-fg-subtle">Choose your ElevenLabs account first.</p>}
+                            <VoicePicker open={picking} onClose={() => setPicking(false)} agent={agent} credentialId={form.data.credential_id} language={config.language} current={config.voice}
+                                onPick={(id, name) => { setConfig({ voice: id, voice_name: name }); setPicking(false); }} />
+                        </div>
+                    ) : (
                     <div>
                         <div className="mb-2 flex items-center justify-between gap-2">
                             <p className="text-[13px] font-medium">Voice{config.voice && <span className="ml-2 font-normal text-fg-muted">{voices?.find((v) => v.id === config.voice)?.name ?? config.voice}</span>}</p>
-                            <Button size="sm" onClick={() => fetchList('voices')} disabled={(provider === 'elevenlabs' && !form.data.credential_id) || loading === 'voices'}>
+                            <Button size="sm" onClick={() => fetchList('voices')} disabled={loading === 'voices'}>
                                 {loading === 'voices' ? <Loader2 className="size-3.5 animate-spin" /> : <Volume2 className="size-3.5" />}Browse voices
                             </Button>
                         </div>
@@ -415,12 +449,13 @@ function PhoneSetup({ agent, form, config, setConfig, credentials }) {
                             <div className="grid max-h-80 grid-cols-[minmax(0,1fr)] gap-2 overflow-y-auto pr-1 sm:grid-cols-2">
                                 {voices.map((v) => (
                                     <VoiceOption key={v.id} name={v.name} description={v.description} selected={config.voice === v.id} playing={playing === v.id}
-                                        onSelect={() => setConfig({ voice: v.id })} onPlay={v.preview ? () => play(v) : null} />
+                                        onSelect={() => setConfig({ voice: v.id, voice_name: v.name })} onPlay={v.preview ? () => play(v) : null} />
                                 ))}
                             </div>
                         )}
-                        {!voices && <p className="text-[12.5px] text-fg-subtle">{config.voice ? 'Browse to change it.' : `Default: ${provider === 'vapi' ? 'Elliot' : 'Rachel'}.`}</p>}
+                        {!voices && <p className="text-[12.5px] text-fg-subtle">{config.voice ? 'Browse to change it.' : 'Default: Elliot.'} Test calls in the browser use your browser's voice.</p>}
                     </div>
+                    )}
                     <Field label="AI model" help={`Optional. Empty uses ${info.model}.`}>{(id) => <Input id={id} value={config.llm ?? ''} onChange={(e) => setConfig({ llm: e.target.value })} placeholder={info.model} className="sm:w-72" />}</Field>
                 </>
             )}
@@ -428,7 +463,7 @@ function PhoneSetup({ agent, form, config, setConfig, credentials }) {
     );
 }
 
-function VoiceOption({ name, description, selected, playing, onSelect, onPlay }) {
+function VoiceOption({ name, description, selected, playing, busy, badge, onSelect, onPlay }) {
     return (
         <div className={cn('flex items-center gap-2 rounded-xl border-2 px-2.5 py-2', selected ? 'border-primary bg-primary-soft/40' : 'border-line')}>
             {onPlay ? (
@@ -436,12 +471,136 @@ function VoiceOption({ name, description, selected, playing, onSelect, onPlay })
                     {playing ? <Square className="size-3" fill="currentColor" /> : <Play className="ml-0.5 size-3.5" fill="currentColor" />}
                 </button>
             ) : <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-surface-2 text-fg-subtle"><Volume2 className="size-3.5" /></span>}
-            <button type="button" onClick={onSelect} className="min-w-0 flex-1 text-left">
+            <button type="button" onClick={onSelect} disabled={busy} className="min-w-0 flex-1 text-left">
                 <span className="block truncate text-[13px] font-semibold">{name}</span>
                 {description && <span className="block truncate text-[11.5px] text-fg-muted">{description}</span>}
             </button>
-            {selected && <CheckCircle2 className="size-4 shrink-0 text-primary" />}
+            {badge && <span className="shrink-0 rounded-md bg-surface-2 px-1.5 py-0.5 text-[10.5px] font-medium text-fg-muted">{badge}</span>}
+            {busy ? <Loader2 className="size-4 shrink-0 animate-spin text-primary" /> : selected && <CheckCircle2 className="size-4 shrink-0 text-primary" />}
         </div>
+    );
+}
+
+// Languages in the ElevenLabs voice library; names come from the browser.
+const LIBRARY_LANGUAGES = ['en', 'ur', 'hi', 'ar', 'bn', 'pa', 'fa', 'tr', 'es', 'fr', 'de', 'it', 'pt', 'nl', 'pl', 'ru', 'uk', 'sv', 'no', 'da', 'fi', 'cs', 'sk', 'hu', 'ro',
+    'bg', 'hr', 'el', 'id', 'ms', 'fil', 'vi', 'th', 'ta', 'te', 'mr', 'gu', 'ja', 'ko', 'zh'];
+const languageName = (code) => { try { return new Intl.DisplayNames(['en'], { type: 'language' }).of(code); } catch { return code; } };
+
+/** ElevenLabs voices: the whole voice library (search, language, gender) or the account's own voices, each with a sample to play. */
+function VoicePicker({ open, onClose, agent, credentialId, language, current, onPick }) {
+    const [source, setSource] = useState('library');
+    const [search, setSearch] = useState('');
+    const [lang, setLang] = useState(language ?? 'en');
+    const [gender, setGender] = useState('');
+    const [voices, setVoices] = useState([]);
+    const [page, setPage] = useState(0);
+    const [more, setMore] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
+    const [playing, setPlaying] = useState(null);
+    const [adding, setAdding] = useState(null);
+    const audio = useRef(null);
+    const latest = useRef(0);
+
+    const load = async (next) => {
+        const id = ++latest.current;
+        setLoading(true);
+        setError(null);
+        try {
+            const { data } = await window.axios.get(`/voice/agents/${agent.id}/voices`, {
+                params: { provider: 'elevenlabs', credential_id: credentialId, source, search: search.trim() || undefined, language: lang || undefined, gender: gender || undefined, page: next },
+            });
+            if (id !== latest.current) return;
+            setVoices((v) => (next ? [...v, ...data.voices] : data.voices));
+            setMore(data.has_more);
+            setPage(next);
+        } catch (e) {
+            if (id === latest.current) setError(errorMessage(e));
+        } finally {
+            if (id === latest.current) setLoading(false);
+        }
+    };
+    useEffect(() => {
+        if (!open) return undefined;
+        const timer = setTimeout(() => load(0), search ? 350 : 0);
+        return () => clearTimeout(timer);
+    }, [open, source, search, lang, gender]); // eslint-disable-line react-hooks/exhaustive-deps
+
+    const stop = () => { audio.current?.pause(); setPlaying(null); };
+    const close = () => { stop(); onClose(); };
+    const play = (v) => {
+        audio.current?.pause();
+        if (playing === v.id) { setPlaying(null); return; }
+        audio.current = new Audio(v.preview);
+        audio.current.onended = () => setPlaying(null);
+        audio.current.play().catch(() => setPlaying(null));
+        setPlaying(v.id);
+    };
+    const pick = async (v) => {
+        stop();
+        if (v.added || !v.owner) { onPick(v.id, v.name); return; }
+        setAdding(v.id);
+        try {
+            const { data } = await window.axios.post(`/voice/agents/${agent.id}/voices/add`, { credential_id: credentialId, owner: v.owner, voice_id: v.id, name: v.name });
+            onPick(data.voice_id, v.name);
+            toast(`${v.name} added to your ElevenLabs voices. Save to use it.`, 'success');
+        } catch (e) {
+            toast(errorMessage(e), 'error');
+        } finally {
+            setAdding(null);
+        }
+    };
+    const chip = (active) => cn('shrink-0 rounded-full border px-3 py-1 text-[12.5px] font-medium', active ? 'border-fg bg-fg text-bg' : 'border-line text-fg-muted hover:text-fg');
+
+    return (
+        <Dialog open={open} onClose={close} title="Choose a voice" description="Play a sample, then pick the voice your agent speaks with on calls and test calls." wide>
+            <div className="space-y-3">
+                <div className="flex flex-wrap items-center gap-2">
+                    <div className="inline-flex rounded-lg bg-surface-2 p-0.5" role="radiogroup" aria-label="Where to look">
+                        {[['library', 'Voice library'], ['mine', 'My voices']].map(([value, label]) => (
+                            <button key={value} type="button" role="radio" aria-checked={source === value} onClick={() => setSource(value)}
+                                className={cn('rounded-md px-3 py-1.5 text-[13px] font-medium', source === value ? 'bg-surface text-fg shadow-card' : 'text-fg-muted hover:text-fg')}>{label}</button>
+                        ))}
+                    </div>
+                    {source === 'library' && (
+                        <Select value={lang} onChange={(e) => setLang(e.target.value)} aria-label="Language" className="w-auto min-w-40">
+                            <option value="">Any language</option>
+                            {LIBRARY_LANGUAGES.map((code) => <option key={code} value={code}>{languageName(code)}</option>)}
+                        </Select>
+                    )}
+                </div>
+                <div className="relative">
+                    <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-fg-subtle" />
+                    <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder={source === 'library' ? 'Search: calm, British, deep, customer support…' : 'Search your voices'} aria-label="Search voices" className="pl-9" />
+                </div>
+                {source === 'library' && (
+                    <div className="no-scrollbar flex gap-1.5 overflow-x-auto">
+                        {[['', 'Any voice'], ['female', 'Female'], ['male', 'Male']].map(([value, label]) => (
+                            <button key={value} type="button" onClick={() => setGender(value)} aria-pressed={gender === value} className={chip(gender === value)}>{label}</button>
+                        ))}
+                    </div>
+                )}
+
+                {error && <p className="rounded-lg bg-fail-soft px-3 py-2 text-[13px] text-fail">{error}</p>}
+                <div className="grid max-h-[52dvh] grid-cols-[minmax(0,1fr)] content-start gap-2 overflow-y-auto pr-1 sm:grid-cols-2">
+                    {voices.map((v) => (
+                        <VoiceOption key={`${v.owner ?? 'mine'}-${v.id}`} name={v.name} description={v.description || (v.language && languageName(v.language))} selected={current === v.id}
+                            playing={playing === v.id} busy={adding === v.id} badge={v.paid ? 'Paid plans' : null} onSelect={() => pick(v)} onPlay={v.preview ? () => play(v) : null} />
+                    ))}
+                    {loading && Array.from({ length: voices.length ? 2 : 6 }, (_, i) => <div key={`s${i}`} className="h-[52px] animate-pulse rounded-xl bg-surface-2" />)}
+                    {!loading && !error && voices.length === 0 && (
+                        <div className="py-8 text-center text-[13px] text-fg-muted sm:col-span-2">
+                            <p>{source === 'mine' ? 'No voices in your ElevenLabs account match.' : `No ${lang ? `${languageName(lang)} ` : ''}voices match.`}</p>
+                            {source === 'library' && lang && <Button size="sm" className="mt-3" onClick={() => setLang('')}>Search all languages</Button>}
+                        </div>
+                    )}
+                </div>
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                    <p className="text-[12px] text-fg-subtle">Any voice can speak the agent's language. Voices made for it sound the most natural.</p>
+                    {more && !loading && <Button size="sm" onClick={() => load(page + 1)}>Show more voices</Button>}
+                </div>
+            </div>
+        </Dialog>
     );
 }
 
@@ -527,6 +686,9 @@ function CallSimulator({ agent, config, variables, dirty, hasAi, onSave }) {
     const busy = useRef(false);
     const recognition = useRef(null);
     const scroller = useRef(null);
+    const audioEl = useRef(null);
+    const cloudFailed = useRef(false);
+    const cloudVoice = agent.provider === 'elevenlabs' && !!agent.credential_id;
     const speakerRef = useRef(speaker);
     speakerRef.current = speaker;
     const typingRef = useRef(typing);
@@ -534,7 +696,7 @@ function CallSimulator({ agent, config, variables, dirty, hasAi, onSave }) {
     const inCall = ['starting', 'listening', 'thinking', 'speaking'].includes(state);
     const level = useMicLevel(inCall && !!Recognition && !typing);
 
-    useEffect(() => () => { active.current = false; recognition.current?.abort(); if (canSpeak) window.speechSynthesis.cancel(); }, []);
+    useEffect(() => () => { active.current = false; recognition.current?.abort(); audioEl.current?.pause(); if (canSpeak) window.speechSynthesis.cancel(); }, []);
     useEffect(() => { scroller.current?.scrollTo({ top: scroller.current.scrollHeight, behavior: 'smooth' }); }, [turns]);
     useEffect(() => {
         if (!inCall) return undefined;
@@ -542,18 +704,44 @@ function CallSimulator({ agent, config, variables, dirty, hasAi, onSave }) {
         return () => clearInterval(timer);
     }, [inCall]);
 
-    const speak = (text) => new Promise((resolve) => {
-        if (!canSpeak || !speakerRef.current || !text) return resolve();
+    const browserSpeak = (text) => new Promise((resolve) => {
+        if (!canSpeak) return resolve();
         window.speechSynthesis.cancel();
         const u = new SpeechSynthesisUtterance(text);
         u.lang = lang;
-        const voices = window.speechSynthesis.getVoices();
-        const voice = voices.find((v) => v.name === config.browser_voice) ?? voices.find((v) => v.lang?.toLowerCase().startsWith(lang.slice(0, 2)));
+        const voice = browserVoice(lang, config.browser_voice);
         if (voice) u.voice = voice;
         u.onend = resolve;
         u.onerror = resolve;
         window.speechSynthesis.speak(u);
     });
+
+    // ElevenLabs agents speak with their real voice; anything else (or a failure) uses the browser's voice.
+    const speak = async (text) => {
+        if (!speakerRef.current || !text) return;
+        if (cloudVoice && !cloudFailed.current) {
+            try {
+                const { data } = await window.axios.post(`/voice/agents/${agent.id}/speak`, { text }, { responseType: 'blob' });
+                const url = URL.createObjectURL(data);
+                await new Promise((resolve) => {
+                    const a = new Audio(url);
+                    audioEl.current = a;
+                    a.onended = resolve;
+                    a.onpause = resolve;
+                    a.onerror = resolve;
+                    a.play().catch(resolve);
+                });
+                URL.revokeObjectURL(url);
+                return;
+            } catch (e) {
+                cloudFailed.current = true;
+                let message = "The ElevenLabs voice didn't load.";
+                try { message = JSON.parse(await e.response.data.text()).message ?? message; } catch { /* not JSON */ }
+                setError(`${message} This test call uses your browser's voice instead.`);
+            }
+        }
+        await browserSpeak(text);
+    };
 
     const listen = () => {
         if (!active.current) return;
@@ -593,6 +781,7 @@ function CallSimulator({ agent, config, variables, dirty, hasAi, onSave }) {
 
     const start = async () => {
         active.current = true;
+        cloudFailed.current = false;
         call.current = null;
         setError(null); setTurns([]); setResult(null); setBooking(null);
         setStartedAt(Date.now());
@@ -617,6 +806,7 @@ function CallSimulator({ agent, config, variables, dirty, hasAi, onSave }) {
     const end = async () => {
         active.current = false;
         recognition.current?.abort();
+        audioEl.current?.pause();
         if (canSpeak) window.speechSynthesis.cancel();
         setState('ending');
         if (call.current) {
@@ -648,7 +838,7 @@ function CallSimulator({ agent, config, variables, dirty, hasAi, onSave }) {
         <section className="overflow-hidden rounded-[28px] bg-[#16181d] text-white shadow-pop" aria-label="Test call">
             <div className="flex items-center justify-between px-5 pt-4 text-[12px] text-white/55">
                 <span className="flex items-center gap-1.5"><span className={cn('size-1.5 rounded-full', inCall ? 'bg-ok' : 'bg-white/30')} />{inCall ? 'On a test call' : 'Test call'}</span>
-                <span className="tabular-nums">{inCall || state === 'ending' ? clock : 'Free'}</span>
+                <span className="tabular-nums">{inCall || state === 'ending' ? clock : cloudVoice ? 'ElevenLabs voice' : 'Free'}</span>
             </div>
 
             <div className="flex flex-col items-center px-5 pt-3 pb-2 text-center">
@@ -719,7 +909,7 @@ function CallSimulator({ agent, config, variables, dirty, hasAi, onSave }) {
                             className={cn('flex size-16 items-center justify-center rounded-full text-white transition-transform active:scale-95 disabled:opacity-60', inCall ? 'bg-fail' : 'bg-ok')}>
                             {state === 'ending' ? <Loader2 className="size-7 animate-spin" /> : inCall ? <PhoneOff className="size-7" /> : <PhoneCall className="size-7" />}
                         </button>
-                        <RoundButton label={speaker ? 'Mute the agent' : 'Unmute the agent'} onClick={() => { setSpeaker((s) => !s); if (speaker && canSpeak) window.speechSynthesis.cancel(); }} disabled={!canSpeak}>
+                        <RoundButton label={speaker ? 'Mute the agent' : 'Unmute the agent'} onClick={() => { setSpeaker((s) => !s); if (speaker) { audioEl.current?.pause(); if (canSpeak) window.speechSynthesis.cancel(); } }} disabled={!canSpeak && !cloudVoice}>
                             {speaker ? <Volume2 className="size-5" /> : <VolumeX className="size-5" />}
                         </RoundButton>
                     </div>

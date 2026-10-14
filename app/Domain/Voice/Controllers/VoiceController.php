@@ -7,9 +7,11 @@ use App\Domain\System\SystemSettings;
 use App\Domain\Voice\Models\VoiceAgent;
 use App\Domain\Voice\Models\VoiceBooking;
 use App\Domain\Voice\Models\VoiceCall;
+use App\Domain\Voice\Providers\ElevenLabsProvider;
 use App\Domain\Voice\VoicePrompt;
 use App\Domain\Voice\VoiceService;
 use App\Http\Controllers\Controller;
+use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -145,6 +147,7 @@ class VoiceController extends Controller
             'instructions' => isset($c['instructions']) ? mb_substr((string) $c['instructions'], 0, 20000) : null,
             'language' => isset($c['language']) && preg_match('/^[a-z]{2}(-[A-Z]{2})?$/', (string) $c['language']) ? $c['language'] : null,
             'voice' => isset($c['voice']) ? mb_substr(trim((string) $c['voice']), 0, 80) : null,
+            'voice_name' => isset($c['voice_name']) ? mb_substr(trim((string) $c['voice_name']), 0, 120) : null,
             'llm' => isset($c['llm']) ? mb_substr(trim((string) $c['llm']), 0, 80) : null,
             'booking' => isset($c['booking']) ? ['enabled' => (bool) ($c['booking']['enabled'] ?? false), 'ask_email' => (bool) ($c['booking']['ask_email'] ?? false),
                 'hours' => mb_substr((string) ($c['booking']['hours'] ?? ''), 0, 200), 'duration' => max(5, min(480, (int) ($c['booking']['duration'] ?? 30))),
@@ -161,29 +164,97 @@ class VoiceController extends Controller
         return redirect('/voice')->with('success', "Deleted {$agent->name}. Its calls and bookings were removed too.");
     }
 
-    /** Voices to choose from: the ElevenLabs account's voices (with previews), or Vapi's built-in voices. */
+    /** Voices to choose from: Vapi's built-in voices, or ElevenLabs' voice library (searchable, by language) and the account's own voices. */
     public function voices(Request $request, VoiceAgent $agent): JsonResponse
     {
-        $data = $request->validate(['provider' => ['required', Rule::in(['vapi', 'elevenlabs'])], 'credential_id' => ['nullable', 'integer', 'exists:credentials,id']]);
+        $data = $request->validate([
+            'provider' => ['required', Rule::in(['vapi', 'elevenlabs'])], 'credential_id' => ['nullable', 'integer', 'exists:credentials,id'],
+            'source' => ['nullable', Rule::in(['library', 'mine'])], 'search' => ['nullable', 'string', 'max:100'], 'language' => ['nullable', 'regex:/^[a-z]{2,3}$/'],
+            'gender' => ['nullable', Rule::in(['male', 'female'])], 'page' => ['nullable', 'integer', 'min:0', 'max:300'],
+        ]);
         if ($data['provider'] === 'vapi') {
-            return response()->json(['voices' => collect(['Elliot' => 'Male, calm', 'Kylie' => 'Female, friendly', 'Rohan' => 'Male, Indian English', 'Lily' => 'Female, bright', 'Savannah' => 'Female, Southern US',
+            return response()->json(['has_more' => false, 'voices' => collect(['Elliot' => 'Male, calm', 'Kylie' => 'Female, friendly', 'Rohan' => 'Male, Indian English', 'Lily' => 'Female, bright', 'Savannah' => 'Female, Southern US',
                 'Hana' => 'Female, soft', 'Neha' => 'Female, Indian English', 'Cole' => 'Male, deep', 'Harry' => 'Male, British', 'Paige' => 'Female, warm', 'Spencer' => 'Male, energetic'])
                 ->map(fn ($d, $name) => ['id' => $name, 'name' => $name, 'description' => $d, 'preview' => null])->values()]);
         }
-        $key = Credential::query()->find($data['credential_id'] ?? 0)?->data['api_key'] ?? null;
-        if (! $key) {
-            return response()->json(['message' => 'Choose your ElevenLabs account first.'], 422);
-        }
-        $response = Http::withHeaders(['xi-api-key' => $key])->acceptJson()->timeout(20)->get('https://api.elevenlabs.io/v1/voices');
-        if (! $response->successful()) {
-            return response()->json(['message' => "ElevenLabs didn't list your voices (HTTP {$response->status()}). Check the API key."], 422);
+        $http = $this->elevenLabs($data['credential_id'] ?? null);
+        $search = trim((string) ($data['search'] ?? ''));
+        $label = fn (array $parts) => collect($parts)->filter()->map(fn ($p) => str_replace('_', ' ', (string) $p))->unique()->implode(', ');
+
+        if (($data['source'] ?? 'library') === 'mine') {
+            $response = $http->get('https://api.elevenlabs.io/v1/voices');
+            if (! $response->successful()) {
+                return response()->json(['message' => "ElevenLabs didn't list your voices (HTTP {$response->status()}). Check the API key."], 422);
+            }
+
+            return response()->json(['has_more' => false, 'voices' => collect($response->json('voices', []))
+                ->map(fn ($v) => ['id' => $v['voice_id'], 'name' => $v['name'], 'preview' => $v['preview_url'] ?? null, 'added' => true,
+                    'description' => $label(Arr::only($v['labels'] ?? [], ['gender', 'accent', 'age', 'description', 'use_case']))])
+                ->filter(fn ($v) => $search === '' || Str::contains($v['name'].' '.$v['description'], $search, true))
+                ->sortBy('name')->values()]);
         }
 
-        return response()->json(['voices' => collect($response->json('voices', []))->map(fn ($v) => [
-            'id' => $v['voice_id'], 'name' => $v['name'],
-            'description' => collect($v['labels'] ?? [])->only(['gender', 'accent', 'age', 'description', 'use_case'])->filter()->implode(', '),
-            'preview' => $v['preview_url'] ?? null,
-        ])->sortBy('name')->values()->take(120)]);
+        $language = $data['language'] ?? null;
+        $response = $http->get('https://api.elevenlabs.io/v1/shared-voices', array_filter([
+            'page_size' => 30, 'page' => $data['page'] ?? 0, 'search' => $search, 'language' => $language, 'gender' => $data['gender'] ?? null, 'sort' => $search === '' ? 'trending' : null,
+        ], fn ($v) => $v !== null && $v !== ''));
+        if (! $response->successful()) {
+            return response()->json(['message' => "ElevenLabs didn't list its voice library (HTTP {$response->status()}). Check the API key."], 422);
+        }
+
+        return response()->json(['has_more' => (bool) $response->json('has_more'), 'voices' => collect($response->json('voices', []))->map(fn ($v) => [
+            'id' => $v['voice_id'], 'owner' => $v['public_owner_id'] ?? null, 'name' => trim((string) $v['name']), 'added' => (bool) ($v['is_added_by_user'] ?? false),
+            'description' => $label([$v['gender'] ?? null, $v['age'] ?? null, $v['accent'] ?? null, $v['descriptive'] ?? null, $v['use_case'] ?? null]),
+            'language' => $v['language'] ?? null, 'paid' => ! ($v['free_users_allowed'] ?? true),
+            // A sample in the chosen language when ElevenLabs has one.
+            'preview' => ($language ? collect($v['verified_languages'] ?? [])->where('language', $language)->pluck('preview_url')->filter()->first() : null) ?? ($v['preview_url'] ?? null),
+        ])->values()]);
+    }
+
+    /** Adds a voice-library voice to the ElevenLabs account (agents can only use voices in the account) and returns its id. */
+    public function addVoice(Request $request, VoiceAgent $agent): JsonResponse
+    {
+        $data = $request->validate(['credential_id' => ['required', 'integer', 'exists:credentials,id'], 'owner' => ['required', 'string', 'max:100'],
+            'voice_id' => ['required', 'string', 'max:100'], 'name' => ['required', 'string', 'max:120']]);
+        $response = $this->elevenLabs($data['credential_id'])->post('https://api.elevenlabs.io/v1/voices/add/'.rawurlencode($data['owner']).'/'.rawurlencode($data['voice_id']), ['new_name' => Str::limit($data['name'], 100, '')]);
+        if (! $response->successful()) {
+            $detail = $response->json('detail');
+            $message = is_array($detail) ? ($detail['message'] ?? '') : (string) $detail;
+            if (Str::contains($message, 'already', true)) {
+                return response()->json(['voice_id' => $data['voice_id']]);
+            }
+
+            return response()->json(['message' => 'ElevenLabs couldn\'t add this voice: '.($message ?: 'HTTP '.$response->status()).'. Free plans have a limited number of voice slots; remove one at elevenlabs.io or pick another voice.'], 422);
+        }
+
+        return response()->json(['voice_id' => $response->json('voice_id') ?: $data['voice_id']]);
+    }
+
+    /** Speaks a test-call reply with the agent's ElevenLabs voice (MP3), so test calls sound like real ones. */
+    public function speak(Request $request, VoiceAgent $agent): HttpResponse
+    {
+        $text = $request->validate(['text' => ['required', 'string', 'max:1500']])['text'];
+        if ($agent->provider !== 'elevenlabs' || ! $agent->credential_id) {
+            return response()->json(['message' => 'Only agents on ElevenLabs speak with a cloud voice.'], 422);
+        }
+        $response = $this->elevenLabs($agent->credential_id)->accept('audio/mpeg')->timeout(30)
+            ->post('https://api.elevenlabs.io/v1/text-to-speech/'.rawurlencode($agent->setting('voice') ?: ElevenLabsProvider::DEFAULT_VOICE).'?output_format=mp3_44100_64',
+                ['text' => $text, 'model_id' => 'eleven_flash_v2_5']);
+        if (! $response->successful()) {
+            $detail = $response->json('detail');
+
+            return response()->json(['message' => 'ElevenLabs couldn\'t speak: '.((is_array($detail) ? ($detail['message'] ?? null) : $detail) ?: 'HTTP '.$response->status())], 422);
+        }
+
+        return response($response->body(), 200, ['Content-Type' => 'audio/mpeg', 'Cache-Control' => 'no-store']);
+    }
+
+    private function elevenLabs(?int $credentialId): PendingRequest
+    {
+        $key = Credential::query()->find($credentialId ?? 0)?->data['api_key'] ?? null;
+        abort_unless($key, 422, 'Choose your ElevenLabs account first.');
+
+        return Http::withHeaders(['xi-api-key' => $key])->acceptJson()->timeout(20);
     }
 
     /** The provider's phone numbers, for the Phone tab (works before saving: provider and credential come from the form). */
