@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, usePage } from '@inertiajs/react';
-import { CalendarCheck, Globe2, Loader2, PhoneCall, PhoneIncoming, PhoneOutgoing, X } from 'lucide-react';
+import { BedDouble, BellRing, CalendarCheck, Car, Dumbbell, Globe2, Headphones, House, Loader2, MessageSquareHeart, Mic, PhoneCall, PhoneIncoming, PhoneOutgoing, Scissors, ShoppingBag, Stethoscope, Target, Utensils, X } from 'lucide-react';
 import { Badge, Button, Sheet } from '@/Components/ui';
 import { cn, errorMessage } from '@/lib/utils';
 
@@ -154,6 +154,67 @@ export function Transcript({ turns, live }) {
                         t.role === 'user' ? 'rounded-br-md bg-primary text-primary-fg' : 'rounded-bl-md bg-surface-2 text-fg')}>
                         <span className="sr-only">{t.role === 'user' ? 'Caller: ' : 'Agent: '}</span>{t.text}
                     </div>
+                </li>
+            ))}
+        </ol>
+    );
+}
+
+export const TEMPLATE_ICONS = {
+    stethoscope: Stethoscope, scissors: Scissors, utensils: Utensils, target: Target, 'bell-ring': BellRing, headphones: Headphones, house: House,
+    'message-square-heart': MessageSquareHeart, 'bed-double': BedDouble, car: Car, dumbbell: Dumbbell, 'shopping-bag': ShoppingBag,
+};
+
+/** One flat hue per business type; tiles use it at low opacity so it works in light and dark. */
+export const CATEGORY_HUES = {
+    Healthcare: '#2f9e6a', Beauty: '#c2417a', Food: '#c7741a', Sales: '#4f5bd5', Support: '#1f8fae', Property: '#7c4dcc',
+    Feedback: '#d4532b', Hospitality: '#b07d12', Automotive: '#5b6472', Fitness: '#d0342c', Retail: '#0f8b8d',
+};
+export const hueOf = (category) => CATEGORY_HUES[category] ?? '#ee5a24';
+export const tint = (hue, amount = 13) => ({ backgroundColor: `color-mix(in srgb, ${hue} ${amount}%, transparent)`, color: hue });
+
+/** Round identity mark for an agent: the persona's initial in the brand colour with a quiet ring. */
+export function AgentAvatar({ name, size = 40, className }) {
+    const letter = (name || '?').trim().charAt(0).toUpperCase();
+    return (
+        <span className={cn('relative inline-flex shrink-0 items-center justify-center rounded-full bg-primary font-semibold text-primary-fg ring-4 ring-primary/15', className)}
+            style={{ width: size, height: size, fontSize: size * 0.42 }} aria-hidden>
+            {letter}
+        </span>
+    );
+}
+
+/**
+ * The call orb. idle: still. listening: rings follow the microphone level. thinking: a dashed ring turns.
+ * speaking: waves spread outwards. Solid colours only, and no motion when reduced motion is on.
+ */
+export function VoiceOrb({ state = 'idle', level = 0, size = 168, label }) {
+    const core = size * 0.42;
+    const lift = state === 'listening' ? Math.min(1, level * 2.2) : 0;
+    return (
+        <div className="relative flex items-center justify-center" style={{ width: size, height: size }} aria-hidden>
+            {state === 'speaking' && [0, 0.6, 1.2].map((delay) => (
+                <span key={delay} className="orb-wave absolute rounded-full border-2 border-primary/60" style={{ width: core, height: core, animationDelay: `${delay}s` }} />
+            ))}
+            <span className="absolute rounded-full bg-primary/10 transition-transform duration-100" style={{ width: core * 1.9, height: core * 1.9, transform: `scale(${1 + lift * 0.18})` }} />
+            <span className="absolute rounded-full bg-primary/15 transition-transform duration-75" style={{ width: core * 1.45, height: core * 1.45, transform: `scale(${1 + lift * 0.3})` }} />
+            {state === 'thinking' && <span className="orb-think absolute rounded-full border-2 border-dashed border-primary/70" style={{ width: core * 1.25, height: core * 1.25 }} />}
+            <span className={cn('relative flex items-center justify-center rounded-full bg-primary text-primary-fg shadow-pop', state === 'idle' && 'orb-breathe')}
+                style={{ width: core, height: core, fontSize: core * 0.36 }}>
+                {label ? <span className="font-semibold">{label}</span> : <Mic style={{ width: core * 0.38, height: core * 0.38 }} />}
+            </span>
+        </div>
+    );
+}
+
+/** A few lines of a template's sample call, as chat bubbles. */
+export function SampleChat({ turns = [], limit = 3, compact }) {
+    return (
+        <ol className={cn('space-y-1.5', compact && 'space-y-1')}>
+            {turns.slice(0, limit).map((t, i) => (
+                <li key={i} className={cn('flex', t.role === 'user' ? 'justify-end' : 'justify-start')}>
+                    <span className={cn('max-w-[88%] rounded-2xl px-3 py-1.5 leading-snug', compact ? 'text-[12px]' : 'text-[13px]',
+                        t.role === 'user' ? 'rounded-br-md bg-surface-2 text-fg' : 'rounded-bl-md bg-primary-soft text-fg')}>{t.text}</span>
                 </li>
             ))}
         </ol>

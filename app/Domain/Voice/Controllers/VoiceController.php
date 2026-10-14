@@ -14,6 +14,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
@@ -41,8 +42,9 @@ class VoiceController extends Controller
             'agents' => $agents->map(fn (VoiceAgent $a) => [
                 'id' => $a->id, 'name' => $a->name, 'provider' => $a->provider, 'phone' => $a->phone_label, 'calls' => $a->calls_count, 'bookings' => $a->bookings_count,
                 'last_call' => $a->calls_max_created_at, 'problem' => $a->sync_error, 'template' => $a->setting('template'), 'booking' => $a->bookingEnabled(),
+                'persona' => $a->setting('persona_name'), 'business' => $a->setting('business_name'), 'live' => (bool) $a->remote_id,
             ]),
-            'templates' => collect($this->voice->templates())->map(fn ($t) => Arr::only($t, ['key', 'name', 'description', 'icon', 'direction']))->values(),
+            'templates' => collect($this->voice->templates())->map(fn ($t) => Arr::only($t, ['key', 'name', 'description', 'icon', 'direction', 'category', 'persona_name', 'sample', 'booking', 'collect', 'tone', 'questions']))->values(),
             'stats' => [
                 'calls_today' => VoiceCall::query()->where('created_at', '>=', now()->startOfDay())->count(),
                 'minutes_week' => (int) round(VoiceCall::query()->where('created_at', '>=', now()->subDays(7))->sum('duration_seconds') / 60),
@@ -84,6 +86,7 @@ class VoiceController extends Controller
             ],
             'credentials' => Credential::query()->whereIn('integration', array_values(VoiceAgent::CREDENTIAL_APP))->orderBy('name')->get(['id', 'name', 'integration']),
             'variables' => VoicePrompt::variables($agent),
+            'questions' => collect($this->voice->templates())->firstWhere('key', $agent->setting('template'))['questions'] ?? [],
             'recentCalls' => $agent->calls()->latest()->limit(8)->get()->map(fn (VoiceCall $c) => $this->callRow($c)),
             'hasAi' => $this->hasAi(),
             'timezone' => $this->settings->timezone(),
@@ -131,12 +134,21 @@ class VoiceController extends Controller
     {
         return array_filter([
             'business_name' => isset($c['business_name']) ? mb_substr((string) $c['business_name'], 0, 160) : null,
+            'persona_name' => isset($c['persona_name']) ? mb_substr(trim((string) $c['persona_name']), 0, 60) : null,
+            'tone' => isset($c['tone']) && array_key_exists($c['tone'], VoicePrompt::TONES) ? $c['tone'] : null,
+            'verbosity' => isset($c['verbosity']) && in_array($c['verbosity'], ['short', 'balanced', 'detailed'], true) ? $c['verbosity'] : null,
+            'knowledge' => isset($c['knowledge']) ? mb_substr((string) $c['knowledge'], 0, 20000) : null,
+            'faqs' => isset($c['faqs']) ? collect((array) $c['faqs'])->filter(fn ($f) => is_array($f) && (trim((string) ($f['q'] ?? '')) !== '' || trim((string) ($f['a'] ?? '')) !== ''))
+                ->map(fn ($f) => ['q' => mb_substr((string) ($f['q'] ?? ''), 0, 500), 'a' => mb_substr((string) ($f['a'] ?? ''), 0, 2000)])->values()->take(40)->all() : null,
+            'browser_voice' => isset($c['browser_voice']) ? mb_substr((string) $c['browser_voice'], 0, 120) : null,
             'first_message' => isset($c['first_message']) ? mb_substr((string) $c['first_message'], 0, 1000) : null,
             'instructions' => isset($c['instructions']) ? mb_substr((string) $c['instructions'], 0, 20000) : null,
             'language' => isset($c['language']) && preg_match('/^[a-z]{2}(-[A-Z]{2})?$/', (string) $c['language']) ? $c['language'] : null,
             'voice' => isset($c['voice']) ? mb_substr(trim((string) $c['voice']), 0, 80) : null,
             'llm' => isset($c['llm']) ? mb_substr(trim((string) $c['llm']), 0, 80) : null,
-            'booking' => isset($c['booking']) ? ['enabled' => (bool) ($c['booking']['enabled'] ?? false), 'ask_email' => (bool) ($c['booking']['ask_email'] ?? false), 'hours' => mb_substr((string) ($c['booking']['hours'] ?? ''), 0, 200)] : null,
+            'booking' => isset($c['booking']) ? ['enabled' => (bool) ($c['booking']['enabled'] ?? false), 'ask_email' => (bool) ($c['booking']['ask_email'] ?? false),
+                'hours' => mb_substr((string) ($c['booking']['hours'] ?? ''), 0, 200), 'duration' => max(5, min(480, (int) ($c['booking']['duration'] ?? 30))),
+                'services' => mb_substr((string) ($c['booking']['services'] ?? ''), 0, 500)] : null,
             'collect' => isset($c['collect']) ? collect((array) $c['collect'])->filter(fn ($f) => is_array($f) && trim((string) ($f['key'] ?? '')) !== '')
                 ->map(fn ($f) => ['key' => Str::snake(mb_substr(trim((string) $f['key']), 0, 40)), 'description' => mb_substr((string) ($f['description'] ?? ''), 0, 300)])->values()->take(12)->all() : null,
         ], fn ($v) => $v !== null);
@@ -147,6 +159,31 @@ class VoiceController extends Controller
         $agent->delete();
 
         return redirect('/voice')->with('success', "Deleted {$agent->name}. Its calls and bookings were removed too.");
+    }
+
+    /** Voices to choose from: the ElevenLabs account's voices (with previews), or Vapi's built-in voices. */
+    public function voices(Request $request, VoiceAgent $agent): JsonResponse
+    {
+        $data = $request->validate(['provider' => ['required', Rule::in(['vapi', 'elevenlabs'])], 'credential_id' => ['nullable', 'integer', 'exists:credentials,id']]);
+        if ($data['provider'] === 'vapi') {
+            return response()->json(['voices' => collect(['Elliot' => 'Male, calm', 'Kylie' => 'Female, friendly', 'Rohan' => 'Male, Indian English', 'Lily' => 'Female, bright', 'Savannah' => 'Female, Southern US',
+                'Hana' => 'Female, soft', 'Neha' => 'Female, Indian English', 'Cole' => 'Male, deep', 'Harry' => 'Male, British', 'Paige' => 'Female, warm', 'Spencer' => 'Male, energetic'])
+                ->map(fn ($d, $name) => ['id' => $name, 'name' => $name, 'description' => $d, 'preview' => null])->values()]);
+        }
+        $key = Credential::query()->find($data['credential_id'] ?? 0)?->data['api_key'] ?? null;
+        if (! $key) {
+            return response()->json(['message' => 'Choose your ElevenLabs account first.'], 422);
+        }
+        $response = Http::withHeaders(['xi-api-key' => $key])->acceptJson()->timeout(20)->get('https://api.elevenlabs.io/v1/voices');
+        if (! $response->successful()) {
+            return response()->json(['message' => "ElevenLabs didn't list your voices (HTTP {$response->status()}). Check the API key."], 422);
+        }
+
+        return response()->json(['voices' => collect($response->json('voices', []))->map(fn ($v) => [
+            'id' => $v['voice_id'], 'name' => $v['name'],
+            'description' => collect($v['labels'] ?? [])->only(['gender', 'accent', 'age', 'description', 'use_case'])->filter()->implode(', '),
+            'preview' => $v['preview_url'] ?? null,
+        ])->sortBy('name')->values()->take(120)]);
     }
 
     /** The provider's phone numbers, for the Phone tab (works before saving: provider and credential come from the form). */

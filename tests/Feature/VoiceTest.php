@@ -46,7 +46,7 @@ class VoiceTest extends TestCase
 
     public function test_templates_create_agents_and_the_pages_open(): void
     {
-        $this->get('/voice')->assertOk()->assertInertia(fn ($page) => $page->component('Voice/Agents')->has('templates', 8));
+        $this->get('/voice')->assertOk()->assertInertia(fn ($page) => $page->component('Voice/Agents')->has('templates', 12));
 
         $this->post('/voice/agents', ['template' => 'clinic-receptionist'])->assertRedirect();
         $agent = VoiceAgent::query()->firstOrFail();

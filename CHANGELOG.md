@@ -2,6 +2,15 @@
 
 All notable changes to FlowForge. Versions follow [semantic versioning](https://semver.org).
 
+## [Unreleased]
+
+- Voice agent studio: the editor is split into Persona, Conversation, Knowledge, Bookings, Capture and Voice & phone, with a check on each finished part.
+- Agents now have a persona (name, personality, reply length), business knowledge, answers to common questions, bookable services and an appointment length.
+- The test call is a phone screen with a voice orb that reacts to your microphone, a call timer, typing mode and mute.
+- Pick the test-call voice from your browser's voices, or browse and play the Vapi and ElevenLabs voices.
+- 12 voice agent templates (new: hotel front desk, car service booking, gym class booking, store order help), shown with sample conversations, categories and a preview. Starting from one asks for your business name.
+- Fixed: an agent with no business name said "{{business_name}}" out loud; it now says "our business".
+
 ## [1.5.0] - 2026-10-14
 
 - **Voice agents** (sidebar → Voice agents): AI agents that answer and make phone calls through Vapi or ElevenLabs.

@@ -10,7 +10,7 @@ class VoicePrompt
     /** Replaces {{business_name}} (set once on the agent); per-call details like {{customer_name}} stay for the provider. */
     public static function fill(VoiceAgent $agent, string $text, array $variables = []): string
     {
-        $values = ['business_name' => (string) $agent->setting('business_name', '')] + $variables;
+        $values = ['business_name' => (string) $agent->setting('business_name', '') ?: 'our business'] + $variables; // never speak a raw {{business_name}}
 
         return preg_replace_callback('/\{\{\s*([a-z0-9_]+)\s*\}\}/i', fn ($m) => isset($values[$m[1]]) && $values[$m[1]] !== '' ? (string) $values[$m[1]] : $m[0], $text);
     }
@@ -23,13 +23,38 @@ class VoicePrompt
         return array_values(array_diff(array_unique($m[1]), ['business_name']));
     }
 
+    public const TONES = [
+        'warm' => 'Sound warm and friendly, like someone who enjoys helping.',
+        'professional' => 'Sound calm, polite and professional.',
+        'upbeat' => 'Sound upbeat and energetic, with a smile in your voice.',
+        'calm' => 'Sound calm and reassuring, and speak a little slower.',
+    ];
+
+    private const LENGTHS = [
+        'short' => 'Keep every reply to one short sentence when you can.',
+        'balanced' => 'Keep replies short and natural: one or two sentences.',
+        'detailed' => 'Give complete answers in two to four sentences when the caller asks for details.',
+    ];
+
     public static function system(VoiceAgent $agent, array $variables = []): string
     {
-        $parts = [trim(self::fill($agent, (string) $agent->setting('instructions', ''), $variables))];
-        $parts[] = 'You are speaking on a phone call. Keep replies short and natural (one or two sentences), never use lists, markdown or emojis, and say numbers, dates and times the way people speak them.';
+        $persona = trim((string) $agent->setting('persona_name', ''));
+        $parts = [trim(($persona !== '' ? "Your name is {$persona}. " : '').self::fill($agent, (string) $agent->setting('instructions', ''), $variables))];
+        $parts[] = 'You are speaking on a phone call. '.(self::TONES[$agent->setting('tone', 'warm')] ?? self::TONES['warm']).' '
+            .(self::LENGTHS[$agent->setting('verbosity', 'balanced')] ?? self::LENGTHS['balanced'])
+            ." Never use lists, markdown or emojis, and say numbers, dates and times the way people speak them. If you don't know something, say so and offer to take a message; never make things up.";
+        if ($facts = trim(self::fill($agent, (string) $agent->setting('knowledge', ''), $variables))) {
+            $parts[] = "What you know about the business:\n{$facts}";
+        }
+        $faqs = collect($agent->setting('faqs', []))->filter(fn ($f) => trim((string) ($f['q'] ?? '')) !== '' && trim((string) ($f['a'] ?? '')) !== '');
+        if ($faqs->isNotEmpty()) {
+            $parts[] = "Answers to common questions:\n".$faqs->map(fn ($f) => 'Q: '.trim($f['q'])."\nA: ".trim($f['a']))->implode("\n");
+        }
         if ($agent->bookingEnabled()) {
             $hours = trim((string) $agent->setting('booking.hours', ''));
-            $parts[] = 'Booking: when the caller wants an appointment, collect their full name, phone number'
+            $services = trim((string) $agent->setting('booking.services', ''));
+            $parts[] = 'Booking: '.($services !== '' ? "you can book these: {$services}. " : '')
+                .'Appointments last about '.((int) $agent->setting('booking.duration', 30) ?: 30).' minutes. When the caller wants an appointment, collect their full name, phone number'
                 .($agent->setting('booking.ask_email') ? ', email address' : '')
                 .' and the date and time they want'.($hours !== '' ? " (we are open {$hours})" : '')
                 .'. Read the details back, and once the caller agrees, call the book_appointment tool. Tell the caller the time the tool confirms. If the tool reports a problem, ask for another time.';

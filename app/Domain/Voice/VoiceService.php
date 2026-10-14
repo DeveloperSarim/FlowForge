@@ -48,9 +48,10 @@ class VoiceService
     {
         $t = $template ? collect($this->templates())->firstWhere('key', $template) : null;
         $config = array_replace_recursive([
-            'business_name' => '', 'first_message' => 'Hello! How can I help you today?', 'instructions' => 'You are a helpful phone assistant.',
-            'language' => 'en', 'voice' => '', 'llm' => '', 'booking' => ['enabled' => false, 'ask_email' => false, 'hours' => ''], 'collect' => [],
-        ], $t ? array_intersect_key($t, array_flip(['first_message', 'instructions', 'language', 'booking', 'collect'])) + ['template' => $t['key']] : [], $config);
+            'business_name' => '', 'persona_name' => '', 'tone' => 'warm', 'verbosity' => 'balanced', 'first_message' => 'Hello! How can I help you today?',
+            'instructions' => 'You are a helpful phone assistant.', 'knowledge' => '', 'faqs' => [], 'language' => 'en', 'voice' => '', 'browser_voice' => '', 'llm' => '',
+            'booking' => ['enabled' => false, 'ask_email' => false, 'hours' => '', 'duration' => 30, 'services' => ''], 'collect' => [],
+        ], $t ? array_intersect_key($t, array_flip(['first_message', 'instructions', 'language', 'booking', 'collect', 'persona_name', 'tone', 'verbosity', 'knowledge', 'faqs'])) + ['template' => $t['key']] : [], $config);
 
         return VoiceAgent::query()->create(['name' => Str::limit(trim($name) ?: ($t['name'] ?? 'Voice agent'), 120, ''), 'provider' => 'browser', 'config' => $config]);
     }
@@ -398,7 +399,7 @@ PROMPT, [], $history, 3000)->text;
             'id' => $b->id, 'agent' => ['id' => $b->voice_agent_id, 'name' => $b->agent?->name], 'call_id' => $b->voice_call_id,
             'name' => $b->name, 'phone' => $b->phone, 'email' => $b->email, 'service' => $b->service, 'notes' => $b->notes,
             'starts_at' => $b->starts_at?->copy()->setTimezone($timezone)->toIso8601String(),
-            'ends_at' => $b->starts_at?->copy()->setTimezone($timezone)->addMinutes(30)->toIso8601String(),
+            'ends_at' => $b->starts_at?->copy()->setTimezone($timezone)->addMinutes((int) ($b->agent?->setting('booking.duration', 30) ?: 30))->toIso8601String(),
             'when' => $b->starts_at ? $b->starts_at->copy()->setTimezone($timezone)->format('l, j F Y \a\t g:i A') : $b->requested_time,
             'requested_time' => $b->requested_time, 'url' => url('/voice/bookings'),
         ];
