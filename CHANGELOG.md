@@ -10,6 +10,8 @@ All notable changes to FlowForge. Versions follow [semantic versioning](https://
 - Pick the test-call voice from your browser's voices, or browse and play the Vapi voices.
 - ElevenLabs agents get the whole ElevenLabs voice library: search, filter by language and gender, play samples in the chosen language, or pick from your own voices. A library voice is added to your ElevenLabs account when you pick it.
 - Test calls of ElevenLabs agents speak with the agent's real ElevenLabs voice (and fall back to the browser's voice if that fails).
+- Agents hang up by themselves after saying goodbye: in test calls, on Vapi (end-call tool) and on ElevenLabs (end_call system tool). Republish phone agents (Save) to get it.
+- Picking a voice-library voice tests it first: on ElevenLabs' free plan library voices don't work through the API, so FlowForge says so and suggests a default voice instead of adding a voice that can't speak.
 - Fixed: test calls could use macOS joke voices (Albert, Boing…); browser voices are now ranked with natural ones first.
 - 12 voice agent templates (new: hotel front desk, car service booking, gym class booking, store order help), shown with sample conversations, categories and a preview. Starting from one asks for your business name.
 - Fixed: an agent with no business name said "{{business_name}}" out loud; it now says "our business".

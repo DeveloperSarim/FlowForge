@@ -189,9 +189,11 @@ class VoiceController extends Controller
 
             return response()->json(['has_more' => false, 'voices' => collect($response->json('voices', []))
                 ->map(fn ($v) => ['id' => $v['voice_id'], 'name' => $v['name'], 'preview' => $v['preview_url'] ?? null, 'added' => true,
+                    // Voices copied from the library only work through the API on paid plans; picking one tests it first.
+                    'library' => ($v['sharing']['status'] ?? null) === 'copied' || in_array($v['category'] ?? '', ['professional', 'famous', 'high_quality'], true), 'default' => ($v['category'] ?? '') === 'premade',
                     'description' => $label(Arr::only($v['labels'] ?? [], ['gender', 'accent', 'age', 'description', 'use_case']))])
                 ->filter(fn ($v) => $search === '' || Str::contains($v['name'].' '.$v['description'], $search, true))
-                ->sortBy('name')->values()]);
+                ->sortBy(fn ($v) => [$v['library'] ? 2 : ($v['default'] ? 1 : 0), $v['name']])->values()]);
         }
 
         $language = $data['language'] ?? null;
@@ -211,23 +213,40 @@ class VoiceController extends Controller
         ])->values()]);
     }
 
-    /** Adds a voice-library voice to the ElevenLabs account (agents can only use voices in the account) and returns its id. */
+    /**
+     * Readies a voice-library voice for the agent: a three-character test first (the free ElevenLabs plan can't use
+     * library voices through the API, so nothing is added when it fails), then adds it to the account if needed.
+     */
     public function addVoice(Request $request, VoiceAgent $agent): JsonResponse
     {
-        $data = $request->validate(['credential_id' => ['required', 'integer', 'exists:credentials,id'], 'owner' => ['required', 'string', 'max:100'],
-            'voice_id' => ['required', 'string', 'max:100'], 'name' => ['required', 'string', 'max:120']]);
-        $response = $this->elevenLabs($data['credential_id'])->post('https://api.elevenlabs.io/v1/voices/add/'.rawurlencode($data['owner']).'/'.rawurlencode($data['voice_id']), ['new_name' => Str::limit($data['name'], 100, '')]);
-        if (! $response->successful()) {
-            $detail = $response->json('detail');
-            $message = is_array($detail) ? ($detail['message'] ?? '') : (string) $detail;
-            if (Str::contains($message, 'already', true)) {
-                return response()->json(['voice_id' => $data['voice_id']]);
+        $data = $request->validate(['credential_id' => ['required', 'integer', 'exists:credentials,id'], 'owner' => ['nullable', 'string', 'max:100'],
+            'voice_id' => ['required', 'string', 'max:100'], 'name' => ['required', 'string', 'max:120'], 'added' => ['boolean']]);
+        $http = $this->elevenLabs($data['credential_id']);
+        $probe = $http->accept('audio/mpeg')->post('https://api.elevenlabs.io/v1/text-to-speech/'.rawurlencode($data['voice_id']).'?output_format=mp3_22050_32', ['text' => 'Hi.', 'model_id' => 'eleven_flash_v2_5']);
+        if (! $probe->successful()) {
+            return response()->json(['message' => $this->elevenLabsError($probe, "can't use this voice")], 422);
+        }
+        if (! empty($data['owner']) && ! ($data['added'] ?? false)) {
+            $response = $http->acceptJson()->post('https://api.elevenlabs.io/v1/voices/add/'.rawurlencode($data['owner']).'/'.rawurlencode($data['voice_id']), ['new_name' => Str::limit($data['name'], 100, '')]);
+            if (! $response->successful() && ! Str::contains($this->elevenLabsError($response, ''), 'already', true)) {
+                return response()->json(['message' => $this->elevenLabsError($response, "couldn't add this voice").' Free plans have a limited number of voice slots; remove one at elevenlabs.io or pick another voice.'], 422);
             }
 
-            return response()->json(['message' => 'ElevenLabs couldn\'t add this voice: '.($message ?: 'HTTP '.$response->status()).'. Free plans have a limited number of voice slots; remove one at elevenlabs.io or pick another voice.'], 422);
+            return response()->json(['voice_id' => $response->json('voice_id') ?: $data['voice_id']]);
         }
 
-        return response()->json(['voice_id' => $response->json('voice_id') ?: $data['voice_id']]);
+        return response()->json(['voice_id' => $data['voice_id']]);
+    }
+
+    private function elevenLabsError($response, string $what): string
+    {
+        $detail = $response->json('detail');
+        $message = (is_array($detail) ? ($detail['message'] ?? null) : $detail) ?: 'HTTP '.$response->status();
+        if (Str::contains($message, 'library voices', true)) {
+            $message .= ' On the free plan, pick one of the default voices under Choose a voice, My voices.';
+        }
+
+        return $what === '' ? $message : "ElevenLabs {$what}: {$message}";
     }
 
     /** Speaks a test-call reply with the agent's ElevenLabs voice (MP3), so test calls sound like real ones. */
@@ -241,9 +260,7 @@ class VoiceController extends Controller
             ->post('https://api.elevenlabs.io/v1/text-to-speech/'.rawurlencode($agent->setting('voice') ?: ElevenLabsProvider::DEFAULT_VOICE).'?output_format=mp3_44100_64',
                 ['text' => $text, 'model_id' => 'eleven_flash_v2_5']);
         if (! $response->successful()) {
-            $detail = $response->json('detail');
-
-            return response()->json(['message' => 'ElevenLabs couldn\'t speak: '.((is_array($detail) ? ($detail['message'] ?? null) : $detail) ?: 'HTTP '.$response->status())], 422);
+            return response()->json(['message' => $this->elevenLabsError($response, "couldn't speak")], 422);
         }
 
         return response($response->body(), 200, ['Content-Type' => 'audio/mpeg', 'Cache-Control' => 'no-store']);
@@ -296,7 +313,7 @@ class VoiceController extends Controller
             return response()->json(['message' => $e->getMessage()], 422);
         }
 
-        return response()->json(['call_id' => $turn['call']->id, 'reply' => $turn['reply'],
+        return response()->json(['call_id' => $turn['call']->id, 'reply' => $turn['reply'], 'ended' => $turn['ended'] ?? false,
             'booking' => $turn['booking'] ? $this->voice->bookingPayload($turn['booking']) : null]);
     }
 

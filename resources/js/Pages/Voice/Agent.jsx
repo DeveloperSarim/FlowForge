@@ -538,12 +538,12 @@ function VoicePicker({ open, onClose, agent, credentialId, language, current, on
     };
     const pick = async (v) => {
         stop();
-        if (v.added || !v.owner) { onPick(v.id, v.name); return; }
+        if (!v.owner && !v.library) { onPick(v.id, v.name); return; } // default and own voices always work
         setAdding(v.id);
         try {
-            const { data } = await window.axios.post(`/voice/agents/${agent.id}/voices/add`, { credential_id: credentialId, owner: v.owner, voice_id: v.id, name: v.name });
+            const { data } = await window.axios.post(`/voice/agents/${agent.id}/voices/add`, { credential_id: credentialId, owner: v.owner ?? null, voice_id: v.id, name: v.name, added: !!v.added });
             onPick(data.voice_id, v.name);
-            toast(`${v.name} added to your ElevenLabs voices. Save to use it.`, 'success');
+            toast(v.owner && !v.added ? `${v.name} added to your ElevenLabs voices. Save to use it.` : `${v.name} chosen. Save to use it.`, 'success');
         } catch (e) {
             toast(errorMessage(e), 'error');
         } finally {
@@ -580,12 +580,17 @@ function VoicePicker({ open, onClose, agent, credentialId, language, current, on
                         ))}
                     </div>
                 )}
+                {source === 'library' && (
+                    <p className="rounded-lg bg-surface-2 px-3 py-2 text-[12.5px] text-fg-muted">
+                        On ElevenLabs' free plan, library voices don't work in calls. Picking one tests it first. <button type="button" onClick={() => setSource('mine')} className="font-medium text-primary hover:underline">Show the default voices</button>
+                    </p>
+                )}
 
                 {error && <p className="rounded-lg bg-fail-soft px-3 py-2 text-[13px] text-fail">{error}</p>}
                 <div className="grid max-h-[52dvh] grid-cols-[minmax(0,1fr)] content-start gap-2 overflow-y-auto pr-1 sm:grid-cols-2">
                     {voices.map((v) => (
                         <VoiceOption key={`${v.owner ?? 'mine'}-${v.id}`} name={v.name} description={v.description || (v.language && languageName(v.language))} selected={current === v.id}
-                            playing={playing === v.id} busy={adding === v.id} badge={v.paid ? 'Paid plans' : null} onSelect={() => pick(v)} onPlay={v.preview ? () => play(v) : null} />
+                            playing={playing === v.id} busy={adding === v.id} badge={v.paid ? 'Paid plans' : v.default ? 'Default' : v.library ? 'Library' : null} onSelect={() => pick(v)} onPlay={v.preview ? () => play(v) : null} />
                     ))}
                     {loading && Array.from({ length: voices.length ? 2 : 6 }, (_, i) => <div key={`s${i}`} className="h-[52px] animate-pulse rounded-xl bg-surface-2" />)}
                     {!loading && !error && voices.length === 0 && (
@@ -680,6 +685,7 @@ function CallSimulator({ agent, config, variables, dirty, hasAi, onSave }) {
     const [booking, setBooking] = useState(null);
     const [speaker, setSpeaker] = useState(canSpeak);
     const [startedAt, setStartedAt] = useState(null);
+    const [hungUp, setHungUp] = useState(false);
     const [now, setNow] = useState(Date.now());
     const call = useRef(null);
     const active = useRef(false);
@@ -764,24 +770,29 @@ function CallSimulator({ agent, config, variables, dirty, hasAi, onSave }) {
         recognition.current?.abort();
         setTurns((t) => [...t, { role: 'user', text }]);
         setState('thinking');
+        let hangUp = false;
         try {
             const { data } = await window.axios.post(`/voice/agents/${agent.id}/talk`, { call_id: call.current, text, variables: values });
             call.current = data.call_id;
             if (data.booking) setBooking(data.booking);
-            setTurns((t) => [...t, { role: 'agent', text: data.reply }]);
-            setState('speaking');
-            await speak(data.reply);
+            if (data.reply) {
+                setTurns((t) => [...t, { role: 'agent', text: data.reply }]);
+                setState('speaking');
+                await speak(data.reply);
+            }
+            hangUp = !!data.ended;
         } catch (e) {
             setError(errorMessage(e));
         } finally {
             busy.current = false;
-            if (active.current) listen();
+            if (hangUp && active.current) { setHungUp(true); end(); } else if (active.current) listen();
         }
     };
 
     const start = async () => {
         active.current = true;
         cloudFailed.current = false;
+        setHungUp(false);
         call.current = null;
         setError(null); setTurns([]); setResult(null); setBooking(null);
         setStartedAt(Date.now());
@@ -831,7 +842,7 @@ function CallSimulator({ agent, config, variables, dirty, hasAi, onSave }) {
 
     const elapsed = startedAt ? Math.max(0, Math.floor((now - startedAt) / 1000)) : 0;
     const clock = `${String(Math.floor(elapsed / 60)).padStart(2, '0')}:${String(elapsed % 60).padStart(2, '0')}`;
-    const statusText = { starting: 'Connecting…', listening: typing ? 'Your turn: type what the caller says' : 'Listening…', thinking: 'Thinking…', speaking: 'Speaking…', ending: 'Saving the call…', ended: 'Call ended' }[state] ?? 'Press the green button to call';
+    const statusText = { starting: 'Connecting…', listening: typing ? 'Your turn: type what the caller says' : 'Listening…', thinking: 'Thinking…', speaking: 'Speaking…', ending: 'Saving the call…', ended: hungUp ? 'The agent ended the call' : 'Call ended' }[state] ?? 'Press the green button to call';
     const blocked = !hasAi || (dirty && !inCall);
 
     return (

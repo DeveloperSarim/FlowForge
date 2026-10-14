@@ -69,7 +69,7 @@ class VoiceTest extends TestCase
 
         $this->assertSame('asst_1', $agent->fresh()->remote_id);
         Http::assertSent(fn ($r) => $r->url() === 'https://api.vapi.ai/assistant' && $r->hasHeader('Authorization', 'Bearer vapi-key')
-            && $r['model']['tools'][0]['function']['name'] === 'book_appointment'
+            && $r['model']['tools'][0]['function']['name'] === 'book_appointment' && $r['model']['tools'][1] === ['type' => 'endCall']
             && $r['server']['url'] === $agent->eventsUrl()
             && str_contains($r['model']['messages'][0]['content'], 'Smile Dental') && ! str_contains($r['model']['messages'][0]['content'], '{{business_name}}'));
         Http::assertSent(fn ($r) => $r->method() === 'PATCH' && $r->url() === 'https://api.vapi.ai/phone-number/pn_1' && $r['assistantId'] === 'asst_1');
@@ -155,6 +155,7 @@ class VoiceTest extends TestCase
         $credential = Credential::query()->create(['name' => 'ElevenLabs', 'integration' => 'elevenlabs', 'auth_type' => 'api_key', 'data' => ['api_key' => 'xi-key']]);
         $agent = $this->agent('elevenlabs', ['credential_id' => $credential->id]);
         Http::fake([
+            'api.elevenlabs.io/v1/text-to-speech/v_paid*' => Http::response(['detail' => ['status' => 'payment_required', 'message' => 'Free users cannot use library voices via the API.']], 402),
             'api.elevenlabs.io/v1/shared-voices*' => Http::response(['has_more' => true, 'voices' => [['voice_id' => 'v_reva', 'public_owner_id' => 'own_1', 'name' => 'Reva', 'gender' => 'female',
                 'age' => 'young', 'accent' => 'standard', 'use_case' => 'conversational', 'language' => 'ur', 'free_users_allowed' => true, 'is_added_by_user' => false,
                 'preview_url' => 'https://cdn/en.mp3', 'verified_languages' => [['language' => 'ur', 'model_id' => 'eleven_flash_v2_5', 'preview_url' => 'https://cdn/ur.mp3']]]]]),
@@ -168,6 +169,10 @@ class VoiceTest extends TestCase
 
         $this->postJson("/voice/agents/{$agent->id}/voices/add", ['credential_id' => $credential->id, 'owner' => 'own_1', 'voice_id' => 'v_reva', 'name' => 'Reva'])
             ->assertOk()->assertJsonPath('voice_id', 'v_reva');
+        // On the free plan a library voice fails its test and is never added.
+        $this->postJson("/voice/agents/{$agent->id}/voices/add", ['credential_id' => $credential->id, 'owner' => 'own_1', 'voice_id' => 'v_paid', 'name' => 'Paid'])
+            ->assertStatus(422)->assertJsonPath('message', fn ($m) => str_contains($m, 'default voices'));
+        Http::assertNotSent(fn ($r) => str_contains($r->url(), 'voices/add/own_1/v_paid'));
 
         $agent->forceFill(['config' => ['voice' => 'v_reva'] + $agent->config])->save();
         $audio = $this->post("/voice/agents/{$agent->id}/speak", ['text' => 'Assalam o alaikum!'])->assertOk()->assertHeader('Content-Type', 'audio/mpeg');
@@ -187,6 +192,8 @@ class VoiceTest extends TestCase
             ->push(['choices' => [['finish_reason' => 'tool_calls', 'message' => ['role' => 'assistant', 'content' => null,
                 'tool_calls' => [['id' => 'b1', 'type' => 'function', 'function' => ['name' => 'book_appointment', 'arguments' => json_encode(['name' => 'Sara Khan', 'date_time' => $when])]]]]]], 'usage' => []])
             ->push(['choices' => [['finish_reason' => 'stop', 'message' => ['role' => 'assistant', 'content' => 'You are booked, Sara.']]], 'usage' => []])
+            ->push(['choices' => [['finish_reason' => 'tool_calls', 'message' => ['role' => 'assistant', 'content' => 'Goodbye, Sara!',
+                'tool_calls' => [['id' => 'e1', 'type' => 'function', 'function' => ['name' => 'end_call', 'arguments' => '{}']]]]]], 'usage' => []])
             ->push(['choices' => [['finish_reason' => 'stop', 'message' => ['role' => 'assistant', 'content' => '{"summary":"Sara booked a check-up.","outcome":"success","data":{"reason":"Check-up","urgent":null}}']]], 'usage' => []]);
 
         $greeting = $this->postJson("/voice/agents/{$agent->id}/talk", ['text' => ''])->assertOk();
@@ -194,12 +201,16 @@ class VoiceTest extends TestCase
         $id = $greeting->json('call_id');
 
         $this->postJson("/voice/agents/{$agent->id}/talk", ['call_id' => $id, 'text' => 'Book me in please, Sara Khan.'])->assertOk()
-            ->assertJsonPath('reply', 'You are booked, Sara.')->assertJsonPath('booking.name', 'Sara Khan');
+            ->assertJsonPath('reply', 'You are booked, Sara.')->assertJsonPath('booking.name', 'Sara Khan')->assertJsonPath('ended', false);
+        // The agent says goodbye and hangs up by itself.
+        $this->postJson("/voice/agents/{$agent->id}/talk", ['call_id' => $id, 'text' => 'Thanks, bye!'])->assertOk()
+            ->assertJsonPath('reply', 'Goodbye, Sara!')->assertJsonPath('ended', true);
+        Http::assertSent(fn ($r) => str_contains($r->url(), 'deepseek') && collect($r['tools'] ?? [])->pluck('function.name')->contains('end_call'));
         $this->postJson("/voice/agents/{$agent->id}/talk/{$id}/end")->assertOk()->assertJsonPath('call.summary', 'Sara booked a check-up.');
 
         $call = VoiceCall::query()->sole();
         $this->assertSame(['completed', 'web', 'success', ['reason' => 'Check-up']], [$call->status, $call->direction, $call->outcome, $call->data]);
-        $this->assertCount(3, $call->transcript);
+        $this->assertCount(5, $call->transcript);
         $this->assertSame(1, VoiceBooking::query()->count());
         $this->assertSame(1, WorkflowExecution::query()->where('mode', 'voice')->count());
     }

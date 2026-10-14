@@ -47,11 +47,10 @@ class VapiProvider implements VoiceProvider
                 'provider' => 'openai',
                 'model' => $agent->setting('llm') ?: 'gpt-4o-mini',
                 'messages' => [['role' => 'system', 'content' => VoicePrompt::system($agent)]],
-                'tools' => $agent->bookingEnabled() ? [[
-                    'type' => 'function',
-                    'function' => VoicePrompt::bookingTool($agent),
-                    'server' => ['url' => $agent->eventsUrl()],
-                ]] : null,
+                'tools' => array_values(array_filter([
+                    $agent->bookingEnabled() ? ['type' => 'function', 'function' => VoicePrompt::bookingTool($agent), 'server' => ['url' => $agent->eventsUrl()]] : null,
+                    ['type' => 'endCall'], // lets the assistant hang up after goodbye
+                ])),
             ]),
             // Vapi's own voices are names (Elliot, Kylie…); a long id is an ElevenLabs voice.
             'voice' => strlen($voice) >= 20 ? ['provider' => '11labs', 'voiceId' => $voice] : ['provider' => 'vapi', 'voiceId' => $voice ?: 'Elliot'],

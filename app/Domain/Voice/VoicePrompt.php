@@ -50,6 +50,7 @@ class VoicePrompt
         if ($faqs->isNotEmpty()) {
             $parts[] = "Answers to common questions:\n".$faqs->map(fn ($f) => 'Q: '.trim($f['q'])."\nA: ".trim($f['a']))->implode("\n");
         }
+        $parts[] = 'When the conversation is over (the caller says goodbye, or has nothing else and you have wrapped up), say one short goodbye and then hang up with the tool that ends the call. Never keep the line open after goodbye.';
         if ($agent->bookingEnabled()) {
             $hours = trim((string) $agent->setting('booking.hours', ''));
             $services = trim((string) $agent->setting('booking.services', ''));
@@ -80,6 +81,12 @@ class VoicePrompt
             'description' => 'Book the appointment once the caller has confirmed their name and the date and time. Returns the confirmed time, or a problem to resolve with the caller.',
             'parameters' => ['type' => 'object', 'properties' => $properties, 'required' => $agent->setting('booking.ask_email') ? ['name', 'date_time', 'email'] : ['name', 'date_time']],
         ];
+    }
+
+    /** Lets the model hang up (browser test calls; Vapi and ElevenLabs have their own end-call tools). */
+    public static function endCallTool(): array
+    {
+        return ['name' => 'end_call', 'description' => 'Hang up the call. Use it right after your goodbye, once the caller has nothing else.', 'parameters' => ['type' => 'object', 'properties' => ['reason' => ['type' => 'string', 'description' => 'Why the call is ending, e.g. the caller said goodbye']]]];
     }
 
     /** JSON schema of the details to pull out of each call (the agent's "collect" list). */

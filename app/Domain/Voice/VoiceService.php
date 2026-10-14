@@ -271,28 +271,37 @@ class VoiceService
         $timezone = $this->settings->timezone();
         $system = VoicePrompt::system($agent, $variables)."\n\nToday is ".now($timezone)->format('l, j F Y, g:i A')." ({$timezone})."
             .($greeting !== '' ? "\nYou already greeted the caller with: \"{$greeting}\"" : '');
-        $tools = $agent->bookingEnabled() ? [VoicePrompt::bookingTool($agent)] : [];
-        $reply = '';
+        $tools = array_values(array_filter([$agent->bookingEnabled() ? VoicePrompt::bookingTool($agent) : null, VoicePrompt::endCallTool()]));
+        $said = [];
         $booking = null;
-        for ($step = 0; $step < 3; $step++) {
+        $ended = false;
+        for ($step = 0; $step < 3 && ! $ended; $step++) {
             $turn = $this->llm->turn($config, $system, $tools, $history, 600);
+            $said[] = trim($turn->text); // text that comes with a tool call is spoken too ("Booking that now…", "Goodbye!")
             if (! $turn->toolCalls) {
-                $reply = trim($turn->text);
                 break;
             }
             $results = [];
             foreach ($turn->toolCalls as $tc) {
-                $result = $tc['name'] === 'book_appointment' ? $this->book($agent, $tc['input'], $call) : ['ok' => false, 'message' => 'Unknown tool.'];
+                $ended = $ended || $tc['name'] === 'end_call';
+                $result = match ($tc['name']) {
+                    'book_appointment' => $this->book($agent, $tc['input'], $call),
+                    'end_call' => ['ok' => true, 'message' => 'The call has ended.'],
+                    default => ['ok' => false, 'message' => 'Unknown tool.'],
+                };
                 $booking = $result['booking'] ?? $booking;
                 $results[] = ['id' => $tc['id'], 'name' => $tc['name'], 'content' => $result['message'], 'is_error' => ! $result['ok']];
             }
             $this->llm->addToolResults($config, $history, $results);
         }
-        $reply = $reply !== '' ? $reply : 'Sorry, could you say that again?';
-        $transcript[] = ['role' => 'agent', 'text' => $reply, 'at' => $at()];
+        $reply = implode(' ', array_filter($said));
+        $reply = $reply !== '' || $ended ? $reply : 'Sorry, could you say that again?';
+        if ($reply !== '') {
+            $transcript[] = ['role' => 'agent', 'text' => $reply, 'at' => $at()];
+        }
         $call->update(['transcript' => $transcript, 'context' => ['history' => $history, 'variables' => $variables]]);
 
-        return ['call' => $call, 'reply' => $reply, 'booking' => $booking];
+        return ['call' => $call, 'reply' => $reply, 'booking' => $booking, 'ended' => $ended];
     }
 
     /** Ends a browser conversation: summary, outcome and the details to collect, then the workflows. */

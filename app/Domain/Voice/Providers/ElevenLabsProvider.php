@@ -66,7 +66,9 @@ class ElevenLabsProvider implements VoiceProvider
                 'agent' => [
                     'first_message' => VoicePrompt::fill($agent, (string) $agent->setting('first_message', '')),
                     'language' => $language,
-                    'prompt' => ['prompt' => VoicePrompt::system($agent), 'llm' => $agent->setting('llm') ?: 'gemini-2.0-flash', 'tool_ids' => $toolIds],
+                    'prompt' => ['prompt' => VoicePrompt::system($agent), 'llm' => $agent->setting('llm') ?: 'gemini-2.0-flash', 'tool_ids' => $toolIds,
+                        // Agents made through the API don't get the end-call tool by default.
+                        'built_in_tools' => ['end_call' => ['type' => 'system', 'name' => 'end_call', 'description' => '', 'params' => ['system_tool_type' => 'end_call']]]],
                 ],
                 // Non-English agents need a multilingual voice model.
                 'tts' => array_filter(['voice_id' => $agent->setting('voice') ?: self::DEFAULT_VOICE, 'model_id' => $language !== 'en' ? 'eleven_turbo_v2_5' : null]),
