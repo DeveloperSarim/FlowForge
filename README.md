@@ -5,14 +5,14 @@
 <h1 align="center">FlowForge</h1>
 
 <p align="center">
-  <strong>Open-source workflow automation that runs on PHP shared hosting.</strong><br>
-  A self-hosted alternative to n8n, Zapier and Make: connect 1,190 apps on a visual canvas, describe a workflow and let AI build it, or create AI voice agents that answer your calls.<br>
+  <strong>Open-source workflow automation and AI voice agents that run on PHP shared hosting.</strong><br>
+  A self-hosted alternative to n8n, Zapier and Make: connect 1,190 apps on a visual canvas, let AI build workflows from one sentence, and create AI calling agents that answer the phone and book appointments.<br>
   No Docker, no Node.js, no per-task fees. One cron job runs everything.
 </p>
 
 <p align="center">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-AGPL--3.0-ee5a24?style=flat-square" alt="License: AGPL-3.0"></a>
-  <a href="https://github.com/DeveloperSarim/FlowForge/releases"><img src="https://img.shields.io/badge/version-1.5.0-15181d?style=flat-square" alt="Version 1.5.0"></a>
+  <a href="https://github.com/DeveloperSarim/FlowForge/releases"><img src="https://img.shields.io/badge/version-1.5.1-15181d?style=flat-square" alt="Version 1.5.1"></a>
   <img src="https://img.shields.io/badge/PHP-8.2%2B-777bb4?style=flat-square&logo=php&logoColor=white" alt="PHP 8.2+">
   <img src="https://img.shields.io/badge/Laravel-12-ff2d20?style=flat-square&logo=laravel&logoColor=white" alt="Laravel 12">
   <img src="https://img.shields.io/badge/React-18-087ea4?style=flat-square&logo=react&logoColor=white" alt="React 18">
@@ -24,6 +24,7 @@
   <a href="https://developersarim.github.io/FlowForge/#video"><b>Watch the video</b></a> &nbsp;|&nbsp;
   <a href="https://developersarim.github.io/FlowForge/"><b>Documentation</b></a> &nbsp;|&nbsp;
   <a href="#-quick-start"><b>Quick start</b></a> &nbsp;|&nbsp;
+  <a href="#-ai-voice-agents-an-ai-receptionist-and-calling-agent"><b>AI voice agents</b></a> &nbsp;|&nbsp;
   <a href="https://github.com/DeveloperSarim/FlowForge/releases"><b>Download</b></a> &nbsp;|&nbsp;
   <a href="#-installation-and-hosting-services"><b>Hosting &amp; services</b></a> &nbsp;|&nbsp;
   <a href="https://github.com/DeveloperSarim/FlowForge/issues"><b>Report a bug</b></a>
@@ -41,8 +42,32 @@ FlowForge is a **self-hosted workflow automation platform** for people who alrea
 
 - **Connect your apps.** Gmail, Slack, Google Sheets, HubSpot, Shopify, WooCommerce, Stripe, OpenAI, Telegram, WhatsApp and 1,180 more.
 - **Build visually or with AI.** Drag steps onto a canvas, or type *"When a Typeform is submitted, add the person to HubSpot and tell #sales on Slack"* and the AI Builder makes it.
-- **Answer the phone with AI.** Voice agents answer and make calls, book appointments and pass every call (recording, transcript, summary) to your workflows.
+- **Answer the phone with AI.** Build an AI receptionist or calling agent in minutes, test it free in your browser, then give it a real phone number. It books appointments and passes every call (recording, transcript, summary) to your workflows.
 - **Own your data.** Workflows, credentials and run history stay in your own MySQL database. Credentials are encrypted and never sent to the browser.
+
+## 📞 AI voice agents: an AI receptionist and calling agent
+
+Create AI agents that **answer and make phone calls**: a receptionist that books appointments, a caller that qualifies new leads, a reminder line that confirms tomorrow's bookings. No code, and no extra server.
+
+<p align="center">
+  <img src="docs/assets/img/voice-agent.png" width="880" alt="FlowForge AI voice agent studio: persona, personality and a live test call where the agent books a dental check-up">
+</p>
+
+- **12 ready-made agents**, each with a sample conversation: clinic receptionist, salon booking, restaurant reservations, hotel front desk, car service booking, gym class booking, store order help, lead qualification, appointment reminders, customer support line, real estate inquiries and a feedback survey. Or describe your business and AI writes the agent for you.
+- **Agent studio.** Give it a name and a personality (warm, professional, upbeat or calm), what it says first, facts about your business, answers to common questions, what it can book and your opening hours, and the details to capture from every call.
+- **Free test calls in your browser.** Press the green button and talk to it with your microphone, or type. It uses your own AI model (Gemini and DeepSeek are free or very cheap), and bookings, transcripts and summaries are saved like real calls.
+- **Real phone calls** through [Vapi](https://vapi.ai) or [ElevenLabs](https://elevenlabs.io), both with free tiers to start. FlowForge publishes the agent, its booking tool and your phone number for you.
+- **More than 11,000 natural voices** in over 30 languages, including Urdu, Hindi and Arabic. Search the ElevenLabs voice library, filter by language and gender, and play samples before you pick.
+- **Behaves like a good receptionist:** short spoken answers, one question at a time, reads the booking back before confirming, and hangs up by itself after goodbye.
+- **Everything in one place:** call history with recordings, transcripts, summaries and outcomes, plus a Bookings page.
+- **Connected to your workflows:** "When a voice call ends", "When a caller books" and "Call a phone number". Put bookings in Google Calendar, post call summaries to Slack, or call every new lead automatically.
+
+<table>
+  <tr>
+    <td width="50%"><img src="docs/assets/img/voice-templates.png" alt="FlowForge voice agent templates with sample conversations: appointment reminder, car service booking, clinic receptionist, feedback survey, support line, gym booking"><p align="center"><sub>12 templates with sample conversations</sub></p></td>
+    <td width="50%"><img src="docs/assets/img/voice-picker.png" alt="Choosing an ElevenLabs voice in FlowForge: search, language and gender filters, and sample playback"><p align="center"><sub>Search 11,000+ ElevenLabs voices by language</sub></p></td>
+  </tr>
+</table>
 
 ## 🧩 Features
 
@@ -95,7 +120,7 @@ FlowForge is a **self-hosted workflow automation platform** for people who alrea
     <td valign="top">
       <img src=".github/readme/icons/updates.svg" width="28" height="28" alt=""><br>
       <b>One-click updates</b><br>
-      <sub>Upload the update zip in Settings. FlowForge backs up, updates itself and rolls back if anything fails.</sub>
+      <sub>Settings shows when a new version is out. One click downloads, verifies and installs it, with a backup and automatic rollback.</sub>
     </td>
   </tr>
   <tr>
@@ -110,9 +135,9 @@ FlowForge is a **self-hosted workflow automation platform** for people who alrea
       <sub>Encrypted credentials and API keys, secrets masked in run logs, email alerts when a workflow fails or cron stops.</sub>
     </td>
     <td valign="top">
-      <img src=".github/readme/icons/opensource.svg" width="28" height="28" alt=""><br>
-      <b>Open source</b><br>
-      <sub>AGPL-3.0. Use it for yourself, your company or your clients, on as many servers as you like.</sub>
+      <img src=".github/readme/icons/voice.svg" width="28" height="28" alt=""><br>
+      <b>AI voice agents</b><br>
+      <sub>AI receptionists and calling agents that book appointments, with free browser test calls and real calls through Vapi or ElevenLabs.</sub>
     </td>
   </tr>
 </table>
@@ -203,18 +228,9 @@ Step-by-step guides with screenshots: [Hostinger hPanel](https://developersarim.
 | Runs on cPanel / hPanel shared hosting | ✅ | ❌ needs a Node.js server | ❌ cloud only | ❌ cloud only |
 | OSI-approved open-source license | ✅ AGPL-3.0 | ❌ fair-code | ❌ | ❌ |
 | No per-task or per-operation fees | ✅ | ✅ when self-hosted | ❌ | ❌ |
+| Built-in AI voice agents (calls, bookings, call history) | ✅ | ➖ through integrations | ➖ through integrations | ➖ through integrations |
 
 <sub>Based on each product's public information as of October 2026.</sub>
-
-## 📞 Voice agents
-
-Build AI agents that **answer and make phone calls**: a receptionist that books appointments, a caller that qualifies new leads, a reminder line.
-
-- **Start in seconds:** 8 templates (clinic, salon, restaurant, lead qualification, reminders, support, real estate, feedback), or describe the agent and AI writes it.
-- **Try it free:** talk to any agent in your browser, using your own AI model. No phone number needed.
-- **Real calls** through [Vapi](https://vapi.ai) or [ElevenLabs](https://elevenlabs.io). Both have free tiers to start, and FlowForge sets up the agent, booking tool and number for you.
-- **Everything in one place:** call history with recordings, transcripts, summaries and captured details, plus a Bookings page.
-- **Workflows:** "When a voice call ends", "When a caller books" and "Call a phone number". Send bookings to Google Calendar, summaries to Slack, or call every new lead automatically.
 
 ## 🤖 AI Builder and MCP
 
@@ -234,6 +250,7 @@ The full guide is at **[developersarim.github.io/FlowForge](https://developersar
 - [Installation](https://developersarim.github.io/FlowForge/#before-you-start) on Hostinger hPanel, cPanel and VPS, and the [setup wizard](https://developersarim.github.io/FlowForge/#setup-wizard)
 - [Your first workflow](https://developersarim.github.io/FlowForge/#first-workflow), [triggers](https://developersarim.github.io/FlowForge/#triggers) and [passing data between steps](https://developersarim.github.io/FlowForge/#data-mapping)
 - [Credentials and app connections](https://developersarim.github.io/FlowForge/#credentials), [AI Builder](https://developersarim.github.io/FlowForge/#ai-builder) and [team permissions](https://developersarim.github.io/FlowForge/#team)
+- [AI voice agents](https://developersarim.github.io/FlowForge/#voice-agents): [free test calls](https://developersarim.github.io/FlowForge/#voice-free), [real calls with Vapi or ElevenLabs](https://developersarim.github.io/FlowForge/#voice-phone) and [using calls in workflows](https://developersarim.github.io/FlowForge/#voice-workflows)
 - [Updating](https://developersarim.github.io/FlowForge/#updating), [backups](https://developersarim.github.io/FlowForge/#backups) and [troubleshooting](https://developersarim.github.io/FlowForge/#troubleshooting)
 
 Developers: architecture, the integration manifest format, local setup and releases are in **[DEVELOPMENT.md](DEVELOPMENT.md)**.
@@ -275,6 +292,24 @@ Yes. If you change FlowForge's code and offer the changed version to other peopl
 <summary><b>How is it different from n8n?</b></summary>
 <br>
 n8n needs a Node.js server, usually a VPS or Docker. FlowForge is PHP, so it runs on the shared hosting most websites already use, and it's licensed under an OSI-approved open-source license.
+</details>
+
+<details>
+<summary><b>Can FlowForge answer phone calls with AI?</b></summary>
+<br>
+Yes. Voice agents work as an AI receptionist or calling agent: they answer and make calls, answer questions about your business, book appointments and save every call with its recording, transcript and summary. The live call runs on Vapi or ElevenLabs; FlowForge sets everything up and keeps your call history and bookings.
+</details>
+
+<details>
+<summary><b>Is the AI voice agent free?</b></summary>
+<br>
+Building agents and test calls in your browser are free; they use your own AI key, and Gemini and DeepSeek are free or very cheap. Real phone calls are billed by Vapi or ElevenLabs, and both have free tiers to start.
+</details>
+
+<details>
+<summary><b>Which languages can the voice agents speak?</b></summary>
+<br>
+English, Urdu, Hindi, Arabic, Spanish, French, German, Portuguese, Turkish and many more. ElevenLabs has voices made for each language, and any voice can speak any of them.
 </details>
 
 <details>

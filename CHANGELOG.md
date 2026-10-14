@@ -2,7 +2,7 @@
 
 All notable changes to FlowForge. Versions follow [semantic versioning](https://semver.org).
 
-## [Unreleased]
+## [1.5.1] - 2026-10-14
 
 - Voice agent studio: the editor is split into Persona, Conversation, Knowledge, Bookings, Capture and Voice & phone, with a check on each finished part.
 - Agents now have a persona (name, personality, reply length), business knowledge, answers to common questions, bookable services and an appointment length.
@@ -29,16 +29,7 @@ All notable changes to FlowForge. Versions follow [semantic versioning](https://
 
 ## [1.4.0] - 2026-10-14
 
-The version jumps from 1.0.0 to 1.4.0 so installs from before the public release (1.3.x) can update in place.
-
-
-- One-click updates: Settings → Updates checks GitHub for a new release, shows what's new, and downloads, verifies (SHA-256) and installs it on an admin's click. Uploading the update zip by hand is still available.
-- An "Update" badge on Settings when a daily check finds a newer version.
-- `FLOWFORGE_UPDATE_REPO` points the updater at a fork's releases.
-
-## [1.0.0] - 2026-10-12
-
-First public release, open source under the AGPL-3.0.
+First public release, open source under the AGPL-3.0. Versions 1.0 to 1.3 were builds from before the public release, so the public history starts here.
 
 - Visual workflow builder with triggers, actions, If/Else branches, filters and a step editor with drag-to-map data.
 - 1,190 apps with 5,783 actions and 615 triggers, and 50 templates.
@@ -47,10 +38,8 @@ First public release, open source under the AGPL-3.0.
 - Executions with step-by-step debugging and retry.
 - Team roles and permissions, email alerts, password reset by email code.
 - MCP server for AI agents, with personal access tokens.
-- Setup wizard with cron verification; one-click updates with backup and rollback.
-- Public demo mode (`FLOWFORGE_DEMO=true`).
+- Setup wizard with cron verification.
+- One-click updates: Settings → Updates checks GitHub for a new release, shows what's new, and downloads, verifies (SHA-256) and installs it on an admin's click, with a backup and automatic rollback. Uploading the update zip by hand is still available.
+- An "Update" badge on Settings when a daily check finds a newer version.
+- `FLOWFORGE_UPDATE_REPO` points the updater at a fork's releases.
 - Mobile-friendly layout, light and dark themes.
-
-[1.5.0]: https://github.com/DeveloperSarim/FlowForge/releases/tag/v1.5.0
-[1.4.0]: https://github.com/DeveloperSarim/FlowForge/releases/tag/v1.4.0
-[1.0.0]: https://github.com/DeveloperSarim/FlowForge/releases/tag/v1.0.0
