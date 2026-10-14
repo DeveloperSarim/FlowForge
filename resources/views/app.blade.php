@@ -17,7 +17,7 @@
             })();
         </script>
         @php($public = request()->is('login') || (request()->is('/') && ! auth()->check()))
-        @php($description = 'FlowForge is self-hosted workflow automation: connect 1,000+ apps on a visual canvas, build workflows with AI or through MCP agents, and run it all on your own hosting with one cron job.')
+        @php($description = 'FlowForge is self-hosted workflow automation: connect 1,000+ apps on a visual canvas, build workflows with AI or through MCP agents, create AI voice agents that answer calls and book appointments, and run it all on your own hosting with one cron job.')
         <title inertia>{{ $public ? 'FlowForge: self-hosted workflow automation' : 'FlowForge' }}</title>
         <meta name="description" content="{{ $description }}">
         {{-- Only the sign-in page is a public page; everything behind it stays out of search results. --}}

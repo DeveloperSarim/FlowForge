@@ -45,7 +45,7 @@ class SeoController extends Controller
         return $this->text(<<<MD
 # FlowForge
 
-> FlowForge is self-hosted workflow automation (like n8n or Zapier) that runs on ordinary PHP shared hosting with one cron job. It connects {$apps} apps ({$actions} actions, {$triggers} triggers) on a visual canvas, has an AI workflow builder, and an MCP server so AI agents can build and run workflows.
+> FlowForge is self-hosted workflow automation (like n8n or Zapier) that runs on ordinary PHP shared hosting with one cron job. It connects {$apps} apps ({$actions} actions, {$triggers} triggers) on a visual canvas, has an AI workflow builder, AI voice agents that answer and make phone calls and book appointments, and an MCP server so AI agents can build and run workflows.
 
 This is the FlowForge instance at {$base}. Its workflows, credentials and runs are private to its team; the endpoints below are for people and agents with an account.
 
@@ -57,6 +57,10 @@ This is the FlowForge instance at {$base}. Its workflows, credentials and runs a
 ## MCP tools
 
 {$toolLines}
+
+## Voice agents
+
+AI phone agents (an AI receptionist or calling agent) that answer and make calls through Vapi or ElevenLabs, book appointments and keep every call's recording, transcript and summary. Create one with `create_voice_agent` (`list_voice_agents` shows existing agents and templates), then connect it to workflows with the `voice.call_ended` and `voice.booking_created` triggers and the `voice.place_call` action.
 
 ## Connect from Claude Code
 
@@ -78,7 +82,7 @@ MD);
         $base = url('/');
         [$apps, $actions, $triggers] = $this->counts($manifests);
         $out = ["# FlowForge: full reference for AI agents\n",
-            "> Self-hosted workflow automation at {$base}: {$apps} apps, {$actions} actions, {$triggers} triggers, an AI workflow builder and an MCP server.\n",
+            "> Self-hosted workflow automation at {$base}: {$apps} apps, {$actions} actions, {$triggers} triggers, an AI workflow builder, AI voice agents that answer and make phone calls, and an MCP server.\n",
             "## Connecting over MCP\n",
             "- Endpoint: `{$base}/api/mcp` (Streamable HTTP; JSON-RPC 2.0 over POST; protocol versions 2025-06-18, 2025-03-26, 2024-11-05).",
             '- Auth: `Authorization: Bearer <token>`. A signed-in user creates tokens under Settings → API & MCP; the agent acts with that user\'s permissions (workflows view / edit / delete, AI builder).',

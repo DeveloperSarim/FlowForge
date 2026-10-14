@@ -7,6 +7,7 @@ Self-hosted workflow automation (a visual node canvas like n8n or Make) that run
 What's included:
 - **1,190 apps** with 5,783 actions and 615 triggers, each with its real logo.
 - **50 ready-made templates.**
+- **AI voice agents:** phone agents that answer and make calls through Vapi or ElevenLabs, book appointments and keep call history (see [Voice agents](#voice-agents)).
 - **n8n-style editor:** square app nodes, a "What happens next?" picker, and a three-pane step editor (Input, Parameters, Output) where you drag fields to map them.
 - **Execute step:** run one step plus everything before it.
 - **Overview dashboard** with 7-day metrics.
@@ -84,6 +85,7 @@ The whole app works on a phone like a native app: a bottom tab bar (Home, Workfl
 
 - `/robots.txt` and `/sitemap.xml` are generated with the install's own domain. Only `/login` is indexable; every page behind sign-in sends `noindex`.
 - `/llms.txt` (summary + how to connect over MCP) and `/llms-full.txt` (building guide, every tool schema and the full app catalog) follow [llmstxt.org](https://llmstxt.org).
+- The project site has its own static `docs/llms.txt` and `docs/llms-full.txt` (product summary and full reference). Update them, the README and `docs/index.html` (meta, JSON-LD, changelog) when a feature or version changes.
 - Social preview: `public/og-image.png` (1200×630), Open Graph + Twitter card tags, JSON-LD `SoftwareApplication`, favicon set and `site.webmanifest`.
 
 ## Team and permissions
@@ -120,6 +122,20 @@ Providers (Settings → AI builder, your own API key, stored encrypted):
 | Google Gemini | Generative Language API | `gemini-2.5-flash` |
 
 Token use is kept low by design: the 1,000+ app catalog is never sent — the model searches it with a tool and fetches only the inputs it needs; tool results are compact; the system prompt and tool list are static so every provider's prompt cache applies; thinking effort is configurable; one request is capped at 10 tool steps. Each answer shows its token usage (input, cached, output).
+
+## Voice agents
+
+`app/Domain/Voice`. AI phone agents built in FlowForge; the live call (telephony, speech) runs on a provider because shared hosting can't stream audio.
+
+- **Models:** `VoiceAgent` (provider `browser`, `vapi` or `elevenlabs`, credential, phone number, `config` JSON: persona, tone, verbosity, first message, instructions, knowledge, FAQs, booking, collect, voice), `VoiceCall`, `VoiceBooking`.
+- **Prompt:** `VoicePrompt` builds the system prompt (persona, phone manners, knowledge, FAQs, booking rules, hang up after goodbye), the `book_appointment` tool and the schema of details to capture. `{{business_name}}` and per-call `{{variables}}` are filled in.
+- **Providers** implement `VoiceProvider`. Saving an agent publishes it: Vapi gets an assistant with the booking tool and `endCall`; ElevenLabs gets an agent, a webhook tool and the `end_call` system tool. Both attach the chosen phone number.
+- **Events:** providers call `POST /api/voice/{token}` (Vapi tool calls and end-of-call reports, the ElevenLabs webhook tool). `flowforge:voice-poll` runs every minute and imports finished calls the webhook missed.
+- **Browser test calls:** `VoiceService::talk` runs the conversation with the AI builder's model (`LlmClient`) and the booking and `end_call` tools; the page uses the Web Speech API, or ElevenLabs text-to-speech (`/voice/agents/{agent}/speak`) for ElevenLabs agents.
+- **Voices:** `/voice/agents/{agent}/voices` lists Vapi's voices or the ElevenLabs voice library and account voices; `/voices/add` tests a library voice with three characters of speech before adding it, because the free ElevenLabs plan can't use library voices through the API.
+- **Templates:** `resources/voice-templates/*.json` (persona, sample conversation, booking, knowledge, FAQs, details to capture).
+- **Workflows:** `resources/integrations/core/voice.json` has the `voice_call` / `voice_booking` triggers and the `voice_call` handler action; the AI builder and MCP use `create_voice_agent` and `list_voice_agents`.
+- **Tests:** `tests/Feature/VoiceTest.php` fakes both providers and the AI model.
 
 ## Email alerts
 
@@ -257,11 +273,13 @@ app/Domain/
   Integrations/  ManifestLoader, IntegrationManifestSchema, OpenApiImporter, VariableResolver,
                  WorkflowActionExecutor, CredentialVault, Handlers/ (Logic, Mail, Database), Credential model
   Engine/        GraphRunner, TopologicalSorter, PollerService, Jobs/ (RunWorkflow, PollWorkflow)
+  Voice/         VoiceService, VoicePrompt, Providers/ (Vapi, ElevenLabs), Models (VoiceAgent, VoiceCall, VoiceBooking)
+  Assistant/     LlmClient, AssistantAgent, WorkflowTools (AI builder + MCP)
 resources/js/
   Components/Canvas/  nodes (Trigger/Action/Branch + deletable edge), NodeCreator, FloatingToolbar
   Components/Drawer/  NodeDetails (Input | Parameters | Output), DynamicForm
   Components/         ui (shadcn-style primitives), DataView (schema/JSON, drag-to-map), ExecutionDebug, ExecutionsChart
-  Pages/              Overview, Workflows/{Index,Builder}, Templates, Apps/{Index,Show}, Executions, Credentials, Settings, Install/Wizard
+  Pages/              Overview, Workflows/{Index,Builder}, Templates, Apps/{Index,Show}, Executions, Credentials, Settings, Install/Wizard, Voice/{Agents,Agent,Calls,Bookings}
 resources/integrations/  core/, apps/, openapi/
 routes/console.php       the scheduler wiring
 ```

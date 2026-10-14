@@ -14,7 +14,7 @@ class SeoTest extends TestCase
     {
         $this->get('/robots.txt')->assertOk()->assertSee('Sitemap: '.url('/sitemap.xml'), false)->assertSee('Disallow: /workflows', false)->assertSee('Allow: /login', false);
         $this->get('/sitemap.xml')->assertOk()->assertHeader('Content-Type', 'application/xml; charset=UTF-8')->assertSee('<loc>'.url('/').'</loc>', false);
-        $this->get('/llms.txt')->assertOk()->assertSee('# FlowForge', false)->assertSee(url('/api/mcp'), false)->assertSee('`save_workflow`', false);
+        $this->get('/llms.txt')->assertOk()->assertSee('# FlowForge', false)->assertSee(url('/api/mcp'), false)->assertSee('`save_workflow`', false)->assertSee('voice.place_call', false);
         $this->get('/llms-full.txt')->assertOk()->assertSee('## App catalog', false)->assertSee('(`linkedin`)', false)->assertSee('### get_app', false);
     }
 
