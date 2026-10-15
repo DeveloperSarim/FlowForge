@@ -1,7 +1,7 @@
 import {
     BarChart3, Bitcoin, Boxes, CalendarCheck, CalendarDays, ClipboardList, Code2, CreditCard, Cpu, Database, FileText, Film, GitBranch,
     Globe, GraduationCap, Handshake, LifeBuoy, Megaphone, MessageSquare, Search, Share2, ShieldCheck, ShoppingCart, Sparkles,
-    SquareKanban, Users, Wand2, Wrench, Zap,
+    Puzzle, SquareKanban, Users, Wand2, Wrench, Zap,
 } from 'lucide-react';
 
 /** Display order + icon + accent for every integration category. */
@@ -35,6 +35,7 @@ export const CATEGORIES = [
     { name: 'IoT & Smart Home', icon: Cpu, color: '#059669' },
     { name: 'Crypto & Web3', icon: Bitcoin, color: '#d97706' },
     { name: 'Utilities', icon: Wrench, color: '#78716c' },
+    { name: 'Custom apps', icon: Puzzle, color: '#ee5a24' },
 ];
 
 const BY_NAME = Object.fromEntries(CATEGORIES.map((c, i) => [c.name, { ...c, order: i }]));

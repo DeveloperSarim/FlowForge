@@ -1,0 +1,186 @@
+{
+  "key": "two_factor_in",
+  "name": "2Factor.in",
+  "category": "Communication",
+  "description": "Send and verify SMS OTPs and DLT transactional SMS in India with 2Factor.",
+  "website": "https://2factor.in",
+  "docs_url": "https://documenter.getpostman.com/view/301893/TWDamFGh",
+  "base_url": "https://2factor.in/API",
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "2Factor dashboard → API key shown on the home page after you log in."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "send_otp",
+      "name": "Send OTP",
+      "description": "2Factor generates the code. Returns a session ID for Verify OTP.",
+      "method": "GET",
+      "endpoint": "/V1/{{ credentials.api_key }}/SMS/{{ inputs.phone }}/AUTOGEN/{{ inputs.template }}",
+      "output_fields": {
+        "status": "Status",
+        "session_id": "Details"
+      },
+      "inputs": [
+        {
+          "key": "phone",
+          "label": "Phone number",
+          "type": "string",
+          "required": true,
+          "placeholder": "919876543210",
+          "help": "With country code, no +."
+        },
+        {
+          "key": "template",
+          "label": "OTP template name",
+          "type": "string",
+          "required": true,
+          "help": "2Factor → SMS → OTP templates (DLT approved)."
+        }
+      ]
+    },
+    {
+      "key": "send_custom_otp",
+      "name": "Send your own OTP",
+      "method": "GET",
+      "endpoint": "/V1/{{ credentials.api_key }}/SMS/{{ inputs.phone }}/{{ inputs.otp }}/{{ inputs.template }}",
+      "output_fields": {
+        "status": "Status",
+        "session_id": "Details"
+      },
+      "inputs": [
+        {
+          "key": "phone",
+          "label": "Phone number",
+          "type": "string",
+          "required": true,
+          "placeholder": "919876543210"
+        },
+        {
+          "key": "otp",
+          "label": "OTP code",
+          "type": "string",
+          "required": true,
+          "placeholder": "483920"
+        },
+        {
+          "key": "template",
+          "label": "OTP template name",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "verify_otp",
+      "name": "Verify OTP",
+      "description": "Details is 'OTP Matched' when the code is right, otherwise 'OTP Mismatch' or 'OTP Expired'.",
+      "method": "GET",
+      "endpoint": "/V1/{{ credentials.api_key }}/SMS/VERIFY/{{ inputs.session_id }}/{{ inputs.otp }}",
+      "output_fields": {
+        "status": "Status",
+        "result": "Details"
+      },
+      "inputs": [
+        {
+          "key": "session_id",
+          "label": "Session ID",
+          "type": "string",
+          "required": true,
+          "help": "Returned by Send OTP (Details)."
+        },
+        {
+          "key": "otp",
+          "label": "Code entered by the user",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "send_sms",
+      "name": "Send transactional SMS",
+      "method": "POST",
+      "endpoint": "/R1/",
+      "body": {
+        "module": "{{ inputs.module }}",
+        "apikey": "{{ credentials.api_key }}",
+        "to": "{{ inputs.to }}",
+        "from": "{{ inputs.from }}",
+        "msg": "{{ inputs.msg }}",
+        "scheduletime": "{{ inputs.scheduletime }}",
+        "peid": "{{ inputs.peid }}",
+        "ctid": "{{ inputs.ctid }}"
+      },
+      "body_format": "form",
+      "output_fields": {
+        "status": "Status",
+        "message_id": "Details"
+      },
+      "inputs": [
+        {
+          "key": "to",
+          "label": "To",
+          "type": "string",
+          "required": true,
+          "placeholder": "919876543210",
+          "help": "Comma separate several numbers."
+        },
+        {
+          "key": "from",
+          "label": "Sender ID (DLT header)",
+          "type": "string",
+          "required": true,
+          "placeholder": "ABCDEF"
+        },
+        {
+          "key": "msg",
+          "label": "Message",
+          "type": "text",
+          "required": true,
+          "help": "Must match an approved DLT template."
+        },
+        {
+          "key": "module",
+          "label": "Type",
+          "type": "select",
+          "default": "TRANS_SMS",
+          "options": [
+            {
+              "value": "TRANS_SMS",
+              "label": "Transactional"
+            },
+            {
+              "value": "PROMO_SMS",
+              "label": "Promotional"
+            }
+          ]
+        },
+        {
+          "key": "scheduletime",
+          "label": "Schedule time",
+          "type": "string",
+          "placeholder": "2026-12-01 10:30:00"
+        },
+        {
+          "key": "peid",
+          "label": "DLT entity ID",
+          "type": "string"
+        },
+        {
+          "key": "ctid",
+          "label": "DLT template ID",
+          "type": "string"
+        }
+      ]
+    }
+  ]
+}

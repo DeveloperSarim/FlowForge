@@ -1,0 +1,252 @@
+{
+  "key": "dhl_express",
+  "name": "DHL Express",
+  "category": "E-commerce",
+  "description": "MyDHL API: rates, shipment tracking, address checks and shipments.",
+  "brand": "dhl",
+  "website": "https://www.dhl.com",
+  "docs_url": "https://developer.dhl.com/api-reference/dhl-express-mydhl-api",
+  "base_url": "https://express.api.dhl.com/{{ credentials.environment }}",
+  "auth": {
+    "type": "basic",
+    "fields": [
+      {
+        "key": "username",
+        "label": "API key",
+        "type": "string",
+        "required": true,
+        "help": "developer.dhl.com → My apps → your MyDHL API app (DHL Express approves access)."
+      },
+      {
+        "key": "password",
+        "label": "API secret",
+        "type": "password",
+        "required": true
+      },
+      {
+        "key": "account_number",
+        "label": "DHL Express account number",
+        "type": "string",
+        "required": true,
+        "help": "Your 9-digit shipper account, used for rates and shipments."
+      },
+      {
+        "key": "environment",
+        "label": "Environment",
+        "type": "select",
+        "required": true,
+        "default": "mydhlapi",
+        "options": [
+          {
+            "value": "mydhlapi",
+            "label": "Production"
+          },
+          {
+            "value": "mydhlapi/test",
+            "label": "Test"
+          }
+        ]
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "get_rates",
+      "name": "Get rates",
+      "description": "Products and prices for a package.",
+      "method": "GET",
+      "endpoint": "/rates",
+      "query": {
+        "accountNumber": "{{ credentials.account_number }}",
+        "originCountryCode": "{{ inputs.from_country }}",
+        "originPostalCode": "{{ inputs.from_postcode }}",
+        "originCityName": "{{ inputs.from_city }}",
+        "destinationCountryCode": "{{ inputs.to_country }}",
+        "destinationPostalCode": "{{ inputs.to_postcode }}",
+        "destinationCityName": "{{ inputs.to_city }}",
+        "weight": "{{ inputs.weight }}",
+        "length": "{{ inputs.length }}",
+        "width": "{{ inputs.width }}",
+        "height": "{{ inputs.height }}",
+        "plannedShippingDate": "{{ inputs.date }}",
+        "isCustomsDeclarable": "{{ inputs.customs }}",
+        "unitOfMeasurement": "metric"
+      },
+      "output_fields": {
+        "products": "products",
+        "first_product": "products.0.productName",
+        "first_price": "products.0.totalPrice.0.price"
+      },
+      "inputs": [
+        {
+          "key": "from_country",
+          "label": "From country",
+          "type": "string",
+          "required": true,
+          "placeholder": "DE"
+        },
+        {
+          "key": "from_postcode",
+          "label": "From postcode",
+          "type": "string"
+        },
+        {
+          "key": "from_city",
+          "label": "From city",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "to_country",
+          "label": "To country",
+          "type": "string",
+          "required": true,
+          "placeholder": "US"
+        },
+        {
+          "key": "to_postcode",
+          "label": "To postcode",
+          "type": "string"
+        },
+        {
+          "key": "to_city",
+          "label": "To city",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "weight",
+          "label": "Weight (kg)",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "length",
+          "label": "Length (cm)",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "width",
+          "label": "Width (cm)",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "height",
+          "label": "Height (cm)",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "date",
+          "label": "Shipping date",
+          "type": "string",
+          "required": true,
+          "placeholder": "2026-02-01"
+        },
+        {
+          "key": "customs",
+          "label": "Customs declarable (goods across borders)",
+          "type": "boolean",
+          "default": false
+        }
+      ]
+    },
+    {
+      "key": "track_shipment",
+      "name": "Track shipment",
+      "description": "Status and checkpoints for a waybill.",
+      "method": "GET",
+      "endpoint": "/shipments/{{ inputs.tracking_number }}/tracking",
+      "query": {
+        "trackingView": "all-checkpoints",
+        "levelOfDetail": "all"
+      },
+      "output_fields": {
+        "status": "shipments.0.status",
+        "events": "shipments.0.events"
+      },
+      "inputs": [
+        {
+          "key": "tracking_number",
+          "label": "Waybill number",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "validate_address",
+      "name": "Validate address",
+      "description": "Check DHL Express pickup or delivery coverage for a place.",
+      "method": "GET",
+      "endpoint": "/address-validate",
+      "query": {
+        "type": "{{ inputs.type }}",
+        "countryCode": "{{ inputs.country }}",
+        "postalCode": "{{ inputs.postcode }}",
+        "cityName": "{{ inputs.city }}"
+      },
+      "output_fields": {
+        "address": "address"
+      },
+      "inputs": [
+        {
+          "key": "type",
+          "label": "Type",
+          "type": "select",
+          "required": true,
+          "default": "delivery",
+          "options": [
+            {
+              "value": "delivery",
+              "label": "delivery"
+            },
+            {
+              "value": "pickup",
+              "label": "pickup"
+            }
+          ]
+        },
+        {
+          "key": "country",
+          "label": "Country code",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "postcode",
+          "label": "Postcode",
+          "type": "string"
+        },
+        {
+          "key": "city",
+          "label": "City",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "create_shipment",
+      "name": "Create shipment",
+      "description": "Book a shipment from a MyDHL shipment object and get the waybill.",
+      "method": "POST",
+      "endpoint": "/shipments",
+      "body": "{{ inputs.shipment }}",
+      "output_fields": {
+        "tracking_number": "shipmentTrackingNumber",
+        "documents": "documents"
+      },
+      "inputs": [
+        {
+          "key": "shipment",
+          "label": "Shipment (JSON)",
+          "type": "json",
+          "required": true,
+          "help": "MyDHL API shipment body: plannedShippingDateAndTime, pickup, productCode, accounts, customerDetails, content."
+        }
+      ]
+    }
+  ]
+}

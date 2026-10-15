@@ -1,0 +1,226 @@
+{
+  "key": "google_cloud_speech_to_text",
+  "name": "Google Cloud Speech-to-Text",
+  "category": "AI",
+  "description": "Transcribe audio files to text in 125+ languages with Google.",
+  "brand": "googlecloud",
+  "website": "https://cloud.google.com/speech-to-text",
+  "docs_url": "https://cloud.google.com/speech-to-text/docs/reference/rest/v1/speech",
+  "base_url": "https://speech.googleapis.com/v1",
+  "auth": [
+    {
+      "type": "api_key",
+      "in": "query",
+      "name": "key",
+      "fields": [
+        {
+          "key": "api_key",
+          "label": "API key",
+          "type": "password",
+          "required": true,
+          "help": "Google Cloud console → APIs & Services → Credentials → Create credentials → API key. Enable the Cloud Speech-to-Text API for your project first."
+        }
+      ]
+    },
+    {
+      "type": "google_service_account",
+      "scopes": [
+        "https://www.googleapis.com/auth/cloud-platform"
+      ],
+      "fields": [
+        {
+          "key": "service_account_json",
+          "label": "Service Account JSON key",
+          "type": "code",
+          "required": true,
+          "help": "Google Cloud console → IAM & Admin → Service Accounts → your account → Keys → Add key → JSON. Paste the whole file."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "transcribe",
+      "name": "Transcribe short audio",
+      "description": "Transcribe audio up to 1 minute and get the text.",
+      "method": "POST",
+      "endpoint": "/speech:recognize",
+      "timeout": 120,
+      "body": {
+        "config": {
+          "languageCode": "{{ inputs.language_code }}",
+          "model": "{{ inputs.model }}",
+          "encoding": "{{ inputs.encoding }}",
+          "sampleRateHertz": "{{ inputs.sample_rate }}",
+          "enableAutomaticPunctuation": true
+        },
+        "audio": {
+          "uri": "{{ inputs.audio_uri }}",
+          "content": "{{ inputs.audio_content }}"
+        }
+      },
+      "output_fields": {
+        "transcript": "results.*.alternatives.0.transcript"
+      },
+      "inputs": [
+        {
+          "key": "audio_uri",
+          "label": "Audio file (gs://)",
+          "type": "string",
+          "placeholder": "gs://my-bucket/call.flac",
+          "help": "A Cloud Storage path to the audio. Or fill Audio (base64) instead."
+        },
+        {
+          "key": "audio_content",
+          "label": "Audio (base64)",
+          "type": "text",
+          "help": "Base64 audio, for clips up to 1 minute."
+        },
+        {
+          "key": "language_code",
+          "label": "Language",
+          "type": "string",
+          "required": true,
+          "default": "en-US"
+        },
+        {
+          "key": "model",
+          "label": "Model",
+          "type": "select",
+          "options": [
+            {
+              "value": "latest_long",
+              "label": "Latest long"
+            },
+            {
+              "value": "latest_short",
+              "label": "Latest short"
+            },
+            {
+              "value": "phone_call",
+              "label": "Phone call"
+            },
+            {
+              "value": "video",
+              "label": "Video"
+            }
+          ]
+        },
+        {
+          "key": "encoding",
+          "label": "Encoding",
+          "type": "string",
+          "placeholder": "FLAC",
+          "help": "Leave blank for FLAC and WAV files; required for others, e.g. MP3."
+        },
+        {
+          "key": "sample_rate",
+          "label": "Sample rate (Hz)",
+          "type": "number",
+          "help": "Leave blank for FLAC and WAV files."
+        }
+      ]
+    },
+    {
+      "key": "transcribe_long",
+      "name": "Start long transcription",
+      "description": "Start transcribing long audio; check it with Get transcription.",
+      "method": "POST",
+      "endpoint": "/speech:longrunningrecognize",
+      "body": {
+        "config": {
+          "languageCode": "{{ inputs.language_code }}",
+          "model": "{{ inputs.model }}",
+          "encoding": "{{ inputs.encoding }}",
+          "sampleRateHertz": "{{ inputs.sample_rate }}",
+          "enableAutomaticPunctuation": true
+        },
+        "audio": {
+          "uri": "{{ inputs.audio_uri }}",
+          "content": "{{ inputs.audio_content }}"
+        }
+      },
+      "output_fields": {
+        "operation": "name"
+      },
+      "inputs": [
+        {
+          "key": "audio_uri",
+          "label": "Audio file (gs://)",
+          "type": "string",
+          "placeholder": "gs://my-bucket/call.flac",
+          "help": "A Cloud Storage path to the audio. Or fill Audio (base64) instead."
+        },
+        {
+          "key": "audio_content",
+          "label": "Audio (base64)",
+          "type": "text",
+          "help": "Base64 audio, for clips up to 1 minute."
+        },
+        {
+          "key": "language_code",
+          "label": "Language",
+          "type": "string",
+          "required": true,
+          "default": "en-US"
+        },
+        {
+          "key": "model",
+          "label": "Model",
+          "type": "select",
+          "options": [
+            {
+              "value": "latest_long",
+              "label": "Latest long"
+            },
+            {
+              "value": "latest_short",
+              "label": "Latest short"
+            },
+            {
+              "value": "phone_call",
+              "label": "Phone call"
+            },
+            {
+              "value": "video",
+              "label": "Video"
+            }
+          ]
+        },
+        {
+          "key": "encoding",
+          "label": "Encoding",
+          "type": "string",
+          "placeholder": "FLAC",
+          "help": "Leave blank for FLAC and WAV files; required for others, e.g. MP3."
+        },
+        {
+          "key": "sample_rate",
+          "label": "Sample rate (Hz)",
+          "type": "number",
+          "help": "Leave blank for FLAC and WAV files."
+        }
+      ]
+    },
+    {
+      "key": "get_operation",
+      "name": "Get transcription",
+      "description": "Get the result of a long transcription.",
+      "method": "GET",
+      "endpoint": "/operations/{{ inputs.operation }}",
+      "output_fields": {
+        "done": "done",
+        "transcript": "response.results.*.alternatives.0.transcript"
+      },
+      "inputs": [
+        {
+          "key": "operation",
+          "label": "Operation name",
+          "type": "string",
+          "required": true,
+          "help": "The operation returned by Start long transcription."
+        }
+      ]
+    }
+  ]
+}

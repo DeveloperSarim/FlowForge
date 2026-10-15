@@ -1,0 +1,176 @@
+{
+  "key": "dribbble",
+  "name": "Dribbble",
+  "category": "Social Media",
+  "description": "List, update and delete your Dribbble shots and catch newly published ones.",
+  "website": "https://dribbble.com",
+  "docs_url": "https://developer.dribbble.com/v2/",
+  "base_url": "https://api.dribbble.com/v2",
+  "auth": {
+    "type": "oauth2",
+    "authorize_url": "https://dribbble.com/oauth/authorize",
+    "token_url": "https://dribbble.com/oauth/token",
+    "scopes": [
+      "public",
+      "upload"
+    ]
+  },
+  "actions": [
+    {
+      "key": "get_user",
+      "name": "Get my profile",
+      "method": "GET",
+      "endpoint": "/user",
+      "output_fields": {
+        "id": "id",
+        "name": "name",
+        "login": "login",
+        "html_url": "html_url",
+        "followers_count": "followers_count"
+      },
+      "inputs": []
+    },
+    {
+      "key": "list_shots",
+      "name": "List my shots",
+      "method": "GET",
+      "endpoint": "/user/shots",
+      "query": {
+        "per_page": "{{ inputs.per_page }}",
+        "page": "{{ inputs.page }}"
+      },
+      "output_fields": {
+        "latest_id": "0.id",
+        "latest_title": "0.title",
+        "latest_url": "0.html_url"
+      },
+      "inputs": [
+        {
+          "key": "per_page",
+          "label": "Shots per page (max 100)",
+          "type": "number",
+          "default": 30
+        },
+        {
+          "key": "page",
+          "label": "Page",
+          "type": "number",
+          "default": 1
+        }
+      ]
+    },
+    {
+      "key": "get_shot",
+      "name": "Get shot",
+      "method": "GET",
+      "endpoint": "/shots/{{ inputs.shot_id }}",
+      "output_fields": {
+        "id": "id",
+        "title": "title",
+        "description": "description",
+        "html_url": "html_url",
+        "image_url": "images.hidpi",
+        "image_url_normal": "images.normal",
+        "tags": "tags",
+        "published_at": "published_at"
+      },
+      "inputs": [
+        {
+          "key": "shot_id",
+          "label": "Shot ID",
+          "type": "string",
+          "required": true,
+          "help": "The number in the shot's link, e.g. 1234567 in dribbble.com/shots/1234567-name."
+        }
+      ]
+    },
+    {
+      "key": "update_shot",
+      "name": "Update shot",
+      "method": "PUT",
+      "endpoint": "/shots/{{ inputs.shot_id }}",
+      "body": {
+        "title": "{{ inputs.title }}",
+        "description": "{{ inputs.description }}",
+        "tags": "{{ inputs.tags }}",
+        "low_profile": "{{ inputs.low_profile }}"
+      },
+      "output_fields": {
+        "id": "id",
+        "title": "title",
+        "description": "description",
+        "html_url": "html_url",
+        "image_url": "images.hidpi",
+        "image_url_normal": "images.normal",
+        "tags": "tags",
+        "published_at": "published_at"
+      },
+      "inputs": [
+        {
+          "key": "shot_id",
+          "label": "Shot ID",
+          "type": "string",
+          "required": true,
+          "help": "The number in the shot's link."
+        },
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "string"
+        },
+        {
+          "key": "description",
+          "label": "Description",
+          "type": "text"
+        },
+        {
+          "key": "tags",
+          "label": "Tags (max 12)",
+          "type": "list",
+          "help": "Tags you leave out are removed from the shot."
+        },
+        {
+          "key": "low_profile",
+          "label": "Low profile",
+          "type": "boolean"
+        }
+      ]
+    },
+    {
+      "key": "delete_shot",
+      "name": "Delete shot",
+      "method": "DELETE",
+      "endpoint": "/shots/{{ inputs.shot_id }}",
+      "inputs": [
+        {
+          "key": "shot_id",
+          "label": "Shot ID",
+          "type": "string",
+          "required": true,
+          "help": "The number in the shot's link."
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_shot",
+      "name": "New shot published",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/user/shots",
+      "query": {
+        "per_page": "30"
+      },
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

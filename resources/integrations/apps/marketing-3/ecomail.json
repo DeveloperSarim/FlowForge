@@ -1,0 +1,157 @@
+{
+  "key": "ecomail",
+  "name": "Ecomail",
+  "category": "Marketing & Email",
+  "description": "Email marketing: manage lists, subscribers and campaigns in Ecomail.",
+  "website": "https://www.ecomail.cz",
+  "docs_url": "https://ecomailczv2.docs.apiary.io/",
+  "base_url": "https://api2.ecomailapp.cz",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "key",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "Ecomail → Account settings → For developers → copy your API key."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_lists",
+      "name": "List lists",
+      "description": "All subscriber lists.",
+      "method": "GET",
+      "endpoint": "/lists",
+      "output_fields": {
+        "lists": "$"
+      },
+      "inputs": []
+    },
+    {
+      "key": "add_subscriber",
+      "name": "Add subscriber",
+      "description": "Add or update a subscriber in a list.",
+      "method": "POST",
+      "endpoint": "/lists/{{ inputs.list_id }}/subscribe",
+      "body": {
+        "subscriber_data": {
+          "email": "{{ inputs.email }}",
+          "name": "{{ inputs.name }}",
+          "surname": "{{ inputs.surname }}"
+        },
+        "update_existing": "{{ inputs.update_existing }}",
+        "trigger_autoresponders": "{{ inputs.trigger_autoresponders }}"
+      },
+      "output_fields": {
+        "id": "id",
+        "email": "email"
+      },
+      "inputs": [
+        {
+          "key": "list_id",
+          "label": "List ID",
+          "type": "number",
+          "required": true,
+          "help": "Use \"List lists\" to find it."
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true,
+          "help": "The contact's email address."
+        },
+        {
+          "key": "name",
+          "label": "First name",
+          "type": "string"
+        },
+        {
+          "key": "surname",
+          "label": "Last name",
+          "type": "string"
+        },
+        {
+          "key": "update_existing",
+          "label": "Update if exists",
+          "type": "boolean",
+          "default": true
+        },
+        {
+          "key": "trigger_autoresponders",
+          "label": "Start automations",
+          "type": "boolean",
+          "default": false
+        }
+      ]
+    },
+    {
+      "key": "get_subscriber",
+      "name": "Get subscriber",
+      "description": "Details of a subscriber in a list.",
+      "method": "GET",
+      "endpoint": "/lists/{{ inputs.list_id }}/subscriber/{{ inputs.email }}",
+      "output_fields": {
+        "subscriber": "subscriber"
+      },
+      "inputs": [
+        {
+          "key": "list_id",
+          "label": "List ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true,
+          "help": "The contact's email address."
+        }
+      ]
+    },
+    {
+      "key": "list_subscribers",
+      "name": "List subscribers",
+      "description": "Subscribers in a list.",
+      "method": "GET",
+      "endpoint": "/lists/{{ inputs.list_id }}/subscribers",
+      "query": {
+        "page": "{{ inputs.page }}"
+      },
+      "output_fields": {
+        "subscribers": "data"
+      },
+      "inputs": [
+        {
+          "key": "list_id",
+          "label": "List ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "page",
+          "label": "Page",
+          "type": "number",
+          "default": 1
+        }
+      ]
+    },
+    {
+      "key": "list_campaigns",
+      "name": "List campaigns",
+      "description": "Your campaigns.",
+      "method": "GET",
+      "endpoint": "/campaigns",
+      "output_fields": {
+        "campaigns": "$"
+      },
+      "inputs": []
+    }
+  ]
+}

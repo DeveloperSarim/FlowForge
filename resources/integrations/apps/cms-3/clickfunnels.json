@@ -1,0 +1,198 @@
+{
+  "key": "clickfunnels",
+  "name": "ClickFunnels",
+  "category": "CMS & Websites",
+  "description": "Add and look up ClickFunnels 2.0 contacts and list products in a workspace.",
+  "website": "https://www.clickfunnels.com",
+  "docs_url": "https://developers.myclickfunnels.com/docs",
+  "base_url": "https://{{ credentials.subdomain }}.myclickfunnels.com/api/v2",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "subdomain",
+        "label": "Account subdomain",
+        "type": "string",
+        "required": true,
+        "help": "The first part of your ClickFunnels address, like mybrand in mybrand.myclickfunnels.com.",
+        "placeholder": "mybrand"
+      },
+      {
+        "key": "token",
+        "label": "API access token",
+        "type": "password",
+        "required": true,
+        "help": "Click your profile → Settings → Account → Developer Portal → create an application and generate an access token."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_contacts",
+      "name": "List contacts",
+      "description": "List contacts in a workspace.",
+      "method": "GET",
+      "endpoint": "/workspaces/{{ inputs.workspace_id }}/contacts",
+      "query": {
+        "filter[email_address]": "{{ inputs.email }}"
+      },
+      "output_fields": {
+        "first_id": "0.id",
+        "first_email": "0.email_address"
+      },
+      "inputs": [
+        {
+          "key": "workspace_id",
+          "label": "Workspace ID",
+          "type": "number",
+          "required": true,
+          "help": "Shown in the ClickFunnels address after you pick a workspace (…/workspaces/12345/…)."
+        },
+        {
+          "key": "email",
+          "label": "Filter by email",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "create_contact",
+      "name": "Create contact",
+      "description": "Add a contact (fails if the email exists).",
+      "method": "POST",
+      "endpoint": "/workspaces/{{ inputs.workspace_id }}/contacts",
+      "body": {
+        "contact": {
+          "email_address": "{{ inputs.email }}",
+          "first_name": "{{ inputs.first_name }}",
+          "last_name": "{{ inputs.last_name }}",
+          "phone_number": "{{ inputs.phone }}"
+        }
+      },
+      "output_fields": {
+        "id": "id",
+        "email": "email_address"
+      },
+      "inputs": [
+        {
+          "key": "workspace_id",
+          "label": "Workspace ID",
+          "type": "number",
+          "required": true,
+          "help": "Shown in the ClickFunnels address after you pick a workspace (…/workspaces/12345/…)."
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "first_name",
+          "label": "First name",
+          "type": "string"
+        },
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string"
+        },
+        {
+          "key": "phone",
+          "label": "Phone",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "upsert_contact",
+      "name": "Create or update contact",
+      "description": "Update the contact with this email, or create it.",
+      "method": "POST",
+      "endpoint": "/workspaces/{{ inputs.workspace_id }}/contacts/upsert",
+      "body": {
+        "contact": {
+          "email_address": "{{ inputs.email }}",
+          "first_name": "{{ inputs.first_name }}",
+          "last_name": "{{ inputs.last_name }}",
+          "phone_number": "{{ inputs.phone }}"
+        }
+      },
+      "output_fields": {
+        "id": "id",
+        "email": "email_address"
+      },
+      "inputs": [
+        {
+          "key": "workspace_id",
+          "label": "Workspace ID",
+          "type": "number",
+          "required": true,
+          "help": "Shown in the ClickFunnels address after you pick a workspace (…/workspaces/12345/…)."
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "first_name",
+          "label": "First name",
+          "type": "string"
+        },
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string"
+        },
+        {
+          "key": "phone",
+          "label": "Phone",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "get_contact",
+      "name": "Get contact",
+      "description": "Read one contact by ID.",
+      "method": "GET",
+      "endpoint": "/contacts/{{ inputs.contact_id }}",
+      "output_fields": {
+        "id": "id",
+        "email": "email_address",
+        "first_name": "first_name",
+        "last_name": "last_name"
+      },
+      "inputs": [
+        {
+          "key": "contact_id",
+          "label": "Contact ID",
+          "type": "number",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_products",
+      "name": "List products",
+      "description": "List products in a workspace.",
+      "method": "GET",
+      "endpoint": "/workspaces/{{ inputs.workspace_id }}/products",
+      "output_fields": {
+        "first_id": "0.id",
+        "first_name": "0.name"
+      },
+      "inputs": [
+        {
+          "key": "workspace_id",
+          "label": "Workspace ID",
+          "type": "number",
+          "required": true,
+          "help": "Shown in the ClickFunnels address after you pick a workspace (…/workspaces/12345/…)."
+        }
+      ]
+    }
+  ]
+}

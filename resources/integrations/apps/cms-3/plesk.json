@@ -1,0 +1,178 @@
+{
+  "key": "plesk",
+  "name": "Plesk",
+  "category": "CMS & Websites",
+  "description": "Web hosting panel: list domains and customers, create mailboxes, run Plesk commands.",
+  "website": "https://www.plesk.com",
+  "docs_url": "https://docs.plesk.com/en-US/obsidian/api-rpc/about-rest-api.79359/",
+  "base_url": "https://{{ credentials.host }}:8443/api/v2",
+  "auth": {
+    "type": "basic",
+    "fields": [
+      {
+        "key": "host",
+        "label": "Server hostname",
+        "type": "string",
+        "required": true,
+        "placeholder": "plesk.example.com",
+        "help": "The host you open Plesk at (without https:// and :8443)."
+      },
+      {
+        "key": "username",
+        "label": "Admin username",
+        "type": "string",
+        "required": true,
+        "default": "admin"
+      },
+      {
+        "key": "password",
+        "label": "Admin password",
+        "type": "password",
+        "required": true
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "server_info",
+      "name": "Server info",
+      "description": "Hostname, Plesk version and platform.",
+      "method": "GET",
+      "endpoint": "/server",
+      "output_fields": {
+        "hostname": "hostname",
+        "platform": "platform",
+        "version": "panel_version"
+      },
+      "inputs": []
+    },
+    {
+      "key": "list_domains",
+      "name": "List domains",
+      "description": "Domains (websites) hosted on the server.",
+      "method": "GET",
+      "endpoint": "/domains",
+      "query": {
+        "name": "{{ inputs.name }}"
+      },
+      "output_fields": {
+        "ids": "*.id",
+        "names": "*.name"
+      },
+      "inputs": [
+        {
+          "key": "name",
+          "label": "Domain name filter",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "get_domain",
+      "name": "Get domain",
+      "description": "Details of one domain by its ID.",
+      "method": "GET",
+      "endpoint": "/domains/{{ inputs.id }}",
+      "output_fields": {
+        "id": "id",
+        "name": "name",
+        "hosting_type": "hosting_type",
+        "created": "created"
+      },
+      "inputs": [
+        {
+          "key": "id",
+          "label": "Domain ID",
+          "type": "string",
+          "required": true,
+          "help": "Run \"List domains\" to see the IDs."
+        }
+      ]
+    },
+    {
+      "key": "list_clients",
+      "name": "List customers",
+      "description": "Customers and resellers.",
+      "method": "GET",
+      "endpoint": "/clients",
+      "output_fields": {
+        "ids": "*.id",
+        "logins": "*.login",
+        "names": "*.name",
+        "emails": "*.email"
+      },
+      "inputs": []
+    },
+    {
+      "key": "create_mailbox",
+      "name": "Create mailbox",
+      "description": "Create an email account such as info@yourdomain.com.",
+      "method": "POST",
+      "endpoint": "/cli/mail/call",
+      "body": {
+        "params": [
+          "--create",
+          "{{ inputs.email }}",
+          "-mailbox",
+          "true",
+          "-passwd",
+          "{{ inputs.password }}"
+        ]
+      },
+      "output_fields": {
+        "code": "code",
+        "stdout": "stdout",
+        "stderr": "stderr"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email address",
+          "type": "string",
+          "required": true,
+          "placeholder": "info@example.com",
+          "help": "The domain must already exist in Plesk."
+        },
+        {
+          "key": "password",
+          "label": "Password",
+          "type": "password",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "run_cli",
+      "name": "Run Plesk command",
+      "description": "Run any Plesk CLI utility (as \"plesk bin <command> …\").",
+      "method": "POST",
+      "endpoint": "/cli/{{ inputs.command }}/call",
+      "body": {
+        "params": "{{ inputs.params }}"
+      },
+      "output_fields": {
+        "code": "code",
+        "stdout": "stdout",
+        "stderr": "stderr"
+      },
+      "inputs": [
+        {
+          "key": "command",
+          "label": "Command",
+          "type": "string",
+          "required": true,
+          "placeholder": "subscription",
+          "help": "The utility name, e.g. subscription, mail, dns, site."
+        },
+        {
+          "key": "params",
+          "label": "Arguments",
+          "type": "list",
+          "required": true,
+          "help": "One argument per line, e.g. --list."
+        }
+      ]
+    }
+  ],
+  "triggers": []
+}

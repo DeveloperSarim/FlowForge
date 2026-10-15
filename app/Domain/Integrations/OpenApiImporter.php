@@ -17,6 +17,15 @@ class OpenApiImporter
         return isset($document['openapi'], $document['paths']) && str_starts_with((string) $document['openapi'], '3.');
     }
 
+    /**
+     * OpenAPI descriptions are CommonMark. Keep them as written (the UI renders the Markdown as text, so "<key>"
+     * or "<img>" stay visible instead of being stripped) and shorten long ones at a word boundary.
+     */
+    private static function text(mixed $value, int $limit): string
+    {
+        return Str::limit(trim(is_string($value) ? $value : ''), $limit, '…', preserveWords: true);
+    }
+
     public function convert(array $spec): array
     {
         $meta = $spec['x-flowforge'] ?? [];
@@ -27,7 +36,7 @@ class OpenApiImporter
             'name' => $meta['name'] ?? $title,
             'icon' => $meta['icon'] ?? 'globe',
             'category' => $meta['category'] ?? 'Imported',
-            'description' => Str::limit(strip_tags($spec['info']['description'] ?? ''), 200),
+            'description' => self::text($spec['info']['description'] ?? '', 1500),
             'base_url' => rtrim($spec['servers'][0]['url'] ?? '', '/'),
             'auth' => $this->auth($spec),
             'actions' => $this->actions($spec),
@@ -71,7 +80,7 @@ class OpenApiImporter
                     $inputs[$key] = $this->input($key, $this->deref($spec, $parameter['schema'] ?? []), [
                         'label' => Str::headline($name),
                         'required' => ($parameter['in'] === 'path') || (bool) ($parameter['required'] ?? false),
-                        'help' => Str::limit(strip_tags($parameter['description'] ?? ''), 160),
+                        'help' => self::text($parameter['description'] ?? '', 400),
                     ]);
                 }
 
@@ -81,7 +90,7 @@ class OpenApiImporter
                 $actions[] = array_filter([
                     'key' => $this->uniqueKey($operation['operationId'] ?? $method.' '.$path, $actions),
                     'name' => $operation['summary'] ?? Str::headline($operation['operationId'] ?? strtoupper($method).' '.$path),
-                    'description' => Str::limit(strip_tags($operation['description'] ?? ''), 200),
+                    'description' => self::text($operation['description'] ?? '', 1500),
                     'method' => strtoupper($method),
                     'endpoint' => $endpoint,
                     'query' => $query ?: null,
@@ -131,7 +140,7 @@ class OpenApiImporter
             $inputs[$key] = $this->input($key, $property, [
                 'label' => Str::headline($name),
                 'required' => in_array($name, $schema['required'] ?? [], true),
-                'help' => Str::limit(strip_tags($property['description'] ?? ''), 160),
+                'help' => self::text($property['description'] ?? '', 400),
             ]);
         }
 

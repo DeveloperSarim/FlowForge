@@ -1,0 +1,159 @@
+{
+  "key": "postiz",
+  "name": "Postiz",
+  "category": "Social Media",
+  "description": "Schedule or publish posts to your Postiz channels (cloud or self-hosted).",
+  "website": "https://postiz.com",
+  "docs_url": "https://docs.postiz.com/public-api",
+  "base_url": "{{ credentials.base_url }}",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "Authorization",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "Postiz → Settings → Public API → copy the API key."
+      },
+      {
+        "key": "base_url",
+        "label": "API address",
+        "type": "string",
+        "required": true,
+        "default": "https://api.postiz.com/public/v1",
+        "help": "Self-hosted Postiz: https://<your domain>/api/public/v1"
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_channels",
+      "name": "List channels",
+      "description": "Your connected social accounts and their IDs.",
+      "method": "GET",
+      "endpoint": "/integrations",
+      "output_fields": {
+        "channel_ids": "*.id",
+        "channel_names": "*.name",
+        "providers": "*.identifier"
+      },
+      "inputs": []
+    },
+    {
+      "key": "create_post",
+      "name": "Create post",
+      "method": "POST",
+      "endpoint": "/posts",
+      "body": {
+        "type": "{{ inputs.type }}",
+        "date": "{{ inputs.date }}",
+        "shortLink": false,
+        "tags": [],
+        "posts": [
+          {
+            "integration": {
+              "id": "{{ inputs.integration_id }}"
+            },
+            "value": [
+              {
+                "content": "{{ inputs.content }}",
+                "image": []
+              }
+            ],
+            "settings": {
+              "__type": "{{ inputs.provider }}"
+            }
+          }
+        ]
+      },
+      "output_fields": {
+        "post_id": "0.postId",
+        "integration": "0.integration"
+      },
+      "inputs": [
+        {
+          "key": "integration_id",
+          "label": "Channel ID",
+          "type": "string",
+          "required": true,
+          "help": "From 'List channels' (id)."
+        },
+        {
+          "key": "provider",
+          "label": "Channel type",
+          "type": "string",
+          "required": true,
+          "placeholder": "x",
+          "help": "The channel's identifier from 'List channels', e.g. x, linkedin, bluesky."
+        },
+        {
+          "key": "content",
+          "label": "Post text",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "type",
+          "label": "When",
+          "type": "select",
+          "default": "schedule",
+          "options": [
+            {
+              "value": "now",
+              "label": "Publish now"
+            },
+            {
+              "value": "schedule",
+              "label": "Schedule"
+            },
+            {
+              "value": "draft",
+              "label": "Save as draft"
+            }
+          ]
+        },
+        {
+          "key": "date",
+          "label": "Date and time (UTC)",
+          "type": "string",
+          "required": true,
+          "placeholder": "2026-12-01T09:00:00Z",
+          "help": "For 'Publish now' use the current time."
+        }
+      ]
+    },
+    {
+      "key": "list_posts",
+      "name": "List posts",
+      "method": "GET",
+      "endpoint": "/posts",
+      "query": {
+        "startDate": "{{ inputs.startDate }}",
+        "endDate": "{{ inputs.endDate }}"
+      },
+      "output_fields": {
+        "posts": "posts",
+        "states": "posts.*.state"
+      },
+      "inputs": [
+        {
+          "key": "startDate",
+          "label": "From (UTC)",
+          "type": "string",
+          "required": true,
+          "placeholder": "2026-12-01T00:00:00Z"
+        },
+        {
+          "key": "endDate",
+          "label": "To (UTC)",
+          "type": "string",
+          "required": true,
+          "placeholder": "2026-12-31T23:59:59Z"
+        }
+      ]
+    }
+  ]
+}

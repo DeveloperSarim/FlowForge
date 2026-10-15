@@ -1,0 +1,142 @@
+{
+  "key": "mochi",
+  "name": "Mochi",
+  "category": "Productivity",
+  "description": "Spaced-repetition flashcards: list decks, create decks and cards, delete cards.",
+  "website": "https://mochi.cards",
+  "docs_url": "https://mochi.cards/docs/api/",
+  "base_url": "https://app.mochi.cards/api",
+  "auth": {
+    "type": "basic",
+    "fields": [
+      {
+        "key": "username",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "Mochi → Settings → API → copy your API key."
+      },
+      {
+        "key": "password",
+        "label": "Password",
+        "type": "password",
+        "default": "",
+        "help": "Leave empty."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_decks",
+      "name": "List decks",
+      "description": "Your decks.",
+      "method": "GET",
+      "endpoint": "/decks",
+      "output_fields": {
+        "names": "docs.*.name",
+        "ids": "docs.*.id"
+      },
+      "inputs": []
+    },
+    {
+      "key": "create_deck",
+      "name": "Create deck",
+      "description": "Add a deck.",
+      "method": "POST",
+      "endpoint": "/decks",
+      "body": {
+        "name": "{{ inputs.name }}",
+        "parent-id": "{{ inputs.parent_id }}"
+      },
+      "output_fields": {
+        "id": "id"
+      },
+      "inputs": [
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "parent_id",
+          "label": "Parent deck ID",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "create_card",
+      "name": "Create card",
+      "description": "Add a card (Markdown; use --- between front and back).",
+      "method": "POST",
+      "endpoint": "/cards",
+      "body": {
+        "content": "{{ inputs.content }}",
+        "deck-id": "{{ inputs.deck_id }}"
+      },
+      "output_fields": {
+        "id": "id"
+      },
+      "inputs": [
+        {
+          "key": "deck_id",
+          "label": "Deck ID",
+          "type": "string",
+          "required": true,
+          "help": "Use \"List decks\"."
+        },
+        {
+          "key": "content",
+          "label": "Content",
+          "type": "text",
+          "required": true,
+          "placeholder": "Question\n---\nAnswer"
+        }
+      ]
+    },
+    {
+      "key": "list_cards",
+      "name": "List cards",
+      "description": "Cards, optionally of one deck.",
+      "method": "GET",
+      "endpoint": "/cards",
+      "query": {
+        "deck-id": "{{ inputs.deck_id }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "ids": "docs.*.id",
+        "contents": "docs.*.content"
+      },
+      "inputs": [
+        {
+          "key": "deck_id",
+          "label": "Deck ID",
+          "type": "string"
+        },
+        {
+          "key": "limit",
+          "label": "Max results",
+          "type": "number",
+          "default": 25
+        }
+      ]
+    },
+    {
+      "key": "delete_card",
+      "name": "Delete card",
+      "description": "Delete a card.",
+      "method": "DELETE",
+      "endpoint": "/cards/{{ inputs.id }}",
+      "inputs": [
+        {
+          "key": "id",
+          "label": "Card ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ]
+}

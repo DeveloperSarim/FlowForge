@@ -1,0 +1,157 @@
+{
+  "key": "victron_vrm",
+  "name": "Victron VRM",
+  "category": "IoT & Smart Home",
+  "description": "Solar and battery systems: read Victron VRM installations, diagnostics and stats.",
+  "website": "https://www.victronenergy.com",
+  "docs_url": "https://vrm-api-docs.victronenergy.com/",
+  "base_url": "https://vrmapi.victronenergy.com/v2",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "X-Authorization",
+    "prefix": "Token ",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "Access token",
+        "type": "password",
+        "required": true,
+        "help": "VRM portal > Preferences > Integrations > Access tokens > Add: copy the token."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "get_me",
+      "name": "Who am I",
+      "description": "Get your VRM user and ID.",
+      "method": "GET",
+      "endpoint": "/users/me",
+      "output_fields": {
+        "user_id": "user.id",
+        "email": "user.email"
+      },
+      "inputs": []
+    },
+    {
+      "key": "list_installations",
+      "name": "List installations",
+      "description": "Get your installations (sites).",
+      "method": "GET",
+      "endpoint": "/users/{{ inputs.user_id }}/installations",
+      "output_fields": {
+        "records": "records",
+        "ids": "records.*.idSite",
+        "names": "records.*.name"
+      },
+      "inputs": [
+        {
+          "key": "user_id",
+          "label": "User ID",
+          "type": "string",
+          "required": true,
+          "help": "The user id from 'Who am I'."
+        }
+      ]
+    },
+    {
+      "key": "diagnostics",
+      "name": "Live diagnostics",
+      "description": "Latest values from every device in an installation.",
+      "method": "GET",
+      "endpoint": "/installations/{{ inputs.site_id }}/diagnostics",
+      "output_fields": {
+        "records": "records"
+      },
+      "inputs": [
+        {
+          "key": "site_id",
+          "label": "Installation ID",
+          "type": "string",
+          "required": true,
+          "help": "idSite from List installations."
+        }
+      ]
+    },
+    {
+      "key": "stats",
+      "name": "Statistics",
+      "description": "Energy and battery statistics over time.",
+      "method": "GET",
+      "endpoint": "/installations/{{ inputs.site_id }}/stats",
+      "query": {
+        "type": "{{ inputs.type }}",
+        "interval": "{{ inputs.interval }}",
+        "start": "{{ inputs.start }}",
+        "end": "{{ inputs.end }}"
+      },
+      "output_fields": {
+        "records": "records",
+        "totals": "totals"
+      },
+      "inputs": [
+        {
+          "key": "site_id",
+          "label": "Installation ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "type",
+          "label": "Type",
+          "type": "select",
+          "default": "kwh",
+          "options": [
+            {
+              "value": "kwh",
+              "label": "Energy (kWh)"
+            },
+            {
+              "value": "live_feed",
+              "label": "Live feed"
+            },
+            {
+              "value": "custom",
+              "label": "Custom"
+            }
+          ]
+        },
+        {
+          "key": "interval",
+          "label": "Interval",
+          "type": "select",
+          "default": "days",
+          "options": [
+            {
+              "value": "hours",
+              "label": "Hours"
+            },
+            {
+              "value": "days",
+              "label": "Days"
+            },
+            {
+              "value": "weeks",
+              "label": "Weeks"
+            },
+            {
+              "value": "months",
+              "label": "Months"
+            }
+          ]
+        },
+        {
+          "key": "start",
+          "label": "Start (Unix time)",
+          "type": "number"
+        },
+        {
+          "key": "end",
+          "label": "End (Unix time)",
+          "type": "number"
+        }
+      ]
+    }
+  ]
+}

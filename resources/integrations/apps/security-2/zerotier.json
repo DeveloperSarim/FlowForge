@@ -1,0 +1,204 @@
+{
+  "key": "zerotier",
+  "name": "ZeroTier",
+  "category": "Security & IT",
+  "description": "Authorize, rename and remove devices on ZeroTier virtual networks.",
+  "brand": "zerotier",
+  "website": "https://www.zerotier.com",
+  "docs_url": "https://docs.zerotier.com/api/central/v1/",
+  "base_url": "https://api.zerotier.com/api/v1",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "Authorization",
+    "prefix": "token ",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "API access token",
+        "type": "password",
+        "required": true,
+        "help": "ZeroTier Central (my.zerotier.com) → Account → API Access Tokens → New token."
+      }
+    ],
+    "profile": {
+      "endpoint": "/network",
+      "store": {
+        "network_id": "{{ 0.id }}"
+      }
+    }
+  },
+  "actions": [
+    {
+      "key": "list_networks",
+      "name": "List networks",
+      "description": "List your networks.",
+      "method": "GET",
+      "endpoint": "/network",
+      "inputs": []
+    },
+    {
+      "key": "get_network",
+      "name": "Get network",
+      "description": "Get a network's name and member counts.",
+      "method": "GET",
+      "endpoint": "/network/{{ inputs.network_id }}",
+      "output_fields": {
+        "name": "config.name",
+        "online_members": "onlineMemberCount",
+        "total_members": "totalMemberCount"
+      },
+      "inputs": [
+        {
+          "key": "network_id",
+          "label": "Network ID",
+          "type": "string",
+          "fallback": "credentials.network_id",
+          "help": "Leave empty to use your first network (16 characters, from List networks)."
+        }
+      ]
+    },
+    {
+      "key": "list_members",
+      "name": "List members",
+      "description": "List the devices on a network.",
+      "method": "GET",
+      "endpoint": "/network/{{ inputs.network_id }}/member",
+      "inputs": [
+        {
+          "key": "network_id",
+          "label": "Network ID",
+          "type": "string",
+          "fallback": "credentials.network_id",
+          "help": "Leave empty to use your first network (16 characters, from List networks)."
+        }
+      ]
+    },
+    {
+      "key": "get_member",
+      "name": "Get member",
+      "description": "Get a device's status and IPs.",
+      "method": "GET",
+      "endpoint": "/network/{{ inputs.network_id }}/member/{{ inputs.member_id }}",
+      "output_fields": {
+        "name": "name",
+        "authorized": "config.authorized",
+        "ip_addresses": "config.ipAssignments"
+      },
+      "inputs": [
+        {
+          "key": "network_id",
+          "label": "Network ID",
+          "type": "string",
+          "fallback": "credentials.network_id",
+          "help": "Leave empty to use your first network (16 characters, from List networks)."
+        },
+        {
+          "key": "member_id",
+          "label": "Member (node) ID",
+          "type": "string",
+          "required": true,
+          "help": "The 10-character node ID of the device, from List members."
+        }
+      ]
+    },
+    {
+      "key": "authorize_member",
+      "name": "Authorize / rename member",
+      "description": "Allow (or block) a device on the network and name it.",
+      "method": "POST",
+      "endpoint": "/network/{{ inputs.network_id }}/member/{{ inputs.member_id }}",
+      "body": {
+        "name": "{{ inputs.name }}",
+        "description": "{{ inputs.description }}",
+        "config": {
+          "authorized": "{{ inputs.authorized }}"
+        }
+      },
+      "output_fields": {
+        "authorized": "config.authorized"
+      },
+      "inputs": [
+        {
+          "key": "network_id",
+          "label": "Network ID",
+          "type": "string",
+          "fallback": "credentials.network_id",
+          "help": "Leave empty to use your first network (16 characters, from List networks)."
+        },
+        {
+          "key": "member_id",
+          "label": "Member (node) ID",
+          "type": "string",
+          "required": true,
+          "help": "The 10-character node ID of the device, from List members."
+        },
+        {
+          "key": "authorized",
+          "label": "Authorized",
+          "type": "boolean",
+          "default": true
+        },
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string"
+        },
+        {
+          "key": "description",
+          "label": "Description",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "delete_member",
+      "name": "Remove member",
+      "description": "Remove a device from the network.",
+      "method": "DELETE",
+      "endpoint": "/network/{{ inputs.network_id }}/member/{{ inputs.member_id }}",
+      "inputs": [
+        {
+          "key": "network_id",
+          "label": "Network ID",
+          "type": "string",
+          "fallback": "credentials.network_id",
+          "help": "Leave empty to use your first network (16 characters, from List networks)."
+        },
+        {
+          "key": "member_id",
+          "label": "Member (node) ID",
+          "type": "string",
+          "required": true,
+          "help": "The 10-character node ID of the device, from List members."
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_member",
+      "name": "New device joins",
+      "type": "polling",
+      "description": "Starts when a new device asks to join a network.",
+      "method": "GET",
+      "endpoint": "/network/{{ inputs.network_id }}/member",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "network_id",
+          "label": "Network ID",
+          "type": "string",
+          "fallback": "credentials.network_id",
+          "help": "Leave empty to use your first network (16 characters, from List networks)."
+        },
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

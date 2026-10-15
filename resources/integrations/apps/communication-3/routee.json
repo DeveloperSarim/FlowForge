@@ -1,0 +1,151 @@
+{
+  "key": "routee",
+  "name": "Routee",
+  "category": "Communication",
+  "description": "Send SMS worldwide, estimate cost, track delivery and check your balance.",
+  "website": "https://www.routee.net",
+  "docs_url": "https://docs.routee.net/",
+  "base_url": "https://connect.routee.net",
+  "auth": {
+    "type": "oauth2_client_credentials",
+    "token_url": "https://auth.routee.net/oauth/token",
+    "client_auth": "basic",
+    "fields": [
+      {
+        "key": "client_id",
+        "label": "Application ID",
+        "type": "string",
+        "required": true,
+        "help": "go.routee.net → Applications → create or open an application → Application ID."
+      },
+      {
+        "key": "client_secret",
+        "label": "Application secret",
+        "type": "password",
+        "required": true,
+        "help": "Shown on the same page."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "send_sms",
+      "name": "Send SMS",
+      "description": "Send a text message to one number.",
+      "method": "POST",
+      "endpoint": "/sms",
+      "body": {
+        "body": "{{ inputs.body }}",
+        "to": "{{ inputs.to }}",
+        "from": "{{ inputs.from }}",
+        "transcode": "{{ inputs.transcode }}"
+      },
+      "output_fields": {
+        "tracking_id": "trackingId",
+        "status": "status",
+        "parts": "bodyAnalysis.parts"
+      },
+      "inputs": [
+        {
+          "key": "to",
+          "label": "To",
+          "type": "string",
+          "required": true,
+          "placeholder": "+306912345678",
+          "help": "International format with +country code."
+        },
+        {
+          "key": "from",
+          "label": "Sender ID",
+          "type": "string",
+          "required": true,
+          "help": "Up to 11 letters/numbers, or a phone number."
+        },
+        {
+          "key": "body",
+          "label": "Message",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "transcode",
+          "label": "Replace special characters",
+          "type": "boolean",
+          "default": false,
+          "help": "Converts unicode letters to plain ones so the SMS costs less."
+        }
+      ]
+    },
+    {
+      "key": "analyze_sms",
+      "name": "Estimate SMS cost",
+      "description": "Check a message's parts, encoding and cost before sending.",
+      "method": "POST",
+      "endpoint": "/sms/analyze",
+      "body": {
+        "body": "{{ inputs.body }}",
+        "to": "{{ inputs.to }}",
+        "from": "{{ inputs.from }}"
+      },
+      "output_fields": {
+        "cost": "cost",
+        "parts": "bodyAnalysis.parts",
+        "unicode": "bodyAnalysis.unicode"
+      },
+      "inputs": [
+        {
+          "key": "to",
+          "label": "To",
+          "type": "string",
+          "required": true,
+          "placeholder": "+306912345678"
+        },
+        {
+          "key": "from",
+          "label": "Sender ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "body",
+          "label": "Message",
+          "type": "text",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "track_sms",
+      "name": "Track SMS",
+      "description": "Delivery status of a sent message (all its parts).",
+      "method": "GET",
+      "endpoint": "/sms/tracking/single/{{ inputs.tracking_id }}",
+      "output_fields": {
+        "status": "0.status.status",
+        "part_statuses": "*.status.status"
+      },
+      "inputs": [
+        {
+          "key": "tracking_id",
+          "label": "Tracking ID",
+          "type": "string",
+          "required": true,
+          "help": "From a \"Send SMS\" step."
+        }
+      ]
+    },
+    {
+      "key": "get_balance",
+      "name": "Get balance",
+      "description": "Your account balance.",
+      "method": "GET",
+      "endpoint": "/accounts/me/balance",
+      "output_fields": {
+        "balance": "balance",
+        "currency": "currency.code"
+      },
+      "inputs": []
+    }
+  ],
+  "triggers": []
+}

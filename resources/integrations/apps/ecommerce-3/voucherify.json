@@ -1,0 +1,372 @@
+{
+  "key": "voucherify",
+  "name": "Voucherify",
+  "category": "E-commerce",
+  "description": "Promotions engine: create, validate and redeem coupons; manage customers.",
+  "website": "https://www.voucherify.io",
+  "docs_url": "https://docs.voucherify.io/reference/introduction-1",
+  "base_url": "https://{{ credentials.cluster }}/v1",
+  "headers": {
+    "X-App-Id": "{{ credentials.app_id }}",
+    "X-App-Token": "{{ credentials.api_key }}"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "key": "app_id",
+        "label": "Application ID",
+        "type": "string",
+        "required": true,
+        "help": "Voucherify → Project settings → General → Application keys."
+      },
+      {
+        "key": "api_key",
+        "label": "Secret key",
+        "type": "password",
+        "required": true,
+        "help": "Same page: Secret key."
+      },
+      {
+        "key": "cluster",
+        "label": "Region",
+        "type": "select",
+        "required": true,
+        "default": "api.voucherify.io",
+        "options": [
+          {
+            "value": "api.voucherify.io",
+            "label": "Europe"
+          },
+          {
+            "value": "us1.api.voucherify.io",
+            "label": "United States"
+          },
+          {
+            "value": "as1.api.voucherify.io",
+            "label": "Asia"
+          }
+        ]
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "create_voucher",
+      "name": "Create discount code",
+      "description": "Create a single discount voucher.",
+      "method": "POST",
+      "endpoint": "/vouchers",
+      "body": {
+        "code": "{{ inputs.code }}",
+        "type": "DISCOUNT_VOUCHER",
+        "category": "{{ inputs.category }}",
+        "expiration_date": "{{ inputs.expiration_date }}",
+        "discount": {
+          "type": "{{ inputs.discount_type }}",
+          "percent_off": "{{ inputs.percent_off }}",
+          "amount_off": "{{ inputs.amount_off }}"
+        },
+        "redemption": {
+          "quantity": "{{ inputs.max_redemptions }}"
+        }
+      },
+      "output_fields": {
+        "id": "id",
+        "code": "code"
+      },
+      "inputs": [
+        {
+          "key": "code",
+          "label": "Code",
+          "type": "string",
+          "help": "Leave empty to generate one."
+        },
+        {
+          "key": "discount_type",
+          "label": "Discount type",
+          "type": "select",
+          "required": true,
+          "default": "PERCENT",
+          "options": [
+            {
+              "value": "PERCENT",
+              "label": "Percentage"
+            },
+            {
+              "value": "AMOUNT",
+              "label": "Fixed amount"
+            }
+          ]
+        },
+        {
+          "key": "percent_off",
+          "label": "Percent off",
+          "type": "number"
+        },
+        {
+          "key": "amount_off",
+          "label": "Amount off (cents)",
+          "type": "number"
+        },
+        {
+          "key": "max_redemptions",
+          "label": "Max uses",
+          "type": "number"
+        },
+        {
+          "key": "expiration_date",
+          "label": "Expires",
+          "type": "string",
+          "placeholder": "2026-12-31T23:59:59Z"
+        },
+        {
+          "key": "category",
+          "label": "Category",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "get_voucher",
+      "name": "Get voucher",
+      "description": "A voucher's status and usage.",
+      "method": "GET",
+      "endpoint": "/vouchers/{{ inputs.code }}",
+      "output_fields": {
+        "active": "active",
+        "redeemed_quantity": "redemption.redeemed_quantity",
+        "discount": "discount"
+      },
+      "inputs": [
+        {
+          "key": "code",
+          "label": "Code",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "validate_voucher",
+      "name": "Validate code",
+      "description": "Check whether a code can be used for an order.",
+      "method": "POST",
+      "endpoint": "/validations",
+      "body": {
+        "redeemables": [
+          {
+            "object": "voucher",
+            "id": "{{ inputs.code }}"
+          }
+        ],
+        "order": {
+          "amount": "{{ inputs.order_amount }}"
+        },
+        "customer": {
+          "source_id": "{{ inputs.customer_id }}",
+          "email": "{{ inputs.customer_email }}"
+        }
+      },
+      "output_fields": {
+        "valid": "valid",
+        "discount": "redeemables.0.result.discount",
+        "order": "order"
+      },
+      "inputs": [
+        {
+          "key": "code",
+          "label": "Code",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "order_amount",
+          "label": "Order amount (cents)",
+          "type": "number"
+        },
+        {
+          "key": "customer_id",
+          "label": "Your customer ID",
+          "type": "string"
+        },
+        {
+          "key": "customer_email",
+          "label": "Customer email",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "redeem_voucher",
+      "name": "Redeem code",
+      "description": "Use a code on an order.",
+      "method": "POST",
+      "endpoint": "/redemptions",
+      "body": {
+        "redeemables": [
+          {
+            "object": "voucher",
+            "id": "{{ inputs.code }}"
+          }
+        ],
+        "order": {
+          "amount": "{{ inputs.order_amount }}",
+          "source_id": "{{ inputs.order_id }}"
+        },
+        "customer": {
+          "source_id": "{{ inputs.customer_id }}",
+          "email": "{{ inputs.customer_email }}"
+        }
+      },
+      "output_fields": {
+        "redemption_id": "redemptions.0.id",
+        "result": "redemptions.0.result"
+      },
+      "inputs": [
+        {
+          "key": "code",
+          "label": "Code",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "order_amount",
+          "label": "Order amount (cents)",
+          "type": "number"
+        },
+        {
+          "key": "order_id",
+          "label": "Your order ID",
+          "type": "string"
+        },
+        {
+          "key": "customer_id",
+          "label": "Your customer ID",
+          "type": "string"
+        },
+        {
+          "key": "customer_email",
+          "label": "Customer email",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "publish_voucher",
+      "name": "Give customer a code from a campaign",
+      "description": "Assign a unique code from a campaign to a customer.",
+      "method": "POST",
+      "endpoint": "/publications",
+      "body": {
+        "customer": {
+          "source_id": "{{ inputs.customer_id }}",
+          "email": "{{ inputs.customer_email }}"
+        },
+        "campaign": {
+          "name": "{{ inputs.campaign }}"
+        }
+      },
+      "output_fields": {
+        "code": "voucher.code"
+      },
+      "inputs": [
+        {
+          "key": "campaign",
+          "label": "Campaign name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "customer_email",
+          "label": "Customer email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "customer_id",
+          "label": "Your customer ID",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "create_customer",
+      "name": "Create or update customer",
+      "description": "Add or update a customer.",
+      "method": "POST",
+      "endpoint": "/customers",
+      "body": {
+        "source_id": "{{ inputs.source_id }}",
+        "name": "{{ inputs.name }}",
+        "email": "{{ inputs.email }}",
+        "phone": "{{ inputs.phone }}",
+        "metadata": "{{ inputs.metadata }}"
+      },
+      "output_fields": {
+        "id": "id"
+      },
+      "inputs": [
+        {
+          "key": "source_id",
+          "label": "Your customer ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string"
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string"
+        },
+        {
+          "key": "phone",
+          "label": "Phone",
+          "type": "string"
+        },
+        {
+          "key": "metadata",
+          "label": "Metadata (JSON)",
+          "type": "json"
+        }
+      ]
+    },
+    {
+      "key": "disable_voucher",
+      "name": "Disable code",
+      "description": "Stop a code from being used.",
+      "method": "POST",
+      "endpoint": "/vouchers/{{ inputs.code }}/disable",
+      "output_fields": {
+        "active": "active"
+      },
+      "inputs": [
+        {
+          "key": "code",
+          "label": "Code",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Voucherify → Project settings → Webhooks, paste this URL.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

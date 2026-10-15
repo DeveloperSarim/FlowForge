@@ -1,0 +1,244 @@
+{
+  "key": "checkr",
+  "name": "Checkr",
+  "category": "HR & Recruiting",
+  "description": "Create candidates, send background check invitations and read report results.",
+  "website": "https://checkr.com",
+  "docs_url": "https://docs.checkr.com",
+  "base_url": "https://api.checkr.com/v1",
+  "auth": {
+    "type": "basic",
+    "fields": [
+      {
+        "key": "username",
+        "label": "Secret API key",
+        "type": "password",
+        "required": true,
+        "help": "Checkr Dashboard → Account Settings → Developer Settings → API keys (use the secret key)."
+      },
+      {
+        "key": "password",
+        "label": "Password",
+        "type": "password",
+        "default": "",
+        "help": "Leave blank: Checkr uses only the API key."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "create_candidate",
+      "name": "Create candidate",
+      "description": "Creates a candidate to run a background check on.",
+      "method": "POST",
+      "endpoint": "/candidates",
+      "body": {
+        "email": "{{ inputs.email }}",
+        "first_name": "{{ inputs.first_name }}",
+        "last_name": "{{ inputs.last_name }}",
+        "phone": "{{ inputs.phone }}",
+        "zipcode": "{{ inputs.zipcode }}",
+        "dob": "{{ inputs.dob }}",
+        "work_locations": [
+          {
+            "$if": "{{ inputs.work_country }}",
+            "country": "{{ inputs.work_country }}"
+          }
+        ]
+      },
+      "output_fields": {
+        "id": "id",
+        "email": "email"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "first_name",
+          "label": "First name",
+          "type": "string"
+        },
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string"
+        },
+        {
+          "key": "phone",
+          "label": "Phone",
+          "type": "string"
+        },
+        {
+          "key": "zipcode",
+          "label": "ZIP code",
+          "type": "string"
+        },
+        {
+          "key": "dob",
+          "label": "Date of birth",
+          "type": "string",
+          "placeholder": "1990-05-20"
+        },
+        {
+          "key": "work_country",
+          "label": "Work country",
+          "type": "string",
+          "default": "US",
+          "help": "Two-letter country code where the candidate will work."
+        }
+      ]
+    },
+    {
+      "key": "create_invitation",
+      "name": "Send background check invitation",
+      "description": "Emails the candidate a link to consent and start the check.",
+      "method": "POST",
+      "endpoint": "/invitations",
+      "body": {
+        "candidate_id": "{{ inputs.candidate_id }}",
+        "package": "{{ inputs.package }}",
+        "work_locations": [
+          {
+            "country": "{{ inputs.country }}",
+            "state": "{{ inputs.state }}",
+            "city": "{{ inputs.city }}"
+          }
+        ]
+      },
+      "output_fields": {
+        "id": "id",
+        "status": "status",
+        "invitation_url": "invitation_url",
+        "report_id": "report_id"
+      },
+      "inputs": [
+        {
+          "key": "candidate_id",
+          "label": "Candidate ID",
+          "type": "string",
+          "required": true,
+          "help": "From \"Create candidate\"."
+        },
+        {
+          "key": "package",
+          "label": "Package slug",
+          "type": "string",
+          "required": true,
+          "placeholder": "tasker_standard",
+          "help": "Use \"List packages\" to see the slugs on your account."
+        },
+        {
+          "key": "country",
+          "label": "Work country",
+          "type": "string",
+          "default": "US"
+        },
+        {
+          "key": "state",
+          "label": "Work state",
+          "type": "string",
+          "placeholder": "CA"
+        },
+        {
+          "key": "city",
+          "label": "Work city",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "get_invitation",
+      "name": "Get invitation",
+      "description": "Returns an invitation's status and report ID.",
+      "method": "GET",
+      "endpoint": "/invitations/{{ inputs.invitation_id }}",
+      "output_fields": {
+        "status": "status",
+        "report_id": "report_id",
+        "invitation_url": "invitation_url"
+      },
+      "inputs": [
+        {
+          "key": "invitation_id",
+          "label": "Invitation ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "get_report",
+      "name": "Get report",
+      "description": "Returns a background check report's status and result.",
+      "method": "GET",
+      "endpoint": "/reports/{{ inputs.report_id }}",
+      "output_fields": {
+        "status": "status",
+        "result": "result",
+        "adjudication": "adjudication",
+        "candidate_id": "candidate_id",
+        "package": "package"
+      },
+      "inputs": [
+        {
+          "key": "report_id",
+          "label": "Report ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "get_candidate",
+      "name": "Get candidate",
+      "description": "Returns a candidate's details.",
+      "method": "GET",
+      "endpoint": "/candidates/{{ inputs.candidate_id }}",
+      "output_fields": {
+        "id": "id",
+        "email": "email",
+        "first_name": "first_name",
+        "last_name": "last_name"
+      },
+      "inputs": [
+        {
+          "key": "candidate_id",
+          "label": "Candidate ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_packages",
+      "name": "List packages",
+      "description": "Lists the screening packages on your account.",
+      "method": "GET",
+      "endpoint": "/packages",
+      "output_fields": {
+        "packages": "data",
+        "slug": "data.0.slug"
+      },
+      "inputs": []
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Add this URL in Checkr → Account Settings → Developer Settings → Webhooks (e.g. report.completed).",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

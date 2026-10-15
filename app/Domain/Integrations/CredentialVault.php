@@ -99,7 +99,7 @@ class CredentialVault
                 default => $request, // used via {{ credentials.api_key }} in base_url/endpoint
             },
             'bearer' => $this->sendToken($request, $authSpec, $data['token'], $query),
-            'basic' => $request->withBasicAuth($data['username'], $data['password']),
+            'basic' => $request->withBasicAuth((string) ($data['username'] ?? ''), (string) ($data['password'] ?? '')), // some APIs take a key as the username and no password
             'oauth2' => $this->sendToken($request, $authSpec, $this->oauthAccessToken($credential, $authSpec), $query),
             'oauth2_client_credentials' => $this->sendToken($request, $authSpec, $this->clientCredentialsToken($credential, $authSpec), $query),
             'google_service_account' => $request->withToken($this->googleAccessToken($credential, $authSpec['scopes'] ?? [])),

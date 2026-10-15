@@ -1,0 +1,263 @@
+{
+  "key": "zep",
+  "name": "Zep",
+  "category": "AI",
+  "description": "Memory for AI agents: store chats, build a knowledge graph, recall context.",
+  "website": "https://www.getzep.com",
+  "docs_url": "https://help.getzep.com",
+  "base_url": "https://api.getzep.com/api/v4",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "Authorization",
+    "prefix": "Api-Key ",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "app.getzep.com → your project → Settings → API Keys → Create key."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "create_user",
+      "name": "Create user",
+      "description": "Create a user; each user gets their own memory graph.",
+      "method": "POST",
+      "endpoint": "/users",
+      "body": {
+        "user_id": "{{ inputs.user_id }}",
+        "email": "{{ inputs.email }}",
+        "first_name": "{{ inputs.first_name }}",
+        "last_name": "{{ inputs.last_name }}"
+      },
+      "output_fields": {
+        "uuid": "uuid",
+        "graph_uuid": "graph_uuid"
+      },
+      "inputs": [
+        {
+          "key": "user_id",
+          "label": "Your user ID",
+          "type": "string",
+          "required": true,
+          "help": "Your own ID for this person (can't be changed)."
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string"
+        },
+        {
+          "key": "first_name",
+          "label": "First name",
+          "type": "string"
+        },
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "create_thread",
+      "name": "Create thread",
+      "description": "Start a conversation thread for a user.",
+      "method": "POST",
+      "endpoint": "/threads",
+      "body": {
+        "user_uuid": "{{ inputs.user_uuid }}"
+      },
+      "output_fields": {
+        "uuid": "uuid"
+      },
+      "inputs": [
+        {
+          "key": "user_uuid",
+          "label": "User UUID",
+          "type": "string",
+          "required": true,
+          "help": "The uuid returned by Create user."
+        }
+      ]
+    },
+    {
+      "key": "add_messages",
+      "name": "Add message",
+      "description": "Save a chat message to memory.",
+      "method": "POST",
+      "endpoint": "/threads/{{ inputs.thread_uuid }}/messages",
+      "body": {
+        "messages": [
+          {
+            "role": "{{ inputs.role }}",
+            "name": "{{ inputs.name }}",
+            "content": "{{ inputs.content }}"
+          }
+        ],
+        "return_context": "{{ inputs.return_context }}"
+      },
+      "output_fields": {
+        "context": "context"
+      },
+      "inputs": [
+        {
+          "key": "thread_uuid",
+          "label": "Thread UUID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "role",
+          "label": "Role",
+          "type": "select",
+          "required": true,
+          "default": "user",
+          "options": [
+            {
+              "value": "user",
+              "label": "User"
+            },
+            {
+              "value": "assistant",
+              "label": "Assistant"
+            }
+          ]
+        },
+        {
+          "key": "name",
+          "label": "Speaker name",
+          "type": "string"
+        },
+        {
+          "key": "content",
+          "label": "Message",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "return_context",
+          "label": "Return context",
+          "type": "boolean",
+          "default": true,
+          "help": "Also return the memory context for the next reply."
+        }
+      ]
+    },
+    {
+      "key": "get_context",
+      "name": "Get memory context",
+      "description": "Get the facts and history to put in your AI prompt.",
+      "method": "GET",
+      "endpoint": "/threads/{{ inputs.thread_uuid }}/context",
+      "output_fields": {
+        "context": "context"
+      },
+      "inputs": [
+        {
+          "key": "thread_uuid",
+          "label": "Thread UUID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "add_data",
+      "name": "Add data to graph",
+      "description": "Add business data (not chat) to a user's knowledge graph.",
+      "method": "POST",
+      "endpoint": "/graphs/{{ inputs.graph_uuid }}/episodes",
+      "body": {
+        "data": "{{ inputs.data }}",
+        "type": "{{ inputs.type }}",
+        "source_description": "{{ inputs.source_description }}"
+      },
+      "output_fields": {
+        "episode_uuid": "episode.uuid",
+        "task_uuid": "task.uuid"
+      },
+      "inputs": [
+        {
+          "key": "graph_uuid",
+          "label": "Graph or user UUID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "data",
+          "label": "Data",
+          "type": "text",
+          "required": true,
+          "help": "Text or JSON, e.g. a CRM record or email."
+        },
+        {
+          "key": "type",
+          "label": "Type",
+          "type": "select",
+          "default": "text",
+          "options": [
+            {
+              "value": "text",
+              "label": "Text"
+            },
+            {
+              "value": "json",
+              "label": "JSON"
+            },
+            {
+              "value": "message",
+              "label": "Message"
+            }
+          ]
+        },
+        {
+          "key": "source_description",
+          "label": "Source",
+          "type": "string",
+          "placeholder": "CRM"
+        }
+      ]
+    },
+    {
+      "key": "search_facts",
+      "name": "Search facts",
+      "description": "Search a user's knowledge graph for facts.",
+      "method": "POST",
+      "endpoint": "/graphs/{{ inputs.graph_uuid }}/search/edges",
+      "query": {
+        "page_size": "{{ inputs.page_size }}"
+      },
+      "body": {
+        "query": "{{ inputs.query }}"
+      },
+      "output_fields": {
+        "facts": "items.*.fact"
+      },
+      "inputs": [
+        {
+          "key": "graph_uuid",
+          "label": "Graph or user UUID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "query",
+          "label": "Query",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "page_size",
+          "label": "Results",
+          "type": "number",
+          "default": 10
+        }
+      ]
+    }
+  ]
+}

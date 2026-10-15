@@ -1,0 +1,236 @@
+{
+  "key": "spyfu",
+  "name": "SpyFu",
+  "category": "Ads & SEO",
+  "description": "Competitor research: domain SEO/PPC stats, top competitors and keywords.",
+  "website": "https://www.spyfu.com",
+  "docs_url": "https://developer.spyfu.com/",
+  "base_url": "https://api.spyfu.com/apis",
+  "auth": {
+    "type": "api_key",
+    "in": "query",
+    "name": "api_key",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "Secret key",
+        "type": "password",
+        "required": true,
+        "help": "spyfu.com → Account Settings → API Usage → copy your Secret Key (API access needs a plan with API credits)."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "domain_stats",
+      "name": "Domain stats",
+      "description": "Latest monthly organic and paid metrics for a domain.",
+      "method": "GET",
+      "endpoint": "/domain_stats_api/v2/getLatestDomainStats",
+      "query": {
+        "domain": "{{ inputs.domain }}",
+        "countryCode": "{{ inputs.country }}"
+      },
+      "output_fields": {
+        "stats": "results",
+        "organic_clicks": "results.0.monthlyOrganicClicks",
+        "organic_value": "results.0.monthlyOrganicValue",
+        "organic_keywords": "results.0.totalOrganicResults",
+        "paid_clicks": "results.0.monthlyPaidClicks",
+        "ad_budget": "results.0.monthlyBudget",
+        "strength": "results.0.strength"
+      },
+      "inputs": [
+        {
+          "key": "domain",
+          "label": "Domain",
+          "type": "string",
+          "required": true,
+          "placeholder": "example.com"
+        },
+        {
+          "key": "country",
+          "label": "Country",
+          "type": "select",
+          "default": "US",
+          "options": [
+            {
+              "value": "US",
+              "label": "United States"
+            },
+            {
+              "value": "UK",
+              "label": "United Kingdom"
+            },
+            {
+              "value": "CA",
+              "label": "Canada"
+            },
+            {
+              "value": "AU",
+              "label": "Australia"
+            },
+            {
+              "value": "DE",
+              "label": "Germany"
+            },
+            {
+              "value": "FR",
+              "label": "France"
+            },
+            {
+              "value": "ES",
+              "label": "Spain"
+            },
+            {
+              "value": "IT",
+              "label": "Italy"
+            },
+            {
+              "value": "NL",
+              "label": "Netherlands"
+            },
+            {
+              "value": "IN",
+              "label": "India"
+            },
+            {
+              "value": "BR",
+              "label": "Brazil"
+            },
+            {
+              "value": "MX",
+              "label": "Mexico"
+            },
+            {
+              "value": "JP",
+              "label": "Japan"
+            },
+            {
+              "value": "SG",
+              "label": "Singapore"
+            },
+            {
+              "value": "ZA",
+              "label": "South Africa"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "top_seo_competitors",
+      "name": "Top SEO competitors",
+      "description": "Domains that rank for the same organic keywords.",
+      "method": "GET",
+      "endpoint": "/competitors_api/v2/seo/getTopCompetitors",
+      "query": {
+        "domain": "{{ inputs.domain }}",
+        "countryCode": "{{ inputs.country }}",
+        "pageSize": "{{ inputs.page_size }}"
+      },
+      "output_fields": {
+        "competitors": "results",
+        "domains": "results.*.domain"
+      },
+      "inputs": [
+        {
+          "key": "domain",
+          "label": "Domain",
+          "type": "string",
+          "required": true,
+          "placeholder": "example.com"
+        },
+        {
+          "key": "country",
+          "label": "Country code",
+          "type": "string",
+          "default": "US",
+          "help": "US, UK, CA, AU, DE, FR, IN …"
+        },
+        {
+          "key": "page_size",
+          "label": "How many",
+          "type": "number",
+          "default": 10
+        }
+      ]
+    },
+    {
+      "key": "most_valuable_keywords",
+      "name": "Most valuable keywords",
+      "description": "Keywords bringing a domain the most organic clicks.",
+      "method": "GET",
+      "endpoint": "/serp_api/v2/seo/getMostValuableKeywords",
+      "query": {
+        "query": "{{ inputs.domain }}",
+        "countryCode": "{{ inputs.country }}",
+        "pageSize": "{{ inputs.page_size }}"
+      },
+      "output_fields": {
+        "keywords": "results",
+        "keyword_list": "results.*.keyword",
+        "total": "totalMatchingResults"
+      },
+      "inputs": [
+        {
+          "key": "domain",
+          "label": "Domain",
+          "type": "string",
+          "required": true,
+          "placeholder": "example.com"
+        },
+        {
+          "key": "country",
+          "label": "Country code",
+          "type": "string",
+          "default": "US"
+        },
+        {
+          "key": "page_size",
+          "label": "How many",
+          "type": "number",
+          "default": 20
+        }
+      ]
+    },
+    {
+      "key": "related_keywords",
+      "name": "Related keywords",
+      "description": "Keyword ideas related to a seed keyword, with volume and CPC.",
+      "method": "GET",
+      "endpoint": "/keyword_api/v2/related/getRelatedKeywords",
+      "query": {
+        "query": "{{ inputs.keyword }}",
+        "countryCode": "{{ inputs.country }}",
+        "pageSize": "{{ inputs.page_size }}"
+      },
+      "output_fields": {
+        "keywords": "results",
+        "keyword_list": "results.*.keyword",
+        "total": "totalMatchingResults"
+      },
+      "inputs": [
+        {
+          "key": "keyword",
+          "label": "Seed keyword",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "country",
+          "label": "Country code",
+          "type": "string",
+          "default": "US"
+        },
+        {
+          "key": "page_size",
+          "label": "How many",
+          "type": "number",
+          "default": 20
+        }
+      ]
+    }
+  ],
+  "triggers": []
+}

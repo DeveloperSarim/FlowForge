@@ -1,0 +1,234 @@
+{
+  "key": "enchant",
+  "name": "Enchant",
+  "category": "Customer Support",
+  "description": "Read tickets, send replies and add private notes in your Enchant help desk.",
+  "website": "https://www.enchant.com",
+  "docs_url": "https://dev.enchant.com/api/v1",
+  "base_url": "https://{{ credentials.site }}.enchant.com/api/v1",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "site",
+        "label": "Help desk name",
+        "type": "string",
+        "required": true,
+        "placeholder": "acme",
+        "help": "The part before .enchant.com."
+      },
+      {
+        "key": "token",
+        "label": "Access token",
+        "type": "password",
+        "required": true,
+        "help": "In Enchant open Settings > Apps, install the \"API\" app and copy its token."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_tickets",
+      "name": "List tickets",
+      "description": "Lists tickets, most recently updated first.",
+      "method": "GET",
+      "endpoint": "/tickets",
+      "query": {
+        "state": "{{ inputs.state }}",
+        "per_page": "{{ inputs.per_page }}",
+        "sort": "-updated_at"
+      },
+      "output_fields": {
+        "first_id": "0.id",
+        "first_subject": "0.subject",
+        "first_state": "0.state"
+      },
+      "inputs": [
+        {
+          "key": "state",
+          "label": "State",
+          "type": "select",
+          "options": [
+            {
+              "value": "open",
+              "label": "Open"
+            },
+            {
+              "value": "hold",
+              "label": "On hold"
+            },
+            {
+              "value": "closed",
+              "label": "Closed"
+            }
+          ]
+        },
+        {
+          "key": "per_page",
+          "label": "How many",
+          "type": "number",
+          "default": 25
+        }
+      ]
+    },
+    {
+      "key": "get_ticket",
+      "name": "Get ticket",
+      "description": "Gets one ticket by ID.",
+      "method": "GET",
+      "endpoint": "/tickets/{{ inputs.ticket_id }}",
+      "output_fields": {
+        "id": "id",
+        "number": "number",
+        "subject": "subject",
+        "state": "state"
+      },
+      "inputs": [
+        {
+          "key": "ticket_id",
+          "label": "Ticket ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "create_ticket",
+      "name": "Create ticket",
+      "description": "Creates an email ticket for an existing customer.",
+      "method": "POST",
+      "endpoint": "/tickets",
+      "body": {
+        "type": "email",
+        "subject": "{{ inputs.subject }}",
+        "customer_id": "{{ inputs.customer_id }}",
+        "inbox_id": "{{ inputs.inbox_id }}"
+      },
+      "output_fields": {
+        "id": "id",
+        "number": "number"
+      },
+      "inputs": [
+        {
+          "key": "customer_id",
+          "label": "Customer ID",
+          "type": "string",
+          "required": true,
+          "help": "The ID of the customer in Enchant (shown in the customer address)."
+        },
+        {
+          "key": "subject",
+          "label": "Subject",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "inbox_id",
+          "label": "Inbox ID",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "add_note",
+      "name": "Add private note",
+      "description": "Adds an internal note to a ticket.",
+      "method": "POST",
+      "endpoint": "/tickets/{{ inputs.ticket_id }}/messages",
+      "body": {
+        "type": "note",
+        "user_id": "{{ inputs.user_id }}",
+        "body": "{{ inputs.body }}"
+      },
+      "output_fields": {
+        "id": "id"
+      },
+      "inputs": [
+        {
+          "key": "ticket_id",
+          "label": "Ticket ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "user_id",
+          "label": "Agent user ID",
+          "type": "string",
+          "required": true,
+          "help": "The Enchant user who writes the note."
+        },
+        {
+          "key": "body",
+          "label": "Note",
+          "type": "text",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "send_reply",
+      "name": "Send reply",
+      "description": "Sends a reply to the customer.",
+      "method": "POST",
+      "endpoint": "/tickets/{{ inputs.ticket_id }}/messages",
+      "body": {
+        "type": "reply",
+        "direction": "out",
+        "user_id": "{{ inputs.user_id }}",
+        "to": "{{ inputs.to }}",
+        "body": "{{ inputs.body }}"
+      },
+      "output_fields": {
+        "id": "id"
+      },
+      "inputs": [
+        {
+          "key": "ticket_id",
+          "label": "Ticket ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "user_id",
+          "label": "Agent user ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "to",
+          "label": "Customer email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "body",
+          "label": "Message",
+          "type": "text",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_ticket",
+      "name": "New ticket",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/tickets",
+      "query": {
+        "sort": "-created_at",
+        "per_page": 25
+      },
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

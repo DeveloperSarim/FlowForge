@@ -1,0 +1,208 @@
+{
+  "key": "authentik",
+  "name": "authentik",
+  "category": "Security & IT",
+  "description": "Create, update and deactivate users and groups in authentik.",
+  "brand": "authentik",
+  "website": "https://goauthentik.io",
+  "docs_url": "https://docs.goauthentik.io/docs/developer-docs/api/",
+  "base_url": "{{ credentials.server_url }}/api/v3",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "server_url",
+        "label": "authentik URL",
+        "type": "string",
+        "required": true,
+        "placeholder": "https://auth.example.com",
+        "help": "Without a trailing slash."
+      },
+      {
+        "key": "token",
+        "label": "API token",
+        "type": "password",
+        "required": true,
+        "help": "Admin interface → Directory → Tokens and App passwords → Create (intent API), then copy it."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_users",
+      "name": "List users",
+      "description": "List or search users.",
+      "method": "GET",
+      "endpoint": "/core/users/",
+      "query": {
+        "search": "{{ inputs.search }}",
+        "is_active": "{{ inputs.is_active }}"
+      },
+      "output_fields": {
+        "users": "results"
+      },
+      "inputs": [
+        {
+          "key": "search",
+          "label": "Search",
+          "type": "string"
+        },
+        {
+          "key": "is_active",
+          "label": "Active only",
+          "type": "boolean"
+        }
+      ]
+    },
+    {
+      "key": "create_user",
+      "name": "Create user",
+      "description": "Create a user.",
+      "method": "POST",
+      "endpoint": "/core/users/",
+      "body": {
+        "username": "{{ inputs.username }}",
+        "name": "{{ inputs.name }}",
+        "email": "{{ inputs.email }}",
+        "is_active": "{{ inputs.is_active }}",
+        "groups": "{{ inputs.groups }}"
+      },
+      "output_fields": {
+        "user_id": "pk",
+        "username": "username"
+      },
+      "inputs": [
+        {
+          "key": "username",
+          "label": "Username",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "name",
+          "label": "Full name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string"
+        },
+        {
+          "key": "is_active",
+          "label": "Active",
+          "type": "boolean",
+          "default": true
+        },
+        {
+          "key": "groups",
+          "label": "Group IDs",
+          "type": "list",
+          "help": "Group UUIDs from List groups."
+        }
+      ]
+    },
+    {
+      "key": "update_user",
+      "name": "Update / deactivate user",
+      "description": "Change a user's details or deactivate them.",
+      "method": "PATCH",
+      "endpoint": "/core/users/{{ inputs.user_id }}/",
+      "body": {
+        "name": "{{ inputs.name }}",
+        "email": "{{ inputs.email }}",
+        "is_active": "{{ inputs.is_active }}"
+      },
+      "output_fields": {
+        "is_active": "is_active"
+      },
+      "inputs": [
+        {
+          "key": "user_id",
+          "label": "User ID",
+          "type": "number",
+          "required": true,
+          "help": "The numeric pk from List users."
+        },
+        {
+          "key": "name",
+          "label": "Full name",
+          "type": "string"
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string"
+        },
+        {
+          "key": "is_active",
+          "label": "Active",
+          "type": "boolean"
+        }
+      ]
+    },
+    {
+      "key": "delete_user",
+      "name": "Delete user",
+      "description": "Delete a user.",
+      "method": "DELETE",
+      "endpoint": "/core/users/{{ inputs.user_id }}/",
+      "inputs": [
+        {
+          "key": "user_id",
+          "label": "User ID",
+          "type": "number",
+          "required": true,
+          "help": "The numeric pk from List users."
+        }
+      ]
+    },
+    {
+      "key": "list_groups",
+      "name": "List groups",
+      "description": "List groups.",
+      "method": "GET",
+      "endpoint": "/core/groups/",
+      "query": {
+        "search": "{{ inputs.search }}"
+      },
+      "output_fields": {
+        "groups": "results"
+      },
+      "inputs": [
+        {
+          "key": "search",
+          "label": "Search",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "add_user_to_group",
+      "name": "Add user to group",
+      "description": "Add a user to a group.",
+      "method": "POST",
+      "endpoint": "/core/groups/{{ inputs.group_id }}/add_user/",
+      "body": {
+        "pk": "{{ inputs.user_id }}"
+      },
+      "inputs": [
+        {
+          "key": "group_id",
+          "label": "Group ID",
+          "type": "string",
+          "required": true,
+          "help": "Group UUID from List groups."
+        },
+        {
+          "key": "user_id",
+          "label": "User ID",
+          "type": "number",
+          "required": true,
+          "help": "The numeric pk from List users."
+        }
+      ]
+    }
+  ]
+}

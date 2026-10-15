@@ -1,0 +1,260 @@
+{
+  "key": "nethunt_crm",
+  "name": "NetHunt CRM",
+  "category": "CRM & Sales",
+  "description": "Create and update records, add comments and log calls in NetHunt CRM (Gmail).",
+  "website": "https://nethunt.com",
+  "docs_url": "https://nethunt.com/integration-api",
+  "base_url": "https://nethunt.com/api/v1/zapier",
+  "auth": {
+    "type": "basic",
+    "fields": [
+      {
+        "key": "username",
+        "label": "NetHunt email",
+        "type": "string",
+        "required": true,
+        "help": "The email address you sign in to NetHunt with."
+      },
+      {
+        "key": "password",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "In NetHunt open Settings → Integrations → API and copy your API key."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_folders",
+      "name": "List folders",
+      "description": "Lists the folders (record types) you can read.",
+      "method": "GET",
+      "endpoint": "/triggers/readable-folder",
+      "inputs": []
+    },
+    {
+      "key": "create_record",
+      "name": "Create record",
+      "method": "POST",
+      "endpoint": "/actions/create-record/{{ inputs.folder_id }}",
+      "body": {
+        "timeZone": "{{ inputs.time_zone }}",
+        "fields": "{{ inputs.fields }}"
+      },
+      "output_fields": {
+        "record_id": "recordId",
+        "created_at": "createdAt"
+      },
+      "inputs": [
+        {
+          "key": "folder_id",
+          "label": "Folder ID",
+          "type": "string",
+          "required": true,
+          "help": "Run \"List folders\" to see your folder IDs."
+        },
+        {
+          "key": "fields",
+          "label": "Field values",
+          "type": "keyvalue",
+          "required": true,
+          "help": "Field name → value, using the field names shown in NetHunt (e.g. Name, Email)."
+        },
+        {
+          "key": "time_zone",
+          "label": "Time zone",
+          "type": "string",
+          "default": "UTC",
+          "help": "Used for date fields, e.g. Europe/London."
+        }
+      ]
+    },
+    {
+      "key": "update_record",
+      "name": "Update record",
+      "description": "Changes field values on an existing record.",
+      "method": "POST",
+      "endpoint": "/actions/update-record/{{ inputs.record_id }}",
+      "body": {
+        "fieldActions": "{{ inputs.field_actions }}"
+      },
+      "output_fields": {
+        "record_id": "recordId",
+        "updated_at": "updatedAt"
+      },
+      "inputs": [
+        {
+          "key": "record_id",
+          "label": "Record ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "field_actions",
+          "label": "Field changes",
+          "type": "json",
+          "required": true,
+          "placeholder": "{\"Status\": {\"overwrite\": true, \"add\": \"Won\"}}",
+          "help": "For each field name: overwrite (true/false), add and/or remove values."
+        }
+      ]
+    },
+    {
+      "key": "find_records",
+      "name": "Find records",
+      "method": "GET",
+      "endpoint": "/searches/find-record/{{ inputs.folder_id }}",
+      "query": {
+        "query": "{{ inputs.query }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "record_id": "0.recordId",
+        "fields": "0.fields"
+      },
+      "inputs": [
+        {
+          "key": "folder_id",
+          "label": "Folder ID",
+          "type": "string",
+          "required": true,
+          "help": "Run \"List folders\" to see your folder IDs."
+        },
+        {
+          "key": "query",
+          "label": "Search text",
+          "type": "string",
+          "required": true,
+          "help": "Text to look for, e.g. an email address or name."
+        },
+        {
+          "key": "limit",
+          "label": "Max results",
+          "type": "number",
+          "default": 10
+        }
+      ]
+    },
+    {
+      "key": "add_comment",
+      "name": "Add comment",
+      "method": "POST",
+      "endpoint": "/actions/create-comment/{{ inputs.record_id }}",
+      "body": {
+        "text": "{{ inputs.text }}"
+      },
+      "output_fields": {
+        "comment_id": "commentId"
+      },
+      "inputs": [
+        {
+          "key": "record_id",
+          "label": "Record ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "text",
+          "label": "Comment",
+          "type": "text",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "log_call",
+      "name": "Log call",
+      "method": "POST",
+      "endpoint": "/actions/create-call-log/{{ inputs.record_id }}",
+      "body": {
+        "text": "{{ inputs.text }}",
+        "time": "{{ inputs.time }}",
+        "duration": "{{ inputs.duration }}"
+      },
+      "output_fields": {
+        "call_log_id": "callLogId"
+      },
+      "inputs": [
+        {
+          "key": "record_id",
+          "label": "Record ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "text",
+          "label": "Call notes",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "time",
+          "label": "Call start (ISO, UTC)",
+          "type": "string",
+          "placeholder": "2026-01-31T14:00:00Z"
+        },
+        {
+          "key": "duration",
+          "label": "Duration (minutes)",
+          "type": "number"
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_record",
+      "name": "New record",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/triggers/new-record/{{ inputs.folder_id }}",
+      "query": {
+        "limit": 50
+      },
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "folder_id",
+          "label": "Folder ID",
+          "type": "string",
+          "required": true,
+          "help": "Run \"List folders\" to see your folder IDs."
+        },
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    },
+    {
+      "key": "new_comment",
+      "name": "New comment",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/triggers/new-comment/{{ inputs.folder_id }}",
+      "query": {
+        "limit": 50
+      },
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "folder_id",
+          "label": "Folder ID",
+          "type": "string",
+          "required": true,
+          "help": "Run \"List folders\" to see your folder IDs."
+        },
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

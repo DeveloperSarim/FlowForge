@@ -1,0 +1,108 @@
+{
+  "key": "tvmaze",
+  "name": "TVmaze",
+  "category": "Video & Media",
+  "description": "Look up TV shows, episodes, cast and airing schedules from TVmaze (no account).",
+  "website": "https://www.tvmaze.com",
+  "docs_url": "https://www.tvmaze.com/api",
+  "base_url": "https://api.tvmaze.com",
+  "auth": {
+    "type": "none"
+  },
+  "actions": [
+    {
+      "key": "search_shows",
+      "name": "Search shows",
+      "description": "Find TV shows by name.",
+      "method": "GET",
+      "endpoint": "/search/shows",
+      "query": {
+        "q": "{{ inputs.q }}"
+      },
+      "output_fields": {
+        "names": "*.show.name",
+        "ids": "*.show.id"
+      },
+      "inputs": [
+        {
+          "key": "q",
+          "label": "Show name",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "get_show",
+      "name": "Get a show",
+      "description": "Get a show's details.",
+      "method": "GET",
+      "endpoint": "/shows/{{ inputs.show_id }}",
+      "output_fields": {
+        "name": "name",
+        "status": "status",
+        "premiered": "premiered",
+        "rating": "rating.average",
+        "summary": "summary"
+      },
+      "inputs": [
+        {
+          "key": "show_id",
+          "label": "Show ID",
+          "type": "string",
+          "required": true,
+          "help": "The id from Search shows."
+        }
+      ]
+    },
+    {
+      "key": "list_episodes",
+      "name": "List episodes",
+      "description": "Get every episode of a show.",
+      "method": "GET",
+      "endpoint": "/shows/{{ inputs.show_id }}/episodes",
+      "output_fields": {
+        "names": "*.name",
+        "airdates": "*.airdate"
+      },
+      "inputs": [
+        {
+          "key": "show_id",
+          "label": "Show ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "get_schedule",
+      "name": "Airing schedule",
+      "description": "What airs on a given day in a country.",
+      "method": "GET",
+      "endpoint": "/schedule",
+      "query": {
+        "country": "{{ inputs.country }}",
+        "date": "{{ inputs.date }}"
+      },
+      "output_fields": {
+        "episodes": "*.name",
+        "shows": "*.show.name"
+      },
+      "inputs": [
+        {
+          "key": "country",
+          "label": "Country code",
+          "type": "string",
+          "default": "US",
+          "placeholder": "US"
+        },
+        {
+          "key": "date",
+          "label": "Date",
+          "type": "string",
+          "help": "YYYY-MM-DD, empty for today."
+        }
+      ]
+    }
+  ]
+}

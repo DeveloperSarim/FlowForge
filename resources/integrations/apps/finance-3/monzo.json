@@ -1,0 +1,298 @@
+{
+  "key": "monzo",
+  "name": "Monzo",
+  "category": "Payments & Finance",
+  "description": "Read your Monzo balance and transactions, post feed items and move money to pots.",
+  "website": "https://monzo.com",
+  "docs_url": "https://docs.monzo.com",
+  "base_url": "https://api.monzo.com",
+  "auth": [
+    {
+      "type": "oauth2",
+      "authorize_url": "https://auth.monzo.com/",
+      "token_url": "https://api.monzo.com/oauth2/token",
+      "scopes": [],
+      "fields": [
+        {
+          "key": "client_id",
+          "label": "Client ID",
+          "type": "string",
+          "required": true,
+          "help": "developers.monzo.com → Clients → New OAuth client (confidential)."
+        },
+        {
+          "key": "client_secret",
+          "label": "Client secret",
+          "type": "password",
+          "required": true
+        }
+      ],
+      "profile": {
+        "endpoint": "/accounts?account_type=uk_retail",
+        "store": {
+          "account_id": "{{ accounts.0.id }}"
+        }
+      }
+    },
+    {
+      "type": "bearer",
+      "fields": [
+        {
+          "key": "token",
+          "label": "Access token",
+          "type": "password",
+          "required": true,
+          "help": "developers.monzo.com → Playground access token (expires after a few hours)."
+        }
+      ],
+      "profile": {
+        "endpoint": "/accounts?account_type=uk_retail",
+        "store": {
+          "account_id": "{{ accounts.0.id }}"
+        }
+      }
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_accounts",
+      "name": "List accounts",
+      "description": "Your Monzo accounts and their IDs.",
+      "method": "GET",
+      "endpoint": "/accounts",
+      "output_fields": {
+        "account_id": "accounts.0.id"
+      },
+      "inputs": []
+    },
+    {
+      "key": "get_balance",
+      "name": "Get balance",
+      "description": "Balance and today's spending (in pence).",
+      "method": "GET",
+      "endpoint": "/balance",
+      "query": {
+        "account_id": "{{ inputs.account_id }}"
+      },
+      "output_fields": {
+        "balance": "balance",
+        "total_balance": "total_balance",
+        "currency": "currency",
+        "spend_today": "spend_today"
+      },
+      "inputs": [
+        {
+          "key": "account_id",
+          "label": "Account ID",
+          "type": "string",
+          "fallback": "credentials.account_id",
+          "help": "Leave empty to use your current account."
+        }
+      ]
+    },
+    {
+      "key": "list_transactions",
+      "name": "List transactions",
+      "description": "Transactions in a time range (oldest first).",
+      "method": "GET",
+      "endpoint": "/transactions",
+      "query": {
+        "account_id": "{{ inputs.account_id }}",
+        "since": "{{ inputs.since }}",
+        "before": "{{ inputs.before }}",
+        "limit": "{{ inputs.limit }}",
+        "expand[]": "merchant"
+      },
+      "output_fields": {
+        "transactions": "transactions"
+      },
+      "inputs": [
+        {
+          "key": "account_id",
+          "label": "Account ID",
+          "type": "string",
+          "fallback": "credentials.account_id",
+          "help": "Leave empty to use your current account."
+        },
+        {
+          "key": "since",
+          "label": "Since",
+          "type": "string",
+          "placeholder": "2026-01-01T00:00:00Z"
+        },
+        {
+          "key": "before",
+          "label": "Before",
+          "type": "string"
+        },
+        {
+          "key": "limit",
+          "label": "How many",
+          "type": "number",
+          "default": 100
+        }
+      ]
+    },
+    {
+      "key": "create_feed_item",
+      "name": "Post to feed",
+      "description": "Show a custom item in your Monzo app feed.",
+      "method": "POST",
+      "endpoint": "/feed",
+      "body_format": "form",
+      "body": {
+        "account_id": "{{ inputs.account_id }}",
+        "type": "basic",
+        "params[title]": "{{ inputs.title }}",
+        "params[body]": "{{ inputs.body }}",
+        "params[image_url]": "{{ inputs.image_url }}",
+        "url": "{{ inputs.url }}"
+      },
+      "inputs": [
+        {
+          "key": "account_id",
+          "label": "Account ID",
+          "type": "string",
+          "fallback": "credentials.account_id",
+          "help": "Leave empty to use your current account."
+        },
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "body",
+          "label": "Text",
+          "type": "string"
+        },
+        {
+          "key": "image_url",
+          "label": "Image URL",
+          "type": "string",
+          "required": true,
+          "placeholder": "https://example.com/icon.png",
+          "help": "A small PNG/JPG shown next to the item."
+        },
+        {
+          "key": "url",
+          "label": "Link when tapped",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "list_pots",
+      "name": "List pots",
+      "description": "Your pots and their balances.",
+      "method": "GET",
+      "endpoint": "/pots",
+      "query": {
+        "current_account_id": "{{ inputs.account_id }}"
+      },
+      "output_fields": {
+        "pots": "pots"
+      },
+      "inputs": [
+        {
+          "key": "account_id",
+          "label": "Account ID",
+          "type": "string",
+          "fallback": "credentials.account_id",
+          "help": "Leave empty to use your current account."
+        }
+      ]
+    },
+    {
+      "key": "deposit_into_pot",
+      "name": "Deposit into pot",
+      "description": "Move money from your account into a pot.",
+      "method": "PUT",
+      "endpoint": "/pots/{{ inputs.pot_id }}/deposit",
+      "body_format": "form",
+      "body": {
+        "source_account_id": "{{ inputs.account_id }}",
+        "amount": "{{ inputs.amount }}",
+        "dedupe_id": "{{ inputs.dedupe_id }}"
+      },
+      "output_fields": {
+        "balance": "balance"
+      },
+      "inputs": [
+        {
+          "key": "pot_id",
+          "label": "Pot ID",
+          "type": "string",
+          "required": true,
+          "help": "Use List pots to find it."
+        },
+        {
+          "key": "amount",
+          "label": "Amount (pence)",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "account_id",
+          "label": "Account ID",
+          "type": "string",
+          "fallback": "credentials.account_id",
+          "help": "Leave empty to use your current account."
+        },
+        {
+          "key": "dedupe_id",
+          "label": "Unique ID",
+          "type": "string",
+          "required": true,
+          "help": "Any unique text so the deposit is never repeated, e.g. the date."
+        }
+      ]
+    },
+    {
+      "key": "register_webhook",
+      "name": "Register webhook",
+      "description": "Send new transactions to a URL (e.g. a FlowForge webhook).",
+      "method": "POST",
+      "endpoint": "/webhooks",
+      "body_format": "form",
+      "body": {
+        "account_id": "{{ inputs.account_id }}",
+        "url": "{{ inputs.url }}"
+      },
+      "output_fields": {
+        "webhook_id": "webhook.id"
+      },
+      "inputs": [
+        {
+          "key": "account_id",
+          "label": "Account ID",
+          "type": "string",
+          "fallback": "credentials.account_id",
+          "help": "Leave empty to use your current account."
+        },
+        {
+          "key": "url",
+          "label": "Webhook URL",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "New transaction",
+      "type": "webhook",
+      "description": "Run the Register webhook action once with this URL.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

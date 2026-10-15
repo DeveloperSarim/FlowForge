@@ -1,0 +1,359 @@
+{
+  "key": "trainual",
+  "name": "Trainual",
+  "category": "HR & Recruiting",
+  "description": "Onboard staff: add users, assign training subjects and track completions in Trainual.",
+  "website": "https://trainual.com",
+  "docs_url": "https://developers.trainual.com",
+  "base_url": "https://api.trainual.com/v3",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "API token",
+        "type": "password",
+        "required": true,
+        "help": "In Trainual open My settings → Integrations & AI and generate an API token (admin)."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "create_user",
+      "name": "Add user",
+      "description": "Adds a user to Trainual and optionally invites them.",
+      "method": "POST",
+      "endpoint": "/users",
+      "body": {
+        "data": {
+          "type": "user",
+          "attributes": {
+            "name": "{{ inputs.name }}",
+            "email": "{{ inputs.email }}",
+            "title": "{{ inputs.title }}",
+            "permission": "{{ inputs.permission }}",
+            "start_date": "{{ inputs.start_date }}",
+            "phone_number": "{{ inputs.phone_number }}",
+            "send_invite": "{{ inputs.send_invite }}"
+          }
+        }
+      },
+      "output_fields": {
+        "id": "data.id",
+        "email": "data.attributes.email",
+        "status": "data.attributes.status"
+      },
+      "inputs": [
+        {
+          "key": "name",
+          "label": "Full name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "title",
+          "label": "Job title",
+          "type": "string"
+        },
+        {
+          "key": "permission",
+          "label": "Permission",
+          "type": "select",
+          "default": "general",
+          "options": [
+            {
+              "value": "general",
+              "label": "General"
+            },
+            {
+              "value": "contributor",
+              "label": "Contributor"
+            },
+            {
+              "value": "author",
+              "label": "Author"
+            },
+            {
+              "value": "admin",
+              "label": "Admin"
+            }
+          ]
+        },
+        {
+          "key": "start_date",
+          "label": "Start date",
+          "type": "string",
+          "placeholder": "2026-11-01"
+        },
+        {
+          "key": "phone_number",
+          "label": "Phone",
+          "type": "string"
+        },
+        {
+          "key": "send_invite",
+          "label": "Send invite",
+          "type": "select",
+          "default": "now",
+          "options": [
+            {
+              "value": "now",
+              "label": "Now"
+            },
+            {
+              "value": "later",
+              "label": "Later"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "update_user",
+      "name": "Update user",
+      "description": "Changes a user's details.",
+      "method": "PATCH",
+      "endpoint": "/users/{{ inputs.user_id }}",
+      "body": {
+        "data": {
+          "type": "user",
+          "attributes": {
+            "name": "{{ inputs.name }}",
+            "email": "{{ inputs.email }}",
+            "title": "{{ inputs.title }}",
+            "phone_number": "{{ inputs.phone_number }}"
+          }
+        }
+      },
+      "output_fields": {
+        "id": "data.id"
+      },
+      "inputs": [
+        {
+          "key": "user_id",
+          "label": "User ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "name",
+          "label": "Full name",
+          "type": "string"
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string"
+        },
+        {
+          "key": "title",
+          "label": "Job title",
+          "type": "string"
+        },
+        {
+          "key": "phone_number",
+          "label": "Phone",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "list_users",
+      "name": "List users",
+      "description": "Lists users, newest first.",
+      "method": "GET",
+      "endpoint": "/users",
+      "query": {
+        "sort": "-created_at",
+        "page[size]": "{{ inputs.page_size }}"
+      },
+      "output_fields": {
+        "users": "data",
+        "id": "data.0.id"
+      },
+      "inputs": [
+        {
+          "key": "page_size",
+          "label": "Max results",
+          "type": "number",
+          "default": 50,
+          "help": "Up to 100."
+        }
+      ]
+    },
+    {
+      "key": "assign_subject",
+      "name": "Assign training",
+      "description": "Assigns a subject (course) to a user.",
+      "method": "POST",
+      "endpoint": "/assignments",
+      "body": {
+        "data": {
+          "type": "assignment",
+          "attributes": {
+            "user_id": "{{ inputs.user_id }}",
+            "subject_id": "{{ inputs.subject_id }}",
+            "completion_required": "{{ inputs.completion_required }}",
+            "due_date_at": "{{ inputs.due_date }}"
+          }
+        }
+      },
+      "output_fields": {
+        "id": "data.id"
+      },
+      "inputs": [
+        {
+          "key": "user_id",
+          "label": "User ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "subject_id",
+          "label": "Subject ID",
+          "type": "number",
+          "required": true,
+          "help": "Use \"List subjects\"."
+        },
+        {
+          "key": "completion_required",
+          "label": "Completion required",
+          "type": "boolean",
+          "default": true
+        },
+        {
+          "key": "due_date",
+          "label": "Due date",
+          "type": "string",
+          "placeholder": "2026-11-30"
+        }
+      ]
+    },
+    {
+      "key": "list_subjects",
+      "name": "List subjects",
+      "description": "Lists training subjects and their IDs.",
+      "method": "GET",
+      "endpoint": "/subjects",
+      "query": {
+        "page[size]": "{{ inputs.page_size }}"
+      },
+      "output_fields": {
+        "subjects": "data",
+        "id": "data.0.id"
+      },
+      "inputs": [
+        {
+          "key": "page_size",
+          "label": "Max results",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    },
+    {
+      "key": "list_completions",
+      "name": "List completions",
+      "description": "Shows training progress per user and subject.",
+      "method": "GET",
+      "endpoint": "/completions",
+      "query": {
+        "user_id": "{{ inputs.user_id }}",
+        "subject_id": "{{ inputs.subject_id }}",
+        "status": "{{ inputs.status }}"
+      },
+      "output_fields": {
+        "completions": "data"
+      },
+      "inputs": [
+        {
+          "key": "user_id",
+          "label": "User ID",
+          "type": "string"
+        },
+        {
+          "key": "subject_id",
+          "label": "Subject ID",
+          "type": "string"
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "options": [
+            {
+              "value": "completed",
+              "label": "completed"
+            },
+            {
+              "value": "uncompleted",
+              "label": "uncompleted"
+            },
+            {
+              "value": "active",
+              "label": "active"
+            },
+            {
+              "value": "inactive",
+              "label": "inactive"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_completion",
+      "name": "Training completed",
+      "type": "polling",
+      "description": "Fires when a user completes a subject.",
+      "method": "GET",
+      "endpoint": "/completions",
+      "query": {
+        "status": "completed",
+        "sort": "-completed_at",
+        "page[size]": 50
+      },
+      "items_path": "data",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    },
+    {
+      "key": "new_user",
+      "name": "New user",
+      "type": "polling",
+      "description": "Fires when a user is added.",
+      "method": "GET",
+      "endpoint": "/users",
+      "query": {
+        "sort": "-created_at",
+        "page[size]": 50
+      },
+      "items_path": "data",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,109 @@
+{
+  "key": "taqnyat",
+  "name": "Taqnyat",
+  "category": "Communication",
+  "description": "Send SMS in Saudi Arabia with Taqnyat and check your balance and sender names.",
+  "website": "https://taqnyat.sa",
+  "docs_url": "https://dev.taqnyat.sa/en/doc/sms/",
+  "base_url": "https://api.taqnyat.sa",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "Bearer token",
+        "type": "password",
+        "required": true,
+        "help": "Taqnyat portal → Developer → Application → create an application and copy its token."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "send_sms",
+      "name": "Send SMS",
+      "method": "POST",
+      "endpoint": "/v1/messages",
+      "body": {
+        "recipients": "{{ inputs.recipients }}",
+        "body": "{{ inputs.body }}",
+        "sender": "{{ inputs.sender }}",
+        "scheduledDatetime": "{{ inputs.scheduledDatetime }}"
+      },
+      "output_fields": {
+        "message_id": "messageId",
+        "cost": "cost",
+        "currency": "currency",
+        "accepted": "accepted",
+        "rejected": "rejected"
+      },
+      "inputs": [
+        {
+          "key": "recipients",
+          "label": "To (phone numbers)",
+          "type": "list",
+          "required": true,
+          "placeholder": "966500000000",
+          "help": "International format without + or 00."
+        },
+        {
+          "key": "body",
+          "label": "Message",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "sender",
+          "label": "Sender name",
+          "type": "string",
+          "required": true,
+          "help": "An approved sender name (see 'List sender names')."
+        },
+        {
+          "key": "scheduledDatetime",
+          "label": "Schedule for",
+          "type": "string",
+          "placeholder": "2026-12-01T14:26"
+        }
+      ]
+    },
+    {
+      "key": "get_balance",
+      "name": "Get balance",
+      "method": "GET",
+      "endpoint": "/account/balance",
+      "output_fields": {
+        "balance": "balance",
+        "currency": "currency",
+        "status": "accountStatus"
+      },
+      "inputs": []
+    },
+    {
+      "key": "list_senders",
+      "name": "List sender names",
+      "method": "GET",
+      "endpoint": "/v1/messages/senders",
+      "output_fields": {
+        "senders": "senders",
+        "sender_names": "senders.*.senderName"
+      },
+      "inputs": []
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Delivery report",
+      "type": "webhook",
+      "description": "Set this URL as the delivery report webhook in your Taqnyat application.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

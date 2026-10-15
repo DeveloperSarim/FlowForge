@@ -215,3 +215,4 @@ function existsLogo(key) {
 
 console.log(`${report.logo} library logos, ${report.favicon} app icons (favicon), ${report.monogram.length} lettered tiles.`);
 if (report.monogram.length) console.log('Lettered:', report.monogram.join(', '));
+process.exit(0); // keep-alive sockets from the favicon fetches would otherwise keep Node running

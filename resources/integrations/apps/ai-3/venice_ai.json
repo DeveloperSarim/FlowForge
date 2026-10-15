@@ -1,0 +1,253 @@
+{
+  "key": "venice_ai",
+  "name": "Venice AI",
+  "category": "AI",
+  "description": "Private, uncensored AI: chat, image generation and embeddings.",
+  "website": "https://venice.ai",
+  "docs_url": "https://docs.venice.ai",
+  "base_url": "https://api.venice.ai/api/v1",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "venice.ai → Settings → API → Generate new API key."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "chat_completion",
+      "name": "Chat completion",
+      "description": "Send a prompt and get the model's reply as text.",
+      "method": "POST",
+      "endpoint": "/chat/completions",
+      "timeout": 300,
+      "body": {
+        "model": "{{ inputs.model }}",
+        "messages": [
+          {
+            "$if": "{{ inputs.system }}",
+            "role": "system",
+            "content": "{{ inputs.system }}"
+          },
+          {
+            "role": "user",
+            "content": "{{ inputs.prompt }}"
+          }
+        ],
+        "temperature": "{{ inputs.temperature }}",
+        "max_tokens": "{{ inputs.max_tokens }}"
+      },
+      "output_fields": {
+        "text": "choices.0.message.content"
+      },
+      "inputs": [
+        {
+          "key": "model",
+          "label": "Model",
+          "type": "string",
+          "required": true,
+          "help": "A text model ID. Use List models (type: text) to see all.",
+          "default": "venice-uncensored"
+        },
+        {
+          "key": "prompt",
+          "label": "Prompt",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "system",
+          "label": "System prompt",
+          "type": "text",
+          "help": "Optional instructions for how the model should behave."
+        },
+        {
+          "key": "temperature",
+          "label": "Temperature",
+          "type": "number",
+          "placeholder": "0.7",
+          "help": "0 = focused, 1 = creative. Leave blank for the default."
+        },
+        {
+          "key": "max_tokens",
+          "label": "Max output tokens",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "generate_image",
+      "name": "Generate image",
+      "description": "Create an image from a prompt. Returns the image as base64.",
+      "method": "POST",
+      "endpoint": "/image/generate",
+      "timeout": 180,
+      "body": {
+        "model": "{{ inputs.model }}",
+        "prompt": "{{ inputs.prompt }}",
+        "negative_prompt": "{{ inputs.negative_prompt }}",
+        "width": "{{ inputs.width }}",
+        "height": "{{ inputs.height }}",
+        "aspect_ratio": "{{ inputs.aspect_ratio }}",
+        "format": "{{ inputs.format }}",
+        "safe_mode": "{{ inputs.safe_mode }}",
+        "hide_watermark": "{{ inputs.hide_watermark }}"
+      },
+      "output_fields": {
+        "image_base64": "images.0",
+        "id": "id"
+      },
+      "inputs": [
+        {
+          "key": "model",
+          "label": "Model",
+          "type": "string",
+          "required": true,
+          "default": "venice-sd35",
+          "help": "An image model ID. Use List models (type: image) to see all."
+        },
+        {
+          "key": "prompt",
+          "label": "Prompt",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "negative_prompt",
+          "label": "Negative prompt",
+          "type": "text",
+          "help": "Things to keep out of the image."
+        },
+        {
+          "key": "width",
+          "label": "Width (px)",
+          "type": "number",
+          "placeholder": "1024"
+        },
+        {
+          "key": "height",
+          "label": "Height (px)",
+          "type": "number",
+          "placeholder": "1024"
+        },
+        {
+          "key": "aspect_ratio",
+          "label": "Aspect ratio",
+          "type": "string",
+          "placeholder": "16:9",
+          "help": "For models that use an aspect ratio instead of width/height."
+        },
+        {
+          "key": "format",
+          "label": "Format",
+          "type": "select",
+          "default": "png",
+          "options": [
+            {
+              "value": "png",
+              "label": "PNG"
+            },
+            {
+              "value": "jpeg",
+              "label": "JPEG"
+            },
+            {
+              "value": "webp",
+              "label": "WebP"
+            }
+          ]
+        },
+        {
+          "key": "safe_mode",
+          "label": "Safe mode",
+          "type": "boolean",
+          "default": true,
+          "help": "Blurs adult content."
+        },
+        {
+          "key": "hide_watermark",
+          "label": "Hide watermark",
+          "type": "boolean"
+        }
+      ]
+    },
+    {
+      "key": "create_embedding",
+      "name": "Create embedding",
+      "description": "Turn text into a vector for search or similarity.",
+      "method": "POST",
+      "endpoint": "/embeddings",
+      "body": {
+        "model": "{{ inputs.model }}",
+        "input": "{{ inputs.input }}"
+      },
+      "output_fields": {
+        "embedding": "data.0.embedding"
+      },
+      "inputs": [
+        {
+          "key": "model",
+          "label": "Model",
+          "type": "string",
+          "required": true,
+          "help": "An embedding model ID, e.g. text-embedding-bge-m3.",
+          "default": "text-embedding-bge-m3"
+        },
+        {
+          "key": "input",
+          "label": "Text",
+          "type": "text",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_models",
+      "name": "List models",
+      "description": "List the models you can use.",
+      "method": "GET",
+      "endpoint": "/models",
+      "output_fields": {
+        "models": "data.*.id"
+      },
+      "query": {
+        "type": "{{ inputs.type }}"
+      },
+      "inputs": [
+        {
+          "key": "type",
+          "label": "Type",
+          "type": "select",
+          "default": "text",
+          "options": [
+            {
+              "value": "text",
+              "label": "Text"
+            },
+            {
+              "value": "image",
+              "label": "Image"
+            },
+            {
+              "value": "embedding",
+              "label": "Embedding"
+            },
+            {
+              "value": "tts",
+              "label": "Text to speech"
+            },
+            {
+              "value": "all",
+              "label": "All"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

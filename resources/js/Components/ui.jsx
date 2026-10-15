@@ -3,6 +3,7 @@ import { forwardRef, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Check, ChevronDown, Loader2, Search, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import Markdown from '@/Components/Markdown';
 
 const BUTTON_VARIANTS = {
     primary: 'bg-primary text-primary-fg hover:bg-primary-hover shadow-[0_1px_2px_rgb(0_0_0/0.08)] font-medium',
@@ -197,7 +198,7 @@ export function Field({ label, required, help, error, children, className, htmlF
                 </div>
             )}
             {typeof children === 'function' ? children(id) : children}
-            {error ? <p className="text-[12.5px] text-fail">{error}</p> : help ? <p className="text-[12.5px] leading-snug text-fg-subtle">{help}</p> : null}
+            {error ? <p className="text-[12.5px] text-fail">{error}</p> : help ? <p className="text-[12.5px] leading-snug text-fg-subtle">{typeof help === 'string' ? <Markdown text={help} inline /> : help}</p> : null}
         </div>
     );
 }

@@ -1,0 +1,205 @@
+{
+  "key": "litellm",
+  "name": "LiteLLM",
+  "category": "AI",
+  "description": "Call 100+ LLMs through your LiteLLM proxy and manage its virtual keys.",
+  "website": "https://www.litellm.ai",
+  "docs_url": "https://docs.litellm.ai/docs/simple_proxy",
+  "base_url": "{{ credentials.base_url }}",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "base_url",
+        "label": "Proxy URL",
+        "type": "string",
+        "required": true,
+        "placeholder": "https://litellm.example.com",
+        "help": "The address of your LiteLLM proxy, without a trailing slash."
+      },
+      {
+        "key": "token",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "Your proxy master key, or a virtual key from the LiteLLM UI → Virtual Keys."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "chat_completion",
+      "name": "Chat completion",
+      "description": "Send a prompt and get the model's reply as text.",
+      "method": "POST",
+      "endpoint": "/chat/completions",
+      "timeout": 300,
+      "body": {
+        "model": "{{ inputs.model }}",
+        "messages": [
+          {
+            "$if": "{{ inputs.system }}",
+            "role": "system",
+            "content": "{{ inputs.system }}"
+          },
+          {
+            "role": "user",
+            "content": "{{ inputs.prompt }}"
+          }
+        ],
+        "temperature": "{{ inputs.temperature }}",
+        "max_tokens": "{{ inputs.max_tokens }}"
+      },
+      "output_fields": {
+        "text": "choices.0.message.content"
+      },
+      "inputs": [
+        {
+          "key": "model",
+          "label": "Model",
+          "type": "string",
+          "required": true,
+          "help": "A model name configured on your proxy. Use List models to see them.",
+          "default": "gpt-4o-mini"
+        },
+        {
+          "key": "prompt",
+          "label": "Prompt",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "system",
+          "label": "System prompt",
+          "type": "text",
+          "help": "Optional instructions for how the model should behave."
+        },
+        {
+          "key": "temperature",
+          "label": "Temperature",
+          "type": "number",
+          "placeholder": "0.7",
+          "help": "0 = focused, 1 = creative. Leave blank for the default."
+        },
+        {
+          "key": "max_tokens",
+          "label": "Max output tokens",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "create_embedding",
+      "name": "Create embedding",
+      "description": "Turn text into a vector for search or similarity.",
+      "method": "POST",
+      "endpoint": "/embeddings",
+      "body": {
+        "model": "{{ inputs.model }}",
+        "input": "{{ inputs.input }}"
+      },
+      "output_fields": {
+        "embedding": "data.0.embedding"
+      },
+      "inputs": [
+        {
+          "key": "model",
+          "label": "Model",
+          "type": "string",
+          "required": true,
+          "help": "An embedding model name configured on your proxy.",
+          "default": "text-embedding-3-small"
+        },
+        {
+          "key": "input",
+          "label": "Text",
+          "type": "text",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_models",
+      "name": "List models",
+      "description": "List the models you can use.",
+      "method": "GET",
+      "endpoint": "/models",
+      "output_fields": {
+        "models": "data.*.id"
+      },
+      "inputs": []
+    },
+    {
+      "key": "generate_key",
+      "name": "Create virtual key",
+      "description": "Create a new virtual key (needs the master key).",
+      "method": "POST",
+      "endpoint": "/key/generate",
+      "body": {
+        "key_alias": "{{ inputs.key_alias }}",
+        "models": "{{ inputs.models }}",
+        "max_budget": "{{ inputs.max_budget }}",
+        "duration": "{{ inputs.duration }}",
+        "metadata": "{{ inputs.metadata }}"
+      },
+      "output_fields": {
+        "key": "key",
+        "expires": "expires"
+      },
+      "inputs": [
+        {
+          "key": "key_alias",
+          "label": "Key name",
+          "type": "string"
+        },
+        {
+          "key": "models",
+          "label": "Allowed models",
+          "type": "list",
+          "help": "Leave empty to allow every model."
+        },
+        {
+          "key": "max_budget",
+          "label": "Max budget (USD)",
+          "type": "number"
+        },
+        {
+          "key": "duration",
+          "label": "Expires after",
+          "type": "string",
+          "placeholder": "30d",
+          "help": "e.g. 30m, 12h, 30d. Leave blank for no expiry."
+        },
+        {
+          "key": "metadata",
+          "label": "Metadata",
+          "type": "json"
+        }
+      ]
+    },
+    {
+      "key": "get_key_info",
+      "name": "Get key info",
+      "description": "See a virtual key's spend, budget and allowed models.",
+      "method": "GET",
+      "endpoint": "/key/info",
+      "query": {
+        "key": "{{ inputs.key }}"
+      },
+      "output_fields": {
+        "spend": "info.spend",
+        "max_budget": "info.max_budget",
+        "models": "info.models"
+      },
+      "inputs": [
+        {
+          "key": "key",
+          "label": "Virtual key",
+          "type": "password",
+          "required": true,
+          "help": "The sk-… key to look up."
+        }
+      ]
+    }
+  ]
+}

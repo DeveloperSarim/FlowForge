@@ -1,0 +1,221 @@
+{
+  "key": "icontact",
+  "name": "iContact",
+  "category": "Marketing & Email",
+  "description": "Email marketing: add and find contacts, manage list subscriptions.",
+  "website": "https://www.icontact.com",
+  "docs_url": "https://www.icontact.com/developerportal/",
+  "base_url": "https://app.icontact.com/icp/a/{{ credentials.account_id }}/c/{{ credentials.client_folder_id }}",
+  "headers": {
+    "API-Version": "2.2",
+    "API-AppId": "{{ credentials.app_id }}",
+    "API-Username": "{{ credentials.username }}"
+  },
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "API-Password",
+    "fields": [
+      {
+        "key": "app_id",
+        "label": "Application ID",
+        "type": "string",
+        "required": true,
+        "help": "iContact → Settings and Billing → iContact Integrations → Custom API Integrations → Create. Copy the Application ID."
+      },
+      {
+        "key": "username",
+        "label": "API username",
+        "type": "string",
+        "required": true,
+        "help": "The username (usually your login email) shown on the same API page."
+      },
+      {
+        "key": "api_key",
+        "label": "API password",
+        "type": "password",
+        "required": true,
+        "help": "The password you set for this API application (not your login password)."
+      },
+      {
+        "key": "account_id",
+        "label": "Account ID",
+        "type": "string",
+        "required": true,
+        "help": "Shown on the API integration page under Account Information."
+      },
+      {
+        "key": "client_folder_id",
+        "label": "Client folder ID",
+        "type": "string",
+        "required": true,
+        "help": "Shown on the API integration page next to the Account ID."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "add_contact",
+      "name": "Add contact",
+      "description": "Create a contact (or update it when the email already exists).",
+      "method": "POST",
+      "endpoint": "/contacts",
+      "body": [
+        {
+          "email": "{{ inputs.email }}",
+          "firstName": "{{ inputs.first_name }}",
+          "lastName": "{{ inputs.last_name }}",
+          "phone": "{{ inputs.phone }}",
+          "business": "{{ inputs.company }}",
+          "status": "normal"
+        }
+      ],
+      "output_fields": {
+        "contact_id": "contacts.0.contactId",
+        "email": "contacts.0.email",
+        "warnings": "warnings"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "first_name",
+          "label": "First name",
+          "type": "string"
+        },
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string"
+        },
+        {
+          "key": "phone",
+          "label": "Phone",
+          "type": "string"
+        },
+        {
+          "key": "company",
+          "label": "Company",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "find_contact",
+      "name": "Find contact by email",
+      "description": "Look up contacts with a given email address.",
+      "method": "GET",
+      "endpoint": "/contacts",
+      "query": {
+        "email": "{{ inputs.email }}"
+      },
+      "output_fields": {
+        "contacts": "contacts",
+        "contact_id": "contacts.0.contactId",
+        "total": "total"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_lists",
+      "name": "List lists",
+      "description": "Your mailing lists and their IDs.",
+      "method": "GET",
+      "endpoint": "/lists",
+      "output_fields": {
+        "lists": "lists",
+        "list_ids": "lists.*.listId",
+        "names": "lists.*.name"
+      },
+      "inputs": []
+    },
+    {
+      "key": "subscribe_contact",
+      "name": "Subscribe contact to list",
+      "description": "Add a contact to a mailing list.",
+      "method": "POST",
+      "endpoint": "/subscriptions",
+      "body": [
+        {
+          "contactId": "{{ inputs.contact_id }}",
+          "listId": "{{ inputs.list_id }}",
+          "status": "normal"
+        }
+      ],
+      "output_fields": {
+        "subscriptions": "subscriptions",
+        "warnings": "warnings"
+      },
+      "inputs": [
+        {
+          "key": "contact_id",
+          "label": "Contact ID",
+          "type": "string",
+          "required": true,
+          "help": "From an \"Add contact\" or \"Find contact\" step."
+        },
+        {
+          "key": "list_id",
+          "label": "List ID",
+          "type": "string",
+          "required": true,
+          "help": "Run \"List lists\" once, or open the list in iContact: the ID is in the page address."
+        }
+      ]
+    },
+    {
+      "key": "unsubscribe_contact",
+      "name": "Unsubscribe contact from list",
+      "description": "Mark a contact as unsubscribed from one list.",
+      "method": "POST",
+      "endpoint": "/subscriptions/{{ inputs.list_id }}_{{ inputs.contact_id }}",
+      "body": {
+        "status": "unsubscribed"
+      },
+      "output_fields": {
+        "subscription": "subscription"
+      },
+      "inputs": [
+        {
+          "key": "list_id",
+          "label": "List ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "contact_id",
+          "label": "Contact ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "delete_contact",
+      "name": "Delete contact",
+      "description": "Delete a contact from the account.",
+      "method": "DELETE",
+      "endpoint": "/contacts/{{ inputs.contact_id }}",
+      "inputs": [
+        {
+          "key": "contact_id",
+          "label": "Contact ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": []
+}

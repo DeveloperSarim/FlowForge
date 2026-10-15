@@ -1,0 +1,172 @@
+{
+  "key": "tenable",
+  "name": "Tenable Vulnerability Management",
+  "category": "Security & IT",
+  "description": "Launch Tenable scans and read vulnerabilities and assets.",
+  "brand": "tenable",
+  "website": "https://www.tenable.com",
+  "docs_url": "https://developer.tenable.com/reference/navigate",
+  "base_url": "https://cloud.tenable.com",
+  "headers": {
+    "X-ApiKeys": "accessKey={{ credentials.access_key }};secretKey={{ credentials.api_key }}"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "key": "access_key",
+        "label": "Access key",
+        "type": "password",
+        "required": true,
+        "help": "Tenable Vulnerability Management → Settings → My account → API keys → Generate."
+      },
+      {
+        "key": "api_key",
+        "label": "Secret key",
+        "type": "password",
+        "required": true,
+        "help": "Shown once, next to the access key."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_scans",
+      "name": "List scans",
+      "description": "List your scans and their status.",
+      "method": "GET",
+      "endpoint": "/scans",
+      "query": {
+        "folder_id": "{{ inputs.folder_id }}"
+      },
+      "output_fields": {
+        "scans": "scans"
+      },
+      "inputs": [
+        {
+          "key": "folder_id",
+          "label": "Folder ID",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "launch_scan",
+      "name": "Launch scan",
+      "description": "Start a scan.",
+      "method": "POST",
+      "endpoint": "/scans/{{ inputs.scan_id }}/launch",
+      "body": {
+        "alt_targets": "{{ inputs.alt_targets }}"
+      },
+      "output_fields": {
+        "scan_uuid": "scan_uuid"
+      },
+      "inputs": [
+        {
+          "key": "scan_id",
+          "label": "Scan ID",
+          "type": "string",
+          "required": true,
+          "help": "Use List scans."
+        },
+        {
+          "key": "alt_targets",
+          "label": "Other targets",
+          "type": "list",
+          "help": "Optional: scan these hosts instead of the scan's own targets."
+        }
+      ]
+    },
+    {
+      "key": "get_scan_status",
+      "name": "Get scan status",
+      "description": "Check whether a scan is running or finished.",
+      "method": "GET",
+      "endpoint": "/scans/{{ inputs.scan_id }}/latest-status",
+      "output_fields": {
+        "status": "status"
+      },
+      "inputs": [
+        {
+          "key": "scan_id",
+          "label": "Scan ID",
+          "type": "string",
+          "required": true,
+          "help": "Use List scans."
+        }
+      ]
+    },
+    {
+      "key": "get_scan",
+      "name": "Get scan results",
+      "description": "Get a scan's hosts and vulnerabilities.",
+      "method": "GET",
+      "endpoint": "/scans/{{ inputs.scan_id }}",
+      "output_fields": {
+        "name": "info.name",
+        "status": "info.status",
+        "hosts": "hosts",
+        "vulnerabilities": "vulnerabilities"
+      },
+      "inputs": [
+        {
+          "key": "scan_id",
+          "label": "Scan ID",
+          "type": "string",
+          "required": true,
+          "help": "Use List scans."
+        }
+      ]
+    },
+    {
+      "key": "stop_scan",
+      "name": "Stop scan",
+      "description": "Stop a running scan.",
+      "method": "POST",
+      "endpoint": "/scans/{{ inputs.scan_id }}/stop",
+      "inputs": [
+        {
+          "key": "scan_id",
+          "label": "Scan ID",
+          "type": "string",
+          "required": true,
+          "help": "Use List scans."
+        }
+      ]
+    },
+    {
+      "key": "list_vulnerabilities",
+      "name": "List vulnerabilities",
+      "description": "List vulnerabilities found across your assets.",
+      "method": "GET",
+      "endpoint": "/workbenches/vulnerabilities",
+      "query": {
+        "date_range": "{{ inputs.date_range }}"
+      },
+      "output_fields": {
+        "vulnerabilities": "vulnerabilities",
+        "total": "total_vulnerability_count"
+      },
+      "inputs": [
+        {
+          "key": "date_range",
+          "label": "Last N days",
+          "type": "number",
+          "default": 30
+        }
+      ]
+    },
+    {
+      "key": "list_assets",
+      "name": "List assets",
+      "description": "List your assets.",
+      "method": "GET",
+      "endpoint": "/assets",
+      "output_fields": {
+        "assets": "assets"
+      },
+      "inputs": []
+    }
+  ]
+}

@@ -1,0 +1,163 @@
+{
+  "key": "dremio",
+  "name": "Dremio",
+  "category": "Analytics",
+  "description": "Run SQL on the Dremio lakehouse, fetch job results and refresh datasets.",
+  "website": "https://www.dremio.com",
+  "docs_url": "https://docs.dremio.com/current/reference/api/",
+  "base_url": "{{ credentials.api_url }}",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "api_url",
+        "label": "API URL",
+        "type": "string",
+        "required": true,
+        "placeholder": "https://dremio.example.com:9047/api/v3",
+        "help": "Self-hosted: https://<host>:9047/api/v3. Dremio Cloud: https://api.dremio.cloud/v0/projects/<project ID>."
+      },
+      {
+        "key": "token",
+        "label": "Personal access token",
+        "type": "password",
+        "required": true,
+        "help": "Dremio → Account settings → Personal Access Tokens → Generate token."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "run_sql",
+      "name": "Run SQL query",
+      "description": "Submit a query; returns a job ID to check.",
+      "method": "POST",
+      "endpoint": "/sql",
+      "body": {
+        "sql": "{{ inputs.sql }}",
+        "context": "{{ inputs.context }}"
+      },
+      "output_fields": {
+        "job_id": "id"
+      },
+      "inputs": [
+        {
+          "key": "sql",
+          "label": "SQL",
+          "type": "text",
+          "required": true,
+          "placeholder": "SELECT * FROM \"space\".\"table\" LIMIT 100"
+        },
+        {
+          "key": "context",
+          "label": "Context path",
+          "type": "list",
+          "help": "Optional default schema, e.g. space, folder."
+        }
+      ]
+    },
+    {
+      "key": "get_job",
+      "name": "Get job status",
+      "description": "Whether a query is still running, completed or failed.",
+      "method": "GET",
+      "endpoint": "/job/{{ inputs.job_id }}",
+      "output_fields": {
+        "state": "jobState",
+        "row_count": "rowCount",
+        "error": "errorMessage"
+      },
+      "inputs": [
+        {
+          "key": "job_id",
+          "label": "Job ID",
+          "type": "string",
+          "required": true,
+          "help": "Returned by 'Run SQL query'."
+        }
+      ]
+    },
+    {
+      "key": "get_job_results",
+      "name": "Get job results",
+      "description": "Rows returned by a completed query.",
+      "method": "GET",
+      "endpoint": "/job/{{ inputs.job_id }}/results",
+      "query": {
+        "offset": "{{ inputs.offset }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "rows": "rows",
+        "row_count": "rowCount",
+        "schema": "schema"
+      },
+      "inputs": [
+        {
+          "key": "job_id",
+          "label": "Job ID",
+          "type": "string",
+          "required": true,
+          "help": "Returned by 'Run SQL query'."
+        },
+        {
+          "key": "offset",
+          "label": "Offset",
+          "type": "number",
+          "default": 0
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 100,
+          "help": "Max 500."
+        }
+      ]
+    },
+    {
+      "key": "cancel_job",
+      "name": "Cancel job",
+      "description": "Stop a running query.",
+      "method": "POST",
+      "endpoint": "/job/{{ inputs.job_id }}/cancel",
+      "inputs": [
+        {
+          "key": "job_id",
+          "label": "Job ID",
+          "type": "string",
+          "required": true,
+          "help": "Returned by 'Run SQL query'."
+        }
+      ]
+    },
+    {
+      "key": "list_catalog",
+      "name": "List catalog",
+      "description": "Top-level spaces, sources and home folder.",
+      "method": "GET",
+      "endpoint": "/catalog",
+      "output_fields": {
+        "items": "data",
+        "paths": "data.*.path"
+      },
+      "inputs": []
+    },
+    {
+      "key": "refresh_dataset",
+      "name": "Refresh reflections",
+      "description": "Refresh all reflections that depend on a dataset.",
+      "method": "POST",
+      "endpoint": "/catalog/{{ inputs.dataset_id }}/refresh",
+      "inputs": [
+        {
+          "key": "dataset_id",
+          "label": "Dataset ID",
+          "type": "string",
+          "required": true,
+          "help": "Catalog ID of the table or view."
+        }
+      ]
+    }
+  ]
+}

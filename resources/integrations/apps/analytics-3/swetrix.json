@@ -1,0 +1,300 @@
+{
+  "key": "swetrix",
+  "name": "Swetrix",
+  "category": "Analytics",
+  "description": "Read Swetrix traffic stats and live visitors, and track pageviews or events.",
+  "website": "https://swetrix.com",
+  "docs_url": "https://swetrix.com/docs/statistics-api",
+  "base_url": "https://api.swetrix.com",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "X-Api-Key",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "Swetrix → Account settings → API key → Generate."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "get_stats",
+      "name": "Get traffic stats",
+      "description": "Pageviews, visitors and top pages, countries and referrers.",
+      "method": "GET",
+      "endpoint": "/v1/log",
+      "query": {
+        "pid": "{{ inputs.pid }}",
+        "period": "{{ inputs.period }}",
+        "timeBucket": "{{ inputs.time_bucket }}",
+        "from": "{{ inputs.from }}",
+        "to": "{{ inputs.to }}"
+      },
+      "output_fields": {
+        "chart": "chart",
+        "params": "params",
+        "custom_events": "customs"
+      },
+      "inputs": [
+        {
+          "key": "pid",
+          "label": "Project ID",
+          "type": "string",
+          "required": true,
+          "help": "Swetrix → your project → Settings: the Project ID."
+        },
+        {
+          "key": "period",
+          "label": "Period",
+          "type": "select",
+          "default": "7d",
+          "options": [
+            {
+              "value": "1h",
+              "label": "Last hour"
+            },
+            {
+              "value": "today",
+              "label": "Today"
+            },
+            {
+              "value": "yesterday",
+              "label": "Yesterday"
+            },
+            {
+              "value": "1d",
+              "label": "Last 24 hours"
+            },
+            {
+              "value": "7d",
+              "label": "Last 7 days"
+            },
+            {
+              "value": "4w",
+              "label": "Last 4 weeks"
+            },
+            {
+              "value": "3M",
+              "label": "Last 3 months"
+            },
+            {
+              "value": "12M",
+              "label": "Last 12 months"
+            }
+          ]
+        },
+        {
+          "key": "time_bucket",
+          "label": "Group by",
+          "type": "select",
+          "default": "day",
+          "options": [
+            {
+              "value": "hour",
+              "label": "hour"
+            },
+            {
+              "value": "day",
+              "label": "day"
+            },
+            {
+              "value": "week",
+              "label": "week"
+            },
+            {
+              "value": "month",
+              "label": "month"
+            }
+          ]
+        },
+        {
+          "key": "from",
+          "label": "From",
+          "type": "string",
+          "placeholder": "2025-01-01",
+          "help": "Custom range instead of Period (YYYY-MM-DD)."
+        },
+        {
+          "key": "to",
+          "label": "To",
+          "type": "string",
+          "placeholder": "2025-01-31"
+        }
+      ]
+    },
+    {
+      "key": "get_overview",
+      "name": "Get overview",
+      "description": "Totals and change versus the previous period.",
+      "method": "GET",
+      "endpoint": "/v1/log/birdseye",
+      "query": {
+        "pid": "{{ inputs.pid }}",
+        "period": "{{ inputs.period }}"
+      },
+      "inputs": [
+        {
+          "key": "pid",
+          "label": "Project ID",
+          "type": "string",
+          "required": true,
+          "help": "Swetrix → your project → Settings: the Project ID."
+        },
+        {
+          "key": "period",
+          "label": "Period",
+          "type": "select",
+          "default": "7d",
+          "options": [
+            {
+              "value": "1h",
+              "label": "Last hour"
+            },
+            {
+              "value": "today",
+              "label": "Today"
+            },
+            {
+              "value": "yesterday",
+              "label": "Yesterday"
+            },
+            {
+              "value": "1d",
+              "label": "Last 24 hours"
+            },
+            {
+              "value": "7d",
+              "label": "Last 7 days"
+            },
+            {
+              "value": "4w",
+              "label": "Last 4 weeks"
+            },
+            {
+              "value": "3M",
+              "label": "Last 3 months"
+            },
+            {
+              "value": "12M",
+              "label": "Last 12 months"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "get_live_visitors",
+      "name": "Get live visitors",
+      "description": "Visitors on the site right now.",
+      "method": "GET",
+      "endpoint": "/v1/log/live-visitors",
+      "query": {
+        "pid": "{{ inputs.pid }}"
+      },
+      "output_fields": {
+        "countries": "*.cc",
+        "browsers": "*.br"
+      },
+      "inputs": [
+        {
+          "key": "pid",
+          "label": "Project ID",
+          "type": "string",
+          "required": true,
+          "help": "Swetrix → your project → Settings: the Project ID."
+        }
+      ]
+    },
+    {
+      "key": "track_event",
+      "name": "Track custom event",
+      "description": "Record a custom event from your server.",
+      "method": "POST",
+      "endpoint": "/log/custom",
+      "body": {
+        "pid": "{{ inputs.pid }}",
+        "ev": "{{ inputs.ev }}",
+        "pg": "{{ inputs.pg }}",
+        "meta": "{{ inputs.meta }}",
+        "unique": "{{ inputs.unique }}"
+      },
+      "inputs": [
+        {
+          "key": "pid",
+          "label": "Project ID",
+          "type": "string",
+          "required": true,
+          "help": "Swetrix → your project → Settings: the Project ID."
+        },
+        {
+          "key": "ev",
+          "label": "Event name",
+          "type": "string",
+          "required": true,
+          "placeholder": "signup"
+        },
+        {
+          "key": "pg",
+          "label": "Page",
+          "type": "string",
+          "placeholder": "/pricing"
+        },
+        {
+          "key": "meta",
+          "label": "Properties",
+          "type": "keyvalue"
+        },
+        {
+          "key": "unique",
+          "label": "Once per session",
+          "type": "boolean",
+          "default": false
+        }
+      ]
+    },
+    {
+      "key": "track_pageview",
+      "name": "Track pageview",
+      "description": "Record a pageview from your server.",
+      "method": "POST",
+      "endpoint": "/log",
+      "body": {
+        "pid": "{{ inputs.pid }}",
+        "pg": "{{ inputs.pg }}",
+        "ref": "{{ inputs.ref }}",
+        "lc": "{{ inputs.lc }}"
+      },
+      "inputs": [
+        {
+          "key": "pid",
+          "label": "Project ID",
+          "type": "string",
+          "required": true,
+          "help": "Swetrix → your project → Settings: the Project ID."
+        },
+        {
+          "key": "pg",
+          "label": "Page",
+          "type": "string",
+          "required": true,
+          "placeholder": "/blog/post"
+        },
+        {
+          "key": "ref",
+          "label": "Referrer",
+          "type": "string"
+        },
+        {
+          "key": "lc",
+          "label": "Locale",
+          "type": "string",
+          "placeholder": "en-US"
+        }
+      ]
+    }
+  ]
+}

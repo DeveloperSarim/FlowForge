@@ -1,0 +1,136 @@
+{
+  "key": "mataroa",
+  "name": "Mataroa",
+  "category": "CMS & Websites",
+  "description": "Publish, update and delete posts on your Mataroa blog.",
+  "website": "https://mataroa.blog",
+  "docs_url": "https://mataroa.blog/api/docs/",
+  "base_url": "https://mataroa.blog/api",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "On mataroa.blog open your dashboard → API → copy your API key."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_posts",
+      "name": "List posts",
+      "description": "List all your posts.",
+      "method": "GET",
+      "endpoint": "/posts/",
+      "error_path": "error",
+      "output_fields": {
+        "posts": "post_list",
+        "first_slug": "post_list.0.slug",
+        "first_url": "post_list.0.url"
+      },
+      "inputs": []
+    },
+    {
+      "key": "create_post",
+      "name": "Create post",
+      "description": "Publish a new post (Markdown).",
+      "method": "POST",
+      "endpoint": "/posts/",
+      "body": {
+        "title": "{{ inputs.title }}",
+        "body": "{{ inputs.body }}",
+        "published_at": "{{ inputs.published_at }}"
+      },
+      "error_path": "error",
+      "output_fields": {
+        "slug": "slug",
+        "url": "url"
+      },
+      "inputs": [
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "body",
+          "label": "Body (Markdown)",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "published_at",
+          "label": "Publish date",
+          "type": "string",
+          "help": "YYYY-MM-DD. Leave blank to save as a draft."
+        }
+      ]
+    },
+    {
+      "key": "update_post",
+      "name": "Update post",
+      "description": "Change a post's title, body or date.",
+      "method": "PATCH",
+      "endpoint": "/posts/{{ inputs.slug }}/",
+      "body": {
+        "title": "{{ inputs.title }}",
+        "body": "{{ inputs.body }}",
+        "published_at": "{{ inputs.published_at }}"
+      },
+      "error_path": "error",
+      "output_fields": {
+        "slug": "slug",
+        "url": "url"
+      },
+      "inputs": [
+        {
+          "key": "slug",
+          "label": "Post slug",
+          "type": "string",
+          "required": true,
+          "help": "The last part of the post's address."
+        },
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "string"
+        },
+        {
+          "key": "body",
+          "label": "Body (Markdown)",
+          "type": "text"
+        },
+        {
+          "key": "published_at",
+          "label": "Publish date",
+          "type": "string",
+          "help": "YYYY-MM-DD"
+        }
+      ]
+    },
+    {
+      "key": "delete_post",
+      "name": "Delete post",
+      "description": "Delete a post permanently.",
+      "method": "DELETE",
+      "endpoint": "/posts/{{ inputs.slug }}/",
+      "error_path": "error",
+      "output_fields": {
+        "ok": "ok"
+      },
+      "inputs": [
+        {
+          "key": "slug",
+          "label": "Post slug",
+          "type": "string",
+          "required": true,
+          "help": "The last part of the post's address."
+        }
+      ]
+    }
+  ]
+}

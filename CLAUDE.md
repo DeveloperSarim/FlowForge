@@ -35,7 +35,7 @@ macOS has no `timeout` command. Local throwaway credentials live in `storage/app
 - `app/Domain/Assistant`: AI builder. `LlmClient` (DeepSeek, Qwen, OpenAI, Claude, Gemini), `AssistantAgent` (bounded tool loop, streamed progress), `WorkflowTools` (tools + `buildGraph` validation).
 - `app/Domain/System`: encrypted `SystemSettings`, `Notifier` (failure / scheduler-down emails).
 - `app/Domain/Installer`: `/install` wizard (requirements → MySQL → admin + timezone → SMTP → verified cron). `CronInstaller` is the best-effort "Set it up for me" (crontab via `Process`; tests use `Process::fake`, never touch the real crontab).
-- `resources/integrations/**`: ~1190 JSON/YAML manifests (+ OpenAPI specs). `resources/js`: Pages, Components (`ui.jsx` primitives incl. `Combobox`), `Drawer/` (node editor, `DynamicForm`, `ScheduleField`).
+- `resources/integrations/**`: ~1690 JSON/YAML manifests (+ OpenAPI specs). `resources/js`: Pages, Components (`ui.jsx` primitives incl. `Combobox`), `Drawer/` (node editor, `DynamicForm`, `ScheduleField`).
 
 ## Rules that are easy to break
 

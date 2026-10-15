@@ -1,0 +1,300 @@
+{
+  "key": "solarwinds_service_desk",
+  "name": "SolarWinds Service Desk",
+  "category": "Customer Support",
+  "description": "Create, update and comment on SolarWinds Service Desk (Samanage) incidents.",
+  "website": "https://www.solarwinds.com/solarwinds-service-desk",
+  "docs_url": "https://apidoc.samanage.com/",
+  "base_url": "https://{{ credentials.host }}",
+  "headers": {
+    "Accept": "application/vnd.samanage.v2.1+json"
+  },
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "X-Samanage-Authorization",
+    "prefix": "Bearer ",
+    "fields": [
+      {
+        "key": "host",
+        "label": "Server",
+        "type": "string",
+        "required": true,
+        "default": "api.samanage.com",
+        "help": "api.samanage.com (US), apieu.samanage.com (EU) or apiau.samanage.com (Australia)."
+      },
+      {
+        "key": "api_key",
+        "label": "API token",
+        "type": "password",
+        "required": true,
+        "help": "In Service Desk go to Setup > Users & Groups, open your user and click \"Generate JSON Web Token\"."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "create_incident",
+      "name": "Create incident",
+      "description": "Creates a new incident.",
+      "method": "POST",
+      "endpoint": "/incidents.json",
+      "body": {
+        "incident": {
+          "name": "{{ inputs.name }}",
+          "description": "{{ inputs.description }}",
+          "priority": "{{ inputs.priority }}",
+          "requester": {
+            "email": "{{ inputs.requester }}"
+          },
+          "assignee": {
+            "email": "{{ inputs.assignee }}"
+          }
+        }
+      },
+      "output_fields": {
+        "id": "id",
+        "number": "number",
+        "url": "href"
+      },
+      "inputs": [
+        {
+          "key": "name",
+          "label": "Title",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "description",
+          "label": "Description",
+          "type": "text"
+        },
+        {
+          "key": "requester",
+          "label": "Requester email",
+          "type": "string"
+        },
+        {
+          "key": "assignee",
+          "label": "Assignee email",
+          "type": "string"
+        },
+        {
+          "key": "priority",
+          "label": "Priority",
+          "type": "select",
+          "options": [
+            {
+              "value": "Low",
+              "label": "Low"
+            },
+            {
+              "value": "Medium",
+              "label": "Medium"
+            },
+            {
+              "value": "High",
+              "label": "High"
+            },
+            {
+              "value": "Critical",
+              "label": "Critical"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "list_incidents",
+      "name": "List incidents",
+      "description": "Lists recent incidents.",
+      "method": "GET",
+      "endpoint": "/incidents.json",
+      "query": {
+        "per_page": "{{ inputs.per_page }}",
+        "sort_by": "created_at",
+        "sort_order": "DESC"
+      },
+      "output_fields": {
+        "first_id": "0.id",
+        "first_name": "0.name",
+        "first_state": "0.state"
+      },
+      "inputs": [
+        {
+          "key": "per_page",
+          "label": "How many",
+          "type": "number",
+          "default": 25
+        }
+      ]
+    },
+    {
+      "key": "get_incident",
+      "name": "Get incident",
+      "description": "Gets one incident by ID.",
+      "method": "GET",
+      "endpoint": "/incidents/{{ inputs.incident_id }}.json",
+      "output_fields": {
+        "name": "name",
+        "state": "state",
+        "priority": "priority",
+        "number": "number"
+      },
+      "inputs": [
+        {
+          "key": "incident_id",
+          "label": "Incident ID",
+          "type": "number",
+          "required": true,
+          "help": "The long ID in the incident address, not the # number."
+        }
+      ]
+    },
+    {
+      "key": "update_incident",
+      "name": "Update incident",
+      "description": "Changes the state, priority or assignee of an incident.",
+      "method": "PUT",
+      "endpoint": "/incidents/{{ inputs.incident_id }}.json",
+      "body": {
+        "incident": {
+          "state": "{{ inputs.state }}",
+          "priority": "{{ inputs.priority }}",
+          "assignee": {
+            "email": "{{ inputs.assignee }}"
+          }
+        }
+      },
+      "output_fields": {
+        "id": "id"
+      },
+      "inputs": [
+        {
+          "key": "incident_id",
+          "label": "Incident ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "state",
+          "label": "State",
+          "type": "select",
+          "options": [
+            {
+              "value": "New",
+              "label": "New"
+            },
+            {
+              "value": "Assigned",
+              "label": "Assigned"
+            },
+            {
+              "value": "Awaiting Input",
+              "label": "Awaiting input"
+            },
+            {
+              "value": "On Hold",
+              "label": "On hold"
+            },
+            {
+              "value": "Resolved",
+              "label": "Resolved"
+            },
+            {
+              "value": "Closed",
+              "label": "Closed"
+            }
+          ]
+        },
+        {
+          "key": "priority",
+          "label": "Priority",
+          "type": "select",
+          "options": [
+            {
+              "value": "Low",
+              "label": "Low"
+            },
+            {
+              "value": "Medium",
+              "label": "Medium"
+            },
+            {
+              "value": "High",
+              "label": "High"
+            },
+            {
+              "value": "Critical",
+              "label": "Critical"
+            }
+          ]
+        },
+        {
+          "key": "assignee",
+          "label": "Assignee email",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "add_comment",
+      "name": "Add comment",
+      "description": "Adds a comment to an incident.",
+      "method": "POST",
+      "endpoint": "/incidents/{{ inputs.incident_id }}/comments.json",
+      "body": {
+        "comment": {
+          "body": "{{ inputs.body }}",
+          "is_private": "{{ inputs.is_private }}"
+        }
+      },
+      "output_fields": {
+        "id": "id"
+      },
+      "inputs": [
+        {
+          "key": "incident_id",
+          "label": "Incident ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "body",
+          "label": "Comment",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "is_private",
+          "label": "Private",
+          "type": "boolean",
+          "default": false
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_incident",
+      "name": "New incident",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/incidents.json",
+      "query": {
+        "sort_by": "created_at",
+        "sort_order": "DESC",
+        "per_page": 25
+      },
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,236 @@
+{
+  "key": "klenty",
+  "name": "Klenty",
+  "category": "CRM & Sales",
+  "description": "Add prospects to Klenty, start cadences and check prospect status.",
+  "website": "https://www.klenty.com",
+  "docs_url": "https://support.klenty.com/en/articles/3197537-klenty-api",
+  "base_url": "https://api.klenty.com/apis/v1/user/{{ credentials.user_email }}",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "x-API-key",
+    "fields": [
+      {
+        "key": "user_email",
+        "label": "Your Klenty email",
+        "type": "string",
+        "required": true,
+        "placeholder": "you@company.com",
+        "help": "The email address you sign in to Klenty with."
+      },
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "In Klenty open Settings > Integrations > Klenty API Key and copy it."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "create_prospect",
+      "name": "Create prospect",
+      "description": "Adds a prospect to a list.",
+      "method": "POST",
+      "endpoint": "/prospects",
+      "body": {
+        "Email": "{{ inputs.email }}",
+        "FirstName": "{{ inputs.first_name }}",
+        "LastName": "{{ inputs.last_name }}",
+        "Company": "{{ inputs.company }}",
+        "Title": "{{ inputs.title }}",
+        "Phone": "{{ inputs.phone }}",
+        "List": "{{ inputs.list }}",
+        "Tags": "{{ inputs.tags }}"
+      },
+      "output_fields": {
+        "status": "status"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "first_name",
+          "label": "First name",
+          "type": "string"
+        },
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string"
+        },
+        {
+          "key": "company",
+          "label": "Company",
+          "type": "string"
+        },
+        {
+          "key": "title",
+          "label": "Job title",
+          "type": "string"
+        },
+        {
+          "key": "phone",
+          "label": "Phone",
+          "type": "string"
+        },
+        {
+          "key": "list",
+          "label": "List name",
+          "type": "string",
+          "help": "Optional. The Klenty list to add them to."
+        },
+        {
+          "key": "tags",
+          "label": "Tags",
+          "type": "string",
+          "help": "Separate several tags with |"
+        }
+      ]
+    },
+    {
+      "key": "update_prospect",
+      "name": "Update prospect",
+      "description": "Changes details of an existing prospect.",
+      "method": "POST",
+      "endpoint": "/prospects/{{ inputs.email }}",
+      "body": {
+        "FirstName": "{{ inputs.first_name }}",
+        "LastName": "{{ inputs.last_name }}",
+        "Company": "{{ inputs.company }}",
+        "Title": "{{ inputs.title }}",
+        "Tags": "{{ inputs.tags }}",
+        "Outcome": "{{ inputs.outcome }}"
+      },
+      "output_fields": {
+        "status": "status"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Prospect email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "first_name",
+          "label": "First name",
+          "type": "string"
+        },
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string"
+        },
+        {
+          "key": "company",
+          "label": "Company",
+          "type": "string"
+        },
+        {
+          "key": "title",
+          "label": "Job title",
+          "type": "string"
+        },
+        {
+          "key": "tags",
+          "label": "Tags",
+          "type": "string"
+        },
+        {
+          "key": "outcome",
+          "label": "Outcome",
+          "type": "string",
+          "help": "Must match an outcome name in Klenty exactly (case sensitive)."
+        }
+      ]
+    },
+    {
+      "key": "start_cadence",
+      "name": "Start cadence",
+      "description": "Puts a prospect into a cadence.",
+      "method": "POST",
+      "endpoint": "/startcadence",
+      "body": {
+        "Email": "{{ inputs.email }}",
+        "cadenceName": "{{ inputs.cadence_name }}"
+      },
+      "output_fields": {
+        "status": "status"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Prospect email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "cadence_name",
+          "label": "Cadence name",
+          "type": "string",
+          "required": true,
+          "help": "Exactly as it is named in Klenty."
+        }
+      ]
+    },
+    {
+      "key": "get_prospect",
+      "name": "Get prospect",
+      "description": "Gets a prospect by email.",
+      "method": "GET",
+      "endpoint": "/{{ inputs.email }}",
+      "output_fields": {
+        "id": "id",
+        "name": "FullName",
+        "company": "Company",
+        "list": "List"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Prospect email",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "get_prospect_status",
+      "name": "Get prospect status",
+      "description": "Checks whether a prospect is active in a cadence and what happened.",
+      "method": "GET",
+      "endpoint": "/prospects/{{ inputs.email }}/status",
+      "output_fields": {
+        "cadence_status": "cadenceStatus",
+        "prospect_status": "prospectStatus"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Prospect email",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_cadences",
+      "name": "List cadences",
+      "description": "Lists the cadences of your company.",
+      "method": "GET",
+      "endpoint": "/cadences",
+      "output_fields": {
+        "first_id": "0.id",
+        "first_name": "0.name"
+      },
+      "inputs": []
+    }
+  ]
+}

@@ -1,0 +1,164 @@
+{
+  "key": "kinsta",
+  "name": "Kinsta",
+  "category": "Developer Tools",
+  "description": "Clear cache, back up and inspect WordPress sites hosted on Kinsta.",
+  "brand": "kinsta",
+  "website": "https://kinsta.com",
+  "docs_url": "https://api-docs.kinsta.com",
+  "base_url": "https://api.kinsta.com/v2",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "MyKinsta → Company settings → API Keys → Create API key."
+      },
+      {
+        "key": "company_id",
+        "label": "Company ID",
+        "type": "string",
+        "required": true,
+        "help": "MyKinsta → Company settings → Billing details shows your Company ID."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_sites",
+      "name": "List sites",
+      "description": "List the WordPress sites in your company.",
+      "method": "GET",
+      "endpoint": "/sites",
+      "query": {
+        "company": "{{ credentials.company_id }}",
+        "include_environments": "{{ inputs.include_environments }}"
+      },
+      "output_fields": {
+        "sites": "company.sites"
+      },
+      "inputs": [
+        {
+          "key": "include_environments",
+          "label": "Include environments",
+          "type": "boolean",
+          "default": true
+        }
+      ]
+    },
+    {
+      "key": "get_site",
+      "name": "Get site",
+      "description": "Get a site's name, status and environments.",
+      "method": "GET",
+      "endpoint": "/sites/{{ inputs.site_id }}",
+      "output_fields": {
+        "name": "site.name",
+        "status": "site.status"
+      },
+      "inputs": [
+        {
+          "key": "site_id",
+          "label": "Site ID",
+          "type": "string",
+          "required": true,
+          "help": "Use List sites."
+        }
+      ]
+    },
+    {
+      "key": "list_environments",
+      "name": "List site environments",
+      "description": "List a site's live and staging environments.",
+      "method": "GET",
+      "endpoint": "/sites/{{ inputs.site_id }}/environments",
+      "output_fields": {
+        "environments": "site.environments"
+      },
+      "inputs": [
+        {
+          "key": "site_id",
+          "label": "Site ID",
+          "type": "string",
+          "required": true,
+          "help": "Use List sites."
+        }
+      ]
+    },
+    {
+      "key": "clear_cache",
+      "name": "Clear site cache",
+      "description": "Clear the server cache of an environment.",
+      "method": "POST",
+      "endpoint": "/sites/tools/clear-cache",
+      "body": {
+        "environment_id": "{{ inputs.environment_id }}"
+      },
+      "output_fields": {
+        "operation_id": "operation_id",
+        "message": "message"
+      },
+      "inputs": [
+        {
+          "key": "environment_id",
+          "label": "Environment ID",
+          "type": "string",
+          "required": true,
+          "help": "Use List site environments (the live environment's id)."
+        }
+      ]
+    },
+    {
+      "key": "create_backup",
+      "name": "Create manual backup",
+      "description": "Take a manual backup of an environment.",
+      "method": "POST",
+      "endpoint": "/sites/environments/{{ inputs.environment_id }}/manual-backups",
+      "body": {
+        "tag": "{{ inputs.tag }}"
+      },
+      "output_fields": {
+        "operation_id": "operation_id",
+        "message": "message"
+      },
+      "inputs": [
+        {
+          "key": "environment_id",
+          "label": "Environment ID",
+          "type": "string",
+          "required": true,
+          "help": "Use List site environments (the live environment's id)."
+        },
+        {
+          "key": "tag",
+          "label": "Backup note",
+          "type": "string",
+          "placeholder": "Before plugin update"
+        }
+      ]
+    },
+    {
+      "key": "get_operation",
+      "name": "Get operation status",
+      "description": "Check whether a cache clear or backup has finished.",
+      "method": "GET",
+      "endpoint": "/operations/{{ inputs.operation_id }}",
+      "output_fields": {
+        "status": "status",
+        "message": "message"
+      },
+      "inputs": [
+        {
+          "key": "operation_id",
+          "label": "Operation ID",
+          "type": "string",
+          "required": true,
+          "help": "Returned by Clear site cache or Create manual backup."
+        }
+      ]
+    }
+  ]
+}

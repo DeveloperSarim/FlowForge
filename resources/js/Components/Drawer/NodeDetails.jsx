@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { AlertCircle, ArrowLeft, BookOpen, Copy, ExternalLink, Loader2, MousePointerClick, Play, RefreshCw, Trash2, Zap } from 'lucide-react';
 import DataView from '@/Components/DataView';
 import IntegrationIcon from '@/Components/IntegrationIcon';
+import Markdown from '@/Components/Markdown';
 import DynamicForm, { InsertTargetContext } from '@/Components/Drawer/DynamicForm';
 import { Badge, Button, Combobox, ConfirmButton, Field, Select, StatusBadge, Tabs } from '@/Components/ui';
 import { useIntegration } from '@/lib/integrations';
@@ -189,7 +190,7 @@ export default function NodeDetails({ node, catalog, operators, workflow, upstre
                                         )}
                                     </Field>
                                 )}
-                                {operation?.description && <p className="-mt-2 text-[12.5px] text-fg-muted">{operation.description}</p>}
+                                <Markdown text={operation?.description} className="-mt-2 text-[12.5px] text-fg-muted" />
 
                                 {loading && <p className="flex items-center gap-2 text-[13px] text-fg-muted"><Loader2 className="size-4 animate-spin" />Loading settings…</p>}
                                 {error && <p className="text-[13px] text-fail">{error}</p>}

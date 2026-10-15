@@ -1,0 +1,197 @@
+{
+  "key": "sonix",
+  "name": "Sonix",
+  "category": "AI",
+  "description": "Automated transcription of audio and video in 50+ languages.",
+  "website": "https://sonix.ai",
+  "docs_url": "https://sonix.ai/docs/api",
+  "base_url": "https://api.sonix.ai/v1",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "my.sonix.ai/api → copy your API key."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "submit_media",
+      "name": "Transcribe file from URL",
+      "description": "Upload a file by URL to be transcribed.",
+      "method": "POST",
+      "endpoint": "/media",
+      "body_format": "form",
+      "body": {
+        "file_url": "{{ inputs.file_url }}",
+        "language": "{{ inputs.language }}",
+        "name": "{{ inputs.name }}",
+        "callback_url": "{{ inputs.callback_url }}",
+        "custom_data": "{{ inputs.custom_data }}"
+      },
+      "output_fields": {
+        "id": "id",
+        "status": "status"
+      },
+      "inputs": [
+        {
+          "key": "file_url",
+          "label": "File URL",
+          "type": "string",
+          "required": true,
+          "help": "A public link to the audio or video file."
+        },
+        {
+          "key": "language",
+          "label": "Language",
+          "type": "string",
+          "required": true,
+          "default": "en",
+          "help": "Language code, e.g. en, es, fr."
+        },
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string"
+        },
+        {
+          "key": "callback_url",
+          "label": "Callback URL",
+          "type": "string",
+          "help": "Optional URL Sonix calls when the transcript is done."
+        },
+        {
+          "key": "custom_data",
+          "label": "Custom data",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "get_media",
+      "name": "Get media status",
+      "description": "Check a file's transcription status.",
+      "method": "GET",
+      "endpoint": "/media/{{ inputs.media_id }}",
+      "output_fields": {
+        "status": "status",
+        "name": "name",
+        "duration": "duration"
+      },
+      "inputs": [
+        {
+          "key": "media_id",
+          "label": "Media ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "get_transcript",
+      "name": "Get transcript",
+      "description": "Get the transcript as plain text (status must be completed).",
+      "method": "GET",
+      "endpoint": "/media/{{ inputs.media_id }}/transcript",
+      "inputs": [
+        {
+          "key": "media_id",
+          "label": "Media ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_media",
+      "name": "List media",
+      "description": "List your files, newest first.",
+      "method": "GET",
+      "endpoint": "/media",
+      "query": {
+        "status": "{{ inputs.status }}",
+        "search": "{{ inputs.search }}",
+        "page": "{{ inputs.page }}"
+      },
+      "output_fields": {
+        "media": "media"
+      },
+      "inputs": [
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "options": [
+            {
+              "value": "completed",
+              "label": "Completed"
+            },
+            {
+              "value": "transcribing",
+              "label": "Transcribing"
+            },
+            {
+              "value": "aligning",
+              "label": "Aligning"
+            },
+            {
+              "value": "failed",
+              "label": "Failed"
+            }
+          ]
+        },
+        {
+          "key": "search",
+          "label": "Search",
+          "type": "string"
+        },
+        {
+          "key": "page",
+          "label": "Page",
+          "type": "number",
+          "default": 1
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "transcript_completed",
+      "name": "Transcript completed",
+      "type": "polling",
+      "description": "Fires when a file finishes transcribing.",
+      "method": "GET",
+      "endpoint": "/media",
+      "query": {
+        "status": "completed"
+      },
+      "items_path": "media",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    },
+    {
+      "key": "webhook_event",
+      "name": "Transcript callback",
+      "type": "webhook",
+      "description": "Use as the callback URL when submitting media.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

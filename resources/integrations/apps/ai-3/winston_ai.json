@@ -1,0 +1,141 @@
+{
+  "key": "winston_ai",
+  "name": "Winston AI",
+  "category": "AI",
+  "description": "Detect AI-generated text and images, and check text for plagiarism.",
+  "website": "https://gowinston.ai",
+  "docs_url": "https://docs.gowinston.ai",
+  "base_url": "https://api.gowinston.ai/v2",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "gowinston.ai → Dashboard → API → Create API key."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "detect_ai_text",
+      "name": "Detect AI text",
+      "description": "Score how likely a text was written by AI (0 = AI, 100 = human).",
+      "method": "POST",
+      "endpoint": "/ai-content-detection",
+      "timeout": 120,
+      "body": {
+        "text": "{{ inputs.text }}",
+        "website": "{{ inputs.website }}",
+        "file": "{{ inputs.file }}",
+        "language": "{{ inputs.language }}",
+        "sentences": true
+      },
+      "output_fields": {
+        "human_score": "score",
+        "sentences": "sentences",
+        "credits_remaining": "credits_remaining"
+      },
+      "inputs": [
+        {
+          "key": "text",
+          "label": "Text",
+          "type": "text",
+          "help": "At least 300 characters. Or give a website or file URL instead."
+        },
+        {
+          "key": "website",
+          "label": "Website URL",
+          "type": "string"
+        },
+        {
+          "key": "file",
+          "label": "File URL (.pdf/.docx)",
+          "type": "string"
+        },
+        {
+          "key": "language",
+          "label": "Language",
+          "type": "string",
+          "default": "auto"
+        }
+      ]
+    },
+    {
+      "key": "check_plagiarism",
+      "name": "Check plagiarism",
+      "description": "Find copied content on the web.",
+      "method": "POST",
+      "endpoint": "/plagiarism",
+      "timeout": 180,
+      "body": {
+        "text": "{{ inputs.text }}",
+        "website": "{{ inputs.website }}",
+        "file": "{{ inputs.file }}",
+        "language": "{{ inputs.language }}",
+        "country": "{{ inputs.country }}"
+      },
+      "output_fields": {
+        "plagiarism_score": "result.score",
+        "sources": "sources"
+      },
+      "inputs": [
+        {
+          "key": "text",
+          "label": "Text",
+          "type": "text",
+          "help": "100 to 120,000 characters. Or give a website or file URL instead."
+        },
+        {
+          "key": "website",
+          "label": "Website URL",
+          "type": "string"
+        },
+        {
+          "key": "file",
+          "label": "File URL (.pdf/.docx)",
+          "type": "string"
+        },
+        {
+          "key": "language",
+          "label": "Language",
+          "type": "string",
+          "default": "auto"
+        },
+        {
+          "key": "country",
+          "label": "Country",
+          "type": "string",
+          "default": "us"
+        }
+      ]
+    },
+    {
+      "key": "detect_ai_image",
+      "name": "Detect AI image",
+      "description": "Score how likely an image was made by AI.",
+      "method": "POST",
+      "endpoint": "/image-detection",
+      "timeout": 120,
+      "body": {
+        "url": "{{ inputs.url }}"
+      },
+      "output_fields": {
+        "human_score": "score",
+        "ai_probability": "ai_probability",
+        "ai_watermark_detected": "ai_watermark_detected"
+      },
+      "inputs": [
+        {
+          "key": "url",
+          "label": "Image URL",
+          "type": "string",
+          "required": true,
+          "help": "JPG, PNG or WEBP, at least 256x256."
+        }
+      ]
+    }
+  ]
+}

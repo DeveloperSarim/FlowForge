@@ -1,0 +1,157 @@
+{
+  "key": "azure_ai_search",
+  "name": "Azure AI Search",
+  "category": "Databases",
+  "description": "Search, upload and read documents in Azure AI Search (Cognitive Search) indexes.",
+  "website": "https://azure.microsoft.com/products/ai-services/ai-search",
+  "docs_url": "https://learn.microsoft.com/rest/api/searchservice/",
+  "base_url": "https://{{ credentials.service }}.search.windows.net",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "api-key",
+    "fields": [
+      {
+        "key": "service",
+        "label": "Service name",
+        "type": "string",
+        "required": true,
+        "help": "The name of your search service (the part before .search.windows.net).",
+        "placeholder": "my-search"
+      },
+      {
+        "key": "api_key",
+        "label": "Admin key",
+        "type": "password",
+        "required": true,
+        "help": "In the Azure portal open your search service → Settings → Keys and copy a primary admin key."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "search",
+      "name": "Search documents",
+      "description": "Run a full-text search on an index.",
+      "method": "POST",
+      "endpoint": "/indexes/{{ inputs.index }}/docs/search",
+      "body": {
+        "search": "{{ inputs.search }}",
+        "filter": "{{ inputs.filter }}",
+        "top": "{{ inputs.top }}",
+        "count": true
+      },
+      "query": {
+        "api-version": "2024-07-01"
+      },
+      "output_fields": {
+        "results": "value",
+        "count": "@odata.count",
+        "first": "value.0"
+      },
+      "inputs": [
+        {
+          "key": "index",
+          "label": "Index name",
+          "type": "string",
+          "required": true,
+          "help": "The index name shown in the Azure portal under Search management → Indexes."
+        },
+        {
+          "key": "search",
+          "label": "Search text",
+          "type": "string",
+          "required": true,
+          "default": "*"
+        },
+        {
+          "key": "filter",
+          "label": "Filter (OData)",
+          "type": "string",
+          "help": "Example: category eq 'books'"
+        },
+        {
+          "key": "top",
+          "label": "Max results",
+          "type": "number",
+          "default": 10
+        }
+      ]
+    },
+    {
+      "key": "upload_documents",
+      "name": "Upload documents",
+      "description": "Add, merge or delete documents in an index.",
+      "method": "POST",
+      "endpoint": "/indexes/{{ inputs.index }}/docs/index",
+      "body": {
+        "value": "{{ inputs.documents }}"
+      },
+      "query": {
+        "api-version": "2024-07-01"
+      },
+      "output_fields": {
+        "results": "value"
+      },
+      "inputs": [
+        {
+          "key": "index",
+          "label": "Index name",
+          "type": "string",
+          "required": true,
+          "help": "The index name shown in the Azure portal under Search management → Indexes."
+        },
+        {
+          "key": "documents",
+          "label": "Documents (JSON list)",
+          "type": "json",
+          "required": true,
+          "help": "Each item needs \"@search.action\" (upload, merge, mergeOrUpload or delete) and the key field."
+        }
+      ]
+    },
+    {
+      "key": "get_document",
+      "name": "Get document",
+      "description": "Read one document by its key.",
+      "method": "GET",
+      "endpoint": "/indexes/{{ inputs.index }}/docs/{{ inputs.key }}",
+      "query": {
+        "api-version": "2024-07-01"
+      },
+      "output_fields": {
+        "id": "id"
+      },
+      "inputs": [
+        {
+          "key": "index",
+          "label": "Index name",
+          "type": "string",
+          "required": true,
+          "help": "The index name shown in the Azure portal under Search management → Indexes."
+        },
+        {
+          "key": "key",
+          "label": "Document key",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_indexes",
+      "name": "List indexes",
+      "description": "List the indexes on the service.",
+      "method": "GET",
+      "endpoint": "/indexes",
+      "query": {
+        "api-version": "2024-07-01"
+      },
+      "output_fields": {
+        "indexes": "value",
+        "first_name": "value.0.name"
+      },
+      "inputs": []
+    }
+  ]
+}

@@ -1,0 +1,268 @@
+{
+  "key": "mailwizz",
+  "name": "MailWizz",
+  "category": "Marketing & Email",
+  "description": "Self-hosted email marketing: add, find, unsubscribe and delete list subscribers.",
+  "website": "https://www.mailwizz.com",
+  "docs_url": "https://api-docs.mailwizz.com/",
+  "base_url": "{{ credentials.api_url }}",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "X-API-KEY",
+    "fields": [
+      {
+        "key": "api_url",
+        "label": "API URL",
+        "type": "string",
+        "required": true,
+        "placeholder": "https://mail.example.com/api",
+        "help": "Your MailWizz address followed by /api (or /api/index.php if pretty URLs are off)."
+      },
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "MailWizz customer area → API keys → Create new (MailWizz 2.x)."
+      }
+    ]
+  },
+  "error_hints": {
+    "404": "Check the API URL: try adding /index.php before the endpoint if pretty URLs are disabled."
+  },
+  "actions": [
+    {
+      "key": "list_lists",
+      "name": "List lists",
+      "description": "Your email lists and their unique IDs.",
+      "method": "GET",
+      "endpoint": "/lists",
+      "query": {
+        "page": "{{ inputs.page }}",
+        "per_page": "{{ inputs.per_page }}"
+      },
+      "output_fields": {
+        "lists": "data.records",
+        "list_uids": "data.records.*.general.list_uid",
+        "names": "data.records.*.general.name"
+      },
+      "inputs": [
+        {
+          "key": "page",
+          "label": "Page",
+          "type": "number",
+          "default": 1
+        },
+        {
+          "key": "per_page",
+          "label": "Per page",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    },
+    {
+      "key": "add_subscriber",
+      "name": "Add subscriber",
+      "description": "Add a subscriber to a list.",
+      "method": "POST",
+      "endpoint": "/lists/{{ inputs.list_uid }}/subscribers",
+      "body_format": "form",
+      "body": {
+        "EMAIL": "{{ inputs.email }}",
+        "FNAME": "{{ inputs.first_name }}",
+        "LNAME": "{{ inputs.last_name }}",
+        "...": "{{ inputs.fields }}"
+      },
+      "output_fields": {
+        "subscriber_uid": "data.record.subscriber_uid",
+        "status": "data.record.status",
+        "result": "status"
+      },
+      "inputs": [
+        {
+          "key": "list_uid",
+          "label": "List unique ID",
+          "type": "string",
+          "required": true,
+          "help": "Run \"List lists\", or open the list in MailWizz: the ID is in the address bar."
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "first_name",
+          "label": "First name",
+          "type": "string"
+        },
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string"
+        },
+        {
+          "key": "fields",
+          "label": "Other list fields",
+          "type": "keyvalue",
+          "help": "Custom field tags, e.g. CITY = Paris."
+        }
+      ]
+    },
+    {
+      "key": "find_subscriber",
+      "name": "Find subscriber by email",
+      "description": "Look up a subscriber in a list by email.",
+      "method": "GET",
+      "endpoint": "/lists/{{ inputs.list_uid }}/subscribers/search-by-email",
+      "query": {
+        "EMAIL": "{{ inputs.email }}"
+      },
+      "output_fields": {
+        "subscriber_uid": "data.subscriber_uid",
+        "status": "data.status",
+        "date_added": "data.date_added"
+      },
+      "inputs": [
+        {
+          "key": "list_uid",
+          "label": "List unique ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "update_subscriber",
+      "name": "Update subscriber",
+      "description": "Change a subscriber's fields.",
+      "method": "PUT",
+      "endpoint": "/lists/{{ inputs.list_uid }}/subscribers/{{ inputs.subscriber_uid }}",
+      "body_format": "form",
+      "body": {
+        "EMAIL": "{{ inputs.email }}",
+        "FNAME": "{{ inputs.first_name }}",
+        "LNAME": "{{ inputs.last_name }}",
+        "...": "{{ inputs.fields }}"
+      },
+      "output_fields": {
+        "result": "status"
+      },
+      "inputs": [
+        {
+          "key": "list_uid",
+          "label": "List unique ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "subscriber_uid",
+          "label": "Subscriber unique ID",
+          "type": "string",
+          "required": true,
+          "help": "From an \"Add subscriber\" or \"Find subscriber\" step."
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string"
+        },
+        {
+          "key": "first_name",
+          "label": "First name",
+          "type": "string"
+        },
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string"
+        },
+        {
+          "key": "fields",
+          "label": "Other list fields",
+          "type": "keyvalue"
+        }
+      ]
+    },
+    {
+      "key": "unsubscribe",
+      "name": "Unsubscribe subscriber",
+      "description": "Unsubscribe a subscriber from a list.",
+      "method": "PUT",
+      "endpoint": "/lists/{{ inputs.list_uid }}/subscribers/{{ inputs.subscriber_uid }}/unsubscribe",
+      "output_fields": {
+        "result": "status"
+      },
+      "inputs": [
+        {
+          "key": "list_uid",
+          "label": "List unique ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "subscriber_uid",
+          "label": "Subscriber unique ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "unsubscribe_everywhere",
+      "name": "Unsubscribe from all lists",
+      "description": "Unsubscribe an email address from every list.",
+      "method": "PUT",
+      "endpoint": "/lists/subscribers/unsubscribe-by-email-from-all-lists",
+      "body_format": "form",
+      "body": {
+        "EMAIL": "{{ inputs.email }}"
+      },
+      "output_fields": {
+        "result": "status"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "delete_subscriber",
+      "name": "Delete subscriber",
+      "description": "Delete a subscriber from a list.",
+      "method": "DELETE",
+      "endpoint": "/lists/{{ inputs.list_uid }}/subscribers/{{ inputs.subscriber_uid }}",
+      "output_fields": {
+        "result": "status"
+      },
+      "inputs": [
+        {
+          "key": "list_uid",
+          "label": "List unique ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "subscriber_uid",
+          "label": "Subscriber unique ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": []
+}

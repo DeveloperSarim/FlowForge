@@ -1,0 +1,201 @@
+{
+  "key": "acelle_mail",
+  "name": "Acelle Mail",
+  "category": "Marketing & Email",
+  "description": "Self-hosted email marketing: add, find and unsubscribe subscribers; run campaigns.",
+  "website": "https://acellemail.com",
+  "docs_url": "https://api.acellesend.com/",
+  "base_url": "{{ credentials.site_url }}/api/v1",
+  "auth": {
+    "type": "api_key",
+    "in": "query",
+    "name": "api_token",
+    "fields": [
+      {
+        "key": "site_url",
+        "label": "Acelle URL",
+        "type": "string",
+        "required": true,
+        "placeholder": "https://mail.example.com",
+        "help": "The address of your Acelle Mail installation, without a trailing slash."
+      },
+      {
+        "key": "api_key",
+        "label": "API token",
+        "type": "password",
+        "required": true,
+        "help": "Acelle → your account menu → API → copy the API token."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_lists",
+      "name": "List lists",
+      "description": "Your mail lists and their UIDs.",
+      "method": "GET",
+      "endpoint": "/lists",
+      "output_fields": {
+        "uids": "*.uid",
+        "names": "*.name"
+      },
+      "inputs": []
+    },
+    {
+      "key": "add_subscriber",
+      "name": "Add subscriber",
+      "description": "Add a subscriber to a list.",
+      "method": "POST",
+      "endpoint": "/subscribers",
+      "body_format": "form",
+      "body": {
+        "list_uid": "{{ inputs.list_uid }}",
+        "EMAIL": "{{ inputs.email }}",
+        "FIRST_NAME": "{{ inputs.first_name }}",
+        "LAST_NAME": "{{ inputs.last_name }}",
+        "tag": "{{ inputs.tags }}",
+        "status": "{{ inputs.status }}",
+        "...": "{{ inputs.fields }}"
+      },
+      "output_fields": {
+        "subscriber_id": "subscriber_id",
+        "status": "status",
+        "message": "message"
+      },
+      "inputs": [
+        {
+          "key": "list_uid",
+          "label": "List UID",
+          "type": "string",
+          "required": true,
+          "help": "Run \"List lists\" to find it."
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "first_name",
+          "label": "First name",
+          "type": "string"
+        },
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string"
+        },
+        {
+          "key": "tags",
+          "label": "Tags",
+          "type": "string",
+          "placeholder": "customer,vip",
+          "help": "Comma-separated."
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "default": "subscribed",
+          "options": [
+            {
+              "value": "subscribed",
+              "label": "Subscribed"
+            },
+            {
+              "value": "unconfirmed",
+              "label": "Unconfirmed (double opt-in)"
+            }
+          ]
+        },
+        {
+          "key": "fields",
+          "label": "Other fields",
+          "type": "keyvalue",
+          "help": "Custom field tags, e.g. CITY = Paris."
+        }
+      ]
+    },
+    {
+      "key": "find_subscriber",
+      "name": "Find subscriber by email",
+      "description": "Find a subscriber in all your lists by email.",
+      "method": "GET",
+      "endpoint": "/subscribers/email/{{ inputs.email }}",
+      "output_fields": {
+        "subscribers": "subscribers",
+        "id": "subscribers.0.id",
+        "list_uid": "subscribers.0.list_uid",
+        "status": "subscribers.0.status"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "unsubscribe",
+      "name": "Unsubscribe by email",
+      "description": "Unsubscribe an email address from a list.",
+      "method": "PATCH",
+      "endpoint": "/lists/{{ inputs.list_uid }}/subscribers/email/{{ inputs.email }}/unsubscribe",
+      "output_fields": {
+        "status": "status",
+        "message": "message"
+      },
+      "inputs": [
+        {
+          "key": "list_uid",
+          "label": "List UID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_campaigns",
+      "name": "List campaigns",
+      "description": "Your campaigns with status.",
+      "method": "GET",
+      "endpoint": "/campaigns",
+      "output_fields": {
+        "uids": "*.uid",
+        "names": "*.name",
+        "statuses": "*.status"
+      },
+      "inputs": []
+    },
+    {
+      "key": "run_campaign",
+      "name": "Run campaign",
+      "description": "Start sending a campaign.",
+      "method": "GET",
+      "endpoint": "/campaigns/{{ inputs.campaign_uid }}/run",
+      "output_fields": {
+        "status": "status",
+        "message": "message"
+      },
+      "inputs": [
+        {
+          "key": "campaign_uid",
+          "label": "Campaign UID",
+          "type": "string",
+          "required": true,
+          "help": "Run \"List campaigns\" to find it."
+        }
+      ]
+    }
+  ],
+  "triggers": []
+}

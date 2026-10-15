@@ -1,0 +1,362 @@
+{
+  "key": "connecteam",
+  "name": "Connecteam",
+  "category": "HR & Recruiting",
+  "description": "Add staff, send chat messages and assign tasks in Connecteam.",
+  "website": "https://connecteam.com",
+  "docs_url": "https://developer.connecteam.com",
+  "base_url": "{{ credentials.region }}",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "X-API-KEY",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "In Connecteam go to Settings → API Keys → Add API key."
+      },
+      {
+        "key": "region",
+        "label": "Data region",
+        "type": "select",
+        "required": true,
+        "default": "https://api.connecteam.com",
+        "options": [
+          {
+            "value": "https://api.connecteam.com",
+            "label": "Global (api.connecteam.com)"
+          },
+          {
+            "value": "https://api-au.connecteam.com",
+            "label": "Australia (api-au.connecteam.com)"
+          }
+        ]
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "create_user",
+      "name": "Add user",
+      "description": "Creates a user in your Connecteam account.",
+      "method": "POST",
+      "endpoint": "/users/v1/users",
+      "query": {
+        "sendActivation": "{{ inputs.send_activation }}"
+      },
+      "body": [
+        {
+          "firstName": "{{ inputs.first_name }}",
+          "lastName": "{{ inputs.last_name }}",
+          "phoneNumber": "{{ inputs.phone_number }}",
+          "email": "{{ inputs.email }}",
+          "userType": "{{ inputs.user_type }}"
+        }
+      ],
+      "output_fields": {
+        "user_id": "data.results.0.userId",
+        "kiosk_code": "data.results.0.kioskCode"
+      },
+      "inputs": [
+        {
+          "key": "first_name",
+          "label": "First name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "phone_number",
+          "label": "Phone number",
+          "type": "string",
+          "required": true,
+          "placeholder": "+15551234567",
+          "help": "With country code."
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "help": "Required for managers and owners."
+        },
+        {
+          "key": "user_type",
+          "label": "User type",
+          "type": "select",
+          "required": true,
+          "default": "user",
+          "options": [
+            {
+              "value": "user",
+              "label": "User"
+            },
+            {
+              "value": "manager",
+              "label": "Manager"
+            }
+          ]
+        },
+        {
+          "key": "send_activation",
+          "label": "Send activation SMS",
+          "type": "boolean",
+          "default": true
+        }
+      ]
+    },
+    {
+      "key": "list_users",
+      "name": "Find users",
+      "description": "Lists users, optionally filtered by email or phone.",
+      "method": "GET",
+      "endpoint": "/users/v1/users",
+      "query": {
+        "emailAddresses": "{{ inputs.email }}",
+        "phoneNumbers": "{{ inputs.phone }}",
+        "userStatus": "{{ inputs.status }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "users": "data.users",
+        "user_id": "data.users.0.userId",
+        "email": "data.users.0.email"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string"
+        },
+        {
+          "key": "phone",
+          "label": "Phone number",
+          "type": "string",
+          "placeholder": "+15551234567"
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "default": "active",
+          "options": [
+            {
+              "value": "active",
+              "label": "Active"
+            },
+            {
+              "value": "archived",
+              "label": "Archived"
+            }
+          ]
+        },
+        {
+          "key": "limit",
+          "label": "Max results",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    },
+    {
+      "key": "archive_user",
+      "name": "Archive user",
+      "description": "Archives a user (they lose access but their data is kept).",
+      "method": "DELETE",
+      "endpoint": "/users/v1/users/{{ inputs.user_id }}",
+      "query": {
+        "deletionType": "archive"
+      },
+      "inputs": [
+        {
+          "key": "user_id",
+          "label": "User ID",
+          "type": "number",
+          "required": true,
+          "help": "From \"Find users\"."
+        }
+      ]
+    },
+    {
+      "key": "send_private_message",
+      "name": "Send private message",
+      "description": "Sends a chat message to one user from a custom publisher.",
+      "method": "POST",
+      "endpoint": "/chat/v1/conversations/privateMessage/{{ inputs.user_id }}",
+      "body": {
+        "senderId": "{{ inputs.sender_id }}",
+        "text": "{{ inputs.text }}"
+      },
+      "inputs": [
+        {
+          "key": "user_id",
+          "label": "To user ID",
+          "type": "number",
+          "required": true,
+          "help": "From \"Find users\"."
+        },
+        {
+          "key": "text",
+          "label": "Message",
+          "type": "text",
+          "required": true,
+          "help": "Under 500 characters."
+        },
+        {
+          "key": "sender_id",
+          "label": "Sender (custom publisher) ID",
+          "type": "number",
+          "required": true,
+          "help": "Settings → Feed settings → Custom Publishers: create one and copy its ID."
+        }
+      ]
+    },
+    {
+      "key": "send_chat_message",
+      "name": "Send message to team chat",
+      "description": "Posts a message to a team chat or channel.",
+      "method": "POST",
+      "endpoint": "/chat/v1/conversations/{{ inputs.conversation_id }}/message",
+      "body": {
+        "senderId": "{{ inputs.sender_id }}",
+        "text": "{{ inputs.text }}"
+      },
+      "inputs": [
+        {
+          "key": "conversation_id",
+          "label": "Conversation ID",
+          "type": "string",
+          "required": true,
+          "help": "List them with GET /chat/v1/conversations via \"Make an API call\"."
+        },
+        {
+          "key": "text",
+          "label": "Message",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "sender_id",
+          "label": "Sender (custom publisher) ID",
+          "type": "number",
+          "required": true,
+          "help": "Settings → Feed settings → Custom Publishers."
+        }
+      ]
+    },
+    {
+      "key": "create_task",
+      "name": "Create task",
+      "description": "Creates a quick task for one or more users.",
+      "method": "POST",
+      "endpoint": "/tasks/v1/taskboards/{{ inputs.task_board_id }}/tasks",
+      "body": {
+        "title": "{{ inputs.title }}",
+        "userIds": "{{ inputs.user_ids }}",
+        "status": "{{ inputs.status }}",
+        "dueDate": "{{ inputs.due_date }}",
+        "description": {
+          "$if": "{{ inputs.description }}",
+          "content": "{{ inputs.description }}"
+        }
+      },
+      "output_fields": {
+        "id": "data.id"
+      },
+      "inputs": [
+        {
+          "key": "task_board_id",
+          "label": "Task board ID",
+          "type": "string",
+          "required": true,
+          "help": "List boards with GET /tasks/v1/taskboards via \"Make an API call\"."
+        },
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "user_ids",
+          "label": "Assign to user IDs",
+          "type": "list",
+          "required": true
+        },
+        {
+          "key": "description",
+          "label": "Description",
+          "type": "text"
+        },
+        {
+          "key": "due_date",
+          "label": "Due (Unix seconds)",
+          "type": "number",
+          "help": "e.g. 1793462400"
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "required": true,
+          "default": "published",
+          "options": [
+            {
+              "value": "published",
+              "label": "Published"
+            },
+            {
+              "value": "draft",
+              "label": "Draft"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_user",
+      "name": "New user",
+      "type": "polling",
+      "description": "Fires when a user is added to Connecteam.",
+      "method": "GET",
+      "endpoint": "/users/v1/users",
+      "query": {
+        "sort": "created_at",
+        "order": "desc",
+        "limit": 50
+      },
+      "items_path": "data.users",
+      "id_field": "userId",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    },
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Register this URL with Connecteam's webhook API (POST /settings/v1/webhooks) for user, time clock, form or shift events.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

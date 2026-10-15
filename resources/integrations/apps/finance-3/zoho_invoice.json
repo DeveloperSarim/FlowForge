@@ -1,0 +1,370 @@
+{
+  "key": "zoho_invoice",
+  "name": "Zoho Invoice",
+  "category": "Payments & Finance",
+  "description": "Free invoicing: create contacts and invoices, email them and record payments.",
+  "brand": "zoho",
+  "website": "https://www.zoho.com/invoice/",
+  "docs_url": "https://www.zoho.com/invoice/api/v3/",
+  "base_url": "https://www.zohoapis.{{ credentials.data_center }}/invoice/v3",
+  "headers": {
+    "X-com-zoho-invoice-organizationid": "{{ credentials.organization_id }}"
+  },
+  "auth": {
+    "type": "oauth2",
+    "authorize_url": "https://accounts.zoho.{{ credentials.data_center }}/oauth/v2/auth",
+    "token_url": "https://accounts.zoho.{{ credentials.data_center }}/oauth/v2/token",
+    "scopes": [
+      "ZohoInvoice.contacts.ALL",
+      "ZohoInvoice.invoices.ALL",
+      "ZohoInvoice.customerpayments.ALL",
+      "ZohoInvoice.settings.READ"
+    ],
+    "scope_separator": ",",
+    "authorize_params": {
+      "access_type": "offline",
+      "prompt": "consent"
+    },
+    "token_type": "Zoho-oauthtoken",
+    "fields": [
+      {
+        "key": "organization_id",
+        "label": "Organization ID",
+        "type": "string",
+        "required": true,
+        "help": "Zoho Invoice → Settings → Organization profile → Organization ID."
+      },
+      {
+        "key": "data_center",
+        "label": "Data center",
+        "type": "select",
+        "required": true,
+        "default": "com",
+        "options": [
+          {
+            "value": "com",
+            "label": "US (.com)"
+          },
+          {
+            "value": "eu",
+            "label": "EU (.eu)"
+          },
+          {
+            "value": "in",
+            "label": "India (.in)"
+          },
+          {
+            "value": "com.au",
+            "label": "Australia (.com.au)"
+          },
+          {
+            "value": "jp",
+            "label": "Japan (.jp)"
+          },
+          {
+            "value": "ca",
+            "label": "Canada (.ca)"
+          },
+          {
+            "value": "sa",
+            "label": "Saudi Arabia (.sa)"
+          }
+        ],
+        "help": "The domain you use to sign in to Zoho."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "create_contact",
+      "name": "Create contact",
+      "description": "Add a customer.",
+      "method": "POST",
+      "endpoint": "/contacts",
+      "body": {
+        "contact_name": "{{ inputs.contact_name }}",
+        "company_name": "{{ inputs.company_name }}",
+        "contact_persons": [
+          {
+            "first_name": "{{ inputs.first_name }}",
+            "last_name": "{{ inputs.last_name }}",
+            "email": "{{ inputs.email }}",
+            "phone": "{{ inputs.phone }}",
+            "is_primary_contact": true
+          }
+        ]
+      },
+      "output_fields": {
+        "contact_id": "contact.contact_id"
+      },
+      "inputs": [
+        {
+          "key": "contact_name",
+          "label": "Display name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "company_name",
+          "label": "Company",
+          "type": "string"
+        },
+        {
+          "key": "first_name",
+          "label": "First name",
+          "type": "string"
+        },
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string"
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string"
+        },
+        {
+          "key": "phone",
+          "label": "Phone",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "find_contact",
+      "name": "Find contact by email",
+      "description": "Search customers by email.",
+      "method": "GET",
+      "endpoint": "/contacts",
+      "query": {
+        "email": "{{ inputs.email }}"
+      },
+      "output_fields": {
+        "contact_id": "contacts.0.contact_id",
+        "contact_name": "contacts.0.contact_name"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "create_invoice",
+      "name": "Create invoice",
+      "description": "Create an invoice for a customer.",
+      "method": "POST",
+      "endpoint": "/invoices",
+      "query": {
+        "send": "{{ inputs.send }}"
+      },
+      "body": {
+        "customer_id": "{{ inputs.customer_id }}",
+        "date": "{{ inputs.date }}",
+        "due_date": "{{ inputs.due_date }}",
+        "reference_number": "{{ inputs.reference }}",
+        "line_items": "{{ inputs.line_items }}",
+        "notes": "{{ inputs.notes }}"
+      },
+      "output_fields": {
+        "invoice_id": "invoice.invoice_id",
+        "invoice_number": "invoice.invoice_number",
+        "total": "invoice.total",
+        "invoice_url": "invoice.invoice_url"
+      },
+      "inputs": [
+        {
+          "key": "customer_id",
+          "label": "Customer ID",
+          "type": "string",
+          "required": true,
+          "help": "From Create contact or Find contact by email."
+        },
+        {
+          "key": "line_items",
+          "label": "Line items (JSON)",
+          "type": "json",
+          "required": true,
+          "placeholder": "[{\"name\":\"Design work\",\"rate\":120,\"quantity\":3}]"
+        },
+        {
+          "key": "date",
+          "label": "Invoice date",
+          "type": "string",
+          "placeholder": "2026-01-31"
+        },
+        {
+          "key": "due_date",
+          "label": "Due date",
+          "type": "string"
+        },
+        {
+          "key": "reference",
+          "label": "Reference",
+          "type": "string"
+        },
+        {
+          "key": "notes",
+          "label": "Notes",
+          "type": "text"
+        },
+        {
+          "key": "send",
+          "label": "Email it to the customer",
+          "type": "boolean",
+          "default": false
+        }
+      ]
+    },
+    {
+      "key": "get_invoice",
+      "name": "Get invoice",
+      "description": "Look up an invoice.",
+      "method": "GET",
+      "endpoint": "/invoices/{{ inputs.invoice_id }}",
+      "output_fields": {
+        "status": "invoice.status",
+        "total": "invoice.total",
+        "balance": "invoice.balance",
+        "invoice_url": "invoice.invoice_url"
+      },
+      "inputs": [
+        {
+          "key": "invoice_id",
+          "label": "Invoice ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "email_invoice",
+      "name": "Email invoice",
+      "description": "Send an invoice by email.",
+      "method": "POST",
+      "endpoint": "/invoices/{{ inputs.invoice_id }}/email",
+      "body": {
+        "to_mail_ids": "{{ inputs.to }}",
+        "subject": "{{ inputs.subject }}",
+        "body": "{{ inputs.body }}"
+      },
+      "output_fields": {
+        "message": "message"
+      },
+      "inputs": [
+        {
+          "key": "invoice_id",
+          "label": "Invoice ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "to",
+          "label": "To",
+          "type": "list",
+          "required": true
+        },
+        {
+          "key": "subject",
+          "label": "Subject",
+          "type": "string"
+        },
+        {
+          "key": "body",
+          "label": "Message",
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "key": "record_payment",
+      "name": "Record payment",
+      "description": "Record a payment against an invoice.",
+      "method": "POST",
+      "endpoint": "/customerpayments",
+      "body": {
+        "customer_id": "{{ inputs.customer_id }}",
+        "payment_mode": "{{ inputs.payment_mode }}",
+        "amount": "{{ inputs.amount }}",
+        "date": "{{ inputs.date }}",
+        "reference_number": "{{ inputs.reference }}",
+        "invoices": [
+          {
+            "invoice_id": "{{ inputs.invoice_id }}",
+            "amount_applied": "{{ inputs.amount }}"
+          }
+        ]
+      },
+      "output_fields": {
+        "payment_id": "payment.payment_id"
+      },
+      "inputs": [
+        {
+          "key": "customer_id",
+          "label": "Customer ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "invoice_id",
+          "label": "Invoice ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "amount",
+          "label": "Amount",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "date",
+          "label": "Payment date",
+          "type": "string",
+          "required": true,
+          "placeholder": "2026-01-31"
+        },
+        {
+          "key": "payment_mode",
+          "label": "Payment mode",
+          "type": "string",
+          "default": "cash",
+          "placeholder": "cash, bank transfer, creditcard"
+        },
+        {
+          "key": "reference",
+          "label": "Reference",
+          "type": "string"
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_invoice",
+      "name": "New invoice",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/invoices",
+      "query": {
+        "sort_column": "created_time",
+        "sort_order": "D",
+        "per_page": 50
+      },
+      "items_path": "invoices",
+      "id_field": "invoice_id",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

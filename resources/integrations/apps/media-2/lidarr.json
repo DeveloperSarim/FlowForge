@@ -1,0 +1,127 @@
+{
+  "key": "lidarr",
+  "name": "Lidarr",
+  "category": "Video & Media",
+  "description": "Music collection manager: look up artists, list your library and the download queue.",
+  "website": "https://lidarr.audio",
+  "docs_url": "https://lidarr.audio/docs/api/",
+  "base_url": "{{ credentials.server_url }}/api/v1",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "X-Api-Key",
+    "fields": [
+      {
+        "key": "server_url",
+        "label": "Lidarr URL",
+        "type": "string",
+        "required": true,
+        "placeholder": "http://192.168.1.10:8686",
+        "help": "The address you open the app at, with http:// and the port, no trailing slash."
+      },
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "Lidarr > Settings > General > Security > API Key."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "lookup_artist",
+      "name": "Look up an artist",
+      "description": "Search for an artist to add.",
+      "method": "GET",
+      "endpoint": "/artist/lookup",
+      "query": {
+        "term": "{{ inputs.term }}"
+      },
+      "output_fields": {
+        "names": "*.artistName",
+        "ids": "*.foreignArtistId"
+      },
+      "inputs": [
+        {
+          "key": "term",
+          "label": "Search",
+          "type": "string",
+          "required": true,
+          "help": "Artist name, or lidarr:<MusicBrainz ID>."
+        }
+      ]
+    },
+    {
+      "key": "list_artists",
+      "name": "List artists",
+      "description": "Get artists in your library.",
+      "method": "GET",
+      "endpoint": "/artist",
+      "output_fields": {
+        "ids": "*.id",
+        "names": "*.artistName"
+      },
+      "inputs": []
+    },
+    {
+      "key": "list_albums",
+      "name": "List albums",
+      "description": "Get albums for an artist.",
+      "method": "GET",
+      "endpoint": "/album",
+      "query": {
+        "artistId": "{{ inputs.artist_id }}"
+      },
+      "output_fields": {
+        "ids": "*.id",
+        "titles": "*.title"
+      },
+      "inputs": [
+        {
+          "key": "artist_id",
+          "label": "Artist ID",
+          "type": "string",
+          "required": true,
+          "help": "The id from List artists."
+        }
+      ]
+    },
+    {
+      "key": "get_queue",
+      "name": "Download queue",
+      "description": "See what is downloading.",
+      "method": "GET",
+      "endpoint": "/queue",
+      "output_fields": {
+        "records": "records",
+        "total": "totalRecords"
+      },
+      "inputs": []
+    },
+    {
+      "key": "run_command",
+      "name": "Run a command",
+      "description": "Start a task, such as RefreshArtist or RssSync.",
+      "method": "POST",
+      "endpoint": "/command",
+      "body": {
+        "name": "{{ inputs.name }}"
+      },
+      "output_fields": {
+        "id": "id",
+        "status": "status"
+      },
+      "inputs": [
+        {
+          "key": "name",
+          "label": "Command",
+          "type": "string",
+          "required": true,
+          "default": "RssSync",
+          "help": "e.g. RssSync, RefreshArtist, MissingAlbumSearch."
+        }
+      ]
+    }
+  ]
+}

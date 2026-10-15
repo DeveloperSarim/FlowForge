@@ -1,0 +1,185 @@
+{
+  "key": "mailchannels",
+  "name": "MailChannels",
+  "category": "Communication",
+  "description": "Send transactional email through MailChannels and check domain and usage.",
+  "website": "https://www.mailchannels.com",
+  "docs_url": "https://docs.mailchannels.com/email-api/",
+  "base_url": "https://api.mailchannels.net/tx/v1",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "X-Api-Key",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "MailChannels Console → API Keys → create a key with the 'Sending Email' scope. It is shown only once."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "send_email",
+      "name": "Send email",
+      "method": "POST",
+      "endpoint": "/send",
+      "body": {
+        "personalizations": [
+          {
+            "to": [
+              {
+                "email": "{{ inputs.to }}",
+                "name": "{{ inputs.to_name }}"
+              }
+            ]
+          }
+        ],
+        "from": {
+          "email": "{{ inputs.from_email }}",
+          "name": "{{ inputs.from_name }}"
+        },
+        "reply_to": {
+          "email": "{{ inputs.reply_to }}"
+        },
+        "subject": "{{ inputs.subject }}",
+        "content": [
+          {
+            "$if": "{{ inputs.text }}",
+            "type": "text/plain",
+            "value": "{{ inputs.text }}"
+          },
+          {
+            "$if": "{{ inputs.html }}",
+            "type": "text/html",
+            "value": "{{ inputs.html }}"
+          }
+        ]
+      },
+      "output_fields": {
+        "request_id": "request_id",
+        "message_id": "results.0.message_id",
+        "status": "results.0.status",
+        "reason": "results.0.reason"
+      },
+      "inputs": [
+        {
+          "key": "to",
+          "label": "To (email)",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "to_name",
+          "label": "To name",
+          "type": "string"
+        },
+        {
+          "key": "from_email",
+          "label": "From (email)",
+          "type": "string",
+          "required": true,
+          "help": "Your domain needs the MailChannels Domain Lockdown TXT record."
+        },
+        {
+          "key": "from_name",
+          "label": "From name",
+          "type": "string"
+        },
+        {
+          "key": "subject",
+          "label": "Subject",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "text",
+          "label": "Plain-text body",
+          "type": "text"
+        },
+        {
+          "key": "html",
+          "label": "HTML body",
+          "type": "text",
+          "help": "Fill in plain text, HTML or both."
+        },
+        {
+          "key": "reply_to",
+          "label": "Reply-to (email)",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "check_domain",
+      "name": "Check domain setup",
+      "description": "Checks DKIM, SPF and Domain Lockdown for a sending domain.",
+      "method": "POST",
+      "endpoint": "/check-domain",
+      "body": {
+        "domain": "{{ inputs.domain }}"
+      },
+      "output_fields": {
+        "spf": "check_results.spf.verdict",
+        "domain_lockdown": "check_results.domain_lockdown.verdict",
+        "dkim": "check_results.dkim.*.verdict"
+      },
+      "inputs": [
+        {
+          "key": "domain",
+          "label": "Domain",
+          "type": "string",
+          "required": true,
+          "placeholder": "example.com"
+        }
+      ]
+    },
+    {
+      "key": "get_usage",
+      "name": "Get usage",
+      "method": "GET",
+      "endpoint": "/usage",
+      "output_fields": {
+        "total_usage": "total_usage",
+        "monthly_limit": "monthly_limit",
+        "period_end_date": "period_end_date"
+      },
+      "inputs": []
+    },
+    {
+      "key": "set_webhook",
+      "name": "Set webhook URL",
+      "method": "POST",
+      "endpoint": "/webhook",
+      "query": {
+        "endpoint": "{{ inputs.endpoint }}"
+      },
+      "inputs": [
+        {
+          "key": "endpoint",
+          "label": "Webhook URL",
+          "type": "string",
+          "required": true,
+          "help": "Paste the URL of a FlowForge 'Delivery event' trigger. One webhook per account."
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Delivery event",
+      "type": "webhook",
+      "description": "Delivered, bounced, opened and other email events.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

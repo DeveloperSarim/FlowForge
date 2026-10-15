@@ -1,0 +1,124 @@
+{
+  "key": "sendpk",
+  "name": "SendPK",
+  "category": "Communication",
+  "description": "Send template SMS to Pakistani numbers with SendPK and check balance and delivery.",
+  "website": "https://sendpk.com",
+  "docs_url": "https://sendpk.com/api.php",
+  "base_url": "https://sendpk.com",
+  "auth": {
+    "type": "api_key",
+    "in": "query",
+    "name": "api_key",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "SendPK dashboard → Profile → API Key."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "send_sms",
+      "name": "Send SMS",
+      "description": "Returns 'OK ID:<id>' on success, otherwise an error code.",
+      "method": "GET",
+      "endpoint": "/api/sms.php",
+      "query": {
+        "mobile": "{{ inputs.mobile }}",
+        "sender": "{{ inputs.sender }}",
+        "template_id": "{{ inputs.template_id }}",
+        "message": "{{ inputs.message }}",
+        "type": "{{ inputs.type }}"
+      },
+      "inputs": [
+        {
+          "key": "mobile",
+          "label": "To",
+          "type": "string",
+          "required": true,
+          "placeholder": "923001234567",
+          "help": "Comma separate several numbers."
+        },
+        {
+          "key": "sender",
+          "label": "Sender / masking",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "template_id",
+          "label": "Template ID",
+          "type": "string",
+          "required": true,
+          "help": "Use 'List templates' to find it."
+        },
+        {
+          "key": "message",
+          "label": "Template variables (JSON)",
+          "type": "text",
+          "required": true,
+          "placeholder": "{\"name\":\"Aslam\",\"otp\":\"1234\"}",
+          "help": "Values for the template's variables."
+        },
+        {
+          "key": "type",
+          "label": "Urdu / Unicode",
+          "type": "select",
+          "default": "",
+          "options": [
+            {
+              "value": "",
+              "label": "No"
+            },
+            {
+              "value": "unicode",
+              "label": "Yes"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "list_templates",
+      "name": "List templates",
+      "method": "GET",
+      "endpoint": "/apps/fetch_all_fixed_templates.php",
+      "output_fields": {
+        "templates": "results",
+        "template_ids": "results.*.id",
+        "template_names": "results.*.name"
+      },
+      "inputs": []
+    },
+    {
+      "key": "get_balance",
+      "name": "Get balance",
+      "description": "Returns your balance as plain text.",
+      "method": "GET",
+      "endpoint": "/api/balance.php",
+      "inputs": []
+    },
+    {
+      "key": "get_delivery",
+      "name": "Get delivery status",
+      "method": "GET",
+      "endpoint": "/api/delivery.php",
+      "query": {
+        "id": "{{ inputs.id }}"
+      },
+      "inputs": [
+        {
+          "key": "id",
+          "label": "Message ID",
+          "type": "string",
+          "required": true,
+          "help": "The number after 'OK ID:' returned by Send SMS."
+        }
+      ]
+    }
+  ]
+}

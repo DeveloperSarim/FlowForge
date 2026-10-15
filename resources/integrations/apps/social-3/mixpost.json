@@ -1,0 +1,266 @@
+{
+  "key": "mixpost",
+  "name": "Mixpost",
+  "category": "Social Media",
+  "description": "Create and schedule social posts in Mixpost and list accounts and posts.",
+  "website": "https://mixpost.app",
+  "docs_url": "https://docs.mixpost.app/api/",
+  "base_url": "{{ credentials.base_url }}",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "Access token",
+        "type": "password",
+        "required": true,
+        "help": "Mixpost → your user menu → Access Tokens → Create."
+      },
+      {
+        "key": "base_url",
+        "label": "API address",
+        "type": "string",
+        "required": true,
+        "default": "https://cloud.mixpost.app/p/api",
+        "help": "Mixpost Cloud uses the default. Self-hosted Mixpost Pro: your Mixpost API address."
+      }
+    ],
+    "profile": {
+      "endpoint": "/workspaces",
+      "store": {
+        "workspace_uuid": "{{ data.0.uuid }}"
+      }
+    }
+  },
+  "actions": [
+    {
+      "key": "list_workspaces",
+      "name": "List workspaces",
+      "method": "GET",
+      "endpoint": "/workspaces",
+      "output_fields": {
+        "workspaces": "data",
+        "uuids": "data.*.uuid",
+        "names": "data.*.name"
+      },
+      "inputs": []
+    },
+    {
+      "key": "list_accounts",
+      "name": "List social accounts",
+      "method": "GET",
+      "endpoint": "/{{ inputs.workspace }}/accounts",
+      "output_fields": {
+        "account_ids": "data.*.id",
+        "names": "data.*.name",
+        "providers": "data.*.provider"
+      },
+      "inputs": [
+        {
+          "key": "workspace",
+          "label": "Workspace UUID",
+          "type": "string",
+          "fallback": "credentials.workspace_uuid",
+          "help": "Leave blank to use your first workspace. 'List workspaces' shows the others."
+        }
+      ]
+    },
+    {
+      "key": "create_post",
+      "name": "Create post",
+      "description": "Without 'Publish now' or a date the post stays a draft.",
+      "method": "POST",
+      "endpoint": "/{{ inputs.workspace }}/posts",
+      "body": {
+        "versions": [
+          {
+            "account_id": 0,
+            "is_original": true,
+            "content": [
+              {
+                "body": "{{ inputs.body }}",
+                "media": []
+              }
+            ]
+          }
+        ],
+        "accounts": "{{ inputs.accounts }}",
+        "date": "{{ inputs.date }}",
+        "time": "{{ inputs.time }}",
+        "timezone": "{{ inputs.timezone }}",
+        "schedule": "{{ inputs.schedule }}",
+        "schedule_now": "{{ inputs.schedule_now }}"
+      },
+      "output_fields": {
+        "id": "id",
+        "uuid": "uuid",
+        "status": "status",
+        "urls": "accounts.*.external_url"
+      },
+      "inputs": [
+        {
+          "key": "workspace",
+          "label": "Workspace UUID",
+          "type": "string",
+          "fallback": "credentials.workspace_uuid",
+          "help": "Leave blank to use your first workspace. 'List workspaces' shows the others."
+        },
+        {
+          "key": "accounts",
+          "label": "Account IDs",
+          "type": "list",
+          "required": true,
+          "help": "Numeric IDs from 'List social accounts'."
+        },
+        {
+          "key": "body",
+          "label": "Post text",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "schedule_now",
+          "label": "Publish now",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "key": "schedule",
+          "label": "Schedule at the date below",
+          "type": "boolean",
+          "default": true
+        },
+        {
+          "key": "date",
+          "label": "Date",
+          "type": "string",
+          "placeholder": "2026-12-01"
+        },
+        {
+          "key": "time",
+          "label": "Time",
+          "type": "string",
+          "placeholder": "09:30"
+        },
+        {
+          "key": "timezone",
+          "label": "Time zone",
+          "type": "string",
+          "placeholder": "Asia/Karachi"
+        }
+      ]
+    },
+    {
+      "key": "get_post",
+      "name": "Get post",
+      "method": "GET",
+      "endpoint": "/{{ inputs.workspace }}/posts/{{ inputs.post_uuid }}",
+      "output_fields": {
+        "status": "status",
+        "urls": "accounts.*.external_url"
+      },
+      "inputs": [
+        {
+          "key": "workspace",
+          "label": "Workspace UUID",
+          "type": "string",
+          "fallback": "credentials.workspace_uuid",
+          "help": "Leave blank to use your first workspace. 'List workspaces' shows the others."
+        },
+        {
+          "key": "post_uuid",
+          "label": "Post UUID",
+          "type": "string",
+          "required": true,
+          "help": "uuid returned by 'Create post'."
+        }
+      ]
+    },
+    {
+      "key": "list_posts",
+      "name": "List posts",
+      "method": "GET",
+      "endpoint": "/{{ inputs.workspace }}/posts",
+      "query": {
+        "status": "{{ inputs.status }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "posts": "data"
+      },
+      "inputs": [
+        {
+          "key": "workspace",
+          "label": "Workspace UUID",
+          "type": "string",
+          "fallback": "credentials.workspace_uuid",
+          "help": "Leave blank to use your first workspace. 'List workspaces' shows the others."
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "default": "",
+          "options": [
+            {
+              "value": "",
+              "label": "Any"
+            },
+            {
+              "value": "draft",
+              "label": "Draft"
+            },
+            {
+              "value": "scheduled",
+              "label": "Scheduled"
+            },
+            {
+              "value": "published",
+              "label": "Published"
+            },
+            {
+              "value": "failed",
+              "label": "Failed"
+            }
+          ]
+        },
+        {
+          "key": "limit",
+          "label": "Max results",
+          "type": "number",
+          "default": 20
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_published_post",
+      "name": "Post published",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/{{ inputs.workspace }}/posts",
+      "query": {
+        "status": "published",
+        "limit": "50"
+      },
+      "items_path": "data",
+      "id_field": "uuid",
+      "inputs": [
+        {
+          "key": "workspace",
+          "label": "Workspace UUID",
+          "type": "string",
+          "fallback": "credentials.workspace_uuid",
+          "help": "Leave blank to use your first workspace. 'List workspaces' shows the others."
+        },
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

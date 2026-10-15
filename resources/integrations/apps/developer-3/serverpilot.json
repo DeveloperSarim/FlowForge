@@ -1,0 +1,183 @@
+{
+  "key": "serverpilot",
+  "name": "ServerPilot",
+  "category": "Developer Tools",
+  "description": "Create PHP apps, enable SSL and manage servers on ServerPilot.",
+  "brand": "serverpilot",
+  "website": "https://serverpilot.io",
+  "docs_url": "https://github.com/ServerPilot/API",
+  "base_url": "https://api.serverpilot.io/v1",
+  "auth": {
+    "type": "basic",
+    "fields": [
+      {
+        "key": "username",
+        "label": "Client ID",
+        "type": "string",
+        "required": true,
+        "help": "ServerPilot → Account → API; the Client ID is shown next to your API key."
+      },
+      {
+        "key": "password",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "ServerPilot → Account → API → create or copy the key."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_servers",
+      "name": "List servers",
+      "description": "List your servers.",
+      "method": "GET",
+      "endpoint": "/servers",
+      "output_fields": {
+        "servers": "data"
+      },
+      "inputs": []
+    },
+    {
+      "key": "list_apps",
+      "name": "List apps",
+      "description": "List all apps.",
+      "method": "GET",
+      "endpoint": "/apps",
+      "output_fields": {
+        "apps": "data"
+      },
+      "inputs": []
+    },
+    {
+      "key": "list_system_users",
+      "name": "List system users",
+      "description": "List system users (needed to create apps).",
+      "method": "GET",
+      "endpoint": "/sysusers",
+      "output_fields": {
+        "users": "data"
+      },
+      "inputs": []
+    },
+    {
+      "key": "create_app",
+      "name": "Create app",
+      "description": "Create a PHP app with its domains.",
+      "method": "POST",
+      "endpoint": "/apps",
+      "body": {
+        "name": "{{ inputs.name }}",
+        "sysuserid": "{{ inputs.sysuserid }}",
+        "runtime": "{{ inputs.runtime }}",
+        "domains": "{{ inputs.domains }}"
+      },
+      "output_fields": {
+        "app_id": "data.id",
+        "action_id": "actionid"
+      },
+      "inputs": [
+        {
+          "key": "name",
+          "label": "App name",
+          "type": "string",
+          "required": true,
+          "placeholder": "mysite",
+          "help": "Lowercase letters, numbers and dashes."
+        },
+        {
+          "key": "sysuserid",
+          "label": "System user ID",
+          "type": "string",
+          "required": true,
+          "help": "Use List system users."
+        },
+        {
+          "key": "runtime",
+          "label": "PHP version",
+          "type": "select",
+          "required": true,
+          "default": "php8.2",
+          "options": [
+            {
+              "value": "php8.3",
+              "label": "PHP 8.3"
+            },
+            {
+              "value": "php8.2",
+              "label": "PHP 8.2"
+            },
+            {
+              "value": "php8.1",
+              "label": "PHP 8.1"
+            }
+          ]
+        },
+        {
+          "key": "domains",
+          "label": "Domains",
+          "type": "list",
+          "required": true,
+          "placeholder": "example.com"
+        }
+      ]
+    },
+    {
+      "key": "enable_autossl",
+      "name": "Enable AutoSSL",
+      "description": "Turn on free automatic SSL for an app.",
+      "method": "POST",
+      "endpoint": "/apps/{{ inputs.app_id }}/ssl",
+      "body": {
+        "auto": true
+      },
+      "output_fields": {
+        "action_id": "actionid"
+      },
+      "inputs": [
+        {
+          "key": "app_id",
+          "label": "App ID",
+          "type": "string",
+          "required": true,
+          "help": "Use List apps."
+        }
+      ]
+    },
+    {
+      "key": "delete_app",
+      "name": "Delete app",
+      "description": "Delete an app and its files.",
+      "method": "DELETE",
+      "endpoint": "/apps/{{ inputs.app_id }}",
+      "inputs": [
+        {
+          "key": "app_id",
+          "label": "App ID",
+          "type": "string",
+          "required": true,
+          "help": "Use List apps."
+        }
+      ]
+    },
+    {
+      "key": "get_action",
+      "name": "Get action status",
+      "description": "Check whether a queued action has finished.",
+      "method": "GET",
+      "endpoint": "/actions/{{ inputs.action_id }}",
+      "output_fields": {
+        "status": "data.status"
+      },
+      "inputs": [
+        {
+          "key": "action_id",
+          "label": "Action ID",
+          "type": "string",
+          "required": true,
+          "help": "Returned by create and SSL calls."
+        }
+      ]
+    }
+  ]
+}

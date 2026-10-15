@@ -1,0 +1,121 @@
+{
+  "key": "zamzar",
+  "name": "Zamzar",
+  "category": "Files & Documents",
+  "description": "Convert files between 1100+ formats from a URL; check and list jobs.",
+  "website": "https://www.zamzar.com",
+  "docs_url": "https://developers.zamzar.com/docs",
+  "base_url": "https://api.zamzar.com/v1",
+  "auth": {
+    "type": "basic",
+    "fields": [
+      {
+        "key": "username",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "developers.zamzar.com → Manage API keys → your API key."
+      },
+      {
+        "key": "password",
+        "label": "Password",
+        "type": "password",
+        "default": "",
+        "help": "Leave empty."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "convert_url",
+      "name": "Convert file from URL",
+      "description": "Start a conversion job.",
+      "method": "POST",
+      "endpoint": "/jobs",
+      "body": {
+        "source_file": "{{ inputs.source_url }}",
+        "target_format": "{{ inputs.target_format }}"
+      },
+      "output_fields": {
+        "id": "id",
+        "status": "status"
+      },
+      "body_format": "form",
+      "inputs": [
+        {
+          "key": "source_url",
+          "label": "File URL",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "target_format",
+          "label": "Convert to",
+          "type": "string",
+          "required": true,
+          "placeholder": "pdf"
+        }
+      ]
+    },
+    {
+      "key": "get_job",
+      "name": "Get job",
+      "description": "Status and result file IDs.",
+      "method": "GET",
+      "endpoint": "/jobs/{{ inputs.id }}",
+      "output_fields": {
+        "status": "status",
+        "file_ids": "target_files.*.id"
+      },
+      "inputs": [
+        {
+          "key": "id",
+          "label": "Job ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_jobs",
+      "name": "List jobs",
+      "description": "Recent jobs.",
+      "method": "GET",
+      "endpoint": "/jobs",
+      "query": {
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "ids": "data.*.id",
+        "statuses": "data.*.status"
+      },
+      "inputs": [
+        {
+          "key": "limit",
+          "label": "Max results",
+          "type": "number",
+          "default": 10
+        }
+      ]
+    },
+    {
+      "key": "get_formats",
+      "name": "Supported targets",
+      "description": "Formats a file type can be converted to.",
+      "method": "GET",
+      "endpoint": "/formats/{{ inputs.format }}",
+      "output_fields": {
+        "targets": "targets.*.name"
+      },
+      "inputs": [
+        {
+          "key": "format",
+          "label": "From format",
+          "type": "string",
+          "required": true,
+          "placeholder": "docx"
+        }
+      ]
+    }
+  ]
+}

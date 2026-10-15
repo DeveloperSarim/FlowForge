@@ -188,7 +188,8 @@ async function streamMessage(conversationId, message, onEvent) {
  */
 export default function ChatPanel({ conversationId, workflowId = null, onConversation, onWorkflowChanged, beforeSend, configured, compact: isCompact = false, apps = {}, provider = null }) {
     const [conversation, setConversation] = useState(null);
-    const [input, setInput] = useState('');
+    // ?prompt= (e.g. from Apps → "Build a custom app") fills the box; the person still presses send.
+    const [input, setInput] = useState(() => (isCompact ? '' : new URLSearchParams(window.location.search).get('prompt') ?? ''));
     const [sending, setSending] = useState(false);
     const [live, setLive] = useState(null);
     const [elapsed, setElapsed] = useState(0);

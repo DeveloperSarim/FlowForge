@@ -1,0 +1,160 @@
+{
+  "key": "kintone",
+  "name": "Kintone",
+  "category": "Databases",
+  "description": "Read, add and update records in Kintone apps (Cybozu's no-code database).",
+  "website": "https://kintone.com",
+  "docs_url": "https://kintone.dev/en/docs/kintone/rest-api/records/get-records/",
+  "base_url": "https://{{ credentials.domain }}/k/v1",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "X-Cybozu-API-Token",
+    "fields": [
+      {
+        "key": "domain",
+        "label": "Kintone domain",
+        "type": "string",
+        "required": true,
+        "help": "Your Kintone address without https://.",
+        "placeholder": "mycompany.kintone.com"
+      },
+      {
+        "key": "api_key",
+        "label": "API token",
+        "type": "password",
+        "required": true,
+        "help": "In the Kintone app open Settings → App settings → API Token → Generate, tick the permissions you need, Save, then Update app."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "get_records",
+      "name": "Get records",
+      "description": "List records, optionally filtered with a Kintone query.",
+      "method": "GET",
+      "endpoint": "/records.json",
+      "query": {
+        "app": "{{ inputs.app }}",
+        "query": "{{ inputs.query }}"
+      },
+      "output_fields": {
+        "records": "records",
+        "first": "records.0"
+      },
+      "inputs": [
+        {
+          "key": "app",
+          "label": "App ID",
+          "type": "number",
+          "required": true,
+          "help": "The number in the app's address: .../k/12/ means app 12."
+        },
+        {
+          "key": "query",
+          "label": "Query",
+          "type": "string",
+          "help": "Example: Status = \"Open\" order by $id desc limit 20"
+        }
+      ]
+    },
+    {
+      "key": "get_record",
+      "name": "Get record",
+      "description": "Read one record by its record number.",
+      "method": "GET",
+      "endpoint": "/record.json",
+      "query": {
+        "app": "{{ inputs.app }}",
+        "id": "{{ inputs.id }}"
+      },
+      "output_fields": {
+        "record": "record"
+      },
+      "inputs": [
+        {
+          "key": "app",
+          "label": "App ID",
+          "type": "number",
+          "required": true,
+          "help": "The number in the app's address: .../k/12/ means app 12."
+        },
+        {
+          "key": "id",
+          "label": "Record ID",
+          "type": "number",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "add_record",
+      "name": "Add record",
+      "description": "Create a record.",
+      "method": "POST",
+      "endpoint": "/record.json",
+      "body": {
+        "app": "{{ inputs.app }}",
+        "record": "{{ inputs.record }}"
+      },
+      "output_fields": {
+        "id": "id",
+        "revision": "revision"
+      },
+      "inputs": [
+        {
+          "key": "app",
+          "label": "App ID",
+          "type": "number",
+          "required": true,
+          "help": "The number in the app's address: .../k/12/ means app 12."
+        },
+        {
+          "key": "record",
+          "label": "Fields (JSON)",
+          "type": "json",
+          "required": true,
+          "help": "Field codes with values, e.g. {\"Title\": {\"value\": \"Hello\"}}"
+        }
+      ]
+    },
+    {
+      "key": "update_record",
+      "name": "Update record",
+      "description": "Change fields on a record.",
+      "method": "PUT",
+      "endpoint": "/record.json",
+      "body": {
+        "app": "{{ inputs.app }}",
+        "id": "{{ inputs.id }}",
+        "record": "{{ inputs.record }}"
+      },
+      "output_fields": {
+        "revision": "revision"
+      },
+      "inputs": [
+        {
+          "key": "app",
+          "label": "App ID",
+          "type": "number",
+          "required": true,
+          "help": "The number in the app's address: .../k/12/ means app 12."
+        },
+        {
+          "key": "id",
+          "label": "Record ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "record",
+          "label": "Fields (JSON)",
+          "type": "json",
+          "required": true,
+          "help": "Only fields to change, e.g. {\"Status\": {\"value\": \"Done\"}}"
+        }
+      ]
+    }
+  ]
+}

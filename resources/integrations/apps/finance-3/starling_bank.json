@@ -1,0 +1,184 @@
+{
+  "key": "starling_bank",
+  "name": "Starling Bank",
+  "category": "Payments & Finance",
+  "description": "Read your Starling balances, transactions, payees and savings spaces.",
+  "website": "https://www.starlingbank.com",
+  "docs_url": "https://developer.starlingbank.com/docs",
+  "base_url": "https://{{ credentials.host }}/api/v2",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "Personal access token",
+        "type": "password",
+        "required": true,
+        "help": "developer.starlingbank.com → Personal access → Create token (tick account, balance and transaction read scopes)."
+      },
+      {
+        "key": "host",
+        "label": "Environment",
+        "type": "select",
+        "required": true,
+        "default": "api.starlingbank.com",
+        "options": [
+          {
+            "value": "api.starlingbank.com",
+            "label": "Live"
+          },
+          {
+            "value": "api-sandbox.starlingbank.com",
+            "label": "Sandbox"
+          }
+        ]
+      }
+    ],
+    "profile": {
+      "endpoint": "/accounts",
+      "store": {
+        "account_uid": "{{ accounts.0.accountUid }}",
+        "category_uid": "{{ accounts.0.defaultCategory }}"
+      }
+    }
+  },
+  "actions": [
+    {
+      "key": "list_accounts",
+      "name": "List accounts",
+      "description": "Your accounts and their IDs.",
+      "method": "GET",
+      "endpoint": "/accounts",
+      "output_fields": {
+        "account_uid": "accounts.0.accountUid",
+        "default_category": "accounts.0.defaultCategory",
+        "currency": "accounts.0.currency"
+      },
+      "inputs": []
+    },
+    {
+      "key": "get_balance",
+      "name": "Get balance",
+      "description": "Cleared and effective balance (in pence/cents).",
+      "method": "GET",
+      "endpoint": "/accounts/{{ inputs.account_uid }}/balance",
+      "output_fields": {
+        "effective_balance_minor": "effectiveBalance.minorUnits",
+        "cleared_balance_minor": "clearedBalance.minorUnits",
+        "currency": "effectiveBalance.currency"
+      },
+      "inputs": [
+        {
+          "key": "account_uid",
+          "label": "Account",
+          "type": "string",
+          "fallback": "credentials.account_uid",
+          "help": "Leave empty to use your main account."
+        }
+      ]
+    },
+    {
+      "key": "list_transactions",
+      "name": "List transactions",
+      "description": "Transactions changed since a date.",
+      "method": "GET",
+      "endpoint": "/feed/account/{{ inputs.account_uid }}/category/{{ inputs.category_uid }}",
+      "query": {
+        "changesSince": "{{ inputs.changes_since }}"
+      },
+      "output_fields": {
+        "transactions": "feedItems"
+      },
+      "inputs": [
+        {
+          "key": "account_uid",
+          "label": "Account",
+          "type": "string",
+          "fallback": "credentials.account_uid",
+          "help": "Leave empty to use your main account."
+        },
+        {
+          "key": "category_uid",
+          "label": "Category",
+          "type": "string",
+          "fallback": "credentials.category_uid",
+          "help": "Leave empty for the account's main category."
+        },
+        {
+          "key": "changes_since",
+          "label": "Since",
+          "type": "string",
+          "required": true,
+          "placeholder": "2026-01-01T00:00:00.000Z"
+        }
+      ]
+    },
+    {
+      "key": "get_account_details",
+      "name": "Get account details",
+      "description": "Account number, sort code, IBAN and BIC.",
+      "method": "GET",
+      "endpoint": "/accounts/{{ inputs.account_uid }}/identifiers",
+      "output_fields": {
+        "account_number": "accountIdentifier",
+        "sort_code": "bankIdentifier",
+        "iban": "iban",
+        "bic": "bic"
+      },
+      "inputs": [
+        {
+          "key": "account_uid",
+          "label": "Account",
+          "type": "string",
+          "fallback": "credentials.account_uid",
+          "help": "Leave empty to use your main account."
+        }
+      ]
+    },
+    {
+      "key": "list_savings_goals",
+      "name": "List savings spaces",
+      "description": "Your savings spaces and balances.",
+      "method": "GET",
+      "endpoint": "/account/{{ inputs.account_uid }}/savings-goals",
+      "output_fields": {
+        "savings_goals": "savingsGoalList"
+      },
+      "inputs": [
+        {
+          "key": "account_uid",
+          "label": "Account",
+          "type": "string",
+          "fallback": "credentials.account_uid",
+          "help": "Leave empty to use your main account."
+        }
+      ]
+    },
+    {
+      "key": "list_payees",
+      "name": "List payees",
+      "description": "People and businesses you pay.",
+      "method": "GET",
+      "endpoint": "/payees",
+      "output_fields": {
+        "payees": "payees"
+      },
+      "inputs": []
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "developer.starlingbank.com → Personal access → Webhooks, paste this URL.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

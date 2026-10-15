@@ -1,0 +1,135 @@
+{
+  "key": "livepeer",
+  "name": "Livepeer Studio",
+  "category": "Video & Media",
+  "description": "Live streaming and video hosting: create streams, upload videos and list assets.",
+  "website": "https://livepeer.studio",
+  "docs_url": "https://docs.livepeer.org/api-reference/overview/introduction",
+  "base_url": "https://livepeer.studio/api",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "Livepeer Studio > Developers > API Keys > Create API key."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_streams",
+      "name": "List streams",
+      "description": "Get your live streams.",
+      "method": "GET",
+      "endpoint": "/stream",
+      "output_fields": {
+        "ids": "*.id",
+        "names": "*.name"
+      },
+      "inputs": []
+    },
+    {
+      "key": "create_stream",
+      "name": "Create a stream",
+      "description": "Create a live stream and get its stream key.",
+      "method": "POST",
+      "endpoint": "/stream",
+      "body": {
+        "name": "{{ inputs.name }}"
+      },
+      "output_fields": {
+        "id": "id",
+        "stream_key": "streamKey",
+        "playback_id": "playbackId"
+      },
+      "inputs": [
+        {
+          "key": "name",
+          "label": "Stream name",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "delete_stream",
+      "name": "Delete a stream",
+      "description": "Delete a live stream.",
+      "method": "DELETE",
+      "endpoint": "/stream/{{ inputs.stream_id }}",
+      "inputs": [
+        {
+          "key": "stream_id",
+          "label": "Stream ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_assets",
+      "name": "List videos",
+      "description": "Get your uploaded videos (assets).",
+      "method": "GET",
+      "endpoint": "/asset",
+      "output_fields": {
+        "ids": "*.id",
+        "names": "*.name"
+      },
+      "inputs": []
+    },
+    {
+      "key": "import_video",
+      "name": "Import a video from a URL",
+      "description": "Pull a video file from a public URL into Livepeer.",
+      "method": "POST",
+      "endpoint": "/asset/upload/url",
+      "body": {
+        "name": "{{ inputs.name }}",
+        "url": "{{ inputs.url }}"
+      },
+      "output_fields": {
+        "asset_id": "asset.id",
+        "task_id": "task.id"
+      },
+      "inputs": [
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "url",
+          "label": "Video URL",
+          "type": "string",
+          "required": true,
+          "help": "A direct link to the video file."
+        }
+      ]
+    },
+    {
+      "key": "get_asset",
+      "name": "Get a video",
+      "description": "Get a video's status and playback info.",
+      "method": "GET",
+      "endpoint": "/asset/{{ inputs.asset_id }}",
+      "output_fields": {
+        "status": "status.phase",
+        "playback_id": "playbackId",
+        "playback_url": "playbackUrl"
+      },
+      "inputs": [
+        {
+          "key": "asset_id",
+          "label": "Video ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ]
+}

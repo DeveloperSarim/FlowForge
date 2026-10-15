@@ -1,0 +1,227 @@
+{
+  "key": "workfront",
+  "name": "Adobe Workfront",
+  "category": "Project Management",
+  "description": "Enterprise work management: search and create projects and tasks.",
+  "website": "https://business.adobe.com/products/workfront/main.html",
+  "docs_url": "https://developer.adobe.com/workfront-apis/",
+  "base_url": "https://{{ credentials.domain }}.my.workfront.com/attask/api/v15.0",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "apiKey",
+    "fields": [
+      {
+        "key": "domain",
+        "label": "Workfront domain",
+        "type": "string",
+        "required": true,
+        "placeholder": "yourcompany",
+        "help": "The first part of your Workfront address: yourcompany in yourcompany.my.workfront.com."
+      },
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "Workfront → Setup → System → Customer Info → API key (an admin can generate it)."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "search_projects",
+      "name": "Search projects",
+      "description": "List projects, optionally by name.",
+      "method": "GET",
+      "endpoint": "/proj/search",
+      "query": {
+        "name": "{{ inputs.name }}",
+        "name_Mod": "cicontains",
+        "fields": "name,status",
+        "$$LIMIT": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "names": "data.*.name",
+        "ids": "data.*.ID"
+      },
+      "inputs": [
+        {
+          "key": "name",
+          "label": "Name contains",
+          "type": "string"
+        },
+        {
+          "key": "limit",
+          "label": "Max results",
+          "type": "number",
+          "default": 25
+        }
+      ]
+    },
+    {
+      "key": "create_project",
+      "name": "Create project",
+      "description": "Start a new project.",
+      "method": "POST",
+      "endpoint": "/proj",
+      "body": {
+        "name": "{{ inputs.name }}",
+        "description": "{{ inputs.description }}"
+      },
+      "output_fields": {
+        "id": "data.ID",
+        "name": "data.name"
+      },
+      "inputs": [
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "description",
+          "label": "Description",
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "key": "create_task",
+      "name": "Create task",
+      "description": "Add a task to a project.",
+      "method": "POST",
+      "endpoint": "/task",
+      "body": {
+        "projectID": "{{ inputs.project_id }}",
+        "name": "{{ inputs.name }}",
+        "description": "{{ inputs.description }}"
+      },
+      "output_fields": {
+        "id": "data.ID",
+        "name": "data.name"
+      },
+      "inputs": [
+        {
+          "key": "project_id",
+          "label": "Project ID",
+          "type": "string",
+          "required": true,
+          "help": "Use \"Search projects\" to find it."
+        },
+        {
+          "key": "name",
+          "label": "Task name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "description",
+          "label": "Description",
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "key": "search_tasks",
+      "name": "Search tasks",
+      "description": "Tasks of a project.",
+      "method": "GET",
+      "endpoint": "/task/search",
+      "query": {
+        "projectID": "{{ inputs.project_id }}",
+        "fields": "name,status",
+        "$$LIMIT": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "names": "data.*.name",
+        "ids": "data.*.ID"
+      },
+      "inputs": [
+        {
+          "key": "project_id",
+          "label": "Project ID",
+          "type": "string"
+        },
+        {
+          "key": "limit",
+          "label": "Max results",
+          "type": "number",
+          "default": 25
+        }
+      ]
+    },
+    {
+      "key": "update_task",
+      "name": "Update task",
+      "description": "Change a task name or status.",
+      "method": "PUT",
+      "endpoint": "/task/{{ inputs.id }}",
+      "body": {
+        "name": "{{ inputs.name }}",
+        "status": "{{ inputs.status }}"
+      },
+      "output_fields": {
+        "id": "data.ID",
+        "status": "data.status"
+      },
+      "inputs": [
+        {
+          "key": "id",
+          "label": "Task ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string"
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "options": [
+            {
+              "value": "NEW",
+              "label": "New"
+            },
+            {
+              "value": "INP",
+              "label": "In progress"
+            },
+            {
+              "value": "CPL",
+              "label": "Complete"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_task",
+      "name": "New task",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/task/search",
+      "query": {
+        "fields": "name,status",
+        "entryDate_Sort": "desc",
+        "$$LIMIT": 25
+      },
+      "items_path": "data",
+      "id_field": "ID",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

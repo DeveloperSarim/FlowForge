@@ -1,0 +1,296 @@
+{
+  "key": "uber_direct",
+  "name": "Uber Direct",
+  "category": "E-commerce",
+  "description": "On-demand local delivery by Uber couriers: quotes, deliveries and tracking.",
+  "brand": "uber",
+  "website": "https://www.uber.com/us/en/business/solutions/delivery/",
+  "docs_url": "https://developer.uber.com/docs/deliveries/overview",
+  "base_url": "https://api.uber.com/v1/customers/{{ credentials.customer_id }}",
+  "auth": {
+    "type": "oauth2_client_credentials",
+    "token_url": "https://auth.uber.com/oauth/v2/token",
+    "scopes": [
+      "eats.deliveries"
+    ],
+    "fields": [
+      {
+        "key": "customer_id",
+        "label": "Customer ID",
+        "type": "string",
+        "required": true,
+        "help": "direct.uber.com → Developer → Customer ID."
+      },
+      {
+        "key": "client_id",
+        "label": "Client ID",
+        "type": "string",
+        "required": true,
+        "help": "Same page."
+      },
+      {
+        "key": "client_secret",
+        "label": "Client secret",
+        "type": "password",
+        "required": true
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "create_quote",
+      "name": "Get delivery quote",
+      "description": "Fee and ETA for a delivery between two addresses.",
+      "method": "POST",
+      "endpoint": "/delivery_quotes",
+      "body": {
+        "pickup_address": "{{ inputs.pickup_address }}",
+        "dropoff_address": "{{ inputs.dropoff_address }}",
+        "pickup_phone_number": "{{ inputs.pickup_phone }}",
+        "dropoff_phone_number": "{{ inputs.dropoff_phone }}",
+        "manifest_total_value": "{{ inputs.value_cents }}"
+      },
+      "output_fields": {
+        "quote_id": "id",
+        "fee": "fee",
+        "currency": "currency",
+        "dropoff_eta": "dropoff_eta",
+        "expires": "expires"
+      },
+      "inputs": [
+        {
+          "key": "pickup_address",
+          "label": "Pickup address",
+          "type": "string",
+          "required": true,
+          "help": "Full address on one line."
+        },
+        {
+          "key": "dropoff_address",
+          "label": "Drop-off address",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "pickup_phone",
+          "label": "Pickup phone",
+          "type": "string"
+        },
+        {
+          "key": "dropoff_phone",
+          "label": "Drop-off phone",
+          "type": "string"
+        },
+        {
+          "key": "value_cents",
+          "label": "Order value (cents)",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "create_delivery",
+      "name": "Create delivery",
+      "description": "Request a courier.",
+      "method": "POST",
+      "endpoint": "/deliveries",
+      "body": {
+        "quote_id": "{{ inputs.quote_id }}",
+        "pickup_name": "{{ inputs.pickup_name }}",
+        "pickup_address": "{{ inputs.pickup_address }}",
+        "pickup_phone_number": "{{ inputs.pickup_phone }}",
+        "pickup_notes": "{{ inputs.pickup_notes }}",
+        "dropoff_name": "{{ inputs.dropoff_name }}",
+        "dropoff_address": "{{ inputs.dropoff_address }}",
+        "dropoff_phone_number": "{{ inputs.dropoff_phone }}",
+        "dropoff_notes": "{{ inputs.dropoff_notes }}",
+        "manifest_items": [
+          {
+            "name": "{{ inputs.item_name }}",
+            "quantity": "{{ inputs.item_quantity }}",
+            "size": "{{ inputs.item_size }}"
+          }
+        ],
+        "external_id": "{{ inputs.external_id }}"
+      },
+      "output_fields": {
+        "delivery_id": "id",
+        "status": "status",
+        "tracking_url": "tracking_url",
+        "fee": "fee"
+      },
+      "inputs": [
+        {
+          "key": "pickup_name",
+          "label": "Pickup name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "pickup_address",
+          "label": "Pickup address",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "pickup_phone",
+          "label": "Pickup phone",
+          "type": "string",
+          "required": true,
+          "placeholder": "+15555550123"
+        },
+        {
+          "key": "dropoff_name",
+          "label": "Customer name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "dropoff_address",
+          "label": "Drop-off address",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "dropoff_phone",
+          "label": "Customer phone",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "item_name",
+          "label": "Item",
+          "type": "string",
+          "required": true,
+          "default": "Order"
+        },
+        {
+          "key": "item_quantity",
+          "label": "Quantity",
+          "type": "number",
+          "default": 1
+        },
+        {
+          "key": "item_size",
+          "label": "Size",
+          "type": "select",
+          "default": "small",
+          "options": [
+            {
+              "value": "small",
+              "label": "small"
+            },
+            {
+              "value": "medium",
+              "label": "medium"
+            },
+            {
+              "value": "large",
+              "label": "large"
+            },
+            {
+              "value": "xlarge",
+              "label": "xlarge"
+            }
+          ]
+        },
+        {
+          "key": "quote_id",
+          "label": "Quote ID",
+          "type": "string",
+          "help": "From Get delivery quote, to lock the price."
+        },
+        {
+          "key": "pickup_notes",
+          "label": "Pickup notes",
+          "type": "string"
+        },
+        {
+          "key": "dropoff_notes",
+          "label": "Drop-off notes",
+          "type": "string"
+        },
+        {
+          "key": "external_id",
+          "label": "Your order ID",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "get_delivery",
+      "name": "Get delivery",
+      "description": "Status, courier and tracking link.",
+      "method": "GET",
+      "endpoint": "/deliveries/{{ inputs.delivery_id }}",
+      "output_fields": {
+        "status": "status",
+        "tracking_url": "tracking_url",
+        "courier_name": "courier.name",
+        "dropoff_eta": "dropoff_eta"
+      },
+      "inputs": [
+        {
+          "key": "delivery_id",
+          "label": "Delivery ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "cancel_delivery",
+      "name": "Cancel delivery",
+      "description": "Cancel a delivery.",
+      "method": "POST",
+      "endpoint": "/deliveries/{{ inputs.delivery_id }}/cancel",
+      "output_fields": {
+        "status": "status"
+      },
+      "inputs": [
+        {
+          "key": "delivery_id",
+          "label": "Delivery ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_deliveries",
+      "name": "List deliveries",
+      "description": "Recent deliveries.",
+      "method": "GET",
+      "endpoint": "/deliveries",
+      "query": {
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "deliveries": "data"
+      },
+      "inputs": [
+        {
+          "key": "limit",
+          "label": "How many",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Delivery status",
+      "type": "webhook",
+      "description": "direct.uber.com → Developer → Webhooks, paste this URL.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

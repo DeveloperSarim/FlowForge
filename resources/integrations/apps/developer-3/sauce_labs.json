@@ -1,0 +1,187 @@
+{
+  "key": "sauce_labs",
+  "name": "Sauce Labs",
+  "category": "Developer Tools",
+  "description": "List, update and stop Sauce Labs test jobs and builds.",
+  "brand": "saucelabs",
+  "website": "https://saucelabs.com",
+  "docs_url": "https://docs.saucelabs.com/dev/api/",
+  "base_url": "https://{{ credentials.host }}",
+  "auth": {
+    "type": "basic",
+    "fields": [
+      {
+        "key": "username",
+        "label": "Username",
+        "type": "string",
+        "required": true,
+        "help": "Sauce Labs → Account → User settings shows your username and access key."
+      },
+      {
+        "key": "password",
+        "label": "Access key",
+        "type": "password",
+        "required": true
+      },
+      {
+        "key": "host",
+        "label": "Data center",
+        "type": "select",
+        "required": true,
+        "default": "api.us-west-1.saucelabs.com",
+        "options": [
+          {
+            "value": "api.us-west-1.saucelabs.com",
+            "label": "US West"
+          },
+          {
+            "value": "api.us-east-4.saucelabs.com",
+            "label": "US East"
+          },
+          {
+            "value": "api.eu-central-1.saucelabs.com",
+            "label": "EU Central"
+          }
+        ]
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_jobs",
+      "name": "List jobs",
+      "description": "List your recent test jobs.",
+      "method": "GET",
+      "endpoint": "/rest/v1/{{ credentials.username }}/jobs",
+      "query": {
+        "limit": "{{ inputs.limit }}"
+      },
+      "inputs": [
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 20
+        }
+      ]
+    },
+    {
+      "key": "get_job",
+      "name": "Get job",
+      "description": "Get a job's status and result.",
+      "method": "GET",
+      "endpoint": "/rest/v1/{{ credentials.username }}/jobs/{{ inputs.job_id }}",
+      "output_fields": {
+        "name": "name",
+        "status": "status",
+        "passed": "passed",
+        "browser": "browser"
+      },
+      "inputs": [
+        {
+          "key": "job_id",
+          "label": "Job ID",
+          "type": "string",
+          "required": true,
+          "help": "Shown in the test's page in Sauce Labs, or use List jobs."
+        }
+      ]
+    },
+    {
+      "key": "update_job",
+      "name": "Update job",
+      "description": "Set a job's result, name, build or tags.",
+      "method": "PUT",
+      "endpoint": "/rest/v1/{{ credentials.username }}/jobs/{{ inputs.job_id }}",
+      "body": {
+        "passed": "{{ inputs.passed }}",
+        "name": "{{ inputs.name }}",
+        "build": "{{ inputs.build }}",
+        "tags": "{{ inputs.tags }}"
+      },
+      "inputs": [
+        {
+          "key": "job_id",
+          "label": "Job ID",
+          "type": "string",
+          "required": true,
+          "help": "Shown in the test's page in Sauce Labs, or use List jobs."
+        },
+        {
+          "key": "passed",
+          "label": "Passed",
+          "type": "boolean"
+        },
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string"
+        },
+        {
+          "key": "build",
+          "label": "Build",
+          "type": "string"
+        },
+        {
+          "key": "tags",
+          "label": "Tags",
+          "type": "list"
+        }
+      ]
+    },
+    {
+      "key": "stop_job",
+      "name": "Stop job",
+      "description": "Stop a running job.",
+      "method": "PUT",
+      "endpoint": "/rest/v1/{{ credentials.username }}/jobs/{{ inputs.job_id }}/stop",
+      "inputs": [
+        {
+          "key": "job_id",
+          "label": "Job ID",
+          "type": "string",
+          "required": true,
+          "help": "Shown in the test's page in Sauce Labs, or use List jobs."
+        }
+      ]
+    },
+    {
+      "key": "list_builds",
+      "name": "List builds",
+      "description": "List recent builds.",
+      "method": "GET",
+      "endpoint": "/v2/builds/{{ inputs.source }}/",
+      "query": {
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "builds": "builds"
+      },
+      "inputs": [
+        {
+          "key": "source",
+          "label": "Device type",
+          "type": "select",
+          "required": true,
+          "default": "vdc",
+          "options": [
+            {
+              "value": "vdc",
+              "label": "Virtual (browsers, emulators)"
+            },
+            {
+              "value": "rdc",
+              "label": "Real devices"
+            }
+          ]
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 20
+        }
+      ]
+    }
+  ]
+}

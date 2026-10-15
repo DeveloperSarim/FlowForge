@@ -1,0 +1,148 @@
+{
+  "key": "surveysparrow",
+  "name": "SurveySparrow",
+  "category": "Forms & Surveys",
+  "description": "Read surveys, responses and contacts from SurveySparrow, and add contacts.",
+  "website": "https://surveysparrow.com",
+  "docs_url": "https://developers.surveysparrow.com/rest-apis",
+  "base_url": "https://api.surveysparrow.com/v3",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "Access token",
+        "type": "password",
+        "required": true,
+        "help": "In SurveySparrow go to Settings > Apps & Integrations > Custom Apps (or API keys) and copy your access token."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_surveys",
+      "name": "List surveys",
+      "description": "Get the surveys in your account.",
+      "method": "GET",
+      "endpoint": "/surveys",
+      "query": {
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "surveys": "data",
+        "survey_ids": "data.*.id"
+      },
+      "inputs": [
+        {
+          "key": "limit",
+          "label": "Max results",
+          "type": "number",
+          "default": 25
+        }
+      ]
+    },
+    {
+      "key": "list_responses",
+      "name": "List responses",
+      "description": "Get the responses collected by a survey.",
+      "method": "GET",
+      "endpoint": "/responses",
+      "query": {
+        "survey_id": "{{ inputs.survey_id }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "responses": "data",
+        "response_ids": "data.*.id"
+      },
+      "inputs": [
+        {
+          "key": "survey_id",
+          "label": "Survey ID",
+          "type": "string",
+          "required": true,
+          "help": "Open the survey; the number is in the browser address bar."
+        },
+        {
+          "key": "limit",
+          "label": "Max results",
+          "type": "number",
+          "default": 25
+        }
+      ]
+    },
+    {
+      "key": "get_response",
+      "name": "Get a response",
+      "description": "Get one survey response with its answers.",
+      "method": "GET",
+      "endpoint": "/responses/{{ inputs.response_id }}",
+      "output_fields": {
+        "id": "data.id"
+      },
+      "inputs": [
+        {
+          "key": "response_id",
+          "label": "Response ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_contacts",
+      "name": "List contacts",
+      "description": "Get your SurveySparrow contacts.",
+      "method": "GET",
+      "endpoint": "/contacts",
+      "query": {
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "contacts": "data",
+        "contact_ids": "data.*.id"
+      },
+      "inputs": [
+        {
+          "key": "limit",
+          "label": "Max results",
+          "type": "number",
+          "default": 25
+        }
+      ]
+    },
+    {
+      "key": "create_contact",
+      "name": "Create a contact",
+      "description": "Add a contact to SurveySparrow.",
+      "method": "POST",
+      "endpoint": "/contacts",
+      "body": {
+        "email": "{{ inputs.email }}",
+        "full_name": "{{ inputs.full_name }}",
+        "mobile": "{{ inputs.mobile }}"
+      },
+      "output_fields": {
+        "id": "data.id"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "full_name",
+          "label": "Full name",
+          "type": "string"
+        },
+        {
+          "key": "mobile",
+          "label": "Mobile number",
+          "type": "string"
+        }
+      ]
+    }
+  ]
+}

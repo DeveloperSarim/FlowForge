@@ -1,0 +1,238 @@
+{
+  "key": "odk_central",
+  "name": "ODK Central",
+  "category": "Forms & Surveys",
+  "description": "Field data collection: list projects and forms, read and review submissions.",
+  "website": "https://getodk.org",
+  "docs_url": "https://docs.getodk.org/central-api/",
+  "base_url": "{{ credentials.server_url }}/v1",
+  "auth": {
+    "type": "basic",
+    "fields": [
+      {
+        "key": "server_url",
+        "label": "Central server URL",
+        "type": "string",
+        "required": true,
+        "placeholder": "https://central.example.org",
+        "help": "The address you open ODK Central at (HTTPS), without a trailing slash."
+      },
+      {
+        "key": "username",
+        "label": "Email",
+        "type": "string",
+        "required": true,
+        "help": "A Web User account. Tip: create a dedicated Project Viewer/Manager user for FlowForge."
+      },
+      {
+        "key": "password",
+        "label": "Password",
+        "type": "password",
+        "required": true
+      }
+    ]
+  },
+  "error_hints": {
+    "401": "Check the email and password. Basic login only works over HTTPS and not when Single Sign-On is enabled."
+  },
+  "actions": [
+    {
+      "key": "list_projects",
+      "name": "List projects",
+      "description": "Projects you can access and their IDs.",
+      "method": "GET",
+      "endpoint": "/projects",
+      "output_fields": {
+        "ids": "*.id",
+        "names": "*.name"
+      },
+      "inputs": []
+    },
+    {
+      "key": "list_forms",
+      "name": "List forms",
+      "description": "Forms in a project and their form IDs.",
+      "method": "GET",
+      "endpoint": "/projects/{{ inputs.project_id }}/forms",
+      "output_fields": {
+        "form_ids": "*.xmlFormId",
+        "names": "*.name",
+        "states": "*.state"
+      },
+      "inputs": [
+        {
+          "key": "project_id",
+          "label": "Project ID",
+          "type": "string",
+          "required": true,
+          "help": "The number in the project's address in Central, or run \"List projects\"."
+        }
+      ]
+    },
+    {
+      "key": "get_submissions",
+      "name": "Get submissions",
+      "description": "Submitted data of a form, newest first.",
+      "method": "GET",
+      "endpoint": "/projects/{{ inputs.project_id }}/forms/{{ inputs.form_id }}.svc/Submissions",
+      "query": {
+        "$top": "{{ inputs.top }}",
+        "$orderby": "__system/submissionDate desc",
+        "$filter": "{{ inputs.filter }}"
+      },
+      "output_fields": {
+        "submissions": "value",
+        "ids": "value.*.__id"
+      },
+      "inputs": [
+        {
+          "key": "project_id",
+          "label": "Project ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "form_id",
+          "label": "Form ID",
+          "type": "string",
+          "required": true,
+          "help": "The form's ID (xmlFormId), shown on the form's page in Central."
+        },
+        {
+          "key": "top",
+          "label": "How many",
+          "type": "number",
+          "default": 50
+        },
+        {
+          "key": "filter",
+          "label": "Filter",
+          "type": "string",
+          "placeholder": "__system/reviewState eq null",
+          "help": "Optional OData filter."
+        }
+      ]
+    },
+    {
+      "key": "get_submission",
+      "name": "Get submission",
+      "description": "One submission's data by instance ID.",
+      "method": "GET",
+      "endpoint": "/projects/{{ inputs.project_id }}/forms/{{ inputs.form_id }}.svc/Submissions('{{ inputs.instance_id }}')",
+      "output_fields": {
+        "submission": "value.0"
+      },
+      "inputs": [
+        {
+          "key": "project_id",
+          "label": "Project ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "form_id",
+          "label": "Form ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "instance_id",
+          "label": "Instance ID",
+          "type": "string",
+          "required": true,
+          "placeholder": "uuid:…"
+        }
+      ]
+    },
+    {
+      "key": "review_submission",
+      "name": "Set review state",
+      "description": "Mark a submission approved, has issues or rejected.",
+      "method": "PATCH",
+      "endpoint": "/projects/{{ inputs.project_id }}/forms/{{ inputs.form_id }}/submissions/{{ inputs.instance_id }}",
+      "body": {
+        "reviewState": "{{ inputs.review_state }}"
+      },
+      "output_fields": {
+        "instance_id": "instanceId",
+        "review_state": "reviewState"
+      },
+      "inputs": [
+        {
+          "key": "project_id",
+          "label": "Project ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "form_id",
+          "label": "Form ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "instance_id",
+          "label": "Instance ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "review_state",
+          "label": "Review state",
+          "type": "select",
+          "required": true,
+          "default": "approved",
+          "options": [
+            {
+              "value": "approved",
+              "label": "Approved"
+            },
+            {
+              "value": "hasIssues",
+              "label": "Has issues"
+            },
+            {
+              "value": "rejected",
+              "label": "Rejected"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_submission",
+      "name": "New submission",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/projects/{{ inputs.project_id }}/forms/{{ inputs.form_id }}.svc/Submissions",
+      "query": {
+        "$top": "50",
+        "$orderby": "__system/submissionDate desc"
+      },
+      "items_path": "value",
+      "id_field": "__id",
+      "inputs": [
+        {
+          "key": "project_id",
+          "label": "Project ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "form_id",
+          "label": "Form ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

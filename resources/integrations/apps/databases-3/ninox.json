@@ -1,0 +1,172 @@
+{
+  "key": "ninox",
+  "name": "Ninox",
+  "category": "Databases",
+  "description": "Read and write records in your Ninox cloud databases.",
+  "website": "https://ninox.com",
+  "docs_url": "https://docs.ninox.com/en/api/public-cloud-api",
+  "base_url": "https://api.ninox.com/v1",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "In Ninox open Settings → Integrations → API → Generate API key."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_databases",
+      "name": "List databases",
+      "description": "List the databases in a team.",
+      "method": "GET",
+      "endpoint": "/teams/{{ inputs.team_id }}/databases",
+      "output_fields": {
+        "first_id": "0.id",
+        "first_name": "0.name"
+      },
+      "inputs": [
+        {
+          "key": "team_id",
+          "label": "Team ID",
+          "type": "string",
+          "required": true,
+          "help": "Ninox → Settings → Integrations shows the team ID."
+        }
+      ]
+    },
+    {
+      "key": "list_records",
+      "name": "List records",
+      "description": "Get records from a table.",
+      "method": "GET",
+      "endpoint": "/teams/{{ inputs.team_id }}/databases/{{ inputs.database_id }}/tables/{{ inputs.table_id }}/records",
+      "query": {
+        "perPage": "{{ inputs.per_page }}",
+        "page": "{{ inputs.page }}"
+      },
+      "output_fields": {
+        "first_id": "0.id",
+        "first_fields": "0.fields"
+      },
+      "inputs": [
+        {
+          "key": "team_id",
+          "label": "Team ID",
+          "type": "string",
+          "required": true,
+          "help": "Ninox → Settings → Integrations shows the team ID."
+        },
+        {
+          "key": "database_id",
+          "label": "Database ID",
+          "type": "string",
+          "required": true,
+          "help": "Shown in Ninox under Integrations → API, or use the list-databases action."
+        },
+        {
+          "key": "table_id",
+          "label": "Table ID",
+          "type": "string",
+          "required": true,
+          "help": "Table IDs are letters like A, B, C; shown in the Ninox API settings."
+        },
+        {
+          "key": "per_page",
+          "label": "Records per page",
+          "type": "number",
+          "default": 100
+        },
+        {
+          "key": "page",
+          "label": "Page",
+          "type": "number",
+          "default": 0
+        }
+      ]
+    },
+    {
+      "key": "create_records",
+      "name": "Create records",
+      "description": "Add one or more records to a table.",
+      "method": "POST",
+      "endpoint": "/teams/{{ inputs.team_id }}/databases/{{ inputs.database_id }}/tables/{{ inputs.table_id }}/records",
+      "body": "{{ inputs.records }}",
+      "output_fields": {
+        "first_id": "0.id"
+      },
+      "inputs": [
+        {
+          "key": "team_id",
+          "label": "Team ID",
+          "type": "string",
+          "required": true,
+          "help": "Ninox → Settings → Integrations shows the team ID."
+        },
+        {
+          "key": "database_id",
+          "label": "Database ID",
+          "type": "string",
+          "required": true,
+          "help": "Shown in Ninox under Integrations → API, or use the list-databases action."
+        },
+        {
+          "key": "table_id",
+          "label": "Table ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "records",
+          "label": "Records (JSON list)",
+          "type": "json",
+          "required": true,
+          "help": "Example: [{\"fields\": {\"Name\": \"Ada\"}}]"
+        }
+      ]
+    },
+    {
+      "key": "get_record",
+      "name": "Get record",
+      "description": "Read one record.",
+      "method": "GET",
+      "endpoint": "/teams/{{ inputs.team_id }}/databases/{{ inputs.database_id }}/tables/{{ inputs.table_id }}/records/{{ inputs.record_id }}",
+      "output_fields": {
+        "id": "id",
+        "fields": "fields"
+      },
+      "inputs": [
+        {
+          "key": "team_id",
+          "label": "Team ID",
+          "type": "string",
+          "required": true,
+          "help": "Ninox → Settings → Integrations shows the team ID."
+        },
+        {
+          "key": "database_id",
+          "label": "Database ID",
+          "type": "string",
+          "required": true,
+          "help": "Shown in Ninox under Integrations → API, or use the list-databases action."
+        },
+        {
+          "key": "table_id",
+          "label": "Table ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "record_id",
+          "label": "Record ID",
+          "type": "number",
+          "required": true
+        }
+      ]
+    }
+  ]
+}

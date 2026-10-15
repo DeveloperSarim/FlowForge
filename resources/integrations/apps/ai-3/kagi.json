@@ -1,0 +1,255 @@
+{
+  "key": "kagi",
+  "name": "Kagi",
+  "category": "AI",
+  "description": "Ad-free search, FastGPT answers and the Universal Summarizer from Kagi.",
+  "website": "https://kagi.com",
+  "docs_url": "https://help.kagi.com/kagi/api/overview.html",
+  "base_url": "https://kagi.com/api/v0",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "Authorization",
+    "prefix": "Bot ",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "API token",
+        "type": "password",
+        "required": true,
+        "help": "kagi.com → Settings → Advanced → API portal → Generate API token. Add API credit first."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "fastgpt",
+      "name": "Ask FastGPT",
+      "description": "Get a quick answer with sources, grounded in Kagi search.",
+      "method": "POST",
+      "endpoint": "/fastgpt",
+      "timeout": 120,
+      "body": {
+        "query": "{{ inputs.query }}",
+        "web_search": true
+      },
+      "output_fields": {
+        "answer": "data.output",
+        "references": "data.references"
+      },
+      "inputs": [
+        {
+          "key": "query",
+          "label": "Question",
+          "type": "text",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "summarize_url",
+      "name": "Summarise URL",
+      "description": "Summarise any web page, document or video.",
+      "method": "GET",
+      "endpoint": "/summarize",
+      "timeout": 180,
+      "query": {
+        "url": "{{ inputs.url }}",
+        "engine": "{{ inputs.engine }}",
+        "summary_type": "{{ inputs.summary_type }}",
+        "target_language": "{{ inputs.target_language }}"
+      },
+      "output_fields": {
+        "summary": "data.output"
+      },
+      "inputs": [
+        {
+          "key": "url",
+          "label": "URL",
+          "type": "string",
+          "required": true,
+          "help": "A web page, PDF, YouTube video or podcast link."
+        },
+        {
+          "key": "engine",
+          "label": "Engine",
+          "type": "select",
+          "default": "cecil",
+          "options": [
+            {
+              "value": "cecil",
+              "label": "Cecil (friendly)"
+            },
+            {
+              "value": "agnes",
+              "label": "Agnes (formal)"
+            },
+            {
+              "value": "muriel",
+              "label": "Muriel (best, enterprise)"
+            }
+          ]
+        },
+        {
+          "key": "summary_type",
+          "label": "Type",
+          "type": "select",
+          "default": "summary",
+          "options": [
+            {
+              "value": "summary",
+              "label": "Paragraph summary"
+            },
+            {
+              "value": "takeaway",
+              "label": "Key takeaways"
+            }
+          ]
+        },
+        {
+          "key": "target_language",
+          "label": "Output language",
+          "type": "string",
+          "placeholder": "EN"
+        }
+      ]
+    },
+    {
+      "key": "summarize_text",
+      "name": "Summarise text",
+      "description": "Summarise a long piece of text.",
+      "method": "POST",
+      "endpoint": "/summarize",
+      "timeout": 180,
+      "body": {
+        "text": "{{ inputs.text }}",
+        "engine": "{{ inputs.engine }}",
+        "summary_type": "{{ inputs.summary_type }}",
+        "target_language": "{{ inputs.target_language }}"
+      },
+      "output_fields": {
+        "summary": "data.output"
+      },
+      "inputs": [
+        {
+          "key": "text",
+          "label": "Text",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "engine",
+          "label": "Engine",
+          "type": "select",
+          "default": "cecil",
+          "options": [
+            {
+              "value": "cecil",
+              "label": "Cecil (friendly)"
+            },
+            {
+              "value": "agnes",
+              "label": "Agnes (formal)"
+            },
+            {
+              "value": "muriel",
+              "label": "Muriel (best, enterprise)"
+            }
+          ]
+        },
+        {
+          "key": "summary_type",
+          "label": "Type",
+          "type": "select",
+          "default": "summary",
+          "options": [
+            {
+              "value": "summary",
+              "label": "Paragraph summary"
+            },
+            {
+              "value": "takeaway",
+              "label": "Key takeaways"
+            }
+          ]
+        },
+        {
+          "key": "target_language",
+          "label": "Output language",
+          "type": "string",
+          "placeholder": "EN"
+        }
+      ]
+    },
+    {
+      "key": "search",
+      "name": "Web search",
+      "description": "Search the web with Kagi (Search API access is invite-only).",
+      "method": "GET",
+      "endpoint": "/search",
+      "query": {
+        "q": "{{ inputs.q }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "results": "data"
+      },
+      "inputs": [
+        {
+          "key": "q",
+          "label": "Query",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "limit",
+          "label": "Results",
+          "type": "number",
+          "default": 10
+        }
+      ]
+    },
+    {
+      "key": "enrich_web",
+      "name": "Small-web search",
+      "description": "Find non-commercial, independent web pages (Teclis index).",
+      "method": "GET",
+      "endpoint": "/enrich/web",
+      "query": {
+        "q": "{{ inputs.q }}"
+      },
+      "output_fields": {
+        "results": "data"
+      },
+      "inputs": [
+        {
+          "key": "q",
+          "label": "Query",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "enrich_news",
+      "name": "Small-web news",
+      "description": "Find non-mainstream news and discussions (TinyGem index).",
+      "method": "GET",
+      "endpoint": "/enrich/news",
+      "query": {
+        "q": "{{ inputs.q }}"
+      },
+      "output_fields": {
+        "results": "data"
+      },
+      "inputs": [
+        {
+          "key": "q",
+          "label": "Query",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ]
+}

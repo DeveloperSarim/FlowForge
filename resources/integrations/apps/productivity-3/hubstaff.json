@@ -1,0 +1,136 @@
+{
+  "key": "hubstaff",
+  "name": "Hubstaff",
+  "category": "Productivity",
+  "description": "Time tracking and monitoring: list projects, members and tracked activity.",
+  "website": "https://hubstaff.com",
+  "docs_url": "https://developer.hubstaff.com/docs/hubstaff_v2",
+  "base_url": "https://api.hubstaff.com/v2",
+  "auth": {
+    "type": "oauth2",
+    "authorize_url": "https://account.hubstaff.com/authorize",
+    "token_url": "https://account.hubstaff.com/access_tokens",
+    "scopes": [
+      "hubstaff:read",
+      "hubstaff:write",
+      "openid"
+    ],
+    "fields": [
+      {
+        "key": "client_id",
+        "label": "Client ID",
+        "type": "string",
+        "required": true,
+        "help": "Hubstaff → Developer (developer.hubstaff.com) → create an OAuth app; use this app's redirect URL."
+      },
+      {
+        "key": "client_secret",
+        "label": "Client secret",
+        "type": "password",
+        "required": true,
+        "help": "Shown with the Client ID."
+      }
+    ],
+    "client_auth": "basic",
+    "pkce": true,
+    "authorize_params": {
+      "nonce": "flowforge"
+    },
+    "profile": {
+      "endpoint": "/organizations",
+      "store": {
+        "organization_id": "{{ data.organizations.0.id }}"
+      }
+    }
+  },
+  "actions": [
+    {
+      "key": "list_organizations",
+      "name": "List organizations",
+      "description": "Your Hubstaff organizations.",
+      "method": "GET",
+      "endpoint": "/organizations",
+      "output_fields": {
+        "names": "organizations.*.name",
+        "ids": "organizations.*.id"
+      },
+      "inputs": []
+    },
+    {
+      "key": "list_projects",
+      "name": "List projects",
+      "description": "Projects of an organization.",
+      "method": "GET",
+      "endpoint": "/organizations/{{ inputs.organization_id }}/projects",
+      "output_fields": {
+        "names": "projects.*.name",
+        "ids": "projects.*.id"
+      },
+      "inputs": [
+        {
+          "key": "organization_id",
+          "label": "Organization ID",
+          "type": "string",
+          "help": "Leave empty to use your first organization.",
+          "fallback": "credentials.organization_id"
+        }
+      ]
+    },
+    {
+      "key": "list_members",
+      "name": "List members",
+      "description": "People in an organization.",
+      "method": "GET",
+      "endpoint": "/organizations/{{ inputs.organization_id }}/members",
+      "output_fields": {
+        "user_ids": "members.*.user_id"
+      },
+      "inputs": [
+        {
+          "key": "organization_id",
+          "label": "Organization ID",
+          "type": "string",
+          "help": "Leave empty to use your first organization.",
+          "fallback": "credentials.organization_id"
+        }
+      ]
+    },
+    {
+      "key": "list_activities",
+      "name": "List activities",
+      "description": "Tracked time slots in a period.",
+      "method": "GET",
+      "endpoint": "/organizations/{{ inputs.organization_id }}/activities",
+      "query": {
+        "time_slot[start]": "{{ inputs.start }}",
+        "time_slot[stop]": "{{ inputs.stop }}"
+      },
+      "output_fields": {
+        "tracked": "activities.*.tracked"
+      },
+      "inputs": [
+        {
+          "key": "organization_id",
+          "label": "Organization ID",
+          "type": "string",
+          "help": "Leave empty to use your first organization.",
+          "fallback": "credentials.organization_id"
+        },
+        {
+          "key": "start",
+          "label": "From",
+          "type": "string",
+          "required": true,
+          "placeholder": "2025-01-01T00:00:00Z"
+        },
+        {
+          "key": "stop",
+          "label": "To",
+          "type": "string",
+          "required": true,
+          "placeholder": "2025-01-02T00:00:00Z"
+        }
+      ]
+    }
+  ]
+}

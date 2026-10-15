@@ -1,0 +1,160 @@
+{
+  "key": "pretalx",
+  "name": "pretalx",
+  "category": "Events & Webinars",
+  "description": "Conference speaker and schedule tool: read submissions, talks and speakers.",
+  "website": "https://pretalx.com",
+  "docs_url": "https://docs.pretalx.org/api/",
+  "base_url": "{{ credentials.host }}/api",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "Authorization",
+    "prefix": "Token ",
+    "fields": [
+      {
+        "key": "host",
+        "label": "pretalx address",
+        "type": "string",
+        "required": true,
+        "default": "https://pretalx.com",
+        "help": "Use https://pretalx.com or your own pretalx server."
+      },
+      {
+        "key": "api_key",
+        "label": "API token",
+        "type": "password",
+        "required": true,
+        "help": "pretalx > your profile (top right) > API token: copy it."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_events",
+      "name": "List events",
+      "description": "Get the events you can access.",
+      "method": "GET",
+      "endpoint": "/events/",
+      "output_fields": {
+        "events": "results",
+        "slugs": "results.*.slug"
+      },
+      "inputs": []
+    },
+    {
+      "key": "list_submissions",
+      "name": "List submissions",
+      "description": "Get talk proposals for an event.",
+      "method": "GET",
+      "endpoint": "/events/{{ inputs.event }}/submissions/",
+      "query": {
+        "state": "{{ inputs.state }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "submissions": "results",
+        "titles": "results.*.title",
+        "count": "count"
+      },
+      "inputs": [
+        {
+          "key": "event",
+          "label": "Event slug",
+          "type": "string",
+          "required": true,
+          "help": "The short name in the event's pretalx address."
+        },
+        {
+          "key": "state",
+          "label": "State",
+          "type": "select",
+          "options": [
+            {
+              "value": "",
+              "label": "Any"
+            },
+            {
+              "value": "submitted",
+              "label": "Submitted"
+            },
+            {
+              "value": "accepted",
+              "label": "Accepted"
+            },
+            {
+              "value": "confirmed",
+              "label": "Confirmed"
+            },
+            {
+              "value": "rejected",
+              "label": "Rejected"
+            }
+          ]
+        },
+        {
+          "key": "limit",
+          "label": "Max results",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    },
+    {
+      "key": "list_talks",
+      "name": "List scheduled talks",
+      "description": "Get talks in the published schedule.",
+      "method": "GET",
+      "endpoint": "/events/{{ inputs.event }}/talks/",
+      "query": {
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "talks": "results",
+        "titles": "results.*.title"
+      },
+      "inputs": [
+        {
+          "key": "event",
+          "label": "Event slug",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "limit",
+          "label": "Max results",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    },
+    {
+      "key": "list_speakers",
+      "name": "List speakers",
+      "description": "Get the speakers.",
+      "method": "GET",
+      "endpoint": "/events/{{ inputs.event }}/speakers/",
+      "query": {
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "speakers": "results",
+        "names": "results.*.name"
+      },
+      "inputs": [
+        {
+          "key": "event",
+          "label": "Event slug",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "limit",
+          "label": "Max results",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    }
+  ]
+}

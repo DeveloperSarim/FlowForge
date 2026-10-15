@@ -220,11 +220,10 @@ function Editor({ workflow: initial, catalog, operators, lastExecution, ai }) {
         }
     };
 
-    const download = () => {
-        const blob = new Blob([JSON.stringify({ name, ...graph }, null, 2)], { type: 'application/json' });
-        const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(blob), download: `${name.replace(/[^a-z0-9]+/gi, '-').toLowerCase() || 'workflow'}.json` });
-        a.click();
-        URL.revokeObjectURL(a.href);
+    // The server's export leaves out credentials and passwords, and carries any custom apps the workflow uses.
+    const download = async () => {
+        if (!readOnly) await persist();
+        window.location.href = `/workflows/${initial.id}/export`;
     };
 
     // ---- derived view state -----------------------------------------------------------------
@@ -290,7 +289,7 @@ function Editor({ workflow: initial, catalog, operators, lastExecution, ai }) {
                         </label>
                         <Menu trigger={<Button variant="ghost" size="icon" aria-label="Workflow menu"><MoreHorizontal className="size-4" /></Button>} items={[
                             !readOnly && { label: 'Duplicate', icon: Copy, onClick: async () => { await persist(); router.post(`/workflows/${initial.id}/duplicate`); } },
-                            { label: 'Download as JSON', icon: Download, onClick: download },
+                            { label: 'Export', icon: Download, onClick: download },
                             can['workflows.delete'] && { label: 'Delete workflow', icon: Trash2, danger: true, onClick: () => setDeleting(true) },
                         ]} />
                     </div>

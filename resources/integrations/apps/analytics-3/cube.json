@@ -1,0 +1,119 @@
+{
+  "key": "cube",
+  "name": "Cube",
+  "category": "Analytics",
+  "description": "Query your Cube semantic layer and read its cubes, measures and generated SQL.",
+  "website": "https://cube.dev",
+  "docs_url": "https://cube.dev/docs/product/apis-integrations/rest-api",
+  "base_url": "{{ credentials.api_url }}",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "Authorization",
+    "fields": [
+      {
+        "key": "api_url",
+        "label": "REST API URL",
+        "type": "string",
+        "required": true,
+        "placeholder": "https://my-deployment.cubecloud.dev/cubejs-api/v1",
+        "help": "Cube Cloud → your deployment → Overview → REST API. Ends with /cubejs-api/v1."
+      },
+      {
+        "key": "api_key",
+        "label": "API token",
+        "type": "password",
+        "required": true,
+        "help": "A JWT signed with your Cube API secret (Cube Cloud shows one under 'How to connect')."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "load",
+      "name": "Run query",
+      "description": "Load data for a Cube query.",
+      "method": "POST",
+      "endpoint": "/load",
+      "timeout": 120,
+      "body": {
+        "query": "{{ inputs.query }}"
+      },
+      "error_path": "error",
+      "output_fields": {
+        "rows": "data"
+      },
+      "inputs": [
+        {
+          "key": "query",
+          "label": "Query (JSON)",
+          "type": "json",
+          "required": true,
+          "placeholder": "{\"measures\":[\"orders.count\"],\"timeDimensions\":[{\"dimension\":\"orders.created_at\",\"granularity\":\"day\",\"dateRange\":\"last 7 days\"}]}",
+          "help": "A Cube query: measures, dimensions, filters, timeDimensions."
+        }
+      ]
+    },
+    {
+      "key": "get_meta",
+      "name": "List cubes and measures",
+      "description": "All cubes, measures and dimensions you can query.",
+      "method": "GET",
+      "endpoint": "/meta",
+      "output_fields": {
+        "cubes": "cubes",
+        "cube_names": "cubes.*.name"
+      },
+      "inputs": []
+    },
+    {
+      "key": "generate_sql",
+      "name": "Get generated SQL",
+      "description": "The SQL Cube would run for a query.",
+      "method": "POST",
+      "endpoint": "/sql",
+      "body": {
+        "query": "{{ inputs.query }}"
+      },
+      "error_path": "error",
+      "output_fields": {
+        "sql": "sql.sql"
+      },
+      "inputs": [
+        {
+          "key": "query",
+          "label": "Query (JSON)",
+          "type": "json",
+          "required": true,
+          "placeholder": "{\"measures\":[\"orders.count\"],\"timeDimensions\":[{\"dimension\":\"orders.created_at\",\"granularity\":\"day\",\"dateRange\":\"last 7 days\"}]}",
+          "help": "A Cube query: measures, dimensions, filters, timeDimensions."
+        }
+      ]
+    },
+    {
+      "key": "dry_run",
+      "name": "Validate query",
+      "description": "Check and normalize a query without running it.",
+      "method": "POST",
+      "endpoint": "/dry-run",
+      "body": {
+        "query": "{{ inputs.query }}"
+      },
+      "error_path": "error",
+      "output_fields": {
+        "normalized_queries": "normalizedQueries",
+        "query_type": "queryType"
+      },
+      "inputs": [
+        {
+          "key": "query",
+          "label": "Query (JSON)",
+          "type": "json",
+          "required": true,
+          "placeholder": "{\"measures\":[\"orders.count\"],\"timeDimensions\":[{\"dimension\":\"orders.created_at\",\"granularity\":\"day\",\"dateRange\":\"last 7 days\"}]}",
+          "help": "A Cube query: measures, dimensions, filters, timeDimensions."
+        }
+      ]
+    }
+  ]
+}

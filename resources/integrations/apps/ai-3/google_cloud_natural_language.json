@@ -1,0 +1,176 @@
+{
+  "key": "google_cloud_natural_language",
+  "name": "Google Cloud Natural Language",
+  "category": "AI",
+  "description": "Analyse sentiment, find entities, classify and moderate text with Google.",
+  "brand": "googlecloud",
+  "website": "https://cloud.google.com/natural-language",
+  "docs_url": "https://cloud.google.com/natural-language/docs/reference/rest/v2/documents",
+  "base_url": "https://language.googleapis.com/v2",
+  "auth": [
+    {
+      "type": "api_key",
+      "in": "query",
+      "name": "key",
+      "fields": [
+        {
+          "key": "api_key",
+          "label": "API key",
+          "type": "password",
+          "required": true,
+          "help": "Google Cloud console → APIs & Services → Credentials → Create credentials → API key. Enable the Cloud Natural Language API for your project first."
+        }
+      ]
+    },
+    {
+      "type": "google_service_account",
+      "scopes": [
+        "https://www.googleapis.com/auth/cloud-language"
+      ],
+      "fields": [
+        {
+          "key": "service_account_json",
+          "label": "Service Account JSON key",
+          "type": "code",
+          "required": true,
+          "help": "Google Cloud console → IAM & Admin → Service Accounts → your account → Keys → Add key → JSON. Paste the whole file."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "analyze_sentiment",
+      "name": "Analyse sentiment",
+      "description": "Score how positive or negative a text is (-1 to 1).",
+      "method": "POST",
+      "endpoint": "/documents:analyzeSentiment",
+      "body": {
+        "document": {
+          "type": "PLAIN_TEXT",
+          "content": "{{ inputs.text }}",
+          "languageCode": "{{ inputs.language }}"
+        },
+        "encodingType": "UTF8"
+      },
+      "output_fields": {
+        "score": "documentSentiment.score",
+        "magnitude": "documentSentiment.magnitude",
+        "language": "languageCode"
+      },
+      "inputs": [
+        {
+          "key": "text",
+          "label": "Text",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "language",
+          "label": "Language code",
+          "type": "string",
+          "placeholder": "en",
+          "help": "Optional. Detected automatically when blank."
+        }
+      ]
+    },
+    {
+      "key": "analyze_entities",
+      "name": "Find entities",
+      "description": "Find people, places, organisations and more in a text.",
+      "method": "POST",
+      "endpoint": "/documents:analyzeEntities",
+      "body": {
+        "document": {
+          "type": "PLAIN_TEXT",
+          "content": "{{ inputs.text }}",
+          "languageCode": "{{ inputs.language }}"
+        },
+        "encodingType": "UTF8"
+      },
+      "output_fields": {
+        "entities": "entities.*.name"
+      },
+      "inputs": [
+        {
+          "key": "text",
+          "label": "Text",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "language",
+          "label": "Language code",
+          "type": "string",
+          "placeholder": "en",
+          "help": "Optional. Detected automatically when blank."
+        }
+      ]
+    },
+    {
+      "key": "classify_text",
+      "name": "Classify text",
+      "description": "Put a text into content categories.",
+      "method": "POST",
+      "endpoint": "/documents:classifyText",
+      "body": {
+        "document": {
+          "type": "PLAIN_TEXT",
+          "content": "{{ inputs.text }}",
+          "languageCode": "{{ inputs.language }}"
+        }
+      },
+      "output_fields": {
+        "category": "categories.0.name",
+        "confidence": "categories.0.confidence"
+      },
+      "inputs": [
+        {
+          "key": "text",
+          "label": "Text",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "language",
+          "label": "Language code",
+          "type": "string",
+          "placeholder": "en",
+          "help": "Optional. Detected automatically when blank."
+        }
+      ]
+    },
+    {
+      "key": "moderate_text",
+      "name": "Moderate text",
+      "description": "Check a text for toxic, violent or sensitive content.",
+      "method": "POST",
+      "endpoint": "/documents:moderateText",
+      "body": {
+        "document": {
+          "type": "PLAIN_TEXT",
+          "content": "{{ inputs.text }}",
+          "languageCode": "{{ inputs.language }}"
+        }
+      },
+      "output_fields": {
+        "categories": "moderationCategories"
+      },
+      "inputs": [
+        {
+          "key": "text",
+          "label": "Text",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "language",
+          "label": "Language code",
+          "type": "string",
+          "placeholder": "en",
+          "help": "Optional. Detected automatically when blank."
+        }
+      ]
+    }
+  ]
+}

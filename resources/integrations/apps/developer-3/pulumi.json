@@ -1,0 +1,228 @@
+{
+  "key": "pulumi",
+  "name": "Pulumi Cloud",
+  "category": "Developer Tools",
+  "description": "List Pulumi stacks and updates and run Pulumi Deployments.",
+  "brand": "pulumi",
+  "website": "https://www.pulumi.com",
+  "docs_url": "https://www.pulumi.com/docs/pulumi-cloud/reference/cloud-rest-api/",
+  "base_url": "https://api.pulumi.com/api",
+  "headers": {
+    "Accept": "application/vnd.pulumi+8"
+  },
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "Authorization",
+    "prefix": "token ",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "Access token",
+        "type": "password",
+        "required": true,
+        "help": "Pulumi Cloud → your avatar → Personal access tokens (or Organization → Access tokens) → Create token."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_stacks",
+      "name": "List stacks",
+      "description": "List the stacks you can access.",
+      "method": "GET",
+      "endpoint": "/user/stacks",
+      "query": {
+        "organization": "{{ inputs.organization }}",
+        "project": "{{ inputs.project }}"
+      },
+      "output_fields": {
+        "stacks": "stacks"
+      },
+      "inputs": [
+        {
+          "key": "organization",
+          "label": "Organization",
+          "type": "string"
+        },
+        {
+          "key": "project",
+          "label": "Project",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "get_stack",
+      "name": "Get stack",
+      "description": "Get a stack's details and tags.",
+      "method": "GET",
+      "endpoint": "/stacks/{{ inputs.organization }}/{{ inputs.project }}/{{ inputs.stack }}",
+      "inputs": [
+        {
+          "key": "organization",
+          "label": "Organization",
+          "type": "string",
+          "required": true,
+          "help": "Your Pulumi organization name (app.pulumi.com/<organization>)."
+        },
+        {
+          "key": "project",
+          "label": "Project",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "stack",
+          "label": "Stack",
+          "type": "string",
+          "required": true,
+          "placeholder": "prod"
+        }
+      ]
+    },
+    {
+      "key": "list_updates",
+      "name": "List stack updates",
+      "description": "List a stack's recent updates and their results.",
+      "method": "GET",
+      "endpoint": "/stacks/{{ inputs.organization }}/{{ inputs.project }}/{{ inputs.stack }}/updates",
+      "query": {
+        "page": 1,
+        "pageSize": "{{ inputs.page_size }}"
+      },
+      "output_fields": {
+        "updates": "updates"
+      },
+      "inputs": [
+        {
+          "key": "organization",
+          "label": "Organization",
+          "type": "string",
+          "required": true,
+          "help": "Your Pulumi organization name (app.pulumi.com/<organization>)."
+        },
+        {
+          "key": "project",
+          "label": "Project",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "stack",
+          "label": "Stack",
+          "type": "string",
+          "required": true,
+          "placeholder": "prod"
+        },
+        {
+          "key": "page_size",
+          "label": "Page size",
+          "type": "number",
+          "default": 10
+        }
+      ]
+    },
+    {
+      "key": "run_deployment",
+      "name": "Run deployment",
+      "description": "Run a Pulumi Deployment using the stack's deployment settings.",
+      "method": "POST",
+      "endpoint": "/stacks/{{ inputs.organization }}/{{ inputs.project }}/{{ inputs.stack }}/deployments",
+      "body": {
+        "operation": "{{ inputs.operation }}",
+        "inheritSettings": true
+      },
+      "output_fields": {
+        "deployment_id": "id",
+        "console_url": "consoleUrl"
+      },
+      "inputs": [
+        {
+          "key": "organization",
+          "label": "Organization",
+          "type": "string",
+          "required": true,
+          "help": "Your Pulumi organization name (app.pulumi.com/<organization>)."
+        },
+        {
+          "key": "project",
+          "label": "Project",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "stack",
+          "label": "Stack",
+          "type": "string",
+          "required": true,
+          "placeholder": "prod"
+        },
+        {
+          "key": "operation",
+          "label": "Operation",
+          "type": "select",
+          "required": true,
+          "default": "update",
+          "options": [
+            {
+              "value": "update",
+              "label": "Update (pulumi up)"
+            },
+            {
+              "value": "preview",
+              "label": "Preview"
+            },
+            {
+              "value": "refresh",
+              "label": "Refresh"
+            },
+            {
+              "value": "destroy",
+              "label": "Destroy"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "get_deployment",
+      "name": "Get deployment",
+      "description": "Get the status of a deployment.",
+      "method": "GET",
+      "endpoint": "/stacks/{{ inputs.organization }}/{{ inputs.project }}/{{ inputs.stack }}/deployments/{{ inputs.deployment_id }}",
+      "output_fields": {
+        "status": "status"
+      },
+      "inputs": [
+        {
+          "key": "organization",
+          "label": "Organization",
+          "type": "string",
+          "required": true,
+          "help": "Your Pulumi organization name (app.pulumi.com/<organization>)."
+        },
+        {
+          "key": "project",
+          "label": "Project",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "stack",
+          "label": "Stack",
+          "type": "string",
+          "required": true,
+          "placeholder": "prod"
+        },
+        {
+          "key": "deployment_id",
+          "label": "Deployment ID",
+          "type": "string",
+          "required": true,
+          "help": "Returned by Run deployment."
+        }
+      ]
+    }
+  ]
+}

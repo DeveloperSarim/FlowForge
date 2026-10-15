@@ -1,0 +1,293 @@
+{
+  "key": "fedex",
+  "name": "FedEx",
+  "category": "E-commerce",
+  "description": "Track FedEx shipments, compare rates, validate addresses and create labels.",
+  "website": "https://www.fedex.com",
+  "docs_url": "https://developer.fedex.com/api/en-us/catalog.html",
+  "base_url": "https://{{ credentials.host }}",
+  "auth": {
+    "type": "oauth2_client_credentials",
+    "token_url": "https://{{ credentials.host }}/oauth/token",
+    "fields": [
+      {
+        "key": "client_id",
+        "label": "API key",
+        "type": "string",
+        "required": true,
+        "help": "developer.fedex.com → My Projects → create a project (Track, Rate, Address Validation, Ship) → API key."
+      },
+      {
+        "key": "client_secret",
+        "label": "Secret key",
+        "type": "password",
+        "required": true
+      },
+      {
+        "key": "account_number",
+        "label": "FedEx account number",
+        "type": "string",
+        "help": "Needed for rates and shipping labels."
+      },
+      {
+        "key": "host",
+        "label": "Environment",
+        "type": "select",
+        "required": true,
+        "default": "apis.fedex.com",
+        "options": [
+          {
+            "value": "apis.fedex.com",
+            "label": "Production"
+          },
+          {
+            "value": "apis-sandbox.fedex.com",
+            "label": "Sandbox"
+          }
+        ]
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "track_shipment",
+      "name": "Track shipment",
+      "description": "Latest status and scan events for a tracking number.",
+      "method": "POST",
+      "endpoint": "/track/v1/trackingnumbers",
+      "body": {
+        "includeDetailedScans": true,
+        "trackingInfo": [
+          {
+            "trackingNumberInfo": {
+              "trackingNumber": "{{ inputs.tracking_number }}"
+            }
+          }
+        ]
+      },
+      "output_fields": {
+        "status": "output.completeTrackResults.0.trackResults.0.latestStatusDetail.description",
+        "status_code": "output.completeTrackResults.0.trackResults.0.latestStatusDetail.code",
+        "events": "output.completeTrackResults.0.trackResults.0.scanEvents"
+      },
+      "inputs": [
+        {
+          "key": "tracking_number",
+          "label": "Tracking number",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "get_rates",
+      "name": "Get rates",
+      "description": "Rates for a package between two postcodes.",
+      "method": "POST",
+      "endpoint": "/rate/v1/rates/quotes",
+      "body": {
+        "accountNumber": {
+          "value": "{{ credentials.account_number }}"
+        },
+        "rateRequestType": [
+          "LIST",
+          "ACCOUNT"
+        ],
+        "requestedShipment": {
+          "shipper": {
+            "address": {
+              "postalCode": "{{ inputs.from_postcode }}",
+              "countryCode": "{{ inputs.from_country }}"
+            }
+          },
+          "recipient": {
+            "address": {
+              "postalCode": "{{ inputs.to_postcode }}",
+              "countryCode": "{{ inputs.to_country }}",
+              "residential": "{{ inputs.residential }}"
+            }
+          },
+          "pickupType": "{{ inputs.pickup_type }}",
+          "serviceType": "{{ inputs.service_type }}",
+          "requestedPackageLineItems": [
+            {
+              "weight": {
+                "units": "{{ inputs.weight_units }}",
+                "value": "{{ inputs.weight }}"
+              }
+            }
+          ]
+        }
+      },
+      "output_fields": {
+        "rates": "output.rateReplyDetails"
+      },
+      "inputs": [
+        {
+          "key": "from_postcode",
+          "label": "From postcode",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "from_country",
+          "label": "From country",
+          "type": "string",
+          "required": true,
+          "default": "US"
+        },
+        {
+          "key": "to_postcode",
+          "label": "To postcode",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "to_country",
+          "label": "To country",
+          "type": "string",
+          "required": true,
+          "default": "US"
+        },
+        {
+          "key": "residential",
+          "label": "Residential address",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "key": "weight",
+          "label": "Weight",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "weight_units",
+          "label": "Units",
+          "type": "select",
+          "required": true,
+          "default": "LB",
+          "options": [
+            {
+              "value": "LB",
+              "label": "LB"
+            },
+            {
+              "value": "KG",
+              "label": "KG"
+            }
+          ]
+        },
+        {
+          "key": "pickup_type",
+          "label": "Pickup",
+          "type": "select",
+          "required": true,
+          "default": "DROPOFF_AT_FEDEX_LOCATION",
+          "options": [
+            {
+              "value": "DROPOFF_AT_FEDEX_LOCATION",
+              "label": "Drop off"
+            },
+            {
+              "value": "USE_SCHEDULED_PICKUP",
+              "label": "Scheduled pickup"
+            },
+            {
+              "value": "CONTACT_FEDEX_TO_SCHEDULE",
+              "label": "Call FedEx"
+            }
+          ]
+        },
+        {
+          "key": "service_type",
+          "label": "Service",
+          "type": "string",
+          "placeholder": "FEDEX_GROUND",
+          "help": "Leave empty to get all services."
+        }
+      ]
+    },
+    {
+      "key": "validate_address",
+      "name": "Validate address",
+      "description": "Check and standardize an address.",
+      "method": "POST",
+      "endpoint": "/address/v1/addresses/resolve",
+      "body": {
+        "addressesToValidate": [
+          {
+            "address": {
+              "streetLines": "{{ inputs.street_lines }}",
+              "city": "{{ inputs.city }}",
+              "stateOrProvinceCode": "{{ inputs.state }}",
+              "postalCode": "{{ inputs.postcode }}",
+              "countryCode": "{{ inputs.country }}"
+            }
+          }
+        ]
+      },
+      "output_fields": {
+        "classification": "output.resolvedAddresses.0.classification",
+        "resolved": "output.resolvedAddresses.0"
+      },
+      "inputs": [
+        {
+          "key": "street_lines",
+          "label": "Street lines",
+          "type": "list",
+          "required": true
+        },
+        {
+          "key": "city",
+          "label": "City",
+          "type": "string"
+        },
+        {
+          "key": "state",
+          "label": "State code",
+          "type": "string"
+        },
+        {
+          "key": "postcode",
+          "label": "Postcode",
+          "type": "string"
+        },
+        {
+          "key": "country",
+          "label": "Country code",
+          "type": "string",
+          "required": true,
+          "default": "US"
+        }
+      ]
+    },
+    {
+      "key": "create_shipment",
+      "name": "Create shipment (label)",
+      "description": "Create a shipment and label from a FedEx requestedShipment object.",
+      "method": "POST",
+      "endpoint": "/ship/v1/shipments",
+      "body": {
+        "labelResponseOptions": "URL_ONLY",
+        "accountNumber": {
+          "value": "{{ credentials.account_number }}"
+        },
+        "requestedShipment": "{{ inputs.requested_shipment }}"
+      },
+      "output_fields": {
+        "tracking_number": "output.transactionShipments.0.masterTrackingNumber",
+        "label_url": "output.transactionShipments.0.pieceResponses.0.packageDocuments.0.url"
+      },
+      "inputs": [
+        {
+          "key": "requested_shipment",
+          "label": "Shipment (JSON)",
+          "type": "json",
+          "required": true,
+          "help": "FedEx Ship API requestedShipment: shipper, recipients, serviceType, packagingType, pickupType, labelSpecification, requestedPackageLineItems."
+        }
+      ]
+    }
+  ]
+}

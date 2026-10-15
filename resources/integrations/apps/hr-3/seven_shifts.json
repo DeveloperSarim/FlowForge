@@ -1,0 +1,391 @@
+{
+  "key": "seven_shifts",
+  "name": "7shifts",
+  "category": "HR & Recruiting",
+  "description": "Schedule shifts, add staff and read time punches in 7shifts.",
+  "website": "https://www.7shifts.com",
+  "docs_url": "https://developers.7shifts.com",
+  "base_url": "https://api.7shifts.com/v2",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "Access token",
+        "type": "password",
+        "required": true,
+        "help": "In 7shifts go to Settings → Developer Tools → Access Tokens → Create Access Token (owner or admin)."
+      }
+    ],
+    "profile": {
+      "endpoint": "/whoami",
+      "store": {
+        "company_id": "{{ data.users.0.company_id }}"
+      }
+    }
+  },
+  "actions": [
+    {
+      "key": "create_shift",
+      "name": "Create shift",
+      "description": "Adds a shift to the schedule.",
+      "method": "POST",
+      "endpoint": "/company/{{ inputs.company_id }}/shifts",
+      "body": {
+        "location_id": "{{ inputs.location_id }}",
+        "start": "{{ inputs.start }}",
+        "end": "{{ inputs.end }}",
+        "user_id": "{{ inputs.user_id }}",
+        "department_id": "{{ inputs.department_id }}",
+        "role_id": "{{ inputs.role_id }}",
+        "notes": "{{ inputs.notes }}",
+        "open": "{{ inputs.open }}",
+        "draft": "{{ inputs.draft }}"
+      },
+      "output_fields": {
+        "id": "data.id",
+        "start": "data.start",
+        "end": "data.end"
+      },
+      "inputs": [
+        {
+          "key": "location_id",
+          "label": "Location ID",
+          "type": "number",
+          "required": true,
+          "help": "Use \"List locations\" to find it."
+        },
+        {
+          "key": "start",
+          "label": "Start",
+          "type": "string",
+          "required": true,
+          "placeholder": "2026-11-03T09:00:00Z",
+          "help": "ISO 8601 date-time."
+        },
+        {
+          "key": "end",
+          "label": "End",
+          "type": "string",
+          "required": true,
+          "placeholder": "2026-11-03T17:00:00Z"
+        },
+        {
+          "key": "user_id",
+          "label": "Employee ID",
+          "type": "number",
+          "help": "Leave empty for an open shift."
+        },
+        {
+          "key": "department_id",
+          "label": "Department ID",
+          "type": "number"
+        },
+        {
+          "key": "role_id",
+          "label": "Role ID",
+          "type": "number"
+        },
+        {
+          "key": "notes",
+          "label": "Notes",
+          "type": "text"
+        },
+        {
+          "key": "open",
+          "label": "Open shift",
+          "type": "boolean"
+        },
+        {
+          "key": "draft",
+          "label": "Save as draft",
+          "type": "boolean"
+        },
+        {
+          "key": "company_id",
+          "label": "Company ID",
+          "type": "string",
+          "help": "Leave empty to use your connected company.",
+          "fallback": "credentials.company_id"
+        }
+      ]
+    },
+    {
+      "key": "list_shifts",
+      "name": "List shifts",
+      "description": "Lists scheduled shifts in a date range.",
+      "method": "GET",
+      "endpoint": "/company/{{ inputs.company_id }}/shifts",
+      "query": {
+        "start[gte]": "{{ inputs.from }}",
+        "start[lte]": "{{ inputs.to }}",
+        "location_id": "{{ inputs.location_id }}",
+        "user_id": "{{ inputs.user_id }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "shifts": "data"
+      },
+      "inputs": [
+        {
+          "key": "from",
+          "label": "Starting on or after",
+          "type": "string",
+          "placeholder": "2026-11-01T00:00:00Z"
+        },
+        {
+          "key": "to",
+          "label": "Starting on or before",
+          "type": "string",
+          "placeholder": "2026-11-08T00:00:00Z"
+        },
+        {
+          "key": "location_id",
+          "label": "Location ID",
+          "type": "number"
+        },
+        {
+          "key": "user_id",
+          "label": "Employee ID",
+          "type": "number"
+        },
+        {
+          "key": "limit",
+          "label": "Max results",
+          "type": "number",
+          "default": 100
+        },
+        {
+          "key": "company_id",
+          "label": "Company ID",
+          "type": "string",
+          "help": "Leave empty to use your connected company.",
+          "fallback": "credentials.company_id"
+        }
+      ]
+    },
+    {
+      "key": "create_user",
+      "name": "Add employee",
+      "description": "Adds a team member to 7shifts.",
+      "method": "POST",
+      "endpoint": "/company/{{ inputs.company_id }}/users",
+      "body": {
+        "first_name": "{{ inputs.first_name }}",
+        "last_name": "{{ inputs.last_name }}",
+        "location_ids": "{{ inputs.location_ids }}",
+        "department_ids": "{{ inputs.department_ids }}",
+        "role_ids": "{{ inputs.role_ids }}",
+        "email": "{{ inputs.email }}",
+        "mobile_number": "{{ inputs.mobile_number }}",
+        "type": "{{ inputs.type }}",
+        "hire_date": "{{ inputs.hire_date }}",
+        "invite_user": "{{ inputs.invite_user }}"
+      },
+      "output_fields": {
+        "id": "data.id",
+        "email": "data.email"
+      },
+      "inputs": [
+        {
+          "key": "first_name",
+          "label": "First name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "location_ids",
+          "label": "Location IDs",
+          "type": "list",
+          "required": true
+        },
+        {
+          "key": "department_ids",
+          "label": "Department IDs",
+          "type": "list",
+          "required": true
+        },
+        {
+          "key": "role_ids",
+          "label": "Role IDs",
+          "type": "list"
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string"
+        },
+        {
+          "key": "mobile_number",
+          "label": "Mobile number",
+          "type": "string"
+        },
+        {
+          "key": "type",
+          "label": "Type",
+          "type": "select",
+          "required": true,
+          "default": "employee",
+          "options": [
+            {
+              "value": "employee",
+              "label": "Employee"
+            },
+            {
+              "value": "asst_manager",
+              "label": "Assistant manager"
+            },
+            {
+              "value": "manager",
+              "label": "Manager"
+            }
+          ]
+        },
+        {
+          "key": "hire_date",
+          "label": "Hire date",
+          "type": "string",
+          "placeholder": "2026-11-01"
+        },
+        {
+          "key": "invite_user",
+          "label": "Send invite",
+          "type": "boolean",
+          "default": true
+        },
+        {
+          "key": "company_id",
+          "label": "Company ID",
+          "type": "string",
+          "help": "Leave empty to use your connected company.",
+          "fallback": "credentials.company_id"
+        }
+      ]
+    },
+    {
+      "key": "list_users",
+      "name": "Find employees",
+      "description": "Lists team members, optionally by name.",
+      "method": "GET",
+      "endpoint": "/company/{{ inputs.company_id }}/users",
+      "query": {
+        "name": "{{ inputs.name }}",
+        "status": "{{ inputs.status }}",
+        "location_id": "{{ inputs.location_id }}"
+      },
+      "output_fields": {
+        "users": "data",
+        "id": "data.0.id",
+        "email": "data.0.email"
+      },
+      "inputs": [
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string"
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "default": "active",
+          "options": [
+            {
+              "value": "active",
+              "label": "Active"
+            },
+            {
+              "value": "inactive",
+              "label": "Inactive"
+            }
+          ]
+        },
+        {
+          "key": "location_id",
+          "label": "Location ID",
+          "type": "number"
+        },
+        {
+          "key": "company_id",
+          "label": "Company ID",
+          "type": "string",
+          "help": "Leave empty to use your connected company.",
+          "fallback": "credentials.company_id"
+        }
+      ]
+    },
+    {
+      "key": "list_time_punches",
+      "name": "List time punches",
+      "description": "Lists clock-in/clock-out records.",
+      "method": "GET",
+      "endpoint": "/company/{{ inputs.company_id }}/time_punches",
+      "query": {
+        "clocked_in[gte]": "{{ inputs.from }}",
+        "user_id": "{{ inputs.user_id }}",
+        "location_id": "{{ inputs.location_id }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "time_punches": "data"
+      },
+      "inputs": [
+        {
+          "key": "from",
+          "label": "Clocked in after",
+          "type": "string",
+          "placeholder": "2026-11-01T00:00:00Z"
+        },
+        {
+          "key": "user_id",
+          "label": "Employee ID",
+          "type": "number"
+        },
+        {
+          "key": "location_id",
+          "label": "Location ID",
+          "type": "number"
+        },
+        {
+          "key": "limit",
+          "label": "Max results",
+          "type": "number",
+          "default": 100
+        },
+        {
+          "key": "company_id",
+          "label": "Company ID",
+          "type": "string",
+          "help": "Leave empty to use your connected company.",
+          "fallback": "credentials.company_id"
+        }
+      ]
+    },
+    {
+      "key": "list_locations",
+      "name": "List locations",
+      "description": "Lists your locations and their IDs.",
+      "method": "GET",
+      "endpoint": "/company/{{ inputs.company_id }}/locations",
+      "output_fields": {
+        "locations": "data",
+        "id": "data.0.id"
+      },
+      "inputs": [
+        {
+          "key": "company_id",
+          "label": "Company ID",
+          "type": "string",
+          "help": "Leave empty to use your connected company.",
+          "fallback": "credentials.company_id"
+        }
+      ]
+    }
+  ]
+}

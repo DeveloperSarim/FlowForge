@@ -1,0 +1,157 @@
+{
+  "key": "honeycomb",
+  "name": "Honeycomb",
+  "category": "Developer Tools",
+  "description": "Send events and deploy markers to Honeycomb observability.",
+  "brand": "honeycomb",
+  "website": "https://www.honeycomb.io",
+  "docs_url": "https://api-docs.honeycomb.io/api",
+  "base_url": "https://{{ credentials.host }}/1",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "X-Honeycomb-Team",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "Environment settings → API keys. An Ingest key sends events; a Configuration key is needed for markers and datasets."
+      },
+      {
+        "key": "host",
+        "label": "Region",
+        "type": "select",
+        "required": true,
+        "default": "api.honeycomb.io",
+        "options": [
+          {
+            "value": "api.honeycomb.io",
+            "label": "US"
+          },
+          {
+            "value": "api.eu1.honeycomb.io",
+            "label": "EU"
+          }
+        ]
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "send_event",
+      "name": "Send event",
+      "description": "Send one event to a dataset.",
+      "method": "POST",
+      "endpoint": "/events/{{ inputs.dataset }}",
+      "headers": {
+        "X-Honeycomb-Event-Time": "{{ inputs.timestamp }}"
+      },
+      "body": "{{ inputs.data }}",
+      "inputs": [
+        {
+          "key": "dataset",
+          "label": "Dataset",
+          "type": "string",
+          "required": true,
+          "help": "Dataset slug (Honeycomb → Datasets)."
+        },
+        {
+          "key": "data",
+          "label": "Event fields (JSON)",
+          "type": "json",
+          "required": true,
+          "placeholder": "{\"service\": \"checkout\", \"duration_ms\": 153}"
+        },
+        {
+          "key": "timestamp",
+          "label": "Event time",
+          "type": "string",
+          "placeholder": "2026-01-01T10:00:00Z",
+          "help": "Optional; defaults to now."
+        }
+      ]
+    },
+    {
+      "key": "create_marker",
+      "name": "Create marker",
+      "description": "Mark a deploy or incident on your graphs.",
+      "method": "POST",
+      "endpoint": "/markers/{{ inputs.dataset }}",
+      "body": {
+        "message": "{{ inputs.message }}",
+        "type": "{{ inputs.type }}",
+        "url": "{{ inputs.url }}"
+      },
+      "output_fields": {
+        "marker_id": "id"
+      },
+      "inputs": [
+        {
+          "key": "dataset",
+          "label": "Dataset",
+          "type": "string",
+          "required": true,
+          "default": "__all__",
+          "help": "Use __all__ for an environment-wide marker."
+        },
+        {
+          "key": "message",
+          "label": "Message",
+          "type": "string",
+          "required": true,
+          "placeholder": "Deploy v1.4.2"
+        },
+        {
+          "key": "type",
+          "label": "Type",
+          "type": "string",
+          "placeholder": "deploy"
+        },
+        {
+          "key": "url",
+          "label": "Link",
+          "type": "string",
+          "placeholder": "https://github.com/org/repo/releases/v1.4.2"
+        }
+      ]
+    },
+    {
+      "key": "list_markers",
+      "name": "List markers",
+      "description": "List the markers of a dataset.",
+      "method": "GET",
+      "endpoint": "/markers/{{ inputs.dataset }}",
+      "inputs": [
+        {
+          "key": "dataset",
+          "label": "Dataset",
+          "type": "string",
+          "required": true,
+          "default": "__all__"
+        }
+      ]
+    },
+    {
+      "key": "list_datasets",
+      "name": "List datasets",
+      "description": "List the datasets in the environment.",
+      "method": "GET",
+      "endpoint": "/datasets",
+      "inputs": []
+    },
+    {
+      "key": "check_key",
+      "name": "Check API key",
+      "description": "See which team and environment the key belongs to.",
+      "method": "GET",
+      "endpoint": "/auth",
+      "output_fields": {
+        "team": "team.slug",
+        "environment": "environment.slug"
+      },
+      "inputs": []
+    }
+  ]
+}

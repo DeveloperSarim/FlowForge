@@ -1,0 +1,182 @@
+{
+  "key": "google_cloud_storage",
+  "name": "Google Cloud Storage",
+  "category": "Files & Documents",
+  "description": "Cloud buckets: list buckets and objects, read metadata, copy and delete objects.",
+  "website": "https://cloud.google.com/storage",
+  "docs_url": "https://cloud.google.com/storage/docs/json_api/v1",
+  "base_url": "https://storage.googleapis.com/storage/v1",
+  "auth": [
+    {
+      "type": "oauth2",
+      "authorize_url": "https://accounts.google.com/o/oauth2/v2/auth",
+      "token_url": "https://oauth2.googleapis.com/token",
+      "scopes": [
+        "https://www.googleapis.com/auth/devstorage.read_write"
+      ],
+      "authorize_params": {
+        "access_type": "offline",
+        "prompt": "consent"
+      }
+    },
+    {
+      "type": "google_service_account",
+      "scopes": [
+        "https://www.googleapis.com/auth/devstorage.read_write"
+      ],
+      "fields": [
+        {
+          "key": "service_account_json",
+          "label": "Service Account JSON key",
+          "type": "code",
+          "required": true,
+          "help": "Google Cloud console → IAM → Service Accounts → Keys → Add key (JSON). Give the account Storage Object Admin on the bucket."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_buckets",
+      "name": "List buckets",
+      "description": "Buckets of a project.",
+      "method": "GET",
+      "endpoint": "/b",
+      "query": {
+        "project": "{{ inputs.project }}"
+      },
+      "output_fields": {
+        "names": "items.*.name"
+      },
+      "inputs": [
+        {
+          "key": "project",
+          "label": "Project ID",
+          "type": "string",
+          "required": true,
+          "help": "Google Cloud console → project selector."
+        }
+      ]
+    },
+    {
+      "key": "list_objects",
+      "name": "List objects",
+      "description": "Files in a bucket.",
+      "method": "GET",
+      "endpoint": "/b/{{ inputs.bucket }}/o",
+      "query": {
+        "prefix": "{{ inputs.prefix }}",
+        "maxResults": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "names": "items.*.name",
+        "sizes": "items.*.size"
+      },
+      "inputs": [
+        {
+          "key": "bucket",
+          "label": "Bucket name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "prefix",
+          "label": "Folder / prefix",
+          "type": "string",
+          "help": "e.g. invoices/2025/"
+        },
+        {
+          "key": "limit",
+          "label": "Max results",
+          "type": "number",
+          "default": 100
+        }
+      ]
+    },
+    {
+      "key": "get_object",
+      "name": "Get object info",
+      "description": "Metadata of one object.",
+      "method": "GET",
+      "endpoint": "/b/{{ inputs.bucket }}/o/{{ inputs.object }}",
+      "output_fields": {
+        "size": "size",
+        "type": "contentType",
+        "updated": "updated",
+        "link": "mediaLink"
+      },
+      "inputs": [
+        {
+          "key": "bucket",
+          "label": "Bucket name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "object",
+          "label": "Object name",
+          "type": "string",
+          "required": true,
+          "help": "Full path inside the bucket, e.g. invoices/jan.pdf."
+        }
+      ]
+    },
+    {
+      "key": "copy_object",
+      "name": "Copy object",
+      "description": "Copy an object to another path or bucket.",
+      "method": "POST",
+      "endpoint": "/b/{{ inputs.bucket }}/o/{{ inputs.object }}/copyTo/b/{{ inputs.dest_bucket }}/o/{{ inputs.dest_object }}",
+      "output_fields": {
+        "name": "name"
+      },
+      "inputs": [
+        {
+          "key": "bucket",
+          "label": "Source bucket",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "object",
+          "label": "Source object",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "dest_bucket",
+          "label": "Destination bucket",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "dest_object",
+          "label": "Destination object",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "delete_object",
+      "name": "Delete object",
+      "description": "Delete an object.",
+      "method": "DELETE",
+      "endpoint": "/b/{{ inputs.bucket }}/o/{{ inputs.object }}",
+      "inputs": [
+        {
+          "key": "bucket",
+          "label": "Bucket name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "object",
+          "label": "Object name",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ]
+}

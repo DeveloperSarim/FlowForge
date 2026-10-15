@@ -1,0 +1,230 @@
+{
+  "key": "affirm",
+  "name": "Affirm",
+  "category": "Payments & Finance",
+  "description": "Pay-over-time financing: authorize, capture, refund and void Affirm transactions.",
+  "website": "https://www.affirm.com",
+  "docs_url": "https://docs.affirm.com/developers/reference",
+  "base_url": "https://{{ credentials.host }}/api/v1",
+  "auth": {
+    "type": "basic",
+    "fields": [
+      {
+        "key": "username",
+        "label": "Public API key",
+        "type": "string",
+        "required": true,
+        "help": "Affirm merchant dashboard → API keys."
+      },
+      {
+        "key": "password",
+        "label": "Private API key",
+        "type": "password",
+        "required": true,
+        "help": "Same page; keep it secret."
+      },
+      {
+        "key": "host",
+        "label": "Environment",
+        "type": "select",
+        "required": true,
+        "default": "api.affirm.com",
+        "options": [
+          {
+            "value": "api.affirm.com",
+            "label": "Live (US)"
+          },
+          {
+            "value": "sandbox.affirm.com",
+            "label": "Sandbox (US)"
+          },
+          {
+            "value": "api.affirm.ca",
+            "label": "Live (Canada)"
+          },
+          {
+            "value": "sandbox.affirm.ca",
+            "label": "Sandbox (Canada)"
+          }
+        ]
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "authorize_transaction",
+      "name": "Authorize transaction",
+      "description": "Authorize a loan with the checkout token from the Affirm checkout.",
+      "method": "POST",
+      "endpoint": "/transactions",
+      "body": {
+        "transaction_id": "{{ inputs.checkout_token }}",
+        "order_id": "{{ inputs.order_id }}"
+      },
+      "output_fields": {
+        "id": "id",
+        "status": "status",
+        "amount": "amount"
+      },
+      "inputs": [
+        {
+          "key": "checkout_token",
+          "label": "Checkout token",
+          "type": "string",
+          "required": true,
+          "help": "Sent to your confirmation URL after the customer finishes the Affirm checkout."
+        },
+        {
+          "key": "order_id",
+          "label": "Your order ID",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "get_transaction",
+      "name": "Get transaction",
+      "description": "Status and amounts of a transaction.",
+      "method": "GET",
+      "endpoint": "/transactions/{{ inputs.transaction_id }}",
+      "output_fields": {
+        "status": "status",
+        "amount": "amount",
+        "amount_refunded": "amount_refunded",
+        "order_id": "order_id"
+      },
+      "inputs": [
+        {
+          "key": "transaction_id",
+          "label": "Transaction ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "capture_transaction",
+      "name": "Capture transaction",
+      "description": "Capture the loan when you ship.",
+      "method": "POST",
+      "endpoint": "/transactions/{{ inputs.transaction_id }}/capture",
+      "body": {
+        "order_id": "{{ inputs.order_id }}",
+        "shipping_carrier": "{{ inputs.shipping_carrier }}",
+        "shipping_confirmation": "{{ inputs.tracking_number }}",
+        "amount": "{{ inputs.amount }}"
+      },
+      "output_fields": {
+        "id": "id",
+        "amount": "amount"
+      },
+      "inputs": [
+        {
+          "key": "transaction_id",
+          "label": "Transaction ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "amount",
+          "label": "Amount (cents)",
+          "type": "number",
+          "help": "Leave empty to capture the full amount."
+        },
+        {
+          "key": "order_id",
+          "label": "Your order ID",
+          "type": "string"
+        },
+        {
+          "key": "shipping_carrier",
+          "label": "Carrier",
+          "type": "string"
+        },
+        {
+          "key": "tracking_number",
+          "label": "Tracking number",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "refund_transaction",
+      "name": "Refund transaction",
+      "description": "Refund all or part of a captured transaction.",
+      "method": "POST",
+      "endpoint": "/transactions/{{ inputs.transaction_id }}/refund",
+      "body": {
+        "amount": "{{ inputs.amount }}"
+      },
+      "output_fields": {
+        "id": "id",
+        "amount": "amount"
+      },
+      "inputs": [
+        {
+          "key": "transaction_id",
+          "label": "Transaction ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "amount",
+          "label": "Amount (cents)",
+          "type": "number",
+          "help": "Leave empty for a full refund."
+        }
+      ]
+    },
+    {
+      "key": "void_transaction",
+      "name": "Void transaction",
+      "description": "Cancel an authorized transaction before capture.",
+      "method": "POST",
+      "endpoint": "/transactions/{{ inputs.transaction_id }}/void",
+      "inputs": [
+        {
+          "key": "transaction_id",
+          "label": "Transaction ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "update_transaction",
+      "name": "Update shipping details",
+      "description": "Add your order ID or shipping tracking details.",
+      "method": "POST",
+      "endpoint": "/transactions/{{ inputs.transaction_id }}/update",
+      "body": {
+        "order_id": "{{ inputs.order_id }}",
+        "shipping_carrier": "{{ inputs.shipping_carrier }}",
+        "shipping_confirmation": "{{ inputs.tracking_number }}"
+      },
+      "inputs": [
+        {
+          "key": "transaction_id",
+          "label": "Transaction ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "order_id",
+          "label": "Your order ID",
+          "type": "string"
+        },
+        {
+          "key": "shipping_carrier",
+          "label": "Carrier",
+          "type": "string"
+        },
+        {
+          "key": "tracking_number",
+          "label": "Tracking number",
+          "type": "string"
+        }
+      ]
+    }
+  ]
+}

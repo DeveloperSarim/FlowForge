@@ -1,0 +1,107 @@
+{
+  "key": "lucca",
+  "name": "Lucca",
+  "category": "HR & Recruiting",
+  "description": "Read employees, leave requests and departments from Lucca HR (Timmi).",
+  "website": "https://www.lucca-software.com",
+  "docs_url": "https://developers.lucca.fr/",
+  "base_url": "https://{{ credentials.subdomain }}.ilucca.net/api/v3",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "Authorization",
+    "prefix": "lucca application=",
+    "fields": [
+      {
+        "key": "subdomain",
+        "label": "Subdomain",
+        "type": "string",
+        "required": true,
+        "help": "The first part of your Lucca address, like acme in acme.ilucca.net.",
+        "placeholder": "acme"
+      },
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "In Lucca open Settings → Integrations → API keys (admin) → create a key with read access."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_users",
+      "name": "List employees",
+      "description": "List employees.",
+      "method": "GET",
+      "endpoint": "/users",
+      "query": {
+        "fields": "id,firstName,lastName,mail,jobTitle,department.name",
+        "paging": "0,{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "users": "data.items",
+        "first_id": "data.items.0.id",
+        "first_name": "data.items.0.firstName",
+        "first_mail": "data.items.0.mail"
+      },
+      "inputs": [
+        {
+          "key": "limit",
+          "label": "How many",
+          "type": "number",
+          "default": 100
+        }
+      ]
+    },
+    {
+      "key": "list_leaves",
+      "name": "List leave requests",
+      "description": "List leaves starting in a date range.",
+      "method": "GET",
+      "endpoint": "/leaves",
+      "query": {
+        "date": "between,{{ inputs.from }},{{ inputs.to }}",
+        "fields": "id,ownerId,startsAt,endsAt,status,isConfirmed",
+        "paging": "0,100"
+      },
+      "output_fields": {
+        "leaves": "data.items",
+        "first_id": "data.items.0.id"
+      },
+      "inputs": [
+        {
+          "key": "from",
+          "label": "From date",
+          "type": "string",
+          "required": true,
+          "help": "YYYY-MM-DD"
+        },
+        {
+          "key": "to",
+          "label": "To date",
+          "type": "string",
+          "required": true,
+          "help": "YYYY-MM-DD"
+        }
+      ]
+    },
+    {
+      "key": "list_departments",
+      "name": "List departments",
+      "description": "List departments.",
+      "method": "GET",
+      "endpoint": "/departments",
+      "query": {
+        "fields": "id,name"
+      },
+      "output_fields": {
+        "departments": "data.items",
+        "first_id": "data.items.0.id",
+        "first_name": "data.items.0.name"
+      },
+      "inputs": []
+    }
+  ]
+}

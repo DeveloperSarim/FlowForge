@@ -1,0 +1,186 @@
+{
+  "key": "accuweather",
+  "name": "AccuWeather",
+  "category": "Utilities",
+  "description": "Current conditions and hourly and 5-day forecasts for any city.",
+  "website": "https://www.accuweather.com",
+  "docs_url": "https://developer.accuweather.com/documentation/authentication",
+  "base_url": "https://dataservice.accuweather.com",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "developer.accuweather.com → My Apps → your app → API key."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "search_city",
+      "name": "Find city",
+      "description": "Find a city and its location key (needed for the forecast actions).",
+      "method": "GET",
+      "endpoint": "/locations/v1/cities/search",
+      "query": {
+        "q": "{{ inputs.city }}",
+        "language": "{{ inputs.language }}"
+      },
+      "output_fields": {
+        "location_key": "0.Key",
+        "name": "0.LocalizedName",
+        "region": "0.AdministrativeArea.LocalizedName",
+        "country": "0.Country.LocalizedName"
+      },
+      "inputs": [
+        {
+          "key": "city",
+          "label": "City",
+          "type": "string",
+          "required": true,
+          "placeholder": "Lahore"
+        },
+        {
+          "key": "language",
+          "label": "Language",
+          "type": "string",
+          "default": "en-us"
+        }
+      ]
+    },
+    {
+      "key": "find_by_coordinates",
+      "name": "Find location by coordinates",
+      "description": "Get the location key for a latitude/longitude.",
+      "method": "GET",
+      "endpoint": "/locations/v1/cities/geoposition/search",
+      "query": {
+        "q": "{{ inputs.latitude }},{{ inputs.longitude }}"
+      },
+      "output_fields": {
+        "location_key": "Key",
+        "name": "LocalizedName",
+        "country": "Country.LocalizedName"
+      },
+      "inputs": [
+        {
+          "key": "latitude",
+          "label": "Latitude",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "longitude",
+          "label": "Longitude",
+          "type": "number",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "current_conditions",
+      "name": "Current conditions",
+      "description": "The weather right now.",
+      "method": "GET",
+      "endpoint": "/currentconditions/v1/{{ inputs.location_key }}",
+      "query": {
+        "details": "true",
+        "language": "{{ inputs.language }}"
+      },
+      "output_fields": {
+        "weather_text": "0.WeatherText",
+        "temperature_c": "0.Temperature.Metric.Value",
+        "temperature_f": "0.Temperature.Imperial.Value",
+        "humidity": "0.RelativeHumidity",
+        "has_precipitation": "0.HasPrecipitation",
+        "is_day": "0.IsDayTime",
+        "observed_at": "0.LocalObservationDateTime"
+      },
+      "inputs": [
+        {
+          "key": "location_key",
+          "label": "Location key",
+          "type": "string",
+          "required": true,
+          "help": "From Find city."
+        },
+        {
+          "key": "language",
+          "label": "Language",
+          "type": "string",
+          "default": "en-us"
+        }
+      ]
+    },
+    {
+      "key": "daily_forecast",
+      "name": "5-day forecast",
+      "description": "Daily forecast for the next 5 days.",
+      "method": "GET",
+      "endpoint": "/forecasts/v1/daily/5day/{{ inputs.location_key }}",
+      "query": {
+        "metric": "{{ inputs.metric }}",
+        "language": "{{ inputs.language }}"
+      },
+      "output_fields": {
+        "headline": "Headline.Text",
+        "days": "DailyForecasts",
+        "today_min": "DailyForecasts.0.Temperature.Minimum.Value",
+        "today_max": "DailyForecasts.0.Temperature.Maximum.Value",
+        "today_day": "DailyForecasts.0.Day.IconPhrase"
+      },
+      "inputs": [
+        {
+          "key": "location_key",
+          "label": "Location key",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "metric",
+          "label": "Celsius",
+          "type": "boolean",
+          "default": true
+        },
+        {
+          "key": "language",
+          "label": "Language",
+          "type": "string",
+          "default": "en-us"
+        }
+      ]
+    },
+    {
+      "key": "hourly_forecast",
+      "name": "12-hour forecast",
+      "description": "Hour-by-hour forecast for the next 12 hours.",
+      "method": "GET",
+      "endpoint": "/forecasts/v1/hourly/12hour/{{ inputs.location_key }}",
+      "query": {
+        "metric": "{{ inputs.metric }}"
+      },
+      "output_fields": {
+        "next_hour": "0.IconPhrase",
+        "next_hour_temperature": "0.Temperature.Value",
+        "next_hour_rain_chance": "0.PrecipitationProbability"
+      },
+      "inputs": [
+        {
+          "key": "location_key",
+          "label": "Location key",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "metric",
+          "label": "Celsius",
+          "type": "boolean",
+          "default": true
+        }
+      ]
+    }
+  ]
+}

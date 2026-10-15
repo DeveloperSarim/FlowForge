@@ -1,0 +1,189 @@
+{
+  "key": "caspio",
+  "name": "Caspio",
+  "category": "Databases",
+  "description": "Read, add, update and delete rows in Caspio cloud database tables.",
+  "website": "https://www.caspio.com",
+  "docs_url": "https://howto.caspio.com/web-services-api/rest-api/",
+  "base_url": "https://{{ credentials.account }}.caspio.com/rest/v2",
+  "auth": {
+    "type": "oauth2_client_credentials",
+    "token_url": "https://{{ credentials.account }}.caspio.com/oauth/token",
+    "client_auth": "basic",
+    "fields": [
+      {
+        "key": "account",
+        "label": "Account ID",
+        "type": "string",
+        "required": true,
+        "help": "The first part of your Caspio address, like c1abc234 in c1abc234.caspio.com.",
+        "placeholder": "c1abc234"
+      },
+      {
+        "key": "client_id",
+        "label": "Client ID",
+        "type": "string",
+        "required": true,
+        "help": "Caspio → Account → Web Services API → Authentication tab → Client ID."
+      },
+      {
+        "key": "client_secret",
+        "label": "Client secret",
+        "type": "password",
+        "required": true,
+        "help": "Same place as the Client ID."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_tables",
+      "name": "List tables",
+      "description": "List the tables in your account.",
+      "method": "GET",
+      "endpoint": "/tables",
+      "output_fields": {
+        "tables": "Result"
+      },
+      "inputs": []
+    },
+    {
+      "key": "get_rows",
+      "name": "Get rows",
+      "description": "Read rows from a table, optionally filtered.",
+      "method": "GET",
+      "endpoint": "/tables/{{ inputs.table }}/records",
+      "query": {
+        "q.where": "{{ inputs.where }}",
+        "q.orderBy": "{{ inputs.order_by }}",
+        "q.limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "rows": "Result",
+        "first": "Result.0"
+      },
+      "inputs": [
+        {
+          "key": "table",
+          "label": "Table name",
+          "type": "string",
+          "required": true,
+          "help": "The table's name exactly as shown in Caspio."
+        },
+        {
+          "key": "where",
+          "label": "Filter (WHERE)",
+          "type": "string",
+          "help": "SQL-style filter, e.g. Status='Open'"
+        },
+        {
+          "key": "order_by",
+          "label": "Order by",
+          "type": "string",
+          "help": "Example: Created DESC"
+        },
+        {
+          "key": "limit",
+          "label": "Max rows",
+          "type": "number",
+          "default": 100
+        }
+      ]
+    },
+    {
+      "key": "add_row",
+      "name": "Add row",
+      "description": "Insert a row.",
+      "method": "POST",
+      "endpoint": "/tables/{{ inputs.table }}/records",
+      "body": "{{ inputs.fields }}",
+      "query": {
+        "response": "rows"
+      },
+      "output_fields": {
+        "row": "Result"
+      },
+      "inputs": [
+        {
+          "key": "table",
+          "label": "Table name",
+          "type": "string",
+          "required": true,
+          "help": "The table's name exactly as shown in Caspio."
+        },
+        {
+          "key": "fields",
+          "label": "Fields (JSON)",
+          "type": "json",
+          "required": true,
+          "help": "Column names with values, e.g. {\"Name\": \"Ada\"}"
+        }
+      ]
+    },
+    {
+      "key": "update_rows",
+      "name": "Update rows",
+      "description": "Change every row that matches the filter.",
+      "method": "PUT",
+      "endpoint": "/tables/{{ inputs.table }}/records",
+      "body": "{{ inputs.fields }}",
+      "query": {
+        "q.where": "{{ inputs.where }}"
+      },
+      "output_fields": {
+        "updated": "RecordsAffected"
+      },
+      "inputs": [
+        {
+          "key": "table",
+          "label": "Table name",
+          "type": "string",
+          "required": true,
+          "help": "The table's name exactly as shown in Caspio."
+        },
+        {
+          "key": "where",
+          "label": "Filter (WHERE)",
+          "type": "string",
+          "required": true,
+          "help": "Rows to change, e.g. ID=5"
+        },
+        {
+          "key": "fields",
+          "label": "Fields (JSON)",
+          "type": "json",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "delete_rows",
+      "name": "Delete rows",
+      "description": "Delete every row that matches the filter.",
+      "method": "DELETE",
+      "endpoint": "/tables/{{ inputs.table }}/records",
+      "query": {
+        "q.where": "{{ inputs.where }}"
+      },
+      "output_fields": {
+        "deleted": "RecordsAffected"
+      },
+      "inputs": [
+        {
+          "key": "table",
+          "label": "Table name",
+          "type": "string",
+          "required": true,
+          "help": "The table's name exactly as shown in Caspio."
+        },
+        {
+          "key": "where",
+          "label": "Filter (WHERE)",
+          "type": "string",
+          "required": true,
+          "help": "Rows to delete, e.g. ID=5"
+        }
+      ]
+    }
+  ]
+}

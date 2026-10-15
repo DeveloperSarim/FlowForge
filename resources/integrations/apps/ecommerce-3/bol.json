@@ -1,0 +1,361 @@
+{
+  "key": "bol",
+  "name": "bol.com",
+  "category": "E-commerce",
+  "description": "Sell on bol.com: open orders, shipping, cancellations, stock and prices.",
+  "website": "https://www.bol.com",
+  "docs_url": "https://api.bol.com/retailer/public/Retailer-API/index.html",
+  "base_url": "https://api.bol.com/retailer",
+  "headers": {
+    "Accept": "application/vnd.retailer.v10+json",
+    "Content-Type": "application/vnd.retailer.v10+json"
+  },
+  "auth": {
+    "type": "oauth2_client_credentials",
+    "token_url": "https://login.bol.com/token",
+    "client_auth": "basic",
+    "fields": [
+      {
+        "key": "client_id",
+        "label": "Client ID",
+        "type": "string",
+        "required": true,
+        "help": "bol.com seller dashboard → Settings → API settings → Create API credentials."
+      },
+      {
+        "key": "client_secret",
+        "label": "Client secret",
+        "type": "password",
+        "required": true
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_orders",
+      "name": "List orders",
+      "description": "Open (or all) orders.",
+      "method": "GET",
+      "endpoint": "/orders",
+      "query": {
+        "status": "{{ inputs.status }}",
+        "fulfilment-method": "{{ inputs.fulfilment_method }}",
+        "page": "{{ inputs.page }}"
+      },
+      "output_fields": {
+        "orders": "orders"
+      },
+      "inputs": [
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "default": "OPEN",
+          "options": [
+            {
+              "value": "OPEN",
+              "label": "Open"
+            },
+            {
+              "value": "SHIPPED",
+              "label": "Shipped"
+            },
+            {
+              "value": "ALL",
+              "label": "All"
+            }
+          ]
+        },
+        {
+          "key": "fulfilment_method",
+          "label": "Fulfilment",
+          "type": "select",
+          "default": "FBR",
+          "options": [
+            {
+              "value": "FBR",
+              "label": "By retailer"
+            },
+            {
+              "value": "FBB",
+              "label": "By bol"
+            },
+            {
+              "value": "ALL",
+              "label": "All"
+            }
+          ]
+        },
+        {
+          "key": "page",
+          "label": "Page",
+          "type": "number",
+          "default": 1
+        }
+      ]
+    },
+    {
+      "key": "get_order",
+      "name": "Get order",
+      "description": "One order with items and shipping details.",
+      "method": "GET",
+      "endpoint": "/orders/{{ inputs.order_id }}",
+      "output_fields": {
+        "placed_at": "orderPlacedDateTime",
+        "items": "orderItems",
+        "email": "shipmentDetails.email"
+      },
+      "inputs": [
+        {
+          "key": "order_id",
+          "label": "Order ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "ship_order_item",
+      "name": "Ship order item",
+      "description": "Confirm shipment of an order item with tracking.",
+      "method": "PUT",
+      "endpoint": "/orders/shipment",
+      "body": {
+        "orderItems": [
+          {
+            "orderItemId": "{{ inputs.order_item_id }}",
+            "quantity": "{{ inputs.quantity }}"
+          }
+        ],
+        "shipmentReference": "{{ inputs.reference }}",
+        "transport": {
+          "transporterCode": "{{ inputs.transporter_code }}",
+          "trackAndTrace": "{{ inputs.track_and_trace }}"
+        }
+      },
+      "output_fields": {
+        "process_status_id": "processStatusId",
+        "status": "status"
+      },
+      "inputs": [
+        {
+          "key": "order_item_id",
+          "label": "Order item ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "quantity",
+          "label": "Quantity",
+          "type": "number",
+          "default": 1
+        },
+        {
+          "key": "transporter_code",
+          "label": "Carrier code",
+          "type": "string",
+          "default": "TNT",
+          "help": "e.g. TNT (PostNL), DHL, DPD-NL, BPOST_BE, UPS."
+        },
+        {
+          "key": "track_and_trace",
+          "label": "Tracking number",
+          "type": "string"
+        },
+        {
+          "key": "reference",
+          "label": "Your shipment reference",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "cancel_order_item",
+      "name": "Cancel order item",
+      "description": "Cancel an order item.",
+      "method": "PUT",
+      "endpoint": "/orders/cancellation",
+      "body": {
+        "orderItems": [
+          {
+            "orderItemId": "{{ inputs.order_item_id }}",
+            "reasonCode": "{{ inputs.reason }}"
+          }
+        ]
+      },
+      "output_fields": {
+        "process_status_id": "processStatusId",
+        "status": "status"
+      },
+      "inputs": [
+        {
+          "key": "order_item_id",
+          "label": "Order item ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "reason",
+          "label": "Reason",
+          "type": "select",
+          "required": true,
+          "default": "OUT_OF_STOCK",
+          "options": [
+            {
+              "value": "OUT_OF_STOCK",
+              "label": "OUT_OF_STOCK"
+            },
+            {
+              "value": "REQUESTED_BY_CUSTOMER",
+              "label": "REQUESTED_BY_CUSTOMER"
+            },
+            {
+              "value": "BAD_CONDITION",
+              "label": "BAD_CONDITION"
+            },
+            {
+              "value": "HIGHER_SHIPCOST",
+              "label": "HIGHER_SHIPCOST"
+            },
+            {
+              "value": "INCORRECT_PRICE",
+              "label": "INCORRECT_PRICE"
+            },
+            {
+              "value": "NOT_AVAIL_IN_TIME",
+              "label": "NOT_AVAIL_IN_TIME"
+            },
+            {
+              "value": "NO_BOL_GUARANTEE",
+              "label": "NO_BOL_GUARANTEE"
+            },
+            {
+              "value": "ORDERED_TWICE",
+              "label": "ORDERED_TWICE"
+            },
+            {
+              "value": "RETAIN_ITEM",
+              "label": "RETAIN_ITEM"
+            },
+            {
+              "value": "TECH_ISSUE",
+              "label": "TECH_ISSUE"
+            },
+            {
+              "value": "UNFINDABLE_ITEM",
+              "label": "UNFINDABLE_ITEM"
+            },
+            {
+              "value": "OTHER",
+              "label": "OTHER"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "update_stock",
+      "name": "Update offer stock",
+      "description": "Set the stock of an offer.",
+      "method": "PUT",
+      "endpoint": "/offers/{{ inputs.offer_id }}/stock",
+      "body": {
+        "amount": "{{ inputs.amount }}",
+        "managedByRetailer": true
+      },
+      "output_fields": {
+        "process_status_id": "processStatusId"
+      },
+      "inputs": [
+        {
+          "key": "offer_id",
+          "label": "Offer ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "amount",
+          "label": "Stock",
+          "type": "number",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "update_price",
+      "name": "Update offer price",
+      "description": "Set the price of an offer.",
+      "method": "PUT",
+      "endpoint": "/offers/{{ inputs.offer_id }}/price",
+      "body": {
+        "pricing": {
+          "bundlePrices": [
+            {
+              "quantity": 1,
+              "unitPrice": "{{ inputs.price }}"
+            }
+          ]
+        }
+      },
+      "output_fields": {
+        "process_status_id": "processStatusId"
+      },
+      "inputs": [
+        {
+          "key": "offer_id",
+          "label": "Offer ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "price",
+          "label": "Price (EUR)",
+          "type": "number",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "get_offer",
+      "name": "Get offer",
+      "description": "One offer's price and stock.",
+      "method": "GET",
+      "endpoint": "/offers/{{ inputs.offer_id }}",
+      "output_fields": {
+        "ean": "ean",
+        "stock": "stock.amount",
+        "price": "pricing.bundlePrices.0.unitPrice"
+      },
+      "inputs": [
+        {
+          "key": "offer_id",
+          "label": "Offer ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_order",
+      "name": "New order",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/orders",
+      "query": {
+        "status": "OPEN"
+      },
+      "items_path": "orders",
+      "id_field": "orderId",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

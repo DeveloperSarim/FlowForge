@@ -1,0 +1,202 @@
+{
+  "key": "strike",
+  "name": "Strike",
+  "category": "Payments & Finance",
+  "description": "Create Bitcoin Lightning invoices, check payments, balances and BTC rates.",
+  "website": "https://strike.me",
+  "docs_url": "https://docs.strike.me/api/",
+  "base_url": "https://api.strike.me/v1",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "dashboard.strike.me → API keys → Create key; tick the invoice and balance scopes you need."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "create_invoice",
+      "name": "Create invoice",
+      "description": "Create an invoice in USD, BTC or another supported currency.",
+      "method": "POST",
+      "endpoint": "/invoices",
+      "body": {
+        "correlationId": "{{ inputs.correlation_id }}",
+        "description": "{{ inputs.description }}",
+        "amount": {
+          "amount": "{{ inputs.amount }}",
+          "currency": "{{ inputs.currency }}"
+        }
+      },
+      "output_fields": {
+        "invoice_id": "invoiceId",
+        "state": "state"
+      },
+      "inputs": [
+        {
+          "key": "amount",
+          "label": "Amount",
+          "type": "string",
+          "required": true,
+          "placeholder": "10.00"
+        },
+        {
+          "key": "currency",
+          "label": "Currency",
+          "type": "select",
+          "required": true,
+          "default": "USD",
+          "options": [
+            {
+              "value": "USD",
+              "label": "USD"
+            },
+            {
+              "value": "BTC",
+              "label": "BTC"
+            },
+            {
+              "value": "EUR",
+              "label": "EUR"
+            },
+            {
+              "value": "GBP",
+              "label": "GBP"
+            },
+            {
+              "value": "USDT",
+              "label": "USDT"
+            }
+          ]
+        },
+        {
+          "key": "description",
+          "label": "Description",
+          "type": "string"
+        },
+        {
+          "key": "correlation_id",
+          "label": "Your reference",
+          "type": "string",
+          "help": "Optional unique ID, e.g. your order number."
+        }
+      ]
+    },
+    {
+      "key": "create_quote",
+      "name": "Get payment quote",
+      "description": "Generate the Lightning invoice (and on-chain address) to pay an invoice.",
+      "method": "POST",
+      "endpoint": "/invoices/{{ inputs.invoice_id }}/quote",
+      "output_fields": {
+        "ln_invoice": "lnInvoice",
+        "onchain_address": "onchainAddress",
+        "expiration": "expiration",
+        "quote_id": "quoteId"
+      },
+      "inputs": [
+        {
+          "key": "invoice_id",
+          "label": "Invoice ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "get_invoice",
+      "name": "Get invoice",
+      "description": "Check whether an invoice has been paid.",
+      "method": "GET",
+      "endpoint": "/invoices/{{ inputs.invoice_id }}",
+      "output_fields": {
+        "state": "state",
+        "amount": "amount.amount",
+        "currency": "amount.currency"
+      },
+      "inputs": [
+        {
+          "key": "invoice_id",
+          "label": "Invoice ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_invoices",
+      "name": "List invoices",
+      "description": "Newest invoices first, optionally only paid ones.",
+      "method": "GET",
+      "endpoint": "/invoices",
+      "query": {
+        "$filter": "{{ inputs.filter }}",
+        "$orderby": "created desc",
+        "$top": "{{ inputs.top }}"
+      },
+      "output_fields": {
+        "items": "items"
+      },
+      "inputs": [
+        {
+          "key": "filter",
+          "label": "Filter",
+          "type": "string",
+          "placeholder": "state eq 'PAID'",
+          "help": "Optional OData filter, e.g. state eq 'PAID'."
+        },
+        {
+          "key": "top",
+          "label": "How many",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    },
+    {
+      "key": "get_balances",
+      "name": "Get balances",
+      "description": "Balances of your Strike account per currency.",
+      "method": "GET",
+      "endpoint": "/balances",
+      "inputs": []
+    },
+    {
+      "key": "get_rates",
+      "name": "Get exchange rates",
+      "description": "Current Bitcoin exchange rates.",
+      "method": "GET",
+      "endpoint": "/rates/ticker",
+      "inputs": []
+    }
+  ],
+  "triggers": [
+    {
+      "key": "invoice_paid",
+      "name": "Invoice paid",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/invoices",
+      "query": {
+        "$filter": "state eq 'PAID'",
+        "$orderby": "created desc",
+        "$top": 50
+      },
+      "items_path": "items",
+      "id_field": "invoiceId",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

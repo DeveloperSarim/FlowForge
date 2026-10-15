@@ -1,0 +1,183 @@
+{
+  "key": "memos",
+  "name": "Memos",
+  "category": "Productivity",
+  "description": "Self-hosted notes: create, list, update and delete short memos.",
+  "website": "https://usememos.com",
+  "docs_url": "https://usememos.com/docs/api",
+  "base_url": "{{ credentials.base_url }}/api/v1",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "base_url",
+        "label": "Memos URL",
+        "type": "string",
+        "required": true,
+        "placeholder": "https://memos.example.com",
+        "help": "The address of your Memos server, without a trailing slash."
+      },
+      {
+        "key": "token",
+        "label": "Access token",
+        "type": "password",
+        "required": true,
+        "help": "Memos → Settings → My Account → Access Tokens → Create."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "create_memo",
+      "name": "Create memo",
+      "description": "Write a new memo (Markdown, #tags work).",
+      "method": "POST",
+      "endpoint": "/memos",
+      "body": {
+        "content": "{{ inputs.content }}",
+        "visibility": "{{ inputs.visibility }}"
+      },
+      "output_fields": {
+        "name": "name",
+        "content": "content"
+      },
+      "inputs": [
+        {
+          "key": "content",
+          "label": "Content",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "visibility",
+          "label": "Visibility",
+          "type": "select",
+          "default": "PRIVATE",
+          "options": [
+            {
+              "value": "PRIVATE",
+              "label": "Only me"
+            },
+            {
+              "value": "PROTECTED",
+              "label": "Signed-in users"
+            },
+            {
+              "value": "PUBLIC",
+              "label": "Public"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "list_memos",
+      "name": "List memos",
+      "description": "Recent memos.",
+      "method": "GET",
+      "endpoint": "/memos",
+      "query": {
+        "pageSize": "{{ inputs.page_size }}"
+      },
+      "output_fields": {
+        "contents": "memos.*.content",
+        "names": "memos.*.name"
+      },
+      "inputs": [
+        {
+          "key": "page_size",
+          "label": "Max results",
+          "type": "number",
+          "default": 20
+        }
+      ]
+    },
+    {
+      "key": "get_memo",
+      "name": "Get memo",
+      "description": "Fetch a memo by ID.",
+      "method": "GET",
+      "endpoint": "/memos/{{ inputs.id }}",
+      "output_fields": {
+        "content": "content",
+        "created": "createTime"
+      },
+      "inputs": [
+        {
+          "key": "id",
+          "label": "Memo ID",
+          "type": "string",
+          "required": true,
+          "help": "The number in the memo URL (memos/123 → 123)."
+        }
+      ]
+    },
+    {
+      "key": "update_memo",
+      "name": "Update memo",
+      "description": "Replace the text of a memo.",
+      "method": "PATCH",
+      "endpoint": "/memos/{{ inputs.id }}",
+      "query": {
+        "updateMask": "content"
+      },
+      "body": {
+        "content": "{{ inputs.content }}"
+      },
+      "output_fields": {
+        "name": "name"
+      },
+      "inputs": [
+        {
+          "key": "id",
+          "label": "Memo ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "content",
+          "label": "New content",
+          "type": "text",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "delete_memo",
+      "name": "Delete memo",
+      "description": "Delete a memo.",
+      "method": "DELETE",
+      "endpoint": "/memos/{{ inputs.id }}",
+      "inputs": [
+        {
+          "key": "id",
+          "label": "Memo ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_memo",
+      "name": "New memo",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/memos",
+      "query": {
+        "pageSize": 20
+      },
+      "items_path": "memos",
+      "id_field": "name",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

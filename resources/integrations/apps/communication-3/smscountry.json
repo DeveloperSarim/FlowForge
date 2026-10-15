@@ -1,0 +1,181 @@
+{
+  "key": "smscountry",
+  "name": "SMSCountry",
+  "category": "Communication",
+  "description": "Send single or bulk SMS with SMSCountry, check status, sender IDs and balance.",
+  "website": "https://www.smscountry.com",
+  "docs_url": "https://www.smscountry.com/restapidoc.html",
+  "base_url": "https://restapi.smscountry.com/v0.1/Accounts/{{ credentials.username }}",
+  "auth": {
+    "type": "basic",
+    "fields": [
+      {
+        "key": "username",
+        "label": "Auth key",
+        "type": "string",
+        "required": true,
+        "help": "SMSCountry → log in → API settings (REST API) → Auth Key."
+      },
+      {
+        "key": "password",
+        "label": "Auth token",
+        "type": "password",
+        "required": true,
+        "help": "Shown next to the Auth Key."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "send_sms",
+      "name": "Send SMS",
+      "method": "POST",
+      "endpoint": "/SMSes/",
+      "body": {
+        "Text": "{{ inputs.Text }}",
+        "Number": "{{ inputs.Number }}",
+        "SenderId": "{{ inputs.SenderId }}",
+        "ScheduleTime": "{{ inputs.ScheduleTime }}"
+      },
+      "output_fields": {
+        "message_id": "MessageUUID",
+        "success": "Success"
+      },
+      "inputs": [
+        {
+          "key": "Number",
+          "label": "Phone number",
+          "type": "string",
+          "required": true,
+          "placeholder": "919876543210",
+          "help": "Digits only, with country code."
+        },
+        {
+          "key": "Text",
+          "label": "Message",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "SenderId",
+          "label": "Sender ID",
+          "type": "string"
+        },
+        {
+          "key": "ScheduleTime",
+          "label": "Schedule time",
+          "type": "string",
+          "placeholder": "2026-12-01 10:30:00"
+        }
+      ]
+    },
+    {
+      "key": "send_bulk_sms",
+      "name": "Send bulk SMS",
+      "method": "POST",
+      "endpoint": "/BulkSMSes/",
+      "body": {
+        "Text": "{{ inputs.Text }}",
+        "Numbers": "{{ inputs.Numbers }}",
+        "SenderId": "{{ inputs.SenderId }}"
+      },
+      "output_fields": {
+        "batch_id": "BatchUUID",
+        "message_ids": "MessageUUIDs"
+      },
+      "inputs": [
+        {
+          "key": "Numbers",
+          "label": "Phone numbers",
+          "type": "list",
+          "required": true
+        },
+        {
+          "key": "Text",
+          "label": "Message",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "SenderId",
+          "label": "Sender ID",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "get_sms",
+      "name": "Get SMS status",
+      "method": "GET",
+      "endpoint": "/SMSes/{{ inputs.id }}/",
+      "output_fields": {
+        "status": "Messages.0.Status",
+        "status_code": "Messages.0.StatusCode",
+        "done_time": "Messages.0.DoneTime"
+      },
+      "inputs": [
+        {
+          "key": "id",
+          "label": "Message UUID",
+          "type": "string",
+          "required": true,
+          "help": "MessageUUID returned by Send SMS."
+        }
+      ]
+    },
+    {
+      "key": "list_sms",
+      "name": "List sent SMS",
+      "method": "GET",
+      "endpoint": "/SMSes/",
+      "query": {
+        "FromDate": "{{ inputs.FromDate }}",
+        "ToDate": "{{ inputs.ToDate }}",
+        "Limit": "{{ inputs.Limit }}"
+      },
+      "output_fields": {
+        "messages": "Messages"
+      },
+      "inputs": [
+        {
+          "key": "FromDate",
+          "label": "From",
+          "type": "string",
+          "placeholder": "2026-01-01 00:00:00"
+        },
+        {
+          "key": "ToDate",
+          "label": "To",
+          "type": "string",
+          "placeholder": "2026-01-31 23:59:59"
+        },
+        {
+          "key": "Limit",
+          "label": "Max results",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    },
+    {
+      "key": "get_balance",
+      "name": "Check balance",
+      "method": "GET",
+      "endpoint": "/CheckBalance/",
+      "output_fields": {
+        "balance": "AvailableAmount"
+      },
+      "inputs": []
+    },
+    {
+      "key": "list_sender_ids",
+      "name": "List sender IDs",
+      "method": "GET",
+      "endpoint": "/SenderIDs/",
+      "output_fields": {
+        "sender_ids": "SenderIDs.*.SenderID"
+      },
+      "inputs": []
+    }
+  ]
+}

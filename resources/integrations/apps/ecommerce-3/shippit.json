@@ -1,0 +1,312 @@
+{
+  "key": "shippit",
+  "name": "Shippit",
+  "category": "E-commerce",
+  "description": "Australian multi-carrier shipping: quotes, orders, tracking and cancellations.",
+  "website": "https://www.shippit.com",
+  "docs_url": "https://developer.shippit.com",
+  "base_url": "https://{{ credentials.host }}/api/3",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "Shippit → Settings → Integrations → API key."
+      },
+      {
+        "key": "host",
+        "label": "Environment",
+        "type": "select",
+        "required": true,
+        "default": "app.shippit.com",
+        "options": [
+          {
+            "value": "app.shippit.com",
+            "label": "Production"
+          },
+          {
+            "value": "app.staging.shippit.com",
+            "label": "Staging"
+          }
+        ]
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "get_quotes",
+      "name": "Get quotes",
+      "description": "Prices from available couriers for a parcel.",
+      "method": "POST",
+      "endpoint": "/quotes",
+      "body": {
+        "quote": {
+          "dropoff_postcode": "{{ inputs.postcode }}",
+          "dropoff_state": "{{ inputs.state }}",
+          "dropoff_suburb": "{{ inputs.suburb }}",
+          "parcel_attributes": [
+            {
+              "qty": "{{ inputs.qty }}",
+              "weight": "{{ inputs.weight }}"
+            }
+          ]
+        }
+      },
+      "output_fields": {
+        "quotes": "response"
+      },
+      "inputs": [
+        {
+          "key": "suburb",
+          "label": "Suburb",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "state",
+          "label": "State",
+          "type": "string",
+          "required": true,
+          "placeholder": "NSW"
+        },
+        {
+          "key": "postcode",
+          "label": "Postcode",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "weight",
+          "label": "Weight (kg)",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "qty",
+          "label": "Parcels",
+          "type": "number",
+          "default": 1
+        }
+      ]
+    },
+    {
+      "key": "create_order",
+      "name": "Create order",
+      "description": "Send an order to Shippit for booking.",
+      "method": "POST",
+      "endpoint": "/orders",
+      "body": {
+        "order": {
+          "courier_type": "{{ inputs.courier_type }}",
+          "delivery_address": "{{ inputs.address }}",
+          "delivery_suburb": "{{ inputs.suburb }}",
+          "delivery_state": "{{ inputs.state }}",
+          "delivery_postcode": "{{ inputs.postcode }}",
+          "delivery_instructions": "{{ inputs.instructions }}",
+          "authority_to_leave": "{{ inputs.authority_to_leave }}",
+          "receiver_name": "{{ inputs.receiver_name }}",
+          "receiver_contact_number": "{{ inputs.receiver_phone }}",
+          "retailer_invoice": "{{ inputs.reference }}",
+          "user_attributes": {
+            "email": "{{ inputs.email }}",
+            "first_name": "{{ inputs.first_name }}",
+            "last_name": "{{ inputs.last_name }}"
+          },
+          "parcel_attributes": [
+            {
+              "qty": "{{ inputs.qty }}",
+              "weight": "{{ inputs.weight }}"
+            }
+          ]
+        }
+      },
+      "output_fields": {
+        "tracking_number": "response.tracking_number",
+        "state": "response.state",
+        "price": "response.price"
+      },
+      "inputs": [
+        {
+          "key": "address",
+          "label": "Street address",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "suburb",
+          "label": "Suburb",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "state",
+          "label": "State",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "postcode",
+          "label": "Postcode",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "email",
+          "label": "Customer email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "first_name",
+          "label": "Customer first name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "last_name",
+          "label": "Customer last name",
+          "type": "string"
+        },
+        {
+          "key": "receiver_name",
+          "label": "Receiver name",
+          "type": "string"
+        },
+        {
+          "key": "receiver_phone",
+          "label": "Receiver phone",
+          "type": "string"
+        },
+        {
+          "key": "weight",
+          "label": "Weight (kg)",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "qty",
+          "label": "Parcels",
+          "type": "number",
+          "default": 1
+        },
+        {
+          "key": "courier_type",
+          "label": "Service",
+          "type": "select",
+          "required": true,
+          "default": "standard",
+          "options": [
+            {
+              "value": "standard",
+              "label": "standard"
+            },
+            {
+              "value": "express",
+              "label": "express"
+            },
+            {
+              "value": "priority",
+              "label": "priority"
+            },
+            {
+              "value": "click_and_collect",
+              "label": "click_and_collect"
+            }
+          ]
+        },
+        {
+          "key": "authority_to_leave",
+          "label": "Authority to leave",
+          "type": "select",
+          "default": "No",
+          "options": [
+            {
+              "value": "Yes",
+              "label": "Yes"
+            },
+            {
+              "value": "No",
+              "label": "No"
+            }
+          ]
+        },
+        {
+          "key": "instructions",
+          "label": "Delivery instructions",
+          "type": "string"
+        },
+        {
+          "key": "reference",
+          "label": "Your order reference",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "get_order",
+      "name": "Get order",
+      "description": "An order's details by tracking number.",
+      "method": "GET",
+      "endpoint": "/orders/{{ inputs.tracking_number }}",
+      "inputs": [
+        {
+          "key": "tracking_number",
+          "label": "Shippit tracking number",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "track_order",
+      "name": "Track order",
+      "description": "Tracking events and the customer tracking page.",
+      "method": "GET",
+      "endpoint": "/orders/{{ inputs.tracking_number }}/tracking",
+      "inputs": [
+        {
+          "key": "tracking_number",
+          "label": "Shippit tracking number",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "cancel_order",
+      "name": "Cancel order",
+      "description": "Cancel an order before it is booked.",
+      "method": "DELETE",
+      "endpoint": "/orders/{{ inputs.tracking_number }}",
+      "output_fields": {
+        "state": "response.state"
+      },
+      "inputs": [
+        {
+          "key": "tracking_number",
+          "label": "Shippit tracking number",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Order update",
+      "type": "webhook",
+      "description": "Shippit → Settings → Integrations → Webhook URL, paste this URL.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

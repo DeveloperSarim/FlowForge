@@ -1,0 +1,249 @@
+{
+  "key": "yandex_webmaster",
+  "name": "Yandex Webmaster",
+  "category": "Ads & SEO",
+  "description": "Check your sites in Yandex search, send pages for reindexing, see top queries.",
+  "website": "https://webmaster.yandex.com",
+  "docs_url": "https://yandex.com/dev/webmaster/doc/en/",
+  "base_url": "https://api.webmaster.yandex.net/v4",
+  "auth": [
+    {
+      "type": "oauth2",
+      "authorize_url": "https://oauth.yandex.com/authorize",
+      "token_url": "https://oauth.yandex.com/token",
+      "scopes": [
+        "webmaster:hostinfo",
+        "webmaster:verify"
+      ],
+      "token_type": "OAuth",
+      "fields": [
+        {
+          "key": "client_id",
+          "label": "Client ID",
+          "type": "string",
+          "required": true,
+          "help": "Create an app at oauth.yandex.com with the Yandex.Webmaster permissions."
+        },
+        {
+          "key": "client_secret",
+          "label": "Client secret",
+          "type": "password",
+          "required": true
+        }
+      ],
+      "profile": {
+        "endpoint": "/user",
+        "store": {
+          "user_id": "{{ user_id }}"
+        }
+      }
+    },
+    {
+      "type": "api_key",
+      "in": "header",
+      "name": "Authorization",
+      "prefix": "OAuth ",
+      "fields": [
+        {
+          "key": "api_key",
+          "label": "OAuth token",
+          "type": "password",
+          "required": true,
+          "help": "A Yandex OAuth token with Webmaster access (from oauth.yandex.com)."
+        }
+      ],
+      "profile": {
+        "endpoint": "/user",
+        "store": {
+          "user_id": "{{ user_id }}"
+        }
+      }
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_hosts",
+      "name": "List sites",
+      "description": "Sites in your Yandex Webmaster account and their host IDs.",
+      "method": "GET",
+      "endpoint": "/user/{{ inputs.user_id }}/hosts",
+      "output_fields": {
+        "hosts": "hosts",
+        "host_ids": "hosts.*.host_id",
+        "urls": "hosts.*.unicode_host_url"
+      },
+      "inputs": [
+        {
+          "key": "user_id",
+          "label": "Yandex user ID",
+          "type": "string",
+          "fallback": "credentials.user_id",
+          "help": "Leave empty: it is read from your connected account."
+        }
+      ]
+    },
+    {
+      "key": "host_summary",
+      "name": "Site summary",
+      "description": "Site quality index, pages in search, excluded pages and problems.",
+      "method": "GET",
+      "endpoint": "/user/{{ inputs.user_id }}/hosts/{{ inputs.host_id }}/summary",
+      "output_fields": {
+        "sqi": "sqi",
+        "searchable_pages": "searchable_pages_count",
+        "excluded_pages": "excluded_pages_count",
+        "problems": "site_problems"
+      },
+      "inputs": [
+        {
+          "key": "host_id",
+          "label": "Host ID",
+          "type": "string",
+          "required": true,
+          "placeholder": "https:example.com:443",
+          "help": "Run \"List sites\" to see the host IDs."
+        },
+        {
+          "key": "user_id",
+          "label": "Yandex user ID",
+          "type": "string",
+          "fallback": "credentials.user_id",
+          "help": "Leave empty: it is read from your connected account."
+        }
+      ]
+    },
+    {
+      "key": "recrawl_url",
+      "name": "Send page for reindexing",
+      "description": "Ask Yandex to recrawl a page (daily quota applies).",
+      "method": "POST",
+      "endpoint": "/user/{{ inputs.user_id }}/hosts/{{ inputs.host_id }}/recrawl/queue",
+      "body": {
+        "url": "{{ inputs.url }}"
+      },
+      "output_fields": {
+        "task_id": "task_id",
+        "quota_left": "quota_remainder"
+      },
+      "inputs": [
+        {
+          "key": "host_id",
+          "label": "Host ID",
+          "type": "string",
+          "required": true,
+          "placeholder": "https:example.com:443"
+        },
+        {
+          "key": "url",
+          "label": "Page URL",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "user_id",
+          "label": "Yandex user ID",
+          "type": "string",
+          "fallback": "credentials.user_id",
+          "help": "Leave empty: it is read from your connected account."
+        }
+      ]
+    },
+    {
+      "key": "recrawl_quota",
+      "name": "Reindexing quota",
+      "description": "How many reindexing requests are left today.",
+      "method": "GET",
+      "endpoint": "/user/{{ inputs.user_id }}/hosts/{{ inputs.host_id }}/recrawl/quota",
+      "output_fields": {
+        "daily_quota": "daily_quota",
+        "quota_left": "quota_remainder"
+      },
+      "inputs": [
+        {
+          "key": "host_id",
+          "label": "Host ID",
+          "type": "string",
+          "required": true,
+          "placeholder": "https:example.com:443"
+        },
+        {
+          "key": "user_id",
+          "label": "Yandex user ID",
+          "type": "string",
+          "fallback": "credentials.user_id",
+          "help": "Leave empty: it is read from your connected account."
+        }
+      ]
+    },
+    {
+      "key": "popular_queries",
+      "name": "Top search queries",
+      "description": "The site's most popular search queries in Yandex.",
+      "method": "GET",
+      "endpoint": "/user/{{ inputs.user_id }}/hosts/{{ inputs.host_id }}/search-queries/popular",
+      "query": {
+        "order_by": "{{ inputs.order_by }}",
+        "date_from": "{{ inputs.date_from }}",
+        "date_to": "{{ inputs.date_to }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "queries": "queries",
+        "texts": "queries.*.query_text",
+        "count": "count"
+      },
+      "inputs": [
+        {
+          "key": "host_id",
+          "label": "Host ID",
+          "type": "string",
+          "required": true,
+          "placeholder": "https:example.com:443"
+        },
+        {
+          "key": "order_by",
+          "label": "Sort by",
+          "type": "select",
+          "required": true,
+          "default": "TOTAL_SHOWS",
+          "options": [
+            {
+              "value": "TOTAL_SHOWS",
+              "label": "Impressions"
+            },
+            {
+              "value": "TOTAL_CLICKS",
+              "label": "Clicks"
+            }
+          ]
+        },
+        {
+          "key": "date_from",
+          "label": "From date",
+          "type": "string",
+          "placeholder": "2026-01-01"
+        },
+        {
+          "key": "date_to",
+          "label": "To date",
+          "type": "string",
+          "placeholder": "2026-01-31"
+        },
+        {
+          "key": "limit",
+          "label": "How many",
+          "type": "number",
+          "default": 50
+        },
+        {
+          "key": "user_id",
+          "label": "Yandex user ID",
+          "type": "string",
+          "fallback": "credentials.user_id",
+          "help": "Leave empty: it is read from your connected account."
+        }
+      ]
+    }
+  ],
+  "triggers": []
+}

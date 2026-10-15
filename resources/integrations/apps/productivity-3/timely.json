@@ -1,0 +1,176 @@
+{
+  "key": "timely",
+  "name": "Timely",
+  "category": "Productivity",
+  "description": "Automatic time tracking: list projects, read time entries and log hours.",
+  "website": "https://timelyapp.com",
+  "docs_url": "https://dev.timelyapp.com/",
+  "base_url": "https://api.timelyapp.com/1.1",
+  "auth": {
+    "type": "oauth2",
+    "authorize_url": "https://api.timelyapp.com/1.1/oauth/authorize",
+    "token_url": "https://api.timelyapp.com/1.1/oauth/token",
+    "scopes": [],
+    "fields": [
+      {
+        "key": "client_id",
+        "label": "Client ID",
+        "type": "string",
+        "required": true,
+        "help": "Timely → Settings → Integrations → API Applications (or the Timely developer page). Use this app's redirect URL."
+      },
+      {
+        "key": "client_secret",
+        "label": "Client secret",
+        "type": "password",
+        "required": true,
+        "help": "Shown with the Client ID."
+      }
+    ],
+    "profile": {
+      "endpoint": "/accounts",
+      "store": {
+        "account_id": "{{ data.0.id }}"
+      }
+    }
+  },
+  "actions": [
+    {
+      "key": "list_projects",
+      "name": "List projects",
+      "description": "Projects in your account.",
+      "method": "GET",
+      "endpoint": "/{{ inputs.account_id }}/projects",
+      "output_fields": {
+        "names": "*.name",
+        "ids": "*.id"
+      },
+      "inputs": [
+        {
+          "key": "account_id",
+          "label": "Account ID",
+          "type": "string",
+          "fallback": "credentials.account_id",
+          "help": "Leave empty to use your Timely account."
+        }
+      ]
+    },
+    {
+      "key": "list_events",
+      "name": "List time entries",
+      "description": "Logged entries between two dates.",
+      "method": "GET",
+      "endpoint": "/{{ inputs.account_id }}/events",
+      "query": {
+        "since": "{{ inputs.since }}",
+        "upto": "{{ inputs.upto }}"
+      },
+      "output_fields": {
+        "notes": "*.note",
+        "ids": "*.id"
+      },
+      "inputs": [
+        {
+          "key": "since",
+          "label": "From",
+          "type": "string",
+          "required": true,
+          "placeholder": "2025-01-01"
+        },
+        {
+          "key": "upto",
+          "label": "To",
+          "type": "string",
+          "required": true,
+          "placeholder": "2025-01-31"
+        },
+        {
+          "key": "account_id",
+          "label": "Account ID",
+          "type": "string",
+          "fallback": "credentials.account_id",
+          "help": "Leave empty to use your Timely account."
+        }
+      ]
+    },
+    {
+      "key": "create_event",
+      "name": "Log hours",
+      "description": "Add an entry to a project.",
+      "method": "POST",
+      "endpoint": "/{{ inputs.account_id }}/projects/{{ inputs.project_id }}/events",
+      "body": {
+        "event": {
+          "day": "{{ inputs.day }}",
+          "hours": "{{ inputs.hours }}",
+          "minutes": "{{ inputs.minutes }}",
+          "note": "{{ inputs.note }}"
+        }
+      },
+      "output_fields": {
+        "id": "id"
+      },
+      "inputs": [
+        {
+          "key": "project_id",
+          "label": "Project ID",
+          "type": "string",
+          "required": true,
+          "help": "Use \"List projects\"."
+        },
+        {
+          "key": "day",
+          "label": "Day",
+          "type": "string",
+          "required": true,
+          "placeholder": "2025-01-31"
+        },
+        {
+          "key": "hours",
+          "label": "Hours",
+          "type": "number",
+          "required": true,
+          "default": 1
+        },
+        {
+          "key": "minutes",
+          "label": "Minutes",
+          "type": "number",
+          "default": 0
+        },
+        {
+          "key": "note",
+          "label": "Note",
+          "type": "text"
+        },
+        {
+          "key": "account_id",
+          "label": "Account ID",
+          "type": "string",
+          "fallback": "credentials.account_id",
+          "help": "Leave empty to use your Timely account."
+        }
+      ]
+    },
+    {
+      "key": "list_users",
+      "name": "List users",
+      "description": "People in the account.",
+      "method": "GET",
+      "endpoint": "/{{ inputs.account_id }}/users",
+      "output_fields": {
+        "names": "*.name",
+        "ids": "*.id"
+      },
+      "inputs": [
+        {
+          "key": "account_id",
+          "label": "Account ID",
+          "type": "string",
+          "fallback": "credentials.account_id",
+          "help": "Leave empty to use your Timely account."
+        }
+      ]
+    }
+  ]
+}

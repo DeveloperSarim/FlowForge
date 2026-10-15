@@ -1,0 +1,330 @@
+{
+  "key": "fountain",
+  "name": "Fountain",
+  "category": "HR & Recruiting",
+  "description": "Add applicants, move them through hiring stages and update labels in Fountain.",
+  "website": "https://www.fountain.com",
+  "docs_url": "https://developer.fountain.com",
+  "base_url": "{{ credentials.api_url }}",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "X-ACCESS-TOKEN",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "Fountain → your name (top right) → Company Settings → API → Show API Keys. No API page? Ask support@fountain.com for API access."
+      },
+      {
+        "key": "api_url",
+        "label": "API address",
+        "type": "string",
+        "required": true,
+        "default": "https://api.fountain.com/v2",
+        "help": "Keep the default. If your login URL has a region (e.g. us-2.fountain.com) use https://us-2.fountain.com/api/v2."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "create_applicant",
+      "name": "Create applicant",
+      "description": "Adds an applicant to an opening.",
+      "method": "POST",
+      "endpoint": "/applicants",
+      "body": {
+        "name": "{{ inputs.name }}",
+        "email": "{{ inputs.email }}",
+        "phone_number": "{{ inputs.phone_number }}",
+        "funnel_id": "{{ inputs.funnel_id }}",
+        "data": "{{ inputs.data }}"
+      },
+      "output_fields": {
+        "id": "id",
+        "email": "email",
+        "stage": "stage.title",
+        "opening": "funnel.title"
+      },
+      "inputs": [
+        {
+          "key": "name",
+          "label": "Full name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "phone_number",
+          "label": "Phone number",
+          "type": "string",
+          "required": true,
+          "placeholder": "+15551234567"
+        },
+        {
+          "key": "funnel_id",
+          "label": "Opening ID",
+          "type": "string",
+          "help": "Use \"List openings\". Without it the applicant goes to your first opening."
+        },
+        {
+          "key": "data",
+          "label": "Custom fields",
+          "type": "keyvalue",
+          "help": "Extra applicant data, by field key."
+        }
+      ]
+    },
+    {
+      "key": "get_applicant",
+      "name": "Get applicant",
+      "description": "Returns an applicant's details.",
+      "method": "GET",
+      "endpoint": "/applicants/{{ inputs.applicant_id }}",
+      "output_fields": {
+        "id": "id",
+        "name": "name",
+        "email": "email",
+        "phone_number": "phone_number",
+        "stage": "stage.title"
+      },
+      "inputs": [
+        {
+          "key": "applicant_id",
+          "label": "Applicant ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "update_applicant",
+      "name": "Update applicant",
+      "description": "Updates an applicant's details or custom data.",
+      "method": "PUT",
+      "endpoint": "/applicants/{{ inputs.applicant_id }}",
+      "body": {
+        "name": "{{ inputs.name }}",
+        "email": "{{ inputs.email }}",
+        "phone_number": "{{ inputs.phone_number }}",
+        "data": "{{ inputs.data }}",
+        "rejection_reason": "{{ inputs.rejection_reason }}"
+      },
+      "output_fields": {
+        "id": "id"
+      },
+      "inputs": [
+        {
+          "key": "applicant_id",
+          "label": "Applicant ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "name",
+          "label": "Full name",
+          "type": "string"
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string"
+        },
+        {
+          "key": "phone_number",
+          "label": "Phone number",
+          "type": "string"
+        },
+        {
+          "key": "data",
+          "label": "Custom fields",
+          "type": "keyvalue"
+        },
+        {
+          "key": "rejection_reason",
+          "label": "Rejection reason",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "advance_applicant",
+      "name": "Move applicant to stage",
+      "description": "Advances an applicant to the next or a chosen stage.",
+      "method": "PUT",
+      "endpoint": "/applicants/{{ inputs.applicant_id }}/advance",
+      "body": {
+        "stage_id": "{{ inputs.stage_id }}",
+        "funnel_id": "{{ inputs.funnel_id }}",
+        "skip_automated_actions": "{{ inputs.skip_automated_actions }}"
+      },
+      "inputs": [
+        {
+          "key": "applicant_id",
+          "label": "Applicant ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "stage_id",
+          "label": "Stage ID",
+          "type": "string",
+          "help": "Use \"List stages\". Leave empty to move to the next stage."
+        },
+        {
+          "key": "funnel_id",
+          "label": "Opening ID",
+          "type": "string",
+          "help": "Only when moving to a stage in another opening."
+        },
+        {
+          "key": "skip_automated_actions",
+          "label": "Skip automated actions",
+          "type": "boolean"
+        }
+      ]
+    },
+    {
+      "key": "list_applicants",
+      "name": "List applicants",
+      "description": "Lists applicants, optionally by opening or stage.",
+      "method": "GET",
+      "endpoint": "/applicants",
+      "query": {
+        "funnel_id": "{{ inputs.funnel_id }}",
+        "stage_id": "{{ inputs.stage_id }}",
+        "phone": "{{ inputs.phone }}",
+        "per_page": "{{ inputs.per_page }}"
+      },
+      "output_fields": {
+        "applicants": "applicants",
+        "id": "applicants.0.id"
+      },
+      "inputs": [
+        {
+          "key": "funnel_id",
+          "label": "Opening ID",
+          "type": "string"
+        },
+        {
+          "key": "stage_id",
+          "label": "Stage ID",
+          "type": "string"
+        },
+        {
+          "key": "phone",
+          "label": "Phone number",
+          "type": "string"
+        },
+        {
+          "key": "per_page",
+          "label": "Max results",
+          "type": "number",
+          "default": 25
+        }
+      ]
+    },
+    {
+      "key": "set_label",
+      "name": "Set label",
+      "description": "Marks a stage label on an applicant as done or not done.",
+      "method": "PUT",
+      "endpoint": "/applicants/{{ inputs.applicant_id }}/labels/{{ inputs.title }}",
+      "query": {
+        "completed": "{{ inputs.completed }}"
+      },
+      "output_fields": {
+        "labels": "labels"
+      },
+      "inputs": [
+        {
+          "key": "applicant_id",
+          "label": "Applicant ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "title",
+          "label": "Label title",
+          "type": "string",
+          "required": true,
+          "help": "Must be a label that exists in the applicant's stage."
+        },
+        {
+          "key": "completed",
+          "label": "Completed",
+          "type": "boolean",
+          "default": true
+        }
+      ]
+    },
+    {
+      "key": "list_openings",
+      "name": "List openings",
+      "description": "Lists openings (funnels) and their IDs.",
+      "method": "GET",
+      "endpoint": "/funnels",
+      "query": {
+        "query": "{{ inputs.query }}",
+        "active": "{{ inputs.active }}"
+      },
+      "output_fields": {
+        "openings": "funnels",
+        "id": "funnels.0.id"
+      },
+      "inputs": [
+        {
+          "key": "query",
+          "label": "Search",
+          "type": "string"
+        },
+        {
+          "key": "active",
+          "label": "Active only",
+          "type": "boolean"
+        }
+      ]
+    },
+    {
+      "key": "list_stages",
+      "name": "List stages",
+      "description": "Lists the stages of an opening.",
+      "method": "GET",
+      "endpoint": "/funnels/{{ inputs.funnel_id }}/stages",
+      "output_fields": {
+        "stages": "stages",
+        "id": "stages.0.id"
+      },
+      "inputs": [
+        {
+          "key": "funnel_id",
+          "label": "Opening ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Add this URL in Fountain → Company Settings → Webhooks to get applicant stage changes.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,314 @@
+{
+  "key": "alegra",
+  "name": "Alegra",
+  "category": "Payments & Finance",
+  "description": "Latin American accounting: contacts, items, invoices and sending invoices.",
+  "website": "https://www.alegra.com",
+  "docs_url": "https://developer.alegra.com/reference",
+  "base_url": "https://api.alegra.com/api/v1",
+  "auth": {
+    "type": "basic",
+    "fields": [
+      {
+        "key": "username",
+        "label": "Email",
+        "type": "string",
+        "required": true,
+        "help": "The email you sign in to Alegra with."
+      },
+      {
+        "key": "password",
+        "label": "API token",
+        "type": "password",
+        "required": true,
+        "help": "Alegra → Configuración → Integraciones con otros sistemas → API → token."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "create_contact",
+      "name": "Create contact",
+      "description": "Add a client or supplier.",
+      "method": "POST",
+      "endpoint": "/contacts",
+      "body": {
+        "name": "{{ inputs.name }}",
+        "identification": "{{ inputs.identification }}",
+        "email": "{{ inputs.email }}",
+        "phonePrimary": "{{ inputs.phone }}",
+        "mobile": "{{ inputs.mobile }}",
+        "type": [
+          "{{ inputs.type }}"
+        ],
+        "address": {
+          "address": "{{ inputs.address }}",
+          "city": "{{ inputs.city }}"
+        }
+      },
+      "output_fields": {
+        "id": "id"
+      },
+      "inputs": [
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "identification",
+          "label": "Tax ID",
+          "type": "string"
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string"
+        },
+        {
+          "key": "phone",
+          "label": "Phone",
+          "type": "string"
+        },
+        {
+          "key": "mobile",
+          "label": "Mobile",
+          "type": "string"
+        },
+        {
+          "key": "type",
+          "label": "Type",
+          "type": "select",
+          "required": true,
+          "default": "client",
+          "options": [
+            {
+              "value": "client",
+              "label": "Client"
+            },
+            {
+              "value": "provider",
+              "label": "Supplier"
+            }
+          ]
+        },
+        {
+          "key": "address",
+          "label": "Address",
+          "type": "string"
+        },
+        {
+          "key": "city",
+          "label": "City",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "find_contact",
+      "name": "Find contact",
+      "description": "Search contacts by name, ID or email.",
+      "method": "GET",
+      "endpoint": "/contacts",
+      "query": {
+        "query": "{{ inputs.query }}",
+        "limit": 30
+      },
+      "output_fields": {
+        "id": "0.id",
+        "name": "0.name"
+      },
+      "inputs": [
+        {
+          "key": "query",
+          "label": "Search",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "create_item",
+      "name": "Create item",
+      "description": "Add a product or service.",
+      "method": "POST",
+      "endpoint": "/items",
+      "body": {
+        "name": "{{ inputs.name }}",
+        "price": "{{ inputs.price }}",
+        "description": "{{ inputs.description }}",
+        "reference": "{{ inputs.reference }}"
+      },
+      "output_fields": {
+        "id": "id"
+      },
+      "inputs": [
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "price",
+          "label": "Price",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "description",
+          "label": "Description",
+          "type": "string"
+        },
+        {
+          "key": "reference",
+          "label": "Reference / SKU",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "create_invoice",
+      "name": "Create invoice",
+      "description": "Create a sales invoice.",
+      "method": "POST",
+      "endpoint": "/invoices",
+      "body": {
+        "date": "{{ inputs.date }}",
+        "dueDate": "{{ inputs.due_date }}",
+        "client": {
+          "id": "{{ inputs.client_id }}"
+        },
+        "items": "{{ inputs.items }}",
+        "observations": "{{ inputs.observations }}",
+        "status": "{{ inputs.status }}"
+      },
+      "output_fields": {
+        "id": "id",
+        "number": "numberTemplate.fullNumber",
+        "total": "total",
+        "status": "status"
+      },
+      "inputs": [
+        {
+          "key": "client_id",
+          "label": "Client ID",
+          "type": "string",
+          "required": true,
+          "help": "Use Find contact to get it."
+        },
+        {
+          "key": "date",
+          "label": "Date",
+          "type": "string",
+          "required": true,
+          "placeholder": "2026-01-31"
+        },
+        {
+          "key": "due_date",
+          "label": "Due date",
+          "type": "string",
+          "required": true,
+          "placeholder": "2026-02-28"
+        },
+        {
+          "key": "items",
+          "label": "Items (JSON)",
+          "type": "json",
+          "required": true,
+          "placeholder": "[{\"id\":1,\"price\":100,\"quantity\":1}]",
+          "help": "Item IDs come from Create item."
+        },
+        {
+          "key": "observations",
+          "label": "Notes",
+          "type": "text"
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "default": "open",
+          "options": [
+            {
+              "value": "open",
+              "label": "Open"
+            },
+            {
+              "value": "draft",
+              "label": "Draft"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "get_invoice",
+      "name": "Get invoice",
+      "description": "Look up an invoice.",
+      "method": "GET",
+      "endpoint": "/invoices/{{ inputs.invoice_id }}",
+      "output_fields": {
+        "status": "status",
+        "total": "total",
+        "balance": "balance"
+      },
+      "inputs": [
+        {
+          "key": "invoice_id",
+          "label": "Invoice ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "email_invoice",
+      "name": "Email invoice",
+      "description": "Send an invoice by email.",
+      "method": "POST",
+      "endpoint": "/invoices/{{ inputs.invoice_id }}/email",
+      "body": {
+        "emails": "{{ inputs.emails }}"
+      },
+      "inputs": [
+        {
+          "key": "invoice_id",
+          "label": "Invoice ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "emails",
+          "label": "Emails",
+          "type": "list",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_invoice",
+      "name": "New invoice",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/invoices",
+      "query": {
+        "order_direction": "DESC",
+        "order_field": "id",
+        "limit": 30
+      },
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

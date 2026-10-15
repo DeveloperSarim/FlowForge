@@ -1,0 +1,164 @@
+{
+  "key": "ship24",
+  "name": "Ship24",
+  "category": "E-commerce",
+  "description": "Track parcels across 1,500+ couriers with one API and get status updates.",
+  "website": "https://www.ship24.com",
+  "docs_url": "https://docs.ship24.com",
+  "base_url": "https://api.ship24.com/public/v1",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "Ship24 dashboard → Integrations → API keys."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "create_tracker",
+      "name": "Create tracker",
+      "description": "Start following a tracking number (updates arrive by webhook).",
+      "method": "POST",
+      "endpoint": "/trackers",
+      "body": {
+        "trackingNumber": "{{ inputs.tracking_number }}",
+        "courierCode": "{{ inputs.courier_codes }}",
+        "shipmentReference": "{{ inputs.reference }}",
+        "destinationPostCode": "{{ inputs.destination_postcode }}",
+        "destinationCountryCode": "{{ inputs.destination_country }}"
+      },
+      "output_fields": {
+        "tracker_id": "data.tracker.trackerId"
+      },
+      "inputs": [
+        {
+          "key": "tracking_number",
+          "label": "Tracking number",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "courier_codes",
+          "label": "Courier codes",
+          "type": "list",
+          "help": "Optional; Ship24 detects the courier."
+        },
+        {
+          "key": "reference",
+          "label": "Your reference",
+          "type": "string"
+        },
+        {
+          "key": "destination_postcode",
+          "label": "Destination postcode",
+          "type": "string"
+        },
+        {
+          "key": "destination_country",
+          "label": "Destination country",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "track_now",
+      "name": "Track now",
+      "description": "Create a tracker and return the current results at once.",
+      "method": "POST",
+      "endpoint": "/trackers/track",
+      "body": {
+        "trackingNumber": "{{ inputs.tracking_number }}",
+        "courierCode": "{{ inputs.courier_codes }}"
+      },
+      "output_fields": {
+        "status": "data.trackings.0.shipment.statusMilestone",
+        "events": "data.trackings.0.events",
+        "courier": "data.trackings.0.shipment.trackingNumbers.0.tn"
+      },
+      "inputs": [
+        {
+          "key": "tracking_number",
+          "label": "Tracking number",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "courier_codes",
+          "label": "Courier codes",
+          "type": "list"
+        }
+      ]
+    },
+    {
+      "key": "get_results_by_number",
+      "name": "Get results by tracking number",
+      "description": "Latest results for a tracked number.",
+      "method": "GET",
+      "endpoint": "/trackers/search/{{ inputs.tracking_number }}/results",
+      "output_fields": {
+        "status": "data.trackings.0.shipment.statusMilestone",
+        "events": "data.trackings.0.events",
+        "courier": "data.trackings.0.shipment.trackingNumbers.0.tn"
+      },
+      "inputs": [
+        {
+          "key": "tracking_number",
+          "label": "Tracking number",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "get_results",
+      "name": "Get results by tracker ID",
+      "description": "Latest results for a tracker.",
+      "method": "GET",
+      "endpoint": "/trackers/{{ inputs.tracker_id }}/results",
+      "output_fields": {
+        "status": "data.trackings.0.shipment.statusMilestone",
+        "events": "data.trackings.0.events",
+        "courier": "data.trackings.0.shipment.trackingNumbers.0.tn"
+      },
+      "inputs": [
+        {
+          "key": "tracker_id",
+          "label": "Tracker ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_couriers",
+      "name": "List couriers",
+      "description": "Supported couriers and their codes.",
+      "method": "GET",
+      "endpoint": "/couriers",
+      "output_fields": {
+        "couriers": "data.couriers"
+      },
+      "inputs": []
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Tracking update",
+      "type": "webhook",
+      "description": "Ship24 dashboard → Integrations → Webhook settings, paste this URL.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

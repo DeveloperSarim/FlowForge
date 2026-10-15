@@ -1,0 +1,221 @@
+{
+  "key": "tomtom",
+  "name": "TomTom",
+  "category": "Utilities",
+  "description": "Geocode addresses, search places and calculate routes with live traffic.",
+  "website": "https://developer.tomtom.com",
+  "docs_url": "https://developer.tomtom.com/search-api/documentation/product-information/introduction",
+  "base_url": "https://api.tomtom.com",
+  "auth": {
+    "type": "api_key",
+    "in": "query",
+    "name": "key",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "developer.tomtom.com → Dashboard → Keys."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "geocode_address",
+      "name": "Geocode address",
+      "description": "Get the coordinates of an address.",
+      "method": "GET",
+      "endpoint": "/search/2/geocode/{{ inputs.address }}.json",
+      "query": {
+        "limit": 1,
+        "countrySet": "{{ inputs.country_set }}"
+      },
+      "output_fields": {
+        "latitude": "results.0.position.lat",
+        "longitude": "results.0.position.lon",
+        "formatted_address": "results.0.address.freeformAddress",
+        "country": "results.0.address.country"
+      },
+      "inputs": [
+        {
+          "key": "address",
+          "label": "Address",
+          "type": "string",
+          "required": true,
+          "placeholder": "De Ruijterkade 154, Amsterdam"
+        },
+        {
+          "key": "country_set",
+          "label": "Limit to countries",
+          "type": "string",
+          "placeholder": "NL,BE",
+          "help": "Comma-separated country codes."
+        }
+      ]
+    },
+    {
+      "key": "reverse_geocode",
+      "name": "Reverse geocode",
+      "description": "Find the address at a pair of coordinates.",
+      "method": "GET",
+      "endpoint": "/search/2/reverseGeocode/{{ inputs.latitude }},{{ inputs.longitude }}.json",
+      "output_fields": {
+        "formatted_address": "addresses.0.address.freeformAddress",
+        "street": "addresses.0.address.streetName",
+        "city": "addresses.0.address.municipality",
+        "postal_code": "addresses.0.address.postalCode",
+        "country": "addresses.0.address.country"
+      },
+      "inputs": [
+        {
+          "key": "latitude",
+          "label": "Latitude",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "longitude",
+          "label": "Longitude",
+          "type": "number",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "search_places",
+      "name": "Search places",
+      "description": "Find addresses and points of interest by name or category.",
+      "method": "GET",
+      "endpoint": "/search/2/search/{{ inputs.query }}.json",
+      "query": {
+        "lat": "{{ inputs.latitude }}",
+        "lon": "{{ inputs.longitude }}",
+        "radius": "{{ inputs.radius }}",
+        "limit": "{{ inputs.limit }}",
+        "countrySet": "{{ inputs.country_set }}"
+      },
+      "output_fields": {
+        "results": "results",
+        "first_name": "results.0.poi.name",
+        "first_address": "results.0.address.freeformAddress"
+      },
+      "inputs": [
+        {
+          "key": "query",
+          "label": "What to search",
+          "type": "string",
+          "required": true,
+          "placeholder": "pizza"
+        },
+        {
+          "key": "latitude",
+          "label": "Near latitude",
+          "type": "number"
+        },
+        {
+          "key": "longitude",
+          "label": "Near longitude",
+          "type": "number"
+        },
+        {
+          "key": "radius",
+          "label": "Within (meters)",
+          "type": "number"
+        },
+        {
+          "key": "limit",
+          "label": "How many",
+          "type": "number",
+          "default": 10
+        },
+        {
+          "key": "country_set",
+          "label": "Limit to countries",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "calculate_route",
+      "name": "Calculate route",
+      "description": "Get distance, travel time and traffic delay between two points.",
+      "method": "GET",
+      "endpoint": "/routing/1/calculateRoute/{{ inputs.from_latitude }},{{ inputs.from_longitude }}:{{ inputs.to_latitude }},{{ inputs.to_longitude }}/json",
+      "query": {
+        "travelMode": "{{ inputs.travel_mode }}",
+        "traffic": "{{ inputs.traffic }}",
+        "departAt": "{{ inputs.depart_at }}"
+      },
+      "output_fields": {
+        "distance_meters": "routes.0.summary.lengthInMeters",
+        "travel_time_seconds": "routes.0.summary.travelTimeInSeconds",
+        "traffic_delay_seconds": "routes.0.summary.trafficDelayInSeconds",
+        "arrival_time": "routes.0.summary.arrivalTime"
+      },
+      "inputs": [
+        {
+          "key": "from_latitude",
+          "label": "From latitude",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "from_longitude",
+          "label": "From longitude",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "to_latitude",
+          "label": "To latitude",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "to_longitude",
+          "label": "To longitude",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "travel_mode",
+          "label": "Travel mode",
+          "type": "select",
+          "default": "car",
+          "options": [
+            {
+              "value": "car",
+              "label": "Car"
+            },
+            {
+              "value": "truck",
+              "label": "Truck"
+            },
+            {
+              "value": "pedestrian",
+              "label": "Walking"
+            },
+            {
+              "value": "bicycle",
+              "label": "Bicycle"
+            }
+          ]
+        },
+        {
+          "key": "traffic",
+          "label": "Use live traffic",
+          "type": "boolean",
+          "default": true
+        },
+        {
+          "key": "depart_at",
+          "label": "Depart at",
+          "type": "string",
+          "placeholder": "now",
+          "help": "now or a date-time like 2026-05-01T08:00:00."
+        }
+      ]
+    }
+  ]
+}

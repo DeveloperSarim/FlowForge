@@ -1,0 +1,231 @@
+{
+  "key": "coingate",
+  "name": "CoinGate",
+  "category": "Payments & Finance",
+  "description": "Accept crypto payments: create and track orders and get exchange rates.",
+  "website": "https://coingate.com",
+  "docs_url": "https://developer.coingate.com/reference/api-overview",
+  "base_url": "https://{{ credentials.environment }}/v2",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "API auth token",
+        "type": "password",
+        "required": true,
+        "help": "CoinGate → Merchant → API → Apps → Create app, then copy the auth token."
+      },
+      {
+        "key": "environment",
+        "label": "Environment",
+        "type": "select",
+        "required": true,
+        "default": "api.coingate.com",
+        "options": [
+          {
+            "value": "api.coingate.com",
+            "label": "Live"
+          },
+          {
+            "value": "api-sandbox.coingate.com",
+            "label": "Sandbox"
+          }
+        ]
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "create_order",
+      "name": "Create order",
+      "description": "Create a payment order and get the payment page URL.",
+      "method": "POST",
+      "endpoint": "/orders",
+      "body": {
+        "order_id": "{{ inputs.order_id }}",
+        "price_amount": "{{ inputs.price_amount }}",
+        "price_currency": "{{ inputs.price_currency }}",
+        "receive_currency": "{{ inputs.receive_currency }}",
+        "title": "{{ inputs.title }}",
+        "description": "{{ inputs.description }}",
+        "callback_url": "{{ inputs.callback_url }}",
+        "success_url": "{{ inputs.success_url }}",
+        "cancel_url": "{{ inputs.cancel_url }}",
+        "purchaser_email": "{{ inputs.purchaser_email }}"
+      },
+      "output_fields": {
+        "id": "id",
+        "payment_url": "payment_url",
+        "status": "status"
+      },
+      "inputs": [
+        {
+          "key": "price_amount",
+          "label": "Price",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "price_currency",
+          "label": "Price currency",
+          "type": "string",
+          "required": true,
+          "default": "USD"
+        },
+        {
+          "key": "receive_currency",
+          "label": "Receive as",
+          "type": "string",
+          "required": true,
+          "default": "DO_NOT_CONVERT",
+          "help": "Currency you want to be paid out in, e.g. EUR, BTC, or DO_NOT_CONVERT."
+        },
+        {
+          "key": "order_id",
+          "label": "Your order ID",
+          "type": "string"
+        },
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "string"
+        },
+        {
+          "key": "description",
+          "label": "Description",
+          "type": "string"
+        },
+        {
+          "key": "purchaser_email",
+          "label": "Customer email",
+          "type": "string"
+        },
+        {
+          "key": "callback_url",
+          "label": "Status callback URL",
+          "type": "string"
+        },
+        {
+          "key": "success_url",
+          "label": "Success URL",
+          "type": "string"
+        },
+        {
+          "key": "cancel_url",
+          "label": "Cancel URL",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "get_order",
+      "name": "Get order",
+      "description": "Look up an order's payment status.",
+      "method": "GET",
+      "endpoint": "/orders/{{ inputs.id }}",
+      "output_fields": {
+        "status": "status",
+        "payment_url": "payment_url",
+        "price_amount": "price_amount",
+        "pay_amount": "pay_amount"
+      },
+      "inputs": [
+        {
+          "key": "id",
+          "label": "CoinGate order ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_orders",
+      "name": "List orders",
+      "description": "Newest orders first.",
+      "method": "GET",
+      "endpoint": "/orders",
+      "query": {
+        "per_page": "{{ inputs.per_page }}",
+        "page": "{{ inputs.page }}",
+        "sort": "created_at_desc"
+      },
+      "output_fields": {
+        "orders": "orders"
+      },
+      "inputs": [
+        {
+          "key": "per_page",
+          "label": "Per page",
+          "type": "number",
+          "default": 50
+        },
+        {
+          "key": "page",
+          "label": "Page",
+          "type": "number",
+          "default": 1
+        }
+      ]
+    },
+    {
+      "key": "get_exchange_rate",
+      "name": "Get exchange rate",
+      "description": "Current merchant rate between two currencies.",
+      "method": "GET",
+      "endpoint": "/rates/merchant/{{ inputs.from }}/{{ inputs.to }}",
+      "inputs": [
+        {
+          "key": "from",
+          "label": "From",
+          "type": "string",
+          "required": true,
+          "default": "BTC"
+        },
+        {
+          "key": "to",
+          "label": "To",
+          "type": "string",
+          "required": true,
+          "default": "USD"
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_order",
+      "name": "New order",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/orders",
+      "query": {
+        "sort": "created_at_desc",
+        "per_page": 50
+      },
+      "items_path": "orders",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    },
+    {
+      "key": "webhook_event",
+      "name": "Order status callback",
+      "type": "webhook",
+      "description": "Paste this URL as the callback URL when you create an order.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

@@ -6,13 +6,13 @@
 
 <p align="center">
   <strong>Open-source workflow automation and AI voice agents that run on PHP shared hosting.</strong><br>
-  A self-hosted alternative to n8n, Zapier and Make: connect 1,190 apps on a visual canvas, let AI build workflows from one sentence, and create AI calling agents that answer the phone and book appointments.<br>
+  A self-hosted alternative to n8n, Zapier and Make: connect 1,690 apps on a visual canvas, let AI build workflows from one sentence, and create AI calling agents that answer the phone and book appointments.<br>
   No Docker, no Node.js, no per-task fees. One cron job runs everything.
 </p>
 
 <p align="center">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-AGPL--3.0-ee5a24?style=flat-square" alt="License: AGPL-3.0"></a>
-  <a href="https://github.com/DeveloperSarim/FlowForge/releases"><img src="https://img.shields.io/badge/version-1.5.1-15181d?style=flat-square" alt="Version 1.5.1"></a>
+  <a href="https://github.com/DeveloperSarim/FlowForge/releases"><img src="https://img.shields.io/badge/version-1.6.0-15181d?style=flat-square" alt="Version 1.6.0"></a>
   <img src="https://img.shields.io/badge/PHP-8.2%2B-777bb4?style=flat-square&logo=php&logoColor=white" alt="PHP 8.2+">
   <img src="https://img.shields.io/badge/Laravel-12-ff2d20?style=flat-square&logo=laravel&logoColor=white" alt="Laravel 12">
   <img src="https://img.shields.io/badge/React-18-087ea4?style=flat-square&logo=react&logoColor=white" alt="React 18">
@@ -42,6 +42,7 @@ FlowForge is a **self-hosted workflow automation platform** for people who alrea
 
 - **Connect your apps.** Gmail, Slack, Google Sheets, HubSpot, Shopify, WooCommerce, Stripe, OpenAI, Telegram, WhatsApp and 1,180 more.
 - **Build visually or with AI.** Drag steps onto a canvas, or type *"When a Typeform is submitted, add the person to HubSpot and tell #sales on Slack"* and the AI Builder makes it.
+- **Any app, even one that isn't listed.** If a service is missing, the AI Builder adds it as a custom app from its API (or you import its OpenAPI file), then builds the workflow with it.
 - **Answer the phone with AI.** Build an AI receptionist or calling agent in minutes, test it free in your browser, then give it a real phone number. It books appointments and passes every call (recording, transcript, summary) to your workflows.
 - **Own your data.** Workflows, credentials and run history stay in your own MySQL database. Credentials are encrypted and never sent to the browser.
 
@@ -80,8 +81,8 @@ Create AI agents that **answer and make phone calls**: a receptionist that books
     </td>
     <td width="33%" valign="top">
       <img src=".github/readme/icons/apps.svg" width="28" height="28" alt=""><br>
-      <b>1,190 apps, 5,783 actions</b><br>
-      <sub>615 triggers and 50 ready-made templates across 24 categories, plus an HTTP request step for any other API.</sub>
+      <b>1,690 apps, 8,700 actions</b><br>
+      <sub>800 triggers and 54 ready-made templates across 24 categories, plus an HTTP request step for any other API.</sub>
     </td>
     <td width="33%" valign="top">
       <img src=".github/readme/icons/ai.svg" width="28" height="28" alt=""><br>
@@ -168,7 +169,7 @@ Create AI agents that **answer and make phone calls**: a receptionist that books
   <img src="public/integrations/icons/mailchimp.svg" width="36" height="36" alt="Mailchimp" title="Mailchimp">
 </p>
 
-<p align="center"><sub>…and 1,170 more across AI, CRM, e-commerce, payments, marketing, communication, project management, databases, forms, social media and developer tools.<br>Any app not on the list works through the HTTP request step or its "Make an API call" action.</sub></p>
+<p align="center"><sub>…and 1,670 more across AI, CRM, e-commerce, payments, marketing, communication, project management, databases, forms, social media and developer tools.<br>Any app not on the list works through the HTTP request step or its "Make an API call" action.</sub></p>
 
 ## 📸 Screenshots
 
@@ -236,6 +237,8 @@ Step-by-step guides with screenshots: [Hostinger hPanel](https://developersarim.
 
 **AI Builder.** Open *AI Builder* in the sidebar and describe what you want. It searches the app catalog, reads each action's settings, saves the workflow, links the data between steps and tells you what's left to fill in. Bring your own key from OpenAI, Anthropic Claude, Google Gemini, DeepSeek or Qwen.
 
+**Custom apps.** When a service isn't in the catalog, the AI Builder builds it as a custom app from the service's documented API (base URL, sign-in, actions and the fields each returns), checks it, and uses it in your workflow. You can also import any OpenAPI (Swagger) file from *Apps → Add a custom app*. Custom apps get their own credentials, live in `storage/` so updates keep them, and only ever call their own API address.
+
 **MCP for AI agents.** Create a token in *Settings → API & MCP*, then connect your agent. For example, Claude Code:
 
 ```bash
@@ -292,6 +295,12 @@ Yes. If you change FlowForge's code and offer the changed version to other peopl
 <summary><b>How is it different from n8n?</b></summary>
 <br>
 n8n needs a Node.js server, usually a VPS or Docker. FlowForge is PHP, so it runs on the shared hosting most websites already use, and it's licensed under an OSI-approved open-source license.
+</details>
+
+<details>
+<summary><b>What if the app I need isn't in the list?</b></summary>
+<br>
+Ask the AI Builder to add it as a custom app, or import its OpenAPI file from Apps → Add a custom app. For a single request, the HTTP request step works with any API.
 </details>
 
 <details>

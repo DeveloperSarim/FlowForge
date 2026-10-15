@@ -1,0 +1,319 @@
+{
+  "key": "zoho_expense",
+  "name": "Zoho Expense",
+  "category": "Payments & Finance",
+  "description": "Log expenses, build and submit expense reports, and list categories.",
+  "brand": "zoho",
+  "website": "https://www.zoho.com/expense/",
+  "docs_url": "https://www.zoho.com/expense/api/v1/introduction/",
+  "base_url": "https://www.zohoapis.{{ credentials.data_center }}/expense/v1",
+  "headers": {
+    "X-com-zoho-expense-organizationid": "{{ credentials.organization_id }}"
+  },
+  "auth": {
+    "type": "oauth2",
+    "authorize_url": "https://accounts.zoho.{{ credentials.data_center }}/oauth/v2/auth",
+    "token_url": "https://accounts.zoho.{{ credentials.data_center }}/oauth/v2/token",
+    "scopes": [
+      "ZohoExpense.expense.ALL",
+      "ZohoExpense.expensereport.ALL",
+      "ZohoExpense.expensecategory.READ",
+      "ZohoExpense.currency.READ"
+    ],
+    "scope_separator": ",",
+    "authorize_params": {
+      "access_type": "offline",
+      "prompt": "consent"
+    },
+    "token_type": "Zoho-oauthtoken",
+    "fields": [
+      {
+        "key": "organization_id",
+        "label": "Organization ID",
+        "type": "string",
+        "required": true,
+        "help": "Zoho Expense → Admin View → Settings → Organization profile → Organization ID."
+      },
+      {
+        "key": "data_center",
+        "label": "Data center",
+        "type": "select",
+        "required": true,
+        "default": "com",
+        "options": [
+          {
+            "value": "com",
+            "label": "US (.com)"
+          },
+          {
+            "value": "eu",
+            "label": "EU (.eu)"
+          },
+          {
+            "value": "in",
+            "label": "India (.in)"
+          },
+          {
+            "value": "com.au",
+            "label": "Australia (.com.au)"
+          },
+          {
+            "value": "jp",
+            "label": "Japan (.jp)"
+          },
+          {
+            "value": "ca",
+            "label": "Canada (.ca)"
+          },
+          {
+            "value": "sa",
+            "label": "Saudi Arabia (.sa)"
+          }
+        ],
+        "help": "The domain you use to sign in to Zoho."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "create_expense",
+      "name": "Create expense",
+      "description": "Record an expense.",
+      "method": "POST",
+      "endpoint": "/expenses",
+      "body": {
+        "currency_id": "{{ inputs.currency_id }}",
+        "date": "{{ inputs.date }}",
+        "report_id": "{{ inputs.report_id }}",
+        "is_reimbursable": "{{ inputs.is_reimbursable }}",
+        "line_items": [
+          {
+            "category_id": "{{ inputs.category_id }}",
+            "amount": "{{ inputs.amount }}",
+            "description": "{{ inputs.description }}"
+          }
+        ]
+      },
+      "output_fields": {
+        "expense_id": "expenses.0.expense_id",
+        "total": "expenses.0.total",
+        "status": "expenses.0.status"
+      },
+      "inputs": [
+        {
+          "key": "amount",
+          "label": "Amount",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "category_id",
+          "label": "Category ID",
+          "type": "string",
+          "required": true,
+          "help": "Use the List categories action to find it."
+        },
+        {
+          "key": "currency_id",
+          "label": "Currency ID",
+          "type": "string",
+          "required": true,
+          "help": "Use the List currencies action to find it."
+        },
+        {
+          "key": "date",
+          "label": "Date",
+          "type": "string",
+          "placeholder": "2026-01-31"
+        },
+        {
+          "key": "description",
+          "label": "Description",
+          "type": "string"
+        },
+        {
+          "key": "report_id",
+          "label": "Add to report ID",
+          "type": "string"
+        },
+        {
+          "key": "is_reimbursable",
+          "label": "Reimbursable",
+          "type": "boolean",
+          "default": true
+        }
+      ]
+    },
+    {
+      "key": "list_expenses",
+      "name": "List expenses",
+      "description": "Expenses, optionally by status or date range.",
+      "method": "GET",
+      "endpoint": "/expenses",
+      "query": {
+        "status": "{{ inputs.status }}",
+        "date_start": "{{ inputs.date_start }}",
+        "date_end": "{{ inputs.date_end }}",
+        "per_page": "{{ inputs.per_page }}"
+      },
+      "output_fields": {
+        "expenses": "expenses"
+      },
+      "inputs": [
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "options": [
+            {
+              "value": "unreported",
+              "label": "unreported"
+            },
+            {
+              "value": "unsubmitted",
+              "label": "unsubmitted"
+            },
+            {
+              "value": "submitted",
+              "label": "submitted"
+            },
+            {
+              "value": "approved",
+              "label": "approved"
+            },
+            {
+              "value": "rejected",
+              "label": "rejected"
+            },
+            {
+              "value": "reimbursed",
+              "label": "reimbursed"
+            }
+          ]
+        },
+        {
+          "key": "date_start",
+          "label": "From",
+          "type": "string",
+          "placeholder": "2026-01-01"
+        },
+        {
+          "key": "date_end",
+          "label": "To",
+          "type": "string"
+        },
+        {
+          "key": "per_page",
+          "label": "How many",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    },
+    {
+      "key": "get_expense",
+      "name": "Get expense",
+      "description": "Look up one expense.",
+      "method": "GET",
+      "endpoint": "/expenses/{{ inputs.expense_id }}",
+      "inputs": [
+        {
+          "key": "expense_id",
+          "label": "Expense ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "create_report",
+      "name": "Create expense report",
+      "description": "Group expenses into a report.",
+      "method": "POST",
+      "endpoint": "/expensereports",
+      "body": {
+        "report_name": "{{ inputs.report_name }}",
+        "description": "{{ inputs.description }}",
+        "start_date": "{{ inputs.start_date }}",
+        "end_date": "{{ inputs.end_date }}"
+      },
+      "output_fields": {
+        "report_id": "expense_report.report_id"
+      },
+      "inputs": [
+        {
+          "key": "report_name",
+          "label": "Report name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "description",
+          "label": "Description",
+          "type": "string"
+        },
+        {
+          "key": "start_date",
+          "label": "Start date",
+          "type": "string"
+        },
+        {
+          "key": "end_date",
+          "label": "End date",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "submit_report",
+      "name": "Submit report",
+      "description": "Submit a report for approval.",
+      "method": "POST",
+      "endpoint": "/expensereports/{{ inputs.report_id }}/submit",
+      "output_fields": {
+        "message": "message"
+      },
+      "inputs": [
+        {
+          "key": "report_id",
+          "label": "Report ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_reports",
+      "name": "List expense reports",
+      "description": "Expense reports in the organization.",
+      "method": "GET",
+      "endpoint": "/expensereports",
+      "output_fields": {
+        "reports": "expense_reports"
+      },
+      "inputs": []
+    },
+    {
+      "key": "list_categories",
+      "name": "List categories",
+      "description": "Expense categories with their IDs.",
+      "method": "GET",
+      "endpoint": "/expensecategories",
+      "output_fields": {
+        "categories": "expense_categories"
+      },
+      "inputs": []
+    },
+    {
+      "key": "list_currencies",
+      "name": "List currencies",
+      "description": "Currencies with their IDs.",
+      "method": "GET",
+      "endpoint": "/settings/currencies",
+      "output_fields": {
+        "currencies": "currencies"
+      },
+      "inputs": []
+    }
+  ]
+}

@@ -1,0 +1,211 @@
+{
+  "key": "17track",
+  "name": "17TRACK",
+  "category": "E-commerce",
+  "description": "Track parcels from 2,000+ carriers: register numbers and get tracking info.",
+  "website": "https://www.17track.net",
+  "docs_url": "https://api.17track.net/en/doc",
+  "base_url": "https://api.17track.net/track/v2.2",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "17token",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "Access key",
+        "type": "password",
+        "required": true,
+        "help": "api.17track.net → Settings → Security → Access key."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "register_tracking",
+      "name": "Register tracking number",
+      "description": "Start tracking a number (needed before getting info).",
+      "method": "POST",
+      "endpoint": "/register",
+      "body": [
+        {
+          "number": "{{ inputs.tracking_number }}",
+          "carrier": "{{ inputs.carrier }}",
+          "tag": "{{ inputs.tag }}"
+        }
+      ],
+      "output_fields": {
+        "accepted": "data.accepted",
+        "rejected": "data.rejected"
+      },
+      "inputs": [
+        {
+          "key": "tracking_number",
+          "label": "Tracking number",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "carrier",
+          "label": "Carrier code",
+          "type": "number",
+          "help": "Optional numeric 17TRACK carrier code; auto-detected when empty."
+        },
+        {
+          "key": "tag",
+          "label": "Tag",
+          "type": "string",
+          "help": "Your own label, e.g. the order number."
+        }
+      ]
+    },
+    {
+      "key": "get_track_info",
+      "name": "Get tracking info",
+      "description": "Latest status and events for a registered number.",
+      "method": "POST",
+      "endpoint": "/gettrackinfo",
+      "body": [
+        {
+          "number": "{{ inputs.tracking_number }}",
+          "carrier": "{{ inputs.carrier }}"
+        }
+      ],
+      "output_fields": {
+        "status": "data.accepted.0.track_info.latest_status.status",
+        "latest_event": "data.accepted.0.track_info.latest_event.description",
+        "carrier": "data.accepted.0.carrier"
+      },
+      "inputs": [
+        {
+          "key": "tracking_number",
+          "label": "Tracking number",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "carrier",
+          "label": "Carrier code",
+          "type": "number",
+          "help": "Optional numeric 17TRACK carrier code; auto-detected when empty."
+        }
+      ]
+    },
+    {
+      "key": "stop_tracking",
+      "name": "Stop tracking",
+      "description": "Pause updates for a number.",
+      "method": "POST",
+      "endpoint": "/stoptrack",
+      "body": [
+        {
+          "number": "{{ inputs.tracking_number }}",
+          "carrier": "{{ inputs.carrier }}"
+        }
+      ],
+      "output_fields": {
+        "accepted": "data.accepted"
+      },
+      "inputs": [
+        {
+          "key": "tracking_number",
+          "label": "Tracking number",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "carrier",
+          "label": "Carrier code",
+          "type": "number",
+          "help": "Optional numeric 17TRACK carrier code; auto-detected when empty."
+        }
+      ]
+    },
+    {
+      "key": "retrack",
+      "name": "Restart tracking",
+      "description": "Resume tracking a stopped number.",
+      "method": "POST",
+      "endpoint": "/retrack",
+      "body": [
+        {
+          "number": "{{ inputs.tracking_number }}",
+          "carrier": "{{ inputs.carrier }}"
+        }
+      ],
+      "output_fields": {
+        "accepted": "data.accepted"
+      },
+      "inputs": [
+        {
+          "key": "tracking_number",
+          "label": "Tracking number",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "carrier",
+          "label": "Carrier code",
+          "type": "number",
+          "help": "Optional numeric 17TRACK carrier code; auto-detected when empty."
+        }
+      ]
+    },
+    {
+      "key": "delete_tracking",
+      "name": "Delete tracking number",
+      "description": "Remove a number from your list.",
+      "method": "POST",
+      "endpoint": "/deletetrack",
+      "body": [
+        {
+          "number": "{{ inputs.tracking_number }}",
+          "carrier": "{{ inputs.carrier }}"
+        }
+      ],
+      "output_fields": {
+        "accepted": "data.accepted"
+      },
+      "inputs": [
+        {
+          "key": "tracking_number",
+          "label": "Tracking number",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "carrier",
+          "label": "Carrier code",
+          "type": "number",
+          "help": "Optional numeric 17TRACK carrier code; auto-detected when empty."
+        }
+      ]
+    },
+    {
+      "key": "get_quota",
+      "name": "Get quota",
+      "description": "How many tracking numbers you can still register.",
+      "method": "POST",
+      "endpoint": "/getquota",
+      "output_fields": {
+        "remaining": "data.quota_remain"
+      },
+      "inputs": []
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Tracking update",
+      "type": "webhook",
+      "description": "api.17track.net → Settings → Webhook URL, paste this URL.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

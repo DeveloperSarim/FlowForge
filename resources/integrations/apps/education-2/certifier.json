@@ -1,0 +1,148 @@
+{
+  "key": "certifier",
+  "name": "Certifier",
+  "category": "Education",
+  "description": "Issue and email digital certificates and badges, look up credentials.",
+  "website": "https://certifier.io",
+  "docs_url": "https://developers.certifier.io/docs/api-reference/quickstart",
+  "base_url": "https://api.certifier.io/v1",
+  "headers": {
+    "Certifier-Version": "2022-10-26"
+  },
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "Access token",
+        "type": "password",
+        "required": true,
+        "help": "Certifier dashboard → Settings → Developers → Access Tokens → Generate Access Token (shown once)."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "issue_credential",
+      "name": "Issue and send credential",
+      "description": "Create a certificate or badge for someone and email it to them.",
+      "method": "POST",
+      "endpoint": "/credentials/create-issue-send",
+      "body": {
+        "groupId": "{{ inputs.group_id }}",
+        "recipient": {
+          "name": "{{ inputs.name }}",
+          "email": "{{ inputs.email }}"
+        },
+        "issueDate": "{{ inputs.issue_date }}",
+        "expiryDate": "{{ inputs.expiry_date }}",
+        "customAttributes": "{{ inputs.custom_attributes }}"
+      },
+      "output_fields": {
+        "id": "id",
+        "public_id": "publicId",
+        "status": "status"
+      },
+      "inputs": [
+        {
+          "key": "group_id",
+          "label": "Group ID",
+          "type": "string",
+          "required": true,
+          "help": "Run \"List groups\", or open the group in Certifier: the ID is in the address bar."
+        },
+        {
+          "key": "name",
+          "label": "Recipient name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "email",
+          "label": "Recipient email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "issue_date",
+          "label": "Issue date",
+          "type": "string",
+          "placeholder": "2026-10-15",
+          "help": "Leave empty for today."
+        },
+        {
+          "key": "expiry_date",
+          "label": "Expiry date",
+          "type": "string",
+          "placeholder": "2027-10-15"
+        },
+        {
+          "key": "custom_attributes",
+          "label": "Custom attributes",
+          "type": "keyvalue",
+          "help": "Attribute tag → value, e.g. custom.course_hours = 12."
+        }
+      ]
+    },
+    {
+      "key": "get_credential",
+      "name": "Get credential",
+      "description": "A credential's status and recipient.",
+      "method": "GET",
+      "endpoint": "/credentials/{{ inputs.id }}",
+      "output_fields": {
+        "id": "id",
+        "public_id": "publicId",
+        "status": "status",
+        "recipient_name": "recipient.name",
+        "recipient_email": "recipient.email",
+        "issue_date": "issueDate",
+        "expiry_date": "expiryDate"
+      },
+      "inputs": [
+        {
+          "key": "id",
+          "label": "Credential ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_credentials",
+      "name": "List credentials",
+      "description": "Recently created credentials.",
+      "method": "GET",
+      "endpoint": "/credentials",
+      "query": {
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "credentials": "data",
+        "ids": "data.*.id"
+      },
+      "inputs": [
+        {
+          "key": "limit",
+          "label": "How many",
+          "type": "number",
+          "default": 25
+        }
+      ]
+    },
+    {
+      "key": "list_groups",
+      "name": "List groups",
+      "description": "Credential groups (certificate templates) and their IDs.",
+      "method": "GET",
+      "endpoint": "/groups",
+      "output_fields": {
+        "groups": "data",
+        "ids": "data.*.id",
+        "names": "data.*.name"
+      },
+      "inputs": []
+    }
+  ],
+  "triggers": []
+}

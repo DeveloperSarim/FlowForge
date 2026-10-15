@@ -1,0 +1,211 @@
+{
+  "key": "google_cloud_text_to_speech",
+  "name": "Google Cloud Text-to-Speech",
+  "category": "AI",
+  "description": "Turn text into natural speech in 50+ languages with Google voices.",
+  "brand": "googlecloud",
+  "website": "https://cloud.google.com/text-to-speech",
+  "docs_url": "https://cloud.google.com/text-to-speech/docs/reference/rest/v1/text/synthesize",
+  "base_url": "https://texttospeech.googleapis.com/v1",
+  "auth": [
+    {
+      "type": "api_key",
+      "in": "query",
+      "name": "key",
+      "fields": [
+        {
+          "key": "api_key",
+          "label": "API key",
+          "type": "password",
+          "required": true,
+          "help": "Google Cloud console → APIs & Services → Credentials → Create credentials → API key. Enable the Cloud Text-to-Speech API for your project first."
+        }
+      ]
+    },
+    {
+      "type": "google_service_account",
+      "scopes": [
+        "https://www.googleapis.com/auth/cloud-platform"
+      ],
+      "fields": [
+        {
+          "key": "service_account_json",
+          "label": "Service Account JSON key",
+          "type": "code",
+          "required": true,
+          "help": "Google Cloud console → IAM & Admin → Service Accounts → your account → Keys → Add key → JSON. Paste the whole file."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "synthesize",
+      "name": "Text to speech",
+      "description": "Convert text to audio. Returns the audio as base64.",
+      "method": "POST",
+      "endpoint": "/text:synthesize",
+      "body": {
+        "input": {
+          "text": "{{ inputs.text }}"
+        },
+        "voice": {
+          "languageCode": "{{ inputs.language_code }}",
+          "name": "{{ inputs.voice_name }}"
+        },
+        "audioConfig": {
+          "audioEncoding": "{{ inputs.audio_encoding }}",
+          "speakingRate": "{{ inputs.speaking_rate }}"
+        }
+      },
+      "output_fields": {
+        "audio_base64": "audioContent"
+      },
+      "inputs": [
+        {
+          "key": "text",
+          "label": "Text",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "language_code",
+          "label": "Language",
+          "type": "string",
+          "required": true,
+          "default": "en-US",
+          "help": "BCP-47 code, e.g. en-US, en-GB, hi-IN."
+        },
+        {
+          "key": "voice_name",
+          "label": "Voice",
+          "type": "string",
+          "placeholder": "en-US-Neural2-F",
+          "help": "Optional voice name; use List voices to see them."
+        },
+        {
+          "key": "audio_encoding",
+          "label": "Audio format",
+          "type": "select",
+          "default": "MP3",
+          "options": [
+            {
+              "value": "MP3",
+              "label": "MP3"
+            },
+            {
+              "value": "OGG_OPUS",
+              "label": "OGG Opus"
+            },
+            {
+              "value": "LINEAR16",
+              "label": "WAV (LINEAR16)"
+            }
+          ]
+        },
+        {
+          "key": "speaking_rate",
+          "label": "Speaking rate",
+          "type": "number",
+          "placeholder": "1.0",
+          "help": "0.25 to 4.0."
+        }
+      ]
+    },
+    {
+      "key": "synthesize_ssml",
+      "name": "SSML to speech",
+      "description": "Convert SSML markup to audio (pauses, emphasis…).",
+      "method": "POST",
+      "endpoint": "/text:synthesize",
+      "body": {
+        "input": {
+          "ssml": "{{ inputs.ssml }}"
+        },
+        "voice": {
+          "languageCode": "{{ inputs.language_code }}",
+          "name": "{{ inputs.voice_name }}"
+        },
+        "audioConfig": {
+          "audioEncoding": "{{ inputs.audio_encoding }}",
+          "speakingRate": "{{ inputs.speaking_rate }}"
+        }
+      },
+      "output_fields": {
+        "audio_base64": "audioContent"
+      },
+      "inputs": [
+        {
+          "key": "ssml",
+          "label": "SSML",
+          "type": "text",
+          "required": true,
+          "placeholder": "<speak>Hello <break time=\"1s\"/> world</speak>"
+        },
+        {
+          "key": "language_code",
+          "label": "Language",
+          "type": "string",
+          "required": true,
+          "default": "en-US",
+          "help": "BCP-47 code, e.g. en-US, en-GB, hi-IN."
+        },
+        {
+          "key": "voice_name",
+          "label": "Voice",
+          "type": "string",
+          "placeholder": "en-US-Neural2-F",
+          "help": "Optional voice name; use List voices to see them."
+        },
+        {
+          "key": "audio_encoding",
+          "label": "Audio format",
+          "type": "select",
+          "default": "MP3",
+          "options": [
+            {
+              "value": "MP3",
+              "label": "MP3"
+            },
+            {
+              "value": "OGG_OPUS",
+              "label": "OGG Opus"
+            },
+            {
+              "value": "LINEAR16",
+              "label": "WAV (LINEAR16)"
+            }
+          ]
+        },
+        {
+          "key": "speaking_rate",
+          "label": "Speaking rate",
+          "type": "number",
+          "placeholder": "1.0",
+          "help": "0.25 to 4.0."
+        }
+      ]
+    },
+    {
+      "key": "list_voices",
+      "name": "List voices",
+      "description": "List the available voices.",
+      "method": "GET",
+      "endpoint": "/voices",
+      "query": {
+        "languageCode": "{{ inputs.language_code }}"
+      },
+      "output_fields": {
+        "voices": "voices.*.name"
+      },
+      "inputs": [
+        {
+          "key": "language_code",
+          "label": "Language",
+          "type": "string",
+          "placeholder": "en-US"
+        }
+      ]
+    }
+  ]
+}

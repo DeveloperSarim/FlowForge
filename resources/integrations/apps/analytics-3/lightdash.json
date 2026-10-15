@@ -1,0 +1,174 @@
+{
+  "key": "lightdash",
+  "name": "Lightdash",
+  "category": "Analytics",
+  "description": "Run saved Lightdash charts, send scheduled deliveries and list dashboards.",
+  "website": "https://www.lightdash.com",
+  "docs_url": "https://docs.lightdash.com/api-reference/v1/introduction",
+  "base_url": "{{ credentials.site_url }}/api/v1",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "Authorization",
+    "prefix": "ApiKey ",
+    "fields": [
+      {
+        "key": "site_url",
+        "label": "Lightdash URL",
+        "type": "string",
+        "required": true,
+        "default": "https://app.lightdash.cloud",
+        "help": "Your Lightdash address (Cloud or self-hosted), no trailing slash."
+      },
+      {
+        "key": "api_key",
+        "label": "Personal access token",
+        "type": "password",
+        "required": true,
+        "help": "Lightdash → Settings → Personal access tokens → Generate new token."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_projects",
+      "name": "List projects",
+      "description": "Projects in your organization.",
+      "method": "GET",
+      "endpoint": "/org/projects",
+      "output_fields": {
+        "projects": "results",
+        "project_uuids": "results.*.projectUuid",
+        "names": "results.*.name"
+      },
+      "inputs": []
+    },
+    {
+      "key": "list_dashboards",
+      "name": "List dashboards",
+      "description": "Dashboards in a project.",
+      "method": "GET",
+      "endpoint": "/projects/{{ inputs.project_uuid }}/dashboards",
+      "output_fields": {
+        "dashboards": "results",
+        "names": "results.*.name"
+      },
+      "inputs": [
+        {
+          "key": "project_uuid",
+          "label": "Project UUID",
+          "type": "string",
+          "required": true,
+          "help": "In the Lightdash URL after /projects/. Or use 'List projects'."
+        }
+      ]
+    },
+    {
+      "key": "list_charts",
+      "name": "List charts",
+      "description": "Saved charts in a project.",
+      "method": "GET",
+      "endpoint": "/projects/{{ inputs.project_uuid }}/charts",
+      "output_fields": {
+        "charts": "results",
+        "names": "results.*.name"
+      },
+      "inputs": [
+        {
+          "key": "project_uuid",
+          "label": "Project UUID",
+          "type": "string",
+          "required": true,
+          "help": "In the Lightdash URL after /projects/. Or use 'List projects'."
+        }
+      ]
+    },
+    {
+      "key": "list_spaces",
+      "name": "List spaces",
+      "description": "Spaces (folders) in a project.",
+      "method": "GET",
+      "endpoint": "/projects/{{ inputs.project_uuid }}/spaces",
+      "output_fields": {
+        "spaces": "results",
+        "names": "results.*.name"
+      },
+      "inputs": [
+        {
+          "key": "project_uuid",
+          "label": "Project UUID",
+          "type": "string",
+          "required": true,
+          "help": "In the Lightdash URL after /projects/. Or use 'List projects'."
+        }
+      ]
+    },
+    {
+      "key": "run_chart",
+      "name": "Run saved chart",
+      "description": "Run a saved chart's query and return the rows.",
+      "method": "POST",
+      "endpoint": "/saved/{{ inputs.chart_uuid }}/results",
+      "timeout": 120,
+      "body": {
+        "invalidateCache": "{{ inputs.invalidate_cache }}"
+      },
+      "output_fields": {
+        "rows": "results.rows"
+      },
+      "inputs": [
+        {
+          "key": "chart_uuid",
+          "label": "Chart UUID",
+          "type": "string",
+          "required": true,
+          "help": "In the chart URL after /saved/."
+        },
+        {
+          "key": "invalidate_cache",
+          "label": "Skip cache",
+          "type": "boolean",
+          "default": false
+        }
+      ]
+    },
+    {
+      "key": "send_scheduled_delivery",
+      "name": "Send scheduled delivery now",
+      "description": "Send a scheduled delivery right away.",
+      "method": "POST",
+      "endpoint": "/schedulers/{{ inputs.scheduler_uuid }}/send",
+      "output_fields": {
+        "job_id": "results.jobId"
+      },
+      "inputs": [
+        {
+          "key": "scheduler_uuid",
+          "label": "Scheduled delivery UUID",
+          "type": "string",
+          "required": true,
+          "help": "From the scheduled delivery's settings in Lightdash."
+        }
+      ]
+    },
+    {
+      "key": "refresh_project",
+      "name": "Refresh dbt project",
+      "description": "Re-sync the project with its dbt models.",
+      "method": "POST",
+      "endpoint": "/projects/{{ inputs.project_uuid }}/refresh",
+      "output_fields": {
+        "job_uuid": "results.jobUuid"
+      },
+      "inputs": [
+        {
+          "key": "project_uuid",
+          "label": "Project UUID",
+          "type": "string",
+          "required": true,
+          "help": "In the Lightdash URL after /projects/. Or use 'List projects'."
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,169 @@
+{
+  "key": "ipstack",
+  "name": "ipstack",
+  "category": "Utilities",
+  "description": "Look up the country, city, time zone and network of any IP address.",
+  "website": "https://ipstack.com",
+  "docs_url": "https://ipstack.com/documentation",
+  "base_url": "https://api.ipstack.com",
+  "auth": {
+    "type": "api_key",
+    "in": "query",
+    "name": "access_key",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "Access key",
+        "type": "password",
+        "required": true,
+        "help": "ipstack.com → log in → Dashboard: copy your API Access Key."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "lookup_ip",
+      "name": "Look up IP address",
+      "description": "Location and network details for one IP address.",
+      "method": "GET",
+      "endpoint": "/{{ inputs.ip }}",
+      "error_path": "error.info",
+      "query": {
+        "hostname": "{{ inputs.hostname }}",
+        "security": "{{ inputs.security }}",
+        "language": "{{ inputs.language }}"
+      },
+      "output_fields": {
+        "country": "country_name",
+        "country_code": "country_code",
+        "region": "region_name",
+        "city": "city",
+        "zip": "zip",
+        "latitude": "latitude",
+        "longitude": "longitude",
+        "time_zone": "time_zone.id",
+        "isp": "connection.isp",
+        "is_proxy": "security.is_proxy"
+      },
+      "inputs": [
+        {
+          "key": "ip",
+          "label": "IP address",
+          "type": "string",
+          "required": true,
+          "placeholder": "134.201.250.155"
+        },
+        {
+          "key": "hostname",
+          "label": "Include hostname",
+          "type": "select",
+          "default": "",
+          "options": [
+            {
+              "value": "",
+              "label": "No"
+            },
+            {
+              "value": "1",
+              "label": "Yes"
+            }
+          ]
+        },
+        {
+          "key": "security",
+          "label": "Include proxy/threat check",
+          "type": "select",
+          "default": "",
+          "options": [
+            {
+              "value": "",
+              "label": "No"
+            },
+            {
+              "value": "1",
+              "label": "Yes (paid plans)"
+            }
+          ]
+        },
+        {
+          "key": "language",
+          "label": "Language",
+          "type": "select",
+          "default": "en",
+          "options": [
+            {
+              "value": "en",
+              "label": "English"
+            },
+            {
+              "value": "de",
+              "label": "German"
+            },
+            {
+              "value": "es",
+              "label": "Spanish"
+            },
+            {
+              "value": "fr",
+              "label": "French"
+            },
+            {
+              "value": "ja",
+              "label": "Japanese"
+            },
+            {
+              "value": "pt-br",
+              "label": "Portuguese"
+            },
+            {
+              "value": "ru",
+              "label": "Russian"
+            },
+            {
+              "value": "zh",
+              "label": "Chinese"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "lookup_own_ip",
+      "name": "Look up server IP",
+      "description": "Location of the IP address FlowForge's server is calling from.",
+      "method": "GET",
+      "endpoint": "/check",
+      "error_path": "error.info",
+      "output_fields": {
+        "ip": "ip",
+        "country": "country_name",
+        "city": "city",
+        "time_zone": "time_zone.id"
+      },
+      "inputs": []
+    },
+    {
+      "key": "bulk_lookup",
+      "name": "Bulk look up",
+      "description": "Up to 50 IP addresses at once (paid plans).",
+      "method": "GET",
+      "endpoint": "/{{{ inputs.ips }}}",
+      "error_path": "error.info",
+      "output_fields": {
+        "countries": "*.country_name",
+        "cities": "*.city"
+      },
+      "inputs": [
+        {
+          "key": "ips",
+          "label": "IP addresses",
+          "type": "string",
+          "required": true,
+          "placeholder": "134.201.250.155,72.229.28.185",
+          "help": "Comma-separated, no spaces."
+        }
+      ]
+    }
+  ],
+  "triggers": []
+}

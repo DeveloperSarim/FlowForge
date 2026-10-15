@@ -1,0 +1,256 @@
+{
+  "key": "domo",
+  "name": "Domo",
+  "category": "Analytics",
+  "description": "Query Domo DataSets with SQL, append CSV data and manage users.",
+  "website": "https://www.domo.com",
+  "docs_url": "https://developer.domo.com/portal/8ba9aedad3679-ap-is",
+  "base_url": "https://api.domo.com",
+  "auth": {
+    "type": "oauth2_client_credentials",
+    "token_url": "https://api.domo.com/oauth/token",
+    "client_auth": "basic",
+    "scopes": [
+      "data",
+      "user"
+    ],
+    "fields": [
+      {
+        "key": "client_id",
+        "label": "Client ID",
+        "type": "string",
+        "required": true,
+        "help": "developer.domo.com → My Account → New Client (tick the Data and User scopes)."
+      },
+      {
+        "key": "client_secret",
+        "label": "Client secret",
+        "type": "password",
+        "required": true
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_datasets",
+      "name": "List DataSets",
+      "description": "DataSets you can access.",
+      "method": "GET",
+      "endpoint": "/v1/datasets",
+      "query": {
+        "limit": "{{ inputs.limit }}",
+        "offset": "{{ inputs.offset }}"
+      },
+      "output_fields": {
+        "ids": "*.id",
+        "names": "*.name"
+      },
+      "inputs": [
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 50
+        },
+        {
+          "key": "offset",
+          "label": "Offset",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "get_dataset",
+      "name": "Get DataSet",
+      "description": "Schema and size of a DataSet.",
+      "method": "GET",
+      "endpoint": "/v1/datasets/{{ inputs.dataset_id }}",
+      "output_fields": {
+        "id": "id",
+        "name": "name",
+        "rows": "rows",
+        "columns": "columns",
+        "updated_at": "updatedAt"
+      },
+      "inputs": [
+        {
+          "key": "dataset_id",
+          "label": "DataSet ID",
+          "type": "string",
+          "required": true,
+          "help": "Open the DataSet in Domo: the ID is in the URL after /datasources/. Or use 'List DataSets'."
+        }
+      ]
+    },
+    {
+      "key": "query_dataset",
+      "name": "Query DataSet (SQL)",
+      "description": "Run a SQL query against a DataSet.",
+      "method": "POST",
+      "endpoint": "/v1/datasets/query/execute/{{ inputs.dataset_id }}",
+      "body": {
+        "sql": "{{ inputs.sql }}"
+      },
+      "output_fields": {
+        "columns": "columns",
+        "rows": "rows",
+        "num_rows": "numRows"
+      },
+      "inputs": [
+        {
+          "key": "dataset_id",
+          "label": "DataSet ID",
+          "type": "string",
+          "required": true,
+          "help": "Open the DataSet in Domo: the ID is in the URL after /datasources/. Or use 'List DataSets'."
+        },
+        {
+          "key": "sql",
+          "label": "SQL",
+          "type": "text",
+          "required": true,
+          "default": "SELECT * FROM table LIMIT 100",
+          "help": "Always query FROM table."
+        }
+      ]
+    },
+    {
+      "key": "import_csv",
+      "name": "Import CSV data",
+      "description": "Append or replace rows in an API DataSet.",
+      "method": "PUT",
+      "endpoint": "/v1/datasets/{{ inputs.dataset_id }}/data",
+      "headers": {
+        "Content-Type": "text/csv"
+      },
+      "query": {
+        "updateMethod": "{{ inputs.update_method }}"
+      },
+      "body": "{{ inputs.csv }}",
+      "inputs": [
+        {
+          "key": "dataset_id",
+          "label": "DataSet ID",
+          "type": "string",
+          "required": true,
+          "help": "Open the DataSet in Domo: the ID is in the URL after /datasources/. Or use 'List DataSets'."
+        },
+        {
+          "key": "csv",
+          "label": "CSV rows",
+          "type": "text",
+          "required": true,
+          "help": "Rows only, no header line, columns in the DataSet's order."
+        },
+        {
+          "key": "update_method",
+          "label": "Mode",
+          "type": "select",
+          "default": "APPEND",
+          "options": [
+            {
+              "value": "APPEND",
+              "label": "Append rows"
+            },
+            {
+              "value": "REPLACE",
+              "label": "Replace all data"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "list_users",
+      "name": "List users",
+      "description": "Users in your Domo instance.",
+      "method": "GET",
+      "endpoint": "/v1/users",
+      "query": {
+        "limit": "{{ inputs.limit }}",
+        "offset": "{{ inputs.offset }}"
+      },
+      "output_fields": {
+        "ids": "*.id",
+        "emails": "*.email"
+      },
+      "inputs": [
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 50
+        },
+        {
+          "key": "offset",
+          "label": "Offset",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "create_user",
+      "name": "Create user",
+      "description": "Add a user to Domo.",
+      "method": "POST",
+      "endpoint": "/v1/users",
+      "query": {
+        "sendInvite": "{{ inputs.send_invite }}"
+      },
+      "body": {
+        "name": "{{ inputs.name }}",
+        "email": "{{ inputs.email }}",
+        "role": "{{ inputs.role }}"
+      },
+      "output_fields": {
+        "id": "id",
+        "email": "email"
+      },
+      "inputs": [
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "role",
+          "label": "Role",
+          "type": "select",
+          "required": true,
+          "default": "Participant",
+          "options": [
+            {
+              "value": "Participant",
+              "label": "Participant"
+            },
+            {
+              "value": "Privileged",
+              "label": "Privileged"
+            },
+            {
+              "value": "Editor",
+              "label": "Editor"
+            },
+            {
+              "value": "Admin",
+              "label": "Admin"
+            }
+          ]
+        },
+        {
+          "key": "send_invite",
+          "label": "Send invite email",
+          "type": "boolean",
+          "default": true
+        }
+      ]
+    }
+  ]
+}

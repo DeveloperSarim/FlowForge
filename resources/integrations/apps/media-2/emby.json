@@ -1,0 +1,118 @@
+{
+  "key": "emby",
+  "name": "Emby",
+  "category": "Video & Media",
+  "description": "Your Emby media server: search the library, see active sessions, refresh libraries.",
+  "website": "https://emby.media",
+  "docs_url": "https://github.com/MediaBrowser/Emby/wiki/Api-Documentation",
+  "base_url": "{{ credentials.server_url }}/emby",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "X-Emby-Token",
+    "fields": [
+      {
+        "key": "server_url",
+        "label": "Emby URL",
+        "type": "string",
+        "required": true,
+        "placeholder": "http://192.168.1.10:8096",
+        "help": "The address you open the app at, with http:// and the port, no trailing slash."
+      },
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "Emby Dashboard > Advanced > API Keys > New API Key."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "search_items",
+      "name": "Search library",
+      "description": "Find movies, shows and music in your library.",
+      "method": "GET",
+      "endpoint": "/Items",
+      "query": {
+        "SearchTerm": "{{ inputs.search }}",
+        "IncludeItemTypes": "{{ inputs.types }}",
+        "Limit": "{{ inputs.limit }}",
+        "Recursive": "true"
+      },
+      "output_fields": {
+        "items": "Items",
+        "names": "Items.*.Name",
+        "ids": "Items.*.Id",
+        "total": "TotalRecordCount"
+      },
+      "inputs": [
+        {
+          "key": "search",
+          "label": "Search",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "types",
+          "label": "Types",
+          "type": "string",
+          "default": "Movie,Series,Audio",
+          "help": "Comma-separated, e.g. Movie,Series."
+        },
+        {
+          "key": "limit",
+          "label": "Max results",
+          "type": "number",
+          "default": 20
+        }
+      ]
+    },
+    {
+      "key": "list_sessions",
+      "name": "Active sessions",
+      "description": "Who is watching or connected right now.",
+      "method": "GET",
+      "endpoint": "/Sessions",
+      "output_fields": {
+        "users": "*.UserName",
+        "clients": "*.Client",
+        "playing": "*.NowPlayingItem.Name"
+      },
+      "inputs": []
+    },
+    {
+      "key": "list_users",
+      "name": "List users",
+      "description": "Get the users on the server.",
+      "method": "GET",
+      "endpoint": "/Users",
+      "output_fields": {
+        "ids": "*.Id",
+        "names": "*.Name"
+      },
+      "inputs": []
+    },
+    {
+      "key": "system_info",
+      "name": "Server info",
+      "description": "Get the server name and version.",
+      "method": "GET",
+      "endpoint": "/System/Info",
+      "output_fields": {
+        "name": "ServerName",
+        "version": "Version"
+      },
+      "inputs": []
+    },
+    {
+      "key": "refresh_library",
+      "name": "Refresh libraries",
+      "description": "Scan all libraries for new media.",
+      "method": "POST",
+      "endpoint": "/Library/Refresh",
+      "inputs": []
+    }
+  ]
+}

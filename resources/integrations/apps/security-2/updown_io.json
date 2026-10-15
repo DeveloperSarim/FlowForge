@@ -1,0 +1,272 @@
+{
+  "key": "updown_io",
+  "name": "updown.io",
+  "category": "Security & IT",
+  "description": "Create and manage updown.io uptime checks and read their downtimes.",
+  "brand": "updown",
+  "website": "https://updown.io",
+  "docs_url": "https://updown.io/api",
+  "base_url": "https://updown.io/api",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "X-API-KEY",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "updown.io → Settings → API: use the full-access (read-write) key."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_checks",
+      "name": "List checks",
+      "description": "List all checks with their status and uptime.",
+      "method": "GET",
+      "endpoint": "/checks",
+      "inputs": []
+    },
+    {
+      "key": "get_check",
+      "name": "Get check",
+      "description": "Get a check's status, uptime and SSL info.",
+      "method": "GET",
+      "endpoint": "/checks/{{ inputs.token }}",
+      "query": {
+        "metrics": "{{ inputs.metrics }}"
+      },
+      "output_fields": {
+        "url": "url",
+        "down": "down",
+        "uptime": "uptime",
+        "last_status": "last_status",
+        "ssl_expires_at": "ssl.expires_at"
+      },
+      "inputs": [
+        {
+          "key": "token",
+          "label": "Check token",
+          "type": "string",
+          "required": true,
+          "help": "The short code of the check, from List checks (e.g. ngg8)."
+        },
+        {
+          "key": "metrics",
+          "label": "Include metrics",
+          "type": "boolean",
+          "default": false
+        }
+      ]
+    },
+    {
+      "key": "create_check",
+      "name": "Create check",
+      "description": "Start monitoring a URL.",
+      "method": "POST",
+      "endpoint": "/checks",
+      "body": {
+        "url": "{{ inputs.url }}",
+        "alias": "{{ inputs.alias }}",
+        "period": "{{ inputs.period }}",
+        "string_match": "{{ inputs.string_match }}",
+        "published": "{{ inputs.published }}"
+      },
+      "output_fields": {
+        "token": "token",
+        "url": "url"
+      },
+      "inputs": [
+        {
+          "key": "url",
+          "label": "URL",
+          "type": "string",
+          "required": true,
+          "placeholder": "https://example.com"
+        },
+        {
+          "key": "alias",
+          "label": "Name",
+          "type": "string"
+        },
+        {
+          "key": "period",
+          "label": "Check every",
+          "type": "select",
+          "default": "60",
+          "options": [
+            {
+              "value": "30",
+              "label": "30 seconds"
+            },
+            {
+              "value": "60",
+              "label": "1 minute"
+            },
+            {
+              "value": "120",
+              "label": "2 minutes"
+            },
+            {
+              "value": "300",
+              "label": "5 minutes"
+            },
+            {
+              "value": "600",
+              "label": "10 minutes"
+            },
+            {
+              "value": "1800",
+              "label": "30 minutes"
+            },
+            {
+              "value": "3600",
+              "label": "1 hour"
+            }
+          ]
+        },
+        {
+          "key": "string_match",
+          "label": "Must contain text",
+          "type": "string"
+        },
+        {
+          "key": "published",
+          "label": "Public status page",
+          "type": "boolean",
+          "default": false
+        }
+      ]
+    },
+    {
+      "key": "update_check",
+      "name": "Update / pause check",
+      "description": "Change a check, or pause it by disabling.",
+      "method": "PUT",
+      "endpoint": "/checks/{{ inputs.token }}",
+      "body": {
+        "enabled": "{{ inputs.enabled }}",
+        "alias": "{{ inputs.alias }}",
+        "url": "{{ inputs.url }}",
+        "period": "{{ inputs.period }}"
+      },
+      "output_fields": {
+        "enabled": "enabled"
+      },
+      "inputs": [
+        {
+          "key": "token",
+          "label": "Check token",
+          "type": "string",
+          "required": true,
+          "help": "The short code of the check, from List checks (e.g. ngg8)."
+        },
+        {
+          "key": "enabled",
+          "label": "Enabled",
+          "type": "boolean"
+        },
+        {
+          "key": "alias",
+          "label": "Name",
+          "type": "string"
+        },
+        {
+          "key": "url",
+          "label": "URL",
+          "type": "string"
+        },
+        {
+          "key": "period",
+          "label": "Check every (seconds)",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "delete_check",
+      "name": "Delete check",
+      "description": "Delete a check.",
+      "method": "DELETE",
+      "endpoint": "/checks/{{ inputs.token }}",
+      "output_fields": {
+        "deleted": "deleted"
+      },
+      "inputs": [
+        {
+          "key": "token",
+          "label": "Check token",
+          "type": "string",
+          "required": true,
+          "help": "The short code of the check, from List checks (e.g. ngg8)."
+        }
+      ]
+    },
+    {
+      "key": "list_downtimes",
+      "name": "List downtimes",
+      "description": "List a check's downtimes, newest first.",
+      "method": "GET",
+      "endpoint": "/checks/{{ inputs.token }}/downtimes",
+      "query": {
+        "page": "{{ inputs.page }}"
+      },
+      "inputs": [
+        {
+          "key": "token",
+          "label": "Check token",
+          "type": "string",
+          "required": true,
+          "help": "The short code of the check, from List checks (e.g. ngg8)."
+        },
+        {
+          "key": "page",
+          "label": "Page",
+          "type": "number"
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_downtime",
+      "name": "New downtime",
+      "type": "polling",
+      "description": "Starts when a check goes down.",
+      "method": "GET",
+      "endpoint": "/checks/{{ inputs.token }}/downtimes",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "token",
+          "label": "Check token",
+          "type": "string",
+          "required": true,
+          "help": "The short code of the check, from List checks (e.g. ngg8)."
+        },
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    },
+    {
+      "key": "webhook_event",
+      "name": "Webhook (check down / up)",
+      "type": "webhook",
+      "description": "Add the webhook URL in updown.io → Settings → Webhooks.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

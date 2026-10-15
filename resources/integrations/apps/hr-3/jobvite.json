@@ -1,0 +1,133 @@
+{
+  "key": "jobvite",
+  "name": "Jobvite",
+  "category": "HR & Recruiting",
+  "description": "Read job requisitions and candidates from Jobvite.",
+  "website": "https://www.jobvite.com",
+  "docs_url": "https://developer.jobvite.com/",
+  "base_url": "https://api.jobvite.com/api/v2",
+  "auth": {
+    "type": "api_key",
+    "in": "query",
+    "name": "api",
+    "fields": [
+      {
+        "key": "secret",
+        "label": "API secret",
+        "type": "password",
+        "required": true,
+        "help": "Shown next to the API key on the same page."
+      },
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "Ask your Jobvite admin, or open Jobvite → Admin → System Configuration → API and copy the API key."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_jobs",
+      "name": "List jobs",
+      "description": "List job requisitions.",
+      "method": "GET",
+      "endpoint": "/job",
+      "query": {
+        "sc": "{{ credentials.secret }}",
+        "count": "{{ inputs.limit }}",
+        "filter.status": "{{ inputs.status }}"
+      },
+      "output_fields": {
+        "jobs": "requisitions",
+        "total": "total",
+        "first_id": "requisitions.0.eId",
+        "first_title": "requisitions.0.title"
+      },
+      "inputs": [
+        {
+          "key": "limit",
+          "label": "How many",
+          "type": "number",
+          "default": 50
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "options": [
+            {
+              "value": "open",
+              "label": "Open"
+            },
+            {
+              "value": "closed",
+              "label": "Closed"
+            },
+            {
+              "value": "draft",
+              "label": "Draft"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "list_candidates",
+      "name": "List candidates",
+      "description": "List candidates and their applications.",
+      "method": "GET",
+      "endpoint": "/candidate",
+      "query": {
+        "sc": "{{ credentials.secret }}",
+        "count": "{{ inputs.limit }}",
+        "jobId": "{{ inputs.job_id }}"
+      },
+      "output_fields": {
+        "candidates": "candidates",
+        "total": "total",
+        "first_id": "candidates.0.id",
+        "first_email": "candidates.0.email"
+      },
+      "inputs": [
+        {
+          "key": "limit",
+          "label": "How many",
+          "type": "number",
+          "default": 50
+        },
+        {
+          "key": "job_id",
+          "label": "Job ID",
+          "type": "string",
+          "help": "Only candidates for this requisition."
+        }
+      ]
+    },
+    {
+      "key": "get_candidate",
+      "name": "Get candidate",
+      "description": "Read one candidate by ID.",
+      "method": "GET",
+      "endpoint": "/candidate",
+      "query": {
+        "sc": "{{ credentials.secret }}",
+        "id": "{{ inputs.candidate_id }}"
+      },
+      "output_fields": {
+        "first_name": "candidates.0.firstName",
+        "last_name": "candidates.0.lastName",
+        "email": "candidates.0.email"
+      },
+      "inputs": [
+        {
+          "key": "candidate_id",
+          "label": "Candidate ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ]
+}

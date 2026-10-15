@@ -1,0 +1,181 @@
+{
+  "key": "open_webui",
+  "name": "Open WebUI",
+  "category": "AI",
+  "description": "Chat with the models and knowledge bases on your self-hosted Open WebUI.",
+  "website": "https://openwebui.com",
+  "docs_url": "https://docs.openwebui.com/getting-started/api-endpoints",
+  "base_url": "{{ credentials.base_url }}",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "base_url",
+        "label": "Open WebUI URL",
+        "type": "string",
+        "required": true,
+        "placeholder": "https://chat.example.com",
+        "help": "The address you open Open WebUI at, without a trailing slash."
+      },
+      {
+        "key": "token",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "Open WebUI → Settings → Account → API keys → Create new secret key."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "chat_completion",
+      "name": "Chat completion",
+      "description": "Send a prompt and get the model's reply as text.",
+      "method": "POST",
+      "endpoint": "/api/chat/completions",
+      "timeout": 300,
+      "body": {
+        "model": "{{ inputs.model }}",
+        "messages": [
+          {
+            "$if": "{{ inputs.system }}",
+            "role": "system",
+            "content": "{{ inputs.system }}"
+          },
+          {
+            "role": "user",
+            "content": "{{ inputs.prompt }}"
+          }
+        ],
+        "temperature": "{{ inputs.temperature }}",
+        "max_tokens": "{{ inputs.max_tokens }}"
+      },
+      "output_fields": {
+        "text": "choices.0.message.content"
+      },
+      "inputs": [
+        {
+          "key": "model",
+          "label": "Model",
+          "type": "string",
+          "required": true,
+          "help": "A model ID from your Open WebUI, e.g. llama3.1:8b. Use List models to see them."
+        },
+        {
+          "key": "prompt",
+          "label": "Prompt",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "system",
+          "label": "System prompt",
+          "type": "text",
+          "help": "Optional instructions for how the model should behave."
+        },
+        {
+          "key": "temperature",
+          "label": "Temperature",
+          "type": "number",
+          "placeholder": "0.7",
+          "help": "0 = focused, 1 = creative. Leave blank for the default."
+        },
+        {
+          "key": "max_tokens",
+          "label": "Max output tokens",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "chat_with_knowledge",
+      "name": "Chat with a knowledge base",
+      "description": "Ask a question answered from one of your knowledge collections.",
+      "method": "POST",
+      "endpoint": "/api/chat/completions",
+      "timeout": 300,
+      "body": {
+        "model": "{{ inputs.model }}",
+        "messages": [
+          {
+            "role": "user",
+            "content": "{{ inputs.prompt }}"
+          }
+        ],
+        "files": [
+          {
+            "type": "collection",
+            "id": "{{ inputs.collection_id }}"
+          }
+        ]
+      },
+      "output_fields": {
+        "text": "choices.0.message.content"
+      },
+      "inputs": [
+        {
+          "key": "model",
+          "label": "Model",
+          "type": "string",
+          "required": true,
+          "help": "A model ID from your Open WebUI."
+        },
+        {
+          "key": "collection_id",
+          "label": "Knowledge base ID",
+          "type": "string",
+          "required": true,
+          "help": "Workspace → Knowledge → open the collection; the ID is the last part of its URL."
+        },
+        {
+          "key": "prompt",
+          "label": "Question",
+          "type": "text",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_models",
+      "name": "List models",
+      "description": "List the models you can use.",
+      "method": "GET",
+      "endpoint": "/api/models",
+      "output_fields": {
+        "models": "data.*.id"
+      },
+      "inputs": []
+    },
+    {
+      "key": "ollama_generate",
+      "name": "Generate with Ollama",
+      "description": "Send a prompt straight to the Ollama server behind Open WebUI.",
+      "method": "POST",
+      "endpoint": "/ollama/api/generate",
+      "timeout": 300,
+      "body": {
+        "model": "{{ inputs.model }}",
+        "prompt": "{{ inputs.prompt }}",
+        "stream": false
+      },
+      "output_fields": {
+        "text": "response"
+      },
+      "inputs": [
+        {
+          "key": "model",
+          "label": "Ollama model",
+          "type": "string",
+          "required": true,
+          "placeholder": "llama3.1"
+        },
+        {
+          "key": "prompt",
+          "label": "Prompt",
+          "type": "text",
+          "required": true
+        }
+      ]
+    }
+  ]
+}

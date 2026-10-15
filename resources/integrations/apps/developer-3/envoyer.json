@@ -1,0 +1,152 @@
+{
+  "key": "envoyer",
+  "name": "Envoyer",
+  "category": "Developer Tools",
+  "description": "Start, track and cancel zero-downtime deployments on Laravel Envoyer.",
+  "brand": "laravel",
+  "website": "https://envoyer.io",
+  "docs_url": "https://envoyer.io/api-documentation",
+  "base_url": "https://envoyer.io/api",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "API token",
+        "type": "password",
+        "required": true,
+        "help": "Envoyer → Account → API → create a token with the projects and deployments scopes."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_projects",
+      "name": "List projects",
+      "description": "List your Envoyer projects.",
+      "method": "GET",
+      "endpoint": "/projects",
+      "output_fields": {
+        "projects": "projects"
+      },
+      "inputs": []
+    },
+    {
+      "key": "deploy_project",
+      "name": "Deploy project",
+      "description": "Start a deployment from the default branch, a branch or a tag.",
+      "method": "POST",
+      "endpoint": "/projects/{{ inputs.project_id }}/deployments",
+      "body": {
+        "from": "{{ inputs.from }}",
+        "branch": "{{ inputs.branch }}",
+        "tag": "{{ inputs.tag }}"
+      },
+      "inputs": [
+        {
+          "key": "project_id",
+          "label": "Project ID",
+          "type": "string",
+          "required": true,
+          "help": "Use List projects, or open the project in Envoyer (the number in the URL)."
+        },
+        {
+          "key": "from",
+          "label": "Deploy from",
+          "type": "select",
+          "options": [
+            {
+              "value": "branch",
+              "label": "A branch"
+            },
+            {
+              "value": "tag",
+              "label": "A tag"
+            }
+          ],
+          "help": "Leave empty to deploy the default branch."
+        },
+        {
+          "key": "branch",
+          "label": "Branch",
+          "type": "string",
+          "placeholder": "main"
+        },
+        {
+          "key": "tag",
+          "label": "Tag",
+          "type": "string",
+          "placeholder": "v1.2.0"
+        }
+      ]
+    },
+    {
+      "key": "list_deployments",
+      "name": "List deployments",
+      "description": "List a project's deployments.",
+      "method": "GET",
+      "endpoint": "/projects/{{ inputs.project_id }}/deployments",
+      "output_fields": {
+        "deployments": "deployments"
+      },
+      "inputs": [
+        {
+          "key": "project_id",
+          "label": "Project ID",
+          "type": "string",
+          "required": true,
+          "help": "Use List projects, or open the project in Envoyer (the number in the URL)."
+        }
+      ]
+    },
+    {
+      "key": "get_deployment",
+      "name": "Get deployment",
+      "description": "Get a deployment's status and commit.",
+      "method": "GET",
+      "endpoint": "/projects/{{ inputs.project_id }}/deployments/{{ inputs.deployment_id }}",
+      "output_fields": {
+        "status": "deployment.status",
+        "commit_branch": "deployment.commit_branch",
+        "commit_message": "deployment.commit_message"
+      },
+      "inputs": [
+        {
+          "key": "project_id",
+          "label": "Project ID",
+          "type": "string",
+          "required": true,
+          "help": "Use List projects, or open the project in Envoyer (the number in the URL)."
+        },
+        {
+          "key": "deployment_id",
+          "label": "Deployment ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "cancel_deployment",
+      "name": "Cancel deployment",
+      "description": "Cancel a running deployment.",
+      "method": "DELETE",
+      "endpoint": "/projects/{{ inputs.project_id }}/deployments/{{ inputs.deployment_id }}",
+      "inputs": [
+        {
+          "key": "project_id",
+          "label": "Project ID",
+          "type": "string",
+          "required": true,
+          "help": "Use List projects, or open the project in Envoyer (the number in the URL)."
+        },
+        {
+          "key": "deployment_id",
+          "label": "Deployment ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ]
+}

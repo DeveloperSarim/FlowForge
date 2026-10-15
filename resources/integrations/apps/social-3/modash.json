@@ -1,0 +1,174 @@
+{
+  "key": "modash",
+  "name": "Modash",
+  "category": "Social Media",
+  "description": "Find Instagram, TikTok and YouTube influencers and pull their audience reports.",
+  "website": "https://www.modash.io",
+  "docs_url": "https://docs.modash.io/",
+  "base_url": "https://api.modash.io/v1",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "API token",
+        "type": "password",
+        "required": true,
+        "help": "marketer.modash.io/developer → API token."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "search_influencers",
+      "name": "Search influencers",
+      "description": "15 results per page; costs 0.01 credits per result.",
+      "method": "POST",
+      "endpoint": "/{{ inputs.platform }}/search",
+      "body": {
+        "page": "{{ inputs.page }}",
+        "sort": {
+          "field": "followers",
+          "direction": "desc"
+        },
+        "filter": {
+          "influencer": {
+            "followers": {
+              "min": "{{ inputs.followers_min }}",
+              "max": "{{ inputs.followers_max }}"
+            }
+          }
+        }
+      },
+      "output_fields": {
+        "total": "total",
+        "influencers": "lookalikes",
+        "user_ids": "lookalikes.*.userId",
+        "usernames": "lookalikes.*.profile.username"
+      },
+      "inputs": [
+        {
+          "key": "platform",
+          "label": "Platform",
+          "type": "select",
+          "required": true,
+          "default": "instagram",
+          "options": [
+            {
+              "value": "instagram",
+              "label": "Instagram"
+            },
+            {
+              "value": "tiktok",
+              "label": "TikTok"
+            },
+            {
+              "value": "youtube",
+              "label": "YouTube"
+            }
+          ]
+        },
+        {
+          "key": "followers_min",
+          "label": "Min followers",
+          "type": "number",
+          "default": 10000
+        },
+        {
+          "key": "followers_max",
+          "label": "Max followers",
+          "type": "number"
+        },
+        {
+          "key": "page",
+          "label": "Page",
+          "type": "number",
+          "default": 0
+        }
+      ]
+    },
+    {
+      "key": "get_report",
+      "name": "Get influencer report",
+      "description": "Costs 1 credit.",
+      "method": "GET",
+      "endpoint": "/{{ inputs.platform }}/profile/{{ inputs.user }}/report",
+      "output_fields": {
+        "username": "profile.profile.username",
+        "followers": "profile.profile.followers",
+        "engagement_rate": "profile.profile.engagementRate",
+        "url": "profile.profile.url"
+      },
+      "inputs": [
+        {
+          "key": "platform",
+          "label": "Platform",
+          "type": "select",
+          "required": true,
+          "default": "instagram",
+          "options": [
+            {
+              "value": "instagram",
+              "label": "Instagram"
+            },
+            {
+              "value": "tiktok",
+              "label": "TikTok"
+            },
+            {
+              "value": "youtube",
+              "label": "YouTube"
+            }
+          ]
+        },
+        {
+          "key": "user",
+          "label": "User ID or handle",
+          "type": "string",
+          "required": true,
+          "placeholder": "cristiano"
+        }
+      ]
+    },
+    {
+      "key": "find_instagram_user",
+      "name": "Find Instagram user",
+      "description": "Free lookup to get a user ID.",
+      "method": "GET",
+      "endpoint": "/instagram/users",
+      "query": {
+        "query": "{{ inputs.query }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "users": "users",
+        "user_id": "users.0.userId",
+        "followers": "users.0.followers"
+      },
+      "inputs": [
+        {
+          "key": "query",
+          "label": "Username",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "limit",
+          "label": "Max results",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    },
+    {
+      "key": "get_account",
+      "name": "Get credits",
+      "method": "GET",
+      "endpoint": "/user/info",
+      "output_fields": {
+        "credits": "billing.credits"
+      },
+      "inputs": []
+    }
+  ]
+}

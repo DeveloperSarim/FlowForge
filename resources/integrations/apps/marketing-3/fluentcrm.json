@@ -1,0 +1,286 @@
+{
+  "key": "fluentcrm",
+  "name": "FluentCRM",
+  "category": "Marketing & Email",
+  "description": "WordPress email marketing: add or update contacts, tags and lists.",
+  "website": "https://fluentcrm.com",
+  "docs_url": "https://rest-api.fluentcrm.com/",
+  "base_url": "{{ credentials.site_url }}/wp-json/fluent-crm/v2",
+  "auth": {
+    "type": "basic",
+    "fields": [
+      {
+        "key": "site_url",
+        "label": "WordPress site URL",
+        "type": "string",
+        "required": true,
+        "placeholder": "https://example.com",
+        "help": "Your site's address, without a trailing slash."
+      },
+      {
+        "key": "username",
+        "label": "API username",
+        "type": "string",
+        "required": true,
+        "help": "FluentCRM → Settings → REST API → Add new key: pick a manager user and copy the username shown."
+      },
+      {
+        "key": "password",
+        "label": "API password",
+        "type": "password",
+        "required": true,
+        "help": "The application password shown once when you create the key."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "upsert_contact",
+      "name": "Create or update contact",
+      "description": "Add a contact, or update the one with the same email, with tags and lists.",
+      "method": "POST",
+      "endpoint": "/subscribers",
+      "body": {
+        "email": "{{ inputs.email }}",
+        "first_name": "{{ inputs.first_name }}",
+        "last_name": "{{ inputs.last_name }}",
+        "phone": "{{ inputs.phone }}",
+        "status": "{{ inputs.status }}",
+        "tags": "{{ inputs.tags }}",
+        "lists": "{{ inputs.lists }}",
+        "custom_values": "{{ inputs.custom_values }}",
+        "__force_update": "yes"
+      },
+      "output_fields": {
+        "id": "contact.id",
+        "email": "contact.email",
+        "status": "contact.status",
+        "message": "message"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "first_name",
+          "label": "First name",
+          "type": "string"
+        },
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string"
+        },
+        {
+          "key": "phone",
+          "label": "Phone",
+          "type": "string"
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "required": true,
+          "default": "subscribed",
+          "options": [
+            {
+              "value": "subscribed",
+              "label": "Subscribed"
+            },
+            {
+              "value": "pending",
+              "label": "Pending (double opt-in)"
+            },
+            {
+              "value": "unsubscribed",
+              "label": "Unsubscribed"
+            }
+          ]
+        },
+        {
+          "key": "tags",
+          "label": "Tags",
+          "type": "list",
+          "help": "Tag names, slugs or IDs."
+        },
+        {
+          "key": "lists",
+          "label": "Lists",
+          "type": "list",
+          "help": "List names, slugs or IDs."
+        },
+        {
+          "key": "custom_values",
+          "label": "Custom fields",
+          "type": "keyvalue",
+          "help": "By custom field slug."
+        }
+      ]
+    },
+    {
+      "key": "get_contact_by_email",
+      "name": "Get contact by email",
+      "description": "Look up a contact with its tags and lists.",
+      "method": "GET",
+      "endpoint": "/subscribers/0",
+      "query": {
+        "get_by_email": "{{ inputs.email }}"
+      },
+      "output_fields": {
+        "id": "subscriber.id",
+        "email": "subscriber.email",
+        "status": "subscriber.status",
+        "tags": "subscriber.tags",
+        "lists": "subscriber.lists"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "search_contacts",
+      "name": "Search contacts",
+      "description": "Find contacts by name or email.",
+      "method": "GET",
+      "endpoint": "/subscribers",
+      "query": {
+        "search": "{{ inputs.search }}",
+        "per_page": "{{ inputs.per_page }}"
+      },
+      "output_fields": {
+        "contacts": "subscribers.data",
+        "total": "subscribers.total"
+      },
+      "inputs": [
+        {
+          "key": "search",
+          "label": "Search",
+          "type": "string"
+        },
+        {
+          "key": "per_page",
+          "label": "How many",
+          "type": "number",
+          "default": 20
+        }
+      ]
+    },
+    {
+      "key": "update_tags_lists",
+      "name": "Add or remove tags and lists",
+      "description": "Attach or detach tags and lists on a contact.",
+      "method": "PUT",
+      "endpoint": "/subscribers/{{ inputs.id }}",
+      "body": {
+        "attach_tags": "{{ inputs.attach_tags }}",
+        "detach_tags": "{{ inputs.detach_tags }}",
+        "attach_lists": "{{ inputs.attach_lists }}",
+        "detach_lists": "{{ inputs.detach_lists }}"
+      },
+      "output_fields": {
+        "id": "contact.id",
+        "message": "message"
+      },
+      "inputs": [
+        {
+          "key": "id",
+          "label": "Contact ID",
+          "type": "string",
+          "required": true,
+          "help": "From a \"Create or update contact\" or \"Get contact\" step."
+        },
+        {
+          "key": "attach_tags",
+          "label": "Add tags (IDs)",
+          "type": "list"
+        },
+        {
+          "key": "detach_tags",
+          "label": "Remove tags (IDs)",
+          "type": "list"
+        },
+        {
+          "key": "attach_lists",
+          "label": "Add to lists (IDs)",
+          "type": "list"
+        },
+        {
+          "key": "detach_lists",
+          "label": "Remove from lists (IDs)",
+          "type": "list"
+        }
+      ]
+    },
+    {
+      "key": "delete_contact",
+      "name": "Delete contact",
+      "description": "Delete a contact.",
+      "method": "DELETE",
+      "endpoint": "/subscribers/{{ inputs.id }}",
+      "inputs": [
+        {
+          "key": "id",
+          "label": "Contact ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_lists",
+      "name": "List lists",
+      "description": "Your FluentCRM lists and their IDs.",
+      "method": "GET",
+      "endpoint": "/lists",
+      "output_fields": {
+        "lists": "lists",
+        "ids": "lists.*.id",
+        "titles": "lists.*.title"
+      },
+      "inputs": []
+    },
+    {
+      "key": "list_tags",
+      "name": "List tags",
+      "description": "Your FluentCRM tags and their IDs.",
+      "method": "GET",
+      "endpoint": "/tags",
+      "output_fields": {
+        "tags": "tags"
+      },
+      "inputs": []
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_contact",
+      "name": "New contact",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/subscribers",
+      "query": {
+        "sort_by": "id",
+        "sort_type": "DESC",
+        "per_page": "20"
+      },
+      "items_path": "subscribers.data",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

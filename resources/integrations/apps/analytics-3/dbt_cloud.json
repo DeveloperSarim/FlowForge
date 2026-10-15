@@ -1,0 +1,246 @@
+{
+  "key": "dbt_cloud",
+  "name": "dbt Cloud",
+  "category": "Analytics",
+  "description": "Trigger dbt Cloud job runs, check their status and list jobs.",
+  "website": "https://www.getdbt.com",
+  "docs_url": "https://docs.getdbt.com/dbt-cloud/api-v2",
+  "base_url": "{{ credentials.access_url }}/api/v2/accounts/{{ credentials.account_id }}",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "Authorization",
+    "prefix": "Token ",
+    "fields": [
+      {
+        "key": "access_url",
+        "label": "Access URL",
+        "type": "string",
+        "required": true,
+        "default": "https://cloud.getdbt.com",
+        "help": "Account settings → Access URL (e.g. https://cloud.getdbt.com or https://emea.dbt.com)."
+      },
+      {
+        "key": "account_id",
+        "label": "Account ID",
+        "type": "string",
+        "required": true,
+        "help": "The number after /accounts/ in your dbt Cloud address."
+      },
+      {
+        "key": "api_key",
+        "label": "API token",
+        "type": "password",
+        "required": true,
+        "help": "Account settings → Service tokens → New token (Job Admin), or your personal API token."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_jobs",
+      "name": "List jobs",
+      "description": "Jobs in the account.",
+      "method": "GET",
+      "endpoint": "/jobs/",
+      "query": {
+        "project_id": "{{ inputs.project_id }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "jobs": "data",
+        "ids": "data.*.id",
+        "names": "data.*.name"
+      },
+      "inputs": [
+        {
+          "key": "project_id",
+          "label": "Project ID",
+          "type": "number"
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 100
+        }
+      ]
+    },
+    {
+      "key": "trigger_run",
+      "name": "Trigger job run",
+      "description": "Start a job run.",
+      "method": "POST",
+      "endpoint": "/jobs/{{ inputs.job_id }}/run/",
+      "body": {
+        "cause": "{{ inputs.cause }}",
+        "git_branch": "{{ inputs.git_branch }}",
+        "schema_override": "{{ inputs.schema_override }}",
+        "steps_override": "{{ inputs.steps_override }}"
+      },
+      "output_fields": {
+        "run_id": "data.id",
+        "status": "data.status_humanized",
+        "url": "data.href"
+      },
+      "inputs": [
+        {
+          "key": "job_id",
+          "label": "Job ID",
+          "type": "number",
+          "required": true,
+          "help": "In the job's URL after /jobs/, or use 'List jobs'."
+        },
+        {
+          "key": "cause",
+          "label": "Reason",
+          "type": "string",
+          "required": true,
+          "default": "Triggered by FlowForge"
+        },
+        {
+          "key": "git_branch",
+          "label": "Git branch",
+          "type": "string"
+        },
+        {
+          "key": "schema_override",
+          "label": "Schema override",
+          "type": "string"
+        },
+        {
+          "key": "steps_override",
+          "label": "Steps override",
+          "type": "list",
+          "help": "dbt commands to run instead, e.g. dbt build -s my_model"
+        }
+      ]
+    },
+    {
+      "key": "get_run",
+      "name": "Get run",
+      "description": "Status of a run.",
+      "method": "GET",
+      "endpoint": "/runs/{{ inputs.run_id }}/",
+      "output_fields": {
+        "id": "data.id",
+        "status": "data.status_humanized",
+        "is_complete": "data.is_complete",
+        "is_success": "data.is_success",
+        "finished_at": "data.finished_at",
+        "url": "data.href"
+      },
+      "inputs": [
+        {
+          "key": "run_id",
+          "label": "Run ID",
+          "type": "number",
+          "required": true,
+          "help": "Returned by 'Trigger job run'."
+        }
+      ]
+    },
+    {
+      "key": "list_runs",
+      "name": "List runs",
+      "description": "Recent runs, newest first.",
+      "method": "GET",
+      "endpoint": "/runs/",
+      "query": {
+        "job_definition_id": "{{ inputs.job_id }}",
+        "order_by": "-id",
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "runs": "data",
+        "ids": "data.*.id",
+        "statuses": "data.*.status_humanized"
+      },
+      "inputs": [
+        {
+          "key": "job_id",
+          "label": "Job ID",
+          "type": "number"
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 20
+        }
+      ]
+    },
+    {
+      "key": "cancel_run",
+      "name": "Cancel run",
+      "description": "Stop a running job.",
+      "method": "POST",
+      "endpoint": "/runs/{{ inputs.run_id }}/cancel/",
+      "output_fields": {
+        "status": "data.status_humanized"
+      },
+      "inputs": [
+        {
+          "key": "run_id",
+          "label": "Run ID",
+          "type": "number",
+          "required": true,
+          "help": "Returned by 'Trigger job run'."
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "run_finished",
+      "name": "Run finished",
+      "type": "polling",
+      "description": "Starts when a job run succeeds, fails or is cancelled.",
+      "method": "GET",
+      "endpoint": "/runs/",
+      "query": {
+        "job_definition_id": "{{ inputs.job_id }}",
+        "status": "{{ inputs.status }}",
+        "order_by": "-id",
+        "limit": 20
+      },
+      "items_path": "data",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "job_id",
+          "label": "Job ID",
+          "type": "number",
+          "help": "Leave empty for all jobs."
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "required": true,
+          "default": "20",
+          "options": [
+            {
+              "value": "10",
+              "label": "Succeeded"
+            },
+            {
+              "value": "20",
+              "label": "Errored"
+            },
+            {
+              "value": "30",
+              "label": "Cancelled"
+            }
+          ]
+        },
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

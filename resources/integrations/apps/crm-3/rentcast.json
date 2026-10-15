@@ -1,0 +1,443 @@
+{
+  "key": "rentcast",
+  "name": "RentCast",
+  "category": "CRM & Sales",
+  "description": "Look up US property records, listings, value and rent estimates for real-estate leads.",
+  "website": "https://www.rentcast.io",
+  "docs_url": "https://developers.rentcast.io/reference/introduction",
+  "base_url": "https://api.rentcast.io/v1",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "X-Api-Key",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "In RentCast open API > API Dashboard and copy your key."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "property_records",
+      "name": "Find property records",
+      "description": "Looks up properties by address or area, including owner and last sale.",
+      "method": "GET",
+      "endpoint": "/properties",
+      "query": {
+        "address": "{{ inputs.address }}",
+        "city": "{{ inputs.city }}",
+        "state": "{{ inputs.state }}",
+        "zipCode": "{{ inputs.zip_code }}",
+        "propertyType": "{{ inputs.property_type }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "first_id": "0.id",
+        "first_address": "0.formattedAddress",
+        "first_owner": "0.owner.names",
+        "first_last_sale_price": "0.lastSalePrice"
+      },
+      "inputs": [
+        {
+          "key": "address",
+          "label": "Address",
+          "type": "string",
+          "help": "Full address: Street, City, State, ZIP."
+        },
+        {
+          "key": "city",
+          "label": "City",
+          "type": "string",
+          "help": "Case-sensitive, e.g. Austin."
+        },
+        {
+          "key": "state",
+          "label": "State",
+          "type": "string",
+          "help": "2 letters, e.g. TX."
+        },
+        {
+          "key": "zip_code",
+          "label": "ZIP code",
+          "type": "string"
+        },
+        {
+          "key": "property_type",
+          "label": "Property type",
+          "type": "select",
+          "options": [
+            {
+              "value": "Single Family",
+              "label": "Single family"
+            },
+            {
+              "value": "Condo",
+              "label": "Condo"
+            },
+            {
+              "value": "Townhouse",
+              "label": "Townhouse"
+            },
+            {
+              "value": "Multi-Family",
+              "label": "Multi-family"
+            },
+            {
+              "value": "Apartment",
+              "label": "Apartment"
+            },
+            {
+              "value": "Land",
+              "label": "Land"
+            }
+          ]
+        },
+        {
+          "key": "limit",
+          "label": "How many",
+          "type": "number",
+          "default": 10
+        }
+      ]
+    },
+    {
+      "key": "value_estimate",
+      "name": "Value estimate",
+      "description": "Estimates the market value of a property with comparable sales.",
+      "method": "GET",
+      "endpoint": "/avm/value",
+      "query": {
+        "address": "{{ inputs.address }}",
+        "propertyType": "{{ inputs.property_type }}",
+        "bedrooms": "{{ inputs.bedrooms }}",
+        "bathrooms": "{{ inputs.bathrooms }}",
+        "squareFootage": "{{ inputs.square_footage }}"
+      },
+      "output_fields": {
+        "price": "price",
+        "price_low": "priceRangeLow",
+        "price_high": "priceRangeHigh",
+        "comparables": "comparables"
+      },
+      "inputs": [
+        {
+          "key": "address",
+          "label": "Address",
+          "type": "string",
+          "required": true,
+          "help": "Full address: Street, City, State, ZIP."
+        },
+        {
+          "key": "property_type",
+          "label": "Property type",
+          "type": "select",
+          "options": [
+            {
+              "value": "Single Family",
+              "label": "Single family"
+            },
+            {
+              "value": "Condo",
+              "label": "Condo"
+            },
+            {
+              "value": "Townhouse",
+              "label": "Townhouse"
+            },
+            {
+              "value": "Multi-Family",
+              "label": "Multi-family"
+            },
+            {
+              "value": "Apartment",
+              "label": "Apartment"
+            },
+            {
+              "value": "Land",
+              "label": "Land"
+            }
+          ]
+        },
+        {
+          "key": "bedrooms",
+          "label": "Bedrooms",
+          "type": "number"
+        },
+        {
+          "key": "bathrooms",
+          "label": "Bathrooms",
+          "type": "number"
+        },
+        {
+          "key": "square_footage",
+          "label": "Square feet",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "rent_estimate",
+      "name": "Rent estimate",
+      "description": "Estimates the monthly rent of a property.",
+      "method": "GET",
+      "endpoint": "/avm/rent/long-term",
+      "query": {
+        "address": "{{ inputs.address }}",
+        "propertyType": "{{ inputs.property_type }}",
+        "bedrooms": "{{ inputs.bedrooms }}",
+        "bathrooms": "{{ inputs.bathrooms }}",
+        "squareFootage": "{{ inputs.square_footage }}"
+      },
+      "output_fields": {
+        "rent": "rent",
+        "rent_low": "rentRangeLow",
+        "rent_high": "rentRangeHigh",
+        "comparables": "comparables"
+      },
+      "inputs": [
+        {
+          "key": "address",
+          "label": "Address",
+          "type": "string",
+          "required": true,
+          "help": "Full address: Street, City, State, ZIP."
+        },
+        {
+          "key": "property_type",
+          "label": "Property type",
+          "type": "select",
+          "options": [
+            {
+              "value": "Single Family",
+              "label": "Single family"
+            },
+            {
+              "value": "Condo",
+              "label": "Condo"
+            },
+            {
+              "value": "Townhouse",
+              "label": "Townhouse"
+            },
+            {
+              "value": "Multi-Family",
+              "label": "Multi-family"
+            },
+            {
+              "value": "Apartment",
+              "label": "Apartment"
+            },
+            {
+              "value": "Land",
+              "label": "Land"
+            }
+          ]
+        },
+        {
+          "key": "bedrooms",
+          "label": "Bedrooms",
+          "type": "number"
+        },
+        {
+          "key": "bathrooms",
+          "label": "Bathrooms",
+          "type": "number"
+        },
+        {
+          "key": "square_footage",
+          "label": "Square feet",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "sale_listings",
+      "name": "Find homes for sale",
+      "description": "Searches active (or inactive) sale listings with agent contacts.",
+      "method": "GET",
+      "endpoint": "/listings/sale",
+      "query": {
+        "city": "{{ inputs.city }}",
+        "state": "{{ inputs.state }}",
+        "zipCode": "{{ inputs.zip_code }}",
+        "propertyType": "{{ inputs.property_type }}",
+        "status": "{{ inputs.status }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "first_id": "0.id",
+        "first_address": "0.formattedAddress",
+        "first_price": "0.price",
+        "first_agent_email": "0.listingAgent.email"
+      },
+      "inputs": [
+        {
+          "key": "city",
+          "label": "City",
+          "type": "string",
+          "help": "Case-sensitive, e.g. Austin."
+        },
+        {
+          "key": "state",
+          "label": "State",
+          "type": "string",
+          "help": "2 letters, e.g. TX."
+        },
+        {
+          "key": "zip_code",
+          "label": "ZIP code",
+          "type": "string"
+        },
+        {
+          "key": "property_type",
+          "label": "Property type",
+          "type": "select",
+          "options": [
+            {
+              "value": "Single Family",
+              "label": "Single family"
+            },
+            {
+              "value": "Condo",
+              "label": "Condo"
+            },
+            {
+              "value": "Townhouse",
+              "label": "Townhouse"
+            },
+            {
+              "value": "Multi-Family",
+              "label": "Multi-family"
+            },
+            {
+              "value": "Apartment",
+              "label": "Apartment"
+            },
+            {
+              "value": "Land",
+              "label": "Land"
+            }
+          ]
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "default": "Active",
+          "options": [
+            {
+              "value": "Active",
+              "label": "Active"
+            },
+            {
+              "value": "Inactive",
+              "label": "Inactive"
+            }
+          ]
+        },
+        {
+          "key": "limit",
+          "label": "How many",
+          "type": "number",
+          "default": 10
+        }
+      ]
+    },
+    {
+      "key": "rental_listings",
+      "name": "Find rentals",
+      "description": "Searches long-term rental listings.",
+      "method": "GET",
+      "endpoint": "/listings/rental/long-term",
+      "query": {
+        "city": "{{ inputs.city }}",
+        "state": "{{ inputs.state }}",
+        "zipCode": "{{ inputs.zip_code }}",
+        "propertyType": "{{ inputs.property_type }}",
+        "status": "{{ inputs.status }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "first_id": "0.id",
+        "first_address": "0.formattedAddress",
+        "first_price": "0.price"
+      },
+      "inputs": [
+        {
+          "key": "city",
+          "label": "City",
+          "type": "string",
+          "help": "Case-sensitive, e.g. Austin."
+        },
+        {
+          "key": "state",
+          "label": "State",
+          "type": "string",
+          "help": "2 letters, e.g. TX."
+        },
+        {
+          "key": "zip_code",
+          "label": "ZIP code",
+          "type": "string"
+        },
+        {
+          "key": "property_type",
+          "label": "Property type",
+          "type": "select",
+          "options": [
+            {
+              "value": "Single Family",
+              "label": "Single family"
+            },
+            {
+              "value": "Condo",
+              "label": "Condo"
+            },
+            {
+              "value": "Townhouse",
+              "label": "Townhouse"
+            },
+            {
+              "value": "Multi-Family",
+              "label": "Multi-family"
+            },
+            {
+              "value": "Apartment",
+              "label": "Apartment"
+            },
+            {
+              "value": "Land",
+              "label": "Land"
+            }
+          ]
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "default": "Active",
+          "options": [
+            {
+              "value": "Active",
+              "label": "Active"
+            },
+            {
+              "value": "Inactive",
+              "label": "Inactive"
+            }
+          ]
+        },
+        {
+          "key": "limit",
+          "label": "How many",
+          "type": "number",
+          "default": 10
+        }
+      ]
+    }
+  ]
+}

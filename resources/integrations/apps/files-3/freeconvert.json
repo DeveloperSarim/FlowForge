@@ -1,0 +1,109 @@
+{
+  "key": "freeconvert",
+  "name": "FreeConvert",
+  "category": "Files & Documents",
+  "description": "Convert files between 1500+ formats from a URL and fetch the download link.",
+  "website": "https://www.freeconvert.com",
+  "docs_url": "https://www.freeconvert.com/api/v1",
+  "base_url": "https://api.freeconvert.com/v1",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "freeconvert.com → Dashboard → API Keys → Create API key."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "convert_url",
+      "name": "Convert file from URL",
+      "description": "Import a file by URL and convert it (check the job for the download link).",
+      "method": "POST",
+      "endpoint": "/process/jobs",
+      "body": {
+        "tasks": {
+          "import-1": {
+            "operation": "import/url",
+            "url": "{{ inputs.url }}",
+            "filename": "{{ inputs.filename }}"
+          },
+          "convert-1": {
+            "operation": "convert",
+            "input": "import-1",
+            "output_format": "{{ inputs.output_format }}"
+          },
+          "export-1": {
+            "operation": "export/url",
+            "input": "convert-1"
+          }
+        }
+      },
+      "output_fields": {
+        "job_id": "id",
+        "status": "status"
+      },
+      "inputs": [
+        {
+          "key": "url",
+          "label": "File URL",
+          "type": "string",
+          "required": true,
+          "help": "A public link to the file."
+        },
+        {
+          "key": "output_format",
+          "label": "Convert to",
+          "type": "string",
+          "required": true,
+          "placeholder": "pdf",
+          "help": "A format like pdf, png, mp4, docx."
+        },
+        {
+          "key": "filename",
+          "label": "File name",
+          "type": "string",
+          "help": "Optional, with extension."
+        }
+      ]
+    },
+    {
+      "key": "get_job",
+      "name": "Get job",
+      "description": "Status and download link of a job.",
+      "method": "GET",
+      "endpoint": "/process/jobs/{{ inputs.id }}",
+      "output_fields": {
+        "status": "status",
+        "download_url": "tasks.*.result.url"
+      },
+      "inputs": [
+        {
+          "key": "id",
+          "label": "Job ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "delete_job",
+      "name": "Delete job",
+      "description": "Delete a job and its files.",
+      "method": "DELETE",
+      "endpoint": "/process/jobs/{{ inputs.id }}",
+      "inputs": [
+        {
+          "key": "id",
+          "label": "Job ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ]
+}

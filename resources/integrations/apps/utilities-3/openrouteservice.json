@@ -1,0 +1,291 @@
+{
+  "key": "openrouteservice",
+  "name": "openrouteservice",
+  "category": "Utilities",
+  "description": "Free routing on OpenStreetMap: directions, travel-time areas, matrices and geocoding.",
+  "website": "https://openrouteservice.org",
+  "docs_url": "https://openrouteservice.org/dev/#/api-docs",
+  "base_url": "https://api.openrouteservice.org",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "Authorization",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "openrouteservice.org → Sign up → Dashboard → Tokens → create a free token."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "geocode_address",
+      "name": "Geocode address",
+      "description": "Get the coordinates of an address or place.",
+      "method": "GET",
+      "endpoint": "/geocode/search",
+      "query": {
+        "text": "{{ inputs.text }}",
+        "size": 1,
+        "boundary.country": "{{ inputs.country }}"
+      },
+      "output_fields": {
+        "longitude": "features.0.geometry.coordinates.0",
+        "latitude": "features.0.geometry.coordinates.1",
+        "label": "features.0.properties.label"
+      },
+      "inputs": [
+        {
+          "key": "text",
+          "label": "Address or place",
+          "type": "string",
+          "required": true,
+          "placeholder": "Brandenburger Tor, Berlin"
+        },
+        {
+          "key": "country",
+          "label": "Limit to country",
+          "type": "string",
+          "placeholder": "DE",
+          "help": "Two- or three-letter country code."
+        }
+      ]
+    },
+    {
+      "key": "reverse_geocode",
+      "name": "Reverse geocode",
+      "description": "Find the address at a pair of coordinates.",
+      "method": "GET",
+      "endpoint": "/geocode/reverse",
+      "query": {
+        "point.lat": "{{ inputs.latitude }}",
+        "point.lon": "{{ inputs.longitude }}",
+        "size": 1
+      },
+      "output_fields": {
+        "label": "features.0.properties.label",
+        "country": "features.0.properties.country",
+        "locality": "features.0.properties.locality",
+        "postal_code": "features.0.properties.postalcode"
+      },
+      "inputs": [
+        {
+          "key": "latitude",
+          "label": "Latitude",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "longitude",
+          "label": "Longitude",
+          "type": "number",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "get_directions",
+      "name": "Get directions",
+      "description": "Get the distance and travel time of a route.",
+      "method": "GET",
+      "endpoint": "/v2/directions/{{ inputs.profile }}",
+      "query": {
+        "start": "{{ inputs.start_longitude }},{{ inputs.start_latitude }}",
+        "end": "{{ inputs.end_longitude }},{{ inputs.end_latitude }}"
+      },
+      "output_fields": {
+        "distance_meters": "features.0.properties.summary.distance",
+        "duration_seconds": "features.0.properties.summary.duration"
+      },
+      "inputs": [
+        {
+          "key": "profile",
+          "label": "Travel by",
+          "type": "select",
+          "required": true,
+          "default": "driving-car",
+          "options": [
+            {
+              "value": "driving-car",
+              "label": "Car"
+            },
+            {
+              "value": "driving-hgv",
+              "label": "Truck"
+            },
+            {
+              "value": "cycling-regular",
+              "label": "Bicycle"
+            },
+            {
+              "value": "foot-walking",
+              "label": "Walking"
+            },
+            {
+              "value": "wheelchair",
+              "label": "Wheelchair"
+            }
+          ]
+        },
+        {
+          "key": "start_longitude",
+          "label": "Start longitude",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "start_latitude",
+          "label": "Start latitude",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "end_longitude",
+          "label": "End longitude",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "end_latitude",
+          "label": "End latitude",
+          "type": "number",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "get_isochrone",
+      "name": "Get reachable area",
+      "description": "The area you can reach from a point within a travel time (GeoJSON).",
+      "method": "POST",
+      "endpoint": "/v2/isochrones/{{ inputs.profile }}",
+      "body": {
+        "locations": [
+          [
+            "{{ inputs.longitude }}",
+            "{{ inputs.latitude }}"
+          ]
+        ],
+        "range": [
+          "{{ inputs.seconds }}"
+        ],
+        "range_type": "time"
+      },
+      "output_fields": {
+        "area": "features.0"
+      },
+      "inputs": [
+        {
+          "key": "profile",
+          "label": "Travel by",
+          "type": "select",
+          "required": true,
+          "default": "driving-car",
+          "options": [
+            {
+              "value": "driving-car",
+              "label": "Car"
+            },
+            {
+              "value": "driving-hgv",
+              "label": "Truck"
+            },
+            {
+              "value": "cycling-regular",
+              "label": "Bicycle"
+            },
+            {
+              "value": "foot-walking",
+              "label": "Walking"
+            },
+            {
+              "value": "wheelchair",
+              "label": "Wheelchair"
+            }
+          ]
+        },
+        {
+          "key": "longitude",
+          "label": "Longitude",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "latitude",
+          "label": "Latitude",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "seconds",
+          "label": "Travel time (seconds)",
+          "type": "number",
+          "required": true,
+          "default": 900,
+          "help": "900 = 15 minutes."
+        }
+      ]
+    },
+    {
+      "key": "distance_matrix",
+      "name": "Distance matrix",
+      "description": "Travel times and distances between every pair of locations.",
+      "method": "POST",
+      "endpoint": "/v2/matrix/{{ inputs.profile }}",
+      "body": {
+        "locations": "{{ inputs.locations }}",
+        "metrics": [
+          "distance",
+          "duration"
+        ],
+        "units": "m"
+      },
+      "output_fields": {
+        "durations_seconds": "durations",
+        "distances_meters": "distances"
+      },
+      "inputs": [
+        {
+          "key": "profile",
+          "label": "Travel by",
+          "type": "select",
+          "required": true,
+          "default": "driving-car",
+          "options": [
+            {
+              "value": "driving-car",
+              "label": "Car"
+            },
+            {
+              "value": "driving-hgv",
+              "label": "Truck"
+            },
+            {
+              "value": "cycling-regular",
+              "label": "Bicycle"
+            },
+            {
+              "value": "foot-walking",
+              "label": "Walking"
+            },
+            {
+              "value": "wheelchair",
+              "label": "Wheelchair"
+            }
+          ]
+        },
+        {
+          "key": "locations",
+          "label": "Locations (JSON)",
+          "type": "json",
+          "required": true,
+          "placeholder": "[[9.70093,48.477473],[9.207916,49.153868],[37.573242,55.801281]]",
+          "help": "A list of [longitude, latitude] pairs."
+        }
+      ]
+    }
+  ]
+}

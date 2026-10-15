@@ -1,0 +1,148 @@
+{
+  "key": "nymeria",
+  "name": "Nymeria",
+  "category": "CRM & Sales",
+  "description": "Find emails and phone numbers from LinkedIn profiles, and enrich companies.",
+  "website": "https://www.nymeria.io",
+  "docs_url": "https://www.nymeria.io/developers",
+  "base_url": "https://www.nymeria.io/api/v4",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "X-Api-Key",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "In Nymeria open the API page of your account and create a key."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "enrich_person",
+      "name": "Enrich person",
+      "method": "GET",
+      "endpoint": "/person/enrich",
+      "query": {
+        "profile": "{{ inputs.profile }}",
+        "email": "{{ inputs.email }}",
+        "require": "{{ inputs.require }}"
+      },
+      "output_fields": {
+        "work_email": "data.work_email",
+        "personal_emails": "data.personal_emails",
+        "mobile_phone": "data.mobile_phone",
+        "job_title": "data.job_title",
+        "company": "data.job_company_name"
+      },
+      "inputs": [
+        {
+          "key": "profile",
+          "label": "Profile URL",
+          "type": "string",
+          "placeholder": "linkedin.com/in/username",
+          "help": "LinkedIn, GitHub or other public profile URL."
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string"
+        },
+        {
+          "key": "require",
+          "label": "Must include",
+          "type": "string",
+          "help": "Optional, comma separated: email, phone, personal-email, professional-email"
+        }
+      ]
+    },
+    {
+      "key": "search_people",
+      "name": "Search people",
+      "description": "Each person returned costs one credit.",
+      "method": "GET",
+      "endpoint": "/person/search",
+      "query": {
+        "first_name": "{{ inputs.first_name }}",
+        "last_name": "{{ inputs.last_name }}",
+        "title": "{{ inputs.title }}",
+        "company": "{{ inputs.company }}",
+        "location": "{{ inputs.location }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "people": "data",
+        "total": "total"
+      },
+      "inputs": [
+        {
+          "key": "first_name",
+          "label": "First name",
+          "type": "string"
+        },
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string"
+        },
+        {
+          "key": "title",
+          "label": "Job title",
+          "type": "string"
+        },
+        {
+          "key": "company",
+          "label": "Company",
+          "type": "string"
+        },
+        {
+          "key": "location",
+          "label": "Location",
+          "type": "string"
+        },
+        {
+          "key": "limit",
+          "label": "Max results",
+          "type": "number",
+          "default": 10
+        }
+      ]
+    },
+    {
+      "key": "enrich_company",
+      "name": "Enrich company",
+      "method": "GET",
+      "endpoint": "/company/enrich",
+      "query": {
+        "website": "{{ inputs.website }}",
+        "name": "{{ inputs.name }}",
+        "profile": "{{ inputs.profile }}"
+      },
+      "output_fields": {
+        "name": "data.name",
+        "size": "data.size",
+        "industry": "data.industry"
+      },
+      "inputs": [
+        {
+          "key": "website",
+          "label": "Website",
+          "type": "string"
+        },
+        {
+          "key": "name",
+          "label": "Company name",
+          "type": "string"
+        },
+        {
+          "key": "profile",
+          "label": "LinkedIn company URL",
+          "type": "string"
+        }
+      ]
+    }
+  ]
+}

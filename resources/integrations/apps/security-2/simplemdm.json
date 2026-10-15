@@ -1,0 +1,192 @@
+{
+  "key": "simplemdm",
+  "name": "SimpleMDM",
+  "category": "Security & IT",
+  "description": "Enroll, lock, restart and refresh Apple devices managed by SimpleMDM.",
+  "brand": "simplemdm",
+  "website": "https://simplemdm.com",
+  "docs_url": "https://api.simplemdm.com",
+  "base_url": "https://a.simplemdm.com/api/v1",
+  "auth": {
+    "type": "basic",
+    "fields": [
+      {
+        "key": "username",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "SimpleMDM → Account → API → Add API key (choose the permissions you need)."
+      },
+      {
+        "key": "password",
+        "label": "Password",
+        "type": "password",
+        "default": "",
+        "help": "Leave empty."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_devices",
+      "name": "List devices",
+      "description": "List enrolled devices.",
+      "method": "GET",
+      "endpoint": "/devices",
+      "query": {
+        "search": "{{ inputs.search }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "devices": "data"
+      },
+      "inputs": [
+        {
+          "key": "search",
+          "label": "Search",
+          "type": "string",
+          "help": "Name, serial number, UDID…"
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 100
+        }
+      ]
+    },
+    {
+      "key": "get_device",
+      "name": "Get device",
+      "description": "Get a device's status and details.",
+      "method": "GET",
+      "endpoint": "/devices/{{ inputs.device_id }}",
+      "output_fields": {
+        "name": "data.attributes.name",
+        "status": "data.attributes.status",
+        "serial_number": "data.attributes.serial_number",
+        "os_version": "data.attributes.os_version"
+      },
+      "inputs": [
+        {
+          "key": "device_id",
+          "label": "Device ID",
+          "type": "string",
+          "required": true,
+          "help": "Use List devices."
+        }
+      ]
+    },
+    {
+      "key": "create_device",
+      "name": "Create enrollment",
+      "description": "Create a device record and get its enrollment link.",
+      "method": "POST",
+      "endpoint": "/devices",
+      "body_format": "form",
+      "body": {
+        "name": "{{ inputs.name }}",
+        "group_id": "{{ inputs.group_id }}"
+      },
+      "output_fields": {
+        "device_id": "data.id",
+        "enrollment_url": "data.attributes.enrollment_url"
+      },
+      "inputs": [
+        {
+          "key": "name",
+          "label": "Device name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "group_id",
+          "label": "Group ID",
+          "type": "string",
+          "help": "Optional device group."
+        }
+      ]
+    },
+    {
+      "key": "lock_device",
+      "name": "Lock device",
+      "description": "Lock a lost or stolen device.",
+      "method": "POST",
+      "endpoint": "/devices/{{ inputs.device_id }}/lock",
+      "body_format": "form",
+      "body": {
+        "message": "{{ inputs.message }}",
+        "phone_number": "{{ inputs.phone_number }}",
+        "pin": "{{ inputs.pin }}"
+      },
+      "inputs": [
+        {
+          "key": "device_id",
+          "label": "Device ID",
+          "type": "string",
+          "required": true,
+          "help": "Use List devices."
+        },
+        {
+          "key": "message",
+          "label": "Lock screen message",
+          "type": "string"
+        },
+        {
+          "key": "phone_number",
+          "label": "Phone number on lock screen",
+          "type": "string"
+        },
+        {
+          "key": "pin",
+          "label": "PIN (Macs)",
+          "type": "string",
+          "help": "6 digits; required for macOS."
+        }
+      ]
+    },
+    {
+      "key": "restart_device",
+      "name": "Restart device",
+      "description": "Restart a device.",
+      "method": "POST",
+      "endpoint": "/devices/{{ inputs.device_id }}/restart",
+      "inputs": [
+        {
+          "key": "device_id",
+          "label": "Device ID",
+          "type": "string",
+          "required": true,
+          "help": "Use List devices."
+        }
+      ]
+    },
+    {
+      "key": "refresh_device",
+      "name": "Refresh inventory",
+      "description": "Ask a device to report fresh inventory.",
+      "method": "POST",
+      "endpoint": "/devices/{{ inputs.device_id }}/refresh",
+      "inputs": [
+        {
+          "key": "device_id",
+          "label": "Device ID",
+          "type": "string",
+          "required": true,
+          "help": "Use List devices."
+        }
+      ]
+    },
+    {
+      "key": "list_apps",
+      "name": "List apps",
+      "description": "List apps in your catalog.",
+      "method": "GET",
+      "endpoint": "/apps",
+      "output_fields": {
+        "apps": "data"
+      },
+      "inputs": []
+    }
+  ]
+}

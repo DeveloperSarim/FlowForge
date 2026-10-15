@@ -1,0 +1,153 @@
+{
+  "key": "mnotify",
+  "name": "mNotify",
+  "category": "Communication",
+  "description": "Send bulk SMS in Ghana with mNotify, check balance, reports and sender IDs.",
+  "website": "https://www.mnotify.com",
+  "docs_url": "https://readthedocs.mnotify.com/",
+  "base_url": "https://api.mnotify.com/api",
+  "auth": {
+    "type": "api_key",
+    "in": "query",
+    "name": "key",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "mNotify / BMS dashboard → Settings → Developer → API key."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "send_sms",
+      "name": "Send SMS",
+      "method": "POST",
+      "endpoint": "/sms/quick",
+      "body": {
+        "recipient": "{{ inputs.recipient }}",
+        "sender": "{{ inputs.sender }}",
+        "message": "{{ inputs.message }}",
+        "is_schedule": "{{ inputs.is_schedule }}",
+        "schedule_date": "{{ inputs.schedule_date }}"
+      },
+      "output_fields": {
+        "campaign_id": "summary._id",
+        "total_sent": "summary.total_sent",
+        "credit_used": "summary.credit_used",
+        "credit_left": "summary.credit_left",
+        "status": "status"
+      },
+      "inputs": [
+        {
+          "key": "recipient",
+          "label": "To (phone numbers)",
+          "type": "list",
+          "required": true,
+          "placeholder": "0241234567"
+        },
+        {
+          "key": "sender",
+          "label": "Sender ID (max 11)",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "message",
+          "label": "Message",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "is_schedule",
+          "label": "Schedule it",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "key": "schedule_date",
+          "label": "Schedule for",
+          "type": "string",
+          "placeholder": "2026-12-01 10:30",
+          "help": "Used when 'Schedule it' is on."
+        }
+      ]
+    },
+    {
+      "key": "get_balance",
+      "name": "Get SMS balance",
+      "method": "GET",
+      "endpoint": "/balance/sms",
+      "output_fields": {
+        "balance": "balance",
+        "bonus": "bonus"
+      },
+      "inputs": []
+    },
+    {
+      "key": "get_campaign_report",
+      "name": "Get campaign report",
+      "method": "GET",
+      "endpoint": "/campaign/{{ inputs.campaign_id }}",
+      "output_fields": {
+        "report": "report",
+        "statuses": "report.*.status"
+      },
+      "inputs": [
+        {
+          "key": "campaign_id",
+          "label": "Campaign ID",
+          "type": "string",
+          "required": true,
+          "help": "summary._id returned by Send SMS."
+        }
+      ]
+    },
+    {
+      "key": "register_sender_id",
+      "name": "Register sender ID",
+      "method": "POST",
+      "endpoint": "/senderid/register",
+      "body": {
+        "sender_name": "{{ inputs.sender_name }}",
+        "purpose": "{{ inputs.purpose }}"
+      },
+      "inputs": [
+        {
+          "key": "sender_name",
+          "label": "Sender ID (max 11)",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "purpose",
+          "label": "Purpose",
+          "type": "text",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "sender_id_status",
+      "name": "Check sender ID status",
+      "method": "POST",
+      "endpoint": "/senderid/status",
+      "body": {
+        "sender_name": "{{ inputs.sender_name }}"
+      },
+      "output_fields": {
+        "status": "summary.status"
+      },
+      "inputs": [
+        {
+          "key": "sender_name",
+          "label": "Sender ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,279 @@
+{
+  "key": "memberstack",
+  "name": "Memberstack",
+  "category": "CMS & Websites",
+  "description": "Memberships for Webflow and other sites: create, update and look up members and plans.",
+  "website": "https://www.memberstack.com",
+  "docs_url": "https://developers.memberstack.com/admin-rest-api/member-actions",
+  "base_url": "https://admin.memberstack.com",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "X-API-KEY",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "Secret key",
+        "type": "password",
+        "required": true,
+        "help": "Memberstack dashboard → Dev Tools → copy the secret key (sk_… live, sk_sb_… test mode)."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "get_member",
+      "name": "Get member",
+      "description": "Look up a member by ID (mem_…) or email.",
+      "method": "GET",
+      "endpoint": "/members/{{ inputs.id_or_email }}",
+      "output_fields": {
+        "id": "data.id",
+        "email": "data.auth.email",
+        "verified": "data.verified",
+        "custom_fields": "data.customFields",
+        "plans": "data.planConnections",
+        "created_at": "data.createdAt"
+      },
+      "inputs": [
+        {
+          "key": "id_or_email",
+          "label": "Member ID or email",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "create_member",
+      "name": "Create member",
+      "description": "Create a member, optionally on a free plan.",
+      "method": "POST",
+      "endpoint": "/members",
+      "body": {
+        "email": "{{ inputs.email }}",
+        "password": "{{ inputs.password }}",
+        "plans": [
+          {
+            "$if": "{{ inputs.plan_id }}",
+            "planId": "{{ inputs.plan_id }}"
+          }
+        ],
+        "customFields": "{{ inputs.custom_fields }}",
+        "metaData": "{{ inputs.meta_data }}",
+        "loginRedirect": "{{ inputs.login_redirect }}"
+      },
+      "output_fields": {
+        "id": "data.id",
+        "email": "data.auth.email"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "password",
+          "label": "Password",
+          "type": "password",
+          "help": "Required unless passwordless login is enabled."
+        },
+        {
+          "key": "plan_id",
+          "label": "Free plan ID",
+          "type": "string",
+          "placeholder": "pln_…",
+          "help": "Optional. Memberstack → Plans → open the plan to copy its ID."
+        },
+        {
+          "key": "custom_fields",
+          "label": "Custom fields",
+          "type": "keyvalue"
+        },
+        {
+          "key": "meta_data",
+          "label": "Metadata",
+          "type": "keyvalue"
+        },
+        {
+          "key": "login_redirect",
+          "label": "Login redirect",
+          "type": "string",
+          "placeholder": "/dashboard"
+        }
+      ]
+    },
+    {
+      "key": "update_member",
+      "name": "Update member",
+      "description": "Change a member's email, custom fields or metadata.",
+      "method": "PATCH",
+      "endpoint": "/members/{{ inputs.id }}",
+      "body": {
+        "email": "{{ inputs.email }}",
+        "customFields": "{{ inputs.custom_fields }}",
+        "metaData": "{{ inputs.meta_data }}",
+        "verified": "{{ inputs.verified }}",
+        "loginRedirect": "{{ inputs.login_redirect }}"
+      },
+      "output_fields": {
+        "id": "data.id",
+        "email": "data.auth.email"
+      },
+      "inputs": [
+        {
+          "key": "id",
+          "label": "Member ID",
+          "type": "string",
+          "required": true,
+          "placeholder": "mem_…"
+        },
+        {
+          "key": "email",
+          "label": "New email",
+          "type": "string"
+        },
+        {
+          "key": "custom_fields",
+          "label": "Custom fields",
+          "type": "keyvalue"
+        },
+        {
+          "key": "meta_data",
+          "label": "Metadata",
+          "type": "keyvalue"
+        },
+        {
+          "key": "verified",
+          "label": "Email verified",
+          "type": "boolean"
+        },
+        {
+          "key": "login_redirect",
+          "label": "Login redirect",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "add_plan",
+      "name": "Add free plan",
+      "description": "Give a member a free plan.",
+      "method": "POST",
+      "endpoint": "/members/{{ inputs.id }}/add-plan",
+      "body": {
+        "planId": "{{ inputs.plan_id }}"
+      },
+      "inputs": [
+        {
+          "key": "id",
+          "label": "Member ID",
+          "type": "string",
+          "required": true,
+          "placeholder": "mem_…"
+        },
+        {
+          "key": "plan_id",
+          "label": "Free plan ID",
+          "type": "string",
+          "required": true,
+          "placeholder": "pln_…"
+        }
+      ]
+    },
+    {
+      "key": "remove_plan",
+      "name": "Remove free plan",
+      "description": "Take a free plan away from a member.",
+      "method": "POST",
+      "endpoint": "/members/{{ inputs.id }}/remove-plan",
+      "body": {
+        "planId": "{{ inputs.plan_id }}"
+      },
+      "inputs": [
+        {
+          "key": "id",
+          "label": "Member ID",
+          "type": "string",
+          "required": true,
+          "placeholder": "mem_…"
+        },
+        {
+          "key": "plan_id",
+          "label": "Free plan ID",
+          "type": "string",
+          "required": true,
+          "placeholder": "pln_…"
+        }
+      ]
+    },
+    {
+      "key": "delete_member",
+      "name": "Delete member",
+      "description": "Delete a member.",
+      "method": "DELETE",
+      "endpoint": "/members/{{ inputs.id }}",
+      "output_fields": {
+        "id": "data.id"
+      },
+      "inputs": [
+        {
+          "key": "id",
+          "label": "Member ID",
+          "type": "string",
+          "required": true,
+          "placeholder": "mem_…"
+        }
+      ]
+    },
+    {
+      "key": "list_members",
+      "name": "List members",
+      "description": "Members, newest first.",
+      "method": "GET",
+      "endpoint": "/members",
+      "query": {
+        "order": "DESC",
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "members": "data",
+        "emails": "data.*.auth.email",
+        "total": "totalCount"
+      },
+      "inputs": [
+        {
+          "key": "limit",
+          "label": "How many",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_member",
+      "name": "New member",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/members",
+      "query": {
+        "order": "DESC",
+        "limit": "50"
+      },
+      "items_path": "data",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

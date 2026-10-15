@@ -1,0 +1,134 @@
+{
+  "key": "mobilize",
+  "name": "Mobilize",
+  "category": "Events & Webinars",
+  "description": "Public events for volunteer and advocacy groups: search events and read RSVPs.",
+  "website": "https://www.mobilize.us",
+  "docs_url": "https://github.com/mobilizeamerica/api",
+  "base_url": "https://api.mobilize.us/v1",
+  "auth": [
+    {
+      "type": "none"
+    },
+    {
+      "type": "bearer",
+      "fields": [
+        {
+          "key": "token",
+          "label": "API token",
+          "type": "password",
+          "required": true,
+          "help": "Only needed for RSVPs and private events. Ask Mobilize support or your org admin for a token."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_events",
+      "name": "List public events",
+      "description": "Search public events.",
+      "method": "GET",
+      "endpoint": "/events",
+      "query": {
+        "zipcode": "{{ inputs.zipcode }}",
+        "max_dist": "{{ inputs.max_dist }}",
+        "timeslot_start": "{{ inputs.timeslot_start }}",
+        "per_page": "{{ inputs.per_page }}"
+      },
+      "output_fields": {
+        "events": "data",
+        "titles": "data.*.title",
+        "ids": "data.*.id",
+        "count": "count"
+      },
+      "inputs": [
+        {
+          "key": "zipcode",
+          "label": "ZIP code",
+          "type": "string"
+        },
+        {
+          "key": "max_dist",
+          "label": "Max distance (miles)",
+          "type": "number"
+        },
+        {
+          "key": "timeslot_start",
+          "label": "Starts after",
+          "type": "string",
+          "help": "Unix time or gte_1700000000."
+        },
+        {
+          "key": "per_page",
+          "label": "Results",
+          "type": "number",
+          "default": 25
+        }
+      ]
+    },
+    {
+      "key": "list_org_events",
+      "name": "List an organization's events",
+      "description": "Get one organization's events.",
+      "method": "GET",
+      "endpoint": "/organizations/{{ inputs.organization_id }}/events",
+      "query": {
+        "per_page": "{{ inputs.per_page }}"
+      },
+      "output_fields": {
+        "titles": "data.*.title",
+        "ids": "data.*.id"
+      },
+      "inputs": [
+        {
+          "key": "organization_id",
+          "label": "Organization ID",
+          "type": "string",
+          "required": true,
+          "help": "The number from the org's Mobilize admin address."
+        },
+        {
+          "key": "per_page",
+          "label": "Results",
+          "type": "number",
+          "default": 25
+        }
+      ]
+    },
+    {
+      "key": "list_attendances",
+      "name": "List RSVPs",
+      "description": "Get RSVPs for an event (needs a token).",
+      "method": "GET",
+      "endpoint": "/organizations/{{ inputs.organization_id }}/events/{{ inputs.event_id }}/attendances",
+      "query": {
+        "per_page": "{{ inputs.per_page }}"
+      },
+      "output_fields": {
+        "attendances": "data",
+        "count": "count"
+      },
+      "inputs": [
+        {
+          "key": "organization_id",
+          "label": "Organization ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "event_id",
+          "label": "Event ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "per_page",
+          "label": "Results",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    }
+  ]
+}

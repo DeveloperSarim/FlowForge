@@ -5,12 +5,14 @@ use App\Domain\Demo\DemoController;
 use App\Domain\Installer\InstallerController;
 use App\Domain\Integrations\Controllers\AppDirectoryController;
 use App\Domain\Integrations\Controllers\CredentialController;
+use App\Domain\Integrations\Controllers\CustomAppController;
 use App\Domain\Integrations\Controllers\IntegrationController;
 use App\Domain\Voice\Controllers\VoiceController;
 use App\Domain\Workflows\Controllers\ExecutionController;
 use App\Domain\Workflows\Controllers\OverviewController;
 use App\Domain\Workflows\Controllers\TemplateController;
 use App\Domain\Workflows\Controllers\WorkflowController;
+use App\Domain\Workflows\Controllers\WorkflowPortController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\PasswordResetController;
 use App\Http\Controllers\SeoController;
@@ -101,7 +103,9 @@ Route::middleware('auth')->group(function () {
 
     Route::middleware('can:workflows.view')->group(function () {
         Route::get('workflows', [WorkflowController::class, 'index']);
+        Route::get('workflows/export', [WorkflowPortController::class, 'exportAll']);
         Route::get('workflows/{workflow}', [WorkflowController::class, 'show']);
+        Route::get('workflows/{workflow}/export', [WorkflowPortController::class, 'export']);
         Route::get('workflows/{workflow}/runs', [WorkflowController::class, 'runs']);
         Route::get('schedule/preview', [WorkflowController::class, 'schedulePreview']);
         Route::get('templates', [TemplateController::class, 'index']);
@@ -120,6 +124,7 @@ Route::middleware('auth')->group(function () {
     // Editing includes using and adding credentials (their secrets are never sent to the browser).
     Route::middleware('can:workflows.edit')->group(function () {
         Route::post('workflows', [WorkflowController::class, 'store']);
+        Route::post('workflows/import', [WorkflowPortController::class, 'import'])->middleware('throttle:20,1');
         Route::put('workflows/{workflow}', [WorkflowController::class, 'update']);
         Route::post('workflows/{workflow}/test', [WorkflowController::class, 'test']);
         Route::post('workflows/{workflow}/duplicate', [WorkflowController::class, 'duplicate']);
@@ -141,11 +146,13 @@ Route::middleware('auth')->group(function () {
         Route::post('voice/agents/{agent}/talk', [VoiceController::class, 'talk'])->middleware('throttle:60,1');
         Route::post('voice/agents/{agent}/talk/{call}/end', [VoiceController::class, 'endTalk']);
         Route::put('voice/bookings/{booking}', [VoiceController::class, 'updateBooking']);
+        Route::post('apps/custom', [CustomAppController::class, 'store'])->middleware('throttle:20,1');
     });
 
     Route::middleware('can:workflows.delete')->group(function () {
         Route::delete('workflows/{workflow}', [WorkflowController::class, 'destroy']);
         Route::delete('credentials/{credential}', [CredentialController::class, 'destroy']);
         Route::delete('voice/agents/{agent}', [VoiceController::class, 'destroy']);
+        Route::delete('apps/custom/{key}', [CustomAppController::class, 'destroy']);
     });
 });

@@ -1,0 +1,171 @@
+{
+  "key": "postal",
+  "name": "Postal",
+  "category": "Communication",
+  "description": "Send email through your self-hosted Postal mail server and check deliveries.",
+  "website": "https://postalserver.io",
+  "docs_url": "https://docs.postalserver.io/developer/api",
+  "base_url": "{{ credentials.host }}/api/v1",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "X-Server-API-Key",
+    "fields": [
+      {
+        "key": "host",
+        "label": "Postal web address",
+        "type": "string",
+        "required": true,
+        "placeholder": "https://postal.example.com",
+        "help": "The address you open Postal at. No trailing slash."
+      },
+      {
+        "key": "api_key",
+        "label": "Server API key",
+        "type": "password",
+        "required": true,
+        "help": "Postal → your mail server → Credentials → Add → type 'API'."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "send_message",
+      "name": "Send email",
+      "method": "POST",
+      "endpoint": "/send/message",
+      "body": {
+        "to": "{{ inputs.to }}",
+        "cc": "{{ inputs.cc }}",
+        "bcc": "{{ inputs.bcc }}",
+        "from": "{{ inputs.from }}",
+        "subject": "{{ inputs.subject }}",
+        "plain_body": "{{ inputs.plain_body }}",
+        "html_body": "{{ inputs.html_body }}",
+        "reply_to": "{{ inputs.reply_to }}",
+        "tag": "{{ inputs.tag }}"
+      },
+      "error_path": "data.message",
+      "output_fields": {
+        "status": "status",
+        "message_id": "data.message_id",
+        "messages": "data.messages"
+      },
+      "inputs": [
+        {
+          "key": "to",
+          "label": "To",
+          "type": "list",
+          "required": true,
+          "help": "Up to 50 addresses."
+        },
+        {
+          "key": "from",
+          "label": "From",
+          "type": "string",
+          "required": true,
+          "placeholder": "Shop <hello@example.com>"
+        },
+        {
+          "key": "subject",
+          "label": "Subject",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "plain_body",
+          "label": "Plain-text body",
+          "type": "text"
+        },
+        {
+          "key": "html_body",
+          "label": "HTML body",
+          "type": "text"
+        },
+        {
+          "key": "cc",
+          "label": "CC",
+          "type": "list"
+        },
+        {
+          "key": "bcc",
+          "label": "BCC",
+          "type": "list"
+        },
+        {
+          "key": "reply_to",
+          "label": "Reply-to",
+          "type": "string"
+        },
+        {
+          "key": "tag",
+          "label": "Tag",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "get_message",
+      "name": "Get message",
+      "method": "POST",
+      "endpoint": "/messages/message",
+      "body": {
+        "id": "{{ inputs.id }}",
+        "_expansions": true
+      },
+      "error_path": "data.message",
+      "output_fields": {
+        "status": "data.status.status",
+        "subject": "data.details.subject",
+        "rcpt_to": "data.details.rcpt_to"
+      },
+      "inputs": [
+        {
+          "key": "id",
+          "label": "Message ID",
+          "type": "number",
+          "required": true,
+          "help": "The numeric id from 'Send email' → messages.<recipient>.id."
+        }
+      ]
+    },
+    {
+      "key": "get_deliveries",
+      "name": "Get delivery attempts",
+      "method": "POST",
+      "endpoint": "/messages/deliveries",
+      "body": {
+        "id": "{{ inputs.id }}"
+      },
+      "error_path": "data.message",
+      "output_fields": {
+        "deliveries": "data",
+        "latest_status": "data.0.status",
+        "latest_details": "data.0.details"
+      },
+      "inputs": [
+        {
+          "key": "id",
+          "label": "Message ID",
+          "type": "number",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Mail server event",
+      "type": "webhook",
+      "description": "Sent, delayed, failed, bounced, held, opened and clicked events.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

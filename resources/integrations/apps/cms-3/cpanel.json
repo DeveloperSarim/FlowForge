@@ -1,0 +1,249 @@
+{
+  "key": "cpanel",
+  "name": "cPanel",
+  "category": "CMS & Websites",
+  "description": "Web hosting: create email accounts and forwarders, list domains and databases, back up.",
+  "website": "https://cpanel.net",
+  "docs_url": "https://api.docs.cpanel.net/cpanel/introduction/",
+  "base_url": "https://{{ credentials.host }}:2083/execute",
+  "headers": {
+    "Authorization": "cpanel {{ credentials.username }}:{{ credentials.api_key }}"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "key": "host",
+        "label": "Server hostname",
+        "type": "string",
+        "required": true,
+        "placeholder": "server123.example.com",
+        "help": "The host you use to open cPanel (without https:// and without :2083)."
+      },
+      {
+        "key": "username",
+        "label": "cPanel username",
+        "type": "string",
+        "required": true
+      },
+      {
+        "key": "api_key",
+        "label": "API token",
+        "type": "password",
+        "required": true,
+        "help": "cPanel → Security → Manage API Tokens → Create. Copy the token (shown once)."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_email_accounts",
+      "name": "List email accounts",
+      "description": "Mailboxes on your account, optionally for one domain.",
+      "method": "GET",
+      "endpoint": "/Email/list_pops",
+      "error_path": "errors.0",
+      "query": {
+        "domain": "{{ inputs.domain }}"
+      },
+      "output_fields": {
+        "accounts": "data",
+        "emails": "data.*.email"
+      },
+      "inputs": [
+        {
+          "key": "domain",
+          "label": "Domain",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "create_email_account",
+      "name": "Create email account",
+      "description": "Create a mailbox such as info@yourdomain.com.",
+      "method": "POST",
+      "endpoint": "/Email/add_pop",
+      "error_path": "errors.0",
+      "body_format": "form",
+      "body": {
+        "email": "{{ inputs.user }}",
+        "domain": "{{ inputs.domain }}",
+        "password": "{{ inputs.password }}",
+        "quota": "{{ inputs.quota }}",
+        "send_welcome_email": "0"
+      },
+      "output_fields": {
+        "result": "data",
+        "status": "status"
+      },
+      "inputs": [
+        {
+          "key": "user",
+          "label": "Mailbox name",
+          "type": "string",
+          "required": true,
+          "placeholder": "info",
+          "help": "The part before the @."
+        },
+        {
+          "key": "domain",
+          "label": "Domain",
+          "type": "string",
+          "required": true,
+          "placeholder": "example.com"
+        },
+        {
+          "key": "password",
+          "label": "Password",
+          "type": "password",
+          "required": true
+        },
+        {
+          "key": "quota",
+          "label": "Quota (MB)",
+          "type": "number",
+          "default": 1024,
+          "help": "0 means unlimited."
+        }
+      ]
+    },
+    {
+      "key": "delete_email_account",
+      "name": "Delete email account",
+      "description": "Delete a mailbox and its mail.",
+      "method": "POST",
+      "endpoint": "/Email/delete_pop",
+      "error_path": "errors.0",
+      "body_format": "form",
+      "body": {
+        "email": "{{ inputs.user }}",
+        "domain": "{{ inputs.domain }}"
+      },
+      "output_fields": {
+        "status": "status"
+      },
+      "inputs": [
+        {
+          "key": "user",
+          "label": "Mailbox name",
+          "type": "string",
+          "required": true,
+          "placeholder": "info"
+        },
+        {
+          "key": "domain",
+          "label": "Domain",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "add_forwarder",
+      "name": "Add email forwarder",
+      "description": "Forward mail for an address to another address.",
+      "method": "POST",
+      "endpoint": "/Email/add_forwarder",
+      "error_path": "errors.0",
+      "body_format": "form",
+      "body": {
+        "domain": "{{ inputs.domain }}",
+        "email": "{{ inputs.email }}",
+        "fwdopt": "fwd",
+        "fwdemail": "{{ inputs.forward_to }}"
+      },
+      "output_fields": {
+        "result": "data",
+        "status": "status"
+      },
+      "inputs": [
+        {
+          "key": "domain",
+          "label": "Domain",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "email",
+          "label": "Address to forward",
+          "type": "string",
+          "required": true,
+          "placeholder": "sales@example.com"
+        },
+        {
+          "key": "forward_to",
+          "label": "Forward to",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_domains",
+      "name": "List domains",
+      "description": "Main, addon, sub and parked domains.",
+      "method": "GET",
+      "endpoint": "/DomainInfo/list_domains",
+      "error_path": "errors.0",
+      "output_fields": {
+        "main_domain": "data.main_domain",
+        "addon_domains": "data.addon_domains",
+        "sub_domains": "data.sub_domains",
+        "parked_domains": "data.parked_domains"
+      },
+      "inputs": []
+    },
+    {
+      "key": "list_databases",
+      "name": "List MySQL databases",
+      "description": "Databases with their size and users.",
+      "method": "GET",
+      "endpoint": "/Mysql/list_databases",
+      "error_path": "errors.0",
+      "output_fields": {
+        "databases": "data",
+        "names": "data.*.database"
+      },
+      "inputs": []
+    },
+    {
+      "key": "full_backup",
+      "name": "Start full backup",
+      "description": "Create a full account backup in your home folder; cPanel emails you when done.",
+      "method": "POST",
+      "endpoint": "/Backup/fullbackup_to_homedir",
+      "error_path": "errors.0",
+      "body_format": "form",
+      "body": {
+        "email": "{{ inputs.email }}"
+      },
+      "output_fields": {
+        "pid": "data.pid",
+        "status": "status"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Notify email",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "get_quota",
+      "name": "Get disk usage",
+      "description": "Disk space used and the account limit.",
+      "method": "GET",
+      "endpoint": "/Quota/get_quota_info",
+      "error_path": "errors.0",
+      "output_fields": {
+        "used_mb": "data.megabytes_used",
+        "limit_mb": "data.megabyte_limit",
+        "inodes_used": "data.inodes_used"
+      },
+      "inputs": []
+    }
+  ],
+  "triggers": []
+}

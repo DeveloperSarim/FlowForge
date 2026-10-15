@@ -1,0 +1,112 @@
+{
+  "key": "safetyculture",
+  "name": "SafetyCulture",
+  "category": "Forms & Surveys",
+  "description": "Inspection checklists: list templates, start inspections and read results (iAuditor).",
+  "website": "https://safetyculture.com",
+  "docs_url": "https://developer.safetyculture.com/reference",
+  "base_url": "https://api.safetyculture.io",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "API token",
+        "type": "password",
+        "required": true,
+        "help": "SafetyCulture web app > Account > Integrations > API tokens > Create token."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "search_templates",
+      "name": "Search templates",
+      "description": "List inspection templates.",
+      "method": "GET",
+      "endpoint": "/templates/search",
+      "query": {
+        "field": "{{ inputs.field }}"
+      },
+      "output_fields": {
+        "templates": "templates",
+        "count": "count"
+      },
+      "inputs": [
+        {
+          "key": "field",
+          "label": "Field to return",
+          "type": "string",
+          "default": "template_id"
+        }
+      ]
+    },
+    {
+      "key": "list_inspections",
+      "name": "List inspections",
+      "description": "Get inspections changed since a date.",
+      "method": "GET",
+      "endpoint": "/feed/inspections",
+      "query": {
+        "modified_after": "{{ inputs.modified_after }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "inspections": "data",
+        "next": "metadata.next_page"
+      },
+      "inputs": [
+        {
+          "key": "modified_after",
+          "label": "Modified after",
+          "type": "string",
+          "help": "ISO date, e.g. 2025-01-31T00:00:00Z. Leave empty for the earliest."
+        },
+        {
+          "key": "limit",
+          "label": "Max results",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    },
+    {
+      "key": "get_inspection",
+      "name": "Get an inspection",
+      "description": "Get one inspection with all answers.",
+      "method": "GET",
+      "endpoint": "/audits/{{ inputs.audit_id }}",
+      "inputs": [
+        {
+          "key": "audit_id",
+          "label": "Inspection ID",
+          "type": "string",
+          "required": true,
+          "help": "Starts with audit_ followed by letters and numbers."
+        }
+      ]
+    },
+    {
+      "key": "start_inspection",
+      "name": "Start an inspection",
+      "description": "Create a new inspection from a template.",
+      "method": "POST",
+      "endpoint": "/audits",
+      "body": {
+        "template_id": "{{ inputs.template_id }}"
+      },
+      "output_fields": {
+        "audit_id": "audit_id"
+      },
+      "inputs": [
+        {
+          "key": "template_id",
+          "label": "Template ID",
+          "type": "string",
+          "required": true,
+          "help": "Starts with template_. Find it with Search templates."
+        }
+      ]
+    }
+  ]
+}

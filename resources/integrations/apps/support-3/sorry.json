@@ -1,0 +1,141 @@
+{
+  "key": "sorry",
+  "name": "Sorry",
+  "category": "Customer Support",
+  "description": "Publish incident and maintenance notices to your Sorry status page.",
+  "website": "https://www.sorryapp.com",
+  "docs_url": "https://docs.sorryapp.com/",
+  "base_url": "https://api.sorryapp.com/v1",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "API token",
+        "type": "password",
+        "required": true,
+        "help": "In Sorry open My Account > API Tokens and create a token."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_pages",
+      "name": "List status pages",
+      "description": "Lists your status pages and their IDs.",
+      "method": "GET",
+      "endpoint": "/pages",
+      "output_fields": {
+        "pages": "response",
+        "first_id": "response.0.id",
+        "first_name": "response.0.name"
+      },
+      "inputs": []
+    },
+    {
+      "key": "list_notices",
+      "name": "List notices",
+      "description": "Lists incidents and maintenance on a status page.",
+      "method": "GET",
+      "endpoint": "/pages/{{ inputs.page_id }}/notices/",
+      "output_fields": {
+        "notices": "response",
+        "count": "count",
+        "first_id": "response.0.id",
+        "first_subject": "response.0.subject"
+      },
+      "inputs": [
+        {
+          "key": "page_id",
+          "label": "Status page ID",
+          "type": "string",
+          "required": true,
+          "help": "Use \"List status pages\" to find it."
+        }
+      ]
+    },
+    {
+      "key": "create_notice",
+      "name": "Create notice",
+      "description": "Publishes a new incident or planned maintenance.",
+      "method": "POST",
+      "endpoint": "/pages/{{ inputs.page_id }}/notices/",
+      "body": {
+        "type": "{{ inputs.type }}",
+        "subject": "{{ inputs.subject }}",
+        "initial_comment": "{{ inputs.initial_comment }}",
+        "should_publish": "{{ inputs.should_publish }}"
+      },
+      "body_format": "form",
+      "output_fields": {
+        "id": "response.id",
+        "state": "response.state",
+        "link": "response.link"
+      },
+      "inputs": [
+        {
+          "key": "page_id",
+          "label": "Status page ID",
+          "type": "string",
+          "required": true,
+          "help": "Use \"List status pages\" to find it."
+        },
+        {
+          "key": "type",
+          "label": "Type",
+          "type": "select",
+          "required": true,
+          "default": "unplanned",
+          "options": [
+            {
+              "value": "unplanned",
+              "label": "Incident"
+            },
+            {
+              "value": "planned",
+              "label": "Planned maintenance"
+            }
+          ]
+        },
+        {
+          "key": "subject",
+          "label": "Title",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "initial_comment",
+          "label": "First update",
+          "type": "text"
+        },
+        {
+          "key": "should_publish",
+          "label": "Publish and notify subscribers",
+          "type": "boolean",
+          "default": true
+        }
+      ]
+    },
+    {
+      "key": "list_components",
+      "name": "List components",
+      "description": "Lists the components of a status page.",
+      "method": "GET",
+      "endpoint": "/pages/{{ inputs.page_id }}/components",
+      "output_fields": {
+        "components": "response",
+        "first_id": "response.0.id",
+        "first_name": "response.0.name"
+      },
+      "inputs": [
+        {
+          "key": "page_id",
+          "label": "Status page ID",
+          "type": "string",
+          "required": true,
+          "help": "Use \"List status pages\" to find it."
+        }
+      ]
+    }
+  ]
+}

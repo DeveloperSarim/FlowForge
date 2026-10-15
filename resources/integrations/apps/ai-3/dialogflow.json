@@ -1,0 +1,156 @@
+{
+  "key": "dialogflow",
+  "name": "Dialogflow ES",
+  "category": "AI",
+  "description": "Send messages to your Google Dialogflow agent and manage its intents.",
+  "website": "https://cloud.google.com/dialogflow",
+  "docs_url": "https://cloud.google.com/dialogflow/es/docs/reference/rest/v2-overview",
+  "base_url": "https://dialogflow.googleapis.com/v2/projects/{{ credentials.project_id }}/agent",
+  "auth": {
+    "type": "google_service_account",
+    "scopes": [
+      "https://www.googleapis.com/auth/dialogflow"
+    ],
+    "fields": [
+      {
+        "key": "project_id",
+        "label": "Project ID",
+        "type": "string",
+        "required": true,
+        "help": "Dialogflow console → agent settings (gear icon) → Google Project → Project ID."
+      },
+      {
+        "key": "service_account_json",
+        "label": "Service Account JSON key",
+        "type": "code",
+        "required": true,
+        "help": "Google Cloud console → IAM & Admin → Service Accounts → your account → Keys → Add key → JSON. Paste the whole file."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "detect_intent",
+      "name": "Send message",
+      "description": "Send a user message and get the agent's reply and intent.",
+      "method": "POST",
+      "endpoint": "/sessions/{{ inputs.session_id }}:detectIntent",
+      "body": {
+        "queryInput": {
+          "text": {
+            "text": "{{ inputs.text }}",
+            "languageCode": "{{ inputs.language_code }}"
+          }
+        }
+      },
+      "output_fields": {
+        "reply": "queryResult.fulfillmentText",
+        "intent": "queryResult.intent.displayName",
+        "confidence": "queryResult.intentDetectionConfidence",
+        "parameters": "queryResult.parameters"
+      },
+      "inputs": [
+        {
+          "key": "session_id",
+          "label": "Session ID",
+          "type": "string",
+          "required": true,
+          "help": "Any ID for the conversation, e.g. the user's phone number."
+        },
+        {
+          "key": "text",
+          "label": "Message",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "language_code",
+          "label": "Language",
+          "type": "string",
+          "required": true,
+          "default": "en"
+        }
+      ]
+    },
+    {
+      "key": "list_intents",
+      "name": "List intents",
+      "description": "List the agent's intents.",
+      "method": "GET",
+      "endpoint": "/intents",
+      "output_fields": {
+        "intents": "intents.*.displayName",
+        "ids": "intents.*.name"
+      },
+      "inputs": []
+    },
+    {
+      "key": "create_intent",
+      "name": "Create intent",
+      "description": "Add an intent with one example phrase and reply.",
+      "method": "POST",
+      "endpoint": "/intents",
+      "body": {
+        "displayName": "{{ inputs.display_name }}",
+        "trainingPhrases": [
+          {
+            "type": "EXAMPLE",
+            "parts": [
+              {
+                "text": "{{ inputs.training_phrase }}"
+              }
+            ]
+          }
+        ],
+        "messages": [
+          {
+            "text": {
+              "text": [
+                "{{ inputs.response }}"
+              ]
+            }
+          }
+        ]
+      },
+      "output_fields": {
+        "name": "name"
+      },
+      "inputs": [
+        {
+          "key": "display_name",
+          "label": "Intent name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "training_phrase",
+          "label": "Example user phrase",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "response",
+          "label": "Bot reply",
+          "type": "text",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "delete_intent",
+      "name": "Delete intent",
+      "description": "Delete an intent.",
+      "method": "DELETE",
+      "endpoint": "/intents/{{ inputs.intent_id }}",
+      "inputs": [
+        {
+          "key": "intent_id",
+          "label": "Intent ID",
+          "type": "string",
+          "required": true,
+          "help": "The last part of the intent's name from List intents."
+        }
+      ]
+    }
+  ]
+}

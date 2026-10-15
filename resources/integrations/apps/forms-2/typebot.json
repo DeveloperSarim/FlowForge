@@ -1,0 +1,126 @@
+{
+  "key": "typebot",
+  "name": "Typebot",
+  "category": "Forms & Surveys",
+  "description": "Read your Typebot chatbots and form results, and delete results.",
+  "website": "https://typebot.io",
+  "docs_url": "https://docs.typebot.io/api-reference",
+  "base_url": "https://app.typebot.io/api/v1",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "API token",
+        "type": "password",
+        "required": true,
+        "help": "Typebot > Settings & Members > My account > API tokens > Create."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_typebots",
+      "name": "List typebots",
+      "description": "Get your bots and forms.",
+      "method": "GET",
+      "endpoint": "/typebots",
+      "query": {
+        "workspaceId": "{{ inputs.workspace_id }}"
+      },
+      "output_fields": {
+        "typebots": "typebots",
+        "typebot_ids": "typebots.*.id",
+        "names": "typebots.*.name"
+      },
+      "inputs": [
+        {
+          "key": "workspace_id",
+          "label": "Workspace ID",
+          "type": "string",
+          "help": "Leave empty for your personal workspace."
+        }
+      ]
+    },
+    {
+      "key": "get_typebot",
+      "name": "Get a typebot",
+      "description": "Get one bot with its blocks and settings.",
+      "method": "GET",
+      "endpoint": "/typebots/{{ inputs.typebot_id }}",
+      "output_fields": {
+        "name": "typebot.name",
+        "public_id": "typebot.publicId"
+      },
+      "inputs": [
+        {
+          "key": "typebot_id",
+          "label": "Typebot ID",
+          "type": "string",
+          "required": true,
+          "help": "Open the bot; the ID is in the address after /typebots/."
+        }
+      ]
+    },
+    {
+      "key": "list_results",
+      "name": "List results",
+      "description": "Get the submissions of a bot.",
+      "method": "GET",
+      "endpoint": "/typebots/{{ inputs.typebot_id }}/results",
+      "query": {
+        "limit": "{{ inputs.limit }}",
+        "cursor": "{{ inputs.cursor }}"
+      },
+      "output_fields": {
+        "results": "results",
+        "next_cursor": "nextCursor"
+      },
+      "inputs": [
+        {
+          "key": "typebot_id",
+          "label": "Typebot ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "limit",
+          "label": "Max results",
+          "type": "number",
+          "default": 50
+        },
+        {
+          "key": "cursor",
+          "label": "Next page cursor",
+          "type": "string",
+          "help": "Use next_cursor from the previous call."
+        }
+      ]
+    },
+    {
+      "key": "delete_results",
+      "name": "Delete results",
+      "description": "Delete submissions by ID.",
+      "method": "DELETE",
+      "endpoint": "/typebots/{{ inputs.typebot_id }}/results",
+      "query": {
+        "ids": "{{ inputs.ids }}"
+      },
+      "inputs": [
+        {
+          "key": "typebot_id",
+          "label": "Typebot ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "ids",
+          "label": "Result IDs",
+          "type": "string",
+          "required": true,
+          "help": "Comma-separated result IDs."
+        }
+      ]
+    }
+  ]
+}

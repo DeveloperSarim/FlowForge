@@ -1,0 +1,151 @@
+{
+  "key": "xwiki",
+  "name": "XWiki",
+  "category": "CMS & Websites",
+  "description": "Search, read, create and edit pages on your XWiki site.",
+  "website": "https://www.xwiki.org",
+  "docs_url": "https://www.xwiki.org/xwiki/bin/view/Documentation/UserGuide/Features/XWikiRESTfulAPI",
+  "base_url": "{{ credentials.site_url }}/rest",
+  "headers": {
+    "Accept": "application/json"
+  },
+  "auth": {
+    "type": "basic",
+    "fields": [
+      {
+        "key": "site_url",
+        "label": "XWiki address",
+        "type": "string",
+        "required": true,
+        "help": "Your wiki's address without /bin or /rest.",
+        "placeholder": "https://wiki.example.com/xwiki"
+      },
+      {
+        "key": "username",
+        "label": "Username",
+        "type": "string",
+        "required": true,
+        "help": "An XWiki user with edit rights."
+      },
+      {
+        "key": "password",
+        "label": "Password",
+        "type": "password",
+        "required": true,
+        "help": "That user's password."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_spaces",
+      "name": "List spaces",
+      "description": "List top-level spaces on the main wiki.",
+      "method": "GET",
+      "endpoint": "/wikis/xwiki/spaces",
+      "output_fields": {
+        "spaces": "spaces",
+        "first_name": "spaces.0.name"
+      },
+      "inputs": []
+    },
+    {
+      "key": "search",
+      "name": "Search pages",
+      "description": "Search page content.",
+      "method": "GET",
+      "endpoint": "/wikis/xwiki/search",
+      "query": {
+        "q": "{{ inputs.q }}",
+        "scope": "content",
+        "number": 20
+      },
+      "output_fields": {
+        "results": "searchResults",
+        "first_page": "searchResults.0.pageFullName",
+        "first_title": "searchResults.0.title"
+      },
+      "inputs": [
+        {
+          "key": "q",
+          "label": "Search text",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "get_page",
+      "name": "Get page",
+      "description": "Read a page's title and content.",
+      "method": "GET",
+      "endpoint": "/wikis/xwiki/spaces/{{ inputs.space }}/pages/{{ inputs.page }}",
+      "output_fields": {
+        "title": "title",
+        "content": "content",
+        "version": "version",
+        "author": "author"
+      },
+      "inputs": [
+        {
+          "key": "space",
+          "label": "Space",
+          "type": "string",
+          "required": true,
+          "help": "The folder the page lives in, e.g. Main."
+        },
+        {
+          "key": "page",
+          "label": "Page name",
+          "type": "string",
+          "required": true,
+          "help": "e.g. WebHome"
+        }
+      ]
+    },
+    {
+      "key": "save_page",
+      "name": "Create or update page",
+      "description": "Set a page's title and content (creates it when missing).",
+      "method": "PUT",
+      "endpoint": "/wikis/xwiki/spaces/{{ inputs.space }}/pages/{{ inputs.page }}",
+      "body": {
+        "title": "{{ inputs.title }}",
+        "content": "{{ inputs.content }}"
+      },
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "output_fields": {
+        "version": "version"
+      },
+      "inputs": [
+        {
+          "key": "space",
+          "label": "Space",
+          "type": "string",
+          "required": true,
+          "help": "The folder the page lives in, e.g. Main."
+        },
+        {
+          "key": "page",
+          "label": "Page name",
+          "type": "string",
+          "required": true,
+          "help": "e.g. WebHome"
+        },
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "string"
+        },
+        {
+          "key": "content",
+          "label": "Content (XWiki syntax)",
+          "type": "text",
+          "required": true
+        }
+      ]
+    }
+  ]
+}

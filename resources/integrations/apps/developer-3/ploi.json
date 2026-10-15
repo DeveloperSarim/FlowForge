@@ -1,0 +1,194 @@
+{
+  "key": "ploi",
+  "name": "Ploi",
+  "category": "Developer Tools",
+  "description": "Deploy sites, restart servers and create databases on Ploi.",
+  "brand": "ploi",
+  "website": "https://ploi.io",
+  "docs_url": "https://developers.ploi.io",
+  "base_url": "https://ploi.io/api",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "API token",
+        "type": "password",
+        "required": true,
+        "help": "Ploi → Profile → API keys → New API token (give it the scopes you need)."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_servers",
+      "name": "List servers",
+      "description": "List all servers in your account.",
+      "method": "GET",
+      "endpoint": "/servers",
+      "output_fields": {
+        "servers": "data"
+      },
+      "inputs": []
+    },
+    {
+      "key": "list_sites",
+      "name": "List sites",
+      "description": "List the sites on a server.",
+      "method": "GET",
+      "endpoint": "/servers/{{ inputs.server_id }}/sites",
+      "output_fields": {
+        "sites": "data"
+      },
+      "inputs": [
+        {
+          "key": "server_id",
+          "label": "Server ID",
+          "type": "string",
+          "required": true,
+          "help": "Use List servers, or open the server in Ploi (the number in the URL)."
+        }
+      ]
+    },
+    {
+      "key": "get_site",
+      "name": "Get site",
+      "description": "Get a site's status and last deploy time.",
+      "method": "GET",
+      "endpoint": "/servers/{{ inputs.server_id }}/sites/{{ inputs.site_id }}",
+      "output_fields": {
+        "domain": "data.domain",
+        "status": "data.status",
+        "last_deploy_at": "data.last_deploy_at"
+      },
+      "inputs": [
+        {
+          "key": "server_id",
+          "label": "Server ID",
+          "type": "string",
+          "required": true,
+          "help": "Use List servers, or open the server in Ploi (the number in the URL)."
+        },
+        {
+          "key": "site_id",
+          "label": "Site ID",
+          "type": "string",
+          "required": true,
+          "help": "Use List sites, or open the site in Ploi (the number in the URL)."
+        }
+      ]
+    },
+    {
+      "key": "deploy_site",
+      "name": "Deploy site",
+      "description": "Trigger a deployment of a site.",
+      "method": "POST",
+      "endpoint": "/servers/{{ inputs.server_id }}/sites/{{ inputs.site_id }}/deploy",
+      "body": {
+        "scheduled": "{{ inputs.scheduled }}",
+        "variables": "{{ inputs.variables }}"
+      },
+      "output_fields": {
+        "message": "message"
+      },
+      "inputs": [
+        {
+          "key": "server_id",
+          "label": "Server ID",
+          "type": "string",
+          "required": true,
+          "help": "Use List servers, or open the server in Ploi (the number in the URL)."
+        },
+        {
+          "key": "site_id",
+          "label": "Site ID",
+          "type": "string",
+          "required": true,
+          "help": "Use List sites, or open the site in Ploi (the number in the URL)."
+        },
+        {
+          "key": "scheduled",
+          "label": "Schedule for",
+          "type": "string",
+          "placeholder": "2026-01-01 10:00",
+          "help": "Optional, in your Ploi timezone. Leave empty to deploy now."
+        },
+        {
+          "key": "variables",
+          "label": "Deploy script variables",
+          "type": "keyvalue",
+          "help": "Available in the deploy script as uppercase environment variables."
+        }
+      ]
+    },
+    {
+      "key": "restart_server",
+      "name": "Restart server",
+      "description": "Restart a server.",
+      "method": "POST",
+      "endpoint": "/servers/{{ inputs.server_id }}/restart",
+      "inputs": [
+        {
+          "key": "server_id",
+          "label": "Server ID",
+          "type": "string",
+          "required": true,
+          "help": "Use List servers, or open the server in Ploi (the number in the URL)."
+        }
+      ]
+    },
+    {
+      "key": "create_database",
+      "name": "Create database",
+      "description": "Create a database (and optionally a user) on a server.",
+      "method": "POST",
+      "endpoint": "/servers/{{ inputs.server_id }}/databases",
+      "body": {
+        "name": "{{ inputs.name }}",
+        "user": "{{ inputs.user }}",
+        "password": "{{ inputs.password }}",
+        "description": "{{ inputs.description }}",
+        "site_id": "{{ inputs.site_id }}"
+      },
+      "output_fields": {
+        "database_id": "data.id",
+        "status": "data.status"
+      },
+      "inputs": [
+        {
+          "key": "server_id",
+          "label": "Server ID",
+          "type": "string",
+          "required": true,
+          "help": "Use List servers, or open the server in Ploi (the number in the URL)."
+        },
+        {
+          "key": "name",
+          "label": "Database name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "user",
+          "label": "Database user",
+          "type": "string"
+        },
+        {
+          "key": "password",
+          "label": "Database password",
+          "type": "password"
+        },
+        {
+          "key": "description",
+          "label": "Description",
+          "type": "string"
+        },
+        {
+          "key": "site_id",
+          "label": "Attach to site ID",
+          "type": "number"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,99 @@
+{
+  "key": "timetastic",
+  "name": "Timetastic",
+  "category": "HR & Recruiting",
+  "description": "Read staff, holidays and departments from Timetastic leave planning.",
+  "website": "https://timetastic.co.uk",
+  "docs_url": "https://timetastic.co.uk/api/",
+  "base_url": "https://app.timetastic.co.uk/api",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "API token",
+        "type": "password",
+        "required": true,
+        "help": "In Timetastic click your name → Company settings → API (admins only) → copy your token."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_users",
+      "name": "List users",
+      "description": "List everyone in the company.",
+      "method": "GET",
+      "endpoint": "/users",
+      "output_fields": {
+        "users": "users",
+        "first_id": "users.0.id",
+        "first_name": "users.0.firstname"
+      },
+      "inputs": []
+    },
+    {
+      "key": "list_holidays",
+      "name": "List holidays",
+      "description": "List booked leave between two dates.",
+      "method": "GET",
+      "endpoint": "/holidays",
+      "query": {
+        "Start": "{{ inputs.start }}",
+        "End": "{{ inputs.end }}",
+        "UserIds": "{{ inputs.user_id }}"
+      },
+      "output_fields": {
+        "holidays": "holidays",
+        "first_user": "holidays.0.userName",
+        "first_start": "holidays.0.startDate"
+      },
+      "inputs": [
+        {
+          "key": "start",
+          "label": "From date",
+          "type": "string",
+          "required": true,
+          "help": "YYYY-MM-DD"
+        },
+        {
+          "key": "end",
+          "label": "To date",
+          "type": "string",
+          "required": true,
+          "help": "YYYY-MM-DD"
+        },
+        {
+          "key": "user_id",
+          "label": "User ID",
+          "type": "number",
+          "help": "Only this person."
+        }
+      ]
+    },
+    {
+      "key": "list_departments",
+      "name": "List departments",
+      "description": "List departments.",
+      "method": "GET",
+      "endpoint": "/departments",
+      "output_fields": {
+        "departments": "departments",
+        "first_id": "departments.0.id"
+      },
+      "inputs": []
+    },
+    {
+      "key": "list_leave_types",
+      "name": "List leave types",
+      "description": "List leave types (holiday, sickness...).",
+      "method": "GET",
+      "endpoint": "/leavetypes",
+      "output_fields": {
+        "leave_types": "leaveTypes",
+        "first_id": "leaveTypes.0.id"
+      },
+      "inputs": []
+    }
+  ]
+}

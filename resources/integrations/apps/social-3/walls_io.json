@@ -1,0 +1,213 @@
+{
+  "key": "walls_io",
+  "name": "Walls.io",
+  "category": "Social Media",
+  "description": "Add posts to your Walls.io social wall, pin or hide posts, and catch new posts.",
+  "website": "https://walls.io",
+  "docs_url": "https://github.com/DieSocialisten/Walls.io-API-Docs",
+  "base_url": "https://api.walls.io/v1",
+  "auth": {
+    "type": "api_key",
+    "in": "query",
+    "name": "access_token",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "Access token",
+        "type": "password",
+        "required": true,
+        "help": "Your wall → Settings → API → Activate API access (Premium plan) → copy the token."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_posts",
+      "name": "List posts",
+      "method": "GET",
+      "endpoint": "/posts",
+      "query": {
+        "limit": "{{ inputs.limit }}",
+        "include_inactive": "{{ inputs.include_inactive }}"
+      },
+      "output_fields": {
+        "posts": "data",
+        "latest_text": "data.0.comment",
+        "latest_author": "data.0.external_name"
+      },
+      "inputs": [
+        {
+          "key": "limit",
+          "label": "Max results",
+          "type": "number",
+          "default": 50
+        },
+        {
+          "key": "include_inactive",
+          "label": "Include hidden posts",
+          "type": "select",
+          "default": "",
+          "options": [
+            {
+              "value": "",
+              "label": "No"
+            },
+            {
+              "value": "1",
+              "label": "Yes"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "get_post",
+      "name": "Get post",
+      "method": "GET",
+      "endpoint": "/posts/{{ inputs.id }}",
+      "output_fields": {
+        "id": "data.id",
+        "text": "data.comment",
+        "author": "data.external_name",
+        "image": "data.post_image",
+        "link": "data.permalink"
+      },
+      "inputs": [
+        {
+          "key": "id",
+          "label": "Post ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "create_post",
+      "name": "Add post to wall",
+      "description": "Needs text, an image or a video.",
+      "method": "POST",
+      "endpoint": "/posts",
+      "body": {
+        "text": "{{ inputs.text }}",
+        "image": "{{ inputs.image }}",
+        "user_name": "{{ inputs.user_name }}",
+        "user_image": "{{ inputs.user_image }}",
+        "link": "{{ inputs.link }}"
+      },
+      "body_format": "form",
+      "output_fields": {
+        "text": "data.text",
+        "posted_at": "data.posted_at"
+      },
+      "inputs": [
+        {
+          "key": "text",
+          "label": "Text",
+          "type": "text"
+        },
+        {
+          "key": "image",
+          "label": "Image URL",
+          "type": "string"
+        },
+        {
+          "key": "user_name",
+          "label": "Author name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "user_image",
+          "label": "Author picture URL",
+          "type": "string"
+        },
+        {
+          "key": "link",
+          "label": "Link",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "update_post",
+      "name": "Pin or hide post",
+      "method": "PUT",
+      "endpoint": "/posts/{{ inputs.id }}",
+      "body": {
+        "is_pinned": "{{ inputs.is_pinned }}",
+        "status": "{{ inputs.status }}"
+      },
+      "body_format": "form",
+      "inputs": [
+        {
+          "key": "id",
+          "label": "Post ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "is_pinned",
+          "label": "Pinned",
+          "type": "select",
+          "default": "",
+          "options": [
+            {
+              "value": "",
+              "label": "Don't change"
+            },
+            {
+              "value": "1",
+              "label": "Pin"
+            },
+            {
+              "value": "0",
+              "label": "Unpin"
+            }
+          ]
+        },
+        {
+          "key": "status",
+          "label": "Visibility",
+          "type": "select",
+          "default": "",
+          "options": [
+            {
+              "value": "",
+              "label": "Don't change"
+            },
+            {
+              "value": "1",
+              "label": "Show"
+            },
+            {
+              "value": "0",
+              "label": "Hide"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_post",
+      "name": "New post on wall",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/posts",
+      "query": {
+        "limit": "50"
+      },
+      "items_path": "data",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

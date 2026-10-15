@@ -1,0 +1,138 @@
+{
+  "key": "yext",
+  "name": "Yext",
+  "category": "CMS & Websites",
+  "description": "Read and edit Yext Content entities (locations, FAQs, events) that power your websites.",
+  "website": "https://www.yext.com",
+  "docs_url": "https://hitchhikers.yext.com/docs/managementapis/",
+  "base_url": "https://api.yextapis.com/v2/accounts/me",
+  "auth": {
+    "type": "api_key",
+    "in": "query",
+    "name": "api_key",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "In Yext open Developer Console → your app → API Key, and copy it (it needs Entities read/write)."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_entities",
+      "name": "List entities",
+      "description": "List content entities, optionally of one type.",
+      "method": "GET",
+      "endpoint": "/entities",
+      "query": {
+        "v": "20240101",
+        "entityTypes": "{{ inputs.entity_type }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "entities": "response.entities",
+        "count": "response.count",
+        "first_id": "response.entities.0.meta.id"
+      },
+      "inputs": [
+        {
+          "key": "entity_type",
+          "label": "Entity type",
+          "type": "string",
+          "help": "Example: location, faq, event. Leave blank for all."
+        },
+        {
+          "key": "limit",
+          "label": "How many",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    },
+    {
+      "key": "get_entity",
+      "name": "Get entity",
+      "description": "Read one entity by its ID.",
+      "method": "GET",
+      "endpoint": "/entities/{{ inputs.entity_id }}",
+      "query": {
+        "v": "20240101"
+      },
+      "output_fields": {
+        "name": "response.name",
+        "id": "response.meta.id"
+      },
+      "inputs": [
+        {
+          "key": "entity_id",
+          "label": "Entity ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "create_entity",
+      "name": "Create entity",
+      "description": "Add an entity of a given type.",
+      "method": "POST",
+      "endpoint": "/entities",
+      "body": "{{ inputs.fields }}",
+      "query": {
+        "v": "20240101",
+        "entityType": "{{ inputs.entity_type }}"
+      },
+      "output_fields": {
+        "id": "response.id"
+      },
+      "inputs": [
+        {
+          "key": "entity_type",
+          "label": "Entity type",
+          "type": "string",
+          "required": true,
+          "help": "Example: location, faq, event."
+        },
+        {
+          "key": "fields",
+          "label": "Fields (JSON)",
+          "type": "json",
+          "required": true,
+          "help": "Example: {\"name\": \"Main Street\", \"address\": {\"line1\": \"1 Main St\", \"city\": \"Austin\", \"region\": \"TX\", \"postalCode\": \"78701\", \"countryCode\": \"US\"}}"
+        }
+      ]
+    },
+    {
+      "key": "edit_entity",
+      "name": "Edit entity",
+      "description": "Change fields on an entity.",
+      "method": "PUT",
+      "endpoint": "/entities/{{ inputs.entity_id }}",
+      "body": "{{ inputs.fields }}",
+      "query": {
+        "v": "20240101"
+      },
+      "output_fields": {
+        "id": "response.id"
+      },
+      "inputs": [
+        {
+          "key": "entity_id",
+          "label": "Entity ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "fields",
+          "label": "Fields to change (JSON)",
+          "type": "json",
+          "required": true,
+          "help": "Example: {\"name\": \"New name\"}"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,151 @@
+{
+  "key": "anythingllm",
+  "name": "AnythingLLM",
+  "category": "AI",
+  "description": "Chat with your AnythingLLM workspaces and add documents to them.",
+  "website": "https://anythingllm.com",
+  "docs_url": "https://docs.anythingllm.com/features/api",
+  "base_url": "{{ credentials.base_url }}/api/v1",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "base_url",
+        "label": "AnythingLLM URL",
+        "type": "string",
+        "required": true,
+        "placeholder": "http://localhost:3001",
+        "help": "The address of your AnythingLLM instance, without a trailing slash."
+      },
+      {
+        "key": "token",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "AnythingLLM → Settings → Tools → Developer API → Generate New API Key."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_workspaces",
+      "name": "List workspaces",
+      "description": "List your workspaces and their slugs.",
+      "method": "GET",
+      "endpoint": "/workspaces",
+      "output_fields": {
+        "slugs": "workspaces.*.slug"
+      },
+      "inputs": []
+    },
+    {
+      "key": "chat",
+      "name": "Chat with workspace",
+      "description": "Send a message to a workspace and get the reply.",
+      "method": "POST",
+      "endpoint": "/workspace/{{ inputs.workspace }}/chat",
+      "timeout": 300,
+      "body": {
+        "message": "{{ inputs.message }}",
+        "mode": "{{ inputs.mode }}",
+        "sessionId": "{{ inputs.session_id }}"
+      },
+      "output_fields": {
+        "text": "textResponse",
+        "sources": "sources"
+      },
+      "inputs": [
+        {
+          "key": "workspace",
+          "label": "Workspace slug",
+          "type": "string",
+          "required": true,
+          "help": "Shown in the workspace URL, or use List workspaces."
+        },
+        {
+          "key": "message",
+          "label": "Message",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "mode",
+          "label": "Mode",
+          "type": "select",
+          "default": "chat",
+          "options": [
+            {
+              "value": "chat",
+              "label": "Chat (uses documents and general knowledge)"
+            },
+            {
+              "value": "query",
+              "label": "Query (answers only from documents)"
+            }
+          ]
+        },
+        {
+          "key": "session_id",
+          "label": "Session ID",
+          "type": "string",
+          "help": "Optional. Reuse the same value to keep a conversation going."
+        }
+      ]
+    },
+    {
+      "key": "add_text_document",
+      "name": "Add text document",
+      "description": "Save text as a document. Then embed it in a workspace.",
+      "method": "POST",
+      "endpoint": "/document/raw-text",
+      "body": {
+        "textContent": "{{ inputs.text }}",
+        "metadata": {
+          "title": "{{ inputs.title }}"
+        }
+      },
+      "output_fields": {
+        "location": "documents.0.location"
+      },
+      "inputs": [
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "text",
+          "label": "Text",
+          "type": "text",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "embed_documents",
+      "name": "Add documents to workspace",
+      "description": "Embed documents into a workspace so chats can use them.",
+      "method": "POST",
+      "endpoint": "/workspace/{{ inputs.workspace }}/update-embeddings",
+      "body": {
+        "adds": "{{ inputs.adds }}"
+      },
+      "inputs": [
+        {
+          "key": "workspace",
+          "label": "Workspace slug",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "adds",
+          "label": "Document locations",
+          "type": "list",
+          "required": true,
+          "help": "The location returned by Add text document, e.g. custom-documents/my-note.json."
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,140 @@
+{
+  "key": "micro_blog",
+  "name": "Micro.blog",
+  "category": "CMS & Websites",
+  "description": "Publish posts to your Micro.blog site and list or delete existing posts.",
+  "website": "https://micro.blog",
+  "docs_url": "https://help.micro.blog/t/micropub-api/",
+  "base_url": "https://micro.blog",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "App token",
+        "type": "password",
+        "required": true,
+        "help": "On micro.blog open Account → Edit Apps → New Token, name it FlowForge and copy the token."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "create_post",
+      "name": "Create post",
+      "description": "Publish a new post (title is optional).",
+      "method": "POST",
+      "endpoint": "/micropub",
+      "body": {
+        "h": "entry",
+        "content": "{{ inputs.content }}",
+        "name": "{{ inputs.name }}",
+        "category": "{{ inputs.category }}",
+        "mp-slug": "{{ inputs.slug }}",
+        "post-status": "{{ inputs.status }}"
+      },
+      "body_format": "form",
+      "output_fields": {},
+      "inputs": [
+        {
+          "key": "content",
+          "label": "Content",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "name",
+          "label": "Title",
+          "type": "string",
+          "help": "Leave blank for a short microblog post."
+        },
+        {
+          "key": "category",
+          "label": "Tags",
+          "type": "string",
+          "help": "Comma separated."
+        },
+        {
+          "key": "slug",
+          "label": "URL slug",
+          "type": "string"
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "default": "published",
+          "options": [
+            {
+              "value": "published",
+              "label": "Published"
+            },
+            {
+              "value": "draft",
+              "label": "Draft"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "list_posts",
+      "name": "List posts",
+      "description": "Get your latest posts.",
+      "method": "GET",
+      "endpoint": "/micropub",
+      "query": {
+        "q": "source",
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "first_url": "items.0.properties.url.0",
+        "first_content": "items.0.properties.content.0",
+        "items": "items"
+      },
+      "inputs": [
+        {
+          "key": "limit",
+          "label": "How many",
+          "type": "number",
+          "default": 20
+        }
+      ]
+    },
+    {
+      "key": "delete_post",
+      "name": "Delete post",
+      "description": "Delete a post by its URL.",
+      "method": "POST",
+      "endpoint": "/micropub",
+      "body": {
+        "action": "delete",
+        "url": "{{ inputs.url }}"
+      },
+      "body_format": "form",
+      "output_fields": {},
+      "inputs": [
+        {
+          "key": "url",
+          "label": "Post URL",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "get_config",
+      "name": "Get blog info",
+      "description": "List your blogs and their destination IDs.",
+      "method": "GET",
+      "endpoint": "/micropub",
+      "query": {
+        "q": "config"
+      },
+      "output_fields": {
+        "destinations": "destination"
+      },
+      "inputs": []
+    }
+  ]
+}

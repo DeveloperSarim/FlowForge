@@ -1,0 +1,190 @@
+{
+  "key": "parallel_ai",
+  "name": "Parallel",
+  "category": "AI",
+  "description": "Web search, page extraction and deep-research tasks built for AI agents.",
+  "website": "https://parallel.ai",
+  "docs_url": "https://docs.parallel.ai",
+  "base_url": "https://api.parallel.ai/v1",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "x-api-key",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "platform.parallel.ai → Settings → API Keys → Create key."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "search",
+      "name": "Web search",
+      "description": "Search the web and get relevant excerpts from each result.",
+      "method": "POST",
+      "endpoint": "/search",
+      "timeout": 120,
+      "body": {
+        "objective": "{{ inputs.objective }}",
+        "search_queries": "{{ inputs.search_queries }}",
+        "max_chars_total": "{{ inputs.max_chars_total }}"
+      },
+      "output_fields": {
+        "results": "results",
+        "top_url": "results.0.url"
+      },
+      "inputs": [
+        {
+          "key": "objective",
+          "label": "Goal",
+          "type": "text",
+          "help": "What you are trying to find out, in plain words."
+        },
+        {
+          "key": "search_queries",
+          "label": "Search queries",
+          "type": "list",
+          "required": true,
+          "help": "2-3 short keyword queries."
+        },
+        {
+          "key": "max_chars_total",
+          "label": "Max characters",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "extract",
+      "name": "Extract pages",
+      "description": "Get the relevant content of specific web pages as markdown.",
+      "method": "POST",
+      "endpoint": "/extract",
+      "timeout": 120,
+      "body": {
+        "urls": "{{ inputs.urls }}",
+        "objective": "{{ inputs.objective }}",
+        "advanced_settings": {
+          "full_content": "{{ inputs.full_content }}"
+        }
+      },
+      "output_fields": {
+        "results": "results",
+        "errors": "errors"
+      },
+      "inputs": [
+        {
+          "key": "urls",
+          "label": "URLs",
+          "type": "list",
+          "required": true,
+          "help": "Up to 20 URLs."
+        },
+        {
+          "key": "objective",
+          "label": "Goal",
+          "type": "text",
+          "help": "Optional: focus the excerpts on this."
+        },
+        {
+          "key": "full_content",
+          "label": "Include full page content",
+          "type": "boolean"
+        }
+      ]
+    },
+    {
+      "key": "create_task",
+      "name": "Start research task",
+      "description": "Start a web research task; get the answer with Get task result.",
+      "method": "POST",
+      "endpoint": "/tasks/runs",
+      "body": {
+        "input": "{{ inputs.input }}",
+        "processor": "{{ inputs.processor }}",
+        "task_spec": {
+          "$if": "{{ inputs.output_description }}",
+          "output_schema": {
+            "type": "text",
+            "description": "{{ inputs.output_description }}"
+          }
+        }
+      },
+      "output_fields": {
+        "run_id": "run_id",
+        "status": "status"
+      },
+      "inputs": [
+        {
+          "key": "input",
+          "label": "Task",
+          "type": "text",
+          "required": true,
+          "help": "The question or research task, e.g. \"Find the CEO and HQ city of Acme Inc\"."
+        },
+        {
+          "key": "processor",
+          "label": "Processor",
+          "type": "select",
+          "default": "base",
+          "options": [
+            {
+              "value": "lite",
+              "label": "Lite (fastest)"
+            },
+            {
+              "value": "base",
+              "label": "Base"
+            },
+            {
+              "value": "core",
+              "label": "Core"
+            },
+            {
+              "value": "pro",
+              "label": "Pro"
+            },
+            {
+              "value": "ultra",
+              "label": "Ultra (deepest)"
+            }
+          ]
+        },
+        {
+          "key": "output_description",
+          "label": "Describe the answer you want",
+          "type": "text",
+          "help": "Optional, e.g. \"A short paragraph with sources\"."
+        }
+      ]
+    },
+    {
+      "key": "get_task_result",
+      "name": "Get task result",
+      "description": "Wait for a research task and return its answer.",
+      "method": "GET",
+      "endpoint": "/tasks/runs/{{ inputs.run_id }}/result",
+      "timeout": 600,
+      "query": {
+        "timeout": 570
+      },
+      "output_fields": {
+        "answer": "output.content",
+        "status": "run.status",
+        "citations": "output.basis"
+      },
+      "inputs": [
+        {
+          "key": "run_id",
+          "label": "Run ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ]
+}

@@ -4,6 +4,7 @@ namespace App\Domain\Assistant;
 
 use App\Domain\Assistant\Models\AiConversation;
 use App\Domain\Engine\GraphRunner;
+use App\Domain\Integrations\CustomApps;
 use App\Domain\Integrations\ManifestLoader;
 use App\Domain\Integrations\Models\Credential;
 use App\Domain\Voice\Models\VoiceAgent;
@@ -80,6 +81,35 @@ class WorkflowTools
                     'booking' => ['type' => 'object', 'properties' => ['enabled' => ['type' => 'boolean'], 'ask_email' => ['type' => 'boolean'], 'hours' => ['type' => 'string']]],
                     'collect' => ['type' => 'array', 'description' => 'Details to capture from each call', 'items' => ['type' => 'object', 'properties' => ['key' => ['type' => 'string'], 'description' => ['type' => 'string']]]],
                 ], 'required' => ['name']]],
+            ['name' => 'create_custom_app', 'description' => 'Add an app that isn\'t in the catalog (search_apps found nothing for the service), or update one you made earlier (same name or key). Describe the service\'s real, documented API: base URL, auth, and an action per endpoint the workflow needs, with output_fields naming the response fields later steps use. If the service publishes an OpenAPI/Swagger 3 spec, pass openapi_url instead of actions. Returns the app key and its action keys for save_workflow; the user then saves a credential for it. For a single one-off request, http.request is enough.',
+                'parameters' => ['type' => 'object', 'properties' => [
+                    'name' => ['type' => 'string', 'description' => 'Product name, e.g. "Acme CRM"'],
+                    'key' => ['type' => 'string', 'description' => 'Existing custom app key, to update it'],
+                    'description' => ['type' => 'string'], 'website' => ['type' => 'string'], 'docs_url' => ['type' => 'string'],
+                    'openapi_url' => ['type' => 'string', 'description' => 'URL of the service\'s OpenAPI 3 JSON/YAML; replaces base_url/auth/actions'],
+                    'base_url' => ['type' => 'string', 'description' => 'API root, e.g. https://api.acme.com/v2; account-specific parts as {{ credentials.<field> }}'],
+                    'headers' => ['type' => 'object', 'description' => 'Fixed headers every request needs (e.g. an API version)'],
+                    'auth' => ['type' => 'object', 'description' => 'One of: {"type":"api_key","in":"header|query","name":"X-API-Key","prefix":"optional"}, {"type":"bearer"}, {"type":"basic"}, {"type":"none"}, {"type":"oauth2","authorize_url","token_url","scopes":[]}. Add "fields":[{"key","label","help"}] for extra credential fields (e.g. subdomain) and say in help where the user finds the key.'],
+                    'actions' => ['type' => 'array', 'items' => ['type' => 'object', 'properties' => [
+                        'key' => ['type' => 'string'], 'name' => ['type' => 'string'], 'description' => ['type' => 'string'],
+                        'method' => ['type' => 'string', 'description' => 'GET|POST|PUT|PATCH|DELETE'],
+                        'endpoint' => ['type' => 'string', 'description' => 'Path on base_url, e.g. /contacts/{{ inputs.contact_id }}'],
+                        'query' => ['type' => 'object', 'description' => 'e.g. {"limit":"{{ inputs.limit }}"}'],
+                        'body' => ['type' => 'object', 'description' => 'JSON body with {{ inputs.<key> }} values; blank optional inputs are dropped'],
+                        'body_format' => ['type' => 'string', 'description' => 'json (default) or form'],
+                        'inputs' => ['type' => 'array', 'items' => ['type' => 'object', 'properties' => [
+                            'key' => ['type' => 'string'], 'label' => ['type' => 'string'], 'type' => ['type' => 'string', 'description' => 'string|text|number|boolean|select|json|list|keyvalue'],
+                            'required' => ['type' => 'boolean'], 'default' => ['type' => 'string'], 'help' => ['type' => 'string'],
+                            'options' => ['type' => 'array', 'description' => 'For select inputs', 'items' => ['type' => 'object', 'properties' => ['value' => ['type' => 'string'], 'label' => ['type' => 'string']]]],
+                        ], 'required' => ['key']]],
+                        'output_fields' => ['type' => 'object', 'description' => 'Friendly name → path in the JSON response, e.g. {"id":"data.id","email":"data.email"}'],
+                        'output_path' => ['type' => 'string'],
+                    ], 'required' => ['key', 'name', 'method', 'endpoint']]],
+                    'triggers' => ['type' => 'array', 'description' => 'Polling triggers: an endpoint that lists the newest items first', 'items' => ['type' => 'object', 'properties' => [
+                        'key' => ['type' => 'string'], 'name' => ['type' => 'string'], 'endpoint' => ['type' => 'string'], 'query' => ['type' => 'object'],
+                        'items_path' => ['type' => 'string', 'description' => 'Where the list is in the response, e.g. data'], 'id_field' => ['type' => 'string'],
+                    ], 'required' => ['key', 'name', 'endpoint']]],
+                ], 'required' => ['name']]],
         ];
     }
 
@@ -91,11 +121,11 @@ class WorkflowTools
         // The assistant acts with the signed-in person's access, never more.
         $needs = match ($name) {
             'search_apps', 'get_app' => null,
-            'save_workflow', 'use_template', 'set_workflow_active', 'test_workflow', 'create_voice_agent' => 'workflows.edit',
+            'save_workflow', 'use_template', 'set_workflow_active', 'test_workflow', 'create_voice_agent', 'create_custom_app' => 'workflows.edit',
             'delete_workflow' => 'workflows.delete',
             default => 'workflows.view',
         };
-        if (in_array($name, ['test_workflow', 'set_workflow_active', 'delete_workflow', 'create_voice_agent'], true) && auth()->user()?->isDemo()) {
+        if (in_array($name, ['test_workflow', 'set_workflow_active', 'delete_workflow', 'create_voice_agent', 'create_custom_app'], true) && auth()->user()?->isDemo()) {
             return [['error' => 'Running, switching on and deleting workflows are turned off in the live demo. Tell the user to build and inspect; the full version does the rest.'], null, true];
         }
         if ($needs && ($user = auth()->user()) && ! $user->hasPermission($needs)) {
@@ -118,6 +148,7 @@ class WorkflowTools
                 'get_execution' => [$this->summarize(WorkflowExecution::query()->findOrFail((int) ($input['id'] ?? 0))), null, false],
                 'list_voice_agents' => [$this->listVoiceAgents(), null, false],
                 'create_voice_agent' => [$this->createVoiceAgent($input), null, false],
+                'create_custom_app' => [$this->createCustomApp($input), null, false],
                 default => [['error' => "Unknown tool $name"], null, true],
             };
         } catch (ValidationException $e) {
@@ -142,6 +173,33 @@ class WorkflowTools
 
         return ['id' => $agent->id, 'name' => $agent->name, 'url' => url("/voice/agents/{$agent->id}"),
             'next' => 'Tell the user to open the link, press "Talk to it" to try it in the browser for free, and connect Vapi or ElevenLabs on the Phone tab for real calls.'];
+    }
+
+    private function createCustomApp(array $input): array
+    {
+        // Gemini sends free-form objects (auth, body, query, headers, output_fields) as JSON strings.
+        $decode = function ($value) use (&$decode) {
+            if (is_string($value) && preg_match('/^\s*[\[{]/', $value) && is_array($json = json_decode($value, true))) {
+                return $json;
+            }
+
+            return is_array($value) ? array_map($decode, $value) : $value;
+        };
+        $input = $decode($input);
+        $apps = app(CustomApps::class);
+        ['manifest' => $app, 'created' => $created] = ! empty($input['openapi_url'])
+            ? $apps->importOpenApi((string) $input['openapi_url'], $input['name'] ?? null)
+            : $apps->save($input);
+        $needsCredential = collect($app['auth'])->pluck('type')->diff(['none'])->isNotEmpty();
+
+        return array_filter([
+            'key' => $app['key'],
+            'created' => $created,
+            'actions' => implode(',', array_slice(collect($app['actions'])->pluck('key')->reject(fn ($k) => $k === 'api_call')->all(), 0, 40)),
+            'triggers' => implode(',', collect($app['triggers'])->pluck('key')->all()) ?: null,
+            'auth' => implode('|', collect($app['auth'])->pluck('type')->all()),
+            'next' => 'Use this key in save_workflow (get_app shows the inputs).'.($needsCredential ? " The user must add a credential: Credentials → New → {$app['name']}." : ''),
+        ], fn ($v) => $v !== null && $v !== '');
     }
 
     private function searchApps(string $query, int $limit): array

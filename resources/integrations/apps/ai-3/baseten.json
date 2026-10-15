@@ -1,0 +1,144 @@
+{
+  "key": "baseten",
+  "name": "Baseten",
+  "category": "AI",
+  "description": "Fast inference for open models (GLM, DeepSeek, Kimi, gpt-oss) via Baseten Model APIs.",
+  "website": "https://www.baseten.co",
+  "docs_url": "https://docs.baseten.co/development/model-apis/overview",
+  "base_url": "https://inference.baseten.co/v1",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "app.baseten.co → Settings → API keys → Create API key."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "chat_completion",
+      "name": "Chat completion",
+      "description": "Send a prompt and get the model's reply as text.",
+      "method": "POST",
+      "endpoint": "/chat/completions",
+      "timeout": 300,
+      "body": {
+        "model": "{{ inputs.model }}",
+        "messages": [
+          {
+            "$if": "{{ inputs.system }}",
+            "role": "system",
+            "content": "{{ inputs.system }}"
+          },
+          {
+            "role": "user",
+            "content": "{{ inputs.prompt }}"
+          }
+        ],
+        "temperature": "{{ inputs.temperature }}",
+        "max_tokens": "{{ inputs.max_tokens }}"
+      },
+      "output_fields": {
+        "text": "choices.0.message.content"
+      },
+      "inputs": [
+        {
+          "key": "model",
+          "label": "Model",
+          "type": "string",
+          "required": true,
+          "help": "A Model API slug, e.g. openai/gpt-oss-120b or zai-org/GLM-5.3. Use List models.",
+          "default": "openai/gpt-oss-120b"
+        },
+        {
+          "key": "prompt",
+          "label": "Prompt",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "system",
+          "label": "System prompt",
+          "type": "text",
+          "help": "Optional instructions for how the model should behave."
+        },
+        {
+          "key": "temperature",
+          "label": "Temperature",
+          "type": "number",
+          "placeholder": "0.7",
+          "help": "0 = focused, 1 = creative. Leave blank for the default."
+        },
+        {
+          "key": "max_tokens",
+          "label": "Max output tokens",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "create_message",
+      "name": "Create message (Anthropic format)",
+      "description": "Send a prompt using the Anthropic Messages format.",
+      "method": "POST",
+      "endpoint": "/messages",
+      "timeout": 300,
+      "body": {
+        "model": "{{ inputs.model }}",
+        "system": "{{ inputs.system }}",
+        "max_tokens": "{{ inputs.max_tokens }}",
+        "messages": [
+          {
+            "role": "user",
+            "content": "{{ inputs.prompt }}"
+          }
+        ]
+      },
+      "output_fields": {
+        "text": "content.*.text"
+      },
+      "inputs": [
+        {
+          "key": "model",
+          "label": "Model",
+          "type": "string",
+          "required": true,
+          "default": "openai/gpt-oss-120b"
+        },
+        {
+          "key": "prompt",
+          "label": "Prompt",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "system",
+          "label": "System prompt",
+          "type": "text"
+        },
+        {
+          "key": "max_tokens",
+          "label": "Max output tokens",
+          "type": "number",
+          "required": true,
+          "default": 1024
+        }
+      ]
+    },
+    {
+      "key": "list_models",
+      "name": "List models",
+      "description": "List the models you can use.",
+      "method": "GET",
+      "endpoint": "/models",
+      "output_fields": {
+        "models": "data.*.id"
+      },
+      "inputs": []
+    }
+  ]
+}

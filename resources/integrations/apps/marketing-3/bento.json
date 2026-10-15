@@ -1,0 +1,321 @@
+{
+  "key": "bento",
+  "name": "Bento",
+  "category": "Marketing & Email",
+  "description": "Email marketing for SaaS and stores: subscribers, tags, events and emails.",
+  "website": "https://bentonow.com",
+  "docs_url": "https://bentonow.com/docs",
+  "base_url": "https://app.bentonow.com/api/v1",
+  "auth": {
+    "type": "basic",
+    "fields": [
+      {
+        "key": "site_uuid",
+        "label": "Site UUID",
+        "type": "string",
+        "required": true,
+        "help": "Bento → Settings → API Keys: the Site UUID is listed there."
+      },
+      {
+        "key": "username",
+        "label": "Publishable key",
+        "type": "string",
+        "required": true,
+        "help": "Same page: Publishable Key."
+      },
+      {
+        "key": "password",
+        "label": "Secret key",
+        "type": "password",
+        "required": true,
+        "help": "Same page: Secret Key."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "upsert_subscriber",
+      "name": "Add or update subscriber",
+      "description": "Create or update a subscriber with fields and tags.",
+      "method": "POST",
+      "endpoint": "/batch/subscribers",
+      "body": {
+        "site_uuid": "{{ credentials.site_uuid }}",
+        "subscribers": [
+          {
+            "email": "{{ inputs.email }}",
+            "first_name": "{{ inputs.first_name }}",
+            "last_name": "{{ inputs.last_name }}",
+            "tags": "{{ inputs.tags }}",
+            "remove_tags": "{{ inputs.remove_tags }}",
+            "...": "{{ inputs.fields }}"
+          }
+        ]
+      },
+      "output_fields": {
+        "imported": "results"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "first_name",
+          "label": "First name",
+          "type": "string"
+        },
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string"
+        },
+        {
+          "key": "tags",
+          "label": "Tags to add",
+          "type": "string",
+          "placeholder": "customer,vip",
+          "help": "Comma-separated."
+        },
+        {
+          "key": "remove_tags",
+          "label": "Tags to remove",
+          "type": "string",
+          "help": "Comma-separated."
+        },
+        {
+          "key": "fields",
+          "label": "Custom fields",
+          "type": "keyvalue"
+        }
+      ]
+    },
+    {
+      "key": "track_event",
+      "name": "Track event",
+      "description": "Record an event for a subscriber; events can start Bento flows.",
+      "method": "POST",
+      "endpoint": "/batch/events",
+      "body": {
+        "site_uuid": "{{ credentials.site_uuid }}",
+        "events": [
+          {
+            "type": "{{ inputs.type }}",
+            "email": "{{ inputs.email }}",
+            "fields": "{{ inputs.fields }}",
+            "details": "{{ inputs.details }}"
+          }
+        ]
+      },
+      "output_fields": {
+        "imported": "results"
+      },
+      "inputs": [
+        {
+          "key": "type",
+          "label": "Event name",
+          "type": "string",
+          "required": true,
+          "placeholder": "$purchase",
+          "help": "Your own name (e.g. signed_up) or a Bento event like $purchase."
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "fields",
+          "label": "Subscriber fields to update",
+          "type": "keyvalue"
+        },
+        {
+          "key": "details",
+          "label": "Event details",
+          "type": "json"
+        }
+      ]
+    },
+    {
+      "key": "get_subscriber",
+      "name": "Get subscriber",
+      "description": "Look up a subscriber by email.",
+      "method": "GET",
+      "endpoint": "/fetch/subscribers",
+      "query": {
+        "site_uuid": "{{ credentials.site_uuid }}",
+        "email": "{{ inputs.email }}"
+      },
+      "output_fields": {
+        "uuid": "data.attributes.uuid",
+        "email": "data.attributes.email",
+        "fields": "data.attributes.fields",
+        "tag_ids": "data.attributes.cached_tag_ids",
+        "unsubscribed_at": "data.attributes.unsubscribed_at"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "add_tag",
+      "name": "Add tag",
+      "description": "Tag a subscriber (creates the subscriber if needed).",
+      "method": "POST",
+      "endpoint": "/fetch/commands",
+      "body": {
+        "site_uuid": "{{ credentials.site_uuid }}",
+        "command": {
+          "command": "add_tag",
+          "email": "{{ inputs.email }}",
+          "query": "{{ inputs.tag }}"
+        }
+      },
+      "output_fields": {
+        "queued": "results"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "tag",
+          "label": "Tag",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "remove_tag",
+      "name": "Remove tag",
+      "description": "Remove a tag from a subscriber.",
+      "method": "POST",
+      "endpoint": "/fetch/commands",
+      "body": {
+        "site_uuid": "{{ credentials.site_uuid }}",
+        "command": {
+          "command": "remove_tag",
+          "email": "{{ inputs.email }}",
+          "query": "{{ inputs.tag }}"
+        }
+      },
+      "output_fields": {
+        "queued": "results"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "tag",
+          "label": "Tag",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "unsubscribe",
+      "name": "Unsubscribe",
+      "description": "Unsubscribe an email address from marketing emails.",
+      "method": "POST",
+      "endpoint": "/fetch/commands",
+      "body": {
+        "site_uuid": "{{ credentials.site_uuid }}",
+        "command": {
+          "command": "unsubscribe",
+          "email": "{{ inputs.email }}"
+        }
+      },
+      "output_fields": {
+        "queued": "results"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "send_email",
+      "name": "Send transactional email",
+      "description": "Send a one-off email through Bento.",
+      "method": "POST",
+      "endpoint": "/batch/emails",
+      "body": {
+        "site_uuid": "{{ credentials.site_uuid }}",
+        "emails": [
+          {
+            "to": "{{ inputs.to }}",
+            "from": "{{ inputs.from }}",
+            "subject": "{{ inputs.subject }}",
+            "html_body": "{{ inputs.html_body }}",
+            "transactional": "{{ inputs.transactional }}",
+            "personalizations": "{{ inputs.personalizations }}"
+          }
+        ]
+      },
+      "output_fields": {
+        "queued": "results"
+      },
+      "inputs": [
+        {
+          "key": "to",
+          "label": "To",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "from",
+          "label": "From",
+          "type": "string",
+          "required": true,
+          "help": "Must be one of your Authors in Bento → Settings → Authors."
+        },
+        {
+          "key": "subject",
+          "label": "Subject",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "html_body",
+          "label": "Body (HTML)",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "transactional",
+          "label": "Transactional",
+          "type": "boolean",
+          "default": true,
+          "help": "On: sent even to unsubscribed people (receipts, password resets). Off: marketing email."
+        },
+        {
+          "key": "personalizations",
+          "label": "Personalizations",
+          "type": "keyvalue"
+        }
+      ]
+    }
+  ],
+  "triggers": []
+}

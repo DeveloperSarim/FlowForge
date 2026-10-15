@@ -1,0 +1,147 @@
+{
+  "key": "clever",
+  "name": "Clever",
+  "category": "Education",
+  "description": "Read schools, sections and students from Clever, the K-12 rostering platform.",
+  "website": "https://clever.com",
+  "docs_url": "https://dev.clever.com/reference",
+  "base_url": "https://api.clever.com/v3.0",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "District token",
+        "type": "password",
+        "required": true,
+        "help": "Clever Dashboard > Applications > your app > Settings: copy the district access token."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_users",
+      "name": "List users",
+      "description": "Get students, teachers and staff.",
+      "method": "GET",
+      "endpoint": "/users",
+      "query": {
+        "role": "{{ inputs.role }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "users": "data",
+        "ids": "data.*.data.id",
+        "emails": "data.*.data.email"
+      },
+      "inputs": [
+        {
+          "key": "role",
+          "label": "Role",
+          "type": "select",
+          "default": "student",
+          "options": [
+            {
+              "value": "student",
+              "label": "Students"
+            },
+            {
+              "value": "teacher",
+              "label": "Teachers"
+            },
+            {
+              "value": "staff",
+              "label": "Staff"
+            },
+            {
+              "value": "district_admin",
+              "label": "District admins"
+            }
+          ]
+        },
+        {
+          "key": "limit",
+          "label": "Max results",
+          "type": "number",
+          "default": 100
+        }
+      ]
+    },
+    {
+      "key": "get_user",
+      "name": "Get a user",
+      "description": "Get one user.",
+      "method": "GET",
+      "endpoint": "/users/{{ inputs.user_id }}",
+      "output_fields": {
+        "id": "data.id",
+        "email": "data.email",
+        "name": "data.name"
+      },
+      "inputs": [
+        {
+          "key": "user_id",
+          "label": "Clever user ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_schools",
+      "name": "List schools",
+      "description": "Get the schools in the district.",
+      "method": "GET",
+      "endpoint": "/schools",
+      "query": {
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "ids": "data.*.data.id",
+        "names": "data.*.data.name"
+      },
+      "inputs": [
+        {
+          "key": "limit",
+          "label": "Max results",
+          "type": "number",
+          "default": 100
+        }
+      ]
+    },
+    {
+      "key": "list_sections",
+      "name": "List sections",
+      "description": "Get classes (sections).",
+      "method": "GET",
+      "endpoint": "/sections",
+      "query": {
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "ids": "data.*.data.id",
+        "names": "data.*.data.name"
+      },
+      "inputs": [
+        {
+          "key": "limit",
+          "label": "Max results",
+          "type": "number",
+          "default": 100
+        }
+      ]
+    },
+    {
+      "key": "list_districts",
+      "name": "List districts",
+      "description": "Get the districts your token can see.",
+      "method": "GET",
+      "endpoint": "/districts",
+      "output_fields": {
+        "ids": "data.*.data.id",
+        "names": "data.*.data.name"
+      },
+      "inputs": []
+    }
+  ]
+}

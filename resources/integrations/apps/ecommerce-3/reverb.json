@@ -1,0 +1,373 @@
+{
+  "key": "reverb",
+  "name": "Reverb",
+  "category": "E-commerce",
+  "description": "Music gear marketplace: listings, orders and shipping confirmations.",
+  "website": "https://reverb.com",
+  "docs_url": "https://www.reverb-api.com/docs",
+  "base_url": "https://api.reverb.com/api",
+  "headers": {
+    "Accept-Version": "3.0",
+    "Accept": "application/hal+json",
+    "Content-Type": "application/hal+json"
+  },
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "Personal token",
+        "type": "password",
+        "required": true,
+        "help": "reverb.com → My account → Settings → API & integrations → Generate new token (read/write listings and orders)."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_my_listings",
+      "name": "List my listings",
+      "description": "Your listings, optionally searched.",
+      "method": "GET",
+      "endpoint": "/my/listings",
+      "query": {
+        "state": "{{ inputs.state }}",
+        "query": "{{ inputs.query }}",
+        "per_page": "{{ inputs.per_page }}"
+      },
+      "output_fields": {
+        "listings": "listings"
+      },
+      "inputs": [
+        {
+          "key": "state",
+          "label": "State",
+          "type": "select",
+          "default": "all",
+          "options": [
+            {
+              "value": "all",
+              "label": "all"
+            },
+            {
+              "value": "live",
+              "label": "live"
+            },
+            {
+              "value": "draft",
+              "label": "draft"
+            },
+            {
+              "value": "sold",
+              "label": "sold"
+            },
+            {
+              "value": "ended",
+              "label": "ended"
+            }
+          ]
+        },
+        {
+          "key": "query",
+          "label": "Search",
+          "type": "string"
+        },
+        {
+          "key": "per_page",
+          "label": "How many",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    },
+    {
+      "key": "list_conditions",
+      "name": "List conditions",
+      "description": "Condition names and IDs for new listings.",
+      "method": "GET",
+      "endpoint": "/listing_conditions",
+      "output_fields": {
+        "conditions": "conditions"
+      },
+      "inputs": []
+    },
+    {
+      "key": "create_listing",
+      "name": "Create listing",
+      "description": "Create a listing (draft unless you publish it).",
+      "method": "POST",
+      "endpoint": "/listings",
+      "body": {
+        "make": "{{ inputs.make }}",
+        "model": "{{ inputs.model }}",
+        "title": "{{ inputs.title }}",
+        "description": "{{ inputs.description }}",
+        "condition": {
+          "uuid": "{{ inputs.condition_uuid }}"
+        },
+        "price": {
+          "amount": "{{ inputs.price }}",
+          "currency": "{{ inputs.currency }}"
+        },
+        "has_inventory": true,
+        "inventory": "{{ inputs.inventory }}",
+        "sku": "{{ inputs.sku }}",
+        "photos": "{{ inputs.photos }}",
+        "publish": "{{ inputs.publish }}"
+      },
+      "output_fields": {
+        "id": "listing.id",
+        "url": "listing._links.web.href"
+      },
+      "inputs": [
+        {
+          "key": "make",
+          "label": "Brand",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "model",
+          "label": "Model",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "string"
+        },
+        {
+          "key": "description",
+          "label": "Description",
+          "type": "text"
+        },
+        {
+          "key": "condition_uuid",
+          "label": "Condition ID",
+          "type": "string",
+          "required": true,
+          "help": "Use List conditions to find it."
+        },
+        {
+          "key": "price",
+          "label": "Price",
+          "type": "string",
+          "required": true,
+          "placeholder": "499.00"
+        },
+        {
+          "key": "currency",
+          "label": "Currency",
+          "type": "string",
+          "default": "USD"
+        },
+        {
+          "key": "inventory",
+          "label": "Quantity",
+          "type": "number",
+          "default": 1
+        },
+        {
+          "key": "sku",
+          "label": "SKU",
+          "type": "string"
+        },
+        {
+          "key": "photos",
+          "label": "Photo URLs",
+          "type": "list"
+        },
+        {
+          "key": "publish",
+          "label": "Publish now",
+          "type": "boolean",
+          "default": false
+        }
+      ]
+    },
+    {
+      "key": "update_listing",
+      "name": "Update listing",
+      "description": "Change price, quantity or text.",
+      "method": "PUT",
+      "endpoint": "/listings/{{ inputs.listing_id }}",
+      "body": {
+        "title": "{{ inputs.title }}",
+        "description": "{{ inputs.description }}",
+        "price": {
+          "amount": "{{ inputs.price }}",
+          "currency": "{{ inputs.currency }}"
+        },
+        "inventory": "{{ inputs.inventory }}"
+      },
+      "inputs": [
+        {
+          "key": "listing_id",
+          "label": "Listing ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "string"
+        },
+        {
+          "key": "description",
+          "label": "Description",
+          "type": "text"
+        },
+        {
+          "key": "price",
+          "label": "Price",
+          "type": "string",
+          "placeholder": "449.00"
+        },
+        {
+          "key": "currency",
+          "label": "Currency",
+          "type": "string",
+          "default": "USD"
+        },
+        {
+          "key": "inventory",
+          "label": "Quantity",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "end_listing",
+      "name": "End listing",
+      "description": "End a live listing.",
+      "method": "PUT",
+      "endpoint": "/my/listings/{{ inputs.listing_id }}/state/end",
+      "body": {
+        "reason": "{{ inputs.reason }}"
+      },
+      "inputs": [
+        {
+          "key": "listing_id",
+          "label": "Listing ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "reason",
+          "label": "Reason",
+          "type": "select",
+          "required": true,
+          "default": "not_sold",
+          "options": [
+            {
+              "value": "not_sold",
+              "label": "Not sold"
+            },
+            {
+              "value": "reverb_sale",
+              "label": "Sold on Reverb"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "list_orders",
+      "name": "List orders",
+      "description": "Your sales, newest first.",
+      "method": "GET",
+      "endpoint": "/my/orders/selling/all",
+      "query": {
+        "per_page": "{{ inputs.per_page }}"
+      },
+      "output_fields": {
+        "orders": "orders"
+      },
+      "inputs": [
+        {
+          "key": "per_page",
+          "label": "How many",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    },
+    {
+      "key": "get_order",
+      "name": "Get order",
+      "description": "One order's details.",
+      "method": "GET",
+      "endpoint": "/my/orders/selling/{{ inputs.order_number }}",
+      "output_fields": {
+        "status": "status",
+        "total": "total.amount",
+        "buyer_name": "buyer_name",
+        "title": "title"
+      },
+      "inputs": [
+        {
+          "key": "order_number",
+          "label": "Order number",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "mark_shipped",
+      "name": "Mark order shipped",
+      "description": "Add tracking and mark as shipped.",
+      "method": "POST",
+      "endpoint": "/my/orders/selling/{{ inputs.order_number }}/ship",
+      "body": {
+        "provider": "{{ inputs.provider }}",
+        "tracking_number": "{{ inputs.tracking_number }}",
+        "send_notification": true
+      },
+      "inputs": [
+        {
+          "key": "order_number",
+          "label": "Order number",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "provider",
+          "label": "Carrier",
+          "type": "string",
+          "required": true,
+          "placeholder": "UPS"
+        },
+        {
+          "key": "tracking_number",
+          "label": "Tracking number",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_order",
+      "name": "New order",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/my/orders/selling/all",
+      "query": {
+        "per_page": 50
+      },
+      "items_path": "orders",
+      "id_field": "order_number",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

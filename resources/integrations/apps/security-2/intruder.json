@@ -1,0 +1,192 @@
+{
+  "key": "intruder",
+  "name": "Intruder",
+  "category": "Security & IT",
+  "description": "Add targets, run Intruder vulnerability scans and list issues.",
+  "brand": "intruder",
+  "website": "https://www.intruder.io",
+  "docs_url": "https://developers.intruder.io/docs",
+  "base_url": "https://api.intruder.io/v1",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "API access token",
+        "type": "password",
+        "required": true,
+        "help": "Intruder portal → Settings (Account) → API → Generate access token."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_targets",
+      "name": "List targets",
+      "description": "List the targets you scan.",
+      "method": "GET",
+      "endpoint": "/targets/",
+      "query": {
+        "address": "{{ inputs.address }}"
+      },
+      "output_fields": {
+        "targets": "results",
+        "count": "count"
+      },
+      "inputs": [
+        {
+          "key": "address",
+          "label": "Address filter",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "add_target",
+      "name": "Add target",
+      "description": "Add a domain, IP or URL to scan.",
+      "method": "POST",
+      "endpoint": "/targets/",
+      "body": {
+        "address": "{{ inputs.address }}",
+        "tags": "{{ inputs.tags }}"
+      },
+      "output_fields": {
+        "target_id": "id",
+        "address": "address"
+      },
+      "inputs": [
+        {
+          "key": "address",
+          "label": "Address",
+          "type": "string",
+          "required": true,
+          "placeholder": "example.com",
+          "help": "Domain, IP address or URL."
+        },
+        {
+          "key": "tags",
+          "label": "Tags",
+          "type": "list"
+        }
+      ]
+    },
+    {
+      "key": "start_scan",
+      "name": "Start scan",
+      "description": "Start a vulnerability scan.",
+      "method": "POST",
+      "endpoint": "/scans/",
+      "body": {
+        "target_addresses": "{{ inputs.target_addresses }}",
+        "tag_names": "{{ inputs.tag_names }}",
+        "name": "{{ inputs.name }}"
+      },
+      "output_fields": {
+        "scan_id": "id",
+        "status": "status"
+      },
+      "inputs": [
+        {
+          "key": "target_addresses",
+          "label": "Targets",
+          "type": "list",
+          "help": "Leave empty with no tags to scan all targets."
+        },
+        {
+          "key": "tag_names",
+          "label": "Target tags",
+          "type": "list"
+        },
+        {
+          "key": "name",
+          "label": "Scan name",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "get_scan",
+      "name": "Get scan",
+      "description": "Get a scan's status.",
+      "method": "GET",
+      "endpoint": "/scans/{{ inputs.scan_id }}/",
+      "output_fields": {
+        "status": "status",
+        "completed_time": "completed_time"
+      },
+      "inputs": [
+        {
+          "key": "scan_id",
+          "label": "Scan ID",
+          "type": "string",
+          "required": true,
+          "help": "Returned by Start scan."
+        }
+      ]
+    },
+    {
+      "key": "list_scans",
+      "name": "List scans",
+      "description": "List current and recent scans.",
+      "method": "GET",
+      "endpoint": "/scans/",
+      "output_fields": {
+        "scans": "results"
+      },
+      "inputs": []
+    },
+    {
+      "key": "list_issues",
+      "name": "List issues",
+      "description": "List open security issues found by scans.",
+      "method": "GET",
+      "endpoint": "/issues/",
+      "query": {
+        "severity": "{{ inputs.severity }}",
+        "target_addresses": "{{ inputs.target_addresses }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "issues": "results",
+        "count": "count"
+      },
+      "inputs": [
+        {
+          "key": "severity",
+          "label": "Severity",
+          "type": "select",
+          "options": [
+            {
+              "value": "critical",
+              "label": "critical"
+            },
+            {
+              "value": "high",
+              "label": "high"
+            },
+            {
+              "value": "medium",
+              "label": "medium"
+            },
+            {
+              "value": "low",
+              "label": "low"
+            }
+          ]
+        },
+        {
+          "key": "target_addresses",
+          "label": "Target",
+          "type": "string"
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 100
+        }
+      ]
+    }
+  ]
+}

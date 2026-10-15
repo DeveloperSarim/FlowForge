@@ -1,0 +1,312 @@
+{
+  "key": "shlink",
+  "name": "Shlink",
+  "category": "Utilities",
+  "description": "Create and manage short URLs on your self-hosted Shlink server and read visits.",
+  "website": "https://shlink.io",
+  "docs_url": "https://api-spec.shlink.io",
+  "base_url": "{{ credentials.server_url }}/rest/v3",
+  "headers": {
+    "Accept": "application/json"
+  },
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "X-Api-Key",
+    "fields": [
+      {
+        "key": "server_url",
+        "label": "Shlink server address",
+        "type": "string",
+        "required": true,
+        "placeholder": "https://s.example.com",
+        "help": "The address your short links use, without a trailing slash."
+      },
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "Run 'shlink api-key:generate' on the server, or create a key in the Shlink web client."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "create_short_url",
+      "name": "Create short URL",
+      "description": "Shorten a URL.",
+      "method": "POST",
+      "endpoint": "/short-urls",
+      "body": {
+        "longUrl": "{{ inputs.long_url }}",
+        "customSlug": "{{ inputs.custom_slug }}",
+        "title": "{{ inputs.title }}",
+        "tags": "{{ inputs.tags }}",
+        "validUntil": "{{ inputs.valid_until }}",
+        "maxVisits": "{{ inputs.max_visits }}",
+        "domain": "{{ inputs.domain }}",
+        "findIfExists": "{{ inputs.find_if_exists }}"
+      },
+      "output_fields": {
+        "short_url": "shortUrl",
+        "short_code": "shortCode",
+        "visits": "visitsSummary.total"
+      },
+      "inputs": [
+        {
+          "key": "long_url",
+          "label": "Long URL",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "custom_slug",
+          "label": "Custom slug",
+          "type": "string"
+        },
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "string"
+        },
+        {
+          "key": "tags",
+          "label": "Tags",
+          "type": "list"
+        },
+        {
+          "key": "valid_until",
+          "label": "Valid until",
+          "type": "string",
+          "placeholder": "2026-12-31T23:59:59+00:00"
+        },
+        {
+          "key": "max_visits",
+          "label": "Maximum visits",
+          "type": "number"
+        },
+        {
+          "key": "domain",
+          "label": "Domain",
+          "type": "string",
+          "help": "Only if your server has several domains."
+        },
+        {
+          "key": "find_if_exists",
+          "label": "Return the existing short URL if there is one",
+          "type": "boolean",
+          "default": false
+        }
+      ]
+    },
+    {
+      "key": "list_short_urls",
+      "name": "List short URLs",
+      "description": "List or search your short URLs.",
+      "method": "GET",
+      "endpoint": "/short-urls",
+      "query": {
+        "searchTerm": "{{ inputs.search }}",
+        "itemsPerPage": "{{ inputs.items_per_page }}",
+        "orderBy": "{{ inputs.order_by }}"
+      },
+      "output_fields": {
+        "short_urls": "shortUrls.data",
+        "total": "shortUrls.pagination.totalItems"
+      },
+      "inputs": [
+        {
+          "key": "search",
+          "label": "Search",
+          "type": "string"
+        },
+        {
+          "key": "items_per_page",
+          "label": "How many",
+          "type": "number",
+          "default": 20
+        },
+        {
+          "key": "order_by",
+          "label": "Sort",
+          "type": "select",
+          "default": "dateCreated-DESC",
+          "options": [
+            {
+              "value": "dateCreated-DESC",
+              "label": "Newest first"
+            },
+            {
+              "value": "visits-DESC",
+              "label": "Most visited"
+            },
+            {
+              "value": "title-ASC",
+              "label": "Title A–Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "get_short_url",
+      "name": "Get short URL",
+      "description": "Get one short URL and its visit count.",
+      "method": "GET",
+      "endpoint": "/short-urls/{{ inputs.short_code }}",
+      "query": {
+        "domain": "{{ inputs.domain }}"
+      },
+      "output_fields": {
+        "short_url": "shortUrl",
+        "long_url": "longUrl",
+        "visits": "visitsSummary.total"
+      },
+      "inputs": [
+        {
+          "key": "short_code",
+          "label": "Short code",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "domain",
+          "label": "Domain",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "update_short_url",
+      "name": "Update short URL",
+      "description": "Change where a short URL points, or its title, tags and limits.",
+      "method": "PATCH",
+      "endpoint": "/short-urls/{{ inputs.short_code }}",
+      "body": {
+        "longUrl": "{{ inputs.long_url }}",
+        "title": "{{ inputs.title }}",
+        "tags": "{{ inputs.tags }}",
+        "validUntil": "{{ inputs.valid_until }}",
+        "maxVisits": "{{ inputs.max_visits }}"
+      },
+      "output_fields": {
+        "short_url": "shortUrl",
+        "long_url": "longUrl"
+      },
+      "inputs": [
+        {
+          "key": "short_code",
+          "label": "Short code",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "long_url",
+          "label": "New long URL",
+          "type": "string"
+        },
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "string"
+        },
+        {
+          "key": "tags",
+          "label": "Tags",
+          "type": "list"
+        },
+        {
+          "key": "valid_until",
+          "label": "Valid until",
+          "type": "string"
+        },
+        {
+          "key": "max_visits",
+          "label": "Maximum visits",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "delete_short_url",
+      "name": "Delete short URL",
+      "description": "Delete a short URL.",
+      "method": "DELETE",
+      "endpoint": "/short-urls/{{ inputs.short_code }}",
+      "inputs": [
+        {
+          "key": "short_code",
+          "label": "Short code",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "get_visits",
+      "name": "Get visits",
+      "description": "List the visits of a short URL (referer, location, user agent).",
+      "method": "GET",
+      "endpoint": "/short-urls/{{ inputs.short_code }}/visits",
+      "query": {
+        "startDate": "{{ inputs.start_date }}",
+        "endDate": "{{ inputs.end_date }}",
+        "itemsPerPage": "{{ inputs.items_per_page }}"
+      },
+      "output_fields": {
+        "visits": "visits.data",
+        "total": "visits.pagination.totalItems"
+      },
+      "inputs": [
+        {
+          "key": "short_code",
+          "label": "Short code",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "start_date",
+          "label": "From",
+          "type": "string",
+          "placeholder": "2026-01-01"
+        },
+        {
+          "key": "end_date",
+          "label": "To",
+          "type": "string"
+        },
+        {
+          "key": "items_per_page",
+          "label": "How many",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_short_url",
+      "name": "New short URL",
+      "type": "polling",
+      "description": "A short URL was created.",
+      "method": "GET",
+      "endpoint": "/short-urls",
+      "query": {
+        "orderBy": "dateCreated-DESC",
+        "itemsPerPage": 50
+      },
+      "items_path": "shortUrls.data",
+      "id_field": "shortCode",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

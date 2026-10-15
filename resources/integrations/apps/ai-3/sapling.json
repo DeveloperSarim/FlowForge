@@ -1,0 +1,167 @@
+{
+  "key": "sapling",
+  "name": "Sapling",
+  "category": "AI",
+  "description": "AI writing tools: AI-content detector, grammar and spell check, rephrasing.",
+  "website": "https://sapling.ai",
+  "docs_url": "https://sapling.ai/docs/api",
+  "base_url": "https://api.sapling.ai/api/v1",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "sapling.ai → Dashboard → API → copy your API key."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "detect_ai",
+      "name": "Detect AI text",
+      "description": "Score how likely a text is AI-generated (0 = human, 1 = AI).",
+      "method": "POST",
+      "endpoint": "/aidetect",
+      "timeout": 120,
+      "body": {
+        "text": "{{ inputs.text }}",
+        "sent_scores": true
+      },
+      "output_fields": {
+        "ai_score": "score",
+        "sentence_scores": "sentence_scores"
+      },
+      "inputs": [
+        {
+          "key": "text",
+          "label": "Text",
+          "type": "text",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "check_grammar",
+      "name": "Check grammar",
+      "description": "Find grammar and spelling mistakes and get fixes.",
+      "method": "POST",
+      "endpoint": "/edits",
+      "body": {
+        "text": "{{ inputs.text }}",
+        "lang": "{{ inputs.lang }}",
+        "auto_apply": true
+      },
+      "output_fields": {
+        "edits": "edits",
+        "corrected_text": "applied_text"
+      },
+      "inputs": [
+        {
+          "key": "text",
+          "label": "Text",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "lang",
+          "label": "Language",
+          "type": "string",
+          "default": "en"
+        }
+      ]
+    },
+    {
+      "key": "check_spelling",
+      "name": "Check spelling",
+      "description": "Find spelling mistakes and get corrections.",
+      "method": "POST",
+      "endpoint": "/spellcheck",
+      "body": {
+        "text": "{{ inputs.text }}",
+        "lang": "{{ inputs.lang }}",
+        "auto_apply": true
+      },
+      "output_fields": {
+        "edits": "edits",
+        "corrected_text": "applied_text"
+      },
+      "inputs": [
+        {
+          "key": "text",
+          "label": "Text",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "lang",
+          "label": "Language",
+          "type": "string",
+          "default": "en"
+        }
+      ]
+    },
+    {
+      "key": "rephrase",
+      "name": "Rephrase text",
+      "description": "Rewrite text in a different style.",
+      "method": "POST",
+      "endpoint": "/rephrase",
+      "body": {
+        "text": "{{ inputs.text }}",
+        "mapping": "{{ inputs.mapping }}"
+      },
+      "output_fields": {
+        "text": "results.0.replacement",
+        "options": "results.*.replacement"
+      },
+      "inputs": [
+        {
+          "key": "text",
+          "label": "Text",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "mapping",
+          "label": "Change",
+          "type": "select",
+          "required": true,
+          "default": "paraphrase",
+          "options": [
+            {
+              "value": "paraphrase",
+              "label": "Paraphrase"
+            },
+            {
+              "value": "informal_to_formal",
+              "label": "Make formal"
+            },
+            {
+              "value": "passive_to_active",
+              "label": "Passive to active"
+            },
+            {
+              "value": "active_to_passive",
+              "label": "Active to passive"
+            },
+            {
+              "value": "shorten",
+              "label": "Shorten"
+            },
+            {
+              "value": "expand",
+              "label": "Expand"
+            },
+            {
+              "value": "sentence_split",
+              "label": "Split sentences"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

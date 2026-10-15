@@ -1,0 +1,130 @@
+{
+  "key": "github_models",
+  "name": "GitHub Models",
+  "category": "AI",
+  "description": "Run OpenAI, Llama, Mistral, DeepSeek and other models with a GitHub token.",
+  "brand": "github",
+  "website": "https://github.com/marketplace/models",
+  "docs_url": "https://docs.github.com/en/rest/models/inference",
+  "base_url": "https://models.github.ai",
+  "headers": {
+    "Accept": "application/vnd.github+json",
+    "X-GitHub-Api-Version": "2022-11-28"
+  },
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "Personal access token",
+        "type": "password",
+        "required": true,
+        "help": "GitHub → Settings → Developer settings → Personal access tokens → Fine-grained token with the \"Models\" (read) permission."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "chat_completion",
+      "name": "Chat completion",
+      "description": "Send a prompt and get the model's reply as text.",
+      "method": "POST",
+      "endpoint": "/inference/chat/completions",
+      "timeout": 300,
+      "body": {
+        "model": "{{ inputs.model }}",
+        "messages": [
+          {
+            "$if": "{{ inputs.system }}",
+            "role": "system",
+            "content": "{{ inputs.system }}"
+          },
+          {
+            "role": "user",
+            "content": "{{ inputs.prompt }}"
+          }
+        ],
+        "temperature": "{{ inputs.temperature }}",
+        "max_tokens": "{{ inputs.max_tokens }}"
+      },
+      "output_fields": {
+        "text": "choices.0.message.content"
+      },
+      "inputs": [
+        {
+          "key": "model",
+          "label": "Model",
+          "type": "string",
+          "required": true,
+          "help": "Publisher/model ID, e.g. openai/gpt-4.1-mini or meta/llama-3.3-70b-instruct. See List models.",
+          "default": "openai/gpt-4.1-mini"
+        },
+        {
+          "key": "prompt",
+          "label": "Prompt",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "system",
+          "label": "System prompt",
+          "type": "text",
+          "help": "Optional instructions for how the model should behave."
+        },
+        {
+          "key": "temperature",
+          "label": "Temperature",
+          "type": "number",
+          "placeholder": "0.7",
+          "help": "0 = focused, 1 = creative. Leave blank for the default."
+        },
+        {
+          "key": "max_tokens",
+          "label": "Max output tokens",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "create_embedding",
+      "name": "Create embedding",
+      "description": "Turn text into a vector for search or similarity.",
+      "method": "POST",
+      "endpoint": "/inference/embeddings",
+      "body": {
+        "model": "{{ inputs.model }}",
+        "input": "{{ inputs.input }}"
+      },
+      "output_fields": {
+        "embedding": "data.0.embedding"
+      },
+      "inputs": [
+        {
+          "key": "model",
+          "label": "Model",
+          "type": "string",
+          "required": true,
+          "help": "Publisher/model ID of an embedding model.",
+          "default": "openai/text-embedding-3-small"
+        },
+        {
+          "key": "input",
+          "label": "Text",
+          "type": "text",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_models",
+      "name": "List models",
+      "description": "List the models in the GitHub Models catalog.",
+      "method": "GET",
+      "endpoint": "/catalog/models",
+      "output_fields": {
+        "models": "*.id"
+      },
+      "inputs": []
+    }
+  ]
+}

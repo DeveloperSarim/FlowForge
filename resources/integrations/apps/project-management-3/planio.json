@@ -1,0 +1,236 @@
+{
+  "key": "planio",
+  "name": "Planio",
+  "category": "Project Management",
+  "description": "Hosted Redmine: list projects and issues, create and update issues.",
+  "website": "https://plan.io",
+  "docs_url": "https://plan.io/redmine-api",
+  "base_url": "https://{{ credentials.subdomain }}.plan.io",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "X-Redmine-API-Key",
+    "fields": [
+      {
+        "key": "subdomain",
+        "label": "Planio account name",
+        "type": "string",
+        "required": true,
+        "placeholder": "yourcompany",
+        "help": "The first part of your Planio address: yourcompany in yourcompany.plan.io."
+      },
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "Planio → My account → API access key (right sidebar)."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_projects",
+      "name": "List projects",
+      "description": "Your projects.",
+      "method": "GET",
+      "endpoint": "/projects.json",
+      "query": {
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "names": "projects.*.name",
+        "ids": "projects.*.id"
+      },
+      "inputs": [
+        {
+          "key": "limit",
+          "label": "Max results",
+          "type": "number",
+          "default": 25
+        }
+      ]
+    },
+    {
+      "key": "list_issues",
+      "name": "List issues",
+      "description": "Issues, newest first.",
+      "method": "GET",
+      "endpoint": "/issues.json",
+      "query": {
+        "project_id": "{{ inputs.project_id }}",
+        "status_id": "{{ inputs.status }}",
+        "limit": "{{ inputs.limit }}",
+        "sort": "created_on:desc"
+      },
+      "output_fields": {
+        "subjects": "issues.*.subject",
+        "ids": "issues.*.id"
+      },
+      "inputs": [
+        {
+          "key": "project_id",
+          "label": "Project ID or identifier",
+          "type": "string"
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "default": "open",
+          "options": [
+            {
+              "value": "open",
+              "label": "Open"
+            },
+            {
+              "value": "closed",
+              "label": "Closed"
+            },
+            {
+              "value": "*",
+              "label": "All"
+            }
+          ]
+        },
+        {
+          "key": "limit",
+          "label": "Max results",
+          "type": "number",
+          "default": 25
+        }
+      ]
+    },
+    {
+      "key": "create_issue",
+      "name": "Create issue",
+      "description": "Add an issue to a project.",
+      "method": "POST",
+      "endpoint": "/issues.json",
+      "body": {
+        "issue": {
+          "project_id": "{{ inputs.project_id }}",
+          "subject": "{{ inputs.subject }}",
+          "description": "{{ inputs.description }}",
+          "assigned_to_id": "{{ inputs.assigned_to_id }}",
+          "due_date": "{{ inputs.due_date }}"
+        }
+      },
+      "output_fields": {
+        "id": "issue.id",
+        "subject": "issue.subject"
+      },
+      "inputs": [
+        {
+          "key": "project_id",
+          "label": "Project ID or identifier",
+          "type": "string",
+          "required": true,
+          "help": "Use \"List projects\"."
+        },
+        {
+          "key": "subject",
+          "label": "Subject",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "description",
+          "label": "Description",
+          "type": "text"
+        },
+        {
+          "key": "assigned_to_id",
+          "label": "Assignee user ID",
+          "type": "number"
+        },
+        {
+          "key": "due_date",
+          "label": "Due date",
+          "type": "string",
+          "placeholder": "2025-01-31"
+        }
+      ]
+    },
+    {
+      "key": "update_issue",
+      "name": "Update issue",
+      "description": "Change fields or add a comment.",
+      "method": "PUT",
+      "endpoint": "/issues/{{ inputs.id }}.json",
+      "body": {
+        "issue": {
+          "subject": "{{ inputs.subject }}",
+          "status_id": "{{ inputs.status_id }}",
+          "notes": "{{ inputs.notes }}"
+        }
+      },
+      "inputs": [
+        {
+          "key": "id",
+          "label": "Issue ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "subject",
+          "label": "Subject",
+          "type": "string"
+        },
+        {
+          "key": "status_id",
+          "label": "Status ID",
+          "type": "number"
+        },
+        {
+          "key": "notes",
+          "label": "Comment",
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "key": "get_issue",
+      "name": "Get issue",
+      "description": "One issue.",
+      "method": "GET",
+      "endpoint": "/issues/{{ inputs.id }}.json",
+      "output_fields": {
+        "subject": "issue.subject",
+        "status": "issue.status.name"
+      },
+      "inputs": [
+        {
+          "key": "id",
+          "label": "Issue ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_issue",
+      "name": "New issue",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/issues.json",
+      "query": {
+        "sort": "created_on:desc",
+        "limit": 25,
+        "status_id": "*"
+      },
+      "items_path": "issues",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

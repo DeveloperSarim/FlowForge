@@ -1,0 +1,329 @@
+{
+  "key": "katana",
+  "name": "Katana MRP",
+  "category": "E-commerce",
+  "description": "Manufacturing and inventory: products, variants, stock, sales orders, customers.",
+  "website": "https://katanamrp.com",
+  "docs_url": "https://developer.katanamrp.com/reference/api-introduction",
+  "base_url": "https://api.katanamrp.com/v1",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "Katana → Settings → API → Add new API key."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_products",
+      "name": "List products",
+      "description": "Products, optionally by name.",
+      "method": "GET",
+      "endpoint": "/products",
+      "query": {
+        "name": "{{ inputs.name }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "products": "data"
+      },
+      "inputs": [
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string"
+        },
+        {
+          "key": "limit",
+          "label": "How many",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    },
+    {
+      "key": "find_variant",
+      "name": "Find variant by SKU",
+      "description": "Look up a variant (and its ID) by SKU.",
+      "method": "GET",
+      "endpoint": "/variants",
+      "query": {
+        "sku": "{{ inputs.sku }}"
+      },
+      "output_fields": {
+        "variant_id": "data.0.id",
+        "product_id": "data.0.product_id",
+        "sales_price": "data.0.sales_price"
+      },
+      "inputs": [
+        {
+          "key": "sku",
+          "label": "SKU",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "create_product",
+      "name": "Create product",
+      "description": "Add a sellable product with one variant.",
+      "method": "POST",
+      "endpoint": "/products",
+      "body": {
+        "name": "{{ inputs.name }}",
+        "uom": "{{ inputs.uom }}",
+        "category_name": "{{ inputs.category }}",
+        "is_sellable": true,
+        "variants": [
+          {
+            "sku": "{{ inputs.sku }}",
+            "sales_price": "{{ inputs.sales_price }}",
+            "purchase_price": "{{ inputs.purchase_price }}"
+          }
+        ]
+      },
+      "output_fields": {
+        "id": "id",
+        "variant_id": "variants.0.id"
+      },
+      "inputs": [
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "sku",
+          "label": "SKU",
+          "type": "string"
+        },
+        {
+          "key": "sales_price",
+          "label": "Sales price",
+          "type": "number"
+        },
+        {
+          "key": "purchase_price",
+          "label": "Purchase price",
+          "type": "number"
+        },
+        {
+          "key": "uom",
+          "label": "Unit",
+          "type": "string",
+          "default": "pcs"
+        },
+        {
+          "key": "category",
+          "label": "Category",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "get_inventory",
+      "name": "Get stock",
+      "description": "Stock levels for a variant.",
+      "method": "GET",
+      "endpoint": "/inventory",
+      "query": {
+        "variant_id": "{{ inputs.variant_id }}",
+        "location_id": "{{ inputs.location_id }}"
+      },
+      "output_fields": {
+        "in_stock": "data.0.quantity_in_stock",
+        "committed": "data.0.quantity_committed",
+        "expected": "data.0.quantity_expected"
+      },
+      "inputs": [
+        {
+          "key": "variant_id",
+          "label": "Variant ID",
+          "type": "number",
+          "required": true,
+          "help": "Use Find variant by SKU."
+        },
+        {
+          "key": "location_id",
+          "label": "Location ID",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "create_customer",
+      "name": "Create customer",
+      "description": "Add a customer.",
+      "method": "POST",
+      "endpoint": "/customers",
+      "body": {
+        "name": "{{ inputs.name }}",
+        "first_name": "{{ inputs.first_name }}",
+        "last_name": "{{ inputs.last_name }}",
+        "email": "{{ inputs.email }}",
+        "phone": "{{ inputs.phone }}",
+        "currency": "{{ inputs.currency }}"
+      },
+      "output_fields": {
+        "id": "id"
+      },
+      "inputs": [
+        {
+          "key": "name",
+          "label": "Display name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "first_name",
+          "label": "First name",
+          "type": "string"
+        },
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string"
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string"
+        },
+        {
+          "key": "phone",
+          "label": "Phone",
+          "type": "string"
+        },
+        {
+          "key": "currency",
+          "label": "Currency",
+          "type": "string",
+          "placeholder": "USD"
+        }
+      ]
+    },
+    {
+      "key": "create_sales_order",
+      "name": "Create sales order",
+      "description": "Create a sales order for a customer.",
+      "method": "POST",
+      "endpoint": "/sales_orders",
+      "body": {
+        "order_no": "{{ inputs.order_no }}",
+        "customer_id": "{{ inputs.customer_id }}",
+        "delivery_date": "{{ inputs.delivery_date }}",
+        "sales_order_rows": "{{ inputs.rows }}",
+        "additional_info": "{{ inputs.notes }}"
+      },
+      "output_fields": {
+        "id": "id",
+        "status": "status"
+      },
+      "inputs": [
+        {
+          "key": "order_no",
+          "label": "Order number",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "customer_id",
+          "label": "Customer ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "rows",
+          "label": "Rows (JSON)",
+          "type": "json",
+          "required": true,
+          "placeholder": "[{\"variant_id\":123,\"quantity\":2,\"price_per_unit\":19.99}]"
+        },
+        {
+          "key": "delivery_date",
+          "label": "Delivery date",
+          "type": "string",
+          "placeholder": "2026-02-15T00:00:00Z"
+        },
+        {
+          "key": "notes",
+          "label": "Notes",
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "key": "list_sales_orders",
+      "name": "List sales orders",
+      "description": "Sales orders, optionally by status or number.",
+      "method": "GET",
+      "endpoint": "/sales_orders",
+      "query": {
+        "status": "{{ inputs.status }}",
+        "order_no": "{{ inputs.order_no }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "sales_orders": "data"
+      },
+      "inputs": [
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "options": [
+            {
+              "value": "NOT_SHIPPED",
+              "label": "NOT_SHIPPED"
+            },
+            {
+              "value": "PENDING",
+              "label": "PENDING"
+            },
+            {
+              "value": "PACKED",
+              "label": "PACKED"
+            },
+            {
+              "value": "DELIVERED",
+              "label": "DELIVERED"
+            }
+          ]
+        },
+        {
+          "key": "order_no",
+          "label": "Order number",
+          "type": "string"
+        },
+        {
+          "key": "limit",
+          "label": "How many",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Katana → Settings → Webhooks → Add webhook (e.g. sales_order.created), paste this URL.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

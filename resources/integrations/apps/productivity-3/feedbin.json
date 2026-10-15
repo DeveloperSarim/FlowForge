@@ -1,0 +1,166 @@
+{
+  "key": "feedbin",
+  "name": "Feedbin",
+  "category": "Productivity",
+  "description": "RSS reader: list subscriptions and entries, subscribe to feeds, mark starred.",
+  "website": "https://feedbin.com",
+  "docs_url": "https://github.com/feedbin/feedbin-api",
+  "base_url": "https://api.feedbin.com/v2",
+  "auth": {
+    "type": "basic",
+    "fields": [
+      {
+        "key": "username",
+        "label": "Email",
+        "type": "string",
+        "required": true,
+        "help": "Your Feedbin account email."
+      },
+      {
+        "key": "password",
+        "label": "Password",
+        "type": "password",
+        "required": true,
+        "help": "Your Feedbin password."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_entries",
+      "name": "List entries",
+      "description": "Newest articles.",
+      "method": "GET",
+      "endpoint": "/entries.json",
+      "query": {
+        "per_page": "{{ inputs.per_page }}",
+        "read": "{{ inputs.read }}",
+        "since": "{{ inputs.since }}"
+      },
+      "output_fields": {
+        "titles": "*.title",
+        "urls": "*.url"
+      },
+      "inputs": [
+        {
+          "key": "per_page",
+          "label": "How many",
+          "type": "number",
+          "default": 25
+        },
+        {
+          "key": "read",
+          "label": "Read state",
+          "type": "select",
+          "options": [
+            {
+              "value": "false",
+              "label": "Unread only"
+            },
+            {
+              "value": "true",
+              "label": "Read only"
+            }
+          ]
+        },
+        {
+          "key": "since",
+          "label": "Since",
+          "type": "string",
+          "placeholder": "2025-01-01T00:00:00.000000Z"
+        }
+      ]
+    },
+    {
+      "key": "get_entry",
+      "name": "Get entry",
+      "description": "One article.",
+      "method": "GET",
+      "endpoint": "/entries/{{ inputs.id }}.json",
+      "output_fields": {
+        "title": "title",
+        "url": "url",
+        "content": "content"
+      },
+      "inputs": [
+        {
+          "key": "id",
+          "label": "Entry ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_subscriptions",
+      "name": "List subscriptions",
+      "description": "Feeds you follow.",
+      "method": "GET",
+      "endpoint": "/subscriptions.json",
+      "output_fields": {
+        "titles": "*.title",
+        "feed_urls": "*.feed_url"
+      },
+      "inputs": []
+    },
+    {
+      "key": "subscribe",
+      "name": "Subscribe to feed",
+      "description": "Follow a feed by URL.",
+      "method": "POST",
+      "endpoint": "/subscriptions.json",
+      "body": {
+        "feed_url": "{{ inputs.feed_url }}"
+      },
+      "output_fields": {
+        "id": "id",
+        "title": "title"
+      },
+      "inputs": [
+        {
+          "key": "feed_url",
+          "label": "Feed or site URL",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "unsubscribe",
+      "name": "Unsubscribe",
+      "description": "Stop following a feed.",
+      "method": "DELETE",
+      "endpoint": "/subscriptions/{{ inputs.id }}.json",
+      "inputs": [
+        {
+          "key": "id",
+          "label": "Subscription ID",
+          "type": "string",
+          "required": true,
+          "help": "From \"List subscriptions\"."
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_entry",
+      "name": "New article",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/entries.json",
+      "query": {
+        "per_page": 25
+      },
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

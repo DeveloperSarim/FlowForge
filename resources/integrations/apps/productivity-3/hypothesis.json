@@ -1,0 +1,193 @@
+{
+  "key": "hypothesis",
+  "name": "Hypothesis",
+  "category": "Productivity",
+  "description": "Web annotation: search, create and delete highlights and notes on any page.",
+  "website": "https://hypothes.is",
+  "docs_url": "https://h.readthedocs.io/en/latest/api/",
+  "base_url": "https://api.hypothes.is/api",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "API token",
+        "type": "password",
+        "required": true,
+        "help": "hypothes.is → Account → Developer → Generate your API token."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "search_annotations",
+      "name": "Search annotations",
+      "description": "Find annotations by page, user, tag or text.",
+      "method": "GET",
+      "endpoint": "/search",
+      "query": {
+        "uri": "{{ inputs.uri }}",
+        "user": "{{ inputs.user }}",
+        "tags": "{{ inputs.tags }}",
+        "any": "{{ inputs.q }}",
+        "limit": "{{ inputs.limit }}",
+        "sort": "created",
+        "order": "desc"
+      },
+      "output_fields": {
+        "total": "total",
+        "texts": "rows.*.text"
+      },
+      "inputs": [
+        {
+          "key": "uri",
+          "label": "Page URL",
+          "type": "string"
+        },
+        {
+          "key": "user",
+          "label": "User",
+          "type": "string",
+          "help": "Like acct:name@hypothes.is"
+        },
+        {
+          "key": "tags",
+          "label": "Tag",
+          "type": "string"
+        },
+        {
+          "key": "q",
+          "label": "Text",
+          "type": "string"
+        },
+        {
+          "key": "limit",
+          "label": "Max results",
+          "type": "number",
+          "default": 20
+        }
+      ]
+    },
+    {
+      "key": "create_annotation",
+      "name": "Create annotation",
+      "description": "Add a page-level note to a URL.",
+      "method": "POST",
+      "endpoint": "/annotations",
+      "body": {
+        "uri": "{{ inputs.uri }}",
+        "text": "{{ inputs.text }}",
+        "tags": "{{ inputs.tags }}",
+        "group": "{{ inputs.group }}"
+      },
+      "output_fields": {
+        "id": "id",
+        "created": "created"
+      },
+      "inputs": [
+        {
+          "key": "uri",
+          "label": "Page URL",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "text",
+          "label": "Note",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "tags",
+          "label": "Tags",
+          "type": "list"
+        },
+        {
+          "key": "group",
+          "label": "Group ID",
+          "type": "string",
+          "required": true,
+          "default": "__world__",
+          "help": "\"__world__\" is PUBLIC. Use a private group ID (from the group URL) to keep it private."
+        }
+      ]
+    },
+    {
+      "key": "get_annotation",
+      "name": "Get annotation",
+      "description": "Fetch one annotation.",
+      "method": "GET",
+      "endpoint": "/annotations/{{ inputs.id }}",
+      "output_fields": {
+        "text": "text",
+        "uri": "uri",
+        "user": "user"
+      },
+      "inputs": [
+        {
+          "key": "id",
+          "label": "Annotation ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "delete_annotation",
+      "name": "Delete annotation",
+      "description": "Delete one of your annotations.",
+      "method": "DELETE",
+      "endpoint": "/annotations/{{ inputs.id }}",
+      "inputs": [
+        {
+          "key": "id",
+          "label": "Annotation ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "get_profile",
+      "name": "Get profile",
+      "description": "Who this token belongs to.",
+      "method": "GET",
+      "endpoint": "/profile",
+      "output_fields": {
+        "userid": "userid"
+      },
+      "inputs": []
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_annotation",
+      "name": "New annotation",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/search",
+      "query": {
+        "sort": "created",
+        "order": "desc",
+        "limit": 20,
+        "user": "{{ inputs.user }}"
+      },
+      "items_path": "rows",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "user",
+          "label": "User",
+          "type": "string",
+          "help": "Like acct:name@hypothes.is. Leave empty for everyone you can see."
+        },
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

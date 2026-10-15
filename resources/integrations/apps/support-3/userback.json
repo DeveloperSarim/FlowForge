@@ -1,0 +1,179 @@
+{
+  "key": "userback",
+  "name": "Userback",
+  "category": "Customer Support",
+  "description": "Collect and read website feedback, bug reports and ideas from Userback.",
+  "website": "https://userback.io",
+  "docs_url": "https://docs.userback.io/reference",
+  "base_url": "https://rest.userback.io/1.0",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "API token",
+        "type": "password",
+        "required": true,
+        "help": "In Userback open Settings > API & Webhooks > API Tokens and create a token."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_feedback",
+      "name": "List feedback",
+      "description": "Lists feedback items, newest first.",
+      "method": "GET",
+      "endpoint": "/feedback",
+      "query": {
+        "limit": "{{ inputs.limit }}",
+        "page": "{{ inputs.page }}",
+        "sort": "created,desc"
+      },
+      "output_fields": {
+        "items": "data",
+        "first_id": "data.0.id",
+        "first_title": "data.0.title",
+        "total": "_pagination.totalRecords"
+      },
+      "inputs": [
+        {
+          "key": "limit",
+          "label": "How many",
+          "type": "number",
+          "default": 25,
+          "help": "Up to 50."
+        },
+        {
+          "key": "page",
+          "label": "Page",
+          "type": "number",
+          "default": 1
+        }
+      ]
+    },
+    {
+      "key": "get_feedback",
+      "name": "Get feedback",
+      "description": "Gets one feedback item by ID.",
+      "method": "GET",
+      "endpoint": "/feedback/{{ inputs.feedback_id }}",
+      "output_fields": {
+        "id": "id",
+        "title": "title",
+        "description": "description",
+        "email": "email",
+        "type": "feedbackType",
+        "url": "shareUrl"
+      },
+      "inputs": [
+        {
+          "key": "feedback_id",
+          "label": "Feedback ID",
+          "type": "number",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "create_feedback",
+      "name": "Create feedback",
+      "description": "Adds a feedback item to a project.",
+      "method": "POST",
+      "endpoint": "/feedback",
+      "body": {
+        "projectId": "{{ inputs.project_id }}",
+        "email": "{{ inputs.email }}",
+        "title": "{{ inputs.title }}",
+        "description": "{{ inputs.description }}",
+        "feedbackType": "{{ inputs.type }}",
+        "notify": "{{ inputs.notify }}"
+      },
+      "output_fields": {
+        "id": "id",
+        "url": "shareUrl"
+      },
+      "inputs": [
+        {
+          "key": "project_id",
+          "label": "Project ID",
+          "type": "number",
+          "required": true,
+          "help": "Shown in the project address in Userback."
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "description",
+          "label": "Description",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "type",
+          "label": "Type",
+          "type": "select",
+          "required": true,
+          "default": "General",
+          "options": [
+            {
+              "value": "General",
+              "label": "General"
+            },
+            {
+              "value": "Bug",
+              "label": "Bug"
+            },
+            {
+              "value": "Idea",
+              "label": "Idea"
+            },
+            {
+              "value": "Task",
+              "label": "Task"
+            }
+          ]
+        },
+        {
+          "key": "notify",
+          "label": "Notify the team",
+          "type": "boolean",
+          "default": true
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_feedback",
+      "name": "New feedback",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/feedback",
+      "query": {
+        "sort": "created,desc",
+        "limit": 25
+      },
+      "items_path": "data",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,177 @@
+{
+  "key": "qlik_cloud",
+  "name": "Qlik Cloud",
+  "category": "Analytics",
+  "description": "List Qlik Sense apps, reload them and check reload status.",
+  "website": "https://www.qlik.com",
+  "docs_url": "https://qlik.dev/apis/rest/",
+  "base_url": "https://{{ credentials.tenant }}/api/v1",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "tenant",
+        "label": "Tenant address",
+        "type": "string",
+        "required": true,
+        "placeholder": "mycompany.eu.qlikcloud.com",
+        "help": "The host name you open Qlik Cloud at, without https://."
+      },
+      {
+        "key": "token",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "Qlik Cloud → profile → Settings → API keys → Generate new key (needs the Developer role)."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_apps",
+      "name": "List apps",
+      "description": "Analytics apps you can access.",
+      "method": "GET",
+      "endpoint": "/items",
+      "query": {
+        "resourceType": "app",
+        "name": "{{ inputs.name }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "apps": "data",
+        "app_ids": "data.*.resourceId",
+        "names": "data.*.name"
+      },
+      "inputs": [
+        {
+          "key": "name",
+          "label": "Name contains",
+          "type": "string"
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    },
+    {
+      "key": "reload_app",
+      "name": "Reload app",
+      "description": "Start a data reload of an app.",
+      "method": "POST",
+      "endpoint": "/reloads",
+      "body": {
+        "appId": "{{ inputs.app_id }}",
+        "partial": "{{ inputs.partial }}"
+      },
+      "output_fields": {
+        "reload_id": "id",
+        "status": "status"
+      },
+      "inputs": [
+        {
+          "key": "app_id",
+          "label": "App ID",
+          "type": "string",
+          "required": true,
+          "help": "Open the app in Qlik Cloud: the ID is in the URL after /app/. Or use 'List apps'."
+        },
+        {
+          "key": "partial",
+          "label": "Partial reload",
+          "type": "boolean",
+          "default": false
+        }
+      ]
+    },
+    {
+      "key": "get_reload",
+      "name": "Get reload",
+      "description": "Status of a reload (QUEUED, RELOADING, SUCCEEDED, FAILED…).",
+      "method": "GET",
+      "endpoint": "/reloads/{{ inputs.reload_id }}",
+      "output_fields": {
+        "id": "id",
+        "status": "status",
+        "app_id": "appId",
+        "log": "log"
+      },
+      "inputs": [
+        {
+          "key": "reload_id",
+          "label": "Reload ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_reloads",
+      "name": "List reloads",
+      "description": "Recent reloads of an app.",
+      "method": "GET",
+      "endpoint": "/reloads",
+      "query": {
+        "appId": "{{ inputs.app_id }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "reloads": "data",
+        "statuses": "data.*.status"
+      },
+      "inputs": [
+        {
+          "key": "app_id",
+          "label": "App ID",
+          "type": "string",
+          "required": true,
+          "help": "Open the app in Qlik Cloud: the ID is in the URL after /app/. Or use 'List apps'."
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 10
+        }
+      ]
+    },
+    {
+      "key": "list_spaces",
+      "name": "List spaces",
+      "description": "Shared and managed spaces.",
+      "method": "GET",
+      "endpoint": "/spaces",
+      "query": {
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "spaces": "data",
+        "names": "data.*.name"
+      },
+      "inputs": [
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    },
+    {
+      "key": "get_me",
+      "name": "Get current user",
+      "description": "The user that owns this API key.",
+      "method": "GET",
+      "endpoint": "/users/me",
+      "output_fields": {
+        "id": "id",
+        "name": "name",
+        "email": "email"
+      },
+      "inputs": []
+    }
+  ]
+}

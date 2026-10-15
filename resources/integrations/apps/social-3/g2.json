@@ -1,0 +1,150 @@
+{
+  "key": "g2",
+  "name": "G2",
+  "category": "Social Media",
+  "description": "Read your G2 product reviews and products, and catch new reviews.",
+  "website": "https://www.g2.com",
+  "docs_url": "https://data.g2.com/api/v1/docs",
+  "base_url": "https://data.g2.com/api/v1",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "Authorization",
+    "prefix": "Token token=",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "API token",
+        "type": "password",
+        "required": true,
+        "help": "G2 → My Products → Integrations → API Tokens & Apps → create a token."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_reviews",
+      "name": "List reviews",
+      "method": "GET",
+      "endpoint": "/survey-responses",
+      "query": {
+        "filter[submitted_at_gt]": "{{ inputs.submitted_after }}",
+        "page[size]": "{{ inputs.size }}",
+        "order": "created_at desc"
+      },
+      "output_fields": {
+        "reviews": "data",
+        "latest_rating": "data.0.attributes.star_rating",
+        "latest_title": "data.0.attributes.title"
+      },
+      "inputs": [
+        {
+          "key": "submitted_after",
+          "label": "Submitted after",
+          "type": "string",
+          "placeholder": "2026-01-01T00:00:00Z"
+        },
+        {
+          "key": "size",
+          "label": "Max results (max 100)",
+          "type": "number",
+          "default": 25
+        }
+      ]
+    },
+    {
+      "key": "get_review",
+      "name": "Get review",
+      "method": "GET",
+      "endpoint": "/survey-responses/{{ inputs.id }}",
+      "output_fields": {
+        "id": "data.id",
+        "rating": "data.attributes.star_rating",
+        "title": "data.attributes.title",
+        "product": "data.attributes.product_name",
+        "reviewer": "data.attributes.user_name",
+        "submitted_at": "data.attributes.submitted_at",
+        "answers": "data.attributes.comment_answers"
+      },
+      "inputs": [
+        {
+          "key": "id",
+          "label": "Review ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_products",
+      "name": "Find products",
+      "method": "GET",
+      "endpoint": "/products",
+      "query": {
+        "filter[name]": "{{ inputs.name }}"
+      },
+      "output_fields": {
+        "ids": "data.*.id",
+        "names": "data.*.attributes.name"
+      },
+      "inputs": [
+        {
+          "key": "name",
+          "label": "Product name",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "list_product_reviews",
+      "name": "List reviews of a product",
+      "method": "GET",
+      "endpoint": "/products/{{ inputs.product_id }}/survey-responses",
+      "query": {
+        "page[size]": "{{ inputs.size }}",
+        "order": "created_at desc"
+      },
+      "output_fields": {
+        "reviews": "data"
+      },
+      "inputs": [
+        {
+          "key": "product_id",
+          "label": "Product ID",
+          "type": "string",
+          "required": true,
+          "help": "Get it with 'Find products'."
+        },
+        {
+          "key": "size",
+          "label": "Max results (max 100)",
+          "type": "number",
+          "default": 25
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_review",
+      "name": "New review",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/survey-responses",
+      "query": {
+        "page[size]": "50",
+        "order": "created_at desc"
+      },
+      "items_path": "data",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

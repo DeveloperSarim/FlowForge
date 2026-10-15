@@ -1,0 +1,126 @@
+{
+  "key": "doorkeeper",
+  "name": "Doorkeeper",
+  "category": "Events & Webinars",
+  "description": "Community event pages: search events and read group events on Doorkeeper.",
+  "website": "https://www.doorkeeper.jp",
+  "docs_url": "https://www.doorkeeper.jp/developer/api",
+  "base_url": "https://api.doorkeeper.jp",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "Access token",
+        "type": "password",
+        "required": true,
+        "help": "Doorkeeper > Profile > Developer > Generate a personal access token."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "search_events",
+      "name": "Search events",
+      "description": "Find events by keyword and date.",
+      "method": "GET",
+      "endpoint": "/events",
+      "query": {
+        "q": "{{ inputs.q }}",
+        "since": "{{ inputs.since }}",
+        "sort": "{{ inputs.sort }}",
+        "page": "{{ inputs.page }}"
+      },
+      "output_fields": {
+        "titles": "*.event.title",
+        "ids": "*.event.id",
+        "urls": "*.event.public_url"
+      },
+      "inputs": [
+        {
+          "key": "q",
+          "label": "Search",
+          "type": "string"
+        },
+        {
+          "key": "since",
+          "label": "Starts after",
+          "type": "string",
+          "help": "ISO date"
+        },
+        {
+          "key": "sort",
+          "label": "Sort by",
+          "type": "select",
+          "default": "starts_at",
+          "options": [
+            {
+              "value": "starts_at",
+              "label": "Start date"
+            },
+            {
+              "value": "published_at",
+              "label": "Published date"
+            }
+          ]
+        },
+        {
+          "key": "page",
+          "label": "Page",
+          "type": "number",
+          "default": 1
+        }
+      ]
+    },
+    {
+      "key": "get_event",
+      "name": "Get an event",
+      "description": "Get one event.",
+      "method": "GET",
+      "endpoint": "/events/{{ inputs.event_id }}",
+      "output_fields": {
+        "title": "event.title",
+        "starts_at": "event.starts_at",
+        "participants": "event.participants",
+        "url": "event.public_url"
+      },
+      "inputs": [
+        {
+          "key": "event_id",
+          "label": "Event ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_group_events",
+      "name": "List a group's events",
+      "description": "Get events published by a group.",
+      "method": "GET",
+      "endpoint": "/groups/{{ inputs.group }}/events",
+      "query": {
+        "page": "{{ inputs.page }}"
+      },
+      "output_fields": {
+        "titles": "*.event.title",
+        "ids": "*.event.id"
+      },
+      "inputs": [
+        {
+          "key": "group",
+          "label": "Group name",
+          "type": "string",
+          "required": true,
+          "help": "The group's address name, e.g. myclub for myclub.doorkeeper.jp."
+        },
+        {
+          "key": "page",
+          "label": "Page",
+          "type": "number",
+          "default": 1
+        }
+      ]
+    }
+  ]
+}

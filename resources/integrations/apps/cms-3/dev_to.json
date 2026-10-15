@@ -1,0 +1,209 @@
+{
+  "key": "dev_to",
+  "name": "DEV Community",
+  "category": "CMS & Websites",
+  "description": "Publish and update articles on DEV (dev.to) and list your own posts.",
+  "website": "https://dev.to",
+  "docs_url": "https://developers.forem.com/api/v1",
+  "base_url": "https://dev.to/api",
+  "headers": {
+    "Accept": "application/vnd.forem.api-v1+json"
+  },
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "api-key",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "On dev.to go to Settings → Extensions → DEV Community API Keys → Generate API key."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "create_article",
+      "name": "Create article",
+      "description": "Publish or draft a new article.",
+      "method": "POST",
+      "endpoint": "/articles",
+      "body": {
+        "article": {
+          "title": "{{ inputs.title }}",
+          "body_markdown": "{{ inputs.body }}",
+          "published": "{{ inputs.published }}",
+          "tags": "{{ inputs.tags }}",
+          "series": "{{ inputs.series }}",
+          "canonical_url": "{{ inputs.canonical_url }}",
+          "main_image": "{{ inputs.main_image }}"
+        }
+      },
+      "output_fields": {
+        "id": "id",
+        "url": "url",
+        "slug": "slug"
+      },
+      "inputs": [
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "body",
+          "label": "Article (Markdown)",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "tags",
+          "label": "Tags",
+          "type": "string",
+          "help": "Up to 4, comma separated, e.g. webdev, php"
+        },
+        {
+          "key": "series",
+          "label": "Series",
+          "type": "string"
+        },
+        {
+          "key": "canonical_url",
+          "label": "Canonical URL",
+          "type": "string",
+          "help": "Set when the article was first published elsewhere."
+        },
+        {
+          "key": "main_image",
+          "label": "Cover image URL",
+          "type": "string"
+        },
+        {
+          "key": "published",
+          "label": "Publish now?",
+          "type": "boolean",
+          "default": false
+        }
+      ]
+    },
+    {
+      "key": "update_article",
+      "name": "Update article",
+      "description": "Edit an existing article.",
+      "method": "PUT",
+      "endpoint": "/articles/{{ inputs.article_id }}",
+      "body": {
+        "article": {
+          "title": "{{ inputs.title }}",
+          "body_markdown": "{{ inputs.body }}",
+          "published": "{{ inputs.published }}",
+          "tags": "{{ inputs.tags }}",
+          "series": "{{ inputs.series }}",
+          "canonical_url": "{{ inputs.canonical_url }}",
+          "main_image": "{{ inputs.main_image }}"
+        }
+      },
+      "output_fields": {
+        "id": "id",
+        "url": "url"
+      },
+      "inputs": [
+        {
+          "key": "article_id",
+          "label": "Article ID",
+          "type": "number",
+          "required": true,
+          "help": "The number in the article's edit address, or use 'List my articles'."
+        },
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "string"
+        },
+        {
+          "key": "body",
+          "label": "Article (Markdown)",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "tags",
+          "label": "Tags",
+          "type": "string",
+          "help": "Up to 4, comma separated, e.g. webdev, php"
+        },
+        {
+          "key": "series",
+          "label": "Series",
+          "type": "string"
+        },
+        {
+          "key": "canonical_url",
+          "label": "Canonical URL",
+          "type": "string",
+          "help": "Set when the article was first published elsewhere."
+        },
+        {
+          "key": "main_image",
+          "label": "Cover image URL",
+          "type": "string"
+        },
+        {
+          "key": "published",
+          "label": "Publish now?",
+          "type": "boolean",
+          "default": false
+        }
+      ]
+    },
+    {
+      "key": "get_article",
+      "name": "Get article",
+      "description": "Read one article.",
+      "method": "GET",
+      "endpoint": "/articles/{{ inputs.article_id }}",
+      "output_fields": {
+        "title": "title",
+        "url": "url",
+        "published_at": "published_at",
+        "reactions": "public_reactions_count",
+        "body": "body_markdown"
+      },
+      "inputs": [
+        {
+          "key": "article_id",
+          "label": "Article ID",
+          "type": "number",
+          "required": true,
+          "help": "The number in the article's edit address, or use 'List my articles'."
+        }
+      ]
+    },
+    {
+      "key": "my_articles",
+      "name": "List my articles",
+      "description": "List your published articles, newest first.",
+      "method": "GET",
+      "endpoint": "/articles/me",
+      "query": {
+        "per_page": "{{ inputs.per_page }}"
+      },
+      "output_fields": {
+        "first_id": "0.id",
+        "first_title": "0.title",
+        "first_url": "0.url"
+      },
+      "inputs": [
+        {
+          "key": "per_page",
+          "label": "How many",
+          "type": "number",
+          "default": 30
+        }
+      ]
+    }
+  ]
+}

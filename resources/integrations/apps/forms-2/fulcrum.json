@@ -1,0 +1,145 @@
+{
+  "key": "fulcrum",
+  "name": "Fulcrum",
+  "category": "Forms & Surveys",
+  "description": "Field data collection: read forms and records, create and delete records in Fulcrum.",
+  "website": "https://www.fulcrumapp.com",
+  "docs_url": "https://docs.fulcrumapp.com/reference/",
+  "base_url": "https://api.fulcrumapp.com/api/v2",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "X-ApiToken",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "API token",
+        "type": "password",
+        "required": true,
+        "help": "Fulcrum > Settings > API: create and copy an API token."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_forms",
+      "name": "List forms",
+      "description": "Get your Fulcrum apps (forms).",
+      "method": "GET",
+      "endpoint": "/forms.json",
+      "output_fields": {
+        "forms": "forms",
+        "form_ids": "forms.*.id",
+        "names": "forms.*.name"
+      },
+      "inputs": []
+    },
+    {
+      "key": "list_records",
+      "name": "List records",
+      "description": "Get the records collected with a form.",
+      "method": "GET",
+      "endpoint": "/records.json",
+      "query": {
+        "form_id": "{{ inputs.form_id }}",
+        "per_page": "{{ inputs.per_page }}"
+      },
+      "output_fields": {
+        "records": "records",
+        "record_ids": "records.*.id"
+      },
+      "inputs": [
+        {
+          "key": "form_id",
+          "label": "Form ID",
+          "type": "string",
+          "required": true,
+          "help": "Fulcrum > Apps: open the app and copy the ID from the address."
+        },
+        {
+          "key": "per_page",
+          "label": "Per page",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    },
+    {
+      "key": "get_record",
+      "name": "Get a record",
+      "description": "Get one record with its values.",
+      "method": "GET",
+      "endpoint": "/records/{{ inputs.record_id }}.json",
+      "output_fields": {
+        "id": "record.id",
+        "form_values": "record.form_values"
+      },
+      "inputs": [
+        {
+          "key": "record_id",
+          "label": "Record ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "create_record",
+      "name": "Create a record",
+      "description": "Add a record to a form.",
+      "method": "POST",
+      "endpoint": "/records.json",
+      "body": {
+        "record": {
+          "form_id": "{{ inputs.form_id }}",
+          "form_values": "{{ inputs.form_values }}",
+          "latitude": "{{ inputs.latitude }}",
+          "longitude": "{{ inputs.longitude }}"
+        }
+      },
+      "output_fields": {
+        "id": "record.id"
+      },
+      "inputs": [
+        {
+          "key": "form_id",
+          "label": "Form ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "form_values",
+          "label": "Field values",
+          "type": "json",
+          "required": true,
+          "help": "JSON of field key to value, e.g. {\"a1b2\":\"Hello\"}."
+        },
+        {
+          "key": "latitude",
+          "label": "Latitude",
+          "type": "number"
+        },
+        {
+          "key": "longitude",
+          "label": "Longitude",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "delete_record",
+      "name": "Delete a record",
+      "description": "Permanently delete a record.",
+      "method": "DELETE",
+      "endpoint": "/records/{{ inputs.record_id }}.json",
+      "inputs": [
+        {
+          "key": "record_id",
+          "label": "Record ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ]
+}

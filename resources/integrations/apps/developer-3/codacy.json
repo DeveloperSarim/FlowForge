@@ -1,0 +1,346 @@
+{
+  "key": "codacy",
+  "name": "Codacy",
+  "category": "Developer Tools",
+  "description": "Read Codacy code quality grades, issues and pull request analysis.",
+  "brand": "codacy",
+  "website": "https://www.codacy.com",
+  "docs_url": "https://api.codacy.com/api/api-docs",
+  "base_url": "https://api.codacy.com/api/v3",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "api-token",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "Account API token",
+        "type": "password",
+        "required": true,
+        "help": "Codacy → your avatar → My account → Access management → Create API token."
+      }
+    ],
+    "profile": {
+      "endpoint": "/user/organizations",
+      "store": {
+        "provider": "{{ data.0.provider }}",
+        "organization": "{{ data.0.name }}"
+      }
+    }
+  },
+  "actions": [
+    {
+      "key": "get_user",
+      "name": "Get current user",
+      "description": "Check which user the token belongs to.",
+      "method": "GET",
+      "endpoint": "/user",
+      "output_fields": {
+        "name": "data.name",
+        "email": "data.mainEmail"
+      },
+      "inputs": []
+    },
+    {
+      "key": "list_repositories",
+      "name": "List repositories",
+      "description": "List repositories with their grade and issue counts.",
+      "method": "GET",
+      "endpoint": "/analysis/organizations/{{ inputs.provider }}/{{ inputs.organization }}/repositories",
+      "query": {
+        "search": "{{ inputs.search }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "repositories": "data"
+      },
+      "inputs": [
+        {
+          "key": "provider",
+          "label": "Git provider",
+          "type": "select",
+          "fallback": "credentials.provider",
+          "options": [
+            {
+              "value": "gh",
+              "label": "GitHub"
+            },
+            {
+              "value": "gl",
+              "label": "GitLab"
+            },
+            {
+              "value": "bb",
+              "label": "Bitbucket"
+            }
+          ],
+          "help": "Leave empty to use your first organization's provider."
+        },
+        {
+          "key": "organization",
+          "label": "Organization",
+          "type": "string",
+          "fallback": "credentials.organization",
+          "help": "Leave empty to use your first organization."
+        },
+        {
+          "key": "search",
+          "label": "Search",
+          "type": "string"
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 100
+        }
+      ]
+    },
+    {
+      "key": "get_repository",
+      "name": "Get repository quality",
+      "description": "Get a repository's grade, issues, complexity and duplication.",
+      "method": "GET",
+      "endpoint": "/analysis/organizations/{{ inputs.provider }}/{{ inputs.organization }}/repositories/{{ inputs.repository }}",
+      "query": {
+        "branch": "{{ inputs.branch }}"
+      },
+      "output_fields": {
+        "grade": "data.gradeLetter",
+        "issues_count": "data.issuesCount",
+        "complex_files": "data.complexFilesCount",
+        "duplication_percentage": "data.duplicationPercentage"
+      },
+      "inputs": [
+        {
+          "key": "provider",
+          "label": "Git provider",
+          "type": "select",
+          "fallback": "credentials.provider",
+          "options": [
+            {
+              "value": "gh",
+              "label": "GitHub"
+            },
+            {
+              "value": "gl",
+              "label": "GitLab"
+            },
+            {
+              "value": "bb",
+              "label": "Bitbucket"
+            }
+          ],
+          "help": "Leave empty to use your first organization's provider."
+        },
+        {
+          "key": "organization",
+          "label": "Organization",
+          "type": "string",
+          "fallback": "credentials.organization",
+          "help": "Leave empty to use your first organization."
+        },
+        {
+          "key": "repository",
+          "label": "Repository",
+          "type": "string",
+          "required": true,
+          "placeholder": "my-repo"
+        },
+        {
+          "key": "branch",
+          "label": "Branch",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "list_pull_requests",
+      "name": "List pull requests",
+      "description": "List pull requests with new and fixed issues.",
+      "method": "GET",
+      "endpoint": "/analysis/organizations/{{ inputs.provider }}/{{ inputs.organization }}/repositories/{{ inputs.repository }}/pull-requests",
+      "query": {
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "pull_requests": "data"
+      },
+      "inputs": [
+        {
+          "key": "provider",
+          "label": "Git provider",
+          "type": "select",
+          "fallback": "credentials.provider",
+          "options": [
+            {
+              "value": "gh",
+              "label": "GitHub"
+            },
+            {
+              "value": "gl",
+              "label": "GitLab"
+            },
+            {
+              "value": "bb",
+              "label": "Bitbucket"
+            }
+          ],
+          "help": "Leave empty to use your first organization's provider."
+        },
+        {
+          "key": "organization",
+          "label": "Organization",
+          "type": "string",
+          "fallback": "credentials.organization",
+          "help": "Leave empty to use your first organization."
+        },
+        {
+          "key": "repository",
+          "label": "Repository",
+          "type": "string",
+          "required": true,
+          "placeholder": "my-repo"
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 20
+        }
+      ]
+    },
+    {
+      "key": "search_issues",
+      "name": "Search issues",
+      "description": "List open issues in a repository.",
+      "method": "POST",
+      "endpoint": "/analysis/organizations/{{ inputs.provider }}/{{ inputs.organization }}/repositories/{{ inputs.repository }}/issues/search",
+      "query": {
+        "limit": "{{ inputs.limit }}"
+      },
+      "body": {
+        "branchName": "{{ inputs.branch }}",
+        "levels": "{{ inputs.levels }}",
+        "categories": "{{ inputs.categories }}"
+      },
+      "output_fields": {
+        "issues": "data",
+        "total": "pagination.total"
+      },
+      "inputs": [
+        {
+          "key": "provider",
+          "label": "Git provider",
+          "type": "select",
+          "fallback": "credentials.provider",
+          "options": [
+            {
+              "value": "gh",
+              "label": "GitHub"
+            },
+            {
+              "value": "gl",
+              "label": "GitLab"
+            },
+            {
+              "value": "bb",
+              "label": "Bitbucket"
+            }
+          ],
+          "help": "Leave empty to use your first organization's provider."
+        },
+        {
+          "key": "organization",
+          "label": "Organization",
+          "type": "string",
+          "fallback": "credentials.organization",
+          "help": "Leave empty to use your first organization."
+        },
+        {
+          "key": "repository",
+          "label": "Repository",
+          "type": "string",
+          "required": true,
+          "placeholder": "my-repo"
+        },
+        {
+          "key": "branch",
+          "label": "Branch",
+          "type": "string"
+        },
+        {
+          "key": "levels",
+          "label": "Levels",
+          "type": "list",
+          "help": "Error, Warning or Info."
+        },
+        {
+          "key": "categories",
+          "label": "Categories",
+          "type": "list",
+          "help": "E.g. Security, ErrorProne, Performance."
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 100
+        }
+      ]
+    },
+    {
+      "key": "reanalyze_commit",
+      "name": "Reanalyze commit",
+      "description": "Run the analysis of a commit again.",
+      "method": "POST",
+      "endpoint": "/organizations/{{ inputs.provider }}/{{ inputs.organization }}/repositories/{{ inputs.repository }}/reanalyzeCommit",
+      "body": {
+        "commitUuid": "{{ inputs.commit_sha }}"
+      },
+      "inputs": [
+        {
+          "key": "provider",
+          "label": "Git provider",
+          "type": "select",
+          "fallback": "credentials.provider",
+          "options": [
+            {
+              "value": "gh",
+              "label": "GitHub"
+            },
+            {
+              "value": "gl",
+              "label": "GitLab"
+            },
+            {
+              "value": "bb",
+              "label": "Bitbucket"
+            }
+          ],
+          "help": "Leave empty to use your first organization's provider."
+        },
+        {
+          "key": "organization",
+          "label": "Organization",
+          "type": "string",
+          "fallback": "credentials.organization",
+          "help": "Leave empty to use your first organization."
+        },
+        {
+          "key": "repository",
+          "label": "Repository",
+          "type": "string",
+          "required": true,
+          "placeholder": "my-repo"
+        },
+        {
+          "key": "commit_sha",
+          "label": "Commit SHA",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ]
+}

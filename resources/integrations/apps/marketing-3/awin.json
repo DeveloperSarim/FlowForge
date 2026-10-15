@@ -1,0 +1,124 @@
+{
+  "key": "awin",
+  "name": "Awin",
+  "category": "Marketing & Email",
+  "description": "Affiliate network: list your programmes and pull transactions and commissions.",
+  "website": "https://www.awin.com",
+  "docs_url": "https://help.awin.com/apidocs/introduction-1",
+  "base_url": "https://api.awin.com",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "API token",
+        "type": "password",
+        "required": true,
+        "help": "Awin → top-right menu → API Credentials → enter your password and copy the OAuth2 token."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_accounts",
+      "name": "List accounts",
+      "description": "Accounts (publisher or advertiser) your token can use.",
+      "method": "GET",
+      "endpoint": "/accounts",
+      "output_fields": {
+        "accounts": "accounts",
+        "user_id": "userId"
+      },
+      "inputs": []
+    },
+    {
+      "key": "list_transactions",
+      "name": "List transactions",
+      "description": "Transactions in a date range (max 31 days) for a publisher account.",
+      "method": "GET",
+      "endpoint": "/publishers/{{ inputs.publisher_id }}/transactions/",
+      "query": {
+        "startDate": "{{ inputs.start_date }}",
+        "endDate": "{{ inputs.end_date }}",
+        "timezone": "UTC",
+        "status": "{{ inputs.status }}"
+      },
+      "output_fields": {
+        "transactions": "$"
+      },
+      "inputs": [
+        {
+          "key": "publisher_id",
+          "label": "Publisher ID",
+          "type": "number",
+          "required": true,
+          "help": "Use \"List accounts\" to find it."
+        },
+        {
+          "key": "start_date",
+          "label": "Start",
+          "type": "string",
+          "required": true,
+          "placeholder": "2026-01-01T00:00:00"
+        },
+        {
+          "key": "end_date",
+          "label": "End",
+          "type": "string",
+          "required": true,
+          "placeholder": "2026-01-31T23:59:59"
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "default": "",
+          "options": [
+            {
+              "value": "",
+              "label": "All"
+            },
+            {
+              "value": "pending",
+              "label": "Pending"
+            },
+            {
+              "value": "approved",
+              "label": "Approved"
+            },
+            {
+              "value": "declined",
+              "label": "Declined"
+            },
+            {
+              "value": "deleted",
+              "label": "Deleted"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "list_programmes",
+      "name": "List programmes",
+      "description": "Advertiser programmes you are joined to.",
+      "method": "GET",
+      "endpoint": "/publishers/{{ inputs.publisher_id }}/programmes",
+      "query": {
+        "relationship": "joined"
+      },
+      "output_fields": {
+        "programmes": "$"
+      },
+      "inputs": [
+        {
+          "key": "publisher_id",
+          "label": "Publisher ID",
+          "type": "number",
+          "required": true,
+          "help": "Use \"List accounts\" to find it."
+        }
+      ]
+    }
+  ]
+}

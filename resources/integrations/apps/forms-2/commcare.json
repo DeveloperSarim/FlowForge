@@ -1,0 +1,134 @@
+{
+  "key": "commcare",
+  "name": "CommCare",
+  "category": "Forms & Surveys",
+  "description": "Mobile data collection: read CommCare forms, cases and mobile workers.",
+  "website": "https://www.dimagi.com/commcare/",
+  "docs_url": "https://dimagi.atlassian.net/wiki/spaces/commcarepublic/pages/2143955952/CommCare+HQ+APIs",
+  "base_url": "https://www.commcarehq.org/a/{{ credentials.domain }}/api/v0.5",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "Authorization",
+    "prefix": "ApiKey ",
+    "fields": [
+      {
+        "key": "domain",
+        "label": "Project space",
+        "type": "string",
+        "required": true,
+        "placeholder": "my-project",
+        "help": "The name in your CommCare address: commcarehq.org/a/<project space>/"
+      },
+      {
+        "key": "api_key",
+        "label": "Username and API key",
+        "type": "password",
+        "required": true,
+        "help": "Type your login email, a colon, then your API key: email@example.com:KEY. Create the key in CommCare HQ > My Settings > API Keys."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_forms",
+      "name": "List form submissions",
+      "description": "Get submitted forms.",
+      "method": "GET",
+      "endpoint": "/form/",
+      "query": {
+        "limit": "{{ inputs.limit }}",
+        "offset": "{{ inputs.offset }}"
+      },
+      "output_fields": {
+        "forms": "objects",
+        "next": "meta.next"
+      },
+      "inputs": [
+        {
+          "key": "limit",
+          "label": "Max results",
+          "type": "number",
+          "default": 20
+        },
+        {
+          "key": "offset",
+          "label": "Skip",
+          "type": "number",
+          "default": 0
+        }
+      ]
+    },
+    {
+      "key": "list_cases",
+      "name": "List cases",
+      "description": "Get cases (the records CommCare tracks).",
+      "method": "GET",
+      "endpoint": "/case/",
+      "query": {
+        "limit": "{{ inputs.limit }}",
+        "offset": "{{ inputs.offset }}",
+        "type": "{{ inputs.case_type }}"
+      },
+      "output_fields": {
+        "cases": "objects",
+        "next": "meta.next"
+      },
+      "inputs": [
+        {
+          "key": "limit",
+          "label": "Max results",
+          "type": "number",
+          "default": 20
+        },
+        {
+          "key": "offset",
+          "label": "Skip",
+          "type": "number",
+          "default": 0
+        },
+        {
+          "key": "case_type",
+          "label": "Case type",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "get_case",
+      "name": "Get a case",
+      "description": "Get one case with its properties.",
+      "method": "GET",
+      "endpoint": "/case/{{ inputs.case_id }}/",
+      "inputs": [
+        {
+          "key": "case_id",
+          "label": "Case ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_users",
+      "name": "List mobile workers",
+      "description": "Get the mobile workers in the project.",
+      "method": "GET",
+      "endpoint": "/user/",
+      "query": {
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "users": "objects"
+      },
+      "inputs": [
+        {
+          "key": "limit",
+          "label": "Max results",
+          "type": "number",
+          "default": 20
+        }
+      ]
+    }
+  ]
+}

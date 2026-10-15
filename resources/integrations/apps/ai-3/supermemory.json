@@ -1,0 +1,158 @@
+{
+  "key": "supermemory",
+  "name": "Supermemory",
+  "category": "AI",
+  "description": "Long-term memory for AI apps: save content and search it later.",
+  "website": "https://supermemory.ai",
+  "docs_url": "https://supermemory.ai/docs/api-reference",
+  "base_url": "https://api.supermemory.ai",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "console.supermemory.ai → API Keys → Create API key."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "add_document",
+      "name": "Add memory",
+      "description": "Save text or a link so it can be recalled later.",
+      "method": "POST",
+      "endpoint": "/v3/documents",
+      "body": {
+        "content": "{{ inputs.content }}",
+        "containerTag": "{{ inputs.container_tag }}",
+        "customId": "{{ inputs.custom_id }}",
+        "metadata": "{{ inputs.metadata }}"
+      },
+      "output_fields": {
+        "id": "id",
+        "status": "status"
+      },
+      "inputs": [
+        {
+          "key": "content",
+          "label": "Content",
+          "type": "text",
+          "required": true,
+          "help": "Text, or a URL to a web page, PDF, image or video."
+        },
+        {
+          "key": "container_tag",
+          "label": "Container tag",
+          "type": "string",
+          "help": "Groups memories, e.g. a user or project ID."
+        },
+        {
+          "key": "custom_id",
+          "label": "Your ID",
+          "type": "string"
+        },
+        {
+          "key": "metadata",
+          "label": "Metadata",
+          "type": "json"
+        }
+      ]
+    },
+    {
+      "key": "search_memories",
+      "name": "Search memories",
+      "description": "Recall the memories most relevant to a question.",
+      "method": "POST",
+      "endpoint": "/v4/search",
+      "body": {
+        "q": "{{ inputs.q }}",
+        "containerTag": "{{ inputs.container_tag }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "memories": "results.*.memory",
+        "results": "results"
+      },
+      "inputs": [
+        {
+          "key": "q",
+          "label": "Query",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "container_tag",
+          "label": "Container tag",
+          "type": "string",
+          "help": "Groups memories, e.g. a user or project ID."
+        },
+        {
+          "key": "limit",
+          "label": "Results",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    },
+    {
+      "key": "search_documents",
+      "name": "Search documents",
+      "description": "Search saved documents and get the matching passages.",
+      "method": "POST",
+      "endpoint": "/v3/search",
+      "body": {
+        "q": "{{ inputs.q }}",
+        "containerTag": "{{ inputs.container_tag }}",
+        "limit": "{{ inputs.limit }}",
+        "rerank": "{{ inputs.rerank }}"
+      },
+      "output_fields": {
+        "results": "results",
+        "top_passage": "results.0.chunks.0.content"
+      },
+      "inputs": [
+        {
+          "key": "q",
+          "label": "Query",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "container_tag",
+          "label": "Container tag",
+          "type": "string",
+          "help": "Groups memories, e.g. a user or project ID."
+        },
+        {
+          "key": "limit",
+          "label": "Results",
+          "type": "number",
+          "default": 5
+        },
+        {
+          "key": "rerank",
+          "label": "Rerank results",
+          "type": "boolean"
+        }
+      ]
+    },
+    {
+      "key": "delete_document",
+      "name": "Delete document",
+      "description": "Delete a saved document and its memories.",
+      "method": "DELETE",
+      "endpoint": "/v3/documents/{{ inputs.id }}",
+      "inputs": [
+        {
+          "key": "id",
+          "label": "Document ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ]
+}

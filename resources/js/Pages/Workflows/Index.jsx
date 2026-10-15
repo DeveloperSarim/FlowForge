@@ -1,9 +1,9 @@
-import { useMemo, useState } from 'react';
-import { Link, router } from '@inertiajs/react';
-import { Clock, Copy, MoreHorizontal, MousePointerClick, PencilLine, Plus, RefreshCw, Trash2, Webhook, Workflow as WorkflowIcon, PhoneCall, CalendarCheck, TriangleAlert } from 'lucide-react';
+import { useMemo, useRef, useState } from 'react';
+import { Link, router, useForm } from '@inertiajs/react';
+import { Clock, Copy, Download, FileUp, MoreHorizontal, MousePointerClick, PencilLine, Plus, RefreshCw, Trash2, Upload, Webhook, Workflow as WorkflowIcon, PhoneCall, CalendarCheck, TriangleAlert } from 'lucide-react';
 import AppLayout, { openCreateWorkflow } from '@/Layouts/AppLayout';
 import IntegrationIcon, { AppStack } from '@/Components/IntegrationIcon';
-import { Button, Card, Dialog, EmptyState, Menu, SearchInput, Select, StatusBadge, Switch, Tabs } from '@/Components/ui';
+import { Button, Card, Dialog, EmptyState, Field, Menu, SearchInput, Select, StatusBadge, Switch, Tabs, Textarea } from '@/Components/ui';
 import { errorMessage, timeAgo, toast } from '@/lib/utils';
 import { useCan } from '@/lib/can';
 
@@ -17,8 +17,47 @@ const TRIGGERS = {
     voice_booking: { icon: CalendarCheck, label: 'New booking' },
 };
 
+/** Import a FlowForge workflow file (one workflow or an "Export all" file). An n8n file opens the AI Builder to rebuild it. */
+function ImportDialog({ open, onClose }) {
+    const form = useForm({ document: '' });
+    const [file, setFile] = useState(null);
+    const [dragging, setDragging] = useState(false);
+    const input = useRef(null);
+    const read = (f) => {
+        if (!f) return;
+        if (f.size > 5_000_000) { form.setError('document', 'The file is over 5 MB.'); return; }
+        f.text().then((text) => { form.setData('document', text); form.clearErrors(); setFile(f.name); });
+    };
+    return (
+        <Dialog open={open} onClose={onClose} title="Import workflows" description="Choose a workflow file exported from FlowForge. Imported workflows start switched off.">
+            <form className="space-y-3" onSubmit={(e) => { e.preventDefault(); form.post('/workflows/import', { onSuccess: onClose }); }}>
+                <button type="button" onClick={() => input.current?.click()}
+                    onDragOver={(e) => { e.preventDefault(); setDragging(true); }} onDragLeave={() => setDragging(false)}
+                    onDrop={(e) => { e.preventDefault(); setDragging(false); read(e.dataTransfer.files[0]); }}
+                    className={`flex w-full flex-col items-center gap-1.5 rounded-xl border-2 border-dashed px-4 py-7 text-center ${dragging ? 'border-primary bg-primary-soft/40' : 'border-line hover:border-line-strong'}`}>
+                    <FileUp className="size-6 text-primary" />
+                    <span className="text-[14px] font-semibold">{file ?? 'Choose a .json file'}</span>
+                    <span className="text-[12.5px] text-fg-muted">{file ? 'Ready to import' : 'or drop it here'}</span>
+                </button>
+                <input ref={input} type="file" accept=".json,application/json" className="hidden" onChange={(e) => read(e.target.files[0])} />
+                <details className="text-[13px]">
+                    <summary className="cursor-pointer text-fg-muted">Paste JSON instead</summary>
+                    <Field className="mt-2" label="Workflow JSON">{(id) => <Textarea id={id} rows={5} value={file ? '' : form.data.document} onChange={(e) => { setFile(null); form.setData('document', e.target.value); }} className="font-mono text-[12.5px]" />}</Field>
+                </details>
+                {form.errors.document && <p className="rounded-lg bg-fail-soft px-3 py-2 text-[13px] text-fail">{form.errors.document}</p>}
+                <p className="text-[12.5px] text-fg-subtle">Credentials aren't in workflow files: steps use your saved account for the app when you have exactly one. Have an n8n workflow? Import its file and the AI Builder rebuilds it.</p>
+                <div className="flex justify-end gap-2">
+                    <Button onClick={onClose}>Cancel</Button>
+                    <Button type="submit" variant="primary" loading={form.processing} disabled={form.data.document.trim().length < 2}><Upload className="size-4" />Import</Button>
+                </div>
+            </form>
+        </Dialog>
+    );
+}
+
 export default function Index({ workflows }) {
     const can = useCan();
+    const [importing, setImporting] = useState(false);
     const [query, setQuery] = useState('');
     const [status, setStatus] = useState('all');
     const [sort, setSort] = useState('updated');
@@ -36,13 +75,18 @@ export default function Index({ workflows }) {
 
     return (
         <AppLayout title="Workflows" description="Everything you've built. Switch a workflow on to let its trigger run it in the background."
-            actions={can['workflows.edit'] && <Button variant="primary" onClick={openCreateWorkflow}><Plus className="size-4" />Create workflow</Button>}>
+            actions={can['workflows.edit'] && (
+                <div className="flex gap-2">
+                    <Button onClick={() => setImporting(true)}><Upload className="size-4" />Import</Button>
+                    <Button variant="primary" onClick={openCreateWorkflow}><Plus className="size-4" />Create workflow</Button>
+                </div>
+            )}>
 
             {workflows.length === 0 ? (
                 <Card>
                     <EmptyState icon={WorkflowIcon} title="Build your first workflow"
-                        action={<div className="flex gap-2"><Button onClick={() => router.visit('/templates')}>Browse templates</Button><Button variant="primary" onClick={openCreateWorkflow}><Plus className="size-4" />Create workflow</Button></div>}>
-                        Pick a trigger, chain steps from {'500+'} apps, and test it on the canvas before switching it on.
+                        action={<div className="flex flex-wrap justify-center gap-2"><Button onClick={() => router.visit('/templates')}>Browse templates</Button>{can['workflows.edit'] && <Button onClick={() => setImporting(true)}><Upload className="size-4" />Import</Button>}<Button variant="primary" onClick={openCreateWorkflow}><Plus className="size-4" />Create workflow</Button></div>}>
+                        Pick a trigger, chain steps from {'1,600+'} apps, and test it on the canvas before switching it on.
                     </EmptyState>
                 </Card>
             ) : (
@@ -54,7 +98,8 @@ export default function Index({ workflows }) {
                             { value: 'active', label: 'Active', count: active },
                             { value: 'inactive', label: 'Inactive', count: workflows.length - active },
                         ]} />
-                        <Select value={sort} onChange={(e) => setSort(e.target.value)} className="ml-auto w-48" aria-label="Sort workflows">
+                        <a href="/workflows/export" className="ml-auto inline-flex items-center gap-1.5 text-[13px] font-medium text-fg-muted hover:text-fg"><Download className="size-4" />Export all</a>
+                        <Select value={sort} onChange={(e) => setSort(e.target.value)} className="w-48" aria-label="Sort workflows">
                             <option value="updated">Last updated</option>
                             <option value="created">Last created</option>
                             <option value="name">Name (A–Z)</option>
@@ -68,6 +113,7 @@ export default function Index({ workflows }) {
                 </>
             )}
 
+            <ImportDialog open={importing} onClose={() => setImporting(false)} />
             <Dialog open={!!deleting} onClose={() => setDeleting(null)} title={`Delete "${deleting?.name}"?`} description="Its execution history is deleted too. This can't be undone.">
                 <div className="flex justify-end gap-2">
                     <Button onClick={() => setDeleting(null)}>Cancel</Button>
@@ -125,6 +171,7 @@ function Row({ workflow, onDelete }) {
                 items={[
                     { label: can['workflows.edit'] ? 'Open editor' : 'Open', icon: PencilLine, onClick: () => router.visit(`/workflows/${workflow.id}`) },
                     can['workflows.edit'] && { label: 'Duplicate', icon: Copy, onClick: () => router.post(`/workflows/${workflow.id}/duplicate`) },
+                    { label: 'Export', icon: Download, onClick: () => { window.location.href = `/workflows/${workflow.id}/export`; } },
                     can['workflows.delete'] && { label: 'Delete', icon: Trash2, danger: true, onClick: onDelete },
                 ]}
             />

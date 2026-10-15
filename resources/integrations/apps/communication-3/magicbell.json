@@ -1,0 +1,173 @@
+{
+  "key": "magicbell",
+  "name": "MagicBell",
+  "category": "Communication",
+  "description": "Send in-app, email and push notifications with MagicBell broadcasts.",
+  "website": "https://www.magicbell.com",
+  "docs_url": "https://www.magicbell.com/docs/api/reference",
+  "base_url": "https://api.magicbell.com/v2",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "Project token",
+        "type": "password",
+        "required": true,
+        "help": "MagicBell dashboard → your project → Project Auth → New Token (shown once)."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "notify_user",
+      "name": "Notify a user",
+      "method": "POST",
+      "endpoint": "/broadcasts",
+      "body": {
+        "title": "{{ inputs.title }}",
+        "content": "{{ inputs.content }}",
+        "action_url": "{{ inputs.action_url }}",
+        "category": "{{ inputs.category }}",
+        "topic": "{{ inputs.topic }}",
+        "recipients": [
+          {
+            "email": "{{ inputs.email }}",
+            "external_id": "{{ inputs.external_id }}"
+          }
+        ]
+      },
+      "output_fields": {
+        "id": "id",
+        "title": "title"
+      },
+      "inputs": [
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "content",
+          "label": "Content",
+          "type": "text"
+        },
+        {
+          "key": "email",
+          "label": "Recipient email",
+          "type": "string",
+          "help": "Fill in the email or your external user ID."
+        },
+        {
+          "key": "external_id",
+          "label": "Recipient external ID",
+          "type": "string"
+        },
+        {
+          "key": "action_url",
+          "label": "Link URL",
+          "type": "string"
+        },
+        {
+          "key": "category",
+          "label": "Category",
+          "type": "string"
+        },
+        {
+          "key": "topic",
+          "label": "Topic",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "create_broadcast",
+      "name": "Send broadcast",
+      "method": "POST",
+      "endpoint": "/broadcasts",
+      "body": {
+        "title": "{{ inputs.title }}",
+        "content": "{{ inputs.content }}",
+        "recipients": "{{ inputs.recipients }}",
+        "action_url": "{{ inputs.action_url }}",
+        "category": "{{ inputs.category }}"
+      },
+      "output_fields": {
+        "id": "id",
+        "title": "title"
+      },
+      "inputs": [
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "content",
+          "label": "Content",
+          "type": "text"
+        },
+        {
+          "key": "recipients",
+          "label": "Recipients (JSON)",
+          "type": "json",
+          "required": true,
+          "placeholder": "[{\"email\":\"a@example.com\"},{\"external_id\":\"42\"}]",
+          "help": "Up to 1000."
+        },
+        {
+          "key": "action_url",
+          "label": "Link URL",
+          "type": "string"
+        },
+        {
+          "key": "category",
+          "label": "Category",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "list_broadcasts",
+      "name": "List broadcasts",
+      "method": "GET",
+      "endpoint": "/broadcasts",
+      "query": {
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "broadcasts": "data",
+        "latest_id": "data.0.id"
+      },
+      "inputs": [
+        {
+          "key": "limit",
+          "label": "Max results",
+          "type": "number",
+          "default": 20
+        }
+      ]
+    },
+    {
+      "key": "get_broadcast",
+      "name": "Get broadcast",
+      "method": "GET",
+      "endpoint": "/broadcasts/{{ inputs.id }}",
+      "output_fields": {
+        "id": "id",
+        "title": "title",
+        "recipients": "recipients"
+      },
+      "inputs": [
+        {
+          "key": "id",
+          "label": "Broadcast ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ]
+}

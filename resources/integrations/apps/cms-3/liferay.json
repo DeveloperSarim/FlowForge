@@ -1,0 +1,189 @@
+{
+  "key": "liferay",
+  "name": "Liferay",
+  "category": "CMS & Websites",
+  "description": "List and publish blog posts and read web content and documents on a Liferay site.",
+  "website": "https://www.liferay.com",
+  "docs_url": "https://learn.liferay.com/w/dxp/headless-delivery-api",
+  "base_url": "{{ credentials.site_url }}/o/headless-delivery/v1.0",
+  "auth": {
+    "type": "basic",
+    "fields": [
+      {
+        "key": "site_url",
+        "label": "Liferay address",
+        "type": "string",
+        "required": true,
+        "help": "Your portal's address without a trailing slash.",
+        "placeholder": "https://portal.example.com"
+      },
+      {
+        "key": "username",
+        "label": "Email address",
+        "type": "string",
+        "required": true,
+        "help": "The Liferay user's sign-in email."
+      },
+      {
+        "key": "password",
+        "label": "Password",
+        "type": "password",
+        "required": true,
+        "help": "That user's password."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_blog_postings",
+      "name": "List blog posts",
+      "description": "List blog posts of a site.",
+      "method": "GET",
+      "endpoint": "/sites/{{ inputs.site_id }}/blog-postings",
+      "query": {
+        "pageSize": "{{ inputs.page_size }}",
+        "sort": "dateCreated:desc"
+      },
+      "output_fields": {
+        "posts": "items",
+        "total": "totalCount",
+        "first_id": "items.0.id",
+        "first_headline": "items.0.headline"
+      },
+      "inputs": [
+        {
+          "key": "site_id",
+          "label": "Site ID",
+          "type": "string",
+          "required": true,
+          "help": "Liferay → Site Settings → Site Configuration → Site ID."
+        },
+        {
+          "key": "page_size",
+          "label": "How many",
+          "type": "number",
+          "default": 20
+        }
+      ]
+    },
+    {
+      "key": "create_blog_posting",
+      "name": "Create blog post",
+      "description": "Publish a blog post.",
+      "method": "POST",
+      "endpoint": "/sites/{{ inputs.site_id }}/blog-postings",
+      "body": {
+        "headline": "{{ inputs.headline }}",
+        "articleBody": "{{ inputs.body }}",
+        "description": "{{ inputs.description }}"
+      },
+      "output_fields": {
+        "id": "id",
+        "url": "friendlyUrlPath"
+      },
+      "inputs": [
+        {
+          "key": "site_id",
+          "label": "Site ID",
+          "type": "string",
+          "required": true,
+          "help": "Liferay → Site Settings → Site Configuration → Site ID."
+        },
+        {
+          "key": "headline",
+          "label": "Headline",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "body",
+          "label": "Body (HTML)",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "description",
+          "label": "Short description",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "delete_blog_posting",
+      "name": "Delete blog post",
+      "description": "Delete a blog post.",
+      "method": "DELETE",
+      "endpoint": "/blog-postings/{{ inputs.post_id }}",
+      "output_fields": {},
+      "inputs": [
+        {
+          "key": "post_id",
+          "label": "Blog post ID",
+          "type": "number",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_structured_contents",
+      "name": "List web content",
+      "description": "List web content articles of a site.",
+      "method": "GET",
+      "endpoint": "/sites/{{ inputs.site_id }}/structured-contents",
+      "query": {
+        "pageSize": "{{ inputs.page_size }}"
+      },
+      "output_fields": {
+        "items": "items",
+        "first_id": "items.0.id",
+        "first_title": "items.0.title"
+      },
+      "inputs": [
+        {
+          "key": "site_id",
+          "label": "Site ID",
+          "type": "string",
+          "required": true,
+          "help": "Liferay → Site Settings → Site Configuration → Site ID."
+        },
+        {
+          "key": "page_size",
+          "label": "How many",
+          "type": "number",
+          "default": 20
+        }
+      ]
+    },
+    {
+      "key": "list_documents",
+      "name": "List documents",
+      "description": "List files in a site's Documents and Media library.",
+      "method": "GET",
+      "endpoint": "/sites/{{ inputs.site_id }}/documents",
+      "query": {
+        "pageSize": "{{ inputs.page_size }}"
+      },
+      "output_fields": {
+        "items": "items",
+        "first_id": "items.0.id",
+        "first_title": "items.0.title",
+        "first_url": "items.0.contentUrl"
+      },
+      "inputs": [
+        {
+          "key": "site_id",
+          "label": "Site ID",
+          "type": "string",
+          "required": true,
+          "help": "Liferay → Site Settings → Site Configuration → Site ID."
+        },
+        {
+          "key": "page_size",
+          "label": "How many",
+          "type": "number",
+          "default": 20
+        }
+      ]
+    }
+  ]
+}

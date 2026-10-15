@@ -1,0 +1,133 @@
+{
+  "key": "uplead",
+  "name": "UpLead",
+  "category": "CRM & Sales",
+  "description": "Enrich people and companies with emails, phones and firmographics from UpLead.",
+  "website": "https://www.uplead.com",
+  "docs_url": "https://docs.uplead.com/",
+  "base_url": "https://api.uplead.com/v2",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "Authorization",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "In UpLead open Account → API and copy your API key."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "find_person",
+      "name": "Find person",
+      "description": "Give an email, or first name + last name + domain.",
+      "method": "POST",
+      "endpoint": "/person-search",
+      "body": {
+        "email": "{{ inputs.email }}",
+        "first_name": "{{ inputs.first_name }}",
+        "last_name": "{{ inputs.last_name }}",
+        "domain": "{{ inputs.domain }}"
+      },
+      "output_path": "data",
+      "output_fields": {
+        "email": "email",
+        "email_status": "email_status",
+        "title": "title",
+        "phone": "mobile_directdial",
+        "linkedin_url": "linkedin_url"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string"
+        },
+        {
+          "key": "first_name",
+          "label": "First name",
+          "type": "string"
+        },
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string"
+        },
+        {
+          "key": "domain",
+          "label": "Company domain",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "find_company",
+      "name": "Find company",
+      "method": "POST",
+      "endpoint": "/company-search",
+      "body": {
+        "domain": "{{ inputs.domain }}",
+        "company": "{{ inputs.company }}"
+      },
+      "output_path": "data",
+      "output_fields": {
+        "name": "company_name",
+        "domain": "domain"
+      },
+      "inputs": [
+        {
+          "key": "domain",
+          "label": "Company domain",
+          "type": "string"
+        },
+        {
+          "key": "company",
+          "label": "Company name",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "enrich_email",
+      "name": "Person and company by email",
+      "method": "POST",
+      "endpoint": "/combined-search",
+      "body": {
+        "email": "{{ inputs.email }}"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "company_domain",
+      "name": "Company name to domain",
+      "method": "POST",
+      "endpoint": "/company-name-to-domain",
+      "body": {
+        "company_name": "{{ inputs.company_name }}"
+      },
+      "output_path": "data",
+      "output_fields": {
+        "domain": "domain"
+      },
+      "inputs": [
+        {
+          "key": "company_name",
+          "label": "Company name",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ]
+}

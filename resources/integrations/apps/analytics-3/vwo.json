@@ -1,0 +1,201 @@
+{
+  "key": "vwo",
+  "name": "VWO",
+  "category": "Analytics",
+  "description": "List, inspect, rename and start or pause VWO A/B testing campaigns.",
+  "website": "https://vwo.com",
+  "docs_url": "https://developers.vwo.com/reference/introduction-1",
+  "base_url": "https://app.vwo.com/api/v2",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "token",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "API token",
+        "type": "password",
+        "required": true,
+        "help": "VWO → profile menu → Developers / API tokens → Generate token."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_campaigns",
+      "name": "List campaigns",
+      "description": "All campaigns in the workspace.",
+      "method": "GET",
+      "endpoint": "/accounts/{{ inputs.account_id }}/campaigns",
+      "output_fields": {
+        "campaigns": "_data",
+        "ids": "_data.*.id",
+        "names": "_data.*.name"
+      },
+      "inputs": [
+        {
+          "key": "account_id",
+          "label": "Workspace ID",
+          "type": "string",
+          "default": "current",
+          "help": "'current' for your main workspace, or a sub-account ID."
+        }
+      ]
+    },
+    {
+      "key": "get_campaign",
+      "name": "Get campaign",
+      "description": "Details of one campaign.",
+      "method": "GET",
+      "endpoint": "/accounts/{{ inputs.account_id }}/campaigns/{{ inputs.campaign_id }}",
+      "output_fields": {
+        "id": "_data.id",
+        "name": "_data.name",
+        "type": "_data.type",
+        "status": "_data.status"
+      },
+      "inputs": [
+        {
+          "key": "account_id",
+          "label": "Workspace ID",
+          "type": "string",
+          "default": "current",
+          "help": "'current' for your main workspace, or a sub-account ID."
+        },
+        {
+          "key": "campaign_id",
+          "label": "Campaign ID",
+          "type": "number",
+          "required": true,
+          "help": "The number in the campaign's URL in VWO, or use 'List campaigns'."
+        }
+      ]
+    },
+    {
+      "key": "update_campaign_status",
+      "name": "Start or pause campaign",
+      "description": "Start, resume or pause a campaign.",
+      "method": "PATCH",
+      "endpoint": "/accounts/{{ inputs.account_id }}/campaigns/status",
+      "body": {
+        "ids": [
+          "{{ inputs.campaign_id }}"
+        ],
+        "status": "{{ inputs.status }}"
+      },
+      "inputs": [
+        {
+          "key": "account_id",
+          "label": "Workspace ID",
+          "type": "string",
+          "default": "current",
+          "help": "'current' for your main workspace, or a sub-account ID."
+        },
+        {
+          "key": "campaign_id",
+          "label": "Campaign ID",
+          "type": "number",
+          "required": true,
+          "help": "The number in the campaign's URL in VWO, or use 'List campaigns'."
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "required": true,
+          "default": "RUNNING",
+          "options": [
+            {
+              "value": "RUNNING",
+              "label": "Start / resume"
+            },
+            {
+              "value": "PAUSED",
+              "label": "Pause"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "rename_campaign",
+      "name": "Rename campaign",
+      "description": "Change a campaign's name.",
+      "method": "PATCH",
+      "endpoint": "/accounts/{{ inputs.account_id }}/campaigns/{{ inputs.campaign_id }}",
+      "body": {
+        "campaigns": {
+          "name": "{{ inputs.name }}"
+        }
+      },
+      "inputs": [
+        {
+          "key": "account_id",
+          "label": "Workspace ID",
+          "type": "string",
+          "default": "current",
+          "help": "'current' for your main workspace, or a sub-account ID."
+        },
+        {
+          "key": "campaign_id",
+          "label": "Campaign ID",
+          "type": "number",
+          "required": true,
+          "help": "The number in the campaign's URL in VWO, or use 'List campaigns'."
+        },
+        {
+          "key": "name",
+          "label": "New name",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_variations",
+      "name": "List variations",
+      "description": "Variations of a campaign.",
+      "method": "GET",
+      "endpoint": "/accounts/{{ inputs.account_id }}/campaigns/{{ inputs.campaign_id }}/variations",
+      "output_fields": {
+        "variations": "_data",
+        "names": "_data.*.name"
+      },
+      "inputs": [
+        {
+          "key": "account_id",
+          "label": "Workspace ID",
+          "type": "string",
+          "default": "current",
+          "help": "'current' for your main workspace, or a sub-account ID."
+        },
+        {
+          "key": "campaign_id",
+          "label": "Campaign ID",
+          "type": "number",
+          "required": true,
+          "help": "The number in the campaign's URL in VWO, or use 'List campaigns'."
+        }
+      ]
+    },
+    {
+      "key": "list_websites",
+      "name": "List websites",
+      "description": "Websites in the workspace.",
+      "method": "GET",
+      "endpoint": "/accounts/{{ inputs.account_id }}/websites",
+      "output_fields": {
+        "websites": "_data"
+      },
+      "inputs": [
+        {
+          "key": "account_id",
+          "label": "Workspace ID",
+          "type": "string",
+          "default": "current",
+          "help": "'current' for your main workspace, or a sub-account ID."
+        }
+      ]
+    }
+  ]
+}

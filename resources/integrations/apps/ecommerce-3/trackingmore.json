@@ -1,0 +1,222 @@
+{
+  "key": "trackingmore",
+  "name": "TrackingMore",
+  "category": "E-commerce",
+  "description": "Track shipments across 1,300+ carriers, detect couriers and manage trackings.",
+  "website": "https://www.trackingmore.com",
+  "docs_url": "https://www.trackingmore.com/docs/trackingmore/",
+  "base_url": "https://api.trackingmore.com/v4",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "Tracking-Api-Key",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "TrackingMore → Developer → API key → Generate."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "create_tracking",
+      "name": "Create tracking",
+      "description": "Start tracking a shipment.",
+      "method": "POST",
+      "endpoint": "/trackings/create",
+      "body": {
+        "tracking_number": "{{ inputs.tracking_number }}",
+        "courier_code": "{{ inputs.courier_code }}",
+        "order_number": "{{ inputs.order_number }}",
+        "customer_name": "{{ inputs.customer_name }}",
+        "customer_email": "{{ inputs.customer_email }}",
+        "title": "{{ inputs.title }}",
+        "destination_code": "{{ inputs.destination_code }}",
+        "note": "{{ inputs.note }}"
+      },
+      "output_fields": {
+        "id": "data.id",
+        "status": "data.delivery_status"
+      },
+      "inputs": [
+        {
+          "key": "tracking_number",
+          "label": "Tracking number",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "courier_code",
+          "label": "Courier code",
+          "type": "string",
+          "required": true,
+          "placeholder": "usps",
+          "help": "Use Detect courier if unsure."
+        },
+        {
+          "key": "order_number",
+          "label": "Order number",
+          "type": "string"
+        },
+        {
+          "key": "customer_name",
+          "label": "Customer name",
+          "type": "string"
+        },
+        {
+          "key": "customer_email",
+          "label": "Customer email",
+          "type": "string"
+        },
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "string"
+        },
+        {
+          "key": "destination_code",
+          "label": "Destination country",
+          "type": "string",
+          "placeholder": "US"
+        },
+        {
+          "key": "note",
+          "label": "Note",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "get_tracking",
+      "name": "Get tracking",
+      "description": "Status of one or more tracking numbers.",
+      "method": "GET",
+      "endpoint": "/trackings/get",
+      "query": {
+        "tracking_numbers": "{{ inputs.tracking_numbers }}",
+        "courier_code": "{{ inputs.courier_code }}"
+      },
+      "output_fields": {
+        "status": "data.0.delivery_status",
+        "latest_event": "data.0.latest_event",
+        "latest_checkpoint_time": "data.0.latest_checkpoint_time"
+      },
+      "inputs": [
+        {
+          "key": "tracking_numbers",
+          "label": "Tracking number(s)",
+          "type": "string",
+          "required": true,
+          "help": "Comma-separated for several."
+        },
+        {
+          "key": "courier_code",
+          "label": "Courier code",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "detect_courier",
+      "name": "Detect courier",
+      "description": "Guess the courier from a tracking number.",
+      "method": "POST",
+      "endpoint": "/couriers/detect",
+      "body": {
+        "tracking_number": "{{ inputs.tracking_number }}"
+      },
+      "output_fields": {
+        "courier_code": "data.0.courier_code",
+        "courier_name": "data.0.courier_name"
+      },
+      "inputs": [
+        {
+          "key": "tracking_number",
+          "label": "Tracking number",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "update_tracking",
+      "name": "Update tracking",
+      "description": "Change customer or order details on a tracking.",
+      "method": "PUT",
+      "endpoint": "/trackings/update/{{ inputs.id }}",
+      "body": {
+        "customer_name": "{{ inputs.customer_name }}",
+        "customer_email": "{{ inputs.customer_email }}",
+        "order_number": "{{ inputs.order_number }}",
+        "title": "{{ inputs.title }}",
+        "note": "{{ inputs.note }}"
+      },
+      "inputs": [
+        {
+          "key": "id",
+          "label": "Tracking ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "customer_name",
+          "label": "Customer name",
+          "type": "string"
+        },
+        {
+          "key": "customer_email",
+          "label": "Customer email",
+          "type": "string"
+        },
+        {
+          "key": "order_number",
+          "label": "Order number",
+          "type": "string"
+        },
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "string"
+        },
+        {
+          "key": "note",
+          "label": "Note",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "delete_tracking",
+      "name": "Delete tracking",
+      "description": "Stop tracking a shipment.",
+      "method": "DELETE",
+      "endpoint": "/trackings/delete/{{ inputs.id }}",
+      "inputs": [
+        {
+          "key": "id",
+          "label": "Tracking ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Tracking update",
+      "type": "webhook",
+      "description": "TrackingMore → Developer → Webhook, paste this URL.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

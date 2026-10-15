@@ -1,0 +1,152 @@
+{
+  "key": "tilda",
+  "name": "Tilda",
+  "category": "CMS & Websites",
+  "description": "List Tilda projects and pages and fetch page HTML to publish elsewhere.",
+  "website": "https://tilda.cc",
+  "docs_url": "https://help.tilda.cc/api",
+  "base_url": "https://api.tildacdn.info/v1",
+  "auth": {
+    "type": "api_key",
+    "in": "query",
+    "name": "publickey",
+    "fields": [
+      {
+        "key": "secret_key",
+        "label": "Secret key",
+        "type": "password",
+        "required": true,
+        "help": "Shown next to the public key on the same API Integration page."
+      },
+      {
+        "key": "api_key",
+        "label": "Public key",
+        "type": "password",
+        "required": true,
+        "help": "In Tilda open Site Settings → Export → API Integration and generate keys."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_projects",
+      "name": "List projects",
+      "description": "List the sites in your account.",
+      "method": "GET",
+      "endpoint": "/getprojectslist/",
+      "query": {
+        "secretkey": "{{ credentials.secret_key }}"
+      },
+      "error_path": "message",
+      "output_fields": {
+        "projects": "result",
+        "first_id": "result.0.id",
+        "first_title": "result.0.title"
+      },
+      "inputs": []
+    },
+    {
+      "key": "project_info",
+      "name": "Get project",
+      "description": "Read a site's settings and export info.",
+      "method": "GET",
+      "endpoint": "/getprojectinfo/",
+      "query": {
+        "secretkey": "{{ credentials.secret_key }}",
+        "projectid": "{{ inputs.project_id }}"
+      },
+      "error_path": "message",
+      "output_fields": {
+        "title": "result.title",
+        "descr": "result.descr",
+        "customdomain": "result.customdomain"
+      },
+      "inputs": [
+        {
+          "key": "project_id",
+          "label": "Project ID",
+          "type": "number",
+          "required": true,
+          "help": "Use 'List projects' to find it."
+        }
+      ]
+    },
+    {
+      "key": "list_pages",
+      "name": "List pages",
+      "description": "List the pages of a project.",
+      "method": "GET",
+      "endpoint": "/getpageslist/",
+      "query": {
+        "secretkey": "{{ credentials.secret_key }}",
+        "projectid": "{{ inputs.project_id }}"
+      },
+      "error_path": "message",
+      "output_fields": {
+        "pages": "result",
+        "first_id": "result.0.id",
+        "first_title": "result.0.title"
+      },
+      "inputs": [
+        {
+          "key": "project_id",
+          "label": "Project ID",
+          "type": "number",
+          "required": true,
+          "help": "Use 'List projects' to find it."
+        }
+      ]
+    },
+    {
+      "key": "get_page",
+      "name": "Get page",
+      "description": "Read a page's title, description and URL info.",
+      "method": "GET",
+      "endpoint": "/getpage/",
+      "query": {
+        "secretkey": "{{ credentials.secret_key }}",
+        "pageid": "{{ inputs.page_id }}"
+      },
+      "error_path": "message",
+      "output_fields": {
+        "title": "result.title",
+        "alias": "result.alias",
+        "html": "result.html"
+      },
+      "inputs": [
+        {
+          "key": "page_id",
+          "label": "Page ID",
+          "type": "number",
+          "required": true,
+          "help": "Use 'List pages' to find it."
+        }
+      ]
+    },
+    {
+      "key": "get_page_full",
+      "name": "Get page with HTML",
+      "description": "Read a page with its full HTML, CSS and JS file lists.",
+      "method": "GET",
+      "endpoint": "/getpagefull/",
+      "query": {
+        "secretkey": "{{ credentials.secret_key }}",
+        "pageid": "{{ inputs.page_id }}"
+      },
+      "error_path": "message",
+      "output_fields": {
+        "title": "result.title",
+        "html": "result.html",
+        "images": "result.images"
+      },
+      "inputs": [
+        {
+          "key": "page_id",
+          "label": "Page ID",
+          "type": "number",
+          "required": true
+        }
+      ]
+    }
+  ]
+}

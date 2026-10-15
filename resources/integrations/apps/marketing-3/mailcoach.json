@@ -1,0 +1,246 @@
+{
+  "key": "mailcoach",
+  "name": "Mailcoach",
+  "category": "Marketing & Email",
+  "description": "Newsletters by Spatie: manage lists and subscribers, create and send campaigns.",
+  "website": "https://www.mailcoach.app",
+  "docs_url": "https://www.mailcoach.app/api-documentation",
+  "base_url": "{{ credentials.api_url }}",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "api_url",
+        "label": "API endpoint",
+        "type": "string",
+        "required": true,
+        "placeholder": "https://yourteam.mailcoach.app/api",
+        "help": "Mailcoach → Settings → API Tokens shows your API endpoint. Copy it exactly (it ends in /api)."
+      },
+      {
+        "key": "token",
+        "label": "API token",
+        "type": "password",
+        "required": true,
+        "help": "Mailcoach → Settings → API Tokens → Create token."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_email_lists",
+      "name": "List email lists",
+      "description": "Your email lists and their UUIDs.",
+      "method": "GET",
+      "endpoint": "/email-lists",
+      "output_fields": {
+        "lists": "data",
+        "uuids": "data.*.uuid",
+        "names": "data.*.name"
+      },
+      "inputs": []
+    },
+    {
+      "key": "add_subscriber",
+      "name": "Add subscriber",
+      "description": "Subscribe an email address to a list.",
+      "method": "POST",
+      "endpoint": "/email-lists/{{ inputs.list_uuid }}/subscribers",
+      "body": {
+        "email": "{{ inputs.email }}",
+        "first_name": "{{ inputs.first_name }}",
+        "last_name": "{{ inputs.last_name }}",
+        "tags": "{{ inputs.tags }}",
+        "extra_attributes": "{{ inputs.extra_attributes }}",
+        "skip_confirmation": "{{ inputs.skip_confirmation }}"
+      },
+      "output_fields": {
+        "uuid": "data.uuid",
+        "email": "data.email",
+        "subscribed_at": "data.subscribed_at"
+      },
+      "inputs": [
+        {
+          "key": "list_uuid",
+          "label": "Email list UUID",
+          "type": "string",
+          "required": true,
+          "help": "Run \"List email lists\", or open the list in Mailcoach: the UUID is in the address bar."
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "first_name",
+          "label": "First name",
+          "type": "string"
+        },
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string"
+        },
+        {
+          "key": "tags",
+          "label": "Tags",
+          "type": "list"
+        },
+        {
+          "key": "extra_attributes",
+          "label": "Extra attributes",
+          "type": "keyvalue"
+        },
+        {
+          "key": "skip_confirmation",
+          "label": "Skip double opt-in",
+          "type": "boolean",
+          "default": false,
+          "help": "Only when you already have the person's consent."
+        }
+      ]
+    },
+    {
+      "key": "find_subscriber",
+      "name": "Find subscriber by email",
+      "description": "Look up a subscriber on a list by email.",
+      "method": "GET",
+      "endpoint": "/email-lists/{{ inputs.list_uuid }}/subscribers",
+      "query": {
+        "filter[email]": "{{ inputs.email }}"
+      },
+      "output_fields": {
+        "subscribers": "data",
+        "uuid": "data.0.uuid",
+        "status": "data.0.status"
+      },
+      "inputs": [
+        {
+          "key": "list_uuid",
+          "label": "Email list UUID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "unsubscribe",
+      "name": "Unsubscribe subscriber",
+      "description": "Unsubscribe a subscriber from its list.",
+      "method": "POST",
+      "endpoint": "/subscribers/{{ inputs.subscriber_uuid }}/unsubscribe",
+      "inputs": [
+        {
+          "key": "subscriber_uuid",
+          "label": "Subscriber UUID",
+          "type": "string",
+          "required": true,
+          "help": "From an \"Add subscriber\" or \"Find subscriber\" step."
+        }
+      ]
+    },
+    {
+      "key": "delete_subscriber",
+      "name": "Delete subscriber",
+      "description": "Delete a subscriber and their data.",
+      "method": "DELETE",
+      "endpoint": "/subscribers/{{ inputs.subscriber_uuid }}",
+      "inputs": [
+        {
+          "key": "subscriber_uuid",
+          "label": "Subscriber UUID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "create_campaign",
+      "name": "Create campaign",
+      "description": "Create a draft campaign for a list.",
+      "method": "POST",
+      "endpoint": "/campaigns",
+      "body": {
+        "name": "{{ inputs.name }}",
+        "email_list_uuid": "{{ inputs.list_uuid }}",
+        "subject": "{{ inputs.subject }}",
+        "html": "{{ inputs.html }}",
+        "schedule_at": "{{ inputs.schedule_at }}"
+      },
+      "output_fields": {
+        "uuid": "data.uuid",
+        "status": "data.status"
+      },
+      "inputs": [
+        {
+          "key": "name",
+          "label": "Campaign name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "list_uuid",
+          "label": "Email list UUID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "subject",
+          "label": "Subject",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "html",
+          "label": "Content (HTML)",
+          "type": "text"
+        },
+        {
+          "key": "schedule_at",
+          "label": "Schedule at",
+          "type": "string",
+          "placeholder": "2026-12-01 09:00:00",
+          "help": "Optional. Leave empty to keep it as a draft."
+        }
+      ]
+    },
+    {
+      "key": "send_campaign",
+      "name": "Send campaign",
+      "description": "Send a campaign to its list right away.",
+      "method": "POST",
+      "endpoint": "/campaigns/{{ inputs.campaign_uuid }}/send",
+      "inputs": [
+        {
+          "key": "campaign_uuid",
+          "label": "Campaign UUID",
+          "type": "string",
+          "required": true,
+          "help": "From a \"Create campaign\" step, or the campaign's address in Mailcoach."
+        }
+      ]
+    },
+    {
+      "key": "list_campaigns",
+      "name": "List campaigns",
+      "description": "Your campaigns with status and stats.",
+      "method": "GET",
+      "endpoint": "/campaigns",
+      "output_fields": {
+        "campaigns": "data",
+        "uuids": "data.*.uuid",
+        "names": "data.*.name"
+      },
+      "inputs": []
+    }
+  ],
+  "triggers": []
+}

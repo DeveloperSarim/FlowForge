@@ -1,0 +1,268 @@
+{
+  "key": "polar",
+  "name": "Polar",
+  "category": "Payments & Finance",
+  "description": "Sell digital products and subscriptions: checkouts, orders and customers.",
+  "website": "https://polar.sh",
+  "docs_url": "https://docs.polar.sh/api-reference/introduction",
+  "base_url": "https://{{ credentials.host }}/v1",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "Organization access token",
+        "type": "password",
+        "required": true,
+        "help": "Polar dashboard → Settings → General → Developers → New token."
+      },
+      {
+        "key": "host",
+        "label": "Environment",
+        "type": "select",
+        "required": true,
+        "default": "api.polar.sh",
+        "options": [
+          {
+            "value": "api.polar.sh",
+            "label": "Production"
+          },
+          {
+            "value": "sandbox-api.polar.sh",
+            "label": "Sandbox"
+          }
+        ]
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "create_checkout",
+      "name": "Create checkout link",
+      "description": "Create a checkout session and get its URL.",
+      "method": "POST",
+      "endpoint": "/checkouts/",
+      "body": {
+        "products": "{{ inputs.products }}",
+        "customer_email": "{{ inputs.customer_email }}",
+        "customer_name": "{{ inputs.customer_name }}",
+        "external_customer_id": "{{ inputs.external_customer_id }}",
+        "success_url": "{{ inputs.success_url }}",
+        "metadata": "{{ inputs.metadata }}"
+      },
+      "output_fields": {
+        "id": "id",
+        "url": "url",
+        "status": "status"
+      },
+      "inputs": [
+        {
+          "key": "products",
+          "label": "Product IDs",
+          "type": "list",
+          "required": true,
+          "help": "Use List products to find them."
+        },
+        {
+          "key": "customer_email",
+          "label": "Customer email",
+          "type": "string"
+        },
+        {
+          "key": "customer_name",
+          "label": "Customer name",
+          "type": "string"
+        },
+        {
+          "key": "external_customer_id",
+          "label": "Your customer ID",
+          "type": "string"
+        },
+        {
+          "key": "success_url",
+          "label": "Success URL",
+          "type": "string"
+        },
+        {
+          "key": "metadata",
+          "label": "Metadata (JSON)",
+          "type": "json"
+        }
+      ]
+    },
+    {
+      "key": "list_products",
+      "name": "List products",
+      "description": "Your products and prices.",
+      "method": "GET",
+      "endpoint": "/products/",
+      "query": {
+        "query": "{{ inputs.query }}",
+        "is_archived": "false",
+        "limit": 50
+      },
+      "output_fields": {
+        "products": "items"
+      },
+      "inputs": [
+        {
+          "key": "query",
+          "label": "Search",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "list_orders",
+      "name": "List orders",
+      "description": "Newest orders first.",
+      "method": "GET",
+      "endpoint": "/orders/",
+      "query": {
+        "sorting": "-created_at",
+        "limit": "{{ inputs.limit }}",
+        "customer_id": "{{ inputs.customer_id }}"
+      },
+      "output_fields": {
+        "orders": "items"
+      },
+      "inputs": [
+        {
+          "key": "customer_id",
+          "label": "Customer ID",
+          "type": "string"
+        },
+        {
+          "key": "limit",
+          "label": "How many",
+          "type": "number",
+          "default": 20
+        }
+      ]
+    },
+    {
+      "key": "get_order",
+      "name": "Get order",
+      "description": "One order's details.",
+      "method": "GET",
+      "endpoint": "/orders/{{ inputs.order_id }}",
+      "output_fields": {
+        "status": "status",
+        "total_amount": "total_amount",
+        "currency": "currency",
+        "customer_email": "customer.email"
+      },
+      "inputs": [
+        {
+          "key": "order_id",
+          "label": "Order ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "create_customer",
+      "name": "Create customer",
+      "description": "Add a customer.",
+      "method": "POST",
+      "endpoint": "/customers/",
+      "body": {
+        "email": "{{ inputs.email }}",
+        "name": "{{ inputs.name }}",
+        "external_id": "{{ inputs.external_id }}",
+        "metadata": "{{ inputs.metadata }}"
+      },
+      "output_fields": {
+        "id": "id"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string"
+        },
+        {
+          "key": "external_id",
+          "label": "Your customer ID",
+          "type": "string"
+        },
+        {
+          "key": "metadata",
+          "label": "Metadata (JSON)",
+          "type": "json"
+        }
+      ]
+    },
+    {
+      "key": "list_subscriptions",
+      "name": "List subscriptions",
+      "description": "Subscriptions, active or all.",
+      "method": "GET",
+      "endpoint": "/subscriptions/",
+      "query": {
+        "active": "{{ inputs.active }}",
+        "customer_id": "{{ inputs.customer_id }}",
+        "limit": 50
+      },
+      "output_fields": {
+        "subscriptions": "items"
+      },
+      "inputs": [
+        {
+          "key": "active",
+          "label": "Only active",
+          "type": "boolean",
+          "default": true
+        },
+        {
+          "key": "customer_id",
+          "label": "Customer ID",
+          "type": "string"
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_order",
+      "name": "New order",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/orders/",
+      "query": {
+        "sorting": "-created_at",
+        "limit": 50
+      },
+      "items_path": "items",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    },
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Polar → Settings → Webhooks → Add endpoint (format: Raw), paste this URL.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,188 @@
+{
+  "key": "cronofy",
+  "name": "Cronofy",
+  "category": "Productivity",
+  "description": "Calendar API for Google, Outlook and iCloud: list calendars and events, create events.",
+  "website": "https://www.cronofy.com",
+  "docs_url": "https://docs.cronofy.com/developers/api/",
+  "base_url": "https://{{ credentials.host }}/v1",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "host",
+        "label": "Data center",
+        "type": "select",
+        "required": true,
+        "default": "api.cronofy.com",
+        "help": "Where your Cronofy account lives.",
+        "options": [
+          {
+            "value": "api.cronofy.com",
+            "label": "US"
+          },
+          {
+            "value": "api-uk.cronofy.com",
+            "label": "UK"
+          },
+          {
+            "value": "api-de.cronofy.com",
+            "label": "Germany"
+          },
+          {
+            "value": "api-au.cronofy.com",
+            "label": "Australia"
+          },
+          {
+            "value": "api-ca.cronofy.com",
+            "label": "Canada"
+          },
+          {
+            "value": "api-sg.cronofy.com",
+            "label": "Singapore"
+          }
+        ]
+      },
+      {
+        "key": "token",
+        "label": "Access token",
+        "type": "password",
+        "required": true,
+        "help": "Cronofy developer dashboard → your app → Test authorization → access token."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_calendars",
+      "name": "List calendars",
+      "description": "Calendars of the connected account.",
+      "method": "GET",
+      "endpoint": "/calendars",
+      "output_fields": {
+        "names": "calendars.*.calendar_name",
+        "ids": "calendars.*.calendar_id"
+      },
+      "inputs": []
+    },
+    {
+      "key": "read_events",
+      "name": "Read events",
+      "description": "Events in a date range.",
+      "method": "GET",
+      "endpoint": "/events",
+      "query": {
+        "tzid": "{{ inputs.tzid }}",
+        "from": "{{ inputs.from }}",
+        "to": "{{ inputs.to }}"
+      },
+      "output_fields": {
+        "summaries": "events.*.summary",
+        "ids": "events.*.event_uid"
+      },
+      "inputs": [
+        {
+          "key": "from",
+          "label": "From",
+          "type": "string",
+          "required": true,
+          "placeholder": "2025-01-01"
+        },
+        {
+          "key": "to",
+          "label": "To",
+          "type": "string",
+          "required": true,
+          "placeholder": "2025-01-31"
+        },
+        {
+          "key": "tzid",
+          "label": "Time zone",
+          "type": "string",
+          "required": true,
+          "default": "Etc/UTC",
+          "placeholder": "Europe/London"
+        }
+      ]
+    },
+    {
+      "key": "upsert_event",
+      "name": "Create or update event",
+      "description": "Add an event to a calendar.",
+      "method": "POST",
+      "endpoint": "/calendars/{{ inputs.calendar_id }}/events",
+      "body": {
+        "event_id": "{{ inputs.event_id }}",
+        "summary": "{{ inputs.summary }}",
+        "description": "{{ inputs.description }}",
+        "start": "{{ inputs.start }}",
+        "end": "{{ inputs.end }}"
+      },
+      "inputs": [
+        {
+          "key": "calendar_id",
+          "label": "Calendar ID",
+          "type": "string",
+          "required": true,
+          "help": "Use \"List calendars\" to find it."
+        },
+        {
+          "key": "event_id",
+          "label": "Your event ID",
+          "type": "string",
+          "required": true,
+          "help": "Any unique text of yours. Reuse it later to update the same event."
+        },
+        {
+          "key": "summary",
+          "label": "Title",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "description",
+          "label": "Description",
+          "type": "text"
+        },
+        {
+          "key": "start",
+          "label": "Start",
+          "type": "string",
+          "required": true,
+          "placeholder": "2025-01-31T10:00:00Z"
+        },
+        {
+          "key": "end",
+          "label": "End",
+          "type": "string",
+          "required": true,
+          "placeholder": "2025-01-31T11:00:00Z"
+        }
+      ]
+    },
+    {
+      "key": "delete_event",
+      "name": "Delete event",
+      "description": "Remove an event you created.",
+      "method": "DELETE",
+      "endpoint": "/calendars/{{ inputs.calendar_id }}/events",
+      "body": {
+        "event_id": "{{ inputs.event_id }}"
+      },
+      "inputs": [
+        {
+          "key": "calendar_id",
+          "label": "Calendar ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "event_id",
+          "label": "Your event ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ]
+}

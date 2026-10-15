@@ -1,0 +1,233 @@
+{
+  "key": "kutt",
+  "name": "Kutt",
+  "category": "Utilities",
+  "description": "Shorten links on kutt.it or your own Kutt server and manage them.",
+  "website": "https://kutt.it",
+  "docs_url": "https://docs.kutt.to",
+  "base_url": "{{ credentials.server_url }}/api/v2",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "X-API-KEY",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "Kutt → Settings → API → Generate key."
+      },
+      {
+        "key": "server_url",
+        "label": "Kutt address",
+        "type": "string",
+        "required": true,
+        "default": "https://kutt.it",
+        "placeholder": "https://kutt.it",
+        "help": "Use https://kutt.it, or the address of your own Kutt server."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "create_link",
+      "name": "Create short link",
+      "description": "Shorten a URL.",
+      "method": "POST",
+      "endpoint": "/links",
+      "body": {
+        "target": "{{ inputs.target }}",
+        "customurl": "{{ inputs.customurl }}",
+        "description": "{{ inputs.description }}",
+        "expire_in": "{{ inputs.expire_in }}",
+        "password": "{{ inputs.password }}",
+        "domain": "{{ inputs.domain }}",
+        "reuse": "{{ inputs.reuse }}"
+      },
+      "output_fields": {
+        "id": "id",
+        "short_link": "link",
+        "slug": "address"
+      },
+      "inputs": [
+        {
+          "key": "target",
+          "label": "Destination URL",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "customurl",
+          "label": "Custom slug",
+          "type": "string"
+        },
+        {
+          "key": "description",
+          "label": "Description",
+          "type": "string"
+        },
+        {
+          "key": "expire_in",
+          "label": "Expires in",
+          "type": "string",
+          "placeholder": "2 days",
+          "help": "E.g. 2 minutes, 3 hours, 1 week."
+        },
+        {
+          "key": "password",
+          "label": "Password",
+          "type": "password"
+        },
+        {
+          "key": "domain",
+          "label": "Domain",
+          "type": "string",
+          "help": "One of your custom domains; empty = default."
+        },
+        {
+          "key": "reuse",
+          "label": "Reuse an existing link for this URL",
+          "type": "boolean",
+          "default": false
+        }
+      ]
+    },
+    {
+      "key": "list_links",
+      "name": "List links",
+      "description": "List your links, newest first.",
+      "method": "GET",
+      "endpoint": "/links",
+      "query": {
+        "search": "{{ inputs.search }}",
+        "limit": "{{ inputs.limit }}",
+        "skip": "{{ inputs.skip }}"
+      },
+      "output_fields": {
+        "links": "data",
+        "total": "total"
+      },
+      "inputs": [
+        {
+          "key": "search",
+          "label": "Search",
+          "type": "string"
+        },
+        {
+          "key": "limit",
+          "label": "How many",
+          "type": "number",
+          "default": 20
+        },
+        {
+          "key": "skip",
+          "label": "Skip",
+          "type": "number",
+          "default": 0
+        }
+      ]
+    },
+    {
+      "key": "update_link",
+      "name": "Update link",
+      "description": "Change a link's destination, slug or description.",
+      "method": "PATCH",
+      "endpoint": "/links/{{ inputs.link_id }}",
+      "body": {
+        "target": "{{ inputs.target }}",
+        "address": "{{ inputs.address }}",
+        "description": "{{ inputs.description }}",
+        "expire_in": "{{ inputs.expire_in }}"
+      },
+      "output_fields": {
+        "id": "id",
+        "short_link": "link"
+      },
+      "inputs": [
+        {
+          "key": "link_id",
+          "label": "Link ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "target",
+          "label": "Destination URL",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "address",
+          "label": "Slug",
+          "type": "string",
+          "required": true,
+          "help": "The part after the domain."
+        },
+        {
+          "key": "description",
+          "label": "Description",
+          "type": "string"
+        },
+        {
+          "key": "expire_in",
+          "label": "Expires in",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "delete_link",
+      "name": "Delete link",
+      "description": "Delete a short link.",
+      "method": "DELETE",
+      "endpoint": "/links/{{ inputs.link_id }}",
+      "inputs": [
+        {
+          "key": "link_id",
+          "label": "Link ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "get_link_stats",
+      "name": "Get link stats",
+      "description": "Visit statistics of a link by day, week, month and all time.",
+      "method": "GET",
+      "endpoint": "/links/{{ inputs.link_id }}/stats",
+      "inputs": [
+        {
+          "key": "link_id",
+          "label": "Link ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_link",
+      "name": "New link",
+      "type": "polling",
+      "description": "A short link was created.",
+      "method": "GET",
+      "endpoint": "/links",
+      "query": {
+        "limit": 20
+      },
+      "items_path": "data",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

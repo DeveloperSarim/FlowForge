@@ -1,0 +1,161 @@
+{
+  "key": "zotero",
+  "name": "Zotero",
+  "category": "Productivity",
+  "description": "Reference manager: read and search your library items and collections.",
+  "website": "https://www.zotero.org",
+  "docs_url": "https://www.zotero.org/support/dev/web_api/v3/start",
+  "base_url": "https://api.zotero.org",
+  "headers": {
+    "Zotero-API-Version": "3"
+  },
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "Zotero-API-Key",
+    "fields": [
+      {
+        "key": "user_id",
+        "label": "Zotero user ID",
+        "type": "string",
+        "required": true,
+        "help": "zotero.org/settings/keys → \"Your userID for use in API calls is …\"."
+      },
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "zotero.org/settings/keys → Create new private key (allow library access)."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_items",
+      "name": "List items",
+      "description": "Newest items in your library.",
+      "method": "GET",
+      "endpoint": "/users/{{ credentials.user_id }}/items/top",
+      "query": {
+        "limit": "{{ inputs.limit }}",
+        "tag": "{{ inputs.tag }}",
+        "sort": "dateAdded",
+        "direction": "desc"
+      },
+      "output_fields": {
+        "titles": "*.data.title",
+        "keys": "*.key"
+      },
+      "inputs": [
+        {
+          "key": "limit",
+          "label": "Max results",
+          "type": "number",
+          "default": 25
+        },
+        {
+          "key": "tag",
+          "label": "Tag",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "search_items",
+      "name": "Search items",
+      "description": "Search titles, creators and years.",
+      "method": "GET",
+      "endpoint": "/users/{{ credentials.user_id }}/items/top",
+      "query": {
+        "q": "{{ inputs.q }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "titles": "*.data.title",
+        "keys": "*.key"
+      },
+      "inputs": [
+        {
+          "key": "q",
+          "label": "Search",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "limit",
+          "label": "Max results",
+          "type": "number",
+          "default": 25
+        }
+      ]
+    },
+    {
+      "key": "get_item",
+      "name": "Get item",
+      "description": "One item with all its fields.",
+      "method": "GET",
+      "endpoint": "/users/{{ credentials.user_id }}/items/{{ inputs.key }}",
+      "output_fields": {
+        "title": "data.title",
+        "type": "data.itemType",
+        "url": "data.url",
+        "date": "data.date"
+      },
+      "inputs": [
+        {
+          "key": "key",
+          "label": "Item key",
+          "type": "string",
+          "required": true,
+          "help": "8-character key shown in the item URL."
+        }
+      ]
+    },
+    {
+      "key": "list_collections",
+      "name": "List collections",
+      "description": "Your collections.",
+      "method": "GET",
+      "endpoint": "/users/{{ credentials.user_id }}/collections",
+      "query": {
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "names": "*.data.name",
+        "keys": "*.key"
+      },
+      "inputs": [
+        {
+          "key": "limit",
+          "label": "Max results",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_item",
+      "name": "New item",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/users/{{ credentials.user_id }}/items/top",
+      "query": {
+        "sort": "dateAdded",
+        "direction": "desc",
+        "limit": 25
+      },
+      "id_field": "key",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

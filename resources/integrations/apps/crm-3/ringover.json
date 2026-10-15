@@ -1,0 +1,363 @@
+{
+  "key": "ringover",
+  "name": "Ringover",
+  "category": "CRM & Sales",
+  "description": "Send SMS, start calls, add contacts and track calls in Ringover.",
+  "website": "https://www.ringover.com",
+  "docs_url": "https://developer.ringover.com/",
+  "base_url": "https://{{ credentials.api_host }}/v2",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "Authorization",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "Ringover Dashboard → Developer → Create an API key, then edit it to grant the rights you need."
+      },
+      {
+        "key": "api_host",
+        "label": "Region",
+        "type": "select",
+        "required": true,
+        "default": "public-api.ringover.com",
+        "options": [
+          {
+            "value": "public-api.ringover.com",
+            "label": "Europe"
+          },
+          {
+            "value": "public-api-us.ringover.com",
+            "label": "United States"
+          }
+        ]
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "send_sms",
+      "name": "Send SMS",
+      "method": "POST",
+      "endpoint": "/push/sms",
+      "body": {
+        "from_number": "{{ inputs.from_number }}",
+        "to_number": "{{ inputs.to_number }}",
+        "content": "{{ inputs.content }}"
+      },
+      "output_fields": {
+        "message_id": "message_id",
+        "conversation_id": "conv_id"
+      },
+      "inputs": [
+        {
+          "key": "from_number",
+          "label": "From number",
+          "type": "number",
+          "required": true,
+          "help": "Your Ringover number. Digits only, with country code, e.g. 33611223344."
+        },
+        {
+          "key": "to_number",
+          "label": "To number",
+          "type": "number",
+          "required": true,
+          "help": "Digits only, with country code, e.g. 33611223344."
+        },
+        {
+          "key": "content",
+          "label": "Message",
+          "type": "text",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "start_call",
+      "name": "Start call (click-to-call)",
+      "description": "Rings your device first, then connects you to the number.",
+      "method": "POST",
+      "endpoint": "/callback",
+      "body": {
+        "to_number": "{{ inputs.to_number }}",
+        "device": "{{ inputs.device }}",
+        "from_number": "{{ inputs.from_number }}",
+        "timeout": "{{ inputs.timeout }}"
+      },
+      "output_fields": {
+        "call_id": "call_id"
+      },
+      "inputs": [
+        {
+          "key": "to_number",
+          "label": "Number to call",
+          "type": "number",
+          "required": true,
+          "help": "Digits only, with country code, e.g. 33611223344."
+        },
+        {
+          "key": "device",
+          "label": "Ring on",
+          "type": "select",
+          "default": "ALL",
+          "options": [
+            {
+              "value": "ALL",
+              "label": "All my devices"
+            },
+            {
+              "value": "APP",
+              "label": "Mobile app"
+            },
+            {
+              "value": "WEB",
+              "label": "Web app"
+            },
+            {
+              "value": "SIP",
+              "label": "SIP phone"
+            },
+            {
+              "value": "MOB",
+              "label": "Mobile number"
+            }
+          ]
+        },
+        {
+          "key": "from_number",
+          "label": "Call from number",
+          "type": "number",
+          "help": "Leave empty to use your default number."
+        },
+        {
+          "key": "timeout",
+          "label": "Ring timeout (seconds)",
+          "type": "number",
+          "default": 20
+        }
+      ]
+    },
+    {
+      "key": "create_contact",
+      "name": "Create contact",
+      "method": "POST",
+      "endpoint": "/contacts",
+      "body": {
+        "contacts": [
+          {
+            "firstname": "{{ inputs.firstname }}",
+            "lastname": "{{ inputs.lastname }}",
+            "company": "{{ inputs.company }}",
+            "is_shared": "{{ inputs.is_shared }}",
+            "numbers": [
+              {
+                "number": "{{ inputs.number }}",
+                "type": "{{ inputs.number_type }}"
+              }
+            ]
+          }
+        ]
+      },
+      "output_fields": {
+        "contact_id": "0"
+      },
+      "inputs": [
+        {
+          "key": "firstname",
+          "label": "First name",
+          "type": "string"
+        },
+        {
+          "key": "lastname",
+          "label": "Last name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "company",
+          "label": "Company",
+          "type": "string"
+        },
+        {
+          "key": "number",
+          "label": "Phone number",
+          "type": "number",
+          "required": true,
+          "help": "Digits only, with country code, e.g. 33611223344."
+        },
+        {
+          "key": "number_type",
+          "label": "Number type",
+          "type": "select",
+          "default": "mobile",
+          "options": [
+            {
+              "value": "mobile",
+              "label": "mobile"
+            },
+            {
+              "value": "office",
+              "label": "office"
+            },
+            {
+              "value": "home",
+              "label": "home"
+            },
+            {
+              "value": "fax",
+              "label": "fax"
+            },
+            {
+              "value": "other",
+              "label": "other"
+            }
+          ]
+        },
+        {
+          "key": "is_shared",
+          "label": "Share with team",
+          "type": "boolean",
+          "default": true
+        }
+      ]
+    },
+    {
+      "key": "get_contact",
+      "name": "Get contact",
+      "method": "GET",
+      "endpoint": "/contacts/{{ inputs.contact_id }}",
+      "output_fields": {
+        "id": "contact_id",
+        "name": "concat_name"
+      },
+      "inputs": [
+        {
+          "key": "contact_id",
+          "label": "Contact ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "search_contacts",
+      "name": "Search contacts",
+      "method": "POST",
+      "endpoint": "/contacts",
+      "body": {
+        "search": "{{ inputs.search }}",
+        "limit_count": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "contacts": "contact_list",
+        "contact_id": "contact_list.0.contact_id"
+      },
+      "inputs": [
+        {
+          "key": "search",
+          "label": "Search",
+          "type": "string",
+          "required": true,
+          "help": "Name, company or phone number."
+        },
+        {
+          "key": "limit",
+          "label": "Max results",
+          "type": "number",
+          "default": 10
+        }
+      ]
+    },
+    {
+      "key": "list_calls",
+      "name": "List recent calls",
+      "method": "GET",
+      "endpoint": "/calls",
+      "query": {
+        "call_type": "{{ inputs.call_type }}",
+        "limit_count": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "calls": "call_list"
+      },
+      "inputs": [
+        {
+          "key": "call_type",
+          "label": "Type",
+          "type": "select",
+          "options": [
+            {
+              "value": "ANSWERED",
+              "label": "Answered"
+            },
+            {
+              "value": "MISSED",
+              "label": "Missed"
+            },
+            {
+              "value": "OUT",
+              "label": "Outgoing"
+            },
+            {
+              "value": "VOICEMAIL",
+              "label": "Voicemail"
+            }
+          ]
+        },
+        {
+          "key": "limit",
+          "label": "Max results",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_call",
+      "name": "New call",
+      "type": "polling",
+      "description": "A call ended (newest first).",
+      "method": "GET",
+      "endpoint": "/calls",
+      "query": {
+        "limit_count": 50
+      },
+      "items_path": "call_list",
+      "id_field": "cdr_id",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    },
+    {
+      "key": "new_missed_call",
+      "name": "New missed call",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/calls",
+      "query": {
+        "limit_count": 50,
+        "call_type": "MISSED"
+      },
+      "items_path": "call_list",
+      "id_field": "cdr_id",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

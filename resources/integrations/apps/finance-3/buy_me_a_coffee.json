@@ -1,0 +1,182 @@
+{
+  "key": "buy_me_a_coffee",
+  "name": "Buy Me a Coffee",
+  "category": "Payments & Finance",
+  "description": "Get your supporters, memberships and extras purchases from Buy Me a Coffee.",
+  "website": "https://www.buymeacoffee.com",
+  "docs_url": "https://developers.buymeacoffee.com",
+  "base_url": "https://developers.buymeacoffee.com/api/v1",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "API token",
+        "type": "password",
+        "required": true,
+        "help": "developers.buymeacoffee.com → Dashboard → New token."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_supporters",
+      "name": "List supporters",
+      "description": "One-time supporters, newest first.",
+      "method": "GET",
+      "endpoint": "/supporters",
+      "query": {
+        "page": "{{ inputs.page }}"
+      },
+      "output_fields": {
+        "supporters": "data"
+      },
+      "inputs": [
+        {
+          "key": "page",
+          "label": "Page",
+          "type": "number",
+          "default": 1
+        }
+      ]
+    },
+    {
+      "key": "get_supporter",
+      "name": "Get supporter",
+      "description": "One supporter's details.",
+      "method": "GET",
+      "endpoint": "/supporters/{{ inputs.id }}",
+      "output_fields": {
+        "name": "supporter_name",
+        "email": "payer_email",
+        "coffees": "support_coffees",
+        "note": "support_note"
+      },
+      "inputs": [
+        {
+          "key": "id",
+          "label": "Support ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_memberships",
+      "name": "List memberships",
+      "description": "Members, filtered by status.",
+      "method": "GET",
+      "endpoint": "/subscriptions",
+      "query": {
+        "status": "{{ inputs.status }}",
+        "page": "{{ inputs.page }}"
+      },
+      "output_fields": {
+        "memberships": "data"
+      },
+      "inputs": [
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "default": "active",
+          "options": [
+            {
+              "value": "active",
+              "label": "active"
+            },
+            {
+              "value": "inactive",
+              "label": "inactive"
+            },
+            {
+              "value": "all",
+              "label": "all"
+            }
+          ]
+        },
+        {
+          "key": "page",
+          "label": "Page",
+          "type": "number",
+          "default": 1
+        }
+      ]
+    },
+    {
+      "key": "get_membership",
+      "name": "Get membership",
+      "description": "One membership's details.",
+      "method": "GET",
+      "endpoint": "/subscriptions/{{ inputs.id }}",
+      "inputs": [
+        {
+          "key": "id",
+          "label": "Membership ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_extras",
+      "name": "List extras purchases",
+      "description": "Purchases from your Extras shop.",
+      "method": "GET",
+      "endpoint": "/extras",
+      "query": {
+        "page": "{{ inputs.page }}"
+      },
+      "output_fields": {
+        "purchases": "data"
+      },
+      "inputs": [
+        {
+          "key": "page",
+          "label": "Page",
+          "type": "number",
+          "default": 1
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_supporter",
+      "name": "New supporter",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/supporters",
+      "items_path": "data",
+      "id_field": "support_id",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    },
+    {
+      "key": "new_member",
+      "name": "New member",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/subscriptions",
+      "query": {
+        "status": "active"
+      },
+      "items_path": "data",
+      "id_field": "subscription_id",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

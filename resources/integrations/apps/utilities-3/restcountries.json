@@ -1,0 +1,154 @@
+{
+  "key": "restcountries",
+  "name": "REST Countries",
+  "category": "Utilities",
+  "description": "Country data: names, capitals, currencies, languages, calling codes and flags.",
+  "website": "https://restcountries.com",
+  "docs_url": "https://restcountries.com/docs/countries",
+  "base_url": "https://api.restcountries.com/countries/v5",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "Sign up free at restcountries.com and copy your API key. The key rc_live_demo only returns sample data."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "by_code",
+      "name": "Country by code",
+      "description": "Look up a country by its 2-letter ISO code.",
+      "method": "GET",
+      "endpoint": "/codes.alpha_2/{{ inputs.code }}",
+      "output_fields": {
+        "name": "data.objects.0.names.common",
+        "official_name": "data.objects.0.names.official",
+        "alpha_3": "data.objects.0.codes.alpha_3",
+        "capital": "data.objects.0.capitals.0.name",
+        "region": "data.objects.0.region",
+        "population": "data.objects.0.population",
+        "currency_code": "data.objects.0.currencies.0.code",
+        "currency_symbol": "data.objects.0.currencies.0.symbol",
+        "languages": "data.objects.0.languages.*.name",
+        "calling_code": "data.objects.0.calling_codes.0",
+        "timezones": "data.objects.0.timezones",
+        "flag_emoji": "data.objects.0.flag.emoji",
+        "flag_png": "data.objects.0.flag.url_png"
+      },
+      "inputs": [
+        {
+          "key": "code",
+          "label": "Country code",
+          "type": "string",
+          "required": true,
+          "placeholder": "PK",
+          "help": "Two-letter ISO code like PK, US, DE."
+        }
+      ]
+    },
+    {
+      "key": "by_name",
+      "name": "Country by name",
+      "description": "Look up a country by its common name.",
+      "method": "GET",
+      "endpoint": "/names.common/{{ inputs.name }}",
+      "output_fields": {
+        "name": "data.objects.0.names.common",
+        "code": "data.objects.0.codes.alpha_2",
+        "capital": "data.objects.0.capitals.0.name",
+        "region": "data.objects.0.region",
+        "currency_code": "data.objects.0.currencies.0.code",
+        "calling_code": "data.objects.0.calling_codes.0",
+        "flag_emoji": "data.objects.0.flag.emoji"
+      },
+      "inputs": [
+        {
+          "key": "name",
+          "label": "Country name",
+          "type": "string",
+          "required": true,
+          "placeholder": "Pakistan"
+        }
+      ]
+    },
+    {
+      "key": "by_currency",
+      "name": "Countries by currency",
+      "description": "Countries that use a currency code.",
+      "method": "GET",
+      "endpoint": "/currencies/{{ inputs.currency }}",
+      "output_fields": {
+        "names": "data.objects.*.names.common",
+        "codes": "data.objects.*.codes.alpha_2",
+        "total": "data.meta.total"
+      },
+      "inputs": [
+        {
+          "key": "currency",
+          "label": "Currency code",
+          "type": "string",
+          "required": true,
+          "placeholder": "EUR"
+        }
+      ]
+    },
+    {
+      "key": "by_region",
+      "name": "Countries by region",
+      "description": "Countries in a region (up to 100 on the free plan).",
+      "method": "GET",
+      "endpoint": "/region/{{ inputs.region }}",
+      "query": {
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "names": "data.objects.*.names.common",
+        "codes": "data.objects.*.codes.alpha_2",
+        "total": "data.meta.total"
+      },
+      "inputs": [
+        {
+          "key": "region",
+          "label": "Region",
+          "type": "select",
+          "required": true,
+          "default": "Europe",
+          "options": [
+            {
+              "value": "Africa",
+              "label": "Africa"
+            },
+            {
+              "value": "Americas",
+              "label": "Americas"
+            },
+            {
+              "value": "Asia",
+              "label": "Asia"
+            },
+            {
+              "value": "Europe",
+              "label": "Europe"
+            },
+            {
+              "value": "Oceania",
+              "label": "Oceania"
+            }
+          ]
+        },
+        {
+          "key": "limit",
+          "label": "How many",
+          "type": "number",
+          "default": 100
+        }
+      ]
+    }
+  ],
+  "triggers": []
+}

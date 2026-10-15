@@ -1,0 +1,145 @@
+{
+  "key": "unisender",
+  "name": "UniSender",
+  "category": "Marketing & Email",
+  "description": "Email and SMS marketing: manage contact lists and subscribers.",
+  "website": "https://www.unisender.com",
+  "docs_url": "https://www.unisender.com/en/support/api/api/",
+  "base_url": "https://api.unisender.com/en/api",
+  "auth": {
+    "type": "api_key",
+    "in": "query",
+    "name": "api_key",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "UniSender → Account → API access → copy your API key."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "get_lists",
+      "name": "Get lists",
+      "description": "All contact lists with their IDs.",
+      "method": "GET",
+      "endpoint": "/getLists",
+      "query": {
+        "format": "json"
+      },
+      "output_fields": {
+        "lists": "result"
+      },
+      "inputs": []
+    },
+    {
+      "key": "subscribe",
+      "name": "Subscribe contact",
+      "description": "Add (or update) an email contact in one or more lists.",
+      "method": "GET",
+      "endpoint": "/subscribe",
+      "query": {
+        "format": "json",
+        "list_ids": "{{ inputs.list_ids }}",
+        "fields[email]": "{{ inputs.email }}",
+        "fields[Name]": "{{ inputs.name }}",
+        "double_optin": "{{ inputs.double_optin }}",
+        "overwrite": "1"
+      },
+      "output_fields": {
+        "person_id": "result.person_id"
+      },
+      "inputs": [
+        {
+          "key": "list_ids",
+          "label": "List IDs",
+          "type": "string",
+          "required": true,
+          "help": "Comma-separated list IDs. Use \"Get lists\" to find them."
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true,
+          "help": "The contact's email address."
+        },
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string"
+        },
+        {
+          "key": "double_optin",
+          "label": "Confirmation",
+          "type": "select",
+          "default": "3",
+          "options": [
+            {
+              "value": "3",
+              "label": "Skip confirmation email"
+            },
+            {
+              "value": "1",
+              "label": "Send confirmation email"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "exclude",
+      "name": "Unsubscribe contact",
+      "description": "Exclude an email from lists.",
+      "method": "GET",
+      "endpoint": "/exclude",
+      "query": {
+        "format": "json",
+        "contact_type": "email",
+        "contact": "{{ inputs.email }}",
+        "list_ids": "{{ inputs.list_ids }}"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true,
+          "help": "The contact's email address."
+        },
+        {
+          "key": "list_ids",
+          "label": "List IDs",
+          "type": "string",
+          "help": "Comma-separated; empty = all lists."
+        }
+      ]
+    },
+    {
+      "key": "get_contact",
+      "name": "Get contact",
+      "description": "Details and list membership of a contact.",
+      "method": "GET",
+      "endpoint": "/getContact",
+      "query": {
+        "format": "json",
+        "email": "{{ inputs.email }}"
+      },
+      "output_fields": {
+        "contact": "result"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true,
+          "help": "The contact's email address."
+        }
+      ]
+    }
+  ]
+}

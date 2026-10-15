@@ -1,0 +1,285 @@
+{
+  "key": "heartbeat",
+  "name": "Heartbeat",
+  "category": "Social Media",
+  "description": "Add members, post threads and send DMs in your Heartbeat community.",
+  "website": "https://www.heartbeat.chat",
+  "docs_url": "https://heartbeat.readme.io/reference",
+  "base_url": "https://api.heartbeat.chat/v0",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "Heartbeat → Settings → Automation → API Keys."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "add_user",
+      "name": "Add member",
+      "method": "PUT",
+      "endpoint": "/users",
+      "body": {
+        "email": "{{ inputs.email }}",
+        "name": "{{ inputs.name }}",
+        "roleID": "{{ inputs.roleID }}",
+        "groupIDs": "{{ inputs.groupIDs }}",
+        "bio": "{{ inputs.bio }}"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "roleID",
+          "label": "Role ID",
+          "type": "string",
+          "required": true,
+          "help": "Get it with the 'Make an API call' action on /roles."
+        },
+        {
+          "key": "groupIDs",
+          "label": "Group IDs",
+          "type": "list"
+        },
+        {
+          "key": "bio",
+          "label": "Bio",
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "key": "create_thread",
+      "name": "Create thread",
+      "method": "PUT",
+      "endpoint": "/threads",
+      "body": {
+        "channelID": "{{ inputs.channelID }}",
+        "text": "{{ inputs.text }}",
+        "userID": "{{ inputs.userID }}"
+      },
+      "inputs": [
+        {
+          "key": "channelID",
+          "label": "Channel ID",
+          "type": "string",
+          "required": true,
+          "help": "Get it with 'List channels'."
+        },
+        {
+          "key": "text",
+          "label": "Text",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "userID",
+          "label": "Post as user ID",
+          "type": "string",
+          "help": "Leave blank to post as the API key owner."
+        }
+      ]
+    },
+    {
+      "key": "send_dm",
+      "name": "Send direct message",
+      "method": "PUT",
+      "endpoint": "/directMessages",
+      "body": {
+        "to": "{{ inputs.to }}",
+        "text": "{{ inputs.text }}",
+        "from": "{{ inputs.from }}"
+      },
+      "inputs": [
+        {
+          "key": "to",
+          "label": "To user ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "text",
+          "label": "Message",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "from",
+          "label": "From user ID",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "list_users",
+      "name": "List members",
+      "method": "GET",
+      "endpoint": "/users",
+      "output_fields": {
+        "ids": "*.id",
+        "emails": "*.email",
+        "names": "*.name"
+      },
+      "inputs": []
+    },
+    {
+      "key": "list_channels",
+      "name": "List channels",
+      "method": "GET",
+      "endpoint": "/channels",
+      "output_fields": {
+        "ids": "*.id",
+        "names": "*.name"
+      },
+      "inputs": []
+    },
+    {
+      "key": "list_threads",
+      "name": "List threads in channel",
+      "method": "GET",
+      "endpoint": "/channels/{{ inputs.channelID }}/threads",
+      "query": {
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "latest_id": "0.id",
+        "latest_text": "0.content",
+        "latest_url": "0.url"
+      },
+      "inputs": [
+        {
+          "key": "channelID",
+          "label": "Channel ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "limit",
+          "label": "Max results",
+          "type": "number",
+          "default": 20
+        }
+      ]
+    },
+    {
+      "key": "create_webhook",
+      "name": "Create webhook",
+      "method": "PUT",
+      "endpoint": "/webhooks",
+      "body": {
+        "action": {
+          "name": "{{ inputs.name }}"
+        },
+        "url": "{{ inputs.url }}"
+      },
+      "output_fields": {
+        "id": "id"
+      },
+      "inputs": [
+        {
+          "key": "url",
+          "label": "Webhook URL",
+          "type": "string",
+          "required": true,
+          "help": "Paste the URL of a FlowForge 'Community event' trigger."
+        },
+        {
+          "key": "name",
+          "label": "Event",
+          "type": "select",
+          "required": true,
+          "default": "USER_JOIN",
+          "options": [
+            {
+              "value": "USER_JOIN",
+              "label": "Member joined"
+            },
+            {
+              "value": "THREAD_CREATE",
+              "label": "Thread created"
+            },
+            {
+              "value": "EVENT_RSVP",
+              "label": "Event RSVP"
+            },
+            {
+              "value": "DIRECT_MESSAGE",
+              "label": "Direct message"
+            },
+            {
+              "value": "MENTION",
+              "label": "Mention"
+            },
+            {
+              "value": "COURSE_COMPLETED",
+              "label": "Course completed"
+            },
+            {
+              "value": "GROUP_JOIN",
+              "label": "Group joined"
+            },
+            {
+              "value": "ABANDONED_CART",
+              "label": "Abandoned checkout"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_thread",
+      "name": "New thread in channel",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/channels/{{ inputs.channelID }}/threads",
+      "query": {
+        "limit": "50"
+      },
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "channelID",
+          "label": "Channel ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    },
+    {
+      "key": "webhook_event",
+      "name": "Community event",
+      "type": "webhook",
+      "description": "Member joined, thread created, RSVP and more. Register with 'Create webhook'.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

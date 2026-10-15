@@ -1,0 +1,387 @@
+{
+  "key": "ns1",
+  "name": "IBM NS1 Connect",
+  "category": "Developer Tools",
+  "description": "Manage DNS zones and records on IBM NS1 Connect.",
+  "brand": "ns1",
+  "website": "https://www.ibm.com/products/ns1-connect",
+  "docs_url": "https://ns1.com/api",
+  "base_url": "https://api.nsone.net/v1",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "X-NSONE-Key",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "NS1 portal → Account settings → Users & teams → API keys → Add key."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_zones",
+      "name": "List zones",
+      "description": "List your DNS zones.",
+      "method": "GET",
+      "endpoint": "/zones",
+      "inputs": []
+    },
+    {
+      "key": "get_zone",
+      "name": "Get zone",
+      "description": "Get a zone with its records.",
+      "method": "GET",
+      "endpoint": "/zones/{{ inputs.zone }}",
+      "output_fields": {
+        "records": "records"
+      },
+      "inputs": [
+        {
+          "key": "zone",
+          "label": "Zone",
+          "type": "string",
+          "required": true,
+          "placeholder": "example.com"
+        }
+      ]
+    },
+    {
+      "key": "get_record",
+      "name": "Get record",
+      "description": "Get a record and its answers.",
+      "method": "GET",
+      "endpoint": "/zones/{{ inputs.zone }}/{{ inputs.domain }}/{{ inputs.type }}",
+      "output_fields": {
+        "answers": "answers",
+        "ttl": "ttl"
+      },
+      "inputs": [
+        {
+          "key": "zone",
+          "label": "Zone",
+          "type": "string",
+          "required": true,
+          "placeholder": "example.com"
+        },
+        {
+          "key": "domain",
+          "label": "Record name",
+          "type": "string",
+          "required": true,
+          "placeholder": "www.example.com",
+          "help": "Fully qualified name."
+        },
+        {
+          "key": "type",
+          "label": "Record type",
+          "type": "select",
+          "required": true,
+          "default": "A",
+          "options": [
+            {
+              "value": "A",
+              "label": "A"
+            },
+            {
+              "value": "AAAA",
+              "label": "AAAA"
+            },
+            {
+              "value": "CNAME",
+              "label": "CNAME"
+            },
+            {
+              "value": "MX",
+              "label": "MX"
+            },
+            {
+              "value": "TXT",
+              "label": "TXT"
+            },
+            {
+              "value": "ALIAS",
+              "label": "ALIAS"
+            },
+            {
+              "value": "CAA",
+              "label": "CAA"
+            },
+            {
+              "value": "NS",
+              "label": "NS"
+            },
+            {
+              "value": "SRV",
+              "label": "SRV"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "create_record",
+      "name": "Create record",
+      "description": "Create a record with one answer.",
+      "method": "PUT",
+      "endpoint": "/zones/{{ inputs.zone }}/{{ inputs.domain }}/{{ inputs.type }}",
+      "body": {
+        "zone": "{{ inputs.zone }}",
+        "domain": "{{ inputs.domain }}",
+        "type": "{{ inputs.type }}",
+        "answers": [
+          {
+            "answer": [
+              "{{ inputs.answer }}"
+            ]
+          }
+        ],
+        "ttl": "{{ inputs.ttl }}"
+      },
+      "output_fields": {
+        "id": "id"
+      },
+      "inputs": [
+        {
+          "key": "zone",
+          "label": "Zone",
+          "type": "string",
+          "required": true,
+          "placeholder": "example.com"
+        },
+        {
+          "key": "domain",
+          "label": "Record name",
+          "type": "string",
+          "required": true,
+          "placeholder": "www.example.com",
+          "help": "Fully qualified name."
+        },
+        {
+          "key": "type",
+          "label": "Record type",
+          "type": "select",
+          "required": true,
+          "default": "A",
+          "options": [
+            {
+              "value": "A",
+              "label": "A"
+            },
+            {
+              "value": "AAAA",
+              "label": "AAAA"
+            },
+            {
+              "value": "CNAME",
+              "label": "CNAME"
+            },
+            {
+              "value": "MX",
+              "label": "MX"
+            },
+            {
+              "value": "TXT",
+              "label": "TXT"
+            },
+            {
+              "value": "ALIAS",
+              "label": "ALIAS"
+            },
+            {
+              "value": "CAA",
+              "label": "CAA"
+            },
+            {
+              "value": "NS",
+              "label": "NS"
+            },
+            {
+              "value": "SRV",
+              "label": "SRV"
+            }
+          ]
+        },
+        {
+          "key": "answer",
+          "label": "Value",
+          "type": "string",
+          "required": true,
+          "placeholder": "192.0.2.1",
+          "help": "One value. For records with several answers use Make an API call."
+        },
+        {
+          "key": "ttl",
+          "label": "TTL (seconds)",
+          "type": "number",
+          "default": 3600
+        }
+      ]
+    },
+    {
+      "key": "update_record",
+      "name": "Update record",
+      "description": "Replace a record's answer with one value.",
+      "method": "POST",
+      "endpoint": "/zones/{{ inputs.zone }}/{{ inputs.domain }}/{{ inputs.type }}",
+      "body": {
+        "answers": [
+          {
+            "answer": [
+              "{{ inputs.answer }}"
+            ]
+          }
+        ],
+        "ttl": "{{ inputs.ttl }}"
+      },
+      "output_fields": {
+        "answers": "answers"
+      },
+      "inputs": [
+        {
+          "key": "zone",
+          "label": "Zone",
+          "type": "string",
+          "required": true,
+          "placeholder": "example.com"
+        },
+        {
+          "key": "domain",
+          "label": "Record name",
+          "type": "string",
+          "required": true,
+          "placeholder": "www.example.com",
+          "help": "Fully qualified name."
+        },
+        {
+          "key": "type",
+          "label": "Record type",
+          "type": "select",
+          "required": true,
+          "default": "A",
+          "options": [
+            {
+              "value": "A",
+              "label": "A"
+            },
+            {
+              "value": "AAAA",
+              "label": "AAAA"
+            },
+            {
+              "value": "CNAME",
+              "label": "CNAME"
+            },
+            {
+              "value": "MX",
+              "label": "MX"
+            },
+            {
+              "value": "TXT",
+              "label": "TXT"
+            },
+            {
+              "value": "ALIAS",
+              "label": "ALIAS"
+            },
+            {
+              "value": "CAA",
+              "label": "CAA"
+            },
+            {
+              "value": "NS",
+              "label": "NS"
+            },
+            {
+              "value": "SRV",
+              "label": "SRV"
+            }
+          ]
+        },
+        {
+          "key": "answer",
+          "label": "New value",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "ttl",
+          "label": "TTL (seconds)",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "delete_record",
+      "name": "Delete record",
+      "description": "Delete a record.",
+      "method": "DELETE",
+      "endpoint": "/zones/{{ inputs.zone }}/{{ inputs.domain }}/{{ inputs.type }}",
+      "inputs": [
+        {
+          "key": "zone",
+          "label": "Zone",
+          "type": "string",
+          "required": true,
+          "placeholder": "example.com"
+        },
+        {
+          "key": "domain",
+          "label": "Record name",
+          "type": "string",
+          "required": true,
+          "placeholder": "www.example.com",
+          "help": "Fully qualified name."
+        },
+        {
+          "key": "type",
+          "label": "Record type",
+          "type": "select",
+          "required": true,
+          "default": "A",
+          "options": [
+            {
+              "value": "A",
+              "label": "A"
+            },
+            {
+              "value": "AAAA",
+              "label": "AAAA"
+            },
+            {
+              "value": "CNAME",
+              "label": "CNAME"
+            },
+            {
+              "value": "MX",
+              "label": "MX"
+            },
+            {
+              "value": "TXT",
+              "label": "TXT"
+            },
+            {
+              "value": "ALIAS",
+              "label": "ALIAS"
+            },
+            {
+              "value": "CAA",
+              "label": "CAA"
+            },
+            {
+              "value": "NS",
+              "label": "NS"
+            },
+            {
+              "value": "SRV",
+              "label": "SRV"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,209 @@
+{
+  "key": "simplyrets",
+  "name": "SimplyRETS",
+  "category": "CRM & Sales",
+  "description": "Search MLS home listings by price, beds and city to feed real-estate leads and CRMs.",
+  "website": "https://simplyrets.com",
+  "docs_url": "https://docs.simplyrets.com/api/index.html",
+  "base_url": "https://api.simplyrets.com",
+  "auth": {
+    "type": "basic",
+    "fields": [
+      {
+        "key": "username",
+        "label": "API key",
+        "type": "string",
+        "required": true,
+        "default": "simplyrets",
+        "help": "Your SimplyRETS API key. \"simplyrets\" works with free demo listings."
+      },
+      {
+        "key": "password",
+        "label": "API secret",
+        "type": "password",
+        "required": true,
+        "default": "simplyrets",
+        "help": "Your SimplyRETS API secret. \"simplyrets\" works with the demo listings."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "search_listings",
+      "name": "Search listings",
+      "description": "Finds MLS listings that match your filters.",
+      "method": "GET",
+      "endpoint": "/properties",
+      "query": {
+        "q": "{{ inputs.q }}",
+        "cities": "{{ inputs.cities }}",
+        "status": "{{ inputs.status }}",
+        "minprice": "{{ inputs.minprice }}",
+        "maxprice": "{{ inputs.maxprice }}",
+        "minbeds": "{{ inputs.minbeds }}",
+        "minbaths": "{{ inputs.minbaths }}",
+        "limit": "{{ inputs.limit }}",
+        "sort": "-listDate"
+      },
+      "output_fields": {
+        "first_mls_id": "0.mlsId",
+        "first_price": "0.listPrice",
+        "first_address": "0.address.full",
+        "first_agent": "0.agent.firstName"
+      },
+      "inputs": [
+        {
+          "key": "q",
+          "label": "Keyword or address",
+          "type": "string"
+        },
+        {
+          "key": "cities",
+          "label": "City",
+          "type": "string"
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "default": "Active",
+          "options": [
+            {
+              "value": "Active",
+              "label": "Active"
+            },
+            {
+              "value": "Pending",
+              "label": "Pending"
+            },
+            {
+              "value": "Closed",
+              "label": "Closed"
+            }
+          ]
+        },
+        {
+          "key": "minprice",
+          "label": "Min price",
+          "type": "number"
+        },
+        {
+          "key": "maxprice",
+          "label": "Max price",
+          "type": "number"
+        },
+        {
+          "key": "minbeds",
+          "label": "Min bedrooms",
+          "type": "number"
+        },
+        {
+          "key": "minbaths",
+          "label": "Min bathrooms",
+          "type": "number"
+        },
+        {
+          "key": "limit",
+          "label": "How many",
+          "type": "number",
+          "default": 10
+        }
+      ]
+    },
+    {
+      "key": "get_listing",
+      "name": "Get listing",
+      "description": "Gets one listing by its MLS ID.",
+      "method": "GET",
+      "endpoint": "/properties/{{ inputs.mls_id }}",
+      "output_fields": {
+        "price": "listPrice",
+        "address": "address.full",
+        "bedrooms": "property.bedrooms",
+        "area": "property.area",
+        "remarks": "remarks"
+      },
+      "inputs": [
+        {
+          "key": "mls_id",
+          "label": "MLS ID",
+          "type": "number",
+          "required": true,
+          "help": "The \"mlsId\" number from a search result."
+        }
+      ]
+    },
+    {
+      "key": "list_agents",
+      "name": "List agents",
+      "description": "Lists listing agents.",
+      "method": "GET",
+      "endpoint": "/agents",
+      "query": {
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "first_name": "0.firstName",
+        "first_email": "0.contact.email"
+      },
+      "inputs": [
+        {
+          "key": "limit",
+          "label": "How many",
+          "type": "number",
+          "default": 20
+        }
+      ]
+    },
+    {
+      "key": "list_open_houses",
+      "name": "List open houses",
+      "description": "Lists upcoming open houses.",
+      "method": "GET",
+      "endpoint": "/openhouses",
+      "query": {
+        "cities": "{{ inputs.cities }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "first_key": "0.openHouseKey"
+      },
+      "inputs": [
+        {
+          "key": "cities",
+          "label": "City",
+          "type": "string"
+        },
+        {
+          "key": "limit",
+          "label": "How many",
+          "type": "number",
+          "default": 20
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_listing",
+      "name": "New listing",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/properties",
+      "query": {
+        "status": "Active",
+        "sort": "-listDate",
+        "limit": 25
+      },
+      "id_field": "mlsId",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

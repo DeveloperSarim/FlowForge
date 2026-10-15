@@ -9,7 +9,8 @@ use Throwable;
 
 /**
  * Reads every manifest (.json/.yaml/.yml, recursively) under resources/integrations, plus raw
- * OpenAPI v3 documents dropped in the same tree.
+ * OpenAPI v3 documents dropped in the same tree, plus the install's custom apps (storage/app/integrations,
+ * see CustomApps), which are marked `custom`.
  *
  * Built for 500+ integrations: the compiled result is split into bootstrap/cache/integrations/
  * index.php (lightweight catalog) + one file per integration, so a request only loads the index and
@@ -27,9 +28,11 @@ class ManifestLoader
         private OpenApiImporter $openApi,
         private ?string $path = null,
         private ?string $cacheDir = null,
+        private ?string $customPath = null,
     ) {
         $this->path ??= config('flowforge.integrations_path');
         $this->cacheDir ??= base_path('bootstrap/cache/integrations');
+        $this->customPath ??= (string) config('flowforge.custom_integrations_path');
     }
 
     /**
@@ -107,12 +110,13 @@ class ManifestLoader
             return $this->index;
         }
 
-        $files = is_dir($this->path)
-            ? collect(File::allFiles($this->path))
+        $list = fn (string $dir) => $dir !== '' && is_dir($dir)
+            ? collect(File::allFiles($dir))
                 ->filter(fn ($file) => in_array(strtolower($file->getExtension()), ['json', 'yaml', 'yml'], true))
                 ->map(fn ($file) => $file->getPathname())
                 ->sort()->values()->all()
             : [];
+        $files = [...$list($this->path), ...$list($this->customPath)]; // bundled first: a custom app can't shadow one
 
         // The compiler's own source and the icon folder are part of the signature, so an upgrade or
         // a newly generated logo invalidates the cache too.
@@ -137,7 +141,8 @@ class ManifestLoader
         $manifests = $errors = [];
 
         foreach ($files as $file) {
-            $relative = ltrim(str_replace($this->path, '', $file), '/');
+            $custom = $this->customPath !== '' && str_starts_with($file, rtrim($this->customPath, '/').'/');
+            $relative = $custom ? 'custom/'.basename($file) : ltrim(str_replace($this->path, '', $file), '/');
 
             try {
                 $document = str_ends_with(strtolower($file), '.json')
@@ -151,6 +156,7 @@ class ManifestLoader
                 $manifest = $this->schema->normalize(
                     OpenApiImporter::isOpenApi($document) ? $this->openApi->convert($document) : $document
                 );
+                $manifest['custom'] = $custom;
 
                 if ($problems = $this->schema->validate($manifest)) {
                     $errors[$relative] = $problems;
@@ -184,6 +190,7 @@ class ManifestLoader
                 'category' => $m['category'],
                 'description' => $m['description'],
                 'popular' => (bool) ($m['popular'] ?? false),
+                'custom' => $m['custom'],
                 'auth' => array_values(array_diff(array_column($m['auth'], 'type'), ['none'])),
                 'auth_optional' => in_array('none', array_column($m['auth'], 'type'), true),
                 'actions' => array_map(fn ($a) => ['key' => $a['key'], 'name' => $a['name'], 'branch' => ! empty($a['outputs'])], $m['actions']),

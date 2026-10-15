@@ -1,0 +1,252 @@
+{
+  "key": "campaign_manager_360",
+  "name": "Campaign Manager 360",
+  "category": "Ads & SEO",
+  "description": "Google's ad server: list advertisers and campaigns, run saved reports.",
+  "website": "https://marketingplatform.google.com/about/campaign-manager-360/",
+  "docs_url": "https://developers.google.com/doubleclick-advertisers/rest/v5",
+  "base_url": "https://dfareporting.googleapis.com/dfareporting/v5",
+  "auth": [
+    {
+      "type": "oauth2",
+      "authorize_url": "https://accounts.google.com/o/oauth2/v2/auth",
+      "token_url": "https://oauth2.googleapis.com/token",
+      "scopes": [
+        "https://www.googleapis.com/auth/dfareporting",
+        "https://www.googleapis.com/auth/dfatrafficking"
+      ],
+      "authorize_params": {
+        "access_type": "offline",
+        "prompt": "consent"
+      },
+      "fields": [
+        {
+          "key": "client_id",
+          "label": "Client ID",
+          "type": "string",
+          "required": true,
+          "help": "Google Cloud Console → enable the Campaign Manager 360 API → Credentials → OAuth client ID (Web application) with FlowForge's redirect URL."
+        },
+        {
+          "key": "client_secret",
+          "label": "Client secret",
+          "type": "password",
+          "required": true
+        }
+      ],
+      "profile": {
+        "endpoint": "/userprofiles",
+        "store": {
+          "profile_id": "{{ items.0.profileId }}"
+        }
+      }
+    },
+    {
+      "type": "google_service_account",
+      "scopes": [
+        "https://www.googleapis.com/auth/dfareporting",
+        "https://www.googleapis.com/auth/dfatrafficking"
+      ],
+      "fields": [
+        {
+          "key": "service_account_json",
+          "label": "Service Account JSON key",
+          "type": "code",
+          "required": true,
+          "help": "Add the service account email as a user (with a user profile) in Campaign Manager 360 → Admin → User profiles."
+        }
+      ],
+      "profile": {
+        "endpoint": "/userprofiles",
+        "store": {
+          "profile_id": "{{ items.0.profileId }}"
+        }
+      }
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_user_profiles",
+      "name": "List user profiles",
+      "description": "Your CM360 user profiles (one per account) and their IDs.",
+      "method": "GET",
+      "endpoint": "/userprofiles",
+      "output_fields": {
+        "profiles": "items",
+        "profile_ids": "items.*.profileId",
+        "accounts": "items.*.accountName"
+      },
+      "inputs": []
+    },
+    {
+      "key": "list_advertisers",
+      "name": "List advertisers",
+      "description": "Advertisers in the account.",
+      "method": "GET",
+      "endpoint": "/userprofiles/{{ inputs.profile_id }}/advertisers",
+      "query": {
+        "searchString": "{{ inputs.search }}",
+        "maxResults": "{{ inputs.max_results }}"
+      },
+      "output_fields": {
+        "advertisers": "advertisers",
+        "ids": "advertisers.*.id",
+        "names": "advertisers.*.name"
+      },
+      "inputs": [
+        {
+          "key": "search",
+          "label": "Search",
+          "type": "string"
+        },
+        {
+          "key": "max_results",
+          "label": "How many",
+          "type": "number",
+          "default": 50
+        },
+        {
+          "key": "profile_id",
+          "label": "User profile ID",
+          "type": "string",
+          "fallback": "credentials.profile_id",
+          "help": "Leave empty to use your first profile."
+        }
+      ]
+    },
+    {
+      "key": "list_campaigns",
+      "name": "List campaigns",
+      "description": "Campaigns, optionally for one advertiser.",
+      "method": "GET",
+      "endpoint": "/userprofiles/{{ inputs.profile_id }}/campaigns",
+      "query": {
+        "advertiserIds": "{{ inputs.advertiser_id }}",
+        "searchString": "{{ inputs.search }}",
+        "archived": "{{ inputs.archived }}",
+        "maxResults": "{{ inputs.max_results }}"
+      },
+      "output_fields": {
+        "campaigns": "campaigns",
+        "ids": "campaigns.*.id",
+        "names": "campaigns.*.name"
+      },
+      "inputs": [
+        {
+          "key": "advertiser_id",
+          "label": "Advertiser ID",
+          "type": "string"
+        },
+        {
+          "key": "search",
+          "label": "Search",
+          "type": "string"
+        },
+        {
+          "key": "archived",
+          "label": "Archived",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "key": "max_results",
+          "label": "How many",
+          "type": "number",
+          "default": 50
+        },
+        {
+          "key": "profile_id",
+          "label": "User profile ID",
+          "type": "string",
+          "fallback": "credentials.profile_id",
+          "help": "Leave empty to use your first profile."
+        }
+      ]
+    },
+    {
+      "key": "list_reports",
+      "name": "List reports",
+      "description": "Saved reports and their IDs.",
+      "method": "GET",
+      "endpoint": "/userprofiles/{{ inputs.profile_id }}/reports",
+      "output_fields": {
+        "reports": "items",
+        "ids": "items.*.id",
+        "names": "items.*.name"
+      },
+      "inputs": [
+        {
+          "key": "profile_id",
+          "label": "User profile ID",
+          "type": "string",
+          "fallback": "credentials.profile_id",
+          "help": "Leave empty to use your first profile."
+        }
+      ]
+    },
+    {
+      "key": "run_report",
+      "name": "Run report",
+      "description": "Start a saved report; it returns a file ID to check.",
+      "method": "POST",
+      "endpoint": "/userprofiles/{{ inputs.profile_id }}/reports/{{ inputs.report_id }}/run",
+      "output_fields": {
+        "file_id": "id",
+        "status": "status",
+        "report_id": "reportId"
+      },
+      "inputs": [
+        {
+          "key": "report_id",
+          "label": "Report ID",
+          "type": "string",
+          "required": true,
+          "help": "Run \"List reports\" to see the IDs."
+        },
+        {
+          "key": "profile_id",
+          "label": "User profile ID",
+          "type": "string",
+          "fallback": "credentials.profile_id",
+          "help": "Leave empty to use your first profile."
+        }
+      ]
+    },
+    {
+      "key": "get_report_file",
+      "name": "Get report file",
+      "description": "Status of a report run and its download link when ready.",
+      "method": "GET",
+      "endpoint": "/userprofiles/{{ inputs.profile_id }}/reports/{{ inputs.report_id }}/files/{{ inputs.file_id }}",
+      "output_fields": {
+        "status": "status",
+        "browser_url": "urls.browserUrl",
+        "api_url": "urls.apiUrl",
+        "file_name": "fileName"
+      },
+      "inputs": [
+        {
+          "key": "report_id",
+          "label": "Report ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "file_id",
+          "label": "File ID",
+          "type": "string",
+          "required": true,
+          "help": "From a \"Run report\" step. Status REPORT_AVAILABLE means ready."
+        },
+        {
+          "key": "profile_id",
+          "label": "User profile ID",
+          "type": "string",
+          "fallback": "credentials.profile_id",
+          "help": "Leave empty to use your first profile."
+        }
+      ]
+    }
+  ],
+  "triggers": []
+}

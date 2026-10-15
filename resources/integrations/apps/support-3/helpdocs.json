@@ -1,0 +1,177 @@
+{
+  "key": "helpdocs",
+  "name": "HelpDocs",
+  "category": "Customer Support",
+  "description": "Search, read and update knowledge base articles and categories in HelpDocs.",
+  "website": "https://www.helpdocs.io",
+  "docs_url": "https://apidocs.helpdocs.io/",
+  "base_url": "https://api.helpdocs.io/v1",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "In HelpDocs open Settings > Integrations > API (or Developer API), create a key and copy it."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "search",
+      "name": "Search articles",
+      "description": "Searches your help center.",
+      "method": "GET",
+      "endpoint": "/search",
+      "query": {
+        "query": "{{ inputs.query }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "results": "results"
+      },
+      "inputs": [
+        {
+          "key": "query",
+          "label": "Search text",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "limit",
+          "label": "How many",
+          "type": "number",
+          "default": 10
+        }
+      ]
+    },
+    {
+      "key": "list_articles",
+      "name": "List articles",
+      "description": "Lists articles, optionally of one category or tag.",
+      "method": "GET",
+      "endpoint": "/article",
+      "query": {
+        "category_id": "{{ inputs.category_id }}",
+        "tag": "{{ inputs.tag }}",
+        "include_body": "{{ inputs.include_body }}"
+      },
+      "output_fields": {
+        "articles": "articles"
+      },
+      "inputs": [
+        {
+          "key": "category_id",
+          "label": "Category ID",
+          "type": "string",
+          "help": "Optional. Use \"List categories\" to find it."
+        },
+        {
+          "key": "tag",
+          "label": "Tag",
+          "type": "string"
+        },
+        {
+          "key": "include_body",
+          "label": "Include article text",
+          "type": "boolean",
+          "default": false
+        }
+      ]
+    },
+    {
+      "key": "get_article",
+      "name": "Get article",
+      "description": "Gets one article.",
+      "method": "GET",
+      "endpoint": "/article/{{ inputs.article_id }}",
+      "output_fields": {
+        "article": "article",
+        "title": "article.title",
+        "body": "article.body"
+      },
+      "inputs": [
+        {
+          "key": "article_id",
+          "label": "Article ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "update_article",
+      "name": "Update article",
+      "description": "Changes the title or body of an article.",
+      "method": "PATCH",
+      "endpoint": "/article/{{ inputs.article_id }}",
+      "body": {
+        "title": "{{ inputs.title }}",
+        "body": "{{ inputs.body }}"
+      },
+      "output_fields": {
+        "article": "article"
+      },
+      "inputs": [
+        {
+          "key": "article_id",
+          "label": "Article ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "string"
+        },
+        {
+          "key": "body",
+          "label": "Body (HTML)",
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "key": "list_categories",
+      "name": "List categories",
+      "description": "Lists categories and their IDs.",
+      "method": "GET",
+      "endpoint": "/category",
+      "output_fields": {
+        "categories": "categories",
+        "first_id": "categories.0.id",
+        "first_title": "categories.0.title"
+      },
+      "inputs": []
+    },
+    {
+      "key": "create_category",
+      "name": "Create category",
+      "description": "Adds a new category.",
+      "method": "POST",
+      "endpoint": "/category",
+      "body": {
+        "title": "{{ inputs.title }}",
+        "description": "{{ inputs.description }}"
+      },
+      "output_fields": {
+        "id": "category.id"
+      },
+      "inputs": [
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "description",
+          "label": "Description",
+          "type": "text"
+        }
+      ]
+    }
+  ]
+}

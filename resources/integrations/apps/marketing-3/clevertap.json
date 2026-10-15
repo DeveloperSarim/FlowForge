@@ -1,0 +1,226 @@
+{
+  "key": "clevertap",
+  "name": "CleverTap",
+  "category": "Marketing & Email",
+  "description": "Update user profiles, send events and look up users for engagement campaigns.",
+  "website": "https://clevertap.com",
+  "docs_url": "https://developer.clevertap.com/docs/api-overview",
+  "base_url": "https://{{ credentials.region }}.api.clevertap.com/1",
+  "headers": {
+    "X-CleverTap-Account-Id": "{{ credentials.account_id }}"
+  },
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "X-CleverTap-Passcode",
+    "fields": [
+      {
+        "key": "region",
+        "label": "Region",
+        "type": "select",
+        "required": true,
+        "default": "eu1",
+        "help": "Shown in your CleverTap dashboard address, e.g. us1.dashboard.clevertap.com → us1.",
+        "options": [
+          {
+            "value": "eu1",
+            "label": "Europe (eu1)"
+          },
+          {
+            "value": "in1",
+            "label": "India (in1)"
+          },
+          {
+            "value": "us1",
+            "label": "United States (us1)"
+          },
+          {
+            "value": "sg1",
+            "label": "Singapore (sg1)"
+          },
+          {
+            "value": "aps3",
+            "label": "Indonesia (aps3)"
+          },
+          {
+            "value": "mec1",
+            "label": "Middle East (mec1)"
+          }
+        ]
+      },
+      {
+        "key": "account_id",
+        "label": "Account ID",
+        "type": "string",
+        "required": true,
+        "help": "CleverTap → Settings → Project → Project ID."
+      },
+      {
+        "key": "api_key",
+        "label": "Passcode",
+        "type": "password",
+        "required": true,
+        "help": "CleverTap → Settings → Passcode (create one with API access)."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "upload_profile",
+      "name": "Create or update user profile",
+      "description": "Set profile properties for a user identified by your user ID or email.",
+      "method": "POST",
+      "endpoint": "/upload",
+      "error_path": "error",
+      "body": {
+        "d": [
+          {
+            "identity": "{{ inputs.identity }}",
+            "type": "profile",
+            "profileData": {
+              "Name": "{{ inputs.name }}",
+              "Email": "{{ inputs.email }}",
+              "Phone": "{{ inputs.phone }}",
+              "...": "{{ inputs.properties }}"
+            }
+          }
+        ]
+      },
+      "output_fields": {
+        "status": "status",
+        "processed": "processed",
+        "unprocessed": "unprocessed"
+      },
+      "inputs": [
+        {
+          "key": "identity",
+          "label": "User identity",
+          "type": "string",
+          "required": true,
+          "help": "The ID your app uses for this user (often the email)."
+        },
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string"
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string"
+        },
+        {
+          "key": "phone",
+          "label": "Phone",
+          "type": "string",
+          "placeholder": "+14155551234",
+          "help": "With country code."
+        },
+        {
+          "key": "properties",
+          "label": "Other properties",
+          "type": "keyvalue",
+          "help": "Custom profile properties, e.g. Plan = Pro."
+        }
+      ]
+    },
+    {
+      "key": "upload_event",
+      "name": "Send event",
+      "description": "Record an event for a user, e.g. \"Order Placed\".",
+      "method": "POST",
+      "endpoint": "/upload",
+      "error_path": "error",
+      "body": {
+        "d": [
+          {
+            "identity": "{{ inputs.identity }}",
+            "type": "event",
+            "evtName": "{{ inputs.event_name }}",
+            "evtData": "{{ inputs.event_data }}"
+          }
+        ]
+      },
+      "output_fields": {
+        "status": "status",
+        "processed": "processed",
+        "unprocessed": "unprocessed"
+      },
+      "inputs": [
+        {
+          "key": "identity",
+          "label": "User identity",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "event_name",
+          "label": "Event name",
+          "type": "string",
+          "required": true,
+          "placeholder": "Order Placed"
+        },
+        {
+          "key": "event_data",
+          "label": "Event properties",
+          "type": "keyvalue"
+        }
+      ]
+    },
+    {
+      "key": "get_profile",
+      "name": "Get user profile",
+      "description": "Look up a user's profile by email or identity.",
+      "method": "GET",
+      "endpoint": "/profile.json",
+      "error_path": "error",
+      "query": {
+        "email": "{{ inputs.email }}",
+        "identity": "{{ inputs.identity }}"
+      },
+      "output_fields": {
+        "status": "status",
+        "profile": "record",
+        "name": "record.name",
+        "email": "record.email",
+        "profile_data": "record.profileData"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "help": "Fill the email or the identity."
+        },
+        {
+          "key": "identity",
+          "label": "User identity",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "delete_profile",
+      "name": "Delete user profile",
+      "description": "Delete a user's profile and data.",
+      "method": "POST",
+      "endpoint": "/delete/profiles.json",
+      "error_path": "error",
+      "body": {
+        "identity": "{{ inputs.identity }}"
+      },
+      "output_fields": {
+        "status": "status"
+      },
+      "inputs": [
+        {
+          "key": "identity",
+          "label": "User identity",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": []
+}

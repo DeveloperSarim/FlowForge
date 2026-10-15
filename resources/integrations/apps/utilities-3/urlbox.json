@@ -1,0 +1,291 @@
+{
+  "key": "urlbox",
+  "name": "Urlbox",
+  "category": "Utilities",
+  "description": "Render website screenshots and PDFs from a URL or your own HTML.",
+  "website": "https://urlbox.com",
+  "docs_url": "https://urlbox.com/docs/api",
+  "base_url": "https://api.urlbox.com/v1",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "Secret key",
+        "type": "password",
+        "required": true,
+        "help": "Urlbox dashboard → Projects → your project → Secret key (not the publishable key)."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "render_screenshot",
+      "name": "Take screenshot",
+      "description": "Screenshot a page and wait for the image link.",
+      "method": "POST",
+      "endpoint": "/render/sync",
+      "body": {
+        "url": "{{ inputs.url }}",
+        "format": "{{ inputs.format }}",
+        "full_page": "{{ inputs.full_page }}",
+        "width": "{{ inputs.width }}",
+        "height": "{{ inputs.height }}",
+        "selector": "{{ inputs.selector }}",
+        "block_ads": "{{ inputs.block_ads }}",
+        "hide_cookie_banners": "{{ inputs.hide_cookie_banners }}"
+      },
+      "output_fields": {
+        "image_url": "renderUrl",
+        "size_bytes": "size"
+      },
+      "timeout": 120,
+      "inputs": [
+        {
+          "key": "url",
+          "label": "Page URL",
+          "type": "string",
+          "required": true,
+          "placeholder": "https://example.com"
+        },
+        {
+          "key": "format",
+          "label": "Format",
+          "type": "select",
+          "default": "png",
+          "options": [
+            {
+              "value": "png",
+              "label": "PNG"
+            },
+            {
+              "value": "jpeg",
+              "label": "JPEG"
+            },
+            {
+              "value": "webp",
+              "label": "WebP"
+            },
+            {
+              "value": "avif",
+              "label": "AVIF"
+            }
+          ]
+        },
+        {
+          "key": "full_page",
+          "label": "Capture the full page",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "key": "width",
+          "label": "Viewport width (px)",
+          "type": "number",
+          "default": 1280
+        },
+        {
+          "key": "height",
+          "label": "Viewport height (px)",
+          "type": "number",
+          "default": 1024
+        },
+        {
+          "key": "selector",
+          "label": "Only capture this element (CSS selector)",
+          "type": "string"
+        },
+        {
+          "key": "block_ads",
+          "label": "Block ads",
+          "type": "boolean",
+          "default": true
+        },
+        {
+          "key": "hide_cookie_banners",
+          "label": "Hide cookie banners",
+          "type": "boolean",
+          "default": true
+        }
+      ]
+    },
+    {
+      "key": "render_html",
+      "name": "Render HTML to image",
+      "description": "Turn your own HTML into an image or PDF.",
+      "method": "POST",
+      "endpoint": "/render/sync",
+      "body": {
+        "html": "{{ inputs.html }}",
+        "format": "{{ inputs.format }}",
+        "width": "{{ inputs.width }}",
+        "height": "{{ inputs.height }}"
+      },
+      "output_fields": {
+        "file_url": "renderUrl",
+        "size_bytes": "size"
+      },
+      "timeout": 120,
+      "inputs": [
+        {
+          "key": "html",
+          "label": "HTML",
+          "type": "text",
+          "required": true,
+          "placeholder": "<h1>Hello</h1>"
+        },
+        {
+          "key": "format",
+          "label": "Format",
+          "type": "select",
+          "default": "png",
+          "options": [
+            {
+              "value": "png",
+              "label": "PNG"
+            },
+            {
+              "value": "jpeg",
+              "label": "JPEG"
+            },
+            {
+              "value": "webp",
+              "label": "WebP"
+            },
+            {
+              "value": "pdf",
+              "label": "PDF"
+            }
+          ]
+        },
+        {
+          "key": "width",
+          "label": "Width (px)",
+          "type": "number",
+          "default": 1200
+        },
+        {
+          "key": "height",
+          "label": "Height (px)",
+          "type": "number",
+          "default": 630
+        }
+      ]
+    },
+    {
+      "key": "render_pdf",
+      "name": "Save page as PDF",
+      "description": "Save a web page as a PDF.",
+      "method": "POST",
+      "endpoint": "/render/sync",
+      "body": {
+        "url": "{{ inputs.url }}",
+        "format": "pdf",
+        "full_page": "{{ inputs.full_page }}"
+      },
+      "output_fields": {
+        "pdf_url": "renderUrl",
+        "size_bytes": "size"
+      },
+      "timeout": 120,
+      "inputs": [
+        {
+          "key": "url",
+          "label": "Page URL",
+          "type": "string",
+          "required": true,
+          "placeholder": "https://example.com"
+        },
+        {
+          "key": "full_page",
+          "label": "Whole page on one sheet",
+          "type": "boolean",
+          "default": false
+        }
+      ]
+    },
+    {
+      "key": "start_render",
+      "name": "Start background render",
+      "description": "Queue a long render; check it later with Get render status.",
+      "method": "POST",
+      "endpoint": "/render/async",
+      "body": {
+        "url": "{{ inputs.url }}",
+        "format": "{{ inputs.format }}",
+        "full_page": "{{ inputs.full_page }}",
+        "webhook_url": "{{ inputs.webhook_url }}"
+      },
+      "output_fields": {
+        "render_id": "renderId",
+        "status": "status",
+        "status_url": "statusUrl"
+      },
+      "inputs": [
+        {
+          "key": "url",
+          "label": "Page URL",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "format",
+          "label": "Format",
+          "type": "select",
+          "default": "png",
+          "options": [
+            {
+              "value": "png",
+              "label": "PNG"
+            },
+            {
+              "value": "jpeg",
+              "label": "JPEG"
+            },
+            {
+              "value": "pdf",
+              "label": "PDF"
+            },
+            {
+              "value": "mp4",
+              "label": "MP4 video"
+            }
+          ]
+        },
+        {
+          "key": "full_page",
+          "label": "Capture the full page",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "key": "webhook_url",
+          "label": "Notify this URL when done",
+          "type": "string",
+          "help": "Optional. Urlbox posts the result here."
+        }
+      ]
+    },
+    {
+      "key": "get_render",
+      "name": "Get render status",
+      "description": "Check a background render and get its link once it has succeeded.",
+      "method": "GET",
+      "endpoint": "/render/{{ inputs.render_id }}",
+      "output_fields": {
+        "status": "status",
+        "file_url": "renderUrl",
+        "size_bytes": "size"
+      },
+      "inputs": [
+        {
+          "key": "render_id",
+          "label": "Render ID",
+          "type": "string",
+          "required": true,
+          "help": "From Start background render."
+        }
+      ]
+    }
+  ]
+}

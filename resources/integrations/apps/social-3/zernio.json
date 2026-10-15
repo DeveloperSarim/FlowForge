@@ -1,0 +1,236 @@
+{
+  "key": "zernio",
+  "name": "Zernio",
+  "category": "Social Media",
+  "description": "Schedule or publish posts to 10+ networks with Zernio (formerly Late).",
+  "website": "https://zernio.com",
+  "docs_url": "https://docs.zernio.com/",
+  "base_url": "https://zernio.com/api/v1",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "Zernio dashboard → API keys → create a key (starts with sk_, shown once)."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_accounts",
+      "name": "List accounts",
+      "method": "GET",
+      "endpoint": "/accounts",
+      "output_fields": {
+        "accounts": "accounts",
+        "account_ids": "accounts.*._id",
+        "platforms": "accounts.*.platform"
+      },
+      "inputs": []
+    },
+    {
+      "key": "create_post",
+      "name": "Create post",
+      "method": "POST",
+      "endpoint": "/posts",
+      "body": {
+        "content": "{{ inputs.content }}",
+        "platforms": [
+          {
+            "platform": "{{ inputs.platform }}",
+            "accountId": "{{ inputs.account_id }}"
+          }
+        ],
+        "mediaItems": [
+          {
+            "$if": "{{ inputs.image_url }}",
+            "url": "{{ inputs.image_url }}",
+            "type": "image"
+          }
+        ],
+        "publishNow": "{{ inputs.publishNow }}",
+        "scheduledFor": "{{ inputs.scheduledFor }}",
+        "timezone": "{{ inputs.timezone }}",
+        "isDraft": "{{ inputs.isDraft }}"
+      },
+      "output_fields": {
+        "id": "post._id",
+        "status": "post.status",
+        "url": "post.platforms.0.platformPostUrl"
+      },
+      "inputs": [
+        {
+          "key": "account_id",
+          "label": "Account ID",
+          "type": "string",
+          "required": true,
+          "help": "_id from 'List accounts'."
+        },
+        {
+          "key": "platform",
+          "label": "Platform",
+          "type": "string",
+          "required": true,
+          "placeholder": "linkedin",
+          "help": "The account's platform as shown by 'List accounts'."
+        },
+        {
+          "key": "content",
+          "label": "Post text",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "image_url",
+          "label": "Image URL",
+          "type": "string"
+        },
+        {
+          "key": "publishNow",
+          "label": "Publish now",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "key": "scheduledFor",
+          "label": "Schedule for",
+          "type": "string",
+          "placeholder": "2026-12-01T09:00:00"
+        },
+        {
+          "key": "timezone",
+          "label": "Time zone",
+          "type": "string",
+          "placeholder": "Asia/Karachi"
+        },
+        {
+          "key": "isDraft",
+          "label": "Save as draft",
+          "type": "boolean",
+          "default": false
+        }
+      ]
+    },
+    {
+      "key": "get_post",
+      "name": "Get post",
+      "method": "GET",
+      "endpoint": "/posts/{{ inputs.post_id }}",
+      "output_fields": {
+        "id": "post._id",
+        "status": "post.status",
+        "url": "post.platforms.0.platformPostUrl"
+      },
+      "inputs": [
+        {
+          "key": "post_id",
+          "label": "Post ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_posts",
+      "name": "List posts",
+      "method": "GET",
+      "endpoint": "/posts",
+      "query": {
+        "status": "{{ inputs.status }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "posts": "posts"
+      },
+      "inputs": [
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "default": "",
+          "options": [
+            {
+              "value": "",
+              "label": "Any"
+            },
+            {
+              "value": "scheduled",
+              "label": "Scheduled"
+            },
+            {
+              "value": "published",
+              "label": "Published"
+            },
+            {
+              "value": "failed",
+              "label": "Failed"
+            }
+          ]
+        },
+        {
+          "key": "limit",
+          "label": "Max results",
+          "type": "number",
+          "default": 20
+        }
+      ]
+    },
+    {
+      "key": "set_webhook",
+      "name": "Set webhook",
+      "method": "POST",
+      "endpoint": "/webhooks/settings",
+      "body": {
+        "name": "{{ inputs.name }}",
+        "url": "{{ inputs.url }}",
+        "events": "{{ inputs.events }}",
+        "secret": "{{ inputs.secret }}"
+      },
+      "inputs": [
+        {
+          "key": "url",
+          "label": "Webhook URL",
+          "type": "string",
+          "required": true,
+          "help": "Paste the URL of a FlowForge 'Post event' trigger."
+        },
+        {
+          "key": "events",
+          "label": "Events",
+          "type": "list",
+          "required": true,
+          "help": "e.g. post.published, post.failed, comment.received."
+        },
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string",
+          "default": "FlowForge"
+        },
+        {
+          "key": "secret",
+          "label": "Signing secret",
+          "type": "password"
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Post event",
+      "type": "webhook",
+      "description": "Post published or failed, new comments. Register with 'Set webhook'.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

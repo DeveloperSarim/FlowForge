@@ -1,0 +1,196 @@
+{
+  "key": "teamcity",
+  "name": "TeamCity",
+  "category": "Developer Tools",
+  "description": "Trigger, track and cancel TeamCity builds.",
+  "brand": "teamcity",
+  "website": "https://www.jetbrains.com/teamcity/",
+  "docs_url": "https://www.jetbrains.com/help/teamcity/rest/teamcity-rest-api-documentation.html",
+  "base_url": "{{ credentials.server_url }}/app/rest",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "server_url",
+        "label": "Server URL",
+        "type": "string",
+        "required": true,
+        "placeholder": "https://teamcity.example.com",
+        "help": "Your TeamCity address without a trailing slash (TeamCity Cloud: https://<name>.teamcity.com)."
+      },
+      {
+        "key": "token",
+        "label": "Access token",
+        "type": "password",
+        "required": true,
+        "help": "TeamCity → your profile → Access Tokens → Create access token."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_projects",
+      "name": "List projects",
+      "description": "List all projects.",
+      "method": "GET",
+      "endpoint": "/projects",
+      "output_fields": {
+        "projects": "project"
+      },
+      "inputs": []
+    },
+    {
+      "key": "list_build_configurations",
+      "name": "List build configurations",
+      "description": "List a project's build configurations.",
+      "method": "GET",
+      "endpoint": "/projects/id:{{ inputs.project_id }}/buildTypes",
+      "output_fields": {
+        "build_configurations": "buildType"
+      },
+      "inputs": [
+        {
+          "key": "project_id",
+          "label": "Project ID",
+          "type": "string",
+          "required": true,
+          "help": "Shown in the project's settings or URL, e.g. MyProject."
+        }
+      ]
+    },
+    {
+      "key": "trigger_build",
+      "name": "Trigger build",
+      "description": "Queue a new build.",
+      "method": "POST",
+      "endpoint": "/buildQueue",
+      "body": {
+        "buildType": {
+          "id": "{{ inputs.build_type_id }}"
+        },
+        "branchName": "{{ inputs.branch }}",
+        "comment": {
+          "text": "{{ inputs.comment }}"
+        }
+      },
+      "output_fields": {
+        "build_id": "id",
+        "state": "state",
+        "web_url": "webUrl"
+      },
+      "inputs": [
+        {
+          "key": "build_type_id",
+          "label": "Build configuration ID",
+          "type": "string",
+          "required": true,
+          "help": "E.g. MyProject_Build (Build configuration settings → General)."
+        },
+        {
+          "key": "branch",
+          "label": "Branch",
+          "type": "string",
+          "placeholder": "main"
+        },
+        {
+          "key": "comment",
+          "label": "Comment",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "get_build",
+      "name": "Get build",
+      "description": "Get a build's state and result.",
+      "method": "GET",
+      "endpoint": "/builds/id:{{ inputs.build_id }}",
+      "output_fields": {
+        "state": "state",
+        "status": "status",
+        "status_text": "statusText",
+        "web_url": "webUrl"
+      },
+      "inputs": [
+        {
+          "key": "build_id",
+          "label": "Build ID",
+          "type": "string",
+          "required": true,
+          "help": "Returned by Trigger build, or shown in the build's URL."
+        }
+      ]
+    },
+    {
+      "key": "list_builds",
+      "name": "List builds",
+      "description": "List recent builds, newest first.",
+      "method": "GET",
+      "endpoint": "/builds",
+      "query": {
+        "locator": "{{ inputs.locator }}"
+      },
+      "output_fields": {
+        "builds": "build"
+      },
+      "inputs": [
+        {
+          "key": "locator",
+          "label": "Filter (locator)",
+          "type": "string",
+          "default": "count:20",
+          "help": "E.g. count:20 or buildType:(id:MyProject_Build),count:10."
+        }
+      ]
+    },
+    {
+      "key": "cancel_build",
+      "name": "Cancel build",
+      "description": "Stop a running build.",
+      "method": "POST",
+      "endpoint": "/builds/id:{{ inputs.build_id }}",
+      "body": {
+        "comment": "{{ inputs.comment }}",
+        "readdIntoQueue": false
+      },
+      "inputs": [
+        {
+          "key": "build_id",
+          "label": "Build ID",
+          "type": "string",
+          "required": true,
+          "help": "Returned by Trigger build, or shown in the build's URL."
+        },
+        {
+          "key": "comment",
+          "label": "Comment",
+          "type": "string",
+          "default": "Canceled from FlowForge"
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_build",
+      "name": "New finished build",
+      "type": "polling",
+      "description": "Starts when a build finishes.",
+      "method": "GET",
+      "endpoint": "/builds",
+      "query": {
+        "locator": "count:20"
+      },
+      "items_path": "build",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

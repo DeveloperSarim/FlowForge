@@ -1,0 +1,120 @@
+{
+  "key": "theaudiodb",
+  "name": "TheAudioDB",
+  "category": "Video & Media",
+  "description": "Artist, album and track info with artwork from TheAudioDB.",
+  "website": "https://www.theaudiodb.com",
+  "docs_url": "https://www.theaudiodb.com/free_music_api",
+  "base_url": "https://www.theaudiodb.com/api/v1/json/{{ credentials.api_key }}",
+  "auth": {
+    "type": "none",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "string",
+        "required": true,
+        "default": "2",
+        "help": "Use 2 for the free test key, or your Patreon key from theaudiodb.com."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "search_artist",
+      "name": "Search artist",
+      "description": "Find an artist by name.",
+      "method": "GET",
+      "endpoint": "/search.php",
+      "query": {
+        "s": "{{ inputs.name }}"
+      },
+      "output_fields": {
+        "artists": "artists",
+        "id": "artists.0.idArtist",
+        "biography": "artists.0.strBiographyEN"
+      },
+      "inputs": [
+        {
+          "key": "name",
+          "label": "Artist name",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_albums",
+      "name": "List albums",
+      "description": "Get an artist's albums.",
+      "method": "GET",
+      "endpoint": "/searchalbum.php",
+      "query": {
+        "s": "{{ inputs.name }}"
+      },
+      "output_fields": {
+        "albums": "album",
+        "titles": "album.*.strAlbum"
+      },
+      "inputs": [
+        {
+          "key": "name",
+          "label": "Artist name",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_tracks",
+      "name": "List tracks",
+      "description": "Get the tracks of an album.",
+      "method": "GET",
+      "endpoint": "/track.php",
+      "query": {
+        "m": "{{ inputs.album_id }}"
+      },
+      "output_fields": {
+        "tracks": "track",
+        "titles": "track.*.strTrack"
+      },
+      "inputs": [
+        {
+          "key": "album_id",
+          "label": "Album ID",
+          "type": "string",
+          "required": true,
+          "help": "idAlbum from List albums."
+        }
+      ]
+    },
+    {
+      "key": "search_track",
+      "name": "Search a track",
+      "description": "Find a track by artist and title.",
+      "method": "GET",
+      "endpoint": "/searchtrack.php",
+      "query": {
+        "s": "{{ inputs.artist }}",
+        "t": "{{ inputs.track }}"
+      },
+      "output_fields": {
+        "tracks": "track"
+      },
+      "inputs": [
+        {
+          "key": "artist",
+          "label": "Artist",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "track",
+          "label": "Track",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ]
+}

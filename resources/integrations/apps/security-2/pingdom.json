@@ -1,0 +1,321 @@
+{
+  "key": "pingdom",
+  "name": "Pingdom",
+  "category": "Security & IT",
+  "description": "Create, pause and read Pingdom uptime checks, results and uptime summaries.",
+  "brand": "pingdom",
+  "website": "https://www.pingdom.com",
+  "docs_url": "https://docs.pingdom.com/api/",
+  "base_url": "https://api.pingdom.com/api/3.1",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "API token",
+        "type": "password",
+        "required": true,
+        "help": "My Pingdom → Settings → Pingdom API → Add API token (Read-Write)."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_checks",
+      "name": "List checks",
+      "description": "List your uptime checks and their status.",
+      "method": "GET",
+      "endpoint": "/checks",
+      "query": {
+        "tags": "{{ inputs.tags }}"
+      },
+      "output_fields": {
+        "checks": "checks"
+      },
+      "inputs": [
+        {
+          "key": "tags",
+          "label": "Tags",
+          "type": "string",
+          "placeholder": "production,web"
+        }
+      ]
+    },
+    {
+      "key": "get_check",
+      "name": "Get check",
+      "description": "Get a check's status and last response time.",
+      "method": "GET",
+      "endpoint": "/checks/{{ inputs.check_id }}",
+      "output_fields": {
+        "name": "check.name",
+        "status": "check.status",
+        "hostname": "check.hostname",
+        "last_response_time": "check.lastresponsetime"
+      },
+      "inputs": [
+        {
+          "key": "check_id",
+          "label": "Check ID",
+          "type": "string",
+          "required": true,
+          "help": "Use List checks."
+        }
+      ]
+    },
+    {
+      "key": "create_check",
+      "name": "Create check",
+      "description": "Start monitoring a website or server.",
+      "method": "POST",
+      "endpoint": "/checks",
+      "body": {
+        "name": "{{ inputs.name }}",
+        "host": "{{ inputs.host }}",
+        "type": "{{ inputs.type }}",
+        "url": "{{ inputs.url }}",
+        "encryption": "{{ inputs.encryption }}",
+        "resolution": "{{ inputs.resolution }}",
+        "tags": "{{ inputs.tags }}"
+      },
+      "output_fields": {
+        "check_id": "check.id"
+      },
+      "inputs": [
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "host",
+          "label": "Host",
+          "type": "string",
+          "required": true,
+          "placeholder": "www.example.com"
+        },
+        {
+          "key": "type",
+          "label": "Type",
+          "type": "select",
+          "required": true,
+          "default": "http",
+          "options": [
+            {
+              "value": "http",
+              "label": "HTTP(S)"
+            },
+            {
+              "value": "tcp",
+              "label": "TCP port"
+            },
+            {
+              "value": "ping",
+              "label": "Ping"
+            },
+            {
+              "value": "dns",
+              "label": "DNS"
+            }
+          ]
+        },
+        {
+          "key": "url",
+          "label": "Path",
+          "type": "string",
+          "placeholder": "/health",
+          "help": "HTTP checks only."
+        },
+        {
+          "key": "encryption",
+          "label": "Use HTTPS",
+          "type": "boolean",
+          "default": true
+        },
+        {
+          "key": "resolution",
+          "label": "Check every (minutes)",
+          "type": "select",
+          "default": "5",
+          "options": [
+            {
+              "value": "1",
+              "label": "1"
+            },
+            {
+              "value": "5",
+              "label": "5"
+            },
+            {
+              "value": "15",
+              "label": "15"
+            },
+            {
+              "value": "30",
+              "label": "30"
+            },
+            {
+              "value": "60",
+              "label": "60"
+            }
+          ]
+        },
+        {
+          "key": "tags",
+          "label": "Tags",
+          "type": "string",
+          "placeholder": "production,web"
+        }
+      ]
+    },
+    {
+      "key": "pause_check",
+      "name": "Pause / resume check",
+      "description": "Pause or resume a check.",
+      "method": "PUT",
+      "endpoint": "/checks/{{ inputs.check_id }}",
+      "body": {
+        "paused": "{{ inputs.paused }}"
+      },
+      "output_fields": {
+        "message": "message"
+      },
+      "inputs": [
+        {
+          "key": "check_id",
+          "label": "Check ID",
+          "type": "string",
+          "required": true,
+          "help": "Use List checks."
+        },
+        {
+          "key": "paused",
+          "label": "Paused",
+          "type": "boolean",
+          "required": true,
+          "default": true
+        }
+      ]
+    },
+    {
+      "key": "delete_check",
+      "name": "Delete check",
+      "description": "Delete a check.",
+      "method": "DELETE",
+      "endpoint": "/checks/{{ inputs.check_id }}",
+      "inputs": [
+        {
+          "key": "check_id",
+          "label": "Check ID",
+          "type": "string",
+          "required": true,
+          "help": "Use List checks."
+        }
+      ]
+    },
+    {
+      "key": "get_results",
+      "name": "Get check results",
+      "description": "Get the latest raw test results of a check.",
+      "method": "GET",
+      "endpoint": "/results/{{ inputs.check_id }}",
+      "query": {
+        "limit": "{{ inputs.limit }}",
+        "status": "{{ inputs.status }}"
+      },
+      "output_fields": {
+        "results": "results"
+      },
+      "inputs": [
+        {
+          "key": "check_id",
+          "label": "Check ID",
+          "type": "string",
+          "required": true,
+          "help": "Use List checks."
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 20
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "options": [
+            {
+              "value": "up",
+              "label": "up"
+            },
+            {
+              "value": "down",
+              "label": "down"
+            },
+            {
+              "value": "unconfirmed",
+              "label": "unconfirmed"
+            },
+            {
+              "value": "unknown",
+              "label": "unknown"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "get_uptime_summary",
+      "name": "Get uptime summary",
+      "description": "Get uptime/downtime seconds and average response time.",
+      "method": "GET",
+      "endpoint": "/summary.average/{{ inputs.check_id }}",
+      "query": {
+        "from": "{{ inputs.from }}",
+        "to": "{{ inputs.to }}",
+        "includeuptime": "true"
+      },
+      "output_fields": {
+        "total_up": "summary.status.totalup",
+        "total_down": "summary.status.totaldown",
+        "avg_response_ms": "summary.responsetime.avgresponse"
+      },
+      "inputs": [
+        {
+          "key": "check_id",
+          "label": "Check ID",
+          "type": "string",
+          "required": true,
+          "help": "Use List checks."
+        },
+        {
+          "key": "from",
+          "label": "From (Unix time)",
+          "type": "number"
+        },
+        {
+          "key": "to",
+          "label": "To (Unix time)",
+          "type": "number"
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook alert",
+      "type": "webhook",
+      "description": "Add the webhook URL under Integrations → Add integration → Webhook, then attach it to checks.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

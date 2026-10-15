@@ -1,0 +1,190 @@
+{
+  "key": "tripadvisor",
+  "name": "Tripadvisor",
+  "category": "Social Media",
+  "description": "Search Tripadvisor hotels, restaurants and attractions and read their latest reviews.",
+  "website": "https://www.tripadvisor.com",
+  "docs_url": "https://docs.terra.tripadvisor.com/",
+  "base_url": "https://terra.tripadvisor.com/api",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "X-API-Key",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "Tripadvisor Terra dashboard → Overview → My API Key."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "search_locations",
+      "name": "Search locations",
+      "method": "GET",
+      "endpoint": "/locations/search",
+      "query": {
+        "query": "{{ inputs.query }}",
+        "category": "{{ inputs.category }}",
+        "country_code": "{{ inputs.country_code }}",
+        "size": "{{ inputs.size }}"
+      },
+      "output_fields": {
+        "locations": "data",
+        "first_id": "data.0.location.id",
+        "first_name": "data.0.location.names.0.value"
+      },
+      "inputs": [
+        {
+          "key": "query",
+          "label": "Search",
+          "type": "string",
+          "required": true,
+          "placeholder": "Pearl Continental Lahore"
+        },
+        {
+          "key": "category",
+          "label": "Type",
+          "type": "select",
+          "default": "",
+          "options": [
+            {
+              "value": "",
+              "label": "Any"
+            },
+            {
+              "value": "HOTEL",
+              "label": "Hotel"
+            },
+            {
+              "value": "RESTAURANT",
+              "label": "Restaurant"
+            },
+            {
+              "value": "ATTRACTION",
+              "label": "Attraction"
+            }
+          ]
+        },
+        {
+          "key": "country_code",
+          "label": "Country code",
+          "type": "string",
+          "placeholder": "PK"
+        },
+        {
+          "key": "size",
+          "label": "Max results (max 20)",
+          "type": "number",
+          "default": 10
+        }
+      ]
+    },
+    {
+      "key": "get_location",
+      "name": "Get location",
+      "method": "GET",
+      "endpoint": "/locations/{{ inputs.location_id }}",
+      "output_fields": {
+        "id": "id",
+        "name": "names.0.value",
+        "rating": "traveler_ratings.overall",
+        "rankings": "rankings"
+      },
+      "inputs": [
+        {
+          "key": "location_id",
+          "label": "Location ID",
+          "type": "string",
+          "required": true,
+          "help": "From 'Search locations', or the -d<number>- part of a Tripadvisor link."
+        }
+      ]
+    },
+    {
+      "key": "get_reviews",
+      "name": "Get reviews",
+      "method": "GET",
+      "endpoint": "/locations/{{ inputs.location_id }}/reviews",
+      "query": {
+        "sort_by": "{{ inputs.sort_by }}",
+        "language": "{{ inputs.language }}",
+        "size": "{{ inputs.size }}"
+      },
+      "output_fields": {
+        "reviews": "data",
+        "latest_rating": "data.0.rating",
+        "latest_title": "data.0.title",
+        "latest_text": "data.0.text"
+      },
+      "inputs": [
+        {
+          "key": "location_id",
+          "label": "Location ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "sort_by",
+          "label": "Sort",
+          "type": "select",
+          "default": "MOST_RECENT",
+          "options": [
+            {
+              "value": "MOST_RECENT",
+              "label": "Newest"
+            },
+            {
+              "value": "HIGHEST_RATED",
+              "label": "Highest rated"
+            }
+          ]
+        },
+        {
+          "key": "language",
+          "label": "Language",
+          "type": "string",
+          "placeholder": "en"
+        },
+        {
+          "key": "size",
+          "label": "Max results",
+          "type": "number",
+          "default": 20
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_review",
+      "name": "New review",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/locations/{{ inputs.location_id }}/reviews",
+      "query": {
+        "sort_by": "MOST_RECENT",
+        "size": "20"
+      },
+      "items_path": "data",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "location_id",
+          "label": "Location ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

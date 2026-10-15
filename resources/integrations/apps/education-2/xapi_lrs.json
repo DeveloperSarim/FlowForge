@@ -1,0 +1,169 @@
+{
+  "key": "xapi_lrs",
+  "name": "xAPI Learning Record Store",
+  "category": "Education",
+  "description": "Send and read xAPI learning statements on any LRS (Learning Locker, SCORM Cloud).",
+  "website": "https://xapi.com",
+  "docs_url": "https://xapi.com/specification/",
+  "base_url": "{{ credentials.endpoint }}",
+  "auth": {
+    "type": "basic",
+    "fields": [
+      {
+        "key": "endpoint",
+        "label": "LRS endpoint",
+        "type": "string",
+        "required": true,
+        "placeholder": "https://lrs.example.com/xapi",
+        "help": "The xAPI endpoint of your LRS, without a trailing slash."
+      },
+      {
+        "key": "username",
+        "label": "Key",
+        "type": "string",
+        "required": true,
+        "help": "The LRS key (username) from your LRS store settings."
+      },
+      {
+        "key": "password",
+        "label": "Secret",
+        "type": "password",
+        "required": true,
+        "help": "The LRS secret (password)."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "send_statement",
+      "name": "Send a statement",
+      "description": "Record that a learner did something.",
+      "method": "POST",
+      "endpoint": "/statements",
+      "body": {
+        "actor": {
+          "objectType": "Agent",
+          "name": "{{ inputs.actor_name }}",
+          "mbox": "mailto:{{ inputs.actor_email }}"
+        },
+        "verb": {
+          "id": "{{ inputs.verb_id }}",
+          "display": {
+            "en-US": "{{ inputs.verb_name }}"
+          }
+        },
+        "object": {
+          "objectType": "Activity",
+          "id": "{{ inputs.object_id }}",
+          "definition": {
+            "name": {
+              "en-US": "{{ inputs.object_name }}"
+            }
+          }
+        }
+      },
+      "headers": {
+        "X-Experience-API-Version": "1.0.3"
+      },
+      "inputs": [
+        {
+          "key": "actor_email",
+          "label": "Learner email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "actor_name",
+          "label": "Learner name",
+          "type": "string"
+        },
+        {
+          "key": "verb_id",
+          "label": "Verb IRI",
+          "type": "string",
+          "required": true,
+          "default": "http://adlnet.gov/expapi/verbs/completed",
+          "help": "e.g. http://adlnet.gov/expapi/verbs/completed"
+        },
+        {
+          "key": "verb_name",
+          "label": "Verb label",
+          "type": "string",
+          "default": "completed"
+        },
+        {
+          "key": "object_id",
+          "label": "Activity IRI",
+          "type": "string",
+          "required": true,
+          "help": "A unique URL for the course or activity, e.g. https://example.com/course/1"
+        },
+        {
+          "key": "object_name",
+          "label": "Activity name",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_statements",
+      "name": "List statements",
+      "description": "Get recent learning statements.",
+      "method": "GET",
+      "endpoint": "/statements",
+      "query": {
+        "limit": "{{ inputs.limit }}",
+        "agent": "{{ inputs.agent }}",
+        "verb": "{{ inputs.verb }}",
+        "since": "{{ inputs.since }}"
+      },
+      "output_fields": {
+        "statements": "statements",
+        "more": "more"
+      },
+      "headers": {
+        "X-Experience-API-Version": "1.0.3"
+      },
+      "inputs": [
+        {
+          "key": "limit",
+          "label": "Max results",
+          "type": "number",
+          "default": 25
+        },
+        {
+          "key": "agent",
+          "label": "Learner (JSON agent)",
+          "type": "string",
+          "help": "Optional, e.g. {\"mbox\":\"mailto:a@b.com\"}"
+        },
+        {
+          "key": "verb",
+          "label": "Verb IRI",
+          "type": "string"
+        },
+        {
+          "key": "since",
+          "label": "Since",
+          "type": "string",
+          "help": "ISO date and time"
+        }
+      ]
+    },
+    {
+      "key": "lrs_about",
+      "name": "LRS info",
+      "description": "Check the connection and xAPI versions supported.",
+      "method": "GET",
+      "endpoint": "/about",
+      "output_fields": {
+        "versions": "version"
+      },
+      "headers": {
+        "X-Experience-API-Version": "1.0.3"
+      },
+      "inputs": []
+    }
+  ]
+}

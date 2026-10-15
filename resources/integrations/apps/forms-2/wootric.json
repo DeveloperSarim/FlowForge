@@ -1,0 +1,142 @@
+{
+  "key": "wootric",
+  "name": "Wootric",
+  "category": "Forms & Surveys",
+  "description": "NPS, CSAT and CES surveys: read Wootric responses and manage the people you survey.",
+  "website": "https://www.wootric.com",
+  "docs_url": "https://docs.wootric.com/api/",
+  "base_url": "https://api.wootric.com/v1",
+  "auth": {
+    "type": "oauth2_client_credentials",
+    "token_url": "https://api.wootric.com/oauth/token",
+    "fields": [
+      {
+        "key": "client_id",
+        "label": "Client ID",
+        "type": "string",
+        "required": true,
+        "help": "Wootric > Settings > Integrations > API: copy the Client ID."
+      },
+      {
+        "key": "client_secret",
+        "label": "Client secret",
+        "type": "password",
+        "required": true,
+        "help": "Same page: the Client Secret."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_responses",
+      "name": "List responses",
+      "description": "Get survey responses with score and comment.",
+      "method": "GET",
+      "endpoint": "/responses",
+      "query": {
+        "per_page": "{{ inputs.per_page }}",
+        "page": "{{ inputs.page }}"
+      },
+      "output_fields": {
+        "scores": "*.score",
+        "comments": "*.text",
+        "ids": "*.id"
+      },
+      "inputs": [
+        {
+          "key": "per_page",
+          "label": "Per page",
+          "type": "number",
+          "default": 25
+        },
+        {
+          "key": "page",
+          "label": "Page",
+          "type": "number",
+          "default": 0
+        }
+      ]
+    },
+    {
+      "key": "list_end_users",
+      "name": "List end users",
+      "description": "Get the people you survey.",
+      "method": "GET",
+      "endpoint": "/end_users",
+      "query": {
+        "per_page": "{{ inputs.per_page }}",
+        "email": "{{ inputs.email }}"
+      },
+      "output_fields": {
+        "ids": "*.id",
+        "emails": "*.email"
+      },
+      "inputs": [
+        {
+          "key": "per_page",
+          "label": "Per page",
+          "type": "number",
+          "default": 25
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "help": "Filter to one email."
+        }
+      ]
+    },
+    {
+      "key": "create_end_user",
+      "name": "Create an end user",
+      "description": "Add a person to survey.",
+      "method": "POST",
+      "endpoint": "/end_users",
+      "body": {
+        "email": "{{ inputs.email }}",
+        "external_id": "{{ inputs.external_id }}",
+        "properties": "{{ inputs.properties }}"
+      },
+      "output_fields": {
+        "id": "id"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "external_id",
+          "label": "Your user ID",
+          "type": "string"
+        },
+        {
+          "key": "properties",
+          "label": "Properties",
+          "type": "json",
+          "help": "Extra info as JSON, e.g. {\"plan\":\"pro\"}."
+        }
+      ]
+    },
+    {
+      "key": "list_declines",
+      "name": "List declines",
+      "description": "Get people who declined to answer.",
+      "method": "GET",
+      "endpoint": "/declines",
+      "query": {
+        "per_page": "{{ inputs.per_page }}"
+      },
+      "inputs": [
+        {
+          "key": "per_page",
+          "label": "Per page",
+          "type": "number",
+          "default": 25
+        }
+      ]
+    }
+  ]
+}

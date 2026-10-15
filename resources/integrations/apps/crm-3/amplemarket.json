@@ -1,0 +1,243 @@
+{
+  "key": "amplemarket",
+  "name": "Amplemarket",
+  "category": "CRM & Sales",
+  "description": "Add leads to Amplemarket sequences, create contacts and enrich people.",
+  "website": "https://www.amplemarket.com",
+  "docs_url": "https://docs.amplemarket.com/api-reference/introduction",
+  "base_url": "https://api.amplemarket.com",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "In Amplemarket go to Settings → API and create an API key."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "add_lead_to_sequence",
+      "name": "Add lead to sequence",
+      "method": "POST",
+      "endpoint": "/sequences/{{ inputs.sequence_id }}/leads",
+      "body": {
+        "leads": [
+          {
+            "email": "{{ inputs.email }}",
+            "linkedin_url": "{{ inputs.linkedin_url }}",
+            "data": "{{ inputs.data }}"
+          }
+        ]
+      },
+      "output_fields": {
+        "added": "total_added_to_sequence"
+      },
+      "inputs": [
+        {
+          "key": "sequence_id",
+          "label": "Sequence ID",
+          "type": "string",
+          "required": true,
+          "help": "Run \"List sequences\" to find it."
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string"
+        },
+        {
+          "key": "linkedin_url",
+          "label": "LinkedIn URL",
+          "type": "string"
+        },
+        {
+          "key": "data",
+          "label": "Lead fields",
+          "type": "keyvalue",
+          "help": "Dynamic fields used in the sequence, e.g. first_name, company_name."
+        }
+      ]
+    },
+    {
+      "key": "list_sequences",
+      "name": "List sequences",
+      "method": "GET",
+      "endpoint": "/sequences",
+      "query": {
+        "status": "{{ inputs.status }}",
+        "name": "{{ inputs.name }}"
+      },
+      "output_fields": {
+        "sequences": "sequences",
+        "id": "sequences.0.id"
+      },
+      "inputs": [
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "string",
+          "help": "Optional filter, e.g. active."
+        },
+        {
+          "key": "name",
+          "label": "Name contains",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "create_contact",
+      "name": "Create contact",
+      "method": "POST",
+      "endpoint": "/contacts",
+      "body": {
+        "email": "{{ inputs.email }}",
+        "first_name": "{{ inputs.first_name }}",
+        "last_name": "{{ inputs.last_name }}",
+        "title": "{{ inputs.title }}",
+        "company_name": "{{ inputs.company_name }}",
+        "company_domain": "{{ inputs.company_domain }}",
+        "linkedin_url": "{{ inputs.linkedin_url }}",
+        "owner_email": "{{ inputs.owner_email }}"
+      },
+      "output_fields": {
+        "id": "id"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "first_name",
+          "label": "First name",
+          "type": "string"
+        },
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string"
+        },
+        {
+          "key": "title",
+          "label": "Job title",
+          "type": "string"
+        },
+        {
+          "key": "company_name",
+          "label": "Company",
+          "type": "string"
+        },
+        {
+          "key": "company_domain",
+          "label": "Company domain",
+          "type": "string"
+        },
+        {
+          "key": "linkedin_url",
+          "label": "LinkedIn URL",
+          "type": "string"
+        },
+        {
+          "key": "owner_email",
+          "label": "Owner email",
+          "type": "string",
+          "help": "Email of the Amplemarket user who owns the contact."
+        }
+      ]
+    },
+    {
+      "key": "get_contact",
+      "name": "Get contact by email",
+      "method": "GET",
+      "endpoint": "/contacts/email/{{ inputs.email }}",
+      "output_fields": {
+        "id": "id",
+        "recent_activity": "recent_activity"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "enrich_person",
+      "name": "Enrich person",
+      "method": "GET",
+      "endpoint": "/people/find",
+      "query": {
+        "email": "{{ inputs.email }}",
+        "linkedin_url": "{{ inputs.linkedin_url }}",
+        "name": "{{ inputs.name }}",
+        "company_domain": "{{ inputs.company_domain }}",
+        "reveal_email": "{{ inputs.reveal_email }}",
+        "reveal_phone_numbers": "{{ inputs.reveal_phone_numbers }}"
+      },
+      "output_fields": {
+        "name": "name",
+        "title": "title",
+        "email": "email",
+        "linkedin_url": "linkedin_url"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string"
+        },
+        {
+          "key": "linkedin_url",
+          "label": "LinkedIn URL",
+          "type": "string"
+        },
+        {
+          "key": "name",
+          "label": "Full name",
+          "type": "string"
+        },
+        {
+          "key": "company_domain",
+          "label": "Company domain",
+          "type": "string"
+        },
+        {
+          "key": "reveal_email",
+          "label": "Reveal email (uses credits)",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "key": "reveal_phone_numbers",
+          "label": "Reveal phone numbers (uses credits)",
+          "type": "boolean",
+          "default": false
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Replies and sequence stage changes (Settings → Integrations → Webhooks).",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

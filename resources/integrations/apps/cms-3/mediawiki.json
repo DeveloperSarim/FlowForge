@@ -1,0 +1,188 @@
+{
+  "key": "mediawiki",
+  "name": "MediaWiki",
+  "category": "CMS & Websites",
+  "description": "Search, read, create and edit pages on your own MediaWiki site.",
+  "website": "https://www.mediawiki.org",
+  "docs_url": "https://www.mediawiki.org/wiki/API:REST_API",
+  "base_url": "https://{{ credentials.site }}/w/rest.php/v1",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "site",
+        "label": "Wiki address",
+        "type": "string",
+        "required": true,
+        "help": "Your wiki's host without https://.",
+        "placeholder": "wiki.example.com"
+      },
+      {
+        "key": "token",
+        "label": "Access token",
+        "type": "password",
+        "required": true,
+        "help": "Open Special:OAuthConsumerRegistration/propose/oauth2, register an owner-only consumer with edit rights, and copy the access token."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "search_pages",
+      "name": "Search pages",
+      "description": "Find pages by words in the title or text.",
+      "method": "GET",
+      "endpoint": "/search/page",
+      "query": {
+        "q": "{{ inputs.q }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "pages": "pages",
+        "first_title": "pages.0.title",
+        "first_excerpt": "pages.0.excerpt"
+      },
+      "inputs": [
+        {
+          "key": "q",
+          "label": "Search text",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "limit",
+          "label": "How many",
+          "type": "number",
+          "default": 10
+        }
+      ]
+    },
+    {
+      "key": "get_page",
+      "name": "Get page",
+      "description": "Read a page's wikitext source and latest revision.",
+      "method": "GET",
+      "endpoint": "/page/{{ inputs.title }}",
+      "output_fields": {
+        "id": "id",
+        "title": "title",
+        "source": "source",
+        "latest_id": "latest.id",
+        "latest_time": "latest.timestamp"
+      },
+      "inputs": [
+        {
+          "key": "title",
+          "label": "Page title",
+          "type": "string",
+          "required": true,
+          "help": "Exactly as in the page address, e.g. Main_Page."
+        }
+      ]
+    },
+    {
+      "key": "create_page",
+      "name": "Create page",
+      "description": "Create a new page.",
+      "method": "POST",
+      "endpoint": "/page",
+      "body": {
+        "title": "{{ inputs.title }}",
+        "source": "{{ inputs.source }}",
+        "comment": "{{ inputs.comment }}"
+      },
+      "output_fields": {
+        "id": "id",
+        "key": "key"
+      },
+      "inputs": [
+        {
+          "key": "title",
+          "label": "Page title",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "source",
+          "label": "Content (wikitext)",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "comment",
+          "label": "Edit summary",
+          "type": "string",
+          "required": true,
+          "default": "Created by FlowForge"
+        }
+      ]
+    },
+    {
+      "key": "update_page",
+      "name": "Update page",
+      "description": "Replace a page's content.",
+      "method": "PUT",
+      "endpoint": "/page/{{ inputs.title }}",
+      "body": {
+        "source": "{{ inputs.source }}",
+        "comment": "{{ inputs.comment }}",
+        "latest": {
+          "id": "{{ inputs.latest_id }}"
+        }
+      },
+      "output_fields": {
+        "id": "id",
+        "latest_id": "latest.id"
+      },
+      "inputs": [
+        {
+          "key": "title",
+          "label": "Page title",
+          "type": "string",
+          "required": true,
+          "help": "Exactly as in the page address, e.g. Main_Page."
+        },
+        {
+          "key": "source",
+          "label": "Content (wikitext)",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "comment",
+          "label": "Edit summary",
+          "type": "string",
+          "required": true,
+          "default": "Updated by FlowForge"
+        },
+        {
+          "key": "latest_id",
+          "label": "Latest revision ID",
+          "type": "number",
+          "required": true,
+          "help": "The 'Latest ID' returned by Get page; stops you overwriting someone else's edit."
+        }
+      ]
+    },
+    {
+      "key": "page_history",
+      "name": "Page history",
+      "description": "List recent revisions of a page.",
+      "method": "GET",
+      "endpoint": "/page/{{ inputs.title }}/history",
+      "output_fields": {
+        "revisions": "revisions",
+        "latest_user": "revisions.0.user.name"
+      },
+      "inputs": [
+        {
+          "key": "title",
+          "label": "Page title",
+          "type": "string",
+          "required": true,
+          "help": "Exactly as in the page address, e.g. Main_Page."
+        }
+      ]
+    }
+  ]
+}

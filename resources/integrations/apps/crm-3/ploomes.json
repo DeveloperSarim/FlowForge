@@ -1,0 +1,309 @@
+{
+  "key": "ploomes",
+  "name": "Ploomes",
+  "category": "CRM & Sales",
+  "description": "Create clients, deals, tasks and interaction records in Ploomes CRM.",
+  "website": "https://www.ploomes.com",
+  "docs_url": "https://developers.ploomes.com/",
+  "base_url": "https://public-api2.ploomes.com",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "User-Key",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "User key",
+        "type": "password",
+        "required": true,
+        "help": "In Ploomes go to Administração → Integração → Chave de usuário (integration user key)."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "create_client",
+      "name": "Create client",
+      "method": "POST",
+      "endpoint": "/Contacts",
+      "body": {
+        "Name": "{{ inputs.name }}",
+        "TypeId": "{{ inputs.type_id }}",
+        "Email": "{{ inputs.email }}",
+        "CompanyId": "{{ inputs.company_id }}",
+        "Register": "{{ inputs.register }}",
+        "OwnerId": "{{ inputs.owner_id }}",
+        "Note": "{{ inputs.note }}",
+        "Phones": [
+          {
+            "$if": "{{ inputs.phone }}",
+            "PhoneNumber": "{{ inputs.phone }}"
+          }
+        ]
+      },
+      "output_fields": {
+        "id": "value.0.Id",
+        "name": "value.0.Name"
+      },
+      "inputs": [
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "type_id",
+          "label": "Type",
+          "type": "select",
+          "default": "2",
+          "options": [
+            {
+              "value": "1",
+              "label": "Company"
+            },
+            {
+              "value": "2",
+              "label": "Person"
+            }
+          ]
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string"
+        },
+        {
+          "key": "phone",
+          "label": "Phone",
+          "type": "string"
+        },
+        {
+          "key": "company_id",
+          "label": "Company ID",
+          "type": "number",
+          "help": "For a person: the company they work for."
+        },
+        {
+          "key": "register",
+          "label": "CPF / CNPJ",
+          "type": "string"
+        },
+        {
+          "key": "owner_id",
+          "label": "Owner user ID",
+          "type": "number"
+        },
+        {
+          "key": "note",
+          "label": "Notes",
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "key": "find_client",
+      "name": "Find client by email",
+      "method": "GET",
+      "endpoint": "/Contacts",
+      "query": {
+        "$filter": "Email eq '{{ inputs.email }}'",
+        "$top": 10
+      },
+      "output_fields": {
+        "id": "value.0.Id",
+        "clients": "value"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "create_deal",
+      "name": "Create deal",
+      "method": "POST",
+      "endpoint": "/Deals",
+      "body": {
+        "Title": "{{ inputs.title }}",
+        "ContactId": "{{ inputs.contact_id }}",
+        "PersonId": "{{ inputs.person_id }}",
+        "Amount": "{{ inputs.amount }}",
+        "StageId": "{{ inputs.stage_id }}",
+        "OwnerId": "{{ inputs.owner_id }}"
+      },
+      "output_fields": {
+        "id": "value.0.Id"
+      },
+      "inputs": [
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "contact_id",
+          "label": "Client ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "person_id",
+          "label": "Person ID",
+          "type": "number"
+        },
+        {
+          "key": "amount",
+          "label": "Amount",
+          "type": "number"
+        },
+        {
+          "key": "stage_id",
+          "label": "Stage ID",
+          "type": "number",
+          "help": "Empty = first stage."
+        },
+        {
+          "key": "owner_id",
+          "label": "Owner user ID",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "win_deal",
+      "name": "Mark deal as won",
+      "method": "POST",
+      "endpoint": "/Deals({{ inputs.deal_id }})/Win",
+      "inputs": [
+        {
+          "key": "deal_id",
+          "label": "Deal ID",
+          "type": "number",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "create_task",
+      "name": "Create task",
+      "method": "POST",
+      "endpoint": "/Tasks",
+      "body": {
+        "Title": "{{ inputs.title }}",
+        "Description": "{{ inputs.description }}",
+        "ContactId": "{{ inputs.contact_id }}",
+        "DealId": "{{ inputs.deal_id }}"
+      },
+      "output_fields": {
+        "id": "value.0.Id"
+      },
+      "inputs": [
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "description",
+          "label": "Description",
+          "type": "text"
+        },
+        {
+          "key": "contact_id",
+          "label": "Client ID",
+          "type": "number"
+        },
+        {
+          "key": "deal_id",
+          "label": "Deal ID",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "create_interaction",
+      "name": "Add interaction record",
+      "description": "Logs a note or interaction on a client's timeline.",
+      "method": "POST",
+      "endpoint": "/InteractionRecords",
+      "body": {
+        "Content": "{{ inputs.content }}",
+        "ContactId": "{{ inputs.contact_id }}",
+        "DealId": "{{ inputs.deal_id }}"
+      },
+      "output_fields": {
+        "id": "value.0.Id"
+      },
+      "inputs": [
+        {
+          "key": "content",
+          "label": "Content",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "contact_id",
+          "label": "Client ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "deal_id",
+          "label": "Deal ID",
+          "type": "number"
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_deal",
+      "name": "New deal",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/Deals",
+      "query": {
+        "$orderby": "Id desc",
+        "$top": 50
+      },
+      "items_path": "value",
+      "id_field": "Id",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    },
+    {
+      "key": "new_client",
+      "name": "New client",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/Contacts",
+      "query": {
+        "$orderby": "Id desc",
+        "$top": 50
+      },
+      "items_path": "value",
+      "id_field": "Id",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

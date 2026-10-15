@@ -1,0 +1,179 @@
+{
+  "key": "podio",
+  "name": "Podio",
+  "category": "Project Management",
+  "description": "Flexible work apps: list workspaces and apps, create and filter items, create tasks.",
+  "website": "https://podio.com",
+  "docs_url": "https://developers.podio.com/doc",
+  "base_url": "https://api.podio.com",
+  "auth": {
+    "type": "oauth2",
+    "authorize_url": "https://podio.com/oauth/authorize",
+    "token_url": "https://podio.com/oauth/token",
+    "token_type": "OAuth2",
+    "fields": [
+      {
+        "key": "client_id",
+        "label": "Client ID",
+        "type": "string",
+        "required": true,
+        "help": "podio.com/settings/api → generate an API key. Use this app's redirect URL as the domain/redirect."
+      },
+      {
+        "key": "client_secret",
+        "label": "Client secret",
+        "type": "password",
+        "required": true,
+        "help": "Shown with the Client ID."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_organizations",
+      "name": "List organizations",
+      "description": "Your organizations.",
+      "method": "GET",
+      "endpoint": "/org/",
+      "output_fields": {
+        "names": "*.name",
+        "ids": "*.org_id"
+      },
+      "inputs": []
+    },
+    {
+      "key": "list_spaces",
+      "name": "List workspaces",
+      "description": "Workspaces of an organization.",
+      "method": "GET",
+      "endpoint": "/space/org/{{ inputs.org_id }}/",
+      "output_fields": {
+        "names": "*.name",
+        "ids": "*.space_id"
+      },
+      "inputs": [
+        {
+          "key": "org_id",
+          "label": "Organization ID",
+          "type": "string",
+          "required": true,
+          "help": "Use \"List organizations\"."
+        }
+      ]
+    },
+    {
+      "key": "list_apps",
+      "name": "List apps",
+      "description": "Apps inside a workspace.",
+      "method": "GET",
+      "endpoint": "/app/space/{{ inputs.space_id }}/",
+      "output_fields": {
+        "names": "*.config.name",
+        "ids": "*.app_id"
+      },
+      "inputs": [
+        {
+          "key": "space_id",
+          "label": "Workspace ID",
+          "type": "string",
+          "required": true,
+          "help": "Use \"List workspaces\"."
+        }
+      ]
+    },
+    {
+      "key": "create_item",
+      "name": "Create item",
+      "description": "Add an item to an app.",
+      "method": "POST",
+      "endpoint": "/item/app/{{ inputs.app_id }}/",
+      "body": {
+        "fields": "{{ inputs.fields }}"
+      },
+      "output_fields": {
+        "id": "item_id"
+      },
+      "inputs": [
+        {
+          "key": "app_id",
+          "label": "App ID",
+          "type": "string",
+          "required": true,
+          "help": "Use \"List apps\"."
+        },
+        {
+          "key": "fields",
+          "label": "Fields (JSON)",
+          "type": "json",
+          "required": true,
+          "help": "Field external IDs mapped to values, e.g. {\"title\": \"Hello\"}."
+        }
+      ]
+    },
+    {
+      "key": "filter_items",
+      "name": "List items",
+      "description": "Items of an app, newest first.",
+      "method": "POST",
+      "endpoint": "/item/app/{{ inputs.app_id }}/filter/",
+      "body": {
+        "limit": "{{ inputs.limit }}",
+        "sort_by": "created_on",
+        "sort_desc": true
+      },
+      "output_fields": {
+        "titles": "items.*.title",
+        "ids": "items.*.item_id",
+        "total": "total"
+      },
+      "inputs": [
+        {
+          "key": "app_id",
+          "label": "App ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "limit",
+          "label": "Max results",
+          "type": "number",
+          "default": 20
+        }
+      ]
+    },
+    {
+      "key": "create_task",
+      "name": "Create task",
+      "description": "Add a personal task.",
+      "method": "POST",
+      "endpoint": "/task/",
+      "body": {
+        "text": "{{ inputs.text }}",
+        "description": "{{ inputs.description }}",
+        "due_date": "{{ inputs.due_date }}"
+      },
+      "output_fields": {
+        "id": "task_id"
+      },
+      "inputs": [
+        {
+          "key": "text",
+          "label": "Task",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "description",
+          "label": "Description",
+          "type": "text"
+        },
+        {
+          "key": "due_date",
+          "label": "Due date",
+          "type": "string",
+          "placeholder": "2025-01-31"
+        }
+      ]
+    }
+  ]
+}

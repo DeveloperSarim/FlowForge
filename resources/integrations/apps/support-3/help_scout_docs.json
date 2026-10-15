@@ -1,0 +1,190 @@
+{
+  "key": "help_scout_docs",
+  "name": "Help Scout Docs",
+  "category": "Customer Support",
+  "description": "Search, read and publish articles in your Help Scout Docs knowledge base.",
+  "website": "https://www.helpscout.com/docs-knowledge-base/",
+  "docs_url": "https://developer.helpscout.com/docs-api/",
+  "base_url": "https://docsapi.helpscout.net/v1",
+  "auth": {
+    "type": "basic",
+    "fields": [
+      {
+        "key": "username",
+        "label": "Docs API key",
+        "type": "password",
+        "required": true,
+        "help": "In Help Scout click your avatar > Your Profile > Authentication > API Keys (Docs) and generate a key."
+      },
+      {
+        "key": "password",
+        "label": "Password",
+        "type": "string",
+        "default": "X",
+        "help": "Not used; leave as X."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_collections",
+      "name": "List collections",
+      "description": "Lists the collections (categories groups) of your knowledge base.",
+      "method": "GET",
+      "endpoint": "/collections",
+      "output_fields": {
+        "collections": "collections.items",
+        "first_id": "collections.items.0.id"
+      },
+      "inputs": []
+    },
+    {
+      "key": "list_articles",
+      "name": "List articles",
+      "description": "Lists articles in a collection.",
+      "method": "GET",
+      "endpoint": "/collections/{{ inputs.collection_id }}/articles",
+      "query": {
+        "status": "{{ inputs.status }}"
+      },
+      "output_fields": {
+        "articles": "articles.items",
+        "first_id": "articles.items.0.id"
+      },
+      "inputs": [
+        {
+          "key": "collection_id",
+          "label": "Collection ID",
+          "type": "string",
+          "required": true,
+          "help": "Use \"List collections\" to find it."
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "default": "published",
+          "options": [
+            {
+              "value": "published",
+              "label": "Published"
+            },
+            {
+              "value": "notpublished",
+              "label": "Not published"
+            },
+            {
+              "value": "all",
+              "label": "All"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "search_articles",
+      "name": "Search articles",
+      "description": "Searches articles by text.",
+      "method": "GET",
+      "endpoint": "/search/articles",
+      "query": {
+        "query": "{{ inputs.query }}",
+        "collectionId": "{{ inputs.collection_id }}"
+      },
+      "output_fields": {
+        "articles": "articles.items",
+        "first_id": "articles.items.0.id",
+        "first_name": "articles.items.0.name"
+      },
+      "inputs": [
+        {
+          "key": "query",
+          "label": "Search text",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "collection_id",
+          "label": "Collection ID",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "get_article",
+      "name": "Get article",
+      "description": "Gets the full text of an article.",
+      "method": "GET",
+      "endpoint": "/articles/{{ inputs.article_id }}",
+      "output_fields": {
+        "name": "article.name",
+        "text": "article.text",
+        "status": "article.status"
+      },
+      "inputs": [
+        {
+          "key": "article_id",
+          "label": "Article ID or number",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "create_article",
+      "name": "Create article",
+      "description": "Adds an article to a collection.",
+      "method": "POST",
+      "endpoint": "/articles",
+      "body": {
+        "collectionId": "{{ inputs.collection_id }}",
+        "name": "{{ inputs.name }}",
+        "text": "{{ inputs.text }}",
+        "status": "{{ inputs.status }}"
+      },
+      "query": {
+        "reload": "true"
+      },
+      "output_fields": {
+        "id": "article.id",
+        "name": "article.name"
+      },
+      "inputs": [
+        {
+          "key": "collection_id",
+          "label": "Collection ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "name",
+          "label": "Title",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "text",
+          "label": "Article body (HTML)",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "default": "notpublished",
+          "options": [
+            {
+              "value": "published",
+              "label": "Published"
+            },
+            {
+              "value": "notpublished",
+              "label": "Draft"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

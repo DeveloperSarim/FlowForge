@@ -1,0 +1,340 @@
+{
+  "key": "employment_hero",
+  "name": "Employment Hero",
+  "category": "HR & Recruiting",
+  "description": "Add employees, list staff and manage leave requests in Employment Hero.",
+  "website": "https://employmenthero.com",
+  "docs_url": "https://developer.employmenthero.com",
+  "base_url": "https://api.employmenthero.com/api",
+  "auth": {
+    "type": "oauth2",
+    "authorize_url": "https://oauth.employmenthero.com/oauth2/authorize",
+    "token_url": "https://oauth.employmenthero.com/oauth2/token",
+    "pkce": true,
+    "fields": [
+      {
+        "key": "client_id",
+        "label": "Client ID",
+        "type": "string",
+        "required": true,
+        "help": "Create an OAuth app in the Employment Hero Developer Portal (Settings → Developer Portal). Pick the scopes there; use this app's redirect URL."
+      },
+      {
+        "key": "client_secret",
+        "label": "Client secret",
+        "type": "password",
+        "required": true
+      }
+    ],
+    "profile": {
+      "endpoint": "/v1/organisations",
+      "store": {
+        "organisation_id": "{{ data.items.0.id }}"
+      }
+    }
+  },
+  "actions": [
+    {
+      "key": "list_employees",
+      "name": "List employees",
+      "description": "Lists the people in your organisation.",
+      "method": "GET",
+      "endpoint": "/v1/organisations/{{ inputs.organisation_id }}/employees",
+      "query": {
+        "member_type": "{{ inputs.member_type }}",
+        "item_per_page": "{{ inputs.per_page }}",
+        "page_index": "{{ inputs.page }}"
+      },
+      "output_fields": {
+        "employees": "data.items",
+        "total": "data.total_items"
+      },
+      "inputs": [
+        {
+          "key": "member_type",
+          "label": "Type",
+          "type": "select",
+          "options": [
+            {
+              "value": "employee",
+              "label": "Employees"
+            },
+            {
+              "value": "contractor",
+              "label": "Contractors"
+            }
+          ]
+        },
+        {
+          "key": "per_page",
+          "label": "Max results",
+          "type": "number",
+          "default": 50,
+          "help": "Up to 100."
+        },
+        {
+          "key": "page",
+          "label": "Page",
+          "type": "number",
+          "default": 1
+        },
+        {
+          "key": "organisation_id",
+          "label": "Organisation ID",
+          "type": "string",
+          "help": "Leave empty to use your connected organisation.",
+          "fallback": "credentials.organisation_id"
+        }
+      ]
+    },
+    {
+      "key": "get_employee",
+      "name": "Get employee",
+      "description": "Returns one employee's details.",
+      "method": "GET",
+      "endpoint": "/v1/organisations/{{ inputs.organisation_id }}/employees/{{ inputs.employee_id }}",
+      "output_fields": {
+        "id": "data.id",
+        "email": "data.account_email",
+        "first_name": "data.first_name",
+        "last_name": "data.last_name",
+        "job_title": "data.job_title"
+      },
+      "inputs": [
+        {
+          "key": "employee_id",
+          "label": "Employee ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "organisation_id",
+          "label": "Organisation ID",
+          "type": "string",
+          "help": "Leave empty to use your connected organisation.",
+          "fallback": "credentials.organisation_id"
+        }
+      ]
+    },
+    {
+      "key": "quick_add_employee",
+      "name": "Add employee",
+      "description": "Creates an employee file with the essentials.",
+      "method": "POST",
+      "endpoint": "/v1/organisations/{{ inputs.organisation_id }}/employees/quick_add_employee",
+      "body": {
+        "employing_entity_id": "{{ inputs.employing_entity_id }}",
+        "first_name": "{{ inputs.first_name }}",
+        "last_name": "{{ inputs.last_name }}",
+        "email": "{{ inputs.email }}",
+        "date_of_birth": "{{ inputs.date_of_birth }}",
+        "work_location": {
+          "id": "{{ inputs.work_location_id }}",
+          "name": "{{ inputs.work_location_name }}",
+          "country": "{{ inputs.work_location_country }}"
+        }
+      },
+      "output_fields": {
+        "employee_id": "data.employee_id",
+        "message": "data.message"
+      },
+      "inputs": [
+        {
+          "key": "first_name",
+          "label": "First name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "date_of_birth",
+          "label": "Date of birth",
+          "type": "string",
+          "required": true,
+          "placeholder": "1995-01-31"
+        },
+        {
+          "key": "employing_entity_id",
+          "label": "Employing entity ID",
+          "type": "string",
+          "required": true,
+          "help": "List them with GET /v1/organisations/<organisation ID>/employing_entities via \"Make an API call\"."
+        },
+        {
+          "key": "work_location_name",
+          "label": "Work location name",
+          "type": "string",
+          "required": true,
+          "placeholder": "Sydney Office"
+        },
+        {
+          "key": "work_location_country",
+          "label": "Work location country",
+          "type": "string",
+          "required": true,
+          "placeholder": "AU",
+          "help": "Two-letter country code."
+        },
+        {
+          "key": "work_location_id",
+          "label": "Work location ID",
+          "type": "string",
+          "help": "Optional: an existing location; otherwise one is created."
+        },
+        {
+          "key": "organisation_id",
+          "label": "Organisation ID",
+          "type": "string",
+          "help": "Leave empty to use your connected organisation.",
+          "fallback": "credentials.organisation_id"
+        }
+      ]
+    },
+    {
+      "key": "list_leave_requests",
+      "name": "List leave requests",
+      "description": "Lists leave requests in a date range.",
+      "method": "GET",
+      "endpoint": "/v1/organisations/{{ inputs.organisation_id }}/leave_requests",
+      "query": {
+        "start_date": "{{ inputs.start_date }}",
+        "end_date": "{{ inputs.end_date }}",
+        "statuses": "{{ inputs.status }}",
+        "item_per_page": "{{ inputs.per_page }}"
+      },
+      "output_fields": {
+        "leave_requests": "data.items"
+      },
+      "inputs": [
+        {
+          "key": "start_date",
+          "label": "From date",
+          "type": "string",
+          "placeholder": "2026-11-01"
+        },
+        {
+          "key": "end_date",
+          "label": "To date",
+          "type": "string",
+          "placeholder": "2026-11-30"
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "options": [
+            {
+              "value": "pending",
+              "label": "pending"
+            },
+            {
+              "value": "approved",
+              "label": "approved"
+            },
+            {
+              "value": "declined",
+              "label": "declined"
+            }
+          ]
+        },
+        {
+          "key": "per_page",
+          "label": "Max results",
+          "type": "number",
+          "default": 50
+        },
+        {
+          "key": "organisation_id",
+          "label": "Organisation ID",
+          "type": "string",
+          "help": "Leave empty to use your connected organisation.",
+          "fallback": "credentials.organisation_id"
+        }
+      ]
+    },
+    {
+      "key": "create_leave_request",
+      "name": "Create leave request",
+      "description": "Submits a leave request for an employee.",
+      "method": "POST",
+      "endpoint": "/v1/organisations/{{ inputs.organisation_id }}/employees/{{ inputs.employee_id }}/leave_requests",
+      "body": {
+        "leave_category_id": "{{ inputs.leave_category_id }}",
+        "start_date": "{{ inputs.start_date }}",
+        "end_date": "{{ inputs.end_date }}",
+        "comment": "{{ inputs.comment }}"
+      },
+      "output_fields": {
+        "id": "data.id",
+        "total_hours": "data.total_hours"
+      },
+      "inputs": [
+        {
+          "key": "employee_id",
+          "label": "Employee ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "leave_category_id",
+          "label": "Leave category ID",
+          "type": "string",
+          "required": true,
+          "help": "List them with GET /v1/organisations/<organisation ID>/leave_categories via \"Make an API call\"."
+        },
+        {
+          "key": "start_date",
+          "label": "Start date",
+          "type": "string",
+          "required": true,
+          "placeholder": "2026-11-03"
+        },
+        {
+          "key": "end_date",
+          "label": "End date",
+          "type": "string",
+          "required": true,
+          "placeholder": "2026-11-05"
+        },
+        {
+          "key": "comment",
+          "label": "Comment",
+          "type": "text"
+        },
+        {
+          "key": "organisation_id",
+          "label": "Organisation ID",
+          "type": "string",
+          "help": "Leave empty to use your connected organisation.",
+          "fallback": "credentials.organisation_id"
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Register this URL as an Employment Hero webhook (Developer Portal) for employee or leave events.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

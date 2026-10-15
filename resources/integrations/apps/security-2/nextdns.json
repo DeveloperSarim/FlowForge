@@ -1,0 +1,249 @@
+{
+  "key": "nextdns",
+  "name": "NextDNS",
+  "category": "Security & IT",
+  "description": "Block or allow domains and read DNS logs and stats in NextDNS.",
+  "brand": "nextdns",
+  "website": "https://nextdns.io",
+  "docs_url": "https://nextdns.github.io/api/",
+  "base_url": "https://api.nextdns.io",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "X-Api-Key",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "my.nextdns.io → Account → API key (bottom of the page)."
+      }
+    ],
+    "profile": {
+      "endpoint": "/profiles",
+      "store": {
+        "profile_id": "{{ data.0.id }}"
+      }
+    }
+  },
+  "actions": [
+    {
+      "key": "list_profiles",
+      "name": "List profiles",
+      "description": "List your NextDNS profiles.",
+      "method": "GET",
+      "endpoint": "/profiles",
+      "output_fields": {
+        "profiles": "data"
+      },
+      "inputs": []
+    },
+    {
+      "key": "block_domain",
+      "name": "Block domain",
+      "description": "Add a domain to the denylist.",
+      "method": "POST",
+      "endpoint": "/profiles/{{ inputs.profile_id }}/denylist",
+      "body": {
+        "id": "{{ inputs.domain }}",
+        "active": true
+      },
+      "inputs": [
+        {
+          "key": "profile_id",
+          "label": "Profile ID",
+          "type": "string",
+          "fallback": "credentials.profile_id",
+          "help": "Leave empty to use your first profile (6 characters, e.g. abc123)."
+        },
+        {
+          "key": "domain",
+          "label": "Domain",
+          "type": "string",
+          "required": true,
+          "placeholder": "example.com"
+        }
+      ]
+    },
+    {
+      "key": "unblock_domain",
+      "name": "Unblock domain",
+      "description": "Remove a domain from the denylist.",
+      "method": "DELETE",
+      "endpoint": "/profiles/{{ inputs.profile_id }}/denylist/{{ inputs.domain }}",
+      "inputs": [
+        {
+          "key": "profile_id",
+          "label": "Profile ID",
+          "type": "string",
+          "fallback": "credentials.profile_id",
+          "help": "Leave empty to use your first profile (6 characters, e.g. abc123)."
+        },
+        {
+          "key": "domain",
+          "label": "Domain",
+          "type": "string",
+          "required": true,
+          "placeholder": "example.com"
+        }
+      ]
+    },
+    {
+      "key": "allow_domain",
+      "name": "Allow domain",
+      "description": "Add a domain to the allowlist.",
+      "method": "POST",
+      "endpoint": "/profiles/{{ inputs.profile_id }}/allowlist",
+      "body": {
+        "id": "{{ inputs.domain }}",
+        "active": true
+      },
+      "inputs": [
+        {
+          "key": "profile_id",
+          "label": "Profile ID",
+          "type": "string",
+          "fallback": "credentials.profile_id",
+          "help": "Leave empty to use your first profile (6 characters, e.g. abc123)."
+        },
+        {
+          "key": "domain",
+          "label": "Domain",
+          "type": "string",
+          "required": true,
+          "placeholder": "example.com"
+        }
+      ]
+    },
+    {
+      "key": "get_logs",
+      "name": "Get query logs",
+      "description": "Read recent DNS queries, newest first.",
+      "method": "GET",
+      "endpoint": "/profiles/{{ inputs.profile_id }}/logs",
+      "query": {
+        "status": "{{ inputs.status }}",
+        "search": "{{ inputs.search }}",
+        "from": "{{ inputs.from }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "logs": "data"
+      },
+      "inputs": [
+        {
+          "key": "profile_id",
+          "label": "Profile ID",
+          "type": "string",
+          "fallback": "credentials.profile_id",
+          "help": "Leave empty to use your first profile (6 characters, e.g. abc123)."
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "options": [
+            {
+              "value": "blocked",
+              "label": "Blocked"
+            },
+            {
+              "value": "allowed",
+              "label": "Allowed"
+            },
+            {
+              "value": "default",
+              "label": "Default"
+            },
+            {
+              "value": "error",
+              "label": "Error"
+            }
+          ]
+        },
+        {
+          "key": "search",
+          "label": "Domain contains",
+          "type": "string"
+        },
+        {
+          "key": "from",
+          "label": "From",
+          "type": "string",
+          "placeholder": "-1d"
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 100
+        }
+      ]
+    },
+    {
+      "key": "query_stats",
+      "name": "Get query stats",
+      "description": "Count allowed vs blocked queries.",
+      "method": "GET",
+      "endpoint": "/profiles/{{ inputs.profile_id }}/analytics/status",
+      "query": {
+        "from": "{{ inputs.from }}"
+      },
+      "output_fields": {
+        "stats": "data"
+      },
+      "inputs": [
+        {
+          "key": "profile_id",
+          "label": "Profile ID",
+          "type": "string",
+          "fallback": "credentials.profile_id",
+          "help": "Leave empty to use your first profile (6 characters, e.g. abc123)."
+        },
+        {
+          "key": "from",
+          "label": "From",
+          "type": "string",
+          "default": "-7d"
+        }
+      ]
+    },
+    {
+      "key": "top_blocked_domains",
+      "name": "Top blocked domains",
+      "description": "List the most blocked domains.",
+      "method": "GET",
+      "endpoint": "/profiles/{{ inputs.profile_id }}/analytics/domains",
+      "query": {
+        "status": "blocked",
+        "from": "{{ inputs.from }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "domains": "data"
+      },
+      "inputs": [
+        {
+          "key": "profile_id",
+          "label": "Profile ID",
+          "type": "string",
+          "fallback": "credentials.profile_id",
+          "help": "Leave empty to use your first profile (6 characters, e.g. abc123)."
+        },
+        {
+          "key": "from",
+          "label": "From",
+          "type": "string",
+          "default": "-7d"
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 20
+        }
+      ]
+    }
+  ]
+}

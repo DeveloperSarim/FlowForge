@@ -5,8 +5,8 @@ How FlowForge is built, run locally, released and extended. For the product over
 Self-hosted workflow automation (a visual node canvas like n8n or Make) that runs on ordinary PHP shared hosting: Apache or LiteSpeed, MySQL, and **one cron line**. No Docker, Redis, Supervisor or Node process on the server.
 
 What's included:
-- **1,190 apps** with 5,783 actions and 615 triggers, each with its real logo.
-- **50 ready-made templates.**
+- **1,690 apps** with 8,700 actions and 800 triggers, each with its real logo.
+- **54 ready-made templates.**
 - **AI voice agents:** phone agents that answer and make calls through Vapi or ElevenLabs, book appointments and keep call history (see [Voice agents](#voice-agents)).
 - **n8n-style editor:** square app nodes, a "What happens next?" picker, and a three-pane step editor (Input, Parameters, Output) where you drag fields to map them.
 - **Execute step:** run one step plus everything before it.
@@ -236,9 +236,18 @@ Each integration is one JSON or YAML file under `resources/integrations/` (any s
 - **Audit:** `php artisan flowforge:audit [app-or-category] [--warnings] [--live]` dry-runs every action through the real engine against a fake HTTP client (unresolved `{{ }}`, invalid URLs, unused inputs, undefined credential fields, template references) and, with `--live`, calls keyless GET actions for real.
 - **Validation:** `php artisan flowforge:integrations` lists everything and reports invalid manifests. Invalid files are skipped, never fatal. The compiled registry is cached in `bootstrap/cache/integrations.php` and rebuilt when any file changes.
 
+### Custom apps
+
+`CustomApps` saves manifests that an install adds itself: the AI builder and MCP agents create them with the `create_custom_app` tool when `search_apps` finds nothing, and Apps → **Add a custom app** imports an OpenAPI document (`POST /apps/custom`). They live in `storage/app/integrations/<key>.json` (`flowforge.custom_integrations_path`), so updates keep them, and `ManifestLoader` reads them after the bundled tree (a custom app can't shadow a bundled one) and marks them `custom`.
+
+- Keys are always `custom_<slug>`; the category is "Custom apps". Saving the same name again updates the app.
+- Custom actions must use paths on the app's `base_url`, and each gets `restrict_to_base_url`, so a credential can never be sent to another host. Handlers are not allowed. Auth is limited to none, api_key, bearer, basic, oauth2 and oauth2_client_credentials.
+- Validation is the normal schema validation plus those rules; errors go back to the model as text so it can fix the app.
+- `DELETE /apps/custom/{key}` refuses while a workflow uses the app.
+
 ### The bundled catalog
 
-`resources/integrations/apps/<category>/` holds about 1,190 manifests across 24 categories, including:
+`resources/integrations/apps/<category>/` holds about 1,690 manifests across 24 categories, including:
 - **AI:** OpenAI, Gemini, Mistral, ElevenLabs, Pinecone…
 - **Communication:** Gmail, Outlook, Teams, Twilio, WhatsApp…
 - **CRM:** HubSpot, Salesforce, Pipedrive, Zoho…

@@ -1,0 +1,334 @@
+{
+  "key": "kajabi",
+  "name": "Kajabi",
+  "category": "Education",
+  "description": "Courses and memberships: create contacts, grant offers, add tags, read purchases.",
+  "website": "https://kajabi.com",
+  "docs_url": "https://developers.kajabi.com/",
+  "base_url": "https://api.kajabi.com/v1",
+  "auth": {
+    "type": "oauth2_client_credentials",
+    "token_url": "https://api.kajabi.com/v1/oauth/token",
+    "fields": [
+      {
+        "key": "client_id",
+        "label": "Client ID",
+        "type": "string",
+        "required": true,
+        "help": "Kajabi → Settings → User API Keys (Pro plan) → Create user API key: copy the Client ID."
+      },
+      {
+        "key": "client_secret",
+        "label": "Client secret",
+        "type": "password",
+        "required": true
+      }
+    ],
+    "profile": {
+      "endpoint": "/sites",
+      "store": {
+        "site_id": "{{ data.0.id }}"
+      }
+    }
+  },
+  "actions": [
+    {
+      "key": "create_contact",
+      "name": "Create contact",
+      "description": "Add a contact to your Kajabi site.",
+      "method": "POST",
+      "endpoint": "/contacts",
+      "headers": {
+        "Content-Type": "application/vnd.api+json"
+      },
+      "body": {
+        "data": {
+          "type": "contacts",
+          "attributes": {
+            "name": "{{ inputs.name }}",
+            "email": "{{ inputs.email }}",
+            "phone_number": "{{ inputs.phone }}",
+            "subscribed": "{{ inputs.subscribed }}",
+            "external_user_id": "{{ inputs.external_user_id }}"
+          },
+          "relationships": {
+            "site": {
+              "data": {
+                "type": "sites",
+                "id": "{{ inputs.site_id }}"
+              }
+            }
+          }
+        }
+      },
+      "output_fields": {
+        "id": "data.id",
+        "email": "data.attributes.email"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string"
+        },
+        {
+          "key": "phone",
+          "label": "Phone",
+          "type": "string"
+        },
+        {
+          "key": "subscribed",
+          "label": "Subscribed to marketing",
+          "type": "boolean",
+          "default": true
+        },
+        {
+          "key": "external_user_id",
+          "label": "Your user ID",
+          "type": "string"
+        },
+        {
+          "key": "site_id",
+          "label": "Site ID",
+          "type": "string",
+          "fallback": "credentials.site_id",
+          "help": "Leave empty to use your Kajabi site."
+        }
+      ]
+    },
+    {
+      "key": "find_contact",
+      "name": "Find contact",
+      "description": "Search contacts by name or email.",
+      "method": "GET",
+      "endpoint": "/contacts",
+      "query": {
+        "filter[search]": "{{ inputs.search }}",
+        "page[size]": "{{ inputs.page_size }}"
+      },
+      "output_fields": {
+        "contacts": "data",
+        "id": "data.0.id",
+        "email": "data.0.attributes.email"
+      },
+      "inputs": [
+        {
+          "key": "search",
+          "label": "Name or email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "page_size",
+          "label": "How many",
+          "type": "number",
+          "default": 10
+        }
+      ]
+    },
+    {
+      "key": "grant_offer",
+      "name": "Grant offer",
+      "description": "Give a contact access to an offer (courses, community, etc.).",
+      "method": "POST",
+      "endpoint": "/contacts/{{ inputs.contact_id }}/relationships/offers",
+      "headers": {
+        "Content-Type": "application/vnd.api+json"
+      },
+      "body": {
+        "data": [
+          {
+            "type": "offers",
+            "id": "{{ inputs.offer_id }}"
+          }
+        ],
+        "meta": {
+          "send_customer_welcome_email": "{{ inputs.send_welcome_email }}"
+        }
+      },
+      "inputs": [
+        {
+          "key": "contact_id",
+          "label": "Contact ID",
+          "type": "string",
+          "required": true,
+          "help": "From a \"Create contact\" or \"Find contact\" step."
+        },
+        {
+          "key": "offer_id",
+          "label": "Offer ID",
+          "type": "string",
+          "required": true,
+          "help": "Run \"List offers\" to see the IDs."
+        },
+        {
+          "key": "send_welcome_email",
+          "label": "Send welcome email",
+          "type": "boolean",
+          "default": true
+        }
+      ]
+    },
+    {
+      "key": "revoke_offer",
+      "name": "Revoke offer",
+      "description": "Remove a contact's access to an offer.",
+      "method": "DELETE",
+      "endpoint": "/contacts/{{ inputs.contact_id }}/relationships/offers",
+      "headers": {
+        "Content-Type": "application/vnd.api+json"
+      },
+      "body": {
+        "data": [
+          {
+            "type": "offers",
+            "id": "{{ inputs.offer_id }}"
+          }
+        ]
+      },
+      "inputs": [
+        {
+          "key": "contact_id",
+          "label": "Contact ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "offer_id",
+          "label": "Offer ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "add_tag",
+      "name": "Add tag to contact",
+      "description": "Tag a contact.",
+      "method": "POST",
+      "endpoint": "/contacts/{{ inputs.contact_id }}/relationships/tags",
+      "headers": {
+        "Content-Type": "application/vnd.api+json"
+      },
+      "body": {
+        "data": [
+          {
+            "type": "contact_tags",
+            "id": "{{ inputs.tag_id }}"
+          }
+        ]
+      },
+      "inputs": [
+        {
+          "key": "contact_id",
+          "label": "Contact ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "tag_id",
+          "label": "Tag ID",
+          "type": "string",
+          "required": true,
+          "help": "Kajabi → Contacts → Tags: open the tag; or use the API call action on /contact_tags."
+        }
+      ]
+    },
+    {
+      "key": "list_offers",
+      "name": "List offers",
+      "description": "Your offers with prices and checkout links.",
+      "method": "GET",
+      "endpoint": "/offers",
+      "query": {
+        "page[size]": "{{ inputs.page_size }}"
+      },
+      "output_fields": {
+        "offers": "data",
+        "ids": "data.*.id",
+        "titles": "data.*.attributes.title"
+      },
+      "inputs": [
+        {
+          "key": "page_size",
+          "label": "How many",
+          "type": "number",
+          "default": 25
+        }
+      ]
+    },
+    {
+      "key": "list_purchases",
+      "name": "List purchases",
+      "description": "Recent purchases, newest first.",
+      "method": "GET",
+      "endpoint": "/purchases",
+      "query": {
+        "sort": "-created_at",
+        "page[size]": "{{ inputs.page_size }}"
+      },
+      "output_fields": {
+        "purchases": "data",
+        "ids": "data.*.id"
+      },
+      "inputs": [
+        {
+          "key": "page_size",
+          "label": "How many",
+          "type": "number",
+          "default": 25
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_purchase",
+      "name": "New purchase",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/purchases",
+      "query": {
+        "sort": "-created_at",
+        "page[size]": "25"
+      },
+      "items_path": "data",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    },
+    {
+      "key": "new_contact",
+      "name": "New contact",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/contacts",
+      "query": {
+        "sort": "-created_at",
+        "page[size]": "25"
+      },
+      "items_path": "data",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,311 @@
+{
+  "key": "klarna",
+  "name": "Klarna",
+  "category": "Payments & Finance",
+  "description": "Buy now, pay later: payment sessions, hosted pages, captures and refunds.",
+  "website": "https://www.klarna.com",
+  "docs_url": "https://docs.klarna.com/api/",
+  "base_url": "https://{{ credentials.region }}",
+  "auth": {
+    "type": "basic",
+    "fields": [
+      {
+        "key": "username",
+        "label": "API username",
+        "type": "string",
+        "required": true,
+        "help": "Klarna Merchant Portal → Settings → Klarna API keys → Generate new key. The username looks like a1b2c3d4-… or PK12345_…"
+      },
+      {
+        "key": "password",
+        "label": "API password",
+        "type": "password",
+        "required": true,
+        "help": "Shown once when you generate the key."
+      },
+      {
+        "key": "region",
+        "label": "Region",
+        "type": "select",
+        "required": true,
+        "default": "api.klarna.com",
+        "options": [
+          {
+            "value": "api.klarna.com",
+            "label": "Europe"
+          },
+          {
+            "value": "api-na.klarna.com",
+            "label": "North America"
+          },
+          {
+            "value": "api-oc.klarna.com",
+            "label": "Oceania"
+          },
+          {
+            "value": "api.playground.klarna.com",
+            "label": "Playground (Europe)"
+          },
+          {
+            "value": "api-na.playground.klarna.com",
+            "label": "Playground (North America)"
+          },
+          {
+            "value": "api-oc.playground.klarna.com",
+            "label": "Playground (Oceania)"
+          }
+        ]
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "create_payment_session",
+      "name": "Create payment session",
+      "description": "Start a Klarna payment (amounts in minor units).",
+      "method": "POST",
+      "endpoint": "/payments/v1/sessions",
+      "body": {
+        "intent": "buy",
+        "purchase_country": "{{ inputs.purchase_country }}",
+        "purchase_currency": "{{ inputs.purchase_currency }}",
+        "locale": "{{ inputs.locale }}",
+        "order_amount": "{{ inputs.order_amount }}",
+        "order_tax_amount": "{{ inputs.order_tax_amount }}",
+        "order_lines": "{{ inputs.order_lines }}",
+        "merchant_reference1": "{{ inputs.reference }}"
+      },
+      "output_fields": {
+        "session_id": "session_id",
+        "client_token": "client_token"
+      },
+      "inputs": [
+        {
+          "key": "purchase_country",
+          "label": "Country",
+          "type": "string",
+          "required": true,
+          "default": "SE",
+          "help": "Two-letter code, e.g. SE, DE, GB, US."
+        },
+        {
+          "key": "purchase_currency",
+          "label": "Currency",
+          "type": "string",
+          "required": true,
+          "default": "SEK"
+        },
+        {
+          "key": "locale",
+          "label": "Locale",
+          "type": "string",
+          "required": true,
+          "default": "en-SE"
+        },
+        {
+          "key": "order_amount",
+          "label": "Order amount (minor units)",
+          "type": "number",
+          "required": true,
+          "help": "10.00 = 1000, including tax."
+        },
+        {
+          "key": "order_tax_amount",
+          "label": "Tax amount (minor units)",
+          "type": "number",
+          "default": 0
+        },
+        {
+          "key": "order_lines",
+          "label": "Order lines (JSON)",
+          "type": "json",
+          "required": true,
+          "placeholder": "[{\"name\":\"T-shirt\",\"quantity\":1,\"unit_price\":1000,\"tax_rate\":0,\"total_amount\":1000,\"total_tax_amount\":0}]"
+        },
+        {
+          "key": "reference",
+          "label": "Your order reference",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "create_hosted_payment_page",
+      "name": "Create hosted payment page",
+      "description": "Turn a payment session into a Klarna-hosted page URL.",
+      "method": "POST",
+      "endpoint": "/hpp/v1/sessions",
+      "body": {
+        "payment_session_url": "https://{{ credentials.region }}/payments/v1/sessions/{{ inputs.session_id }}",
+        "merchant_urls": {
+          "success": "{{ inputs.success_url }}",
+          "cancel": "{{ inputs.cancel_url }}",
+          "back": "{{ inputs.back_url }}",
+          "failure": "{{ inputs.failure_url }}",
+          "status_update": "{{ inputs.status_update_url }}"
+        }
+      },
+      "output_fields": {
+        "hpp_session_id": "session_id",
+        "redirect_url": "redirect_url"
+      },
+      "inputs": [
+        {
+          "key": "session_id",
+          "label": "Payment session ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "success_url",
+          "label": "Success URL",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "cancel_url",
+          "label": "Cancel URL",
+          "type": "string"
+        },
+        {
+          "key": "back_url",
+          "label": "Back URL",
+          "type": "string"
+        },
+        {
+          "key": "failure_url",
+          "label": "Failure URL",
+          "type": "string"
+        },
+        {
+          "key": "status_update_url",
+          "label": "Status update URL",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "get_order",
+      "name": "Get order",
+      "description": "Order status and captured/refunded amounts.",
+      "method": "GET",
+      "endpoint": "/ordermanagement/v1/orders/{{ inputs.order_id }}",
+      "output_fields": {
+        "status": "status",
+        "order_amount": "order_amount",
+        "captured_amount": "captured_amount",
+        "refunded_amount": "refunded_amount"
+      },
+      "inputs": [
+        {
+          "key": "order_id",
+          "label": "Order ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "capture_order",
+      "name": "Capture order",
+      "description": "Capture an amount when you ship.",
+      "method": "POST",
+      "endpoint": "/ordermanagement/v1/orders/{{ inputs.order_id }}/captures",
+      "body": {
+        "captured_amount": "{{ inputs.amount }}",
+        "description": "{{ inputs.description }}",
+        "reference": "{{ inputs.reference }}"
+      },
+      "inputs": [
+        {
+          "key": "order_id",
+          "label": "Order ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "amount",
+          "label": "Amount (minor units)",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "description",
+          "label": "Description",
+          "type": "string"
+        },
+        {
+          "key": "reference",
+          "label": "Reference",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "refund_order",
+      "name": "Refund order",
+      "description": "Refund all or part of a captured order.",
+      "method": "POST",
+      "endpoint": "/ordermanagement/v1/orders/{{ inputs.order_id }}/refunds",
+      "body": {
+        "refunded_amount": "{{ inputs.amount }}",
+        "description": "{{ inputs.description }}",
+        "reference": "{{ inputs.reference }}"
+      },
+      "inputs": [
+        {
+          "key": "order_id",
+          "label": "Order ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "amount",
+          "label": "Amount (minor units)",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "description",
+          "label": "Description",
+          "type": "string"
+        },
+        {
+          "key": "reference",
+          "label": "Reference",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "cancel_order",
+      "name": "Cancel order",
+      "description": "Cancel an order that has not been captured.",
+      "method": "POST",
+      "endpoint": "/ordermanagement/v1/orders/{{ inputs.order_id }}/cancel",
+      "inputs": [
+        {
+          "key": "order_id",
+          "label": "Order ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "acknowledge_order",
+      "name": "Acknowledge order",
+      "description": "Confirm you received a new order.",
+      "method": "POST",
+      "endpoint": "/ordermanagement/v1/orders/{{ inputs.order_id }}/acknowledge",
+      "inputs": [
+        {
+          "key": "order_id",
+          "label": "Order ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ]
+}

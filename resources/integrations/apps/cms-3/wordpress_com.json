@@ -1,0 +1,416 @@
+{
+  "key": "wordpress_com",
+  "name": "WordPress.com",
+  "category": "CMS & Websites",
+  "description": "Publish and update posts, upload media and read stats on WordPress.com sites.",
+  "website": "https://wordpress.com",
+  "docs_url": "https://developer.wordpress.com/docs/api/",
+  "base_url": "https://public-api.wordpress.com/rest/v1.1",
+  "auth": {
+    "type": "oauth2",
+    "authorize_url": "https://public-api.wordpress.com/oauth2/authorize",
+    "token_url": "https://public-api.wordpress.com/oauth2/token",
+    "scopes": [
+      "global"
+    ],
+    "fields": [
+      {
+        "key": "client_id",
+        "label": "Client ID",
+        "type": "string",
+        "required": true,
+        "help": "developer.wordpress.com/apps → Create New Application, set the redirect URL to FlowForge's callback URL, then copy the Client ID."
+      },
+      {
+        "key": "client_secret",
+        "label": "Client secret",
+        "type": "password",
+        "required": true
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_sites",
+      "name": "List my sites",
+      "description": "Your WordPress.com sites and their IDs.",
+      "method": "GET",
+      "endpoint": "/me/sites",
+      "output_fields": {
+        "sites": "sites",
+        "ids": "sites.*.ID",
+        "urls": "sites.*.URL",
+        "names": "sites.*.name"
+      },
+      "inputs": []
+    },
+    {
+      "key": "create_post",
+      "name": "Create post",
+      "description": "Publish a post or save it as a draft.",
+      "method": "POST",
+      "endpoint": "/sites/{{ inputs.site }}/posts/new",
+      "body": {
+        "title": "{{ inputs.title }}",
+        "content": "{{ inputs.content }}",
+        "excerpt": "{{ inputs.excerpt }}",
+        "status": "{{ inputs.status }}",
+        "date": "{{ inputs.date }}",
+        "categories": "{{ inputs.categories }}",
+        "tags": "{{ inputs.tags }}",
+        "featured_image": "{{ inputs.featured_image }}",
+        "slug": "{{ inputs.slug }}"
+      },
+      "output_fields": {
+        "id": "ID",
+        "url": "URL",
+        "short_url": "short_URL",
+        "status": "status"
+      },
+      "inputs": [
+        {
+          "key": "site",
+          "label": "Site",
+          "type": "string",
+          "required": true,
+          "placeholder": "myblog.wordpress.com",
+          "help": "The site's address (without https://) or its ID."
+        },
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "content",
+          "label": "Content (HTML)",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "excerpt",
+          "label": "Excerpt",
+          "type": "text"
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "default": "publish",
+          "options": [
+            {
+              "value": "publish",
+              "label": "Publish now"
+            },
+            {
+              "value": "draft",
+              "label": "Draft"
+            },
+            {
+              "value": "future",
+              "label": "Scheduled (set a date)"
+            },
+            {
+              "value": "pending",
+              "label": "Pending review"
+            },
+            {
+              "value": "private",
+              "label": "Private"
+            }
+          ]
+        },
+        {
+          "key": "date",
+          "label": "Publish date",
+          "type": "string",
+          "placeholder": "2026-12-01T09:00:00+00:00",
+          "help": "Only for scheduled posts."
+        },
+        {
+          "key": "categories",
+          "label": "Categories",
+          "type": "string",
+          "placeholder": "News, Updates",
+          "help": "Comma-separated names; new ones are created."
+        },
+        {
+          "key": "tags",
+          "label": "Tags",
+          "type": "string",
+          "help": "Comma-separated."
+        },
+        {
+          "key": "featured_image",
+          "label": "Featured image",
+          "type": "string",
+          "help": "A media ID from your library, or an image URL."
+        },
+        {
+          "key": "slug",
+          "label": "Slug",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "update_post",
+      "name": "Update post",
+      "description": "Change a post's title, content or status.",
+      "method": "POST",
+      "endpoint": "/sites/{{ inputs.site }}/posts/{{ inputs.post_id }}",
+      "body": {
+        "title": "{{ inputs.title }}",
+        "content": "{{ inputs.content }}",
+        "excerpt": "{{ inputs.excerpt }}",
+        "status": "{{ inputs.status }}",
+        "categories": "{{ inputs.categories }}",
+        "tags": "{{ inputs.tags }}"
+      },
+      "output_fields": {
+        "id": "ID",
+        "url": "URL",
+        "status": "status"
+      },
+      "inputs": [
+        {
+          "key": "site",
+          "label": "Site",
+          "type": "string",
+          "required": true,
+          "placeholder": "myblog.wordpress.com"
+        },
+        {
+          "key": "post_id",
+          "label": "Post ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "string"
+        },
+        {
+          "key": "content",
+          "label": "Content (HTML)",
+          "type": "text"
+        },
+        {
+          "key": "excerpt",
+          "label": "Excerpt",
+          "type": "text"
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "default": "",
+          "options": [
+            {
+              "value": "",
+              "label": "Keep as is"
+            },
+            {
+              "value": "publish",
+              "label": "Publish"
+            },
+            {
+              "value": "draft",
+              "label": "Draft"
+            },
+            {
+              "value": "private",
+              "label": "Private"
+            }
+          ]
+        },
+        {
+          "key": "categories",
+          "label": "Categories",
+          "type": "string"
+        },
+        {
+          "key": "tags",
+          "label": "Tags",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "list_posts",
+      "name": "List posts",
+      "description": "Recent posts on a site.",
+      "method": "GET",
+      "endpoint": "/sites/{{ inputs.site }}/posts",
+      "query": {
+        "number": "{{ inputs.number }}",
+        "status": "{{ inputs.status }}",
+        "search": "{{ inputs.search }}"
+      },
+      "output_fields": {
+        "posts": "posts",
+        "titles": "posts.*.title",
+        "urls": "posts.*.URL",
+        "found": "found"
+      },
+      "inputs": [
+        {
+          "key": "site",
+          "label": "Site",
+          "type": "string",
+          "required": true,
+          "placeholder": "myblog.wordpress.com"
+        },
+        {
+          "key": "number",
+          "label": "How many",
+          "type": "number",
+          "default": 10
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "default": "publish",
+          "options": [
+            {
+              "value": "publish",
+              "label": "Published"
+            },
+            {
+              "value": "draft",
+              "label": "Drafts"
+            },
+            {
+              "value": "future",
+              "label": "Scheduled"
+            },
+            {
+              "value": "any",
+              "label": "Any"
+            }
+          ]
+        },
+        {
+          "key": "search",
+          "label": "Search",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "delete_post",
+      "name": "Delete post",
+      "description": "Move a post to the trash.",
+      "method": "POST",
+      "endpoint": "/sites/{{ inputs.site }}/posts/{{ inputs.post_id }}/delete",
+      "output_fields": {
+        "id": "ID",
+        "status": "status"
+      },
+      "inputs": [
+        {
+          "key": "site",
+          "label": "Site",
+          "type": "string",
+          "required": true,
+          "placeholder": "myblog.wordpress.com"
+        },
+        {
+          "key": "post_id",
+          "label": "Post ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "upload_media_url",
+      "name": "Upload media from URL",
+      "description": "Add an image or file to the media library from a public URL.",
+      "method": "POST",
+      "endpoint": "/sites/{{ inputs.site }}/media/new",
+      "body": {
+        "media_urls": [
+          "{{ inputs.url }}"
+        ]
+      },
+      "output_fields": {
+        "id": "media.0.ID",
+        "url": "media.0.URL",
+        "errors": "errors"
+      },
+      "inputs": [
+        {
+          "key": "site",
+          "label": "Site",
+          "type": "string",
+          "required": true,
+          "placeholder": "myblog.wordpress.com"
+        },
+        {
+          "key": "url",
+          "label": "File URL",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "get_stats",
+      "name": "Get site stats",
+      "description": "Views and visitors today and in total.",
+      "method": "GET",
+      "endpoint": "/sites/{{ inputs.site }}/stats",
+      "output_fields": {
+        "views_today": "stats.views_today",
+        "visitors_today": "stats.visitors_today",
+        "views_yesterday": "stats.views_yesterday",
+        "views_total": "stats.views",
+        "visitors_total": "stats.visitors"
+      },
+      "inputs": [
+        {
+          "key": "site",
+          "label": "Site",
+          "type": "string",
+          "required": true,
+          "placeholder": "myblog.wordpress.com"
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_post",
+      "name": "New post",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/sites/{{ inputs.site }}/posts",
+      "query": {
+        "number": "20",
+        "order_by": "date",
+        "order": "DESC"
+      },
+      "items_path": "posts",
+      "id_field": "ID",
+      "inputs": [
+        {
+          "key": "site",
+          "label": "Site",
+          "type": "string",
+          "required": true,
+          "placeholder": "myblog.wordpress.com"
+        },
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

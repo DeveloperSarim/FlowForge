@@ -1,0 +1,355 @@
+{
+  "key": "revolut_merchant",
+  "name": "Revolut Business (Merchant)",
+  "category": "Payments & Finance",
+  "description": "Accept card payments with Revolut: create orders, checkout links and refunds.",
+  "brand": "revolut",
+  "website": "https://www.revolut.com/business/",
+  "docs_url": "https://developer.revolut.com/docs/merchant/merchant-api",
+  "base_url": "https://{{ credentials.host }}/api",
+  "headers": {
+    "Revolut-Api-Version": "2024-09-01"
+  },
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "Secret API key",
+        "type": "password",
+        "required": true,
+        "help": "Revolut Business → Merchant → APIs → Merchant API → Production (or Sandbox) secret key."
+      },
+      {
+        "key": "host",
+        "label": "Environment",
+        "type": "select",
+        "required": true,
+        "default": "merchant.revolut.com",
+        "options": [
+          {
+            "value": "merchant.revolut.com",
+            "label": "Production"
+          },
+          {
+            "value": "sandbox-merchant.revolut.com",
+            "label": "Sandbox"
+          }
+        ]
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "create_order",
+      "name": "Create order",
+      "description": "Create a payment order and get its checkout link.",
+      "method": "POST",
+      "endpoint": "/orders",
+      "body": {
+        "amount": "{{ inputs.amount }}",
+        "currency": "{{ inputs.currency }}",
+        "description": "{{ inputs.description }}",
+        "customer": {
+          "email": "{{ inputs.email }}",
+          "full_name": "{{ inputs.full_name }}"
+        },
+        "redirect_url": "{{ inputs.redirect_url }}",
+        "merchant_order_data": {
+          "reference": "{{ inputs.reference }}"
+        },
+        "capture_mode": "{{ inputs.capture_mode }}"
+      },
+      "output_fields": {
+        "id": "id",
+        "checkout_url": "checkout_url",
+        "state": "state",
+        "token": "token"
+      },
+      "inputs": [
+        {
+          "key": "amount",
+          "label": "Amount (minor units)",
+          "type": "number",
+          "required": true,
+          "help": "In cents: 10.00 EUR = 1000."
+        },
+        {
+          "key": "currency",
+          "label": "Currency",
+          "type": "string",
+          "required": true,
+          "default": "EUR"
+        },
+        {
+          "key": "description",
+          "label": "Description",
+          "type": "string"
+        },
+        {
+          "key": "email",
+          "label": "Customer email",
+          "type": "string"
+        },
+        {
+          "key": "full_name",
+          "label": "Customer name",
+          "type": "string"
+        },
+        {
+          "key": "reference",
+          "label": "Your order reference",
+          "type": "string"
+        },
+        {
+          "key": "redirect_url",
+          "label": "Redirect after payment",
+          "type": "string"
+        },
+        {
+          "key": "capture_mode",
+          "label": "Capture",
+          "type": "select",
+          "default": "automatic",
+          "options": [
+            {
+              "value": "automatic",
+              "label": "Automatic"
+            },
+            {
+              "value": "manual",
+              "label": "Manual"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "get_order",
+      "name": "Get order",
+      "description": "Look up an order's state.",
+      "method": "GET",
+      "endpoint": "/orders/{{ inputs.order_id }}",
+      "output_fields": {
+        "state": "state",
+        "amount": "amount",
+        "currency": "currency",
+        "checkout_url": "checkout_url"
+      },
+      "inputs": [
+        {
+          "key": "order_id",
+          "label": "Order ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_orders",
+      "name": "List orders",
+      "description": "Newest orders first.",
+      "method": "GET",
+      "endpoint": "/orders",
+      "query": {
+        "limit": "{{ inputs.limit }}",
+        "state": "{{ inputs.state }}",
+        "from_created_date": "{{ inputs.from_date }}"
+      },
+      "inputs": [
+        {
+          "key": "limit",
+          "label": "How many",
+          "type": "number",
+          "default": 50
+        },
+        {
+          "key": "state",
+          "label": "State",
+          "type": "select",
+          "options": [
+            {
+              "value": "pending",
+              "label": "pending"
+            },
+            {
+              "value": "authorised",
+              "label": "authorised"
+            },
+            {
+              "value": "completed",
+              "label": "completed"
+            },
+            {
+              "value": "cancelled",
+              "label": "cancelled"
+            },
+            {
+              "value": "failed",
+              "label": "failed"
+            }
+          ]
+        },
+        {
+          "key": "from_date",
+          "label": "Created from",
+          "type": "string",
+          "placeholder": "2026-01-01T00:00:00Z"
+        }
+      ]
+    },
+    {
+      "key": "capture_order",
+      "name": "Capture order",
+      "description": "Capture an authorised order (manual capture mode).",
+      "method": "POST",
+      "endpoint": "/orders/{{ inputs.order_id }}/capture",
+      "body": {
+        "amount": "{{ inputs.amount }}"
+      },
+      "output_fields": {
+        "state": "state"
+      },
+      "inputs": [
+        {
+          "key": "order_id",
+          "label": "Order ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "amount",
+          "label": "Amount (minor units)",
+          "type": "number",
+          "help": "Leave empty to capture the full amount."
+        }
+      ]
+    },
+    {
+      "key": "refund_order",
+      "name": "Refund order",
+      "description": "Refund all or part of a completed order.",
+      "method": "POST",
+      "endpoint": "/orders/{{ inputs.order_id }}/refund",
+      "body": {
+        "amount": "{{ inputs.amount }}",
+        "description": "{{ inputs.description }}"
+      },
+      "output_fields": {
+        "refund_id": "id",
+        "state": "state"
+      },
+      "inputs": [
+        {
+          "key": "order_id",
+          "label": "Order ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "amount",
+          "label": "Amount (minor units)",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "description",
+          "label": "Reason",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "cancel_order",
+      "name": "Cancel order",
+      "description": "Cancel an uncaptured order.",
+      "method": "POST",
+      "endpoint": "/orders/{{ inputs.order_id }}/cancel",
+      "output_fields": {
+        "state": "state"
+      },
+      "inputs": [
+        {
+          "key": "order_id",
+          "label": "Order ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "create_customer",
+      "name": "Create customer",
+      "description": "Save a customer for faster checkouts.",
+      "method": "POST",
+      "endpoint": "/customers",
+      "body": {
+        "full_name": "{{ inputs.full_name }}",
+        "email": "{{ inputs.email }}",
+        "phone": "{{ inputs.phone }}",
+        "business_name": "{{ inputs.business_name }}"
+      },
+      "output_fields": {
+        "id": "id"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "full_name",
+          "label": "Full name",
+          "type": "string"
+        },
+        {
+          "key": "phone",
+          "label": "Phone",
+          "type": "string",
+          "placeholder": "+441234567890"
+        },
+        {
+          "key": "business_name",
+          "label": "Business name",
+          "type": "string"
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_order",
+      "name": "New order",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/orders",
+      "query": {
+        "limit": 50
+      },
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    },
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Register this URL as a Merchant API webhook (Revolut Business → Merchant → APIs → Webhooks).",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

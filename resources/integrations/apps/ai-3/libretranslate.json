@@ -1,0 +1,120 @@
+{
+  "key": "libretranslate",
+  "name": "LibreTranslate",
+  "category": "AI",
+  "description": "Free, open-source machine translation, hosted or on your own server.",
+  "website": "https://libretranslate.com",
+  "docs_url": "https://docs.libretranslate.com/guides/api_usage/",
+  "base_url": "{{ credentials.base_url }}",
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "key": "base_url",
+        "label": "Server URL",
+        "type": "string",
+        "required": true,
+        "default": "https://libretranslate.com",
+        "help": "https://libretranslate.com, or the address of your own server (no trailing slash)."
+      },
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "help": "libretranslate.com → Get API key. Leave blank for your own server if it doesn't require one."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "translate",
+      "name": "Translate text",
+      "description": "Translate text into another language.",
+      "method": "POST",
+      "endpoint": "/translate",
+      "body": {
+        "q": "{{ inputs.q }}",
+        "source": "{{ inputs.source }}",
+        "target": "{{ inputs.target }}",
+        "format": "{{ inputs.format }}",
+        "api_key": "{{ credentials.api_key }}"
+      },
+      "output_fields": {
+        "text": "translatedText",
+        "detected_language": "detectedLanguage.language"
+      },
+      "inputs": [
+        {
+          "key": "q",
+          "label": "Text",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "source",
+          "label": "From",
+          "type": "string",
+          "default": "auto",
+          "help": "Language code, or auto to detect."
+        },
+        {
+          "key": "target",
+          "label": "To",
+          "type": "string",
+          "required": true,
+          "placeholder": "es"
+        },
+        {
+          "key": "format",
+          "label": "Format",
+          "type": "select",
+          "default": "text",
+          "options": [
+            {
+              "value": "text",
+              "label": "Plain text"
+            },
+            {
+              "value": "html",
+              "label": "HTML"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "detect",
+      "name": "Detect language",
+      "description": "Detect the language of a text.",
+      "method": "POST",
+      "endpoint": "/detect",
+      "body": {
+        "q": "{{ inputs.q }}",
+        "api_key": "{{ credentials.api_key }}"
+      },
+      "output_fields": {
+        "language": "0.language",
+        "confidence": "0.confidence"
+      },
+      "inputs": [
+        {
+          "key": "q",
+          "label": "Text",
+          "type": "text",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_languages",
+      "name": "List languages",
+      "description": "List the supported languages.",
+      "method": "GET",
+      "endpoint": "/languages",
+      "output_fields": {
+        "codes": "*.code"
+      },
+      "inputs": []
+    }
+  ]
+}

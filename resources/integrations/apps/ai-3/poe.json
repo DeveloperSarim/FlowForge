@@ -1,0 +1,143 @@
+{
+  "key": "poe",
+  "name": "Poe",
+  "category": "AI",
+  "description": "Chat with Claude, GPT, Gemini, Grok and image/video bots through your Poe account.",
+  "website": "https://poe.com",
+  "docs_url": "https://creator.poe.com/docs/external-applications/openai-compatible-api",
+  "base_url": "https://api.poe.com",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "poe.com/api/keys → Create API key."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "chat_completion",
+      "name": "Chat completion",
+      "description": "Send a prompt and get the model's reply as text.",
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "timeout": 300,
+      "body": {
+        "model": "{{ inputs.model }}",
+        "messages": [
+          {
+            "$if": "{{ inputs.system }}",
+            "role": "system",
+            "content": "{{ inputs.system }}"
+          },
+          {
+            "role": "user",
+            "content": "{{ inputs.prompt }}"
+          }
+        ],
+        "temperature": "{{ inputs.temperature }}",
+        "max_tokens": "{{ inputs.max_tokens }}"
+      },
+      "output_fields": {
+        "text": "choices.0.message.content"
+      },
+      "inputs": [
+        {
+          "key": "model",
+          "label": "Model",
+          "type": "string",
+          "required": true,
+          "help": "A Poe bot name, e.g. Claude-Sonnet-4.6, GPT-5.4 or Gemini-3.1-Pro. Use List models to see all.",
+          "default": "Claude-Sonnet-4.6"
+        },
+        {
+          "key": "prompt",
+          "label": "Prompt",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "system",
+          "label": "System prompt",
+          "type": "text",
+          "help": "Optional instructions for how the model should behave."
+        },
+        {
+          "key": "temperature",
+          "label": "Temperature",
+          "type": "number",
+          "placeholder": "0.7",
+          "help": "0 = focused, 1 = creative. Leave blank for the default."
+        },
+        {
+          "key": "max_tokens",
+          "label": "Max output tokens",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "generate_media",
+      "name": "Generate image or video",
+      "description": "Ask an image or video bot; the reply contains the media link.",
+      "method": "POST",
+      "endpoint": "/v1/chat/completions",
+      "timeout": 600,
+      "body": {
+        "model": "{{ inputs.model }}",
+        "messages": [
+          {
+            "role": "user",
+            "content": "{{ inputs.prompt }}"
+          }
+        ],
+        "stream": false
+      },
+      "output_fields": {
+        "text": "choices.0.message.content"
+      },
+      "inputs": [
+        {
+          "key": "model",
+          "label": "Bot",
+          "type": "string",
+          "required": true,
+          "default": "GPT-Image-1.5",
+          "help": "An image or video bot, e.g. GPT-Image-1.5, Veo-3.1 or Sora-2."
+        },
+        {
+          "key": "prompt",
+          "label": "Prompt",
+          "type": "text",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_models",
+      "name": "List models",
+      "description": "List the models you can use.",
+      "method": "GET",
+      "endpoint": "/v1/models",
+      "output_fields": {
+        "models": "data.*.id"
+      },
+      "inputs": []
+    },
+    {
+      "key": "get_balance",
+      "name": "Get point balance",
+      "description": "Show how many Poe points you have left.",
+      "method": "GET",
+      "endpoint": "/usage/current_balance",
+      "output_fields": {
+        "points": "current_point_balance"
+      },
+      "inputs": []
+    }
+  ]
+}

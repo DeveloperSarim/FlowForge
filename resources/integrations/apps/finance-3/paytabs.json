@@ -1,0 +1,325 @@
+{
+  "key": "paytabs",
+  "name": "PayTabs",
+  "category": "Payments & Finance",
+  "description": "Middle East payments: create hosted payment pages, query, capture and refund.",
+  "website": "https://site.paytabs.com",
+  "docs_url": "https://support.paytabs.com/en/support/solutions/articles/60000709775",
+  "base_url": "{{ credentials.region }}",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "authorization",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "Server key",
+        "type": "password",
+        "required": true,
+        "help": "PayTabs merchant dashboard → Developers → Key management → Server key."
+      },
+      {
+        "key": "profile_id",
+        "label": "Profile ID",
+        "type": "string",
+        "required": true,
+        "help": "Shown on the same page (Developers → Key management)."
+      },
+      {
+        "key": "region",
+        "label": "Region",
+        "type": "select",
+        "required": true,
+        "default": "https://secure.paytabs.com",
+        "options": [
+          {
+            "value": "https://secure.paytabs.com",
+            "label": "UAE / Global"
+          },
+          {
+            "value": "https://secure.paytabs.sa",
+            "label": "Saudi Arabia"
+          },
+          {
+            "value": "https://secure-egypt.paytabs.com",
+            "label": "Egypt"
+          },
+          {
+            "value": "https://secure-oman.paytabs.com",
+            "label": "Oman"
+          },
+          {
+            "value": "https://secure-jordan.paytabs.com",
+            "label": "Jordan"
+          },
+          {
+            "value": "https://secure-iraq.paytabs.com",
+            "label": "Iraq"
+          },
+          {
+            "value": "https://secure-kuwait.paytabs.com",
+            "label": "Kuwait"
+          },
+          {
+            "value": "https://secure-doha.paytabs.com",
+            "label": "Qatar"
+          }
+        ],
+        "help": "The region your PayTabs account was opened in."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "create_payment_page",
+      "name": "Create payment page",
+      "description": "Create a hosted payment page and get its URL.",
+      "method": "POST",
+      "endpoint": "/payment/request",
+      "body": {
+        "profile_id": "{{ credentials.profile_id }}",
+        "tran_type": "sale",
+        "tran_class": "ecom",
+        "cart_id": "{{ inputs.cart_id }}",
+        "cart_currency": "{{ inputs.currency }}",
+        "cart_amount": "{{ inputs.amount }}",
+        "cart_description": "{{ inputs.description }}",
+        "callback": "{{ inputs.callback_url }}",
+        "return": "{{ inputs.return_url }}",
+        "customer_details": {
+          "name": "{{ inputs.customer_name }}",
+          "email": "{{ inputs.customer_email }}",
+          "phone": "{{ inputs.customer_phone }}",
+          "street1": "{{ inputs.street }}",
+          "city": "{{ inputs.city }}",
+          "country": "{{ inputs.country }}"
+        },
+        "hide_shipping": true
+      },
+      "output_fields": {
+        "tran_ref": "tran_ref",
+        "redirect_url": "redirect_url"
+      },
+      "inputs": [
+        {
+          "key": "amount",
+          "label": "Amount",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "currency",
+          "label": "Currency",
+          "type": "string",
+          "required": true,
+          "default": "AED"
+        },
+        {
+          "key": "cart_id",
+          "label": "Order ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "description",
+          "label": "Description",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "customer_name",
+          "label": "Customer name",
+          "type": "string"
+        },
+        {
+          "key": "customer_email",
+          "label": "Customer email",
+          "type": "string"
+        },
+        {
+          "key": "customer_phone",
+          "label": "Customer phone",
+          "type": "string"
+        },
+        {
+          "key": "street",
+          "label": "Street",
+          "type": "string"
+        },
+        {
+          "key": "city",
+          "label": "City",
+          "type": "string"
+        },
+        {
+          "key": "country",
+          "label": "Country code",
+          "type": "string",
+          "placeholder": "AE"
+        },
+        {
+          "key": "callback_url",
+          "label": "Callback URL",
+          "type": "string",
+          "help": "Paste a FlowForge webhook URL to get the result."
+        },
+        {
+          "key": "return_url",
+          "label": "Return URL",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "query_transaction",
+      "name": "Query transaction",
+      "description": "Get the result of a transaction.",
+      "method": "POST",
+      "endpoint": "/payment/query",
+      "body": {
+        "profile_id": "{{ credentials.profile_id }}",
+        "tran_ref": "{{ inputs.tran_ref }}"
+      },
+      "output_fields": {
+        "status": "payment_result.response_status",
+        "message": "payment_result.response_message",
+        "amount": "cart_amount",
+        "cart_id": "cart_id"
+      },
+      "inputs": [
+        {
+          "key": "tran_ref",
+          "label": "Transaction reference",
+          "type": "string",
+          "required": true,
+          "placeholder": "TST2105900091234"
+        }
+      ]
+    },
+    {
+      "key": "refund",
+      "name": "Refund",
+      "description": "Refund all or part of a paid transaction.",
+      "method": "POST",
+      "endpoint": "/payment/request",
+      "body": {
+        "profile_id": "{{ credentials.profile_id }}",
+        "tran_type": "refund",
+        "tran_class": "ecom",
+        "tran_ref": "{{ inputs.tran_ref }}",
+        "cart_id": "{{ inputs.cart_id }}",
+        "cart_currency": "{{ inputs.currency }}",
+        "cart_amount": "{{ inputs.amount }}",
+        "cart_description": "{{ inputs.reason }}"
+      },
+      "output_fields": {
+        "status": "payment_result.response_status",
+        "tran_ref": "tran_ref"
+      },
+      "inputs": [
+        {
+          "key": "tran_ref",
+          "label": "Original transaction reference",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "cart_id",
+          "label": "Order ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "amount",
+          "label": "Amount",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "currency",
+          "label": "Currency",
+          "type": "string",
+          "required": true,
+          "default": "AED"
+        },
+        {
+          "key": "reason",
+          "label": "Reason",
+          "type": "string",
+          "required": true,
+          "default": "Refund"
+        }
+      ]
+    },
+    {
+      "key": "capture",
+      "name": "Capture authorization",
+      "description": "Capture an authorized (auth-only) transaction.",
+      "method": "POST",
+      "endpoint": "/payment/request",
+      "body": {
+        "profile_id": "{{ credentials.profile_id }}",
+        "tran_type": "capture",
+        "tran_class": "ecom",
+        "tran_ref": "{{ inputs.tran_ref }}",
+        "cart_id": "{{ inputs.cart_id }}",
+        "cart_currency": "{{ inputs.currency }}",
+        "cart_amount": "{{ inputs.amount }}",
+        "cart_description": "{{ inputs.description }}"
+      },
+      "output_fields": {
+        "status": "payment_result.response_status",
+        "tran_ref": "tran_ref"
+      },
+      "inputs": [
+        {
+          "key": "tran_ref",
+          "label": "Authorization transaction reference",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "cart_id",
+          "label": "Order ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "amount",
+          "label": "Amount",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "currency",
+          "label": "Currency",
+          "type": "string",
+          "required": true,
+          "default": "AED"
+        },
+        {
+          "key": "description",
+          "label": "Description",
+          "type": "string",
+          "required": true,
+          "default": "Capture"
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Payment callback",
+      "type": "webhook",
+      "description": "Paste this URL as the callback URL when you create a payment page.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

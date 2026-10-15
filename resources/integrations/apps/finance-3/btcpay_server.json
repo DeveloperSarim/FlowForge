@@ -1,0 +1,300 @@
+{
+  "key": "btcpay_server",
+  "name": "BTCPay Server",
+  "category": "Payments & Finance",
+  "description": "Create and track Bitcoin invoices and payment requests on your BTCPay Server.",
+  "website": "https://btcpayserver.org",
+  "docs_url": "https://docs.btcpayserver.org/API/Greenfield/v1/",
+  "base_url": "{{ credentials.server_url }}/api/v1",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "Authorization",
+    "prefix": "token ",
+    "fields": [
+      {
+        "key": "server_url",
+        "label": "Server URL",
+        "type": "string",
+        "required": true,
+        "placeholder": "https://btcpay.example.com",
+        "help": "The address of your BTCPay Server, without a trailing slash."
+      },
+      {
+        "key": "store_id",
+        "label": "Store ID",
+        "type": "string",
+        "required": true,
+        "help": "BTCPay → your store → Settings → General → Store ID."
+      },
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "Click your account (bottom left) → API Keys → Generate key; allow invoice and payment request permissions."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "create_invoice",
+      "name": "Create invoice",
+      "description": "Create an invoice and get its checkout link.",
+      "method": "POST",
+      "endpoint": "/stores/{{ credentials.store_id }}/invoices",
+      "body": {
+        "amount": "{{ inputs.amount }}",
+        "currency": "{{ inputs.currency }}",
+        "metadata": {
+          "orderId": "{{ inputs.order_id }}",
+          "buyerEmail": "{{ inputs.buyer_email }}",
+          "itemDesc": "{{ inputs.description }}"
+        },
+        "checkout": {
+          "redirectURL": "{{ inputs.redirect_url }}",
+          "expirationMinutes": "{{ inputs.expiration_minutes }}"
+        }
+      },
+      "output_fields": {
+        "id": "id",
+        "checkout_link": "checkoutLink",
+        "status": "status"
+      },
+      "inputs": [
+        {
+          "key": "amount",
+          "label": "Amount",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "currency",
+          "label": "Currency",
+          "type": "string",
+          "default": "USD"
+        },
+        {
+          "key": "order_id",
+          "label": "Order ID",
+          "type": "string"
+        },
+        {
+          "key": "buyer_email",
+          "label": "Buyer email",
+          "type": "string"
+        },
+        {
+          "key": "description",
+          "label": "Item description",
+          "type": "string"
+        },
+        {
+          "key": "redirect_url",
+          "label": "Redirect after payment",
+          "type": "string"
+        },
+        {
+          "key": "expiration_minutes",
+          "label": "Expires after (minutes)",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "get_invoice",
+      "name": "Get invoice",
+      "description": "Look up an invoice's status.",
+      "method": "GET",
+      "endpoint": "/stores/{{ credentials.store_id }}/invoices/{{ inputs.invoice_id }}",
+      "output_fields": {
+        "status": "status",
+        "amount": "amount",
+        "currency": "currency",
+        "checkout_link": "checkoutLink"
+      },
+      "inputs": [
+        {
+          "key": "invoice_id",
+          "label": "Invoice ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_invoices",
+      "name": "List invoices",
+      "description": "Newest invoices first, optionally filtered by status.",
+      "method": "GET",
+      "endpoint": "/stores/{{ credentials.store_id }}/invoices",
+      "query": {
+        "status": "{{ inputs.status }}",
+        "take": "{{ inputs.take }}"
+      },
+      "inputs": [
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "options": [
+            {
+              "value": "New",
+              "label": "New"
+            },
+            {
+              "value": "Processing",
+              "label": "Processing"
+            },
+            {
+              "value": "Settled",
+              "label": "Settled"
+            },
+            {
+              "value": "Expired",
+              "label": "Expired"
+            },
+            {
+              "value": "Invalid",
+              "label": "Invalid"
+            }
+          ]
+        },
+        {
+          "key": "take",
+          "label": "How many",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    },
+    {
+      "key": "mark_invoice_status",
+      "name": "Mark invoice status",
+      "description": "Manually mark an invoice settled or invalid.",
+      "method": "POST",
+      "endpoint": "/stores/{{ credentials.store_id }}/invoices/{{ inputs.invoice_id }}/status",
+      "body": {
+        "status": "{{ inputs.status }}"
+      },
+      "output_fields": {
+        "status": "status"
+      },
+      "inputs": [
+        {
+          "key": "invoice_id",
+          "label": "Invoice ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "required": true,
+          "default": "Settled",
+          "options": [
+            {
+              "value": "Settled",
+              "label": "Settled"
+            },
+            {
+              "value": "Invalid",
+              "label": "Invalid"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "create_payment_request",
+      "name": "Create payment request",
+      "description": "Create a shareable payment request page.",
+      "method": "POST",
+      "endpoint": "/stores/{{ credentials.store_id }}/payment-requests",
+      "body": {
+        "amount": "{{ inputs.amount }}",
+        "currency": "{{ inputs.currency }}",
+        "title": "{{ inputs.title }}",
+        "description": "{{ inputs.description }}",
+        "email": "{{ inputs.email }}",
+        "expiryDate": "{{ inputs.expiry_date }}"
+      },
+      "output_fields": {
+        "id": "id",
+        "status": "status"
+      },
+      "inputs": [
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "amount",
+          "label": "Amount",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "currency",
+          "label": "Currency",
+          "type": "string",
+          "default": "USD"
+        },
+        {
+          "key": "description",
+          "label": "Description",
+          "type": "text"
+        },
+        {
+          "key": "email",
+          "label": "Customer email",
+          "type": "string"
+        },
+        {
+          "key": "expiry_date",
+          "label": "Expires on",
+          "type": "string",
+          "placeholder": "2026-12-31T00:00:00Z"
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_invoice",
+      "name": "New invoice",
+      "type": "polling",
+      "description": "Fires for each new invoice in the store.",
+      "method": "GET",
+      "endpoint": "/stores/{{ credentials.store_id }}/invoices",
+      "query": {
+        "take": 50
+      },
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    },
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Store → Settings → Webhooks → Create webhook, and paste this URL.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

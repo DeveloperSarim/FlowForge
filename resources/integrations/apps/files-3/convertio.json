@@ -1,0 +1,92 @@
+{
+  "key": "convertio",
+  "name": "Convertio",
+  "category": "Files & Documents",
+  "description": "Convert files between 300+ formats from a URL and fetch the result link.",
+  "website": "https://convertio.co",
+  "docs_url": "https://developers.convertio.co/api/docs/",
+  "base_url": "https://api.convertio.co",
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "convertio.co → Account → API → your API key."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "start_conversion",
+      "name": "Start conversion",
+      "description": "Convert a file from a public URL.",
+      "method": "POST",
+      "endpoint": "/convert",
+      "body": {
+        "apikey": "{{ credentials.api_key }}",
+        "input": "url",
+        "file": "{{ inputs.url }}",
+        "outputformat": "{{ inputs.output_format }}"
+      },
+      "output_fields": {
+        "id": "data.id"
+      },
+      "error_path": "error",
+      "inputs": [
+        {
+          "key": "url",
+          "label": "File URL",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "output_format",
+          "label": "Convert to",
+          "type": "string",
+          "required": true,
+          "placeholder": "pdf"
+        }
+      ]
+    },
+    {
+      "key": "get_status",
+      "name": "Get status",
+      "description": "Progress and download link.",
+      "method": "GET",
+      "endpoint": "/convert/{{ inputs.id }}/status",
+      "output_fields": {
+        "step": "data.step",
+        "percent": "data.step_percent",
+        "download_url": "data.output.url"
+      },
+      "error_path": "error",
+      "inputs": [
+        {
+          "key": "id",
+          "label": "Conversion ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "delete_conversion",
+      "name": "Delete conversion",
+      "description": "Remove a conversion and its files.",
+      "method": "DELETE",
+      "endpoint": "/convert/{{ inputs.id }}",
+      "error_path": "error",
+      "inputs": [
+        {
+          "key": "id",
+          "label": "Conversion ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ]
+}

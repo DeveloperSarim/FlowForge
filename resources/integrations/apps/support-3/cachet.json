@@ -1,0 +1,238 @@
+{
+  "key": "cachet",
+  "name": "Cachet",
+  "category": "Customer Support",
+  "description": "Report incidents and update component status on your self-hosted Cachet status page.",
+  "website": "https://cachethq.io",
+  "docs_url": "https://docs.cachethq.io/",
+  "base_url": "{{ credentials.site_url }}/api/v1",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "X-Cachet-Token",
+    "fields": [
+      {
+        "key": "site_url",
+        "label": "Status page URL",
+        "type": "string",
+        "required": true,
+        "placeholder": "https://status.example.com",
+        "help": "The address of your Cachet install, without a trailing slash."
+      },
+      {
+        "key": "api_key",
+        "label": "API token",
+        "type": "password",
+        "required": true,
+        "help": "In the Cachet dashboard click your name > API Key."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "create_incident",
+      "name": "Create incident",
+      "description": "Reports a new incident on the status page.",
+      "method": "POST",
+      "endpoint": "/incidents",
+      "body": {
+        "name": "{{ inputs.name }}",
+        "message": "{{ inputs.message }}",
+        "status": "{{ inputs.status }}",
+        "visible": 1,
+        "component_id": "{{ inputs.component_id }}",
+        "component_status": "{{ inputs.component_status }}",
+        "notify": "{{ inputs.notify }}"
+      },
+      "output_fields": {
+        "id": "data.id",
+        "status": "data.human_status"
+      },
+      "inputs": [
+        {
+          "key": "name",
+          "label": "Title",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "message",
+          "label": "Message",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "default": "1",
+          "options": [
+            {
+              "value": "0",
+              "label": "Scheduled"
+            },
+            {
+              "value": "1",
+              "label": "Investigating"
+            },
+            {
+              "value": "2",
+              "label": "Identified"
+            },
+            {
+              "value": "3",
+              "label": "Watching"
+            },
+            {
+              "value": "4",
+              "label": "Fixed"
+            }
+          ]
+        },
+        {
+          "key": "component_id",
+          "label": "Component ID",
+          "type": "number",
+          "help": "Optional. Use \"List components\" to find it."
+        },
+        {
+          "key": "component_status",
+          "label": "Component status",
+          "type": "select",
+          "options": [
+            {
+              "value": "1",
+              "label": "Operational"
+            },
+            {
+              "value": "2",
+              "label": "Performance issues"
+            },
+            {
+              "value": "3",
+              "label": "Partial outage"
+            },
+            {
+              "value": "4",
+              "label": "Major outage"
+            }
+          ]
+        },
+        {
+          "key": "notify",
+          "label": "Notify subscribers",
+          "type": "boolean",
+          "default": true
+        }
+      ]
+    },
+    {
+      "key": "list_incidents",
+      "name": "List incidents",
+      "description": "Lists incidents, newest first.",
+      "method": "GET",
+      "endpoint": "/incidents",
+      "query": {
+        "sort": "id",
+        "order": "desc",
+        "per_page": "{{ inputs.per_page }}"
+      },
+      "output_fields": {
+        "incidents": "data",
+        "first_id": "data.0.id",
+        "first_name": "data.0.name"
+      },
+      "inputs": [
+        {
+          "key": "per_page",
+          "label": "How many",
+          "type": "number",
+          "default": 20
+        }
+      ]
+    },
+    {
+      "key": "list_components",
+      "name": "List components",
+      "description": "Lists components and their status.",
+      "method": "GET",
+      "endpoint": "/components",
+      "output_fields": {
+        "components": "data",
+        "first_id": "data.0.id"
+      },
+      "inputs": []
+    },
+    {
+      "key": "update_component",
+      "name": "Update component status",
+      "description": "Sets a component to operational, degraded or down.",
+      "method": "PUT",
+      "endpoint": "/components/{{ inputs.component_id }}",
+      "body": {
+        "status": "{{ inputs.status }}"
+      },
+      "output_fields": {
+        "id": "data.id",
+        "status": "data.status_name"
+      },
+      "inputs": [
+        {
+          "key": "component_id",
+          "label": "Component ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "required": true,
+          "default": "1",
+          "options": [
+            {
+              "value": "1",
+              "label": "Operational"
+            },
+            {
+              "value": "2",
+              "label": "Performance issues"
+            },
+            {
+              "value": "3",
+              "label": "Partial outage"
+            },
+            {
+              "value": "4",
+              "label": "Major outage"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_incident",
+      "name": "New incident",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/incidents",
+      "query": {
+        "sort": "id",
+        "order": "desc",
+        "per_page": 20
+      },
+      "items_path": "data",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

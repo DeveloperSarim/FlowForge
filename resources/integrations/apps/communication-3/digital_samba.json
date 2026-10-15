@@ -1,0 +1,177 @@
+{
+  "key": "digital_samba",
+  "name": "Digital Samba",
+  "category": "Communication",
+  "description": "Create and manage Digital Samba video meeting rooms and get session webhooks.",
+  "website": "https://www.digitalsamba.com",
+  "docs_url": "https://docs.digitalsamba.com/reference/rest-api",
+  "base_url": "https://api.digitalsamba.com/api/v1",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "Developer key",
+        "type": "password",
+        "required": true,
+        "help": "dashboard.digitalsamba.com → Team → Developer key."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "create_room",
+      "name": "Create room",
+      "method": "POST",
+      "endpoint": "/rooms",
+      "body": {
+        "friendly_url": "{{ inputs.friendly_url }}",
+        "privacy": "{{ inputs.privacy }}",
+        "default_role": "{{ inputs.default_role }}"
+      },
+      "output_fields": {
+        "id": "id",
+        "friendly_url": "friendly_url",
+        "privacy": "privacy",
+        "default_role": "default_role"
+      },
+      "inputs": [
+        {
+          "key": "friendly_url",
+          "label": "Room URL name",
+          "type": "string",
+          "placeholder": "weekly-standup",
+          "help": "Join link becomes https://<your team>.digitalsamba.com/<this>."
+        },
+        {
+          "key": "privacy",
+          "label": "Privacy",
+          "type": "select",
+          "required": true,
+          "default": "public",
+          "options": [
+            {
+              "value": "public",
+              "label": "Public (anyone with link)"
+            },
+            {
+              "value": "private",
+              "label": "Private (token needed)"
+            }
+          ]
+        },
+        {
+          "key": "default_role",
+          "label": "Default role",
+          "type": "string",
+          "placeholder": "attendee"
+        }
+      ]
+    },
+    {
+      "key": "list_rooms",
+      "name": "List rooms",
+      "method": "GET",
+      "endpoint": "/rooms",
+      "query": {
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "rooms": "data",
+        "total": "total_count"
+      },
+      "inputs": [
+        {
+          "key": "limit",
+          "label": "Max results (max 100)",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    },
+    {
+      "key": "get_room",
+      "name": "Get room",
+      "method": "GET",
+      "endpoint": "/rooms/{{ inputs.room_id }}",
+      "output_fields": {
+        "id": "id",
+        "friendly_url": "friendly_url",
+        "privacy": "privacy",
+        "default_role": "default_role"
+      },
+      "inputs": [
+        {
+          "key": "room_id",
+          "label": "Room ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "delete_room",
+      "name": "Delete room",
+      "method": "DELETE",
+      "endpoint": "/rooms/{{ inputs.room_id }}",
+      "inputs": [
+        {
+          "key": "room_id",
+          "label": "Room ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "create_webhook",
+      "name": "Create webhook",
+      "method": "POST",
+      "endpoint": "/webhooks",
+      "body": {
+        "endpoint": "{{ inputs.endpoint }}",
+        "events": "{{ inputs.events }}",
+        "name": "{{ inputs.name }}"
+      },
+      "output_fields": {
+        "id": "id"
+      },
+      "inputs": [
+        {
+          "key": "endpoint",
+          "label": "Webhook URL",
+          "type": "string",
+          "required": true,
+          "help": "Paste the URL of a FlowForge 'Meeting event' trigger."
+        },
+        {
+          "key": "events",
+          "label": "Events",
+          "type": "list",
+          "required": true,
+          "help": "e.g. session_started, session_ended, participant_joined, participant_left, recording_ready."
+        },
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string"
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Meeting event",
+      "type": "webhook",
+      "description": "Session started or ended, participant joined or left, recording ready.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

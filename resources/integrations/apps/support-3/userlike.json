@@ -1,0 +1,123 @@
+{
+  "key": "userlike",
+  "name": "Userlike",
+  "category": "Customer Support",
+  "description": "Read live chat conversations and messages from your Userlike account.",
+  "website": "https://www.userlike.com",
+  "docs_url": "https://docs.userlike.com/developers/api/json",
+  "base_url": "https://api.userlike.com/api/um/v3",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "Authorization",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "API token",
+        "type": "password",
+        "required": true,
+        "help": "In Userlike open Config > Developers (API) and create an organization token."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_conversations",
+      "name": "List conversations",
+      "description": "Lists chat conversations, newest first.",
+      "method": "GET",
+      "endpoint": "/conversations/",
+      "query": {
+        "limit": "{{ inputs.limit }}",
+        "search_query": "{{ inputs.search_query }}",
+        "updated_at_from_date": "{{ inputs.updated_at_from_date }}",
+        "ordering": "-id"
+      },
+      "output_fields": {
+        "conversations": "results",
+        "count": "count",
+        "first_id": "results.0.id"
+      },
+      "inputs": [
+        {
+          "key": "limit",
+          "label": "How many",
+          "type": "number",
+          "default": 25
+        },
+        {
+          "key": "search_query",
+          "label": "Search text",
+          "type": "string"
+        },
+        {
+          "key": "updated_at_from_date",
+          "label": "Updated since",
+          "type": "string",
+          "placeholder": "2026-01-01"
+        }
+      ]
+    },
+    {
+      "key": "get_conversation",
+      "name": "Get conversation",
+      "description": "Gets one conversation.",
+      "method": "GET",
+      "endpoint": "/conversations/{{ inputs.conversation_id }}/",
+      "output_fields": {
+        "id": "id",
+        "status": "status"
+      },
+      "inputs": [
+        {
+          "key": "conversation_id",
+          "label": "Conversation ID",
+          "type": "number",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_messages",
+      "name": "List messages",
+      "description": "Lists the messages of a conversation.",
+      "method": "GET",
+      "endpoint": "/conversations/{{ inputs.conversation_id }}/messages/",
+      "output_fields": {
+        "messages": "results",
+        "first_body": "results.0.body"
+      },
+      "inputs": [
+        {
+          "key": "conversation_id",
+          "label": "Conversation ID",
+          "type": "number",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_conversation",
+      "name": "New conversation",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/conversations/",
+      "query": {
+        "limit": 25,
+        "ordering": "-id"
+      },
+      "items_path": "results",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

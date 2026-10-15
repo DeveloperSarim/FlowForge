@@ -1,0 +1,131 @@
+{
+  "key": "oneroster",
+  "name": "OneRoster",
+  "category": "Education",
+  "description": "Read students, classes and enrollments from any OneRoster 1.1 school system.",
+  "website": "https://www.1edtech.org/standards/oneroster",
+  "docs_url": "https://www.imsglobal.org/oneroster-v11-final-specification",
+  "base_url": "{{ credentials.host }}/ims/oneroster/v1p1",
+  "auth": {
+    "type": "oauth2_client_credentials",
+    "token_url": "{{ credentials.token_url }}",
+    "fields": [
+      {
+        "key": "host",
+        "label": "OneRoster base address",
+        "type": "string",
+        "required": true,
+        "placeholder": "https://sis.school.org",
+        "help": "Your school system's OneRoster address, e.g. https://sis.school.org (ask your SIS admin)."
+      },
+      {
+        "key": "token_url",
+        "label": "Token URL",
+        "type": "string",
+        "required": true,
+        "placeholder": "https://sis.school.org/oauth/token",
+        "help": "The OAuth2 token URL your SIS gives you for OneRoster access."
+      },
+      {
+        "key": "client_id",
+        "label": "Client ID",
+        "type": "string",
+        "required": true,
+        "help": "From your SIS admin."
+      },
+      {
+        "key": "client_secret",
+        "label": "Client secret",
+        "type": "password",
+        "required": true,
+        "help": "From your SIS admin."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_users",
+      "name": "List users",
+      "description": "Get students, teachers and staff.",
+      "method": "GET",
+      "endpoint": "/users",
+      "query": {
+        "limit": "{{ inputs.limit }}",
+        "filter": "{{ inputs.filter }}"
+      },
+      "output_fields": {
+        "users": "users",
+        "ids": "users.*.sourcedId"
+      },
+      "inputs": [
+        {
+          "key": "limit",
+          "label": "Max results",
+          "type": "number",
+          "default": 100
+        },
+        {
+          "key": "filter",
+          "label": "Filter",
+          "type": "string",
+          "help": "OneRoster filter, e.g. role='student'"
+        }
+      ]
+    },
+    {
+      "key": "list_classes",
+      "name": "List classes",
+      "description": "Get classes.",
+      "method": "GET",
+      "endpoint": "/classes",
+      "query": {
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "classes": "classes",
+        "ids": "classes.*.sourcedId"
+      },
+      "inputs": [
+        {
+          "key": "limit",
+          "label": "Max results",
+          "type": "number",
+          "default": 100
+        }
+      ]
+    },
+    {
+      "key": "list_schools",
+      "name": "List schools",
+      "description": "Get schools.",
+      "method": "GET",
+      "endpoint": "/schools",
+      "output_fields": {
+        "schools": "orgs",
+        "ids": "orgs.*.sourcedId"
+      },
+      "inputs": []
+    },
+    {
+      "key": "list_enrollments",
+      "name": "List enrollments",
+      "description": "Get who is enrolled in what.",
+      "method": "GET",
+      "endpoint": "/enrollments",
+      "query": {
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "enrollments": "enrollments"
+      },
+      "inputs": [
+        {
+          "key": "limit",
+          "label": "Max results",
+          "type": "number",
+          "default": 100
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,149 @@
+{
+  "key": "hackerrank",
+  "name": "HackerRank",
+  "category": "HR & Recruiting",
+  "description": "Invite candidates to HackerRank tests and read their scores.",
+  "website": "https://www.hackerrank.com/work",
+  "docs_url": "https://www.hackerrank.com/work/apidocs",
+  "base_url": "https://www.hackerrank.com/x/api/v3",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "API token",
+        "type": "password",
+        "required": true,
+        "help": "In HackerRank for Work open Settings → API → Generate token."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_tests",
+      "name": "List tests",
+      "description": "List your assessments.",
+      "method": "GET",
+      "endpoint": "/tests",
+      "query": {
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "tests": "data",
+        "total": "total",
+        "first_id": "data.0.id",
+        "first_name": "data.0.name"
+      },
+      "inputs": [
+        {
+          "key": "limit",
+          "label": "How many",
+          "type": "number",
+          "default": 25
+        }
+      ]
+    },
+    {
+      "key": "list_candidates",
+      "name": "List test candidates",
+      "description": "List candidates who were invited to a test.",
+      "method": "GET",
+      "endpoint": "/tests/{{ inputs.test_id }}/candidates",
+      "query": {
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "candidates": "data",
+        "total": "total",
+        "first_id": "data.0.id",
+        "first_email": "data.0.email",
+        "first_score": "data.0.score"
+      },
+      "inputs": [
+        {
+          "key": "test_id",
+          "label": "Test ID",
+          "type": "number",
+          "required": true,
+          "help": "Use 'List tests' to find it."
+        },
+        {
+          "key": "limit",
+          "label": "How many",
+          "type": "number",
+          "default": 25
+        }
+      ]
+    },
+    {
+      "key": "invite_candidate",
+      "name": "Invite candidate",
+      "description": "Invite someone to take a test (they get an email).",
+      "method": "POST",
+      "endpoint": "/tests/{{ inputs.test_id }}/candidates",
+      "body": {
+        "email": "{{ inputs.email }}",
+        "full_name": "{{ inputs.full_name }}",
+        "send_email": "{{ inputs.send_email }}"
+      },
+      "output_fields": {
+        "id": "id",
+        "test_link": "test_link"
+      },
+      "inputs": [
+        {
+          "key": "test_id",
+          "label": "Test ID",
+          "type": "number",
+          "required": true,
+          "help": "Use 'List tests' to find it."
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "full_name",
+          "label": "Full name",
+          "type": "string"
+        },
+        {
+          "key": "send_email",
+          "label": "Send invite email",
+          "type": "boolean",
+          "default": true
+        }
+      ]
+    },
+    {
+      "key": "get_candidate",
+      "name": "Get candidate result",
+      "description": "Read a candidate's score and status.",
+      "method": "GET",
+      "endpoint": "/tests/{{ inputs.test_id }}/candidates/{{ inputs.candidate_id }}",
+      "output_fields": {
+        "email": "email",
+        "score": "score",
+        "status": "status",
+        "report_url": "report_url"
+      },
+      "inputs": [
+        {
+          "key": "test_id",
+          "label": "Test ID",
+          "type": "number",
+          "required": true,
+          "help": "Use 'List tests' to find it."
+        },
+        {
+          "key": "candidate_id",
+          "label": "Candidate ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ]
+}

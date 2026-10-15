@@ -1,0 +1,178 @@
+{
+  "key": "linkup",
+  "name": "Linkup",
+  "category": "AI",
+  "description": "Web search for AI: get sourced answers or raw results, and fetch pages as markdown.",
+  "website": "https://www.linkup.so",
+  "docs_url": "https://docs.linkup.so",
+  "base_url": "https://api.linkup.so/v1",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "app.linkup.so → your API key is on the home page."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "answer",
+      "name": "Search and answer",
+      "description": "Search the web and get an answer with sources.",
+      "method": "POST",
+      "endpoint": "/search",
+      "timeout": 180,
+      "body": {
+        "q": "{{ inputs.q }}",
+        "depth": "{{ inputs.depth }}",
+        "outputType": "sourcedAnswer",
+        "fromDate": "{{ inputs.from_date }}",
+        "includeDomains": "{{ inputs.include_domains }}"
+      },
+      "output_fields": {
+        "answer": "answer",
+        "sources": "sources"
+      },
+      "inputs": [
+        {
+          "key": "q",
+          "label": "Question",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "depth",
+          "label": "Depth",
+          "type": "select",
+          "default": "standard",
+          "options": [
+            {
+              "value": "fast",
+              "label": "Fast"
+            },
+            {
+              "value": "standard",
+              "label": "Standard"
+            },
+            {
+              "value": "deep",
+              "label": "Deep (slower, more thorough)"
+            }
+          ]
+        },
+        {
+          "key": "from_date",
+          "label": "From date",
+          "type": "string",
+          "placeholder": "2025-01-01"
+        },
+        {
+          "key": "include_domains",
+          "label": "Only these domains",
+          "type": "list"
+        }
+      ]
+    },
+    {
+      "key": "search",
+      "name": "Search results",
+      "description": "Get a list of web results with their content.",
+      "method": "POST",
+      "endpoint": "/search",
+      "timeout": 180,
+      "body": {
+        "q": "{{ inputs.q }}",
+        "depth": "{{ inputs.depth }}",
+        "outputType": "searchResults",
+        "maxResults": "{{ inputs.max_results }}",
+        "includeImages": "{{ inputs.include_images }}"
+      },
+      "output_fields": {
+        "results": "results",
+        "top_url": "results.0.url"
+      },
+      "inputs": [
+        {
+          "key": "q",
+          "label": "Query",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "depth",
+          "label": "Depth",
+          "type": "select",
+          "default": "standard",
+          "options": [
+            {
+              "value": "fast",
+              "label": "Fast"
+            },
+            {
+              "value": "standard",
+              "label": "Standard"
+            },
+            {
+              "value": "deep",
+              "label": "Deep"
+            }
+          ]
+        },
+        {
+          "key": "max_results",
+          "label": "Max results",
+          "type": "number",
+          "default": 10
+        },
+        {
+          "key": "include_images",
+          "label": "Include images",
+          "type": "boolean"
+        }
+      ]
+    },
+    {
+      "key": "fetch",
+      "name": "Fetch page",
+      "description": "Get a web page as clean markdown.",
+      "method": "POST",
+      "endpoint": "/fetch",
+      "timeout": 120,
+      "body": {
+        "url": "{{ inputs.url }}",
+        "renderJs": "{{ inputs.render_js }}"
+      },
+      "output_fields": {
+        "markdown": "markdown"
+      },
+      "inputs": [
+        {
+          "key": "url",
+          "label": "URL",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "render_js",
+          "label": "Render JavaScript",
+          "type": "boolean"
+        }
+      ]
+    },
+    {
+      "key": "get_balance",
+      "name": "Get credit balance",
+      "description": "Show your remaining Linkup credits.",
+      "method": "GET",
+      "endpoint": "/credits/balance",
+      "output_fields": {
+        "balance": "balance"
+      },
+      "inputs": []
+    }
+  ]
+}

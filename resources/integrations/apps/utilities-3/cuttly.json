@@ -1,0 +1,181 @@
+{
+  "key": "cuttly",
+  "name": "Cuttly",
+  "category": "Utilities",
+  "description": "Shorten links with cutt.ly, edit them and read click statistics.",
+  "website": "https://cutt.ly",
+  "docs_url": "https://cutt.ly/api-documentation/cuttly-links-api",
+  "base_url": "https://cutt.ly/api",
+  "auth": {
+    "type": "api_key",
+    "in": "query",
+    "name": "key",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "cutt.ly → Edit account → API key → Generate."
+      }
+    ]
+  },
+  "error_hints": {
+    "401": "Check the API key, and that your plan allows the API."
+  },
+  "actions": [
+    {
+      "key": "shorten_url",
+      "name": "Shorten URL",
+      "description": "Shorten a link. Status 7 means it worked.",
+      "method": "GET",
+      "endpoint": "/api.php",
+      "query": {
+        "short": "{{ inputs.url }}",
+        "name": "{{ inputs.name }}",
+        "userDomain": "{{ inputs.user_domain }}"
+      },
+      "output_fields": {
+        "short_link": "url.shortLink",
+        "status": "url.status",
+        "title": "url.title",
+        "full_link": "url.fullLink"
+      },
+      "inputs": [
+        {
+          "key": "url",
+          "label": "Long URL",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "name",
+          "label": "Custom alias",
+          "type": "string",
+          "help": "Optional; must be free."
+        },
+        {
+          "key": "user_domain",
+          "label": "Domain",
+          "type": "select",
+          "default": "",
+          "options": [
+            {
+              "value": "",
+              "label": "cutt.ly"
+            },
+            {
+              "value": "1",
+              "label": "My branded domain (paid plans)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "get_link_stats",
+      "name": "Get link stats",
+      "description": "Get the number of clicks of a short link.",
+      "method": "GET",
+      "endpoint": "/api.php",
+      "query": {
+        "stats": "{{ inputs.short_link }}",
+        "date_from": "{{ inputs.date_from }}",
+        "date_to": "{{ inputs.date_to }}"
+      },
+      "output_fields": {
+        "clicks": "stats.clicks",
+        "title": "stats.title",
+        "full_link": "stats.fullLink"
+      },
+      "inputs": [
+        {
+          "key": "short_link",
+          "label": "Short link",
+          "type": "string",
+          "required": true,
+          "placeholder": "https://cutt.ly/abc123"
+        },
+        {
+          "key": "date_from",
+          "label": "From (YYYY-MM-DD)",
+          "type": "string"
+        },
+        {
+          "key": "date_to",
+          "label": "To (YYYY-MM-DD)",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "change_destination",
+      "name": "Change destination",
+      "description": "Point an existing short link to a new URL (Single plan and up).",
+      "method": "GET",
+      "endpoint": "/api.php",
+      "query": {
+        "edit": "{{ inputs.short_link }}",
+        "source": "{{ inputs.new_url }}"
+      },
+      "inputs": [
+        {
+          "key": "short_link",
+          "label": "Short link",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "new_url",
+          "label": "New destination URL",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "add_tag",
+      "name": "Tag link",
+      "description": "Add a tag to a short link.",
+      "method": "GET",
+      "endpoint": "/api.php",
+      "query": {
+        "edit": "{{ inputs.short_link }}",
+        "tag": "{{ inputs.tag }}"
+      },
+      "inputs": [
+        {
+          "key": "short_link",
+          "label": "Short link",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "tag",
+          "label": "Tag",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "delete_link",
+      "name": "Delete link",
+      "description": "Delete a short link.",
+      "method": "GET",
+      "endpoint": "/api.php",
+      "query": {
+        "edit": "{{ inputs.short_link }}",
+        "delete": "1"
+      },
+      "inputs": [
+        {
+          "key": "short_link",
+          "label": "Short link",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ]
+}

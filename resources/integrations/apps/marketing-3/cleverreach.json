@@ -1,0 +1,248 @@
+{
+  "key": "cleverreach",
+  "name": "CleverReach",
+  "category": "Marketing & Email",
+  "description": "Email marketing: add receivers to groups, double opt-in, activate or remove.",
+  "website": "https://www.cleverreach.com",
+  "docs_url": "https://rest.cleverreach.com/explorer/v3/",
+  "base_url": "https://rest.cleverreach.com/v3",
+  "auth": {
+    "type": "oauth2_client_credentials",
+    "token_url": "https://rest.cleverreach.com/oauth/token.php",
+    "client_auth": "basic",
+    "fields": [
+      {
+        "key": "client_id",
+        "label": "Client ID",
+        "type": "string",
+        "required": true,
+        "help": "CleverReach → My account → Extras → REST API → Create an OAuth app; copy its Client ID."
+      },
+      {
+        "key": "client_secret",
+        "label": "Client secret",
+        "type": "password",
+        "required": true
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_groups",
+      "name": "List groups",
+      "description": "Your recipient lists (groups) and their IDs.",
+      "method": "GET",
+      "endpoint": "/groups.json",
+      "output_fields": {
+        "ids": "*.id",
+        "names": "*.name"
+      },
+      "inputs": []
+    },
+    {
+      "key": "add_receiver",
+      "name": "Add receiver",
+      "description": "Add a contact to a group (inactive until activated or confirmed).",
+      "method": "POST",
+      "endpoint": "/groups.json/{{ inputs.group_id }}/receivers",
+      "body": {
+        "email": "{{ inputs.email }}",
+        "source": "{{ inputs.source }}",
+        "global_attributes": {
+          "firstname": "{{ inputs.first_name }}",
+          "lastname": "{{ inputs.last_name }}",
+          "...": "{{ inputs.global_attributes }}"
+        },
+        "attributes": "{{ inputs.attributes }}",
+        "tags": "{{ inputs.tags }}"
+      },
+      "output_fields": {
+        "id": "id",
+        "email": "email",
+        "activated": "activated"
+      },
+      "inputs": [
+        {
+          "key": "group_id",
+          "label": "Group ID",
+          "type": "string",
+          "required": true,
+          "help": "Run \"List groups\", or open the list in CleverReach: the ID is in the address bar."
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "first_name",
+          "label": "First name",
+          "type": "string"
+        },
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string"
+        },
+        {
+          "key": "global_attributes",
+          "label": "Other global attributes",
+          "type": "keyvalue"
+        },
+        {
+          "key": "attributes",
+          "label": "Group attributes",
+          "type": "keyvalue"
+        },
+        {
+          "key": "tags",
+          "label": "Tags",
+          "type": "list"
+        },
+        {
+          "key": "source",
+          "label": "Source",
+          "type": "string",
+          "default": "FlowForge"
+        }
+      ]
+    },
+    {
+      "key": "send_double_opt_in",
+      "name": "Send double opt-in email",
+      "description": "Send the confirmation email of a form so the receiver can activate.",
+      "method": "POST",
+      "endpoint": "/forms.json/{{ inputs.form_id }}/send/activate",
+      "body": {
+        "email": "{{ inputs.email }}",
+        "doidata": {
+          "user_ip": "{{ inputs.user_ip }}",
+          "referer": "{{ inputs.referer }}",
+          "user_agent": "FlowForge"
+        }
+      },
+      "inputs": [
+        {
+          "key": "form_id",
+          "label": "Form ID",
+          "type": "string",
+          "required": true,
+          "help": "CleverReach → Forms → open the form: the ID is in the address bar."
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "user_ip",
+          "label": "Subscriber's IP address",
+          "type": "string",
+          "default": "127.0.0.1",
+          "help": "Stored as proof of consent. Pass it from your signup form if you have it."
+        },
+        {
+          "key": "referer",
+          "label": "Signup page URL",
+          "type": "string",
+          "default": "https://example.com"
+        }
+      ]
+    },
+    {
+      "key": "get_receiver",
+      "name": "Get receiver",
+      "description": "Look up a receiver in a group by email or ID.",
+      "method": "GET",
+      "endpoint": "/groups.json/{{ inputs.group_id }}/receivers/{{ inputs.email }}",
+      "output_fields": {
+        "id": "id",
+        "email": "email",
+        "activated": "activated",
+        "deactivated": "deactivated",
+        "global_attributes": "global_attributes",
+        "tags": "tags"
+      },
+      "inputs": [
+        {
+          "key": "group_id",
+          "label": "Group ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "email",
+          "label": "Email or receiver ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "activate_receiver",
+      "name": "Activate receiver",
+      "description": "Mark a receiver as active (subscribed) in a group.",
+      "method": "PUT",
+      "endpoint": "/groups.json/{{ inputs.group_id }}/receivers/{{ inputs.email }}/activate",
+      "inputs": [
+        {
+          "key": "group_id",
+          "label": "Group ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "email",
+          "label": "Email or receiver ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "deactivate_receiver",
+      "name": "Deactivate receiver",
+      "description": "Unsubscribe a receiver from a group (kept as inactive).",
+      "method": "PUT",
+      "endpoint": "/groups.json/{{ inputs.group_id }}/receivers/{{ inputs.email }}/deactivate",
+      "inputs": [
+        {
+          "key": "group_id",
+          "label": "Group ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "email",
+          "label": "Email or receiver ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "delete_receiver",
+      "name": "Delete receiver",
+      "description": "Remove a receiver from a group.",
+      "method": "DELETE",
+      "endpoint": "/groups.json/{{ inputs.group_id }}/receivers/{{ inputs.email }}",
+      "inputs": [
+        {
+          "key": "group_id",
+          "label": "Group ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "email",
+          "label": "Email or receiver ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": []
+}

@@ -1,0 +1,181 @@
+{
+  "key": "wp_engine",
+  "name": "WP Engine",
+  "category": "Developer Tools",
+  "description": "Purge cache, take backups and list WordPress installs on WP Engine.",
+  "brand": "wpengine",
+  "website": "https://wpengine.com",
+  "docs_url": "https://wpengineapi.com/reference",
+  "base_url": "https://api.wpengineapi.com/v1",
+  "auth": {
+    "type": "basic",
+    "fields": [
+      {
+        "key": "username",
+        "label": "API username",
+        "type": "string",
+        "required": true,
+        "help": "WP Engine User Portal → Profile → API Access → Generate credentials (enable API access for the account first)."
+      },
+      {
+        "key": "password",
+        "label": "API password",
+        "type": "password",
+        "required": true
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_installs",
+      "name": "List installs",
+      "description": "List your WordPress installs.",
+      "method": "GET",
+      "endpoint": "/installs",
+      "query": {
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "installs": "results"
+      },
+      "inputs": [
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 100
+        }
+      ]
+    },
+    {
+      "key": "get_install",
+      "name": "Get install",
+      "description": "Get an install's environment, domain and PHP version.",
+      "method": "GET",
+      "endpoint": "/installs/{{ inputs.install_id }}",
+      "output_fields": {
+        "name": "name",
+        "environment": "environment",
+        "primary_domain": "primary_domain",
+        "php_version": "php_version"
+      },
+      "inputs": [
+        {
+          "key": "install_id",
+          "label": "Install ID",
+          "type": "string",
+          "required": true,
+          "help": "Use List installs (a UUID)."
+        }
+      ]
+    },
+    {
+      "key": "purge_cache",
+      "name": "Purge cache",
+      "description": "Purge the page, object or CDN cache of an install.",
+      "method": "POST",
+      "endpoint": "/installs/{{ inputs.install_id }}/purge_cache",
+      "body": {
+        "type": "{{ inputs.type }}"
+      },
+      "inputs": [
+        {
+          "key": "install_id",
+          "label": "Install ID",
+          "type": "string",
+          "required": true,
+          "help": "Use List installs (a UUID)."
+        },
+        {
+          "key": "type",
+          "label": "Cache",
+          "type": "select",
+          "required": true,
+          "default": "page",
+          "options": [
+            {
+              "value": "page",
+              "label": "Page cache"
+            },
+            {
+              "value": "object",
+              "label": "Object cache"
+            },
+            {
+              "value": "cdn",
+              "label": "CDN"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "create_backup",
+      "name": "Create backup",
+      "description": "Start a backup checkpoint of an install.",
+      "method": "POST",
+      "endpoint": "/installs/{{ inputs.install_id }}/backups",
+      "body": {
+        "description": "{{ inputs.description }}",
+        "notification_emails": "{{ inputs.notification_emails }}"
+      },
+      "output_fields": {
+        "backup_id": "id",
+        "status": "status"
+      },
+      "inputs": [
+        {
+          "key": "install_id",
+          "label": "Install ID",
+          "type": "string",
+          "required": true,
+          "help": "Use List installs (a UUID)."
+        },
+        {
+          "key": "description",
+          "label": "Description",
+          "type": "string",
+          "required": true,
+          "placeholder": "Before plugin update"
+        },
+        {
+          "key": "notification_emails",
+          "label": "Notify emails",
+          "type": "list",
+          "required": true,
+          "help": "Who gets an email when the backup is done."
+        }
+      ]
+    },
+    {
+      "key": "list_sites",
+      "name": "List sites",
+      "description": "List your sites.",
+      "method": "GET",
+      "endpoint": "/sites",
+      "output_fields": {
+        "sites": "results"
+      },
+      "inputs": []
+    },
+    {
+      "key": "list_domains",
+      "name": "List install domains",
+      "description": "List the domains of an install.",
+      "method": "GET",
+      "endpoint": "/installs/{{ inputs.install_id }}/domains",
+      "output_fields": {
+        "domains": "results"
+      },
+      "inputs": [
+        {
+          "key": "install_id",
+          "label": "Install ID",
+          "type": "string",
+          "required": true,
+          "help": "Use List installs (a UUID)."
+        }
+      ]
+    }
+  ]
+}

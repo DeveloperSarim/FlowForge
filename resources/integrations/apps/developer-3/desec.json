@@ -1,0 +1,320 @@
+{
+  "key": "desec",
+  "name": "deSEC",
+  "category": "Developer Tools",
+  "description": "Create, update and delete DNS records on deSEC (free secure DNS).",
+  "brand": "desec",
+  "website": "https://desec.io",
+  "docs_url": "https://desec.readthedocs.io/en/latest/",
+  "base_url": "https://desec.io/api/v1",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "Authorization",
+    "prefix": "Token ",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "Token",
+        "type": "password",
+        "required": true,
+        "help": "deSEC → Token management → + (create token); copy the secret shown once."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_domains",
+      "name": "List domains",
+      "description": "List your domains.",
+      "method": "GET",
+      "endpoint": "/domains/",
+      "inputs": []
+    },
+    {
+      "key": "create_domain",
+      "name": "Add domain",
+      "description": "Add a domain to deSEC.",
+      "method": "POST",
+      "endpoint": "/domains/",
+      "body": {
+        "name": "{{ inputs.domain }}"
+      },
+      "output_fields": {
+        "name": "name"
+      },
+      "inputs": [
+        {
+          "key": "domain",
+          "label": "Domain",
+          "type": "string",
+          "required": true,
+          "placeholder": "example.com"
+        }
+      ]
+    },
+    {
+      "key": "list_records",
+      "name": "List records",
+      "description": "List the DNS records of a domain.",
+      "method": "GET",
+      "endpoint": "/domains/{{ inputs.domain }}/rrsets/",
+      "query": {
+        "type": "{{ inputs.type }}",
+        "subname": "{{ inputs.subname }}"
+      },
+      "inputs": [
+        {
+          "key": "domain",
+          "label": "Domain",
+          "type": "string",
+          "required": true,
+          "placeholder": "example.com"
+        },
+        {
+          "key": "type",
+          "label": "Type filter",
+          "type": "string"
+        },
+        {
+          "key": "subname",
+          "label": "Subdomain filter",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "create_record",
+      "name": "Create record",
+      "description": "Create a DNS record set.",
+      "method": "POST",
+      "endpoint": "/domains/{{ inputs.domain }}/rrsets/",
+      "body": {
+        "subname": "{{ inputs.subname }}",
+        "type": "{{ inputs.type }}",
+        "records": "{{ inputs.records }}",
+        "ttl": "{{ inputs.ttl }}"
+      },
+      "output_fields": {
+        "name": "name",
+        "records": "records"
+      },
+      "inputs": [
+        {
+          "key": "domain",
+          "label": "Domain",
+          "type": "string",
+          "required": true,
+          "placeholder": "example.com"
+        },
+        {
+          "key": "subname",
+          "label": "Subdomain",
+          "type": "string",
+          "help": "Leave empty for the domain itself."
+        },
+        {
+          "key": "type",
+          "label": "Record type",
+          "type": "select",
+          "required": true,
+          "default": "A",
+          "options": [
+            {
+              "value": "A",
+              "label": "A"
+            },
+            {
+              "value": "AAAA",
+              "label": "AAAA"
+            },
+            {
+              "value": "CNAME",
+              "label": "CNAME"
+            },
+            {
+              "value": "MX",
+              "label": "MX"
+            },
+            {
+              "value": "TXT",
+              "label": "TXT"
+            },
+            {
+              "value": "CAA",
+              "label": "CAA"
+            },
+            {
+              "value": "NS",
+              "label": "NS"
+            },
+            {
+              "value": "SRV",
+              "label": "SRV"
+            }
+          ]
+        },
+        {
+          "key": "records",
+          "label": "Values",
+          "type": "list",
+          "required": true,
+          "help": "E.g. 192.0.2.1. TXT values need quotes: \"hello\". MX: 10 mail.example.com."
+        },
+        {
+          "key": "ttl",
+          "label": "TTL (seconds)",
+          "type": "number",
+          "default": 3600
+        }
+      ]
+    },
+    {
+      "key": "update_record",
+      "name": "Update record",
+      "description": "Change the values or TTL of a record set.",
+      "method": "PATCH",
+      "endpoint": "/domains/{{ inputs.domain }}/rrsets/{{ inputs.subname }}/{{ inputs.type }}/",
+      "body": {
+        "records": "{{ inputs.records }}",
+        "ttl": "{{ inputs.ttl }}"
+      },
+      "output_fields": {
+        "records": "records"
+      },
+      "inputs": [
+        {
+          "key": "domain",
+          "label": "Domain",
+          "type": "string",
+          "required": true,
+          "placeholder": "example.com"
+        },
+        {
+          "key": "subname",
+          "label": "Subdomain",
+          "type": "string",
+          "required": true,
+          "default": "@",
+          "help": "Use @ for the domain itself, or e.g. www."
+        },
+        {
+          "key": "type",
+          "label": "Record type",
+          "type": "select",
+          "required": true,
+          "default": "A",
+          "options": [
+            {
+              "value": "A",
+              "label": "A"
+            },
+            {
+              "value": "AAAA",
+              "label": "AAAA"
+            },
+            {
+              "value": "CNAME",
+              "label": "CNAME"
+            },
+            {
+              "value": "MX",
+              "label": "MX"
+            },
+            {
+              "value": "TXT",
+              "label": "TXT"
+            },
+            {
+              "value": "CAA",
+              "label": "CAA"
+            },
+            {
+              "value": "NS",
+              "label": "NS"
+            },
+            {
+              "value": "SRV",
+              "label": "SRV"
+            }
+          ]
+        },
+        {
+          "key": "records",
+          "label": "Values",
+          "type": "list"
+        },
+        {
+          "key": "ttl",
+          "label": "TTL (seconds)",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "delete_record",
+      "name": "Delete record",
+      "description": "Delete a record set.",
+      "method": "DELETE",
+      "endpoint": "/domains/{{ inputs.domain }}/rrsets/{{ inputs.subname }}/{{ inputs.type }}/",
+      "inputs": [
+        {
+          "key": "domain",
+          "label": "Domain",
+          "type": "string",
+          "required": true,
+          "placeholder": "example.com"
+        },
+        {
+          "key": "subname",
+          "label": "Subdomain",
+          "type": "string",
+          "required": true,
+          "default": "@",
+          "help": "Use @ for the domain itself, or e.g. www."
+        },
+        {
+          "key": "type",
+          "label": "Record type",
+          "type": "select",
+          "required": true,
+          "default": "A",
+          "options": [
+            {
+              "value": "A",
+              "label": "A"
+            },
+            {
+              "value": "AAAA",
+              "label": "AAAA"
+            },
+            {
+              "value": "CNAME",
+              "label": "CNAME"
+            },
+            {
+              "value": "MX",
+              "label": "MX"
+            },
+            {
+              "value": "TXT",
+              "label": "TXT"
+            },
+            {
+              "value": "CAA",
+              "label": "CAA"
+            },
+            {
+              "value": "NS",
+              "label": "NS"
+            },
+            {
+              "value": "SRV",
+              "label": "SRV"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

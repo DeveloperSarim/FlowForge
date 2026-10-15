@@ -1,0 +1,232 @@
+{
+  "key": "ragie",
+  "name": "Ragie",
+  "category": "AI",
+  "description": "Managed RAG: ingest documents and retrieve the most relevant chunks for AI.",
+  "website": "https://www.ragie.ai",
+  "docs_url": "https://docs.ragie.ai",
+  "base_url": "https://api.ragie.ai",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "app.ragie.ai → API Keys → Create key."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "create_document_from_url",
+      "name": "Add document from URL",
+      "description": "Ingest a file or page from a URL.",
+      "method": "POST",
+      "endpoint": "/documents/url",
+      "body": {
+        "url": "{{ inputs.url }}",
+        "name": "{{ inputs.name }}",
+        "metadata": "{{ inputs.metadata }}",
+        "partition": "{{ inputs.partition }}"
+      },
+      "output_fields": {
+        "id": "id",
+        "status": "status"
+      },
+      "inputs": [
+        {
+          "key": "url",
+          "label": "URL",
+          "type": "string",
+          "required": true,
+          "help": "A public link to a file or web page."
+        },
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string"
+        },
+        {
+          "key": "metadata",
+          "label": "Metadata",
+          "type": "json"
+        },
+        {
+          "key": "partition",
+          "label": "Partition",
+          "type": "string",
+          "help": "Optional, to keep customers' data apart."
+        }
+      ]
+    },
+    {
+      "key": "create_document_raw",
+      "name": "Add text document",
+      "description": "Ingest plain text.",
+      "method": "POST",
+      "endpoint": "/documents/raw",
+      "body": {
+        "data": "{{ inputs.data }}",
+        "name": "{{ inputs.name }}",
+        "metadata": "{{ inputs.metadata }}",
+        "partition": "{{ inputs.partition }}"
+      },
+      "output_fields": {
+        "id": "id",
+        "status": "status"
+      },
+      "inputs": [
+        {
+          "key": "data",
+          "label": "Text",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string"
+        },
+        {
+          "key": "metadata",
+          "label": "Metadata",
+          "type": "json"
+        },
+        {
+          "key": "partition",
+          "label": "Partition",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "retrieve",
+      "name": "Retrieve chunks",
+      "description": "Find the passages most relevant to a question.",
+      "method": "POST",
+      "endpoint": "/retrievals",
+      "body": {
+        "query": "{{ inputs.query }}",
+        "top_k": "{{ inputs.top_k }}",
+        "rerank": "{{ inputs.rerank }}",
+        "filter": "{{ inputs.filter }}",
+        "partition": "{{ inputs.partition }}"
+      },
+      "output_fields": {
+        "chunks": "scored_chunks",
+        "text": "scored_chunks.*.text"
+      },
+      "inputs": [
+        {
+          "key": "query",
+          "label": "Query",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "top_k",
+          "label": "Results",
+          "type": "number",
+          "default": 8
+        },
+        {
+          "key": "rerank",
+          "label": "Rerank",
+          "type": "boolean",
+          "default": true
+        },
+        {
+          "key": "filter",
+          "label": "Metadata filter",
+          "type": "json"
+        },
+        {
+          "key": "partition",
+          "label": "Partition",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "list_documents",
+      "name": "List documents",
+      "description": "List ingested documents.",
+      "method": "GET",
+      "endpoint": "/documents",
+      "query": {
+        "page_size": "{{ inputs.page_size }}",
+        "partition": "{{ inputs.partition }}"
+      },
+      "output_fields": {
+        "documents": "documents"
+      },
+      "inputs": [
+        {
+          "key": "page_size",
+          "label": "Page size",
+          "type": "number",
+          "default": 20
+        },
+        {
+          "key": "partition",
+          "label": "Partition",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "get_document",
+      "name": "Get document",
+      "description": "Get a document and its processing status.",
+      "method": "GET",
+      "endpoint": "/documents/{{ inputs.id }}",
+      "output_fields": {
+        "status": "status",
+        "name": "name"
+      },
+      "inputs": [
+        {
+          "key": "id",
+          "label": "Document ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "get_summary",
+      "name": "Get document summary",
+      "description": "Get the AI summary of a document.",
+      "method": "GET",
+      "endpoint": "/documents/{{ inputs.id }}/summary",
+      "output_fields": {
+        "summary": "summary"
+      },
+      "inputs": [
+        {
+          "key": "id",
+          "label": "Document ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "delete_document",
+      "name": "Delete document",
+      "description": "Delete a document.",
+      "method": "DELETE",
+      "endpoint": "/documents/{{ inputs.id }}",
+      "inputs": [
+        {
+          "key": "id",
+          "label": "Document ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ]
+}

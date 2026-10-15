@@ -1,0 +1,116 @@
+{
+  "key": "couchbase_capella",
+  "name": "Couchbase Capella",
+  "category": "Databases",
+  "description": "List organizations, projects and clusters in Couchbase Capella.",
+  "website": "https://www.couchbase.com",
+  "docs_url": "https://docs.couchbase.com/cloud/management-api-guide/management-api-intro.html",
+  "base_url": "https://cloudapi.cloud.couchbase.com/v4",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "API key secret",
+        "type": "password",
+        "required": true,
+        "help": "In Capella open Settings → API Keys → Generate Key and copy the secret."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_organizations",
+      "name": "List organizations",
+      "description": "List organizations the key can access.",
+      "method": "GET",
+      "endpoint": "/organizations",
+      "output_fields": {
+        "organizations": "data",
+        "first_id": "data.0.id"
+      },
+      "inputs": []
+    },
+    {
+      "key": "list_projects",
+      "name": "List projects",
+      "description": "List projects in an organization.",
+      "method": "GET",
+      "endpoint": "/organizations/{{ inputs.org_id }}/projects",
+      "output_fields": {
+        "projects": "data",
+        "first_id": "data.0.id"
+      },
+      "inputs": [
+        {
+          "key": "org_id",
+          "label": "Organization ID",
+          "type": "string",
+          "required": true,
+          "help": "Use 'List organizations' to find it."
+        }
+      ]
+    },
+    {
+      "key": "list_clusters",
+      "name": "List clusters",
+      "description": "List clusters in a project.",
+      "method": "GET",
+      "endpoint": "/organizations/{{ inputs.org_id }}/projects/{{ inputs.project_id }}/clusters",
+      "output_fields": {
+        "clusters": "data",
+        "first_id": "data.0.id"
+      },
+      "inputs": [
+        {
+          "key": "org_id",
+          "label": "Organization ID",
+          "type": "string",
+          "required": true,
+          "help": "Use 'List organizations' to find it."
+        },
+        {
+          "key": "project_id",
+          "label": "Project ID",
+          "type": "string",
+          "required": true,
+          "help": "Use 'List projects' to find it."
+        }
+      ]
+    },
+    {
+      "key": "get_cluster",
+      "name": "Get cluster",
+      "description": "Read one cluster.",
+      "method": "GET",
+      "endpoint": "/organizations/{{ inputs.org_id }}/projects/{{ inputs.project_id }}/clusters/{{ inputs.cluster_id }}",
+      "output_fields": {
+        "name": "name",
+        "state": "currentState",
+        "cloud": "cloudProvider.type"
+      },
+      "inputs": [
+        {
+          "key": "org_id",
+          "label": "Organization ID",
+          "type": "string",
+          "required": true,
+          "help": "Use 'List organizations' to find it."
+        },
+        {
+          "key": "project_id",
+          "label": "Project ID",
+          "type": "string",
+          "required": true,
+          "help": "Use 'List projects' to find it."
+        },
+        {
+          "key": "cluster_id",
+          "label": "Cluster ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ]
+}

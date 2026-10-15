@@ -1,0 +1,156 @@
+{
+  "key": "meraki",
+  "name": "Cisco Meraki",
+  "category": "Security & IT",
+  "description": "List Meraki networks, devices and clients, check device status and reboot.",
+  "brand": "cisco",
+  "website": "https://meraki.cisco.com",
+  "docs_url": "https://developer.cisco.com/meraki/api-v1/",
+  "base_url": "https://api.meraki.com/api/v1",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "Meraki Dashboard → Organization → Settings → enable API access, then My profile → API access → Generate API key."
+      }
+    ],
+    "profile": {
+      "endpoint": "/organizations",
+      "store": {
+        "organization_id": "{{ 0.id }}"
+      }
+    }
+  },
+  "actions": [
+    {
+      "key": "list_organizations",
+      "name": "List organizations",
+      "description": "List the organizations your key can access.",
+      "method": "GET",
+      "endpoint": "/organizations",
+      "inputs": []
+    },
+    {
+      "key": "list_networks",
+      "name": "List networks",
+      "description": "List an organization's networks.",
+      "method": "GET",
+      "endpoint": "/organizations/{{ inputs.organization_id }}/networks",
+      "inputs": [
+        {
+          "key": "organization_id",
+          "label": "Organization ID",
+          "type": "string",
+          "fallback": "credentials.organization_id",
+          "help": "Leave empty to use your first organization."
+        }
+      ]
+    },
+    {
+      "key": "list_devices",
+      "name": "List devices",
+      "description": "List an organization's devices.",
+      "method": "GET",
+      "endpoint": "/organizations/{{ inputs.organization_id }}/devices",
+      "inputs": [
+        {
+          "key": "organization_id",
+          "label": "Organization ID",
+          "type": "string",
+          "fallback": "credentials.organization_id",
+          "help": "Leave empty to use your first organization."
+        }
+      ]
+    },
+    {
+      "key": "device_statuses",
+      "name": "Get device statuses",
+      "description": "See which devices are online, alerting or offline.",
+      "method": "GET",
+      "endpoint": "/organizations/{{ inputs.organization_id }}/devices/statuses",
+      "query": {
+        "statuses[]": "{{ inputs.status }}"
+      },
+      "inputs": [
+        {
+          "key": "organization_id",
+          "label": "Organization ID",
+          "type": "string",
+          "fallback": "credentials.organization_id",
+          "help": "Leave empty to use your first organization."
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "options": [
+            {
+              "value": "online",
+              "label": "online"
+            },
+            {
+              "value": "alerting",
+              "label": "alerting"
+            },
+            {
+              "value": "offline",
+              "label": "offline"
+            },
+            {
+              "value": "dormant",
+              "label": "dormant"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "list_clients",
+      "name": "List network clients",
+      "description": "List clients seen on a network.",
+      "method": "GET",
+      "endpoint": "/networks/{{ inputs.network_id }}/clients",
+      "query": {
+        "timespan": "{{ inputs.timespan }}"
+      },
+      "inputs": [
+        {
+          "key": "network_id",
+          "label": "Network ID",
+          "type": "string",
+          "required": true,
+          "help": "From List networks (starts with L_ or N_)."
+        },
+        {
+          "key": "timespan",
+          "label": "Seen in the last (seconds)",
+          "type": "number",
+          "default": 86400
+        }
+      ]
+    },
+    {
+      "key": "reboot_device",
+      "name": "Reboot device",
+      "description": "Reboot a Meraki device.",
+      "method": "POST",
+      "endpoint": "/devices/{{ inputs.serial }}/reboot",
+      "output_fields": {
+        "success": "success"
+      },
+      "inputs": [
+        {
+          "key": "serial",
+          "label": "Device serial",
+          "type": "string",
+          "required": true,
+          "placeholder": "Q234-ABCD-5678"
+        }
+      ]
+    }
+  ]
+}

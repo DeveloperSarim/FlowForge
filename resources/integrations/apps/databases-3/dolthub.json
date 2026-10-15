@@ -1,0 +1,156 @@
+{
+  "key": "dolthub",
+  "name": "DoltHub",
+  "category": "Databases",
+  "description": "Run SQL queries against versioned Dolt databases hosted on DoltHub.",
+  "website": "https://www.dolthub.com",
+  "docs_url": "https://docs.dolthub.com/products/dolthub/api/sql",
+  "base_url": "https://www.dolthub.com/api/v1alpha1",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "authorization",
+    "prefix": "token ",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "API token",
+        "type": "password",
+        "required": true,
+        "help": "On DoltHub open Settings → Tokens → Create token and copy it. Only needed for private databases and writes."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "run_query",
+      "name": "Run SQL query",
+      "description": "Run a read-only SQL query on a branch.",
+      "method": "GET",
+      "endpoint": "/{{ inputs.owner }}/{{ inputs.database }}/{{ inputs.branch }}",
+      "query": {
+        "q": "{{ inputs.sql }}"
+      },
+      "output_fields": {
+        "rows": "rows",
+        "status": "query_execution_status",
+        "message": "query_execution_message",
+        "first_row": "rows.0"
+      },
+      "inputs": [
+        {
+          "key": "owner",
+          "label": "Owner",
+          "type": "string",
+          "required": true,
+          "help": "The user or organization in the database address: dolthub.com/repositories/OWNER/NAME."
+        },
+        {
+          "key": "database",
+          "label": "Database name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "branch",
+          "label": "Branch",
+          "type": "string",
+          "default": "main"
+        },
+        {
+          "key": "sql",
+          "label": "SQL query",
+          "type": "text",
+          "required": true,
+          "placeholder": "SELECT * FROM people LIMIT 10"
+        }
+      ]
+    },
+    {
+      "key": "write_query",
+      "name": "Run SQL write",
+      "description": "Run an INSERT, UPDATE or DELETE on a branch; it runs in the background.",
+      "method": "POST",
+      "endpoint": "/{{ inputs.owner }}/{{ inputs.database }}/write/{{ inputs.from_branch }}/{{ inputs.to_branch }}",
+      "query": {
+        "q": "{{ inputs.sql }}"
+      },
+      "output_fields": {
+        "operation_name": "operation_name",
+        "status": "query_execution_status"
+      },
+      "inputs": [
+        {
+          "key": "owner",
+          "label": "Owner",
+          "type": "string",
+          "required": true,
+          "help": "The user or organization in the database address: dolthub.com/repositories/OWNER/NAME."
+        },
+        {
+          "key": "database",
+          "label": "Database name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "from_branch",
+          "label": "Start from branch",
+          "type": "string",
+          "default": "main"
+        },
+        {
+          "key": "to_branch",
+          "label": "Save changes on branch",
+          "type": "string",
+          "required": true,
+          "help": "A new or existing branch name.",
+          "default": "flowforge"
+        },
+        {
+          "key": "sql",
+          "label": "SQL statement",
+          "type": "text",
+          "required": true,
+          "placeholder": "UPDATE people SET age = 30 WHERE id = 1"
+        }
+      ]
+    },
+    {
+      "key": "write_status",
+      "name": "Check write status",
+      "description": "See whether a background write has finished.",
+      "method": "GET",
+      "endpoint": "/{{ inputs.owner }}/{{ inputs.database }}/write",
+      "query": {
+        "operationName": "{{ inputs.operation_name }}"
+      },
+      "output_fields": {
+        "done": "done",
+        "res_details": "res_details"
+      },
+      "inputs": [
+        {
+          "key": "owner",
+          "label": "Owner",
+          "type": "string",
+          "required": true,
+          "help": "The user or organization in the database address: dolthub.com/repositories/OWNER/NAME."
+        },
+        {
+          "key": "database",
+          "label": "Database name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "operation_name",
+          "label": "Operation name",
+          "type": "string",
+          "required": true,
+          "help": "The operation_name returned by Run SQL write."
+        }
+      ]
+    }
+  ]
+}

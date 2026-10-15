@@ -1,0 +1,181 @@
+{
+  "key": "optimizely",
+  "name": "Optimizely",
+  "category": "Analytics",
+  "description": "List Optimizely Web projects and experiments and read experiment results.",
+  "website": "https://www.optimizely.com",
+  "docs_url": "https://library.optimizely.com/docs/api/app/v2/index.html",
+  "base_url": "https://api.optimizely.com/v2",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "Personal access token",
+        "type": "password",
+        "required": true,
+        "help": "Optimizely → Profile → API Access → Generate New Token."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_projects",
+      "name": "List projects",
+      "description": "Projects in your account.",
+      "method": "GET",
+      "endpoint": "/projects",
+      "query": {
+        "per_page": "{{ inputs.per_page }}"
+      },
+      "output_fields": {
+        "ids": "*.id",
+        "names": "*.name"
+      },
+      "inputs": [
+        {
+          "key": "per_page",
+          "label": "Per page",
+          "type": "number",
+          "default": 25
+        }
+      ]
+    },
+    {
+      "key": "list_experiments",
+      "name": "List experiments",
+      "description": "Experiments in a project.",
+      "method": "GET",
+      "endpoint": "/experiments",
+      "query": {
+        "project_id": "{{ inputs.project_id }}",
+        "per_page": "{{ inputs.per_page }}"
+      },
+      "output_fields": {
+        "ids": "*.id",
+        "names": "*.name",
+        "statuses": "*.status"
+      },
+      "inputs": [
+        {
+          "key": "project_id",
+          "label": "Project ID",
+          "type": "number",
+          "required": true,
+          "help": "Optimizely → Settings → the project ID, or use 'List projects'."
+        },
+        {
+          "key": "per_page",
+          "label": "Per page",
+          "type": "number",
+          "default": 25
+        }
+      ]
+    },
+    {
+      "key": "get_experiment",
+      "name": "Get experiment",
+      "description": "Settings and status of one experiment.",
+      "method": "GET",
+      "endpoint": "/experiments/{{ inputs.experiment_id }}",
+      "output_fields": {
+        "id": "id",
+        "name": "name",
+        "status": "status",
+        "project_id": "project_id"
+      },
+      "inputs": [
+        {
+          "key": "experiment_id",
+          "label": "Experiment ID",
+          "type": "number",
+          "required": true,
+          "help": "Shown in the experiment's URL, or use 'List experiments'."
+        }
+      ]
+    },
+    {
+      "key": "get_experiment_results",
+      "name": "Get experiment results",
+      "description": "Conversion results and confidence per variation.",
+      "method": "GET",
+      "endpoint": "/experiments/{{ inputs.experiment_id }}/results",
+      "output_fields": {
+        "metrics": "metrics",
+        "reach": "reach",
+        "start_time": "start_time"
+      },
+      "inputs": [
+        {
+          "key": "experiment_id",
+          "label": "Experiment ID",
+          "type": "number",
+          "required": true,
+          "help": "Shown in the experiment's URL, or use 'List experiments'."
+        }
+      ]
+    },
+    {
+      "key": "list_audiences",
+      "name": "List audiences",
+      "description": "Audiences in a project.",
+      "method": "GET",
+      "endpoint": "/audiences",
+      "query": {
+        "project_id": "{{ inputs.project_id }}"
+      },
+      "output_fields": {
+        "ids": "*.id",
+        "names": "*.name"
+      },
+      "inputs": [
+        {
+          "key": "project_id",
+          "label": "Project ID",
+          "type": "number",
+          "required": true,
+          "help": "Optimizely → Settings → the project ID, or use 'List projects'."
+        }
+      ]
+    },
+    {
+      "key": "list_pages",
+      "name": "List pages",
+      "description": "Pages (URL targets) in a project.",
+      "method": "GET",
+      "endpoint": "/pages",
+      "query": {
+        "project_id": "{{ inputs.project_id }}"
+      },
+      "output_fields": {
+        "ids": "*.id",
+        "names": "*.name"
+      },
+      "inputs": [
+        {
+          "key": "project_id",
+          "label": "Project ID",
+          "type": "number",
+          "required": true,
+          "help": "Optimizely → Settings → the project ID, or use 'List projects'."
+        }
+      ]
+    },
+    {
+      "key": "archive_experiment",
+      "name": "Archive experiment",
+      "description": "Archive an experiment you no longer need.",
+      "method": "DELETE",
+      "endpoint": "/experiments/{{ inputs.experiment_id }}",
+      "inputs": [
+        {
+          "key": "experiment_id",
+          "label": "Experiment ID",
+          "type": "number",
+          "required": true,
+          "help": "Shown in the experiment's URL, or use 'List experiments'."
+        }
+      ]
+    }
+  ]
+}

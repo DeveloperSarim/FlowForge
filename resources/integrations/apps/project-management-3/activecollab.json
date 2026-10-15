@@ -1,0 +1,126 @@
+{
+  "key": "activecollab",
+  "name": "ActiveCollab",
+  "category": "Project Management",
+  "description": "Project management: list projects, create tasks, read task lists.",
+  "website": "https://activecollab.com",
+  "docs_url": "https://developers.activecollab.com/api-documentation/",
+  "base_url": "{{ credentials.base_url }}/api/v1",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "X-Angie-AuthApiToken",
+    "fields": [
+      {
+        "key": "base_url",
+        "label": "ActiveCollab URL",
+        "type": "string",
+        "required": true,
+        "placeholder": "https://app.activecollab.com/123456",
+        "help": "The address of your ActiveCollab server, without a trailing slash."
+      },
+      {
+        "key": "api_key",
+        "label": "API token",
+        "type": "password",
+        "required": true,
+        "help": "ActiveCollab → your avatar → API Subscriptions → New token (self-hosted: Settings → API)."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_projects",
+      "name": "List projects",
+      "description": "Active projects.",
+      "method": "GET",
+      "endpoint": "/projects",
+      "output_fields": {
+        "names": "*.name",
+        "ids": "*.id"
+      },
+      "inputs": []
+    },
+    {
+      "key": "list_task_lists",
+      "name": "List task lists",
+      "description": "Task lists in a project.",
+      "method": "GET",
+      "endpoint": "/projects/{{ inputs.project_id }}/task-lists",
+      "output_fields": {
+        "names": "*.name",
+        "ids": "*.id"
+      },
+      "inputs": [
+        {
+          "key": "project_id",
+          "label": "Project ID",
+          "type": "string",
+          "required": true,
+          "help": "Use \"List projects\"."
+        }
+      ]
+    },
+    {
+      "key": "list_tasks",
+      "name": "List tasks",
+      "description": "Open tasks of a project.",
+      "method": "GET",
+      "endpoint": "/projects/{{ inputs.project_id }}/tasks",
+      "output_fields": {
+        "names": "tasks.*.name",
+        "ids": "tasks.*.id"
+      },
+      "inputs": [
+        {
+          "key": "project_id",
+          "label": "Project ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "create_task",
+      "name": "Create task",
+      "description": "Add a task to a task list.",
+      "method": "POST",
+      "endpoint": "/projects/{{ inputs.project_id }}/tasks",
+      "body": {
+        "name": "{{ inputs.name }}",
+        "task_list_id": "{{ inputs.task_list_id }}",
+        "body": "{{ inputs.body }}"
+      },
+      "output_fields": {
+        "id": "single.id",
+        "name": "single.name"
+      },
+      "inputs": [
+        {
+          "key": "project_id",
+          "label": "Project ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "task_list_id",
+          "label": "Task list ID",
+          "type": "number",
+          "required": true,
+          "help": "Use \"List task lists\"."
+        },
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "body",
+          "label": "Description",
+          "type": "text"
+        }
+      ]
+    }
+  ]
+}

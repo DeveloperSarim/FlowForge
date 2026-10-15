@@ -1,0 +1,178 @@
+{
+  "key": "blotato",
+  "name": "Blotato",
+  "category": "Social Media",
+  "description": "Publish or schedule posts to X, LinkedIn, Facebook, Instagram and more with Blotato.",
+  "website": "https://www.blotato.com",
+  "docs_url": "https://help.blotato.com/api/api-reference",
+  "base_url": "https://backend.blotato.com/v2",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "blotato-api-key",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "my.blotato.com → Settings → API → Generate API key."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_accounts",
+      "name": "List accounts",
+      "method": "GET",
+      "endpoint": "/users/me/accounts",
+      "query": {
+        "platform": "{{ inputs.platform }}"
+      },
+      "output_fields": {
+        "accounts": "items",
+        "account_ids": "items.*.id",
+        "platforms": "items.*.platform"
+      },
+      "inputs": [
+        {
+          "key": "platform",
+          "label": "Only platform",
+          "type": "string",
+          "placeholder": "linkedin"
+        }
+      ]
+    },
+    {
+      "key": "list_pages",
+      "name": "List pages of an account",
+      "description": "Facebook pages and similar; their id is the Page ID for posting.",
+      "method": "GET",
+      "endpoint": "/users/me/accounts/{{ inputs.account_id }}/subaccounts",
+      "output_fields": {
+        "pages": "items",
+        "page_ids": "items.*.id",
+        "names": "items.*.name"
+      },
+      "inputs": [
+        {
+          "key": "account_id",
+          "label": "Account ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "create_post",
+      "name": "Create post",
+      "method": "POST",
+      "endpoint": "/posts",
+      "body": {
+        "post": {
+          "accountId": "{{ inputs.account_id }}",
+          "content": {
+            "text": "{{ inputs.text }}",
+            "mediaUrls": "{{ inputs.mediaUrls }}",
+            "platform": "{{ inputs.platform }}"
+          },
+          "target": {
+            "targetType": "{{ inputs.platform }}",
+            "pageId": "{{ inputs.pageId }}"
+          }
+        },
+        "scheduledTime": "{{ inputs.scheduledTime }}"
+      },
+      "output_fields": {
+        "submission_id": "postSubmissionId"
+      },
+      "inputs": [
+        {
+          "key": "account_id",
+          "label": "Account ID",
+          "type": "string",
+          "required": true,
+          "help": "id from 'List accounts'."
+        },
+        {
+          "key": "platform",
+          "label": "Platform",
+          "type": "select",
+          "required": true,
+          "default": "linkedin",
+          "options": [
+            {
+              "value": "twitter",
+              "label": "X (Twitter)"
+            },
+            {
+              "value": "linkedin",
+              "label": "LinkedIn"
+            },
+            {
+              "value": "facebook",
+              "label": "Facebook"
+            },
+            {
+              "value": "instagram",
+              "label": "Instagram"
+            },
+            {
+              "value": "threads",
+              "label": "Threads"
+            },
+            {
+              "value": "bluesky",
+              "label": "Bluesky"
+            }
+          ]
+        },
+        {
+          "key": "text",
+          "label": "Post text",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "mediaUrls",
+          "label": "Image or video URLs",
+          "type": "list",
+          "help": "Instagram needs at least one."
+        },
+        {
+          "key": "pageId",
+          "label": "Facebook page ID",
+          "type": "string",
+          "help": "Required for Facebook; see 'List pages of an account'."
+        },
+        {
+          "key": "scheduledTime",
+          "label": "Schedule for",
+          "type": "string",
+          "placeholder": "2026-12-01T09:00:00Z",
+          "help": "Leave blank to publish now."
+        }
+      ]
+    },
+    {
+      "key": "get_post_status",
+      "name": "Get post status",
+      "method": "GET",
+      "endpoint": "/posts/{{ inputs.id }}",
+      "output_fields": {
+        "status": "status",
+        "url": "publicUrl",
+        "error": "errorMessage"
+      },
+      "inputs": [
+        {
+          "key": "id",
+          "label": "Submission ID",
+          "type": "string",
+          "required": true,
+          "help": "postSubmissionId returned by 'Create post'."
+        }
+      ]
+    }
+  ]
+}

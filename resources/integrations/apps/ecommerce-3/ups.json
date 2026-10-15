@@ -1,0 +1,242 @@
+{
+  "key": "ups",
+  "name": "UPS",
+  "category": "E-commerce",
+  "description": "Track UPS packages, shop rates across services and validate US addresses.",
+  "website": "https://www.ups.com",
+  "docs_url": "https://developer.ups.com/catalog",
+  "base_url": "https://{{ credentials.host }}/api",
+  "auth": {
+    "type": "oauth2_client_credentials",
+    "token_url": "https://{{ credentials.host }}/security/v1/oauth/token",
+    "client_auth": "basic",
+    "fields": [
+      {
+        "key": "client_id",
+        "label": "Client ID",
+        "type": "string",
+        "required": true,
+        "help": "developer.ups.com → Apps → Add app (Tracking, Rating, Address Validation) → Client ID."
+      },
+      {
+        "key": "client_secret",
+        "label": "Client secret",
+        "type": "password",
+        "required": true
+      },
+      {
+        "key": "account_number",
+        "label": "UPS account number",
+        "type": "string",
+        "help": "Your 6-character shipper number; needed for negotiated rates."
+      },
+      {
+        "key": "host",
+        "label": "Environment",
+        "type": "select",
+        "required": true,
+        "default": "onlinetools.ups.com",
+        "options": [
+          {
+            "value": "onlinetools.ups.com",
+            "label": "Production"
+          },
+          {
+            "value": "wwwcie.ups.com",
+            "label": "Test (CIE)"
+          }
+        ]
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "track_package",
+      "name": "Track package",
+      "description": "Latest status and activity for a tracking number.",
+      "method": "GET",
+      "endpoint": "/track/v1/details/{{ inputs.tracking_number }}",
+      "headers": {
+        "transId": "flowforge-track",
+        "transactionSrc": "FlowForge"
+      },
+      "query": {
+        "locale": "en_US"
+      },
+      "output_fields": {
+        "status": "trackResponse.shipment.0.package.0.activity.0.status.description",
+        "delivery_date": "trackResponse.shipment.0.package.0.deliveryDate.0.date",
+        "activity": "trackResponse.shipment.0.package.0.activity"
+      },
+      "inputs": [
+        {
+          "key": "tracking_number",
+          "label": "Tracking number",
+          "type": "string",
+          "required": true,
+          "placeholder": "1Z…"
+        }
+      ]
+    },
+    {
+      "key": "shop_rates",
+      "name": "Shop rates",
+      "description": "Rates for every UPS service between two addresses.",
+      "method": "POST",
+      "endpoint": "/rating/v2403/Shop",
+      "headers": {
+        "transId": "flowforge-rate",
+        "transactionSrc": "FlowForge"
+      },
+      "body": {
+        "RateRequest": {
+          "Request": {
+            "TransactionReference": {
+              "CustomerContext": "FlowForge"
+            }
+          },
+          "Shipment": {
+            "Shipper": {
+              "ShipperNumber": "{{ credentials.account_number }}",
+              "Address": {
+                "PostalCode": "{{ inputs.from_postcode }}",
+                "CountryCode": "{{ inputs.from_country }}"
+              }
+            },
+            "ShipFrom": {
+              "Address": {
+                "PostalCode": "{{ inputs.from_postcode }}",
+                "CountryCode": "{{ inputs.from_country }}"
+              }
+            },
+            "ShipTo": {
+              "Address": {
+                "PostalCode": "{{ inputs.to_postcode }}",
+                "CountryCode": "{{ inputs.to_country }}"
+              }
+            },
+            "Package": {
+              "PackagingType": {
+                "Code": "02"
+              },
+              "PackageWeight": {
+                "UnitOfMeasurement": {
+                  "Code": "{{ inputs.weight_units }}"
+                },
+                "Weight": "{{ inputs.weight }}"
+              }
+            }
+          }
+        }
+      },
+      "output_fields": {
+        "rates": "RateResponse.RatedShipment"
+      },
+      "inputs": [
+        {
+          "key": "from_postcode",
+          "label": "From postcode",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "from_country",
+          "label": "From country",
+          "type": "string",
+          "required": true,
+          "default": "US"
+        },
+        {
+          "key": "to_postcode",
+          "label": "To postcode",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "to_country",
+          "label": "To country",
+          "type": "string",
+          "required": true,
+          "default": "US"
+        },
+        {
+          "key": "weight",
+          "label": "Weight",
+          "type": "string",
+          "required": true,
+          "placeholder": "5"
+        },
+        {
+          "key": "weight_units",
+          "label": "Units",
+          "type": "select",
+          "required": true,
+          "default": "LBS",
+          "options": [
+            {
+              "value": "LBS",
+              "label": "LBS"
+            },
+            {
+              "value": "KGS",
+              "label": "KGS"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "validate_address",
+      "name": "Validate address (US)",
+      "description": "Check a US or Puerto Rico street address.",
+      "method": "POST",
+      "endpoint": "/addressvalidation/v2/1",
+      "headers": {
+        "transId": "flowforge-xav",
+        "transactionSrc": "FlowForge"
+      },
+      "body": {
+        "XAVRequest": {
+          "AddressKeyFormat": {
+            "AddressLine": "{{ inputs.address_lines }}",
+            "PoliticalDivision2": "{{ inputs.city }}",
+            "PoliticalDivision1": "{{ inputs.state }}",
+            "PostcodePrimaryLow": "{{ inputs.postcode }}",
+            "CountryCode": "US"
+          }
+        }
+      },
+      "output_fields": {
+        "valid": "XAVResponse.ValidAddressIndicator",
+        "candidates": "XAVResponse.Candidate"
+      },
+      "inputs": [
+        {
+          "key": "address_lines",
+          "label": "Street lines",
+          "type": "list",
+          "required": true
+        },
+        {
+          "key": "city",
+          "label": "City",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "state",
+          "label": "State code",
+          "type": "string",
+          "required": true,
+          "placeholder": "GA"
+        },
+        {
+          "key": "postcode",
+          "label": "ZIP code",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ]
+}

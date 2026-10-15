@@ -1,0 +1,139 @@
+{
+  "key": "open_edx",
+  "name": "Open edX",
+  "category": "Education",
+  "description": "Read Open edX courses, enroll learners and look up accounts on your own edX site.",
+  "website": "https://openedx.org",
+  "docs_url": "https://docs.openedx.org/en/latest/developers/references/api.html",
+  "base_url": "https://{{ credentials.host }}",
+  "auth": {
+    "type": "oauth2_client_credentials",
+    "token_url": "https://{{ credentials.host }}/oauth2/access_token",
+    "fields": [
+      {
+        "key": "host",
+        "label": "Server address",
+        "type": "string",
+        "required": true,
+        "placeholder": "courses.example.com",
+        "help": "The LMS address of your Open edX site without https://."
+      },
+      {
+        "key": "client_id",
+        "label": "Client ID",
+        "type": "string",
+        "required": true,
+        "help": "Django admin > Django OAuth Toolkit > Applications: create an app with type 'Confidential' and grant 'Client credentials'."
+      },
+      {
+        "key": "client_secret",
+        "label": "Client secret",
+        "type": "password",
+        "required": true,
+        "help": "Shown when you create that application."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_courses",
+      "name": "List courses",
+      "description": "Get courses on your site.",
+      "method": "GET",
+      "endpoint": "/api/courses/v1/courses/",
+      "query": {
+        "page_size": "{{ inputs.page_size }}",
+        "search_term": "{{ inputs.search_term }}"
+      },
+      "output_fields": {
+        "courses": "results",
+        "next": "pagination.next"
+      },
+      "inputs": [
+        {
+          "key": "page_size",
+          "label": "Page size",
+          "type": "number",
+          "default": 20
+        },
+        {
+          "key": "search_term",
+          "label": "Search",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "get_course",
+      "name": "Get a course",
+      "description": "Get one course.",
+      "method": "GET",
+      "endpoint": "/api/courses/v1/courses/{{ inputs.course_id }}",
+      "inputs": [
+        {
+          "key": "course_id",
+          "label": "Course ID",
+          "type": "string",
+          "required": true,
+          "help": "Looks like course-v1:Org+Course+Run."
+        }
+      ]
+    },
+    {
+      "key": "enroll_user",
+      "name": "Enroll a learner",
+      "description": "Enroll a user in a course.",
+      "method": "POST",
+      "endpoint": "/api/enrollment/v1/enrollment",
+      "body": {
+        "user": "{{ inputs.username }}",
+        "course_details": {
+          "course_id": "{{ inputs.course_id }}"
+        },
+        "mode": "{{ inputs.mode }}"
+      },
+      "inputs": [
+        {
+          "key": "username",
+          "label": "Username",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "course_id",
+          "label": "Course ID",
+          "type": "string",
+          "required": true,
+          "help": "Looks like course-v1:Org+Course+Run."
+        },
+        {
+          "key": "mode",
+          "label": "Mode",
+          "type": "string",
+          "default": "audit"
+        }
+      ]
+    },
+    {
+      "key": "get_enrollment",
+      "name": "Get enrollment",
+      "description": "Check if a learner is enrolled.",
+      "method": "GET",
+      "endpoint": "/api/enrollment/v1/enrollment/{{ inputs.username }},{{ inputs.course_id }}",
+      "inputs": [
+        {
+          "key": "username",
+          "label": "Username",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "course_id",
+          "label": "Course ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ]
+}

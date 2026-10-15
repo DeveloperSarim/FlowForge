@@ -1,0 +1,122 @@
+{
+  "key": "paylocity",
+  "name": "Paylocity",
+  "category": "HR & Recruiting",
+  "description": "Read employees from Paylocity payroll and HR (WebLink API).",
+  "website": "https://www.paylocity.com",
+  "docs_url": "https://developer.paylocity.com/integrations/reference",
+  "base_url": "https://api.paylocity.com/api/v2",
+  "auth": {
+    "type": "oauth2_client_credentials",
+    "token_url": "https://api.paylocity.com/IdentityServer/connect/token",
+    "scopes": [
+      "WebLinkAPI"
+    ],
+    "fields": [
+      {
+        "key": "client_id",
+        "label": "Client ID",
+        "type": "string",
+        "required": true,
+        "help": "Paylocity gives this when your company is approved for the API (ask your account manager)."
+      },
+      {
+        "key": "client_secret",
+        "label": "Client secret",
+        "type": "password",
+        "required": true,
+        "help": "Provided together with the Client ID."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_employees",
+      "name": "List employees",
+      "description": "List employees in a company.",
+      "method": "GET",
+      "endpoint": "/companies/{{ inputs.company_id }}/employees",
+      "query": {
+        "pagesize": "{{ inputs.page_size }}",
+        "pagenumber": "{{ inputs.page }}"
+      },
+      "output_fields": {
+        "first_id": "0.employeeId",
+        "first_status": "0.statusType"
+      },
+      "inputs": [
+        {
+          "key": "company_id",
+          "label": "Company ID",
+          "type": "string",
+          "required": true,
+          "help": "Your Paylocity company ID (the number your payroll admin uses)."
+        },
+        {
+          "key": "page_size",
+          "label": "Page size",
+          "type": "number",
+          "default": 100
+        },
+        {
+          "key": "page",
+          "label": "Page",
+          "type": "number",
+          "default": 0
+        }
+      ]
+    },
+    {
+      "key": "get_employee",
+      "name": "Get employee",
+      "description": "Read one employee.",
+      "method": "GET",
+      "endpoint": "/companies/{{ inputs.company_id }}/employees/{{ inputs.employee_id }}",
+      "output_fields": {
+        "first_name": "firstName",
+        "last_name": "lastName",
+        "status": "statusType"
+      },
+      "inputs": [
+        {
+          "key": "company_id",
+          "label": "Company ID",
+          "type": "string",
+          "required": true,
+          "help": "Your Paylocity company ID (the number your payroll admin uses)."
+        },
+        {
+          "key": "employee_id",
+          "label": "Employee ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "get_employee_earnings",
+      "name": "Get employee earnings",
+      "description": "Read an employee's pay rate setup.",
+      "method": "GET",
+      "endpoint": "/companies/{{ inputs.company_id }}/employees/{{ inputs.employee_id }}/earnings",
+      "output_fields": {
+        "first_rate": "0.baseRate"
+      },
+      "inputs": [
+        {
+          "key": "company_id",
+          "label": "Company ID",
+          "type": "string",
+          "required": true,
+          "help": "Your Paylocity company ID (the number your payroll admin uses)."
+        },
+        {
+          "key": "employee_id",
+          "label": "Employee ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ]
+}

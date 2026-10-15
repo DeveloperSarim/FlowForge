@@ -1,0 +1,132 @@
+{
+  "key": "cockroachdb_cloud",
+  "name": "CockroachDB Cloud",
+  "category": "Databases",
+  "description": "List clusters, databases and SQL users in your CockroachDB Cloud organization.",
+  "website": "https://www.cockroachlabs.com",
+  "docs_url": "https://www.cockroachlabs.com/docs/api/cloud/v1",
+  "base_url": "https://cockroachlabs.cloud/api/v1",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "In the Cloud Console go to Access Management → Service accounts → your account → Create API key and copy the secret."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_clusters",
+      "name": "List clusters",
+      "description": "List all clusters in the organization.",
+      "method": "GET",
+      "endpoint": "/clusters",
+      "output_fields": {
+        "clusters": "clusters",
+        "first_id": "clusters.0.id",
+        "first_name": "clusters.0.name"
+      },
+      "inputs": []
+    },
+    {
+      "key": "get_cluster",
+      "name": "Get cluster",
+      "description": "Read a cluster's status and plan.",
+      "method": "GET",
+      "endpoint": "/clusters/{{ inputs.cluster_id }}",
+      "output_fields": {
+        "name": "name",
+        "state": "state",
+        "plan": "plan",
+        "cloud_provider": "cloud_provider",
+        "operation_status": "operation_status"
+      },
+      "inputs": [
+        {
+          "key": "cluster_id",
+          "label": "Cluster ID",
+          "type": "string",
+          "required": true,
+          "help": "Use 'List clusters' to find the ID."
+        }
+      ]
+    },
+    {
+      "key": "list_sql_users",
+      "name": "List SQL users",
+      "description": "List SQL users on a cluster.",
+      "method": "GET",
+      "endpoint": "/clusters/{{ inputs.cluster_id }}/sql-users",
+      "output_fields": {
+        "users": "users"
+      },
+      "inputs": [
+        {
+          "key": "cluster_id",
+          "label": "Cluster ID",
+          "type": "string",
+          "required": true,
+          "help": "Use 'List clusters' to find the ID."
+        }
+      ]
+    },
+    {
+      "key": "create_sql_user",
+      "name": "Create SQL user",
+      "description": "Add a SQL user to a cluster.",
+      "method": "POST",
+      "endpoint": "/clusters/{{ inputs.cluster_id }}/sql-users",
+      "body": {
+        "name": "{{ inputs.name }}",
+        "password": "{{ inputs.password }}"
+      },
+      "output_fields": {
+        "name": "name"
+      },
+      "inputs": [
+        {
+          "key": "cluster_id",
+          "label": "Cluster ID",
+          "type": "string",
+          "required": true,
+          "help": "Use 'List clusters' to find the ID."
+        },
+        {
+          "key": "name",
+          "label": "User name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "password",
+          "label": "Password",
+          "type": "password",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_databases",
+      "name": "List databases",
+      "description": "List databases on a cluster.",
+      "method": "GET",
+      "endpoint": "/clusters/{{ inputs.cluster_id }}/databases",
+      "output_fields": {
+        "databases": "databases"
+      },
+      "inputs": [
+        {
+          "key": "cluster_id",
+          "label": "Cluster ID",
+          "type": "string",
+          "required": true,
+          "help": "Use 'List clusters' to find the ID."
+        }
+      ]
+    }
+  ]
+}

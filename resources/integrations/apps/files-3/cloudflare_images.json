@@ -1,0 +1,103 @@
+{
+  "key": "cloudflare_images",
+  "name": "Cloudflare Images",
+  "category": "Files & Documents",
+  "description": "Image hosting: list, read and delete images, and check usage.",
+  "website": "https://www.cloudflare.com/developer-platform/products/cloudflare-images/",
+  "docs_url": "https://developers.cloudflare.com/api/resources/images/",
+  "base_url": "https://api.cloudflare.com/client/v4/accounts/{{ credentials.account_id }}/images",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "account_id",
+        "label": "Account ID",
+        "type": "string",
+        "required": true,
+        "help": "Cloudflare dashboard → Images (the ID is in the right sidebar and the URL)."
+      },
+      {
+        "key": "token",
+        "label": "API token",
+        "type": "password",
+        "required": true,
+        "help": "Cloudflare → My Profile → API Tokens → Create Token with \"Cloudflare Images: Edit\"."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_images",
+      "name": "List images",
+      "description": "Images, newest first.",
+      "method": "GET",
+      "endpoint": "/v2",
+      "query": {
+        "per_page": "{{ inputs.per_page }}",
+        "sort_order": "desc"
+      },
+      "output_fields": {
+        "ids": "result.images.*.id",
+        "names": "result.images.*.filename"
+      },
+      "error_path": "errors.0.message",
+      "inputs": [
+        {
+          "key": "per_page",
+          "label": "Max results",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    },
+    {
+      "key": "get_image",
+      "name": "Get image",
+      "description": "Details and delivery URLs.",
+      "method": "GET",
+      "endpoint": "/v1/{{ inputs.id }}",
+      "output_fields": {
+        "filename": "result.filename",
+        "urls": "result.variants"
+      },
+      "error_path": "errors.0.message",
+      "inputs": [
+        {
+          "key": "id",
+          "label": "Image ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "delete_image",
+      "name": "Delete image",
+      "description": "Delete an image.",
+      "method": "DELETE",
+      "endpoint": "/v1/{{ inputs.id }}",
+      "error_path": "errors.0.message",
+      "inputs": [
+        {
+          "key": "id",
+          "label": "Image ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "get_stats",
+      "name": "Get usage",
+      "description": "Images stored versus your limit.",
+      "method": "GET",
+      "endpoint": "/v1/stats",
+      "output_fields": {
+        "count": "result.count.current",
+        "allowed": "result.count.allowed"
+      },
+      "error_path": "errors.0.message",
+      "inputs": []
+    }
+  ]
+}

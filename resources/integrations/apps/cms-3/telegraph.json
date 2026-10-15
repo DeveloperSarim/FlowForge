@@ -1,0 +1,160 @@
+{
+  "key": "telegraph",
+  "name": "Telegraph",
+  "category": "CMS & Websites",
+  "description": "Publish and edit quick anonymous articles on Telegraph (telegra.ph).",
+  "website": "https://telegra.ph",
+  "docs_url": "https://telegra.ph/api",
+  "base_url": "https://api.telegra.ph",
+  "auth": {
+    "type": "api_key",
+    "in": "query",
+    "name": "access_token",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "Access token",
+        "type": "password",
+        "required": true,
+        "help": "Create one by opening https://api.telegra.ph/createAccount?short_name=FlowForge&author_name=Me in your browser and copying the access_token it shows."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "create_page",
+      "name": "Create page",
+      "description": "Publish a page from plain text.",
+      "method": "POST",
+      "endpoint": "/createPage",
+      "body": {
+        "title": "{{ inputs.title }}",
+        "author_name": "{{ inputs.author_name }}",
+        "content": [
+          {
+            "tag": "p",
+            "children": [
+              "{{ inputs.text }}"
+            ]
+          }
+        ]
+      },
+      "error_path": "error",
+      "output_fields": {
+        "path": "result.path",
+        "url": "result.url"
+      },
+      "inputs": [
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "text",
+          "label": "Text",
+          "type": "text",
+          "required": true,
+          "help": "One paragraph of text."
+        },
+        {
+          "key": "author_name",
+          "label": "Author name",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "edit_page",
+      "name": "Edit page",
+      "description": "Replace a page's title and text.",
+      "method": "POST",
+      "endpoint": "/editPage/{{ inputs.path }}",
+      "body": {
+        "title": "{{ inputs.title }}",
+        "content": [
+          {
+            "tag": "p",
+            "children": [
+              "{{ inputs.text }}"
+            ]
+          }
+        ]
+      },
+      "error_path": "error",
+      "output_fields": {
+        "path": "result.path",
+        "url": "result.url"
+      },
+      "inputs": [
+        {
+          "key": "path",
+          "label": "Page path",
+          "type": "string",
+          "required": true,
+          "help": "The part after telegra.ph/, e.g. My-Page-05-01."
+        },
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "text",
+          "label": "Text",
+          "type": "text",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "get_page",
+      "name": "Get page",
+      "description": "Read a page and its views.",
+      "method": "GET",
+      "endpoint": "/getPage/{{ inputs.path }}",
+      "query": {
+        "return_content": "false"
+      },
+      "error_path": "error",
+      "output_fields": {
+        "title": "result.title",
+        "url": "result.url",
+        "views": "result.views"
+      },
+      "inputs": [
+        {
+          "key": "path",
+          "label": "Page path",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_pages",
+      "name": "List my pages",
+      "description": "List pages created with this token.",
+      "method": "GET",
+      "endpoint": "/getPageList",
+      "query": {
+        "limit": "{{ inputs.limit }}"
+      },
+      "error_path": "error",
+      "output_fields": {
+        "total": "result.total_count",
+        "first_url": "result.pages.0.url"
+      },
+      "inputs": [
+        {
+          "key": "limit",
+          "label": "How many",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,184 @@
+{
+  "key": "snov_io",
+  "name": "Snov.io",
+  "category": "CRM & Sales",
+  "description": "Add prospects to Snov.io lists and drip campaigns and look them up.",
+  "website": "https://snov.io",
+  "docs_url": "https://snov.io/api",
+  "base_url": "https://api.snov.io",
+  "auth": {
+    "type": "oauth2_client_credentials",
+    "token_url": "https://api.snov.io/v1/oauth/access_token",
+    "fields": [
+      {
+        "key": "client_id",
+        "label": "API User ID",
+        "type": "string",
+        "required": true,
+        "help": "Snov.io → Account settings → API (app.snov.io/account/api)."
+      },
+      {
+        "key": "client_secret",
+        "label": "API Secret",
+        "type": "password",
+        "required": true
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "add_prospect",
+      "name": "Add prospect to list",
+      "description": "Adding to a list that has a drip campaign starts the campaign for this prospect.",
+      "method": "POST",
+      "endpoint": "/v1/add-prospect-to-list",
+      "body_format": "form",
+      "body": {
+        "listId": "{{ inputs.list_id }}",
+        "email": "{{ inputs.email }}",
+        "firstName": "{{ inputs.first_name }}",
+        "lastName": "{{ inputs.last_name }}",
+        "position": "{{ inputs.position }}",
+        "companyName": "{{ inputs.company_name }}",
+        "companySite": "{{ inputs.company_site }}",
+        "country": "{{ inputs.country }}",
+        "locality": "{{ inputs.locality }}",
+        "socialLinks[linkedIn]": "{{ inputs.linkedin }}",
+        "updateContact": "{{ inputs.update_contact }}"
+      },
+      "output_fields": {
+        "id": "id",
+        "added": "added",
+        "updated": "updated"
+      },
+      "inputs": [
+        {
+          "key": "list_id",
+          "label": "List ID",
+          "type": "string",
+          "required": true,
+          "help": "Run \"List prospect lists\" to find it."
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string"
+        },
+        {
+          "key": "first_name",
+          "label": "First name",
+          "type": "string"
+        },
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string"
+        },
+        {
+          "key": "position",
+          "label": "Job title",
+          "type": "string"
+        },
+        {
+          "key": "company_name",
+          "label": "Company",
+          "type": "string"
+        },
+        {
+          "key": "company_site",
+          "label": "Company website",
+          "type": "string",
+          "placeholder": "https://example.com"
+        },
+        {
+          "key": "country",
+          "label": "Country",
+          "type": "string"
+        },
+        {
+          "key": "locality",
+          "label": "City / region",
+          "type": "string"
+        },
+        {
+          "key": "linkedin",
+          "label": "LinkedIn URL",
+          "type": "string",
+          "help": "Required when there is no email."
+        },
+        {
+          "key": "update_contact",
+          "label": "Update if it already exists",
+          "type": "boolean",
+          "default": true
+        }
+      ]
+    },
+    {
+      "key": "find_prospect",
+      "name": "Find prospect by email",
+      "method": "POST",
+      "endpoint": "/v1/get-prospects-by-email",
+      "body_format": "form",
+      "body": {
+        "email": "{{ inputs.email }}"
+      },
+      "output_fields": {
+        "prospects": "data",
+        "id": "data.0.id"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_lists",
+      "name": "List prospect lists",
+      "method": "GET",
+      "endpoint": "/v1/get-user-lists",
+      "inputs": []
+    },
+    {
+      "key": "get_balance",
+      "name": "Get credit balance",
+      "method": "GET",
+      "endpoint": "/v1/get-balance",
+      "output_fields": {
+        "balance": "data.balance"
+      },
+      "inputs": []
+    },
+    {
+      "key": "add_to_do_not_email",
+      "name": "Add to do-not-email list",
+      "method": "POST",
+      "endpoint": "/v1/do-not-email-list",
+      "body_format": "form",
+      "body": {
+        "listId": "{{ inputs.list_id }}",
+        "items": [
+          "{{ inputs.item }}"
+        ]
+      },
+      "inputs": [
+        {
+          "key": "list_id",
+          "label": "Do-not-email list ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "item",
+          "label": "Email or domain",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ]
+}

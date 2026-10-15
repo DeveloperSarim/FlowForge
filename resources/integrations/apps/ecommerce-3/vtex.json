@@ -1,0 +1,366 @@
+{
+  "key": "vtex",
+  "name": "VTEX",
+  "category": "E-commerce",
+  "description": "Enterprise commerce: orders, invoicing, cancellations, SKUs and inventory.",
+  "website": "https://vtex.com",
+  "docs_url": "https://developers.vtex.com/docs/api-reference",
+  "base_url": "https://{{ credentials.account }}.{{ credentials.environment }}.com.br/api",
+  "headers": {
+    "X-VTEX-API-AppKey": "{{ credentials.app_key }}",
+    "X-VTEX-API-AppToken": "{{ credentials.api_key }}"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "key": "account",
+        "label": "Account name",
+        "type": "string",
+        "required": true,
+        "placeholder": "mystore",
+        "help": "The first part of your admin URL: <account>.myvtex.com."
+      },
+      {
+        "key": "environment",
+        "label": "Environment",
+        "type": "select",
+        "required": true,
+        "default": "vtexcommercestable",
+        "options": [
+          {
+            "value": "vtexcommercestable",
+            "label": "Stable (default)"
+          },
+          {
+            "value": "vtexcommercebeta",
+            "label": "Beta"
+          }
+        ]
+      },
+      {
+        "key": "app_key",
+        "label": "App key",
+        "type": "string",
+        "required": true,
+        "help": "VTEX admin → Account settings → Account → Security → Application keys → Generate."
+      },
+      {
+        "key": "api_key",
+        "label": "App token",
+        "type": "password",
+        "required": true,
+        "help": "Shown once when the application key is generated."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_orders",
+      "name": "List orders",
+      "description": "Newest orders first, optionally by status.",
+      "method": "GET",
+      "endpoint": "/oms/pvt/orders",
+      "query": {
+        "orderBy": "creationDate,desc",
+        "per_page": "{{ inputs.per_page }}",
+        "f_status": "{{ inputs.status }}",
+        "q": "{{ inputs.q }}"
+      },
+      "output_fields": {
+        "orders": "list"
+      },
+      "inputs": [
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "options": [
+            {
+              "value": "waiting-for-sellers-confirmation",
+              "label": "waiting-for-sellers-confirmation"
+            },
+            {
+              "value": "payment-pending",
+              "label": "payment-pending"
+            },
+            {
+              "value": "payment-approved",
+              "label": "payment-approved"
+            },
+            {
+              "value": "ready-for-handling",
+              "label": "ready-for-handling"
+            },
+            {
+              "value": "handling",
+              "label": "handling"
+            },
+            {
+              "value": "invoiced",
+              "label": "invoiced"
+            },
+            {
+              "value": "canceled",
+              "label": "canceled"
+            }
+          ]
+        },
+        {
+          "key": "q",
+          "label": "Search",
+          "type": "string",
+          "help": "Order ID, customer name or email."
+        },
+        {
+          "key": "per_page",
+          "label": "How many",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    },
+    {
+      "key": "get_order",
+      "name": "Get order",
+      "description": "One order's details.",
+      "method": "GET",
+      "endpoint": "/oms/pvt/orders/{{ inputs.order_id }}",
+      "output_fields": {
+        "status": "status",
+        "value": "value",
+        "email": "clientProfileData.email",
+        "items": "items"
+      },
+      "inputs": [
+        {
+          "key": "order_id",
+          "label": "Order ID",
+          "type": "string",
+          "required": true,
+          "placeholder": "1234567890123-01"
+        }
+      ]
+    },
+    {
+      "key": "start_handling",
+      "name": "Start handling",
+      "description": "Move a ready order to handling.",
+      "method": "POST",
+      "endpoint": "/oms/pvt/orders/{{ inputs.order_id }}/start-handling",
+      "inputs": [
+        {
+          "key": "order_id",
+          "label": "Order ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "invoice_order",
+      "name": "Send invoice / tracking",
+      "description": "Send the invoice and tracking number for an order.",
+      "method": "POST",
+      "endpoint": "/oms/pvt/orders/{{ inputs.order_id }}/invoice",
+      "body": {
+        "type": "Output",
+        "invoiceNumber": "{{ inputs.invoice_number }}",
+        "invoiceValue": "{{ inputs.invoice_value }}",
+        "issuanceDate": "{{ inputs.issuance_date }}",
+        "invoiceUrl": "{{ inputs.invoice_url }}",
+        "trackingNumber": "{{ inputs.tracking_number }}",
+        "trackingUrl": "{{ inputs.tracking_url }}",
+        "courier": "{{ inputs.courier }}",
+        "items": "{{ inputs.items }}"
+      },
+      "output_fields": {
+        "receipt": "receipt"
+      },
+      "inputs": [
+        {
+          "key": "order_id",
+          "label": "Order ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "invoice_number",
+          "label": "Invoice number",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "invoice_value",
+          "label": "Invoice value (cents)",
+          "type": "number",
+          "required": true,
+          "help": "Total in cents: 99.90 = 9990."
+        },
+        {
+          "key": "issuance_date",
+          "label": "Issue date",
+          "type": "string",
+          "required": true,
+          "placeholder": "2026-01-31"
+        },
+        {
+          "key": "invoice_url",
+          "label": "Invoice URL",
+          "type": "string"
+        },
+        {
+          "key": "tracking_number",
+          "label": "Tracking number",
+          "type": "string"
+        },
+        {
+          "key": "tracking_url",
+          "label": "Tracking URL",
+          "type": "string"
+        },
+        {
+          "key": "courier",
+          "label": "Carrier",
+          "type": "string"
+        },
+        {
+          "key": "items",
+          "label": "Items (JSON)",
+          "type": "json",
+          "help": "Leave empty for the whole order, or e.g. [{\"id\":\"1\",\"quantity\":1,\"price\":9990}]."
+        }
+      ]
+    },
+    {
+      "key": "cancel_order",
+      "name": "Cancel order",
+      "description": "Cancel an order.",
+      "method": "POST",
+      "endpoint": "/oms/pvt/orders/{{ inputs.order_id }}/cancel",
+      "body": {
+        "reason": "{{ inputs.reason }}"
+      },
+      "inputs": [
+        {
+          "key": "order_id",
+          "label": "Order ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "reason",
+          "label": "Reason",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "get_sku",
+      "name": "Get SKU",
+      "description": "One SKU's catalog details.",
+      "method": "GET",
+      "endpoint": "/catalog/pvt/stockkeepingunit/{{ inputs.sku_id }}",
+      "output_fields": {
+        "name": "Name",
+        "product_id": "ProductId",
+        "ref_id": "RefId",
+        "is_active": "IsActive"
+      },
+      "inputs": [
+        {
+          "key": "sku_id",
+          "label": "SKU ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "get_inventory",
+      "name": "Get inventory",
+      "description": "Stock of a SKU in each warehouse.",
+      "method": "GET",
+      "endpoint": "/logistics/pvt/inventory/skus/{{ inputs.sku_id }}",
+      "output_fields": {
+        "balance": "balance"
+      },
+      "inputs": [
+        {
+          "key": "sku_id",
+          "label": "SKU ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "update_inventory",
+      "name": "Update inventory",
+      "description": "Set the stock of a SKU in a warehouse.",
+      "method": "PUT",
+      "endpoint": "/logistics/pvt/inventory/skus/{{ inputs.sku_id }}/warehouses/{{ inputs.warehouse_id }}",
+      "body": {
+        "quantity": "{{ inputs.quantity }}",
+        "unlimitedQuantity": false
+      },
+      "inputs": [
+        {
+          "key": "sku_id",
+          "label": "SKU ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "warehouse_id",
+          "label": "Warehouse ID",
+          "type": "string",
+          "required": true,
+          "help": "Inventory & shipping → Warehouses."
+        },
+        {
+          "key": "quantity",
+          "label": "Quantity",
+          "type": "number",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_order",
+      "name": "New order",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/oms/pvt/orders",
+      "query": {
+        "orderBy": "creationDate,desc",
+        "per_page": 50
+      },
+      "items_path": "list",
+      "id_field": "orderId",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    },
+    {
+      "key": "webhook_event",
+      "name": "Order status hook",
+      "type": "webhook",
+      "description": "Configure an Orders hook (POST /api/orders/hook/config) with this URL.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

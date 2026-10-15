@@ -1,0 +1,388 @@
+{
+  "key": "sendle",
+  "name": "Sendle",
+  "category": "E-commerce",
+  "description": "Carbon-neutral parcel delivery in AU, US and CA: quotes, orders and tracking.",
+  "website": "https://www.sendle.com",
+  "docs_url": "https://developers.sendle.com/reference",
+  "base_url": "https://{{ credentials.host }}/api",
+  "auth": {
+    "type": "basic",
+    "fields": [
+      {
+        "key": "username",
+        "label": "Sendle ID",
+        "type": "string",
+        "required": true,
+        "help": "Sendle dashboard → Settings → Integrations → API (Sendle ID)."
+      },
+      {
+        "key": "password",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "Same page: API key."
+      },
+      {
+        "key": "host",
+        "label": "Environment",
+        "type": "select",
+        "required": true,
+        "default": "api.sendle.com",
+        "options": [
+          {
+            "value": "api.sendle.com",
+            "label": "Live"
+          },
+          {
+            "value": "sandbox.sendle.com",
+            "label": "Sandbox"
+          }
+        ]
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "get_quote",
+      "name": "Get quote",
+      "description": "Prices for sending a parcel between two places.",
+      "method": "GET",
+      "endpoint": "/quote",
+      "query": {
+        "pickup_suburb": "{{ inputs.pickup_suburb }}",
+        "pickup_postcode": "{{ inputs.pickup_postcode }}",
+        "pickup_country": "{{ inputs.pickup_country }}",
+        "delivery_suburb": "{{ inputs.delivery_suburb }}",
+        "delivery_postcode": "{{ inputs.delivery_postcode }}",
+        "delivery_country": "{{ inputs.delivery_country }}",
+        "weight_value": "{{ inputs.weight }}",
+        "weight_units": "{{ inputs.weight_units }}"
+      },
+      "output_fields": {
+        "price": "0.quote.gross.amount",
+        "currency": "0.quote.gross.currency",
+        "plan": "0.plan_name"
+      },
+      "inputs": [
+        {
+          "key": "pickup_suburb",
+          "label": "Pickup suburb / city",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "pickup_postcode",
+          "label": "Pickup postcode",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "pickup_country",
+          "label": "Pickup country",
+          "type": "string",
+          "default": "AU"
+        },
+        {
+          "key": "delivery_suburb",
+          "label": "Delivery suburb / city",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "delivery_postcode",
+          "label": "Delivery postcode",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "delivery_country",
+          "label": "Delivery country",
+          "type": "string",
+          "default": "AU"
+        },
+        {
+          "key": "weight",
+          "label": "Weight",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "weight_units",
+          "label": "Units",
+          "type": "select",
+          "required": true,
+          "default": "kg",
+          "options": [
+            {
+              "value": "kg",
+              "label": "kg"
+            },
+            {
+              "value": "lb",
+              "label": "lb"
+            },
+            {
+              "value": "g",
+              "label": "g"
+            },
+            {
+              "value": "oz",
+              "label": "oz"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "create_order",
+      "name": "Create order",
+      "description": "Book a parcel pickup and get a label and tracking link.",
+      "method": "POST",
+      "endpoint": "/orders",
+      "body": {
+        "description": "{{ inputs.description }}",
+        "customer_reference": "{{ inputs.reference }}",
+        "weight": {
+          "value": "{{ inputs.weight }}",
+          "units": "{{ inputs.weight_units }}"
+        },
+        "sender": {
+          "contact": {
+            "name": "{{ inputs.sender_name }}",
+            "email": "{{ inputs.sender_email }}",
+            "phone": "{{ inputs.sender_phone }}"
+          },
+          "address": {
+            "address_line1": "{{ inputs.sender_street }}",
+            "suburb": "{{ inputs.sender_suburb }}",
+            "postcode": "{{ inputs.sender_postcode }}",
+            "state_name": "{{ inputs.sender_state }}",
+            "country": "{{ inputs.sender_country }}"
+          }
+        },
+        "receiver": {
+          "contact": {
+            "name": "{{ inputs.receiver_name }}",
+            "email": "{{ inputs.receiver_email }}",
+            "phone": "{{ inputs.receiver_phone }}"
+          },
+          "address": {
+            "address_line1": "{{ inputs.receiver_street }}",
+            "suburb": "{{ inputs.receiver_suburb }}",
+            "postcode": "{{ inputs.receiver_postcode }}",
+            "state_name": "{{ inputs.receiver_state }}",
+            "country": "{{ inputs.receiver_country }}"
+          },
+          "instructions": "{{ inputs.instructions }}"
+        }
+      },
+      "output_fields": {
+        "order_id": "order_id",
+        "state": "state",
+        "tracking_url": "tracking_url",
+        "sendle_reference": "sendle_reference"
+      },
+      "inputs": [
+        {
+          "key": "description",
+          "label": "Contents",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "weight",
+          "label": "Weight",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "weight_units",
+          "label": "Units",
+          "type": "select",
+          "required": true,
+          "default": "kg",
+          "options": [
+            {
+              "value": "kg",
+              "label": "kg"
+            },
+            {
+              "value": "lb",
+              "label": "lb"
+            },
+            {
+              "value": "g",
+              "label": "g"
+            },
+            {
+              "value": "oz",
+              "label": "oz"
+            }
+          ]
+        },
+        {
+          "key": "reference",
+          "label": "Your reference",
+          "type": "string"
+        },
+        {
+          "key": "sender_name",
+          "label": "Sender name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "sender_email",
+          "label": "Sender email",
+          "type": "string"
+        },
+        {
+          "key": "sender_phone",
+          "label": "Sender phone",
+          "type": "string"
+        },
+        {
+          "key": "sender_street",
+          "label": "Sender street",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "sender_suburb",
+          "label": "Sender suburb / city",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "sender_postcode",
+          "label": "Sender postcode",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "sender_state",
+          "label": "Sender state",
+          "type": "string",
+          "required": true,
+          "placeholder": "NSW"
+        },
+        {
+          "key": "sender_country",
+          "label": "Sender country",
+          "type": "string",
+          "default": "AU"
+        },
+        {
+          "key": "receiver_name",
+          "label": "Receiver name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "receiver_email",
+          "label": "Receiver email",
+          "type": "string"
+        },
+        {
+          "key": "receiver_phone",
+          "label": "Receiver phone",
+          "type": "string"
+        },
+        {
+          "key": "receiver_street",
+          "label": "Receiver street",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "receiver_suburb",
+          "label": "Receiver suburb / city",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "receiver_postcode",
+          "label": "Receiver postcode",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "receiver_state",
+          "label": "Receiver state",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "receiver_country",
+          "label": "Receiver country",
+          "type": "string",
+          "default": "AU"
+        },
+        {
+          "key": "instructions",
+          "label": "Delivery instructions",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "get_order",
+      "name": "Get order",
+      "description": "An order's state, label and tracking link.",
+      "method": "GET",
+      "endpoint": "/orders/{{ inputs.order_id }}",
+      "output_fields": {
+        "state": "state",
+        "tracking_url": "tracking_url",
+        "sendle_reference": "sendle_reference"
+      },
+      "inputs": [
+        {
+          "key": "order_id",
+          "label": "Order ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "cancel_order",
+      "name": "Cancel order",
+      "description": "Cancel an order before pickup.",
+      "method": "DELETE",
+      "endpoint": "/orders/{{ inputs.order_id }}",
+      "output_fields": {
+        "state": "state"
+      },
+      "inputs": [
+        {
+          "key": "order_id",
+          "label": "Order ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "track_parcel",
+      "name": "Track parcel",
+      "description": "Tracking events for a Sendle reference.",
+      "method": "GET",
+      "endpoint": "/tracking/{{ inputs.sendle_reference }}",
+      "output_fields": {
+        "state": "state",
+        "events": "tracking_events"
+      },
+      "inputs": [
+        {
+          "key": "sendle_reference",
+          "label": "Sendle reference",
+          "type": "string",
+          "required": true,
+          "placeholder": "S3ND73"
+        }
+      ]
+    }
+  ]
+}

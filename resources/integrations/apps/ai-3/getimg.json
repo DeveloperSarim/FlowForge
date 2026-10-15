@@ -1,0 +1,198 @@
+{
+  "key": "getimg",
+  "name": "getimg.ai",
+  "category": "AI",
+  "description": "Generate and edit images and videos with Seedream, Flux, Seedance and more.",
+  "website": "https://getimg.ai",
+  "docs_url": "https://docs.getimg.ai",
+  "base_url": "https://api.getimg.ai/v2",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "getimg.ai → Developer → API Keys → Create key (starts with sk_)."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "generate_image",
+      "name": "Generate image",
+      "description": "Create or edit an image. Returns a temporary download link.",
+      "method": "POST",
+      "endpoint": "/images/generations",
+      "timeout": 300,
+      "body": {
+        "model": "{{ inputs.model }}",
+        "prompt": "{{ inputs.prompt }}",
+        "images": [
+          {
+            "$if": "{{ inputs.image_url }}",
+            "url": "{{ inputs.image_url }}"
+          }
+        ],
+        "aspect_ratio": "{{ inputs.aspect_ratio }}",
+        "resolution": "{{ inputs.resolution }}",
+        "output_format": "{{ inputs.output_format }}"
+      },
+      "output_fields": {
+        "image_url": "data.0.url",
+        "cost": "usage.total_cost"
+      },
+      "inputs": [
+        {
+          "key": "model",
+          "label": "Model",
+          "type": "string",
+          "required": true,
+          "default": "seedream-5-lite",
+          "help": "See getimg.ai/app/developer/models for all model IDs."
+        },
+        {
+          "key": "prompt",
+          "label": "Prompt",
+          "type": "text",
+          "required": true,
+          "help": "What to create, or the edit to make to the reference image."
+        },
+        {
+          "key": "image_url",
+          "label": "Reference image URL",
+          "type": "string",
+          "help": "Optional image to edit or use as a reference."
+        },
+        {
+          "key": "aspect_ratio",
+          "label": "Aspect ratio",
+          "type": "string",
+          "placeholder": "1:1"
+        },
+        {
+          "key": "resolution",
+          "label": "Resolution",
+          "type": "string",
+          "placeholder": "2K"
+        },
+        {
+          "key": "output_format",
+          "label": "Format",
+          "type": "select",
+          "default": "jpeg",
+          "options": [
+            {
+              "value": "jpeg",
+              "label": "jpeg"
+            },
+            {
+              "value": "png",
+              "label": "png"
+            },
+            {
+              "value": "webp",
+              "label": "webp"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "create_video",
+      "name": "Generate video",
+      "description": "Start a video; check it with Get video.",
+      "method": "POST",
+      "endpoint": "/videos/generations",
+      "body": {
+        "model": "{{ inputs.model }}",
+        "prompt": "{{ inputs.prompt }}",
+        "images": [
+          {
+            "$if": "{{ inputs.first_frame }}",
+            "url": "{{ inputs.first_frame }}",
+            "role": "first_frame"
+          }
+        ],
+        "aspect_ratio": "{{ inputs.aspect_ratio }}",
+        "resolution": "{{ inputs.resolution }}",
+        "duration": "{{ inputs.duration }}"
+      },
+      "output_fields": {
+        "id": "id",
+        "status": "status"
+      },
+      "inputs": [
+        {
+          "key": "model",
+          "label": "Model",
+          "type": "string",
+          "required": true,
+          "default": "seedance-v1-pro"
+        },
+        {
+          "key": "prompt",
+          "label": "Prompt",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "first_frame",
+          "label": "Start image URL",
+          "type": "string",
+          "help": "Optional image to animate."
+        },
+        {
+          "key": "aspect_ratio",
+          "label": "Aspect ratio",
+          "type": "string",
+          "placeholder": "16:9"
+        },
+        {
+          "key": "resolution",
+          "label": "Resolution",
+          "type": "string",
+          "placeholder": "1080p"
+        },
+        {
+          "key": "duration",
+          "label": "Duration (seconds)",
+          "type": "number",
+          "placeholder": "5"
+        }
+      ]
+    },
+    {
+      "key": "get_video",
+      "name": "Get video",
+      "description": "Check a video and get its link when completed.",
+      "method": "GET",
+      "endpoint": "/videos/generations/{{ inputs.id }}",
+      "output_fields": {
+        "status": "status",
+        "video_url": "data.0.url",
+        "cost": "usage.total_cost"
+      },
+      "inputs": [
+        {
+          "key": "id",
+          "label": "Generation ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "get_balance",
+      "name": "Get balance",
+      "description": "Show your API balance in USD.",
+      "method": "GET",
+      "endpoint": "/billing/balance",
+      "output_fields": {
+        "balance": "balance"
+      },
+      "inputs": []
+    }
+  ]
+}

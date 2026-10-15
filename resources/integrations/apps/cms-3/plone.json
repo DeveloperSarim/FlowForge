@@ -1,0 +1,247 @@
+{
+  "key": "plone",
+  "name": "Plone",
+  "category": "CMS & Websites",
+  "description": "Search, create, edit and publish content on a Plone site through its REST API.",
+  "website": "https://plone.org",
+  "docs_url": "https://6.docs.plone.org/plone.restapi/docs/source/index.html",
+  "base_url": "{{ credentials.site_url }}",
+  "headers": {
+    "Accept": "application/json"
+  },
+  "auth": {
+    "type": "basic",
+    "fields": [
+      {
+        "key": "site_url",
+        "label": "Site address",
+        "type": "string",
+        "required": true,
+        "help": "Your Plone site's full address including the site id.",
+        "placeholder": "https://www.example.com/Plone"
+      },
+      {
+        "key": "username",
+        "label": "Username",
+        "type": "string",
+        "required": true,
+        "help": "A Plone user allowed to edit content."
+      },
+      {
+        "key": "password",
+        "label": "Password",
+        "type": "password",
+        "required": true,
+        "help": "The user's password."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "search",
+      "name": "Search content",
+      "description": "Search the site.",
+      "method": "GET",
+      "endpoint": "/@search",
+      "query": {
+        "SearchableText": "{{ inputs.text }}",
+        "portal_type": "{{ inputs.portal_type }}",
+        "b_size": "{{ inputs.size }}",
+        "metadata_fields": "review_state"
+      },
+      "output_fields": {
+        "items": "items",
+        "total": "items_total",
+        "first_url": "items.0.@id",
+        "first_title": "items.0.title"
+      },
+      "inputs": [
+        {
+          "key": "text",
+          "label": "Search text",
+          "type": "string"
+        },
+        {
+          "key": "portal_type",
+          "label": "Content type",
+          "type": "string",
+          "help": "Example: Document, News Item, Event"
+        },
+        {
+          "key": "size",
+          "label": "How many",
+          "type": "number",
+          "default": 20
+        }
+      ]
+    },
+    {
+      "key": "get_content",
+      "name": "Get content",
+      "description": "Read a page, folder or item.",
+      "method": "GET",
+      "endpoint": "/{{ inputs.path }}",
+      "output_fields": {
+        "title": "title",
+        "description": "description",
+        "state": "review_state",
+        "uid": "UID",
+        "text": "text.data"
+      },
+      "inputs": [
+        {
+          "key": "path",
+          "label": "Path",
+          "type": "string",
+          "required": true,
+          "help": "Where the item lives, e.g. news or news/my-article (no leading slash)."
+        }
+      ]
+    },
+    {
+      "key": "create_content",
+      "name": "Create content",
+      "description": "Add an item inside a folder or the site root.",
+      "method": "POST",
+      "endpoint": "/{{ inputs.path }}",
+      "body": {
+        "@type": "{{ inputs.type }}",
+        "title": "{{ inputs.title }}",
+        "description": "{{ inputs.description }}",
+        "text": {
+          "data": "{{ inputs.html }}",
+          "content-type": "text/html"
+        }
+      },
+      "headers": {
+        "Prefer": "return=representation"
+      },
+      "output_fields": {
+        "id": "@id",
+        "uid": "UID",
+        "state": "review_state"
+      },
+      "inputs": [
+        {
+          "key": "path",
+          "label": "Parent path",
+          "type": "string",
+          "help": "Folder to create in, e.g. news. Leave blank for the site root."
+        },
+        {
+          "key": "type",
+          "label": "Content type",
+          "type": "string",
+          "required": true,
+          "help": "Document, News Item, Event, Folder...",
+          "default": "Document"
+        },
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "description",
+          "label": "Summary",
+          "type": "text"
+        },
+        {
+          "key": "html",
+          "label": "Body (HTML)",
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "key": "update_content",
+      "name": "Update content",
+      "description": "Change title, summary or body of an item.",
+      "method": "PATCH",
+      "endpoint": "/{{ inputs.path }}",
+      "body": {
+        "title": "{{ inputs.title }}",
+        "description": "{{ inputs.description }}",
+        "text": {
+          "data": "{{ inputs.html }}",
+          "content-type": "text/html"
+        }
+      },
+      "output_fields": {},
+      "inputs": [
+        {
+          "key": "path",
+          "label": "Path",
+          "type": "string",
+          "required": true,
+          "help": "Where the item lives, e.g. news or news/my-article (no leading slash)."
+        },
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "string"
+        },
+        {
+          "key": "description",
+          "label": "Summary",
+          "type": "text"
+        },
+        {
+          "key": "html",
+          "label": "Body (HTML)",
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "key": "transition",
+      "name": "Change workflow state",
+      "description": "Publish, retract or submit an item.",
+      "method": "POST",
+      "endpoint": "/{{ inputs.path }}/@workflow/{{ inputs.transition }}",
+      "output_fields": {
+        "state": "state",
+        "action": "action"
+      },
+      "inputs": [
+        {
+          "key": "path",
+          "label": "Path",
+          "type": "string",
+          "required": true,
+          "help": "Where the item lives, e.g. news or news/my-article (no leading slash)."
+        },
+        {
+          "key": "transition",
+          "label": "Action",
+          "type": "select",
+          "required": true,
+          "default": "publish",
+          "options": [
+            {
+              "value": "publish",
+              "label": "Publish"
+            },
+            {
+              "value": "retract",
+              "label": "Retract"
+            },
+            {
+              "value": "submit",
+              "label": "Submit"
+            },
+            {
+              "value": "reject",
+              "label": "Reject"
+            },
+            {
+              "value": "reinstate",
+              "label": "Reinstate"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

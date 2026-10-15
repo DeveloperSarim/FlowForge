@@ -1,0 +1,101 @@
+{
+  "key": "refiner",
+  "name": "Refiner",
+  "category": "Forms & Surveys",
+  "description": "Read in-app survey forms and responses from Refiner and identify users.",
+  "website": "https://refiner.io",
+  "docs_url": "https://refiner.io/docs/api/",
+  "base_url": "https://api.refiner.io/v1",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "Refiner > Settings > Integrations > REST API: copy your Secret API Key."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_forms",
+      "name": "List surveys",
+      "description": "Get your Refiner surveys.",
+      "method": "GET",
+      "endpoint": "/forms",
+      "output_fields": {
+        "forms": "items",
+        "form_uuids": "items.*.uuid"
+      },
+      "inputs": []
+    },
+    {
+      "key": "list_responses",
+      "name": "List responses",
+      "description": "Get survey responses, optionally for one survey.",
+      "method": "GET",
+      "endpoint": "/responses",
+      "query": {
+        "form_uuid": "{{ inputs.form_uuid }}",
+        "page_length": "{{ inputs.page_length }}"
+      },
+      "output_fields": {
+        "responses": "items"
+      },
+      "inputs": [
+        {
+          "key": "form_uuid",
+          "label": "Survey ID",
+          "type": "string",
+          "help": "Refiner > Surveys: the survey's UUID. Leave empty for all surveys."
+        },
+        {
+          "key": "page_length",
+          "label": "Page size",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    },
+    {
+      "key": "identify_user",
+      "name": "Identify a user",
+      "description": "Create or update a user and their traits.",
+      "method": "POST",
+      "endpoint": "/identify-user",
+      "body": {
+        "id": "{{ inputs.id }}",
+        "email": "{{ inputs.email }}",
+        "name": "{{ inputs.name }}",
+        "attributes": "{{ inputs.attributes }}"
+      },
+      "inputs": [
+        {
+          "key": "id",
+          "label": "User ID",
+          "type": "string",
+          "required": true,
+          "help": "Your own unique ID for the user."
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string"
+        },
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string"
+        },
+        {
+          "key": "attributes",
+          "label": "More traits",
+          "type": "json",
+          "help": "Extra traits as JSON, e.g. {\"plan\":\"pro\"}."
+        }
+      ]
+    }
+  ]
+}

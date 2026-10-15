@@ -1,0 +1,282 @@
+{
+  "key": "frappe_crm",
+  "name": "Frappe CRM",
+  "category": "CRM & Sales",
+  "description": "Create and list leads and deals in your Frappe CRM (open source CRM).",
+  "website": "https://frappe.io/crm",
+  "docs_url": "https://docs.frappe.io/framework/user/en/api/rest",
+  "base_url": "{{ credentials.site_url }}/api/resource",
+  "headers": {
+    "Accept": "application/json"
+  },
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "Authorization",
+    "prefix": "token ",
+    "fields": [
+      {
+        "key": "site_url",
+        "label": "CRM address",
+        "type": "string",
+        "required": true,
+        "placeholder": "https://crm.example.com",
+        "help": "The address of your Frappe CRM site, without a trailing slash."
+      },
+      {
+        "key": "api_key",
+        "label": "API key and secret",
+        "type": "password",
+        "required": true,
+        "help": "In Frappe open your user > API Access > Generate Keys. Type the key, a colon, then the secret: KEY:SECRET."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "create_lead",
+      "name": "Create lead",
+      "description": "Adds a new lead.",
+      "method": "POST",
+      "endpoint": "/CRM%20Lead",
+      "body": {
+        "first_name": "{{ inputs.first_name }}",
+        "last_name": "{{ inputs.last_name }}",
+        "email": "{{ inputs.email }}",
+        "mobile_no": "{{ inputs.mobile_no }}",
+        "organization": "{{ inputs.organization }}",
+        "status": "{{ inputs.status }}"
+      },
+      "output_fields": {
+        "name": "data.name",
+        "lead_name": "data.lead_name"
+      },
+      "inputs": [
+        {
+          "key": "first_name",
+          "label": "First name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string"
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string"
+        },
+        {
+          "key": "mobile_no",
+          "label": "Mobile",
+          "type": "string"
+        },
+        {
+          "key": "organization",
+          "label": "Company",
+          "type": "string"
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "default": "New",
+          "options": [
+            {
+              "value": "New",
+              "label": "New"
+            },
+            {
+              "value": "Contacted",
+              "label": "Contacted"
+            },
+            {
+              "value": "Nurture",
+              "label": "Nurture"
+            },
+            {
+              "value": "Qualified",
+              "label": "Qualified"
+            },
+            {
+              "value": "Unqualified",
+              "label": "Unqualified"
+            },
+            {
+              "value": "Junk",
+              "label": "Junk"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "list_leads",
+      "name": "List leads",
+      "description": "Lists leads, newest first.",
+      "method": "GET",
+      "endpoint": "/CRM%20Lead",
+      "query": {
+        "fields": "[\"name\",\"lead_name\",\"email\",\"mobile_no\",\"organization\",\"status\",\"creation\"]",
+        "filters": "{{ inputs.filters }}",
+        "limit_page_length": "{{ inputs.limit }}",
+        "order_by": "creation desc"
+      },
+      "output_fields": {
+        "leads": "data",
+        "first_name": "data.0.name",
+        "first_lead_name": "data.0.lead_name"
+      },
+      "inputs": [
+        {
+          "key": "limit",
+          "label": "How many",
+          "type": "number",
+          "default": 20
+        },
+        {
+          "key": "filters",
+          "label": "Filters (JSON)",
+          "type": "json",
+          "help": "Optional, e.g. [[\"status\",\"=\",\"Qualified\"]]"
+        }
+      ]
+    },
+    {
+      "key": "get_lead",
+      "name": "Get lead",
+      "description": "Gets one lead by its ID.",
+      "method": "GET",
+      "endpoint": "/CRM%20Lead/{{ inputs.name }}",
+      "output_fields": {
+        "lead_name": "data.lead_name",
+        "email": "data.email",
+        "status": "data.status"
+      },
+      "inputs": [
+        {
+          "key": "name",
+          "label": "Lead ID",
+          "type": "string",
+          "required": true,
+          "help": "The ID shown on the lead, like CRM-LEAD-2026-00001."
+        }
+      ]
+    },
+    {
+      "key": "update_lead",
+      "name": "Update lead",
+      "description": "Changes the status, email or phone of a lead.",
+      "method": "PUT",
+      "endpoint": "/CRM%20Lead/{{ inputs.name }}",
+      "body": {
+        "status": "{{ inputs.status }}",
+        "email": "{{ inputs.email }}",
+        "mobile_no": "{{ inputs.mobile_no }}"
+      },
+      "output_fields": {
+        "name": "data.name",
+        "status": "data.status"
+      },
+      "inputs": [
+        {
+          "key": "name",
+          "label": "Lead ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "options": [
+            {
+              "value": "New",
+              "label": "New"
+            },
+            {
+              "value": "Contacted",
+              "label": "Contacted"
+            },
+            {
+              "value": "Nurture",
+              "label": "Nurture"
+            },
+            {
+              "value": "Qualified",
+              "label": "Qualified"
+            },
+            {
+              "value": "Unqualified",
+              "label": "Unqualified"
+            },
+            {
+              "value": "Junk",
+              "label": "Junk"
+            }
+          ]
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string"
+        },
+        {
+          "key": "mobile_no",
+          "label": "Mobile",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "list_deals",
+      "name": "List deals",
+      "description": "Lists deals, newest first.",
+      "method": "GET",
+      "endpoint": "/CRM%20Deal",
+      "query": {
+        "fields": "[\"name\",\"organization\",\"status\",\"annual_revenue\",\"deal_owner\",\"creation\"]",
+        "limit_page_length": "{{ inputs.limit }}",
+        "order_by": "creation desc"
+      },
+      "output_fields": {
+        "deals": "data",
+        "first_name": "data.0.name"
+      },
+      "inputs": [
+        {
+          "key": "limit",
+          "label": "How many",
+          "type": "number",
+          "default": 20
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_lead",
+      "name": "New lead",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/CRM%20Lead",
+      "query": {
+        "fields": "[\"name\",\"lead_name\",\"email\",\"mobile_no\",\"organization\",\"status\",\"creation\"]",
+        "order_by": "creation desc",
+        "limit_page_length": 25
+      },
+      "items_path": "data",
+      "id_field": "name",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

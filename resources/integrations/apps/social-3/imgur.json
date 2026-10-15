@@ -1,0 +1,248 @@
+{
+  "key": "imgur",
+  "name": "Imgur",
+  "category": "Social Media",
+  "description": "Upload images to Imgur from a URL, update or delete them and search the gallery.",
+  "website": "https://imgur.com",
+  "docs_url": "https://apidocs.imgur.com/",
+  "base_url": "https://api.imgur.com/3",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "Authorization",
+    "prefix": "Client-ID ",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "Client ID",
+        "type": "password",
+        "required": true,
+        "help": "Register an app at https://api.imgur.com/oauth2/addclient (choose 'Anonymous usage without user authorization') and copy the Client ID."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "upload_image",
+      "name": "Upload image",
+      "description": "Uploads an anonymous image. Keep the deletehash to edit or delete it later.",
+      "method": "POST",
+      "endpoint": "/image",
+      "body": {
+        "image": "{{ inputs.image }}",
+        "type": "{{ inputs.type }}",
+        "title": "{{ inputs.title }}",
+        "description": "{{ inputs.description }}"
+      },
+      "body_format": "form",
+      "output_fields": {
+        "id": "data.id",
+        "link": "data.link",
+        "deletehash": "data.deletehash",
+        "width": "data.width",
+        "height": "data.height"
+      },
+      "inputs": [
+        {
+          "key": "image",
+          "label": "Image URL",
+          "type": "string",
+          "required": true,
+          "placeholder": "https://example.com/photo.jpg",
+          "help": "A public link to the image (or base64 data with Type = base64)."
+        },
+        {
+          "key": "type",
+          "label": "Type",
+          "type": "select",
+          "default": "url",
+          "options": [
+            {
+              "value": "url",
+              "label": "Image URL"
+            },
+            {
+              "value": "base64",
+              "label": "Base64 data"
+            }
+          ]
+        },
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "string"
+        },
+        {
+          "key": "description",
+          "label": "Description",
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "key": "get_image",
+      "name": "Get image",
+      "method": "GET",
+      "endpoint": "/image/{{ inputs.image_id }}",
+      "output_fields": {
+        "id": "data.id",
+        "title": "data.title",
+        "link": "data.link",
+        "views": "data.views",
+        "type": "data.type"
+      },
+      "inputs": [
+        {
+          "key": "image_id",
+          "label": "Image ID",
+          "type": "string",
+          "required": true,
+          "help": "The code in the image link, e.g. 'aBc123' in i.imgur.com/aBc123.jpg."
+        }
+      ]
+    },
+    {
+      "key": "update_image",
+      "name": "Update image info",
+      "method": "POST",
+      "endpoint": "/image/{{ inputs.deletehash }}",
+      "body": {
+        "title": "{{ inputs.title }}",
+        "description": "{{ inputs.description }}"
+      },
+      "body_format": "form",
+      "output_fields": {
+        "success": "success"
+      },
+      "inputs": [
+        {
+          "key": "deletehash",
+          "label": "Delete hash",
+          "type": "string",
+          "required": true,
+          "help": "Returned by 'Upload image'."
+        },
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "string"
+        },
+        {
+          "key": "description",
+          "label": "Description",
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "key": "delete_image",
+      "name": "Delete image",
+      "method": "DELETE",
+      "endpoint": "/image/{{ inputs.deletehash }}",
+      "output_fields": {
+        "success": "success"
+      },
+      "inputs": [
+        {
+          "key": "deletehash",
+          "label": "Delete hash",
+          "type": "string",
+          "required": true,
+          "help": "Returned by 'Upload image'."
+        }
+      ]
+    },
+    {
+      "key": "get_album",
+      "name": "Get album",
+      "method": "GET",
+      "endpoint": "/album/{{ inputs.album_id }}",
+      "output_fields": {
+        "id": "data.id",
+        "title": "data.title",
+        "link": "data.link",
+        "images_count": "data.images_count",
+        "image_links": "data.images.*.link"
+      },
+      "inputs": [
+        {
+          "key": "album_id",
+          "label": "Album ID",
+          "type": "string",
+          "required": true,
+          "help": "The code in the album link, e.g. 'XyZ12' in imgur.com/a/XyZ12."
+        }
+      ]
+    },
+    {
+      "key": "search_gallery",
+      "name": "Search gallery",
+      "method": "GET",
+      "endpoint": "/gallery/search/{{ inputs.sort }}/all/0",
+      "query": {
+        "q": "{{ inputs.q }}"
+      },
+      "output_fields": {
+        "items": "data",
+        "first_link": "data.0.link",
+        "first_title": "data.0.title"
+      },
+      "inputs": [
+        {
+          "key": "q",
+          "label": "Search text",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "sort",
+          "label": "Sort by",
+          "type": "select",
+          "default": "time",
+          "options": [
+            {
+              "value": "time",
+              "label": "Newest"
+            },
+            {
+              "value": "viral",
+              "label": "Viral"
+            },
+            {
+              "value": "top",
+              "label": "Top"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_gallery_post",
+      "name": "New gallery post matching a search",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/gallery/search/time/all/0",
+      "query": {
+        "q": "{{ inputs.q }}"
+      },
+      "items_path": "data",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "q",
+          "label": "Search text",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

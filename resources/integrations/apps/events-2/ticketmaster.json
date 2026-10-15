@@ -1,0 +1,160 @@
+{
+  "key": "ticketmaster",
+  "name": "Ticketmaster Discovery",
+  "category": "Events & Webinars",
+  "description": "Search concerts, sports and shows, venues and attractions on Ticketmaster.",
+  "website": "https://www.ticketmaster.com",
+  "docs_url": "https://developer.ticketmaster.com/products-and-docs/apis/discovery-api/v2/",
+  "base_url": "https://app.ticketmaster.com/discovery/v2",
+  "auth": {
+    "type": "api_key",
+    "in": "query",
+    "name": "apikey",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "Consumer key",
+        "type": "password",
+        "required": true,
+        "help": "Sign up at developer.ticketmaster.com, create an app and copy its Consumer Key."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "search_events",
+      "name": "Search events",
+      "description": "Find events by keyword, city, country or date.",
+      "method": "GET",
+      "endpoint": "/events.json",
+      "query": {
+        "keyword": "{{ inputs.keyword }}",
+        "city": "{{ inputs.city }}",
+        "countryCode": "{{ inputs.country_code }}",
+        "startDateTime": "{{ inputs.start_date }}",
+        "size": "{{ inputs.size }}"
+      },
+      "output_fields": {
+        "events": "_embedded.events",
+        "names": "_embedded.events.*.name",
+        "ids": "_embedded.events.*.id",
+        "urls": "_embedded.events.*.url",
+        "total": "page.totalElements"
+      },
+      "inputs": [
+        {
+          "key": "keyword",
+          "label": "Keyword",
+          "type": "string"
+        },
+        {
+          "key": "city",
+          "label": "City",
+          "type": "string"
+        },
+        {
+          "key": "country_code",
+          "label": "Country code",
+          "type": "string",
+          "help": "Two letters, e.g. US, GB."
+        },
+        {
+          "key": "start_date",
+          "label": "Starts after",
+          "type": "string",
+          "help": "ISO, e.g. 2025-06-01T00:00:00Z"
+        },
+        {
+          "key": "size",
+          "label": "Results",
+          "type": "number",
+          "default": 20
+        }
+      ]
+    },
+    {
+      "key": "get_event",
+      "name": "Get an event",
+      "description": "Get one event's details.",
+      "method": "GET",
+      "endpoint": "/events/{{ inputs.event_id }}.json",
+      "output_fields": {
+        "name": "name",
+        "url": "url",
+        "date": "dates.start.localDate"
+      },
+      "inputs": [
+        {
+          "key": "event_id",
+          "label": "Event ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "search_venues",
+      "name": "Search venues",
+      "description": "Find venues.",
+      "method": "GET",
+      "endpoint": "/venues.json",
+      "query": {
+        "keyword": "{{ inputs.keyword }}",
+        "countryCode": "{{ inputs.country_code }}",
+        "size": "{{ inputs.size }}"
+      },
+      "output_fields": {
+        "venues": "_embedded.venues",
+        "names": "_embedded.venues.*.name"
+      },
+      "inputs": [
+        {
+          "key": "keyword",
+          "label": "Keyword",
+          "type": "string"
+        },
+        {
+          "key": "country_code",
+          "label": "Country code",
+          "type": "string"
+        },
+        {
+          "key": "size",
+          "label": "Results",
+          "type": "number",
+          "default": 20
+        }
+      ]
+    },
+    {
+      "key": "search_attractions",
+      "name": "Search attractions",
+      "description": "Find artists, teams and shows.",
+      "method": "GET",
+      "endpoint": "/attractions.json",
+      "query": {
+        "keyword": "{{ inputs.keyword }}",
+        "size": "{{ inputs.size }}"
+      },
+      "output_fields": {
+        "attractions": "_embedded.attractions",
+        "names": "_embedded.attractions.*.name",
+        "ids": "_embedded.attractions.*.id"
+      },
+      "inputs": [
+        {
+          "key": "keyword",
+          "label": "Keyword",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "size",
+          "label": "Results",
+          "type": "number",
+          "default": 20
+        }
+      ]
+    }
+  ]
+}

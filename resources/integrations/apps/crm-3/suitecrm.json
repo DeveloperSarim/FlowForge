@@ -1,0 +1,576 @@
+{
+  "key": "suitecrm",
+  "name": "SuiteCRM",
+  "category": "CRM & Sales",
+  "description": "Create, update and find leads, contacts and other records in SuiteCRM 7 or 8.",
+  "website": "https://suitecrm.com",
+  "docs_url": "https://docs.suitecrm.com/developer/integration-api/v8/endpoints/",
+  "base_url": "{{ credentials.site_url }}/Api/V8",
+  "headers": {
+    "Content-Type": "application/vnd.api+json",
+    "Accept": "application/vnd.api+json"
+  },
+  "auth": {
+    "type": "oauth2_client_credentials",
+    "token_url": "{{ credentials.site_url }}/Api/access_token",
+    "fields": [
+      {
+        "key": "site_url",
+        "label": "SuiteCRM URL",
+        "type": "string",
+        "required": true,
+        "placeholder": "https://crm.example.com/legacy",
+        "help": "SuiteCRM 8: your URL followed by /legacy. SuiteCRM 7: just your URL."
+      },
+      {
+        "key": "client_id",
+        "label": "Client ID",
+        "type": "string",
+        "required": true,
+        "help": "Admin → OAuth2 Clients and Tokens → New Client Credentials Client."
+      },
+      {
+        "key": "client_secret",
+        "label": "Client secret",
+        "type": "password",
+        "required": true
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "create_lead",
+      "name": "Create lead",
+      "method": "POST",
+      "endpoint": "/module",
+      "body": {
+        "data": {
+          "type": "Leads",
+          "attributes": {
+            "first_name": "{{ inputs.first_name }}",
+            "last_name": "{{ inputs.last_name }}",
+            "email1": "{{ inputs.email }}",
+            "phone_mobile": "{{ inputs.phone_mobile }}",
+            "account_name": "{{ inputs.account_name }}",
+            "title": "{{ inputs.title }}",
+            "lead_source": "{{ inputs.lead_source }}",
+            "description": "{{ inputs.description }}"
+          }
+        }
+      },
+      "output_fields": {
+        "id": "data.id"
+      },
+      "inputs": [
+        {
+          "key": "first_name",
+          "label": "First name",
+          "type": "string"
+        },
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string"
+        },
+        {
+          "key": "phone_mobile",
+          "label": "Mobile",
+          "type": "string"
+        },
+        {
+          "key": "account_name",
+          "label": "Company",
+          "type": "string"
+        },
+        {
+          "key": "title",
+          "label": "Job title",
+          "type": "string"
+        },
+        {
+          "key": "lead_source",
+          "label": "Lead source",
+          "type": "string",
+          "default": "Web Site"
+        },
+        {
+          "key": "description",
+          "label": "Description",
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "key": "create_contact",
+      "name": "Create contact",
+      "method": "POST",
+      "endpoint": "/module",
+      "body": {
+        "data": {
+          "type": "Contacts",
+          "attributes": {
+            "first_name": "{{ inputs.first_name }}",
+            "last_name": "{{ inputs.last_name }}",
+            "email1": "{{ inputs.email }}",
+            "phone_work": "{{ inputs.phone_work }}",
+            "phone_mobile": "{{ inputs.phone_mobile }}",
+            "title": "{{ inputs.title }}",
+            "description": "{{ inputs.description }}"
+          }
+        }
+      },
+      "output_fields": {
+        "id": "data.id"
+      },
+      "inputs": [
+        {
+          "key": "first_name",
+          "label": "First name",
+          "type": "string"
+        },
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string"
+        },
+        {
+          "key": "phone_work",
+          "label": "Phone",
+          "type": "string"
+        },
+        {
+          "key": "phone_mobile",
+          "label": "Mobile",
+          "type": "string"
+        },
+        {
+          "key": "title",
+          "label": "Job title",
+          "type": "string"
+        },
+        {
+          "key": "description",
+          "label": "Description",
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "key": "create_record",
+      "name": "Create record",
+      "method": "POST",
+      "endpoint": "/module",
+      "body": {
+        "data": {
+          "type": "{{ inputs.module }}",
+          "attributes": "{{ inputs.attributes }}"
+        }
+      },
+      "output_fields": {
+        "id": "data.id"
+      },
+      "inputs": [
+        {
+          "key": "module",
+          "label": "Module",
+          "type": "select",
+          "required": true,
+          "default": "Contacts",
+          "options": [
+            {
+              "value": "Contacts",
+              "label": "Contacts"
+            },
+            {
+              "value": "Leads",
+              "label": "Leads"
+            },
+            {
+              "value": "Accounts",
+              "label": "Accounts"
+            },
+            {
+              "value": "Opportunities",
+              "label": "Opportunities"
+            },
+            {
+              "value": "Cases",
+              "label": "Cases"
+            },
+            {
+              "value": "Calls",
+              "label": "Calls"
+            },
+            {
+              "value": "Meetings",
+              "label": "Meetings"
+            },
+            {
+              "value": "Tasks",
+              "label": "Tasks"
+            },
+            {
+              "value": "Notes",
+              "label": "Notes"
+            }
+          ]
+        },
+        {
+          "key": "attributes",
+          "label": "Fields",
+          "type": "keyvalue",
+          "required": true,
+          "help": "Field name → value, e.g. name, description, status."
+        }
+      ]
+    },
+    {
+      "key": "update_record",
+      "name": "Update record",
+      "method": "PATCH",
+      "endpoint": "/module",
+      "body": {
+        "data": {
+          "type": "{{ inputs.module }}",
+          "id": "{{ inputs.record_id }}",
+          "attributes": "{{ inputs.attributes }}"
+        }
+      },
+      "output_fields": {
+        "id": "data.id"
+      },
+      "inputs": [
+        {
+          "key": "module",
+          "label": "Module",
+          "type": "select",
+          "required": true,
+          "default": "Contacts",
+          "options": [
+            {
+              "value": "Contacts",
+              "label": "Contacts"
+            },
+            {
+              "value": "Leads",
+              "label": "Leads"
+            },
+            {
+              "value": "Accounts",
+              "label": "Accounts"
+            },
+            {
+              "value": "Opportunities",
+              "label": "Opportunities"
+            },
+            {
+              "value": "Cases",
+              "label": "Cases"
+            },
+            {
+              "value": "Calls",
+              "label": "Calls"
+            },
+            {
+              "value": "Meetings",
+              "label": "Meetings"
+            },
+            {
+              "value": "Tasks",
+              "label": "Tasks"
+            },
+            {
+              "value": "Notes",
+              "label": "Notes"
+            }
+          ]
+        },
+        {
+          "key": "record_id",
+          "label": "Record ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "attributes",
+          "label": "Fields to change",
+          "type": "keyvalue",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "get_record",
+      "name": "Get record",
+      "method": "GET",
+      "endpoint": "/module/{{ inputs.module }}/{{ inputs.record_id }}",
+      "output_fields": {
+        "id": "data.id",
+        "attributes": "data.attributes"
+      },
+      "inputs": [
+        {
+          "key": "module",
+          "label": "Module",
+          "type": "select",
+          "required": true,
+          "default": "Contacts",
+          "options": [
+            {
+              "value": "Contacts",
+              "label": "Contacts"
+            },
+            {
+              "value": "Leads",
+              "label": "Leads"
+            },
+            {
+              "value": "Accounts",
+              "label": "Accounts"
+            },
+            {
+              "value": "Opportunities",
+              "label": "Opportunities"
+            },
+            {
+              "value": "Cases",
+              "label": "Cases"
+            },
+            {
+              "value": "Calls",
+              "label": "Calls"
+            },
+            {
+              "value": "Meetings",
+              "label": "Meetings"
+            },
+            {
+              "value": "Tasks",
+              "label": "Tasks"
+            },
+            {
+              "value": "Notes",
+              "label": "Notes"
+            }
+          ]
+        },
+        {
+          "key": "record_id",
+          "label": "Record ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "find_records",
+      "name": "Find records",
+      "method": "GET",
+      "endpoint": "/module/{{ inputs.module }}?filter%5B{{ inputs.field }}%5D%5Beq%5D={{ inputs.value }}&page%5Bsize%5D=20",
+      "output_fields": {
+        "id": "data.0.id",
+        "records": "data"
+      },
+      "inputs": [
+        {
+          "key": "module",
+          "label": "Module",
+          "type": "select",
+          "required": true,
+          "default": "Contacts",
+          "options": [
+            {
+              "value": "Contacts",
+              "label": "Contacts"
+            },
+            {
+              "value": "Leads",
+              "label": "Leads"
+            },
+            {
+              "value": "Accounts",
+              "label": "Accounts"
+            },
+            {
+              "value": "Opportunities",
+              "label": "Opportunities"
+            },
+            {
+              "value": "Cases",
+              "label": "Cases"
+            },
+            {
+              "value": "Calls",
+              "label": "Calls"
+            },
+            {
+              "value": "Meetings",
+              "label": "Meetings"
+            },
+            {
+              "value": "Tasks",
+              "label": "Tasks"
+            },
+            {
+              "value": "Notes",
+              "label": "Notes"
+            }
+          ]
+        },
+        {
+          "key": "field",
+          "label": "Field",
+          "type": "string",
+          "required": true,
+          "default": "last_name",
+          "help": "Database field to match, e.g. last_name, name, status."
+        },
+        {
+          "key": "value",
+          "label": "Value",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "delete_record",
+      "name": "Delete record",
+      "method": "DELETE",
+      "endpoint": "/module/{{ inputs.module }}/{{ inputs.record_id }}",
+      "inputs": [
+        {
+          "key": "module",
+          "label": "Module",
+          "type": "select",
+          "required": true,
+          "default": "Contacts",
+          "options": [
+            {
+              "value": "Contacts",
+              "label": "Contacts"
+            },
+            {
+              "value": "Leads",
+              "label": "Leads"
+            },
+            {
+              "value": "Accounts",
+              "label": "Accounts"
+            },
+            {
+              "value": "Opportunities",
+              "label": "Opportunities"
+            },
+            {
+              "value": "Cases",
+              "label": "Cases"
+            },
+            {
+              "value": "Calls",
+              "label": "Calls"
+            },
+            {
+              "value": "Meetings",
+              "label": "Meetings"
+            },
+            {
+              "value": "Tasks",
+              "label": "Tasks"
+            },
+            {
+              "value": "Notes",
+              "label": "Notes"
+            }
+          ]
+        },
+        {
+          "key": "record_id",
+          "label": "Record ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_record",
+      "name": "New record",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/module/{{ inputs.module }}",
+      "query": {
+        "sort": "-date_entered",
+        "page[size]": 50
+      },
+      "items_path": "data",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "module",
+          "label": "Module",
+          "type": "select",
+          "required": true,
+          "default": "Contacts",
+          "options": [
+            {
+              "value": "Contacts",
+              "label": "Contacts"
+            },
+            {
+              "value": "Leads",
+              "label": "Leads"
+            },
+            {
+              "value": "Accounts",
+              "label": "Accounts"
+            },
+            {
+              "value": "Opportunities",
+              "label": "Opportunities"
+            },
+            {
+              "value": "Cases",
+              "label": "Cases"
+            },
+            {
+              "value": "Calls",
+              "label": "Calls"
+            },
+            {
+              "value": "Meetings",
+              "label": "Meetings"
+            },
+            {
+              "value": "Tasks",
+              "label": "Tasks"
+            },
+            {
+              "value": "Notes",
+              "label": "Notes"
+            }
+          ]
+        },
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

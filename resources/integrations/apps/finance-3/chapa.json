@@ -1,0 +1,244 @@
+{
+  "key": "chapa",
+  "name": "Chapa",
+  "category": "Payments & Finance",
+  "description": "Ethiopian payments: create checkout links, verify payments and send bank transfers.",
+  "website": "https://chapa.co",
+  "docs_url": "https://developer.chapa.co",
+  "base_url": "https://api.chapa.co/v1",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "Secret key (CHASECK-…)",
+        "type": "password",
+        "required": true,
+        "help": "Chapa dashboard → Settings → API."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "initialize_payment",
+      "name": "Create checkout link",
+      "description": "Start a payment and get the hosted checkout URL.",
+      "method": "POST",
+      "endpoint": "/transaction/initialize",
+      "body": {
+        "amount": "{{ inputs.amount }}",
+        "currency": "{{ inputs.currency }}",
+        "email": "{{ inputs.email }}",
+        "first_name": "{{ inputs.first_name }}",
+        "last_name": "{{ inputs.last_name }}",
+        "phone_number": "{{ inputs.phone_number }}",
+        "tx_ref": "{{ inputs.tx_ref }}",
+        "callback_url": "{{ inputs.callback_url }}",
+        "return_url": "{{ inputs.return_url }}",
+        "customization": {
+          "title": "{{ inputs.title }}",
+          "description": "{{ inputs.description }}"
+        }
+      },
+      "output_fields": {
+        "checkout_url": "data.checkout_url"
+      },
+      "inputs": [
+        {
+          "key": "amount",
+          "label": "Amount",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "currency",
+          "label": "Currency",
+          "type": "select",
+          "required": true,
+          "default": "ETB",
+          "options": [
+            {
+              "value": "ETB",
+              "label": "ETB"
+            },
+            {
+              "value": "USD",
+              "label": "USD"
+            }
+          ]
+        },
+        {
+          "key": "tx_ref",
+          "label": "Transaction reference",
+          "type": "string",
+          "required": true,
+          "help": "Your unique reference for this payment, e.g. the order number."
+        },
+        {
+          "key": "email",
+          "label": "Customer email",
+          "type": "string"
+        },
+        {
+          "key": "first_name",
+          "label": "First name",
+          "type": "string"
+        },
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string"
+        },
+        {
+          "key": "phone_number",
+          "label": "Phone",
+          "type": "string",
+          "placeholder": "0912345678"
+        },
+        {
+          "key": "callback_url",
+          "label": "Callback URL",
+          "type": "string"
+        },
+        {
+          "key": "return_url",
+          "label": "Return URL",
+          "type": "string"
+        },
+        {
+          "key": "title",
+          "label": "Page title",
+          "type": "string"
+        },
+        {
+          "key": "description",
+          "label": "Page description",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "verify_payment",
+      "name": "Verify payment",
+      "description": "Check a payment by its transaction reference.",
+      "method": "GET",
+      "endpoint": "/transaction/verify/{{ inputs.tx_ref }}",
+      "output_fields": {
+        "status": "data.status",
+        "amount": "data.amount",
+        "currency": "data.currency",
+        "reference": "data.reference",
+        "email": "data.email"
+      },
+      "inputs": [
+        {
+          "key": "tx_ref",
+          "label": "Transaction reference",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_banks",
+      "name": "List banks",
+      "description": "Banks and wallets you can transfer to, with their codes.",
+      "method": "GET",
+      "endpoint": "/banks",
+      "output_fields": {
+        "banks": "data"
+      },
+      "inputs": []
+    },
+    {
+      "key": "create_transfer",
+      "name": "Send transfer",
+      "description": "Pay out to a bank account or mobile wallet.",
+      "method": "POST",
+      "endpoint": "/transfers",
+      "body": {
+        "account_name": "{{ inputs.account_name }}",
+        "account_number": "{{ inputs.account_number }}",
+        "amount": "{{ inputs.amount }}",
+        "currency": "{{ inputs.currency }}",
+        "reference": "{{ inputs.reference }}",
+        "bank_code": "{{ inputs.bank_code }}"
+      },
+      "output_fields": {
+        "reference": "data"
+      },
+      "inputs": [
+        {
+          "key": "account_name",
+          "label": "Account name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "account_number",
+          "label": "Account number",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "amount",
+          "label": "Amount",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "currency",
+          "label": "Currency",
+          "type": "string",
+          "default": "ETB"
+        },
+        {
+          "key": "bank_code",
+          "label": "Bank code",
+          "type": "string",
+          "required": true,
+          "help": "Use the List banks action to find the code."
+        },
+        {
+          "key": "reference",
+          "label": "Reference",
+          "type": "string",
+          "help": "Your unique reference for this transfer."
+        }
+      ]
+    },
+    {
+      "key": "verify_transfer",
+      "name": "Verify transfer",
+      "description": "Check the status of a transfer.",
+      "method": "GET",
+      "endpoint": "/transfers/verify/{{ inputs.reference }}",
+      "output_fields": {
+        "status": "data.status"
+      },
+      "inputs": [
+        {
+          "key": "reference",
+          "label": "Transfer reference",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Payment webhook",
+      "type": "webhook",
+      "description": "Chapa dashboard → Settings → Webhooks, paste this URL.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

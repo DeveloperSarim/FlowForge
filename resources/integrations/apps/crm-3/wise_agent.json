@@ -1,0 +1,235 @@
+{
+  "key": "wise_agent",
+  "name": "Wise Agent",
+  "category": "CRM & Sales",
+  "description": "Find, add and update contacts, notes and tasks in the Wise Agent real-estate CRM.",
+  "website": "https://www.wiseagent.com",
+  "docs_url": "https://wiseagent.com/docs/api.asp",
+  "base_url": "https://sync.thewiseagent.com/http",
+  "headers": {
+    "Accept": "application/json"
+  },
+  "auth": {
+    "type": "oauth2",
+    "authorize_url": "https://sync.wiseagent.com/WiseAuth/auth",
+    "token_url": "https://sync.wiseagent.com/WiseAuth/token",
+    "scopes": [
+      "profile",
+      "contacts"
+    ],
+    "client_auth": "basic"
+  },
+  "actions": [
+    {
+      "key": "list_contacts",
+      "name": "List contacts",
+      "description": "Finds contacts, optionally by email, phone or name.",
+      "method": "GET",
+      "endpoint": "/webconnect.asp",
+      "query": {
+        "requestType": "getContacts",
+        "email": "{{ inputs.email }}",
+        "phone": "{{ inputs.phone }}",
+        "nameQuery": "{{ inputs.name_query }}",
+        "page_size": "{{ inputs.page_size }}"
+      },
+      "output_fields": {
+        "first_id": "0.ClientID",
+        "first_name": "0.CFirst",
+        "first_email": "0.CEmail"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string"
+        },
+        {
+          "key": "phone",
+          "label": "Phone",
+          "type": "string"
+        },
+        {
+          "key": "name_query",
+          "label": "Name contains",
+          "type": "string"
+        },
+        {
+          "key": "page_size",
+          "label": "How many",
+          "type": "number",
+          "default": 25
+        }
+      ]
+    },
+    {
+      "key": "get_contact",
+      "name": "Get contact",
+      "description": "Gets one contact by ID.",
+      "method": "GET",
+      "endpoint": "/webconnect.asp",
+      "query": {
+        "requestType": "getSingleContact",
+        "clientID": "{{ inputs.client_id }}"
+      },
+      "output_fields": {
+        "first_name": "0.CFirst",
+        "last_name": "0.CLast",
+        "email": "0.CEmail",
+        "status": "0.Status"
+      },
+      "inputs": [
+        {
+          "key": "client_id",
+          "label": "Contact ID",
+          "type": "string",
+          "required": true,
+          "help": "The ClientID from \"List contacts\"."
+        }
+      ]
+    },
+    {
+      "key": "create_contact",
+      "name": "Create contact",
+      "description": "Adds a new contact.",
+      "method": "POST",
+      "endpoint": "/webconnect.asp",
+      "body": {
+        "CFirst": "{{ inputs.first_name }}",
+        "CLast": "{{ inputs.last_name }}",
+        "Source": "{{ inputs.source }}",
+        "CEmail": "{{ inputs.email }}",
+        "Categories": "{{ inputs.categories }}",
+        "CellPhone": "{{ inputs.mobile_phone }}"
+      },
+      "query": {
+        "requestType": "webcontact"
+      },
+      "body_format": "form",
+      "output_fields": {
+        "client_id": "data.ClientID",
+        "is_new": "data.NewContact"
+      },
+      "inputs": [
+        {
+          "key": "first_name",
+          "label": "First name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "source",
+          "label": "Lead source",
+          "type": "string",
+          "required": true,
+          "default": "FlowForge"
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string"
+        },
+        {
+          "key": "mobile_phone",
+          "label": "Mobile phone",
+          "type": "string"
+        },
+        {
+          "key": "categories",
+          "label": "Categories",
+          "type": "string",
+          "help": "Comma separated."
+        }
+      ]
+    },
+    {
+      "key": "add_note",
+      "name": "Add note to contact",
+      "description": "Adds a note to one or more contacts.",
+      "method": "POST",
+      "endpoint": "/webconnect.asp",
+      "body": {
+        "clientids": "{{ inputs.client_ids }}",
+        "subject": "{{ inputs.subject }}",
+        "note": "{{ inputs.note }}"
+      },
+      "query": {
+        "requestType": "addContactNote"
+      },
+      "body_format": "form",
+      "output_fields": {
+        "success": "success"
+      },
+      "inputs": [
+        {
+          "key": "client_ids",
+          "label": "Contact IDs",
+          "type": "string",
+          "required": true,
+          "help": "One ID, or several separated by commas."
+        },
+        {
+          "key": "subject",
+          "label": "Subject",
+          "type": "string"
+        },
+        {
+          "key": "note",
+          "label": "Note",
+          "type": "text",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "create_task",
+      "name": "Create task",
+      "description": "Adds a task, optionally for a contact.",
+      "method": "POST",
+      "endpoint": "/webconnect.asp",
+      "body": {
+        "Description": "{{ inputs.description }}",
+        "TaskDue": "{{ inputs.due }}",
+        "ContactID": "{{ inputs.contact_id }}",
+        "TaskNote": "{{ inputs.note }}"
+      },
+      "query": {
+        "requestType": "tasks"
+      },
+      "body_format": "form",
+      "output_fields": {
+        "success": "success"
+      },
+      "inputs": [
+        {
+          "key": "description",
+          "label": "Task",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "due",
+          "label": "Due date",
+          "type": "string",
+          "placeholder": "2026-01-31"
+        },
+        {
+          "key": "contact_id",
+          "label": "Contact ID",
+          "type": "string"
+        },
+        {
+          "key": "note",
+          "label": "Details",
+          "type": "text"
+        }
+      ]
+    }
+  ]
+}

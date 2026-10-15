@@ -1,0 +1,481 @@
+{
+  "key": "tamara",
+  "name": "Tamara",
+  "category": "Payments & Finance",
+  "description": "Buy now, pay later in Saudi Arabia and the Gulf: checkouts, captures, refunds.",
+  "website": "https://tamara.co",
+  "docs_url": "https://docs.tamara.co",
+  "base_url": "https://{{ credentials.host }}",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "API token",
+        "type": "password",
+        "required": true,
+        "help": "Tamara partner portal → Settings → API configuration → API token."
+      },
+      {
+        "key": "host",
+        "label": "Environment",
+        "type": "select",
+        "required": true,
+        "default": "api.tamara.co",
+        "options": [
+          {
+            "value": "api.tamara.co",
+            "label": "Live"
+          },
+          {
+            "value": "api-sandbox.tamara.co",
+            "label": "Sandbox"
+          }
+        ]
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "create_checkout",
+      "name": "Create checkout session",
+      "description": "Create an order and get the Tamara checkout URL.",
+      "method": "POST",
+      "endpoint": "/checkout",
+      "body": {
+        "order_reference_id": "{{ inputs.order_reference }}",
+        "description": "{{ inputs.description }}",
+        "country_code": "{{ inputs.country_code }}",
+        "payment_type": "{{ inputs.payment_type }}",
+        "instalments": "{{ inputs.instalments }}",
+        "total_amount": {
+          "amount": "{{ inputs.amount }}",
+          "currency": "{{ inputs.currency }}"
+        },
+        "tax_amount": {
+          "amount": "{{ inputs.tax_amount }}",
+          "currency": "{{ inputs.currency }}"
+        },
+        "shipping_amount": {
+          "amount": "{{ inputs.shipping_amount }}",
+          "currency": "{{ inputs.currency }}"
+        },
+        "items": "{{ inputs.items }}",
+        "consumer": {
+          "first_name": "{{ inputs.first_name }}",
+          "last_name": "{{ inputs.last_name }}",
+          "phone_number": "{{ inputs.phone }}",
+          "email": "{{ inputs.email }}"
+        },
+        "shipping_address": {
+          "first_name": "{{ inputs.first_name }}",
+          "last_name": "{{ inputs.last_name }}",
+          "line1": "{{ inputs.address }}",
+          "city": "{{ inputs.city }}",
+          "country_code": "{{ inputs.country_code }}"
+        },
+        "merchant_url": {
+          "success": "{{ inputs.success_url }}",
+          "failure": "{{ inputs.failure_url }}",
+          "cancel": "{{ inputs.cancel_url }}",
+          "notification": "{{ inputs.notification_url }}"
+        }
+      },
+      "output_fields": {
+        "order_id": "order_id",
+        "checkout_id": "checkout_id",
+        "checkout_url": "checkout_url"
+      },
+      "inputs": [
+        {
+          "key": "order_reference",
+          "label": "Order reference",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "amount",
+          "label": "Total amount",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "currency",
+          "label": "Currency",
+          "type": "select",
+          "required": true,
+          "default": "SAR",
+          "options": [
+            {
+              "value": "SAR",
+              "label": "SAR"
+            },
+            {
+              "value": "AED",
+              "label": "AED"
+            },
+            {
+              "value": "KWD",
+              "label": "KWD"
+            },
+            {
+              "value": "BHD",
+              "label": "BHD"
+            },
+            {
+              "value": "OMR",
+              "label": "OMR"
+            }
+          ]
+        },
+        {
+          "key": "country_code",
+          "label": "Country",
+          "type": "select",
+          "required": true,
+          "default": "SA",
+          "options": [
+            {
+              "value": "SA",
+              "label": "Saudi Arabia"
+            },
+            {
+              "value": "AE",
+              "label": "UAE"
+            },
+            {
+              "value": "KW",
+              "label": "Kuwait"
+            },
+            {
+              "value": "BH",
+              "label": "Bahrain"
+            },
+            {
+              "value": "OM",
+              "label": "Oman"
+            }
+          ]
+        },
+        {
+          "key": "payment_type",
+          "label": "Payment type",
+          "type": "select",
+          "required": true,
+          "default": "PAY_BY_INSTALMENTS",
+          "options": [
+            {
+              "value": "PAY_BY_INSTALMENTS",
+              "label": "Pay in instalments"
+            },
+            {
+              "value": "PAY_NOW",
+              "label": "Pay now"
+            }
+          ]
+        },
+        {
+          "key": "instalments",
+          "label": "Instalments",
+          "type": "number",
+          "default": 3
+        },
+        {
+          "key": "description",
+          "label": "Description",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "tax_amount",
+          "label": "Tax amount",
+          "type": "number",
+          "default": 0
+        },
+        {
+          "key": "shipping_amount",
+          "label": "Shipping amount",
+          "type": "number",
+          "default": 0
+        },
+        {
+          "key": "items",
+          "label": "Items (JSON)",
+          "type": "json",
+          "required": true,
+          "placeholder": "[{\"reference_id\":\"1\",\"type\":\"Physical\",\"name\":\"T-shirt\",\"sku\":\"TS-1\",\"quantity\":1,\"total_amount\":{\"amount\":100,\"currency\":\"SAR\"}}]"
+        },
+        {
+          "key": "first_name",
+          "label": "First name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "phone",
+          "label": "Phone",
+          "type": "string",
+          "required": true,
+          "placeholder": "566027755"
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string"
+        },
+        {
+          "key": "address",
+          "label": "Address line",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "city",
+          "label": "City",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "success_url",
+          "label": "Success URL",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "failure_url",
+          "label": "Failure URL",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "cancel_url",
+          "label": "Cancel URL",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "notification_url",
+          "label": "Notification URL",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "get_order",
+      "name": "Get order",
+      "description": "Order details and status.",
+      "method": "GET",
+      "endpoint": "/orders/{{ inputs.order_id }}",
+      "output_fields": {
+        "status": "status",
+        "order_reference": "order_reference_id",
+        "total": "total_amount.amount",
+        "paid": "paid_amount.amount"
+      },
+      "inputs": [
+        {
+          "key": "order_id",
+          "label": "Tamara order ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "authorise_order",
+      "name": "Authorise order",
+      "description": "Confirm an approved order (required after checkout).",
+      "method": "POST",
+      "endpoint": "/orders/{{ inputs.order_id }}/authorise",
+      "output_fields": {
+        "status": "status",
+        "capture_id": "capture_id"
+      },
+      "inputs": [
+        {
+          "key": "order_id",
+          "label": "Tamara order ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "capture_order",
+      "name": "Capture order",
+      "description": "Capture the amount when you ship the order.",
+      "method": "POST",
+      "endpoint": "/payments/capture",
+      "body": {
+        "order_id": "{{ inputs.order_id }}",
+        "total_amount": {
+          "amount": "{{ inputs.amount }}",
+          "currency": "{{ inputs.currency }}"
+        },
+        "shipping_info": {
+          "shipped_at": "{{ inputs.shipped_at }}",
+          "shipping_company": "{{ inputs.shipping_company }}",
+          "tracking_number": "{{ inputs.tracking_number }}",
+          "tracking_url": "{{ inputs.tracking_url }}"
+        }
+      },
+      "output_fields": {
+        "capture_id": "capture_id",
+        "status": "status"
+      },
+      "inputs": [
+        {
+          "key": "order_id",
+          "label": "Tamara order ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "amount",
+          "label": "Amount",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "currency",
+          "label": "Currency",
+          "type": "string",
+          "required": true,
+          "default": "SAR"
+        },
+        {
+          "key": "shipped_at",
+          "label": "Shipped at",
+          "type": "string",
+          "required": true,
+          "placeholder": "2026-01-31T10:00:00Z"
+        },
+        {
+          "key": "shipping_company",
+          "label": "Shipping company",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "tracking_number",
+          "label": "Tracking number",
+          "type": "string"
+        },
+        {
+          "key": "tracking_url",
+          "label": "Tracking URL",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "refund_order",
+      "name": "Refund order",
+      "description": "Refund all or part of a captured order.",
+      "method": "POST",
+      "endpoint": "/payments/simplified-refund/{{ inputs.order_id }}",
+      "body": {
+        "total_amount": {
+          "amount": "{{ inputs.amount }}",
+          "currency": "{{ inputs.currency }}"
+        },
+        "comment": "{{ inputs.comment }}",
+        "merchant_refund_id": "{{ inputs.refund_reference }}"
+      },
+      "output_fields": {
+        "refund_id": "refund_id",
+        "status": "status"
+      },
+      "inputs": [
+        {
+          "key": "order_id",
+          "label": "Tamara order ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "amount",
+          "label": "Amount",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "currency",
+          "label": "Currency",
+          "type": "string",
+          "required": true,
+          "default": "SAR"
+        },
+        {
+          "key": "comment",
+          "label": "Reason",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "refund_reference",
+          "label": "Your refund ID",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "cancel_order",
+      "name": "Cancel order",
+      "description": "Cancel an authorised order that was not captured.",
+      "method": "POST",
+      "endpoint": "/orders/{{ inputs.order_id }}/cancel",
+      "body": {
+        "total_amount": {
+          "amount": "{{ inputs.amount }}",
+          "currency": "{{ inputs.currency }}"
+        }
+      },
+      "output_fields": {
+        "status": "status"
+      },
+      "inputs": [
+        {
+          "key": "order_id",
+          "label": "Tamara order ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "amount",
+          "label": "Amount to cancel",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "currency",
+          "label": "Currency",
+          "type": "string",
+          "required": true,
+          "default": "SAR"
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Order notification",
+      "type": "webhook",
+      "description": "Tamara partner portal → Webhooks, or the notification URL of a checkout.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

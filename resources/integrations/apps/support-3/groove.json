@@ -1,0 +1,250 @@
+{
+  "key": "groove",
+  "name": "Groove",
+  "category": "Customer Support",
+  "description": "Create and reply to Groove tickets, look up customers and list mailboxes.",
+  "website": "https://www.groovehq.com",
+  "docs_url": "https://www.groovehq.com/docs/api",
+  "base_url": "https://api.groovehq.com/v1",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "Private access token",
+        "type": "password",
+        "required": true,
+        "help": "In Groove open Settings > API (admin only) and copy your private token."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_tickets",
+      "name": "List tickets",
+      "description": "Lists tickets, optionally filtered by state or mailbox.",
+      "method": "GET",
+      "endpoint": "/tickets",
+      "query": {
+        "state": "{{ inputs.state }}",
+        "mailbox": "{{ inputs.mailbox }}",
+        "per_page": "{{ inputs.per_page }}"
+      },
+      "output_fields": {
+        "tickets": "tickets",
+        "first_number": "tickets.0.number"
+      },
+      "inputs": [
+        {
+          "key": "state",
+          "label": "State",
+          "type": "select",
+          "default": "opened",
+          "options": [
+            {
+              "value": "unread",
+              "label": "Unread"
+            },
+            {
+              "value": "opened",
+              "label": "Open"
+            },
+            {
+              "value": "pending",
+              "label": "Pending"
+            },
+            {
+              "value": "closed",
+              "label": "Closed"
+            },
+            {
+              "value": "spam",
+              "label": "Spam"
+            }
+          ]
+        },
+        {
+          "key": "mailbox",
+          "label": "Mailbox ID",
+          "type": "string",
+          "help": "Optional. Use \"List mailboxes\" to find it."
+        },
+        {
+          "key": "per_page",
+          "label": "How many",
+          "type": "number",
+          "default": 25
+        }
+      ]
+    },
+    {
+      "key": "get_ticket",
+      "name": "Get ticket",
+      "description": "Gets one ticket by its number.",
+      "method": "GET",
+      "endpoint": "/tickets/{{ inputs.ticket_number }}",
+      "output_fields": {
+        "number": "ticket.number",
+        "title": "ticket.title",
+        "state": "ticket.state",
+        "summary": "ticket.summary"
+      },
+      "inputs": [
+        {
+          "key": "ticket_number",
+          "label": "Ticket number",
+          "type": "number",
+          "required": true,
+          "help": "The number shown next to the ticket in Groove (e.g. 1234)."
+        }
+      ]
+    },
+    {
+      "key": "create_ticket",
+      "name": "Create ticket",
+      "description": "Creates a ticket from a customer email address.",
+      "method": "POST",
+      "endpoint": "/tickets",
+      "body": {
+        "from": "{{ inputs.from }}",
+        "to": "{{ inputs.to }}",
+        "name": "{{ inputs.name }}",
+        "subject": "{{ inputs.subject }}",
+        "body": "{{ inputs.body }}"
+      },
+      "output_fields": {
+        "number": "ticket.number",
+        "id": "ticket.id"
+      },
+      "inputs": [
+        {
+          "key": "from",
+          "label": "Customer email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "to",
+          "label": "Mailbox email",
+          "type": "string",
+          "required": true,
+          "help": "The support address of the Groove mailbox that should get the ticket."
+        },
+        {
+          "key": "name",
+          "label": "Customer name",
+          "type": "string"
+        },
+        {
+          "key": "subject",
+          "label": "Subject",
+          "type": "string"
+        },
+        {
+          "key": "body",
+          "label": "Message",
+          "type": "text",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "add_message",
+      "name": "Reply or add note",
+      "description": "Adds a reply to the customer or a private note to a ticket.",
+      "method": "POST",
+      "endpoint": "/tickets/{{ inputs.ticket_number }}/messages",
+      "body": {
+        "body": "{{ inputs.body }}",
+        "note": "{{ inputs.note }}",
+        "author": "{{ inputs.author }}"
+      },
+      "output_fields": {
+        "id": "message.id"
+      },
+      "inputs": [
+        {
+          "key": "ticket_number",
+          "label": "Ticket number",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "body",
+          "label": "Message",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "note",
+          "label": "Private note",
+          "type": "boolean",
+          "default": false,
+          "help": "On: only your team sees it. Off: it is sent to the customer."
+        },
+        {
+          "key": "author",
+          "label": "Agent email",
+          "type": "string",
+          "required": true,
+          "help": "Email of the Groove agent who writes the message."
+        }
+      ]
+    },
+    {
+      "key": "get_customer",
+      "name": "Get customer",
+      "description": "Looks up a customer by email address.",
+      "method": "GET",
+      "endpoint": "/customers/{{ inputs.email }}",
+      "output_fields": {
+        "name": "customer.name",
+        "email": "customer.email",
+        "id": "customer.id"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Customer email",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_mailboxes",
+      "name": "List mailboxes",
+      "description": "Lists your mailboxes so you can find their IDs.",
+      "method": "GET",
+      "endpoint": "/mailboxes",
+      "output_fields": {
+        "mailboxes": "mailboxes",
+        "first_id": "mailboxes.0.id"
+      },
+      "inputs": []
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_ticket",
+      "name": "New ticket",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/tickets",
+      "query": {
+        "state": "opened",
+        "per_page": 25
+      },
+      "items_path": "tickets",
+      "id_field": "number",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

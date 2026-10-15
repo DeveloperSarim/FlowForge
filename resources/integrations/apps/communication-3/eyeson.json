@@ -1,0 +1,155 @@
+{
+  "key": "eyeson",
+  "name": "eyeson",
+  "category": "Communication",
+  "description": "Start eyeson video meetings, share guest links, send chat messages, stop meetings.",
+  "website": "https://www.eyeson.com",
+  "docs_url": "https://docs.eyeson.com/docs/rest/eyeson-api",
+  "base_url": "https://api.eyeson.team",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "Authorization",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "developers.eyeson.team → Projects → create a project; its API key is shown there."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "start_meeting",
+      "name": "Start or join meeting",
+      "description": "Returns a host link (keep private) and a guest link to share.",
+      "method": "POST",
+      "endpoint": "/rooms",
+      "body": {
+        "user": {
+          "name": "{{ inputs.user_name }}"
+        },
+        "id": "{{ inputs.room_id }}",
+        "name": "{{ inputs.room_name }}"
+      },
+      "body_format": "form",
+      "output_fields": {
+        "room_id": "room.id",
+        "access_key": "access_key",
+        "host_link": "links.gui",
+        "guest_link": "links.guest_join",
+        "guest_token": "room.guest_token"
+      },
+      "inputs": [
+        {
+          "key": "user_name",
+          "label": "Host name",
+          "type": "string",
+          "required": true,
+          "placeholder": "Support Team"
+        },
+        {
+          "key": "room_id",
+          "label": "Room ID",
+          "type": "string",
+          "help": "Reuse the same ID to join the same meeting. Leave blank for a new room."
+        },
+        {
+          "key": "room_name",
+          "label": "Meeting name",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "list_meetings",
+      "name": "List running meetings",
+      "method": "GET",
+      "endpoint": "/rooms",
+      "query": {
+        "page": "{{ inputs.page }}"
+      },
+      "inputs": [
+        {
+          "key": "page",
+          "label": "Page",
+          "type": "number",
+          "default": 0
+        }
+      ]
+    },
+    {
+      "key": "send_chat_message",
+      "name": "Send chat message",
+      "method": "POST",
+      "endpoint": "/rooms/{{ inputs.access_key }}/messages",
+      "body": {
+        "type": "chat",
+        "content": "{{ inputs.content }}"
+      },
+      "body_format": "form",
+      "inputs": [
+        {
+          "key": "access_key",
+          "label": "Access key",
+          "type": "string",
+          "required": true,
+          "help": "access_key returned by 'Start or join meeting'."
+        },
+        {
+          "key": "content",
+          "label": "Message",
+          "type": "text",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "stop_meeting",
+      "name": "Stop meeting",
+      "description": "Ends the meeting for everyone.",
+      "method": "DELETE",
+      "endpoint": "/rooms/{{ inputs.room_id }}",
+      "inputs": [
+        {
+          "key": "room_id",
+          "label": "Room ID",
+          "type": "string",
+          "required": true,
+          "help": "room.id returned by 'Start or join meeting'."
+        }
+      ]
+    },
+    {
+      "key": "list_recordings",
+      "name": "List recordings",
+      "method": "GET",
+      "endpoint": "/rooms/{{ inputs.room_id }}/recordings",
+      "inputs": [
+        {
+          "key": "room_id",
+          "label": "Room ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Room or recording update",
+      "type": "webhook",
+      "description": "Register the trigger URL with the eyeson webhooks API (types room_update, recording_update).",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

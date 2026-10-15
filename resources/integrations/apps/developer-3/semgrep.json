@@ -1,0 +1,212 @@
+{
+  "key": "semgrep",
+  "name": "Semgrep",
+  "category": "Developer Tools",
+  "description": "List Semgrep code and supply-chain findings and scanned projects.",
+  "brand": "semgrep",
+  "website": "https://semgrep.dev",
+  "docs_url": "https://semgrep.dev/api/v1/docs/",
+  "base_url": "https://semgrep.dev/api/v1",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "API token",
+        "type": "password",
+        "required": true,
+        "help": "Semgrep AppSec Platform → Settings → Tokens → Create new token with the Web API scope."
+      }
+    ],
+    "profile": {
+      "endpoint": "/deployments",
+      "store": {
+        "deployment_slug": "{{ deployments.0.slug }}"
+      }
+    }
+  },
+  "actions": [
+    {
+      "key": "list_deployments",
+      "name": "List organizations",
+      "description": "List the Semgrep organizations the token can access.",
+      "method": "GET",
+      "endpoint": "/deployments",
+      "output_fields": {
+        "deployments": "deployments"
+      },
+      "inputs": []
+    },
+    {
+      "key": "list_projects",
+      "name": "List projects",
+      "description": "List scanned repositories.",
+      "method": "GET",
+      "endpoint": "/deployments/{{ inputs.deployment_slug }}/projects",
+      "query": {
+        "page_size": "{{ inputs.page_size }}"
+      },
+      "output_fields": {
+        "projects": "projects"
+      },
+      "inputs": [
+        {
+          "key": "deployment_slug",
+          "label": "Organization slug",
+          "type": "string",
+          "fallback": "credentials.deployment_slug",
+          "help": "Leave empty to use your first Semgrep organization."
+        },
+        {
+          "key": "page_size",
+          "label": "Page size",
+          "type": "number",
+          "default": 100
+        }
+      ]
+    },
+    {
+      "key": "get_project",
+      "name": "Get project",
+      "description": "Get a project's last scan time and branches.",
+      "method": "GET",
+      "endpoint": "/deployments/{{ inputs.deployment_slug }}/projects/{{ inputs.project_name }}",
+      "output_fields": {
+        "name": "project.name",
+        "latest_scan_at": "project.latest_scan_at",
+        "url": "project.url"
+      },
+      "inputs": [
+        {
+          "key": "deployment_slug",
+          "label": "Organization slug",
+          "type": "string",
+          "fallback": "credentials.deployment_slug",
+          "help": "Leave empty to use your first Semgrep organization."
+        },
+        {
+          "key": "project_name",
+          "label": "Project name",
+          "type": "string",
+          "required": true,
+          "placeholder": "myorg/my-repo"
+        }
+      ]
+    },
+    {
+      "key": "list_findings",
+      "name": "List findings",
+      "description": "List security findings, filtered by type, status and severity.",
+      "method": "GET",
+      "endpoint": "/deployments/{{ inputs.deployment_slug }}/findings",
+      "query": {
+        "issue_type": "{{ inputs.issue_type }}",
+        "status": "{{ inputs.status }}",
+        "severities": "{{ inputs.severities }}",
+        "repos": "{{ inputs.repos }}",
+        "since": "{{ inputs.since }}",
+        "page_size": "{{ inputs.page_size }}"
+      },
+      "output_fields": {
+        "findings": "findings"
+      },
+      "inputs": [
+        {
+          "key": "deployment_slug",
+          "label": "Organization slug",
+          "type": "string",
+          "fallback": "credentials.deployment_slug",
+          "help": "Leave empty to use your first Semgrep organization."
+        },
+        {
+          "key": "issue_type",
+          "label": "Type",
+          "type": "select",
+          "default": "sast",
+          "options": [
+            {
+              "value": "sast",
+              "label": "Code"
+            },
+            {
+              "value": "sca",
+              "label": "Supply chain"
+            },
+            {
+              "value": "ai_sast",
+              "label": "AI-powered detection"
+            }
+          ]
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "default": "open",
+          "options": [
+            {
+              "value": "open",
+              "label": "open"
+            },
+            {
+              "value": "fixed",
+              "label": "fixed"
+            },
+            {
+              "value": "ignored",
+              "label": "ignored"
+            },
+            {
+              "value": "reviewing",
+              "label": "reviewing"
+            },
+            {
+              "value": "fixing",
+              "label": "fixing"
+            }
+          ]
+        },
+        {
+          "key": "severities",
+          "label": "Severity",
+          "type": "select",
+          "options": [
+            {
+              "value": "critical",
+              "label": "critical"
+            },
+            {
+              "value": "high",
+              "label": "high"
+            },
+            {
+              "value": "medium",
+              "label": "medium"
+            },
+            {
+              "value": "low",
+              "label": "low"
+            }
+          ]
+        },
+        {
+          "key": "repos",
+          "label": "Repository",
+          "type": "string",
+          "placeholder": "myorg/my-repo"
+        },
+        {
+          "key": "since",
+          "label": "Detected since (Unix time)",
+          "type": "number"
+        },
+        {
+          "key": "page_size",
+          "label": "Page size",
+          "type": "number",
+          "default": 100
+        }
+      ]
+    }
+  ]
+}

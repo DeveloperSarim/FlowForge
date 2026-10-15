@@ -1,0 +1,217 @@
+{
+  "key": "ultravox",
+  "name": "Ultravox",
+  "category": "AI",
+  "description": "Real-time AI voice agents: start calls, read transcripts and summaries.",
+  "website": "https://www.ultravox.ai",
+  "docs_url": "https://docs.ultravox.ai/api-reference/introduction",
+  "base_url": "https://api.ultravox.ai/api",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "X-API-Key",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "app.ultravox.ai → Settings → API Keys → Create key."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "create_call",
+      "name": "Create call",
+      "description": "Start a new call with a prompt. Returns a join URL.",
+      "method": "POST",
+      "endpoint": "/calls",
+      "body": {
+        "systemPrompt": "{{ inputs.system_prompt }}",
+        "voice": "{{ inputs.voice }}",
+        "firstSpeakerSettings": {
+          "$if": "{{ inputs.first_speaker_text }}",
+          "agent": {
+            "text": "{{ inputs.first_speaker_text }}"
+          }
+        },
+        "medium": "{{ inputs.medium }}",
+        "maxDuration": "{{ inputs.max_duration }}",
+        "recordingEnabled": "{{ inputs.recording_enabled }}",
+        "metadata": "{{ inputs.metadata }}"
+      },
+      "output_fields": {
+        "call_id": "callId",
+        "join_url": "joinUrl"
+      },
+      "inputs": [
+        {
+          "key": "system_prompt",
+          "label": "System prompt",
+          "type": "text",
+          "required": true,
+          "help": "What the voice agent should do and how it should talk."
+        },
+        {
+          "key": "voice",
+          "label": "Voice",
+          "type": "string",
+          "placeholder": "Mark",
+          "help": "Voice name or ID; see List voices."
+        },
+        {
+          "key": "first_speaker_text",
+          "label": "Greeting",
+          "type": "string",
+          "help": "Optional first sentence the agent says."
+        },
+        {
+          "key": "medium",
+          "label": "Medium (JSON)",
+          "type": "json",
+          "help": "Leave blank for a browser/WebRTC call. For phone calls use e.g. {\"twilio\": {}}."
+        },
+        {
+          "key": "max_duration",
+          "label": "Max duration",
+          "type": "string",
+          "placeholder": "600s"
+        },
+        {
+          "key": "recording_enabled",
+          "label": "Record call",
+          "type": "boolean"
+        },
+        {
+          "key": "metadata",
+          "label": "Metadata",
+          "type": "keyvalue"
+        }
+      ]
+    },
+    {
+      "key": "create_agent_call",
+      "name": "Create call with agent",
+      "description": "Start a call using one of your saved agents.",
+      "method": "POST",
+      "endpoint": "/agents/{{ inputs.agent_id }}/calls",
+      "body": {
+        "templateContext": "{{ inputs.template_context }}",
+        "medium": "{{ inputs.medium }}",
+        "metadata": "{{ inputs.metadata }}"
+      },
+      "output_fields": {
+        "call_id": "callId",
+        "join_url": "joinUrl"
+      },
+      "inputs": [
+        {
+          "key": "agent_id",
+          "label": "Agent ID",
+          "type": "string",
+          "required": true,
+          "help": "Use List agents to find it."
+        },
+        {
+          "key": "template_context",
+          "label": "Template variables",
+          "type": "json",
+          "help": "Values for the placeholders in the agent prompt."
+        },
+        {
+          "key": "medium",
+          "label": "Medium (JSON)",
+          "type": "json"
+        },
+        {
+          "key": "metadata",
+          "label": "Metadata",
+          "type": "keyvalue"
+        }
+      ]
+    },
+    {
+      "key": "get_call",
+      "name": "Get call",
+      "description": "Get a call's status, end reason and summary.",
+      "method": "GET",
+      "endpoint": "/calls/{{ inputs.call_id }}",
+      "output_fields": {
+        "summary": "summary",
+        "short_summary": "shortSummary",
+        "ended": "ended",
+        "end_reason": "endReason"
+      },
+      "inputs": [
+        {
+          "key": "call_id",
+          "label": "Call ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_call_messages",
+      "name": "Get call transcript",
+      "description": "List the messages spoken during a call.",
+      "method": "GET",
+      "endpoint": "/calls/{{ inputs.call_id }}/messages",
+      "output_fields": {
+        "messages": "results"
+      },
+      "inputs": [
+        {
+          "key": "call_id",
+          "label": "Call ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_calls",
+      "name": "List calls",
+      "description": "List recent calls.",
+      "method": "GET",
+      "endpoint": "/calls",
+      "query": {
+        "pageSize": "{{ inputs.page_size }}"
+      },
+      "output_fields": {
+        "calls": "results"
+      },
+      "inputs": [
+        {
+          "key": "page_size",
+          "label": "Page size",
+          "type": "number",
+          "default": 20
+        }
+      ]
+    },
+    {
+      "key": "list_agents",
+      "name": "List agents",
+      "description": "List your saved voice agents.",
+      "method": "GET",
+      "endpoint": "/agents",
+      "output_fields": {
+        "agents": "results"
+      },
+      "inputs": []
+    },
+    {
+      "key": "list_voices",
+      "name": "List voices",
+      "description": "List available voices.",
+      "method": "GET",
+      "endpoint": "/voices",
+      "output_fields": {
+        "voices": "results"
+      },
+      "inputs": []
+    }
+  ]
+}

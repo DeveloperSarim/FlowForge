@@ -1,0 +1,170 @@
+{
+  "key": "aloware",
+  "name": "Aloware",
+  "category": "CRM & Sales",
+  "description": "Add contacts, look them up by phone and send SMS from Aloware, the sales dialer.",
+  "website": "https://aloware.com",
+  "docs_url": "https://support.aloware.com/en/articles/9020058-aloware-lead-api-documentation",
+  "base_url": "https://{{ credentials.host }}/api/v1/webhook",
+  "auth": {
+    "type": "api_key",
+    "in": "query",
+    "name": "api_token",
+    "fields": [
+      {
+        "key": "host",
+        "label": "Server",
+        "type": "string",
+        "required": true,
+        "default": "app.aloware.io",
+        "help": "Leave as is. Use app.aloware.com if your account is on that address."
+      },
+      {
+        "key": "api_key",
+        "label": "API token",
+        "type": "password",
+        "required": true,
+        "help": "In Aloware open Integrations > Lead API and copy your API token."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "upsert_contact",
+      "name": "Create or update contact",
+      "description": "Adds a contact (or updates the one with the same phone number).",
+      "method": "POST",
+      "endpoint": "/forms",
+      "body": {
+        "phone_number": "{{ inputs.phone_number }}",
+        "first_name": "{{ inputs.first_name }}",
+        "last_name": "{{ inputs.last_name }}",
+        "email": "{{ inputs.email }}",
+        "company_name": "{{ inputs.company_name }}",
+        "lead_source": "{{ inputs.lead_source }}",
+        "notes": "{{ inputs.notes }}",
+        "force_update": "{{ inputs.force_update }}",
+        "add_to_powerdialer": "{{ inputs.add_to_powerdialer }}"
+      },
+      "output_fields": {
+        "message": "message"
+      },
+      "inputs": [
+        {
+          "key": "phone_number",
+          "label": "Phone number",
+          "type": "string",
+          "required": true,
+          "help": "With country code, e.g. +15551234567."
+        },
+        {
+          "key": "first_name",
+          "label": "First name",
+          "type": "string"
+        },
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string"
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string"
+        },
+        {
+          "key": "company_name",
+          "label": "Company",
+          "type": "string"
+        },
+        {
+          "key": "lead_source",
+          "label": "Lead source",
+          "type": "string"
+        },
+        {
+          "key": "notes",
+          "label": "Notes",
+          "type": "text"
+        },
+        {
+          "key": "force_update",
+          "label": "Overwrite existing details",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "key": "add_to_powerdialer",
+          "label": "Add to power dialer",
+          "type": "boolean",
+          "default": false
+        }
+      ]
+    },
+    {
+      "key": "lookup_contact",
+      "name": "Look up contact by phone",
+      "description": "Finds a contact by phone number.",
+      "method": "GET",
+      "endpoint": "/contact/phone-number",
+      "query": {
+        "phone_number": "{{ inputs.phone_number }}"
+      },
+      "output_fields": {
+        "error": "error"
+      },
+      "inputs": [
+        {
+          "key": "phone_number",
+          "label": "Phone number",
+          "type": "string",
+          "required": true,
+          "help": "With country code, e.g. +15551234567."
+        }
+      ]
+    },
+    {
+      "key": "send_sms",
+      "name": "Send SMS",
+      "description": "Sends a text message from one of your Aloware numbers.",
+      "method": "POST",
+      "endpoint": "/sms-gateway/send",
+      "body": {
+        "from": "{{ inputs.from }}",
+        "to": "{{ inputs.to }}",
+        "message": "{{ inputs.message }}",
+        "image_url": "{{ inputs.image_url }}"
+      },
+      "output_fields": {
+        "message": "message"
+      },
+      "inputs": [
+        {
+          "key": "from",
+          "label": "From number",
+          "type": "string",
+          "required": true,
+          "help": "One of your Aloware numbers, with country code."
+        },
+        {
+          "key": "to",
+          "label": "To number",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "message",
+          "label": "Message",
+          "type": "text",
+          "required": true,
+          "help": "Up to 160 characters."
+        },
+        {
+          "key": "image_url",
+          "label": "Image URL (MMS)",
+          "type": "string"
+        }
+      ]
+    }
+  ]
+}

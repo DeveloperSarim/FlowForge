@@ -1,0 +1,144 @@
+{
+  "key": "alfresco",
+  "name": "Alfresco",
+  "category": "Files & Documents",
+  "description": "Enterprise content management: browse folders, read, create and delete nodes.",
+  "website": "https://www.hyland.com/en/solutions/products/alfresco-platform",
+  "docs_url": "https://docs.alfresco.com/content-services/latest/develop/rest-api-guide/",
+  "base_url": "https://{{ credentials.host }}/alfresco/api/-default-/public/alfresco/versions/1",
+  "auth": {
+    "type": "basic",
+    "fields": [
+      {
+        "key": "host",
+        "label": "Alfresco host",
+        "type": "string",
+        "required": true,
+        "help": "Your Alfresco server address without https://, e.g. alfresco.example.com or localhost:8080."
+      },
+      {
+        "key": "username",
+        "label": "Username",
+        "type": "string",
+        "required": true,
+        "help": "Your Alfresco username."
+      },
+      {
+        "key": "password",
+        "label": "Password",
+        "type": "password",
+        "required": true,
+        "help": "Your Alfresco password."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_children",
+      "name": "List folder contents",
+      "description": "Files and folders inside a folder.",
+      "method": "GET",
+      "endpoint": "/nodes/{{ inputs.node_id }}/children",
+      "query": {
+        "maxItems": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "names": "list.entries.*.entry.name",
+        "ids": "list.entries.*.entry.id"
+      },
+      "inputs": [
+        {
+          "key": "node_id",
+          "label": "Folder ID",
+          "type": "string",
+          "required": true,
+          "default": "-root-",
+          "help": "\"-root-\" is the repository root; otherwise paste a folder node ID."
+        },
+        {
+          "key": "limit",
+          "label": "Max results",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    },
+    {
+      "key": "get_node",
+      "name": "Get node",
+      "description": "Details of a file or folder.",
+      "method": "GET",
+      "endpoint": "/nodes/{{ inputs.node_id }}",
+      "output_fields": {
+        "name": "entry.name",
+        "is_folder": "entry.isFolder",
+        "modified": "entry.modifiedAt"
+      },
+      "inputs": [
+        {
+          "key": "node_id",
+          "label": "Node ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "create_folder",
+      "name": "Create folder",
+      "description": "Add a folder.",
+      "method": "POST",
+      "endpoint": "/nodes/{{ inputs.parent_id }}/children",
+      "body": {
+        "name": "{{ inputs.name }}",
+        "nodeType": "cm:folder"
+      },
+      "output_fields": {
+        "id": "entry.id",
+        "name": "entry.name"
+      },
+      "inputs": [
+        {
+          "key": "parent_id",
+          "label": "Parent folder ID",
+          "type": "string",
+          "required": true,
+          "default": "-root-"
+        },
+        {
+          "key": "name",
+          "label": "Folder name",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "delete_node",
+      "name": "Delete node",
+      "description": "Delete a file or folder.",
+      "method": "DELETE",
+      "endpoint": "/nodes/{{ inputs.node_id }}",
+      "inputs": [
+        {
+          "key": "node_id",
+          "label": "Node ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_sites",
+      "name": "List sites",
+      "description": "Collaboration sites.",
+      "method": "GET",
+      "endpoint": "/sites",
+      "output_fields": {
+        "titles": "list.entries.*.entry.title",
+        "ids": "list.entries.*.entry.id"
+      },
+      "inputs": []
+    }
+  ]
+}

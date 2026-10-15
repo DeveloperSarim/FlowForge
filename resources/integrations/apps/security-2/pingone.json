@@ -1,0 +1,290 @@
+{
+  "key": "pingone",
+  "name": "PingOne",
+  "category": "Security & IT",
+  "description": "Create, update, disable and group users in PingOne by Ping Identity.",
+  "brand": "pingidentity",
+  "website": "https://www.pingidentity.com",
+  "docs_url": "https://apidocs.pingidentity.com/pingone/platform/v1/api/",
+  "base_url": "https://api.pingone.{{ credentials.region }}/v1/environments/{{ credentials.environment_id }}",
+  "auth": {
+    "type": "oauth2_client_credentials",
+    "token_url": "https://auth.pingone.{{ credentials.region }}/{{ credentials.environment_id }}/as/token",
+    "client_auth": "basic",
+    "fields": [
+      {
+        "key": "region",
+        "label": "Region",
+        "type": "select",
+        "required": true,
+        "default": "com",
+        "options": [
+          {
+            "value": "com",
+            "label": "North America"
+          },
+          {
+            "value": "eu",
+            "label": "Europe"
+          },
+          {
+            "value": "ca",
+            "label": "Canada"
+          },
+          {
+            "value": "asia",
+            "label": "Asia-Pacific"
+          },
+          {
+            "value": "com.au",
+            "label": "Australia"
+          }
+        ]
+      },
+      {
+        "key": "environment_id",
+        "label": "Environment ID",
+        "type": "string",
+        "required": true,
+        "help": "PingOne admin console → Environment → Properties."
+      },
+      {
+        "key": "client_id",
+        "label": "Client ID",
+        "type": "string",
+        "required": true,
+        "help": "Applications → add a Worker app, enable it and give it the Identity Data Admin role; IDs are on its Configuration tab."
+      },
+      {
+        "key": "client_secret",
+        "label": "Client secret",
+        "type": "password",
+        "required": true
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_users",
+      "name": "List users",
+      "description": "List or find users.",
+      "method": "GET",
+      "endpoint": "/users",
+      "query": {
+        "filter": "{{ inputs.filter }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "users": "_embedded.users",
+        "count": "count"
+      },
+      "inputs": [
+        {
+          "key": "filter",
+          "label": "Filter",
+          "type": "string",
+          "placeholder": "email eq \"jane@example.com\"",
+          "help": "SCIM filter; leave empty for all."
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 100
+        }
+      ]
+    },
+    {
+      "key": "get_user",
+      "name": "Get user",
+      "description": "Get a user.",
+      "method": "GET",
+      "endpoint": "/users/{{ inputs.user_id }}",
+      "output_fields": {
+        "username": "username",
+        "email": "email",
+        "enabled": "enabled"
+      },
+      "inputs": [
+        {
+          "key": "user_id",
+          "label": "User ID",
+          "type": "string",
+          "required": true,
+          "help": "Use List users."
+        }
+      ]
+    },
+    {
+      "key": "create_user",
+      "name": "Create user",
+      "description": "Create a user.",
+      "method": "POST",
+      "endpoint": "/users",
+      "body": {
+        "email": "{{ inputs.email }}",
+        "username": "{{ inputs.username }}",
+        "name": {
+          "given": "{{ inputs.given_name }}",
+          "family": "{{ inputs.family_name }}"
+        },
+        "population": {
+          "id": "{{ inputs.population_id }}"
+        }
+      },
+      "output_fields": {
+        "user_id": "id"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "username",
+          "label": "Username",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "given_name",
+          "label": "First name",
+          "type": "string"
+        },
+        {
+          "key": "family_name",
+          "label": "Last name",
+          "type": "string"
+        },
+        {
+          "key": "population_id",
+          "label": "Population ID",
+          "type": "string",
+          "help": "Leave empty for the default population."
+        }
+      ]
+    },
+    {
+      "key": "update_user",
+      "name": "Update user",
+      "description": "Change a user's email or name.",
+      "method": "PATCH",
+      "endpoint": "/users/{{ inputs.user_id }}",
+      "body": {
+        "email": "{{ inputs.email }}",
+        "name": {
+          "given": "{{ inputs.given_name }}",
+          "family": "{{ inputs.family_name }}"
+        }
+      },
+      "inputs": [
+        {
+          "key": "user_id",
+          "label": "User ID",
+          "type": "string",
+          "required": true,
+          "help": "Use List users."
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string"
+        },
+        {
+          "key": "given_name",
+          "label": "First name",
+          "type": "string"
+        },
+        {
+          "key": "family_name",
+          "label": "Last name",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "set_user_enabled",
+      "name": "Enable / disable user",
+      "description": "Disable a user's sign-in, or enable it again.",
+      "method": "PUT",
+      "endpoint": "/users/{{ inputs.user_id }}/enabled",
+      "body": {
+        "enabled": "{{ inputs.enabled }}"
+      },
+      "output_fields": {
+        "enabled": "enabled"
+      },
+      "inputs": [
+        {
+          "key": "user_id",
+          "label": "User ID",
+          "type": "string",
+          "required": true,
+          "help": "Use List users."
+        },
+        {
+          "key": "enabled",
+          "label": "Enabled",
+          "type": "boolean",
+          "required": true,
+          "default": false
+        }
+      ]
+    },
+    {
+      "key": "delete_user",
+      "name": "Delete user",
+      "description": "Delete a user.",
+      "method": "DELETE",
+      "endpoint": "/users/{{ inputs.user_id }}",
+      "inputs": [
+        {
+          "key": "user_id",
+          "label": "User ID",
+          "type": "string",
+          "required": true,
+          "help": "Use List users."
+        }
+      ]
+    },
+    {
+      "key": "list_groups",
+      "name": "List groups",
+      "description": "List groups.",
+      "method": "GET",
+      "endpoint": "/groups",
+      "output_fields": {
+        "groups": "_embedded.groups"
+      },
+      "inputs": []
+    },
+    {
+      "key": "add_user_to_group",
+      "name": "Add user to group",
+      "description": "Add a user to a group.",
+      "method": "POST",
+      "endpoint": "/users/{{ inputs.user_id }}/memberOfGroups",
+      "body": {
+        "id": "{{ inputs.group_id }}"
+      },
+      "inputs": [
+        {
+          "key": "user_id",
+          "label": "User ID",
+          "type": "string",
+          "required": true,
+          "help": "Use List users."
+        },
+        {
+          "key": "group_id",
+          "label": "Group ID",
+          "type": "string",
+          "required": true,
+          "help": "From List groups."
+        }
+      ]
+    }
+  ]
+}

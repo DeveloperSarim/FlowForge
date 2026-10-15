@@ -1,0 +1,209 @@
+{
+  "key": "google_adsense",
+  "name": "Google AdSense",
+  "category": "Ads & SEO",
+  "description": "Read AdSense earnings reports, sites, ad units and payments.",
+  "website": "https://adsense.google.com",
+  "docs_url": "https://developers.google.com/adsense/management/reference/rest",
+  "base_url": "https://adsense.googleapis.com/v2",
+  "auth": {
+    "type": "oauth2",
+    "authorize_url": "https://accounts.google.com/o/oauth2/v2/auth",
+    "token_url": "https://oauth2.googleapis.com/token",
+    "scopes": [
+      "https://www.googleapis.com/auth/adsense.readonly"
+    ],
+    "authorize_params": {
+      "access_type": "offline",
+      "prompt": "consent"
+    },
+    "fields": [
+      {
+        "key": "client_id",
+        "label": "Client ID",
+        "type": "string",
+        "required": true,
+        "help": "Google Cloud Console → enable the AdSense Management API → Credentials → OAuth client ID (Web application) with FlowForge's redirect URL."
+      },
+      {
+        "key": "client_secret",
+        "label": "Client secret",
+        "type": "password",
+        "required": true
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_accounts",
+      "name": "List accounts",
+      "description": "AdSense accounts you can access, with their publisher IDs.",
+      "method": "GET",
+      "endpoint": "/accounts",
+      "output_fields": {
+        "accounts": "accounts",
+        "account_names": "accounts.*.name",
+        "display_names": "accounts.*.displayName"
+      },
+      "inputs": []
+    },
+    {
+      "key": "earnings_report",
+      "name": "Earnings report",
+      "description": "Earnings, page views, clicks and impressions for a period.",
+      "method": "GET",
+      "endpoint": "/accounts/{{ inputs.publisher_id }}/reports:generate?dateRange={{ inputs.date_range }}&dimensions={{ inputs.dimension }}&metrics=ESTIMATED_EARNINGS&metrics=PAGE_VIEWS&metrics=CLICKS&metrics=IMPRESSIONS&metrics=PAGE_VIEWS_RPM",
+      "output_fields": {
+        "rows": "rows",
+        "headers": "headers",
+        "totals": "totals.cells",
+        "total_earnings": "totals.cells.1.value",
+        "total_page_views": "totals.cells.2.value",
+        "total_clicks": "totals.cells.3.value",
+        "currency": "headers.1.currencyCode",
+        "start_date": "startDate",
+        "end_date": "endDate"
+      },
+      "inputs": [
+        {
+          "key": "publisher_id",
+          "label": "Publisher ID",
+          "type": "string",
+          "required": true,
+          "placeholder": "pub-1234567890123456",
+          "help": "AdSense → Account → Settings → Account information → Publisher ID."
+        },
+        {
+          "key": "date_range",
+          "label": "Period",
+          "type": "select",
+          "required": true,
+          "default": "LAST_7_DAYS",
+          "options": [
+            {
+              "value": "TODAY",
+              "label": "Today"
+            },
+            {
+              "value": "YESTERDAY",
+              "label": "Yesterday"
+            },
+            {
+              "value": "LAST_7_DAYS",
+              "label": "Last 7 days"
+            },
+            {
+              "value": "LAST_30_DAYS",
+              "label": "Last 30 days"
+            },
+            {
+              "value": "MONTH_TO_DATE",
+              "label": "This month"
+            },
+            {
+              "value": "YEAR_TO_DATE",
+              "label": "This year"
+            }
+          ]
+        },
+        {
+          "key": "dimension",
+          "label": "Break down by",
+          "type": "select",
+          "required": true,
+          "default": "DATE",
+          "options": [
+            {
+              "value": "DATE",
+              "label": "Day"
+            },
+            {
+              "value": "MONTH",
+              "label": "Month"
+            },
+            {
+              "value": "DOMAIN_NAME",
+              "label": "Site"
+            },
+            {
+              "value": "COUNTRY_NAME",
+              "label": "Country"
+            },
+            {
+              "value": "AD_UNIT_NAME",
+              "label": "Ad unit"
+            },
+            {
+              "value": "PLATFORM_TYPE_NAME",
+              "label": "Device type"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "list_sites",
+      "name": "List sites",
+      "description": "Sites in the account and their approval state.",
+      "method": "GET",
+      "endpoint": "/accounts/{{ inputs.publisher_id }}/sites",
+      "output_fields": {
+        "sites": "sites",
+        "domains": "sites.*.domain",
+        "states": "sites.*.state"
+      },
+      "inputs": [
+        {
+          "key": "publisher_id",
+          "label": "Publisher ID",
+          "type": "string",
+          "required": true,
+          "placeholder": "pub-1234567890123456"
+        }
+      ]
+    },
+    {
+      "key": "list_ad_units",
+      "name": "List ad units",
+      "description": "Ad units of an ad client (usually ca-pub-… for content ads).",
+      "method": "GET",
+      "endpoint": "/accounts/{{ inputs.publisher_id }}/adclients/ca-{{ inputs.publisher_id }}/adunits",
+      "output_fields": {
+        "ad_units": "adUnits",
+        "names": "adUnits.*.displayName",
+        "states": "adUnits.*.state"
+      },
+      "inputs": [
+        {
+          "key": "publisher_id",
+          "label": "Publisher ID",
+          "type": "string",
+          "required": true,
+          "placeholder": "pub-1234567890123456"
+        }
+      ]
+    },
+    {
+      "key": "list_payments",
+      "name": "List payments",
+      "description": "Past payments and the unpaid balance.",
+      "method": "GET",
+      "endpoint": "/accounts/{{ inputs.publisher_id }}/payments",
+      "output_fields": {
+        "payments": "payments",
+        "amounts": "payments.*.amount",
+        "dates": "payments.*.date"
+      },
+      "inputs": [
+        {
+          "key": "publisher_id",
+          "label": "Publisher ID",
+          "type": "string",
+          "required": true,
+          "placeholder": "pub-1234567890123456"
+        }
+      ]
+    }
+  ],
+  "triggers": []
+}

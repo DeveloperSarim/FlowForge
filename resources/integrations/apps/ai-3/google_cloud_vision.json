@@ -1,0 +1,248 @@
+{
+  "key": "google_cloud_vision",
+  "name": "Google Cloud Vision",
+  "category": "AI",
+  "description": "Read text (OCR), label, moderate and detect objects and logos in images.",
+  "brand": "googlecloud",
+  "website": "https://cloud.google.com/vision",
+  "docs_url": "https://cloud.google.com/vision/docs/reference/rest/v1/images/annotate",
+  "base_url": "https://vision.googleapis.com/v1",
+  "auth": [
+    {
+      "type": "api_key",
+      "in": "query",
+      "name": "key",
+      "fields": [
+        {
+          "key": "api_key",
+          "label": "API key",
+          "type": "password",
+          "required": true,
+          "help": "Google Cloud console → APIs & Services → Credentials → Create credentials → API key. Enable the Cloud Vision API for your project first."
+        }
+      ]
+    },
+    {
+      "type": "google_service_account",
+      "scopes": [
+        "https://www.googleapis.com/auth/cloud-vision"
+      ],
+      "fields": [
+        {
+          "key": "service_account_json",
+          "label": "Service Account JSON key",
+          "type": "code",
+          "required": true,
+          "help": "Google Cloud console → IAM & Admin → Service Accounts → your account → Keys → Add key → JSON. Paste the whole file."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "read_text",
+      "name": "Read text in image (OCR)",
+      "description": "Extract all text from a photo, scan or screenshot.",
+      "method": "POST",
+      "endpoint": "/images:annotate",
+      "body": {
+        "requests": [
+          {
+            "image": {
+              "source": {
+                "imageUri": "{{ inputs.image_url }}"
+              }
+            },
+            "features": [
+              {
+                "type": "DOCUMENT_TEXT_DETECTION"
+              }
+            ]
+          }
+        ]
+      },
+      "error_path": "responses.0.error.message",
+      "output_fields": {
+        "text": "responses.0.fullTextAnnotation.text"
+      },
+      "inputs": [
+        {
+          "key": "image_url",
+          "label": "Image URL",
+          "type": "string",
+          "required": true,
+          "help": "A public image URL or a gs:// Cloud Storage path."
+        }
+      ]
+    },
+    {
+      "key": "detect_labels",
+      "name": "Label image",
+      "description": "Describe what is in an image with labels.",
+      "method": "POST",
+      "endpoint": "/images:annotate",
+      "body": {
+        "requests": [
+          {
+            "image": {
+              "source": {
+                "imageUri": "{{ inputs.image_url }}"
+              }
+            },
+            "features": [
+              {
+                "type": "LABEL_DETECTION",
+                "maxResults": "{{ inputs.max_results }}"
+              }
+            ]
+          }
+        ]
+      },
+      "error_path": "responses.0.error.message",
+      "output_fields": {
+        "labels": "responses.0.labelAnnotations.*.description"
+      },
+      "inputs": [
+        {
+          "key": "image_url",
+          "label": "Image URL",
+          "type": "string",
+          "required": true,
+          "help": "A public image URL or a gs:// Cloud Storage path."
+        },
+        {
+          "key": "max_results",
+          "label": "Max results",
+          "type": "number",
+          "default": 10
+        }
+      ]
+    },
+    {
+      "key": "detect_objects",
+      "name": "Detect objects",
+      "description": "Find objects in an image.",
+      "method": "POST",
+      "endpoint": "/images:annotate",
+      "body": {
+        "requests": [
+          {
+            "image": {
+              "source": {
+                "imageUri": "{{ inputs.image_url }}"
+              }
+            },
+            "features": [
+              {
+                "type": "OBJECT_LOCALIZATION",
+                "maxResults": "{{ inputs.max_results }}"
+              }
+            ]
+          }
+        ]
+      },
+      "error_path": "responses.0.error.message",
+      "output_fields": {
+        "objects": "responses.0.localizedObjectAnnotations.*.name"
+      },
+      "inputs": [
+        {
+          "key": "image_url",
+          "label": "Image URL",
+          "type": "string",
+          "required": true,
+          "help": "A public image URL or a gs:// Cloud Storage path."
+        },
+        {
+          "key": "max_results",
+          "label": "Max results",
+          "type": "number",
+          "default": 10
+        }
+      ]
+    },
+    {
+      "key": "detect_logos",
+      "name": "Detect logos",
+      "description": "Recognise brand logos in an image.",
+      "method": "POST",
+      "endpoint": "/images:annotate",
+      "body": {
+        "requests": [
+          {
+            "image": {
+              "source": {
+                "imageUri": "{{ inputs.image_url }}"
+              }
+            },
+            "features": [
+              {
+                "type": "LOGO_DETECTION",
+                "maxResults": "{{ inputs.max_results }}"
+              }
+            ]
+          }
+        ]
+      },
+      "error_path": "responses.0.error.message",
+      "output_fields": {
+        "logos": "responses.0.logoAnnotations.*.description"
+      },
+      "inputs": [
+        {
+          "key": "image_url",
+          "label": "Image URL",
+          "type": "string",
+          "required": true,
+          "help": "A public image URL or a gs:// Cloud Storage path."
+        },
+        {
+          "key": "max_results",
+          "label": "Max results",
+          "type": "number",
+          "default": 10
+        }
+      ]
+    },
+    {
+      "key": "safe_search",
+      "name": "Check image safety",
+      "description": "Rate an image for adult, violent or racy content.",
+      "method": "POST",
+      "endpoint": "/images:annotate",
+      "body": {
+        "requests": [
+          {
+            "image": {
+              "source": {
+                "imageUri": "{{ inputs.image_url }}"
+              }
+            },
+            "features": [
+              {
+                "type": "SAFE_SEARCH_DETECTION"
+              }
+            ]
+          }
+        ]
+      },
+      "error_path": "responses.0.error.message",
+      "output_fields": {
+        "adult": "responses.0.safeSearchAnnotation.adult",
+        "violence": "responses.0.safeSearchAnnotation.violence",
+        "racy": "responses.0.safeSearchAnnotation.racy",
+        "medical": "responses.0.safeSearchAnnotation.medical",
+        "spoof": "responses.0.safeSearchAnnotation.spoof"
+      },
+      "inputs": [
+        {
+          "key": "image_url",
+          "label": "Image URL",
+          "type": "string",
+          "required": true,
+          "help": "A public image URL or a gs:// Cloud Storage path."
+        }
+      ]
+    }
+  ]
+}

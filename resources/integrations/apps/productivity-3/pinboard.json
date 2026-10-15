@@ -1,0 +1,206 @@
+{
+  "key": "pinboard",
+  "name": "Pinboard",
+  "category": "Productivity",
+  "description": "Bookmarking for people who like it fast: save, find and delete bookmarks.",
+  "website": "https://pinboard.in",
+  "docs_url": "https://pinboard.in/api",
+  "base_url": "https://api.pinboard.in/v1",
+  "auth": {
+    "type": "api_key",
+    "in": "query",
+    "name": "auth_token",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "API token",
+        "type": "password",
+        "required": true,
+        "help": "pinboard.in → Settings → Password → API Token. Paste the whole value, like username:XXXXXXXX."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "add_bookmark",
+      "name": "Add bookmark",
+      "description": "Save a URL.",
+      "method": "GET",
+      "endpoint": "/posts/add",
+      "query": {
+        "format": "json",
+        "url": "{{ inputs.url }}",
+        "description": "{{ inputs.description }}",
+        "extended": "{{ inputs.extended }}",
+        "tags": "{{ inputs.tags }}",
+        "toread": "{{ inputs.toread }}",
+        "shared": "{{ inputs.shared }}"
+      },
+      "output_fields": {
+        "result": "result_code"
+      },
+      "inputs": [
+        {
+          "key": "url",
+          "label": "URL",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "description",
+          "label": "Title",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "extended",
+          "label": "Notes",
+          "type": "text"
+        },
+        {
+          "key": "tags",
+          "label": "Tags",
+          "type": "string",
+          "help": "Space-separated."
+        },
+        {
+          "key": "toread",
+          "label": "Read later",
+          "type": "select",
+          "options": [
+            {
+              "value": "yes",
+              "label": "Yes"
+            },
+            {
+              "value": "no",
+              "label": "No"
+            }
+          ]
+        },
+        {
+          "key": "shared",
+          "label": "Public",
+          "type": "select",
+          "options": [
+            {
+              "value": "yes",
+              "label": "Yes"
+            },
+            {
+              "value": "no",
+              "label": "No"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "recent_bookmarks",
+      "name": "Recent bookmarks",
+      "description": "Your latest bookmarks.",
+      "method": "GET",
+      "endpoint": "/posts/recent",
+      "query": {
+        "format": "json",
+        "count": "{{ inputs.count }}",
+        "tag": "{{ inputs.tag }}"
+      },
+      "output_fields": {
+        "urls": "posts.*.href",
+        "titles": "posts.*.description"
+      },
+      "inputs": [
+        {
+          "key": "count",
+          "label": "How many",
+          "type": "number",
+          "default": 15
+        },
+        {
+          "key": "tag",
+          "label": "Tag",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "get_bookmark",
+      "name": "Get bookmark by URL",
+      "description": "Look up a saved URL.",
+      "method": "GET",
+      "endpoint": "/posts/get",
+      "query": {
+        "format": "json",
+        "url": "{{ inputs.url }}"
+      },
+      "output_fields": {
+        "posts": "posts"
+      },
+      "inputs": [
+        {
+          "key": "url",
+          "label": "URL",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "delete_bookmark",
+      "name": "Delete bookmark",
+      "description": "Delete a bookmark by URL.",
+      "method": "GET",
+      "endpoint": "/posts/delete",
+      "query": {
+        "format": "json",
+        "url": "{{ inputs.url }}"
+      },
+      "output_fields": {
+        "result": "result_code"
+      },
+      "inputs": [
+        {
+          "key": "url",
+          "label": "URL",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_tags",
+      "name": "List tags",
+      "description": "All tags with counts.",
+      "method": "GET",
+      "endpoint": "/tags/get",
+      "query": {
+        "format": "json"
+      },
+      "inputs": []
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_bookmark",
+      "name": "New bookmark",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/posts/recent",
+      "query": {
+        "format": "json",
+        "count": 20
+      },
+      "items_path": "posts",
+      "id_field": "hash",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

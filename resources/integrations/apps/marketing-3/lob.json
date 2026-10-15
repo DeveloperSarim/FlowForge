@@ -1,0 +1,534 @@
+{
+  "key": "lob",
+  "name": "Lob",
+  "category": "Marketing & Email",
+  "description": "Mail postcards and letters automatically and verify US addresses.",
+  "website": "https://www.lob.com",
+  "docs_url": "https://docs.lob.com/",
+  "base_url": "https://api.lob.com/v1",
+  "auth": {
+    "type": "basic",
+    "fields": [
+      {
+        "key": "username",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "Lob dashboard → Settings → API Keys. Use the Test key (test_…) to try things without mailing anything, the Live key (live_…) to send real mail."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "send_postcard",
+      "name": "Send postcard",
+      "description": "Print and mail a postcard to one recipient.",
+      "method": "POST",
+      "endpoint": "/postcards",
+      "body": {
+        "description": "{{ inputs.description }}",
+        "to": {
+          "name": "{{ inputs.to_name }}",
+          "company": "{{ inputs.to_company }}",
+          "address_line1": "{{ inputs.to_address_line1 }}",
+          "address_line2": "{{ inputs.to_address_line2 }}",
+          "address_city": "{{ inputs.to_city }}",
+          "address_state": "{{ inputs.to_state }}",
+          "address_zip": "{{ inputs.to_zip }}",
+          "address_country": "{{ inputs.to_country }}"
+        },
+        "from": "{{ inputs.from_address_id }}",
+        "front": "{{ inputs.front }}",
+        "back": "{{ inputs.back }}",
+        "size": "{{ inputs.size }}",
+        "use_type": "{{ inputs.use_type }}",
+        "merge_variables": "{{ inputs.merge_variables }}"
+      },
+      "output_fields": {
+        "id": "id",
+        "preview_url": "url",
+        "expected_delivery_date": "expected_delivery_date",
+        "send_date": "send_date"
+      },
+      "inputs": [
+        {
+          "key": "to_name",
+          "label": "Recipient name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "to_company",
+          "label": "Recipient company",
+          "type": "string"
+        },
+        {
+          "key": "to_address_line1",
+          "label": "Street address",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "to_address_line2",
+          "label": "Apartment, suite, unit",
+          "type": "string"
+        },
+        {
+          "key": "to_city",
+          "label": "City",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "to_state",
+          "label": "State",
+          "type": "string",
+          "required": true,
+          "placeholder": "CA",
+          "help": "Two-letter state code for US addresses."
+        },
+        {
+          "key": "to_zip",
+          "label": "ZIP code",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "to_country",
+          "label": "Country",
+          "type": "string",
+          "default": "US",
+          "help": "Two-letter country code."
+        },
+        {
+          "key": "front",
+          "label": "Front design",
+          "type": "text",
+          "required": true,
+          "help": "HTML, a link to a PDF/PNG/JPG, or a Lob template ID (tmpl_…)."
+        },
+        {
+          "key": "back",
+          "label": "Back design",
+          "type": "text",
+          "required": true,
+          "help": "HTML, a link to a PDF/PNG/JPG, or a Lob template ID (tmpl_…). Lob keeps space free for the address."
+        },
+        {
+          "key": "size",
+          "label": "Size",
+          "type": "select",
+          "default": "4x6",
+          "options": [
+            {
+              "value": "4x6",
+              "label": "4 × 6 in"
+            },
+            {
+              "value": "6x9",
+              "label": "6 × 9 in"
+            },
+            {
+              "value": "6x11",
+              "label": "6 × 11 in"
+            }
+          ]
+        },
+        {
+          "key": "use_type",
+          "label": "Mail type",
+          "type": "select",
+          "required": true,
+          "default": "marketing",
+          "options": [
+            {
+              "value": "marketing",
+              "label": "Marketing"
+            },
+            {
+              "value": "operational",
+              "label": "Operational (bills, notices)"
+            }
+          ]
+        },
+        {
+          "key": "from_address_id",
+          "label": "Return address ID",
+          "type": "string",
+          "placeholder": "adr_…",
+          "help": "Optional. Lob dashboard → Address Book, or the ID from a \"Create address\" step."
+        },
+        {
+          "key": "merge_variables",
+          "label": "Merge variables",
+          "type": "keyvalue",
+          "help": "Values for the merge fields of a Lob template (tmpl_…). Design the template in Lob; FlowForge fills in its fields."
+        },
+        {
+          "key": "description",
+          "label": "Internal description",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "send_letter",
+      "name": "Send letter",
+      "description": "Print and mail a letter (HTML, PDF link or template) in an envelope.",
+      "method": "POST",
+      "endpoint": "/letters",
+      "body": {
+        "description": "{{ inputs.description }}",
+        "to": {
+          "name": "{{ inputs.to_name }}",
+          "company": "{{ inputs.to_company }}",
+          "address_line1": "{{ inputs.to_address_line1 }}",
+          "address_line2": "{{ inputs.to_address_line2 }}",
+          "address_city": "{{ inputs.to_city }}",
+          "address_state": "{{ inputs.to_state }}",
+          "address_zip": "{{ inputs.to_zip }}",
+          "address_country": "{{ inputs.to_country }}"
+        },
+        "from": {
+          "name": "{{ inputs.from_name }}",
+          "address_line1": "{{ inputs.from_address_line1 }}",
+          "address_city": "{{ inputs.from_city }}",
+          "address_state": "{{ inputs.from_state }}",
+          "address_zip": "{{ inputs.from_zip }}",
+          "address_country": "US"
+        },
+        "file": "{{ inputs.file }}",
+        "color": "{{ inputs.color }}",
+        "double_sided": "{{ inputs.double_sided }}",
+        "use_type": "{{ inputs.use_type }}",
+        "merge_variables": "{{ inputs.merge_variables }}"
+      },
+      "output_fields": {
+        "id": "id",
+        "preview_url": "url",
+        "expected_delivery_date": "expected_delivery_date",
+        "send_date": "send_date"
+      },
+      "inputs": [
+        {
+          "key": "to_name",
+          "label": "Recipient name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "to_company",
+          "label": "Recipient company",
+          "type": "string"
+        },
+        {
+          "key": "to_address_line1",
+          "label": "Street address",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "to_address_line2",
+          "label": "Apartment, suite, unit",
+          "type": "string"
+        },
+        {
+          "key": "to_city",
+          "label": "City",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "to_state",
+          "label": "State",
+          "type": "string",
+          "required": true,
+          "placeholder": "CA"
+        },
+        {
+          "key": "to_zip",
+          "label": "ZIP code",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "to_country",
+          "label": "Country",
+          "type": "string",
+          "default": "US"
+        },
+        {
+          "key": "from_name",
+          "label": "Your name or business",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "from_address_line1",
+          "label": "Your street address",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "from_city",
+          "label": "Your city",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "from_state",
+          "label": "Your state",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "from_zip",
+          "label": "Your ZIP code",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "file",
+          "label": "Letter content",
+          "type": "text",
+          "required": true,
+          "help": "HTML, a link to a PDF, or a Lob template ID (tmpl_…)."
+        },
+        {
+          "key": "color",
+          "label": "Print in color",
+          "type": "boolean",
+          "required": true,
+          "default": false
+        },
+        {
+          "key": "double_sided",
+          "label": "Double-sided",
+          "type": "boolean",
+          "default": true
+        },
+        {
+          "key": "use_type",
+          "label": "Mail type",
+          "type": "select",
+          "required": true,
+          "default": "marketing",
+          "options": [
+            {
+              "value": "marketing",
+              "label": "Marketing"
+            },
+            {
+              "value": "operational",
+              "label": "Operational (bills, notices)"
+            }
+          ]
+        },
+        {
+          "key": "merge_variables",
+          "label": "Merge variables",
+          "type": "keyvalue"
+        },
+        {
+          "key": "description",
+          "label": "Internal description",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "verify_us_address",
+      "name": "Verify US address",
+      "description": "Check that a US address is deliverable and get it in standard form.",
+      "method": "POST",
+      "endpoint": "/us_verifications",
+      "body": {
+        "primary_line": "{{ inputs.primary_line }}",
+        "secondary_line": "{{ inputs.secondary_line }}",
+        "city": "{{ inputs.city }}",
+        "state": "{{ inputs.state }}",
+        "zip_code": "{{ inputs.zip_code }}"
+      },
+      "output_fields": {
+        "deliverability": "deliverability",
+        "primary_line": "primary_line",
+        "secondary_line": "secondary_line",
+        "last_line": "last_line",
+        "city": "components.city",
+        "state": "components.state",
+        "zip_code": "components.zip_code",
+        "zip_plus_4": "components.zip_code_plus_4"
+      },
+      "inputs": [
+        {
+          "key": "primary_line",
+          "label": "Street address",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "secondary_line",
+          "label": "Apartment, suite, unit",
+          "type": "string"
+        },
+        {
+          "key": "city",
+          "label": "City",
+          "type": "string"
+        },
+        {
+          "key": "state",
+          "label": "State",
+          "type": "string"
+        },
+        {
+          "key": "zip_code",
+          "label": "ZIP code",
+          "type": "string",
+          "help": "Give either city + state or the ZIP code."
+        }
+      ]
+    },
+    {
+      "key": "create_address",
+      "name": "Create address",
+      "description": "Save an address in your Lob address book.",
+      "method": "POST",
+      "endpoint": "/addresses",
+      "body": {
+        "name": "{{ inputs.name }}",
+        "company": "{{ inputs.company }}",
+        "email": "{{ inputs.email }}",
+        "phone": "{{ inputs.phone }}",
+        "address_line1": "{{ inputs.address_line1 }}",
+        "address_line2": "{{ inputs.address_line2 }}",
+        "address_city": "{{ inputs.city }}",
+        "address_state": "{{ inputs.state }}",
+        "address_zip": "{{ inputs.zip }}",
+        "address_country": "{{ inputs.country }}"
+      },
+      "output_fields": {
+        "id": "id",
+        "name": "name"
+      },
+      "inputs": [
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "company",
+          "label": "Company",
+          "type": "string"
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string"
+        },
+        {
+          "key": "phone",
+          "label": "Phone",
+          "type": "string"
+        },
+        {
+          "key": "address_line1",
+          "label": "Street address",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "address_line2",
+          "label": "Apartment, suite, unit",
+          "type": "string"
+        },
+        {
+          "key": "city",
+          "label": "City",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "state",
+          "label": "State",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "zip",
+          "label": "ZIP / postal code",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "country",
+          "label": "Country",
+          "type": "string",
+          "default": "US"
+        }
+      ]
+    },
+    {
+      "key": "get_postcard",
+      "name": "Get postcard",
+      "description": "Look up a postcard and its delivery tracking.",
+      "method": "GET",
+      "endpoint": "/postcards/{{ inputs.id }}",
+      "output_fields": {
+        "id": "id",
+        "preview_url": "url",
+        "expected_delivery_date": "expected_delivery_date",
+        "tracking_events": "tracking_events"
+      },
+      "inputs": [
+        {
+          "key": "id",
+          "label": "Postcard ID",
+          "type": "string",
+          "required": true,
+          "placeholder": "psc_…",
+          "help": "The ID returned by \"Send postcard\"."
+        }
+      ]
+    },
+    {
+      "key": "list_letters",
+      "name": "List letters",
+      "description": "Letters you have sent, newest first.",
+      "method": "GET",
+      "endpoint": "/letters",
+      "query": {
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "letters": "data",
+        "count": "count"
+      },
+      "inputs": [
+        {
+          "key": "limit",
+          "label": "How many",
+          "type": "number",
+          "default": 10
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json",
+          "help": "Lob dashboard → Webhooks → add this URL and pick events such as postcard.delivered."
+        }
+      ]
+    }
+  ]
+}

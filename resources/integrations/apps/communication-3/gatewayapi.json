@@ -1,0 +1,123 @@
+{
+  "key": "gatewayapi",
+  "name": "GatewayAPI",
+  "category": "Communication",
+  "description": "European SMS gateway: send SMS, check delivery status and account credit.",
+  "website": "https://gatewayapi.com",
+  "docs_url": "https://gatewayapi.com/docs/apis/rest/",
+  "base_url": "https://{{ credentials.platform }}",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "Authorization",
+    "prefix": "Token ",
+    "fields": [
+      {
+        "key": "platform",
+        "label": "Platform",
+        "type": "select",
+        "required": true,
+        "default": "gatewayapi.com",
+        "options": [
+          {
+            "value": "gatewayapi.com",
+            "label": "gatewayapi.com"
+          },
+          {
+            "value": "gatewayapi.eu",
+            "label": "gatewayapi.eu (EU only)"
+          }
+        ],
+        "help": "The site you log in to."
+      },
+      {
+        "key": "api_key",
+        "label": "API token",
+        "type": "password",
+        "required": true,
+        "help": "GatewayAPI dashboard → Settings → API Keys → copy the API token."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "send_sms",
+      "name": "Send SMS",
+      "description": "Send a text to one or more numbers.",
+      "method": "POST",
+      "endpoint": "/rest/mtsms",
+      "body": {
+        "sender": "{{ inputs.sender }}",
+        "message": "{{ inputs.message }}",
+        "recipients": [
+          {
+            "msisdn": "{{ inputs.to }}"
+          }
+        ]
+      },
+      "output_fields": {
+        "id": "ids.0",
+        "ids": "ids",
+        "total_cost": "usage.total_cost",
+        "currency": "usage.currency"
+      },
+      "inputs": [
+        {
+          "key": "to",
+          "label": "To",
+          "type": "string",
+          "required": true,
+          "placeholder": "4512345678",
+          "help": "Country code + number, digits only."
+        },
+        {
+          "key": "sender",
+          "label": "Sender",
+          "type": "string",
+          "required": true,
+          "help": "Up to 11 letters/digits or 15 digits."
+        },
+        {
+          "key": "message",
+          "label": "Message",
+          "type": "text",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "get_message",
+      "name": "Get message status",
+      "description": "Delivery status of a sent SMS (kept for 7 days).",
+      "method": "GET",
+      "endpoint": "/rest/mtsms/{{ inputs.id }}",
+      "output_fields": {
+        "recipients": "recipients",
+        "status": "recipients.0.dsnstatus",
+        "message": "message"
+      },
+      "inputs": [
+        {
+          "key": "id",
+          "label": "Message ID",
+          "type": "string",
+          "required": true,
+          "help": "From a \"Send SMS\" step."
+        }
+      ]
+    },
+    {
+      "key": "get_balance",
+      "name": "Get account credit",
+      "description": "Remaining credit and currency.",
+      "method": "GET",
+      "endpoint": "/rest/me",
+      "output_fields": {
+        "credit": "credit",
+        "currency": "currency"
+      },
+      "inputs": []
+    }
+  ],
+  "triggers": []
+}

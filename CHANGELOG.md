@@ -2,6 +2,15 @@
 
 All notable changes to FlowForge. Versions follow [semantic versioning](https://semver.org).
 
+## [1.6.0] - 2026-10-15
+
+- About 500 new apps (now 1,690): AI, communication and regional SMS, social media, marketing and email verification, SEO, CRM, helpdesks, developer tools, security, payments (including Middle East, Africa and crypto gateways), shipping and couriers, productivity, project management, files and e-signature, analytics, databases, CMS and hosting panels (cPanel, WHM, Plesk), HR, forms, education, media, events and IoT.
+- Custom apps: when a service isn't in the catalog, the AI builder (and MCP agents, via the new `create_custom_app` tool) builds it from the service's API, or you import an OpenAPI file from Apps → Add a custom app. Custom apps live in `storage/`, so updates keep them, and their requests only go to their own API address. Apps imported from a link get an "Update from OpenAPI" button.
+- Workflow import and export: export one workflow or all of them as a file (credentials and passwords are left out; custom apps travel with it), and import files on any install. Steps are connected to your saved account when there is exactly one. An n8n workflow file opens the AI Builder to rebuild it.
+- App, action and field descriptions written in Markdown (as OpenAPI files are) are shown formatted: bold, code, links and lists.
+- Fixed: importing an OpenAPI file cut descriptions at 200 characters and removed text in angle brackets such as `<key>`.
+- Fixed: an app that uses an API key as the basic-auth username with no password failed with a type error.
+
 ## [1.5.1] - 2026-10-14
 
 - Voice agent studio: the editor is split into Persona, Conversation, Knowledge, Bookings, Capture and Voice & phone, with a check on each finished part.

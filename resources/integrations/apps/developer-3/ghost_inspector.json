@@ -1,0 +1,227 @@
+{
+  "key": "ghost_inspector",
+  "name": "Ghost Inspector",
+  "category": "Developer Tools",
+  "description": "Run Ghost Inspector browser test suites and read their results.",
+  "brand": "ghostinspector",
+  "website": "https://ghostinspector.com",
+  "docs_url": "https://docs.ghostinspector.com/api/",
+  "base_url": "https://api.ghostinspector.com/v1",
+  "auth": {
+    "type": "api_key",
+    "in": "query",
+    "name": "apiKey",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "Ghost Inspector → Account settings → API key."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_suites",
+      "name": "List suites",
+      "description": "List your test suites.",
+      "method": "GET",
+      "endpoint": "/suites/",
+      "output_path": "data",
+      "inputs": []
+    },
+    {
+      "key": "list_tests",
+      "name": "List tests in suite",
+      "description": "List the tests of a suite.",
+      "method": "GET",
+      "endpoint": "/suites/{{ inputs.suite_id }}/tests/",
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "suite_id",
+          "label": "Suite ID",
+          "type": "string",
+          "required": true,
+          "help": "Open the suite in Ghost Inspector; the ID is in the URL."
+        }
+      ]
+    },
+    {
+      "key": "run_suite",
+      "name": "Run suite",
+      "description": "Run all tests in a suite.",
+      "method": "GET",
+      "endpoint": "/suites/{{ inputs.suite_id }}/execute/",
+      "query": {
+        "startUrl": "{{ inputs.start_url }}",
+        "immediate": "{{ inputs.immediate }}"
+      },
+      "timeout": 600,
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "suite_id",
+          "label": "Suite ID",
+          "type": "string",
+          "required": true,
+          "help": "Open the suite in Ghost Inspector; the ID is in the URL."
+        },
+        {
+          "key": "start_url",
+          "label": "Start URL",
+          "type": "string",
+          "help": "Optional: run against another URL, e.g. a staging site."
+        },
+        {
+          "key": "immediate",
+          "label": "Don't wait for results",
+          "type": "select",
+          "default": "1",
+          "options": [
+            {
+              "value": "1",
+              "label": "Yes, start and return"
+            },
+            {
+              "value": "0",
+              "label": "No, wait until finished"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "run_test",
+      "name": "Run test",
+      "description": "Run a single test.",
+      "method": "GET",
+      "endpoint": "/tests/{{ inputs.test_id }}/execute/",
+      "query": {
+        "startUrl": "{{ inputs.start_url }}",
+        "immediate": "{{ inputs.immediate }}"
+      },
+      "timeout": 600,
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "test_id",
+          "label": "Test ID",
+          "type": "string",
+          "required": true,
+          "help": "Open the test; the ID is in the URL."
+        },
+        {
+          "key": "start_url",
+          "label": "Start URL",
+          "type": "string"
+        },
+        {
+          "key": "immediate",
+          "label": "Don't wait for results",
+          "type": "select",
+          "default": "1",
+          "options": [
+            {
+              "value": "1",
+              "label": "Yes, start and return"
+            },
+            {
+              "value": "0",
+              "label": "No, wait until finished"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "list_suite_results",
+      "name": "List suite results",
+      "description": "List a suite's latest runs.",
+      "method": "GET",
+      "endpoint": "/suites/{{ inputs.suite_id }}/results/",
+      "query": {
+        "count": "{{ inputs.count }}"
+      },
+      "output_path": "data",
+      "inputs": [
+        {
+          "key": "suite_id",
+          "label": "Suite ID",
+          "type": "string",
+          "required": true,
+          "help": "Open the suite in Ghost Inspector; the ID is in the URL."
+        },
+        {
+          "key": "count",
+          "label": "Count",
+          "type": "number",
+          "default": 10
+        }
+      ]
+    },
+    {
+      "key": "get_suite_result",
+      "name": "Get suite result",
+      "description": "Get one suite run with its pass/fail status.",
+      "method": "GET",
+      "endpoint": "/suite-results/{{ inputs.result_id }}/",
+      "output_path": "data",
+      "output_fields": {
+        "passing": "passing"
+      },
+      "inputs": [
+        {
+          "key": "result_id",
+          "label": "Suite result ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "suite_finished",
+      "name": "Suite run finished",
+      "type": "polling",
+      "description": "Starts when a suite run is recorded.",
+      "method": "GET",
+      "endpoint": "/suites/{{ inputs.suite_id }}/results/",
+      "query": {
+        "count": 10
+      },
+      "items_path": "data",
+      "id_field": "_id",
+      "inputs": [
+        {
+          "key": "suite_id",
+          "label": "Suite ID",
+          "type": "string",
+          "required": true,
+          "help": "Open the suite in Ghost Inspector; the ID is in the URL."
+        },
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    },
+    {
+      "key": "webhook_event",
+      "name": "Webhook (test or suite completed)",
+      "type": "webhook",
+      "description": "Add the webhook URL in the suite's settings → Notifications.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

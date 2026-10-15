@@ -1,0 +1,165 @@
+{
+  "key": "suitedash",
+  "name": "SuiteDash",
+  "category": "Project Management",
+  "description": "Client portal CRM: list and create contacts and companies.",
+  "website": "https://suitedash.com",
+  "docs_url": "https://app.suitedash.com/secure-api/swagger",
+  "base_url": "https://app.suitedash.com/secure-api",
+  "headers": {
+    "X-Public-ID": "{{ credentials.public_id }}"
+  },
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "X-Secret-Key",
+    "fields": [
+      {
+        "key": "public_id",
+        "label": "Public ID",
+        "type": "string",
+        "required": true,
+        "help": "SuiteDash → Integrations → Secure API → Public ID."
+      },
+      {
+        "key": "api_key",
+        "label": "Secret key",
+        "type": "password",
+        "required": true,
+        "help": "Same page; keep the Secret Key private."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_contacts",
+      "name": "List contacts",
+      "description": "Contacts, newest first.",
+      "method": "GET",
+      "endpoint": "/contacts",
+      "query": {
+        "page": "{{ inputs.page }}"
+      },
+      "output_fields": {
+        "emails": "data.*.email",
+        "ids": "data.*.uid"
+      },
+      "inputs": [
+        {
+          "key": "page",
+          "label": "Page",
+          "type": "number",
+          "default": 1
+        }
+      ]
+    },
+    {
+      "key": "get_contact",
+      "name": "Get contact",
+      "description": "One contact.",
+      "method": "GET",
+      "endpoint": "/contact/{{ inputs.id }}",
+      "output_fields": {
+        "email": "data.email"
+      },
+      "inputs": [
+        {
+          "key": "id",
+          "label": "Contact ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "create_contact",
+      "name": "Create contact",
+      "description": "Add a contact (client portal user).",
+      "method": "POST",
+      "endpoint": "/contact",
+      "body": {
+        "first_name": "{{ inputs.first_name }}",
+        "last_name": "{{ inputs.last_name }}",
+        "email": "{{ inputs.email }}",
+        "role": "{{ inputs.role }}",
+        "company_name": "{{ inputs.company_name }}",
+        "send_welcome_email": "{{ inputs.send_welcome_email }}"
+      },
+      "output_fields": {
+        "success": "success",
+        "id": "data.uid"
+      },
+      "inputs": [
+        {
+          "key": "first_name",
+          "label": "First name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "role",
+          "label": "Role",
+          "type": "select",
+          "default": "Client",
+          "options": [
+            {
+              "value": "Client",
+              "label": "Client"
+            },
+            {
+              "value": "Lead",
+              "label": "Lead"
+            },
+            {
+              "value": "Prospect",
+              "label": "Prospect"
+            }
+          ]
+        },
+        {
+          "key": "company_name",
+          "label": "Company name",
+          "type": "string"
+        },
+        {
+          "key": "send_welcome_email",
+          "label": "Send welcome email",
+          "type": "boolean"
+        }
+      ]
+    },
+    {
+      "key": "list_companies",
+      "name": "List companies",
+      "description": "Companies.",
+      "method": "GET",
+      "endpoint": "/companies",
+      "query": {
+        "page": "{{ inputs.page }}"
+      },
+      "output_fields": {
+        "names": "data.*.name"
+      },
+      "inputs": [
+        {
+          "key": "page",
+          "label": "Page",
+          "type": "number",
+          "default": 1
+        }
+      ]
+    }
+  ]
+}

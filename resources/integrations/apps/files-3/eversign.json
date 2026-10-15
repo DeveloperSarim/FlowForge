@@ -1,0 +1,187 @@
+{
+  "key": "eversign",
+  "name": "Eversign",
+  "category": "Files & Documents",
+  "description": "E-signatures: list documents, send a template for signing, read status.",
+  "website": "https://eversign.com",
+  "docs_url": "https://eversign.com/api/documentation",
+  "base_url": "https://api.eversign.com/api",
+  "auth": {
+    "type": "api_key",
+    "in": "query",
+    "name": "access_key",
+    "fields": [
+      {
+        "key": "business_id",
+        "label": "Business ID",
+        "type": "string",
+        "required": true,
+        "help": "Eversign → Settings → API → Business ID (a number)."
+      },
+      {
+        "key": "api_key",
+        "label": "Access key",
+        "type": "password",
+        "required": true,
+        "help": "Eversign → Settings → API → Access Key."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_documents",
+      "name": "List documents",
+      "description": "Documents by state.",
+      "method": "GET",
+      "endpoint": "/document",
+      "query": {
+        "business_id": "{{ credentials.business_id }}",
+        "type": "{{ inputs.type }}"
+      },
+      "output_fields": {
+        "hashes": "*.document_hash",
+        "titles": "*.title"
+      },
+      "inputs": [
+        {
+          "key": "type",
+          "label": "Type",
+          "type": "select",
+          "default": "all",
+          "options": [
+            {
+              "value": "all",
+              "label": "All"
+            },
+            {
+              "value": "my_action_required",
+              "label": "Needs my signature"
+            },
+            {
+              "value": "waiting_for_others",
+              "label": "Waiting for others"
+            },
+            {
+              "value": "completed",
+              "label": "Completed"
+            },
+            {
+              "value": "draft",
+              "label": "Drafts"
+            },
+            {
+              "value": "cancelled",
+              "label": "Cancelled"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "get_document",
+      "name": "Get document",
+      "description": "Status and signers of a document.",
+      "method": "GET",
+      "endpoint": "/document",
+      "query": {
+        "business_id": "{{ credentials.business_id }}",
+        "document_hash": "{{ inputs.hash }}"
+      },
+      "output_fields": {
+        "title": "title",
+        "completed": "is_completed",
+        "cancelled": "is_cancelled"
+      },
+      "inputs": [
+        {
+          "key": "hash",
+          "label": "Document hash",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "send_template",
+      "name": "Send template for signing",
+      "description": "Create a document from a template and send it.",
+      "method": "POST",
+      "endpoint": "/document",
+      "query": {
+        "business_id": "{{ credentials.business_id }}"
+      },
+      "body": {
+        "sandbox": "{{ inputs.sandbox }}",
+        "template_id": "{{ inputs.template_id }}",
+        "title": "{{ inputs.title }}",
+        "message": "{{ inputs.message }}",
+        "signers": [
+          {
+            "role": "{{ inputs.role }}",
+            "name": "{{ inputs.name }}",
+            "email": "{{ inputs.email }}"
+          }
+        ]
+      },
+      "output_fields": {
+        "hash": "document_hash"
+      },
+      "inputs": [
+        {
+          "key": "template_id",
+          "label": "Template ID",
+          "type": "string",
+          "required": true,
+          "help": "Eversign → Templates → open one; the ID is in the URL."
+        },
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "role",
+          "label": "Signer role",
+          "type": "string",
+          "required": true,
+          "help": "The role name defined in the template, e.g. Client."
+        },
+        {
+          "key": "name",
+          "label": "Signer name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "email",
+          "label": "Signer email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "message",
+          "label": "Message",
+          "type": "text"
+        },
+        {
+          "key": "sandbox",
+          "label": "Test mode (no email, free)",
+          "type": "boolean"
+        }
+      ]
+    },
+    {
+      "key": "list_businesses",
+      "name": "List businesses",
+      "description": "Your Eversign businesses.",
+      "method": "GET",
+      "endpoint": "/business",
+      "output_fields": {
+        "names": "*.business_name",
+        "ids": "*.business_id"
+      },
+      "inputs": []
+    }
+  ]
+}

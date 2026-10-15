@@ -1,0 +1,372 @@
+{
+  "key": "jumpseller",
+  "name": "Jumpseller",
+  "category": "E-commerce",
+  "description": "Online store builder: orders, order status, products and customers.",
+  "website": "https://jumpseller.com",
+  "docs_url": "https://jumpseller.com/support/api/",
+  "base_url": "https://api.jumpseller.com/v1",
+  "auth": {
+    "type": "api_key",
+    "in": "query",
+    "name": "authtoken",
+    "fields": [
+      {
+        "key": "login",
+        "label": "Login",
+        "type": "string",
+        "required": true,
+        "help": "Jumpseller admin → Settings → API → Login."
+      },
+      {
+        "key": "api_key",
+        "label": "Auth token",
+        "type": "password",
+        "required": true,
+        "help": "Same page: Auth token."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_orders",
+      "name": "List orders",
+      "description": "Orders in your store.",
+      "method": "GET",
+      "endpoint": "/orders.json",
+      "query": {
+        "login": "{{ credentials.login }}",
+        "limit": "{{ inputs.limit }}",
+        "page": "{{ inputs.page }}"
+      },
+      "inputs": [
+        {
+          "key": "limit",
+          "label": "How many",
+          "type": "number",
+          "default": 50
+        },
+        {
+          "key": "page",
+          "label": "Page",
+          "type": "number",
+          "default": 1
+        }
+      ]
+    },
+    {
+      "key": "get_order",
+      "name": "Get order",
+      "description": "One order's details.",
+      "method": "GET",
+      "endpoint": "/orders/{{ inputs.order_id }}.json",
+      "query": {
+        "login": "{{ credentials.login }}"
+      },
+      "output_fields": {
+        "status": "order.status",
+        "total": "order.total",
+        "email": "order.customer.email"
+      },
+      "inputs": [
+        {
+          "key": "order_id",
+          "label": "Order ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "update_order",
+      "name": "Update order",
+      "description": "Change status or add shipping tracking.",
+      "method": "PUT",
+      "endpoint": "/orders/{{ inputs.order_id }}.json",
+      "query": {
+        "login": "{{ credentials.login }}"
+      },
+      "body": {
+        "order": {
+          "status": "{{ inputs.status }}",
+          "shipment_status": "{{ inputs.shipment_status }}",
+          "tracking_number": "{{ inputs.tracking_number }}",
+          "tracking_company": "{{ inputs.tracking_company }}",
+          "tracking_url": "{{ inputs.tracking_url }}"
+        }
+      },
+      "output_fields": {
+        "status": "order.status"
+      },
+      "inputs": [
+        {
+          "key": "order_id",
+          "label": "Order ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "options": [
+            {
+              "value": "Pending Payment",
+              "label": "Pending Payment"
+            },
+            {
+              "value": "Paid",
+              "label": "Paid"
+            },
+            {
+              "value": "Canceled",
+              "label": "Canceled"
+            },
+            {
+              "value": "Abandoned",
+              "label": "Abandoned"
+            }
+          ]
+        },
+        {
+          "key": "shipment_status",
+          "label": "Shipment status",
+          "type": "select",
+          "options": [
+            {
+              "value": "requested",
+              "label": "Requested"
+            },
+            {
+              "value": "in_transit",
+              "label": "In transit"
+            },
+            {
+              "value": "delivered",
+              "label": "Delivered"
+            },
+            {
+              "value": "failed",
+              "label": "Failed"
+            }
+          ]
+        },
+        {
+          "key": "tracking_number",
+          "label": "Tracking number",
+          "type": "string"
+        },
+        {
+          "key": "tracking_company",
+          "label": "Carrier",
+          "type": "string"
+        },
+        {
+          "key": "tracking_url",
+          "label": "Tracking URL",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "list_products",
+      "name": "List products",
+      "description": "Products in your store.",
+      "method": "GET",
+      "endpoint": "/products.json",
+      "query": {
+        "login": "{{ credentials.login }}",
+        "limit": "{{ inputs.limit }}",
+        "page": "{{ inputs.page }}"
+      },
+      "inputs": [
+        {
+          "key": "limit",
+          "label": "How many",
+          "type": "number",
+          "default": 50
+        },
+        {
+          "key": "page",
+          "label": "Page",
+          "type": "number",
+          "default": 1
+        }
+      ]
+    },
+    {
+      "key": "create_product",
+      "name": "Create product",
+      "description": "Add a product.",
+      "method": "POST",
+      "endpoint": "/products.json",
+      "query": {
+        "login": "{{ credentials.login }}"
+      },
+      "body": {
+        "product": {
+          "name": "{{ inputs.name }}",
+          "price": "{{ inputs.price }}",
+          "stock": "{{ inputs.stock }}",
+          "sku": "{{ inputs.sku }}",
+          "description": "{{ inputs.description }}",
+          "status": "{{ inputs.status }}"
+        }
+      },
+      "output_fields": {
+        "id": "product.id",
+        "permalink": "product.permalink"
+      },
+      "inputs": [
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "price",
+          "label": "Price",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "stock",
+          "label": "Stock",
+          "type": "number"
+        },
+        {
+          "key": "sku",
+          "label": "SKU",
+          "type": "string"
+        },
+        {
+          "key": "description",
+          "label": "Description",
+          "type": "text"
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "default": "available",
+          "options": [
+            {
+              "value": "available",
+              "label": "available"
+            },
+            {
+              "value": "not-available",
+              "label": "not-available"
+            },
+            {
+              "value": "disabled",
+              "label": "disabled"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "update_product",
+      "name": "Update product",
+      "description": "Change price, stock or status.",
+      "method": "PUT",
+      "endpoint": "/products/{{ inputs.product_id }}.json",
+      "query": {
+        "login": "{{ credentials.login }}"
+      },
+      "body": {
+        "product": {
+          "price": "{{ inputs.price }}",
+          "stock": "{{ inputs.stock }}",
+          "status": "{{ inputs.status }}"
+        }
+      },
+      "inputs": [
+        {
+          "key": "product_id",
+          "label": "Product ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "price",
+          "label": "Price",
+          "type": "number"
+        },
+        {
+          "key": "stock",
+          "label": "Stock",
+          "type": "number"
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "options": [
+            {
+              "value": "available",
+              "label": "available"
+            },
+            {
+              "value": "not-available",
+              "label": "not-available"
+            },
+            {
+              "value": "disabled",
+              "label": "disabled"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "create_customer",
+      "name": "Create customer",
+      "description": "Add a customer.",
+      "method": "POST",
+      "endpoint": "/customers.json",
+      "query": {
+        "login": "{{ credentials.login }}"
+      },
+      "body": {
+        "customer": {
+          "email": "{{ inputs.email }}",
+          "phone": "{{ inputs.phone }}"
+        }
+      },
+      "output_fields": {
+        "id": "customer.id"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "phone",
+          "label": "Phone",
+          "type": "string"
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Store event",
+      "type": "webhook",
+      "description": "Jumpseller admin → Settings → Notifications → Webhooks, paste this URL.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

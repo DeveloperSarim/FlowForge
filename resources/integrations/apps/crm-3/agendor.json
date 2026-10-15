@@ -1,0 +1,362 @@
+{
+  "key": "agendor",
+  "name": "Agendor",
+  "category": "CRM & Sales",
+  "description": "Create or update people and companies, add deals and tasks in Agendor CRM.",
+  "website": "https://www.agendor.com.br",
+  "docs_url": "https://api.agendor.com.br/docs/",
+  "base_url": "https://api.agendor.com.br/v3",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "Authorization",
+    "prefix": "Token ",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "API token",
+        "type": "password",
+        "required": true,
+        "help": "In Agendor open Menu → Integrações → API and copy your token."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "upsert_person",
+      "name": "Create or update person",
+      "description": "Finds the person by email (or CPF) and updates it, or creates a new one.",
+      "method": "POST",
+      "endpoint": "/people/upsert",
+      "body": {
+        "name": "{{ inputs.name }}",
+        "role": "{{ inputs.role }}",
+        "organization": "{{ inputs.organization }}",
+        "description": "{{ inputs.description }}",
+        "contact": {
+          "email": "{{ inputs.email }}",
+          "mobile": "{{ inputs.mobile }}",
+          "work": "{{ inputs.work_phone }}",
+          "whatsapp": "{{ inputs.whatsapp }}"
+        }
+      },
+      "output_fields": {
+        "id": "data.id",
+        "url": "data._webUrl"
+      },
+      "inputs": [
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "help": "Used to find an existing person."
+        },
+        {
+          "key": "mobile",
+          "label": "Mobile",
+          "type": "string"
+        },
+        {
+          "key": "work_phone",
+          "label": "Work phone",
+          "type": "string"
+        },
+        {
+          "key": "whatsapp",
+          "label": "WhatsApp",
+          "type": "string"
+        },
+        {
+          "key": "role",
+          "label": "Job title",
+          "type": "string"
+        },
+        {
+          "key": "organization",
+          "label": "Company ID",
+          "type": "number"
+        },
+        {
+          "key": "description",
+          "label": "Description",
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "key": "upsert_organization",
+      "name": "Create or update company",
+      "method": "POST",
+      "endpoint": "/organizations/upsert",
+      "body": {
+        "name": "{{ inputs.name }}",
+        "legalName": "{{ inputs.legal_name }}",
+        "cnpj": "{{ inputs.cnpj }}",
+        "website": "{{ inputs.website }}",
+        "description": "{{ inputs.description }}",
+        "contact": {
+          "email": "{{ inputs.email }}",
+          "work": "{{ inputs.work_phone }}"
+        }
+      },
+      "output_fields": {
+        "id": "data.id",
+        "url": "data._webUrl"
+      },
+      "inputs": [
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "legal_name",
+          "label": "Legal name",
+          "type": "string"
+        },
+        {
+          "key": "cnpj",
+          "label": "CNPJ",
+          "type": "string"
+        },
+        {
+          "key": "website",
+          "label": "Website",
+          "type": "string"
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string"
+        },
+        {
+          "key": "work_phone",
+          "label": "Phone",
+          "type": "string"
+        },
+        {
+          "key": "description",
+          "label": "Description",
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "key": "create_person_deal",
+      "name": "Create deal for person",
+      "method": "POST",
+      "endpoint": "/people/{{ inputs.person_id }}/deals",
+      "body": {
+        "title": "{{ inputs.title }}",
+        "value": "{{ inputs.value }}",
+        "dealStatusText": "{{ inputs.status }}",
+        "description": "{{ inputs.description }}",
+        "funnel": "{{ inputs.funnel }}",
+        "dealStage": "{{ inputs.deal_stage }}"
+      },
+      "output_fields": {
+        "id": "data.id",
+        "url": "data._webUrl"
+      },
+      "inputs": [
+        {
+          "key": "person_id",
+          "label": "Person ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "title",
+          "label": "Deal title",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "value",
+          "label": "Value",
+          "type": "number"
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "default": "ongoing",
+          "options": [
+            {
+              "value": "ongoing",
+              "label": "Ongoing"
+            },
+            {
+              "value": "won",
+              "label": "Won"
+            },
+            {
+              "value": "lost",
+              "label": "Lost"
+            }
+          ]
+        },
+        {
+          "key": "description",
+          "label": "Description",
+          "type": "text"
+        },
+        {
+          "key": "funnel",
+          "label": "Funnel ID",
+          "type": "number"
+        },
+        {
+          "key": "deal_stage",
+          "label": "Stage ID",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "create_organization_deal",
+      "name": "Create deal for company",
+      "method": "POST",
+      "endpoint": "/organizations/{{ inputs.organization_id }}/deals",
+      "body": {
+        "title": "{{ inputs.title }}",
+        "value": "{{ inputs.value }}",
+        "dealStatusText": "{{ inputs.status }}",
+        "description": "{{ inputs.description }}",
+        "funnel": "{{ inputs.funnel }}",
+        "dealStage": "{{ inputs.deal_stage }}"
+      },
+      "output_fields": {
+        "id": "data.id",
+        "url": "data._webUrl"
+      },
+      "inputs": [
+        {
+          "key": "organization_id",
+          "label": "Company ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "title",
+          "label": "Deal title",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "value",
+          "label": "Value",
+          "type": "number"
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "default": "ongoing",
+          "options": [
+            {
+              "value": "ongoing",
+              "label": "Ongoing"
+            },
+            {
+              "value": "won",
+              "label": "Won"
+            },
+            {
+              "value": "lost",
+              "label": "Lost"
+            }
+          ]
+        },
+        {
+          "key": "description",
+          "label": "Description",
+          "type": "text"
+        },
+        {
+          "key": "funnel",
+          "label": "Funnel ID",
+          "type": "number"
+        },
+        {
+          "key": "deal_stage",
+          "label": "Stage ID",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "create_person_task",
+      "name": "Add task to person",
+      "method": "POST",
+      "endpoint": "/people/{{ inputs.person_id }}/tasks",
+      "body": {
+        "text": "{{ inputs.text }}",
+        "due_date": "{{ inputs.due_date }}"
+      },
+      "output_fields": {
+        "id": "data.id"
+      },
+      "inputs": [
+        {
+          "key": "person_id",
+          "label": "Person ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "text",
+          "label": "Task",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "due_date",
+          "label": "Due date",
+          "type": "string",
+          "placeholder": "2026-01-31T14:00:00Z"
+        }
+      ]
+    },
+    {
+      "key": "find_people",
+      "name": "Find people",
+      "method": "GET",
+      "endpoint": "/people",
+      "query": {
+        "email": "{{ inputs.email }}",
+        "name": "{{ inputs.name }}",
+        "phone": "{{ inputs.phone }}",
+        "per_page": 25
+      },
+      "output_fields": {
+        "people": "data",
+        "id": "data.0.id"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string"
+        },
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string"
+        },
+        {
+          "key": "phone",
+          "label": "Phone",
+          "type": "string"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,304 @@
+{
+  "key": "parsely",
+  "name": "Parse.ly",
+  "category": "Analytics",
+  "description": "Get top posts, authors, referrers and real-time content stats from Parse.ly.",
+  "website": "https://www.parse.ly",
+  "docs_url": "https://docs.parse.ly/api/api-overview/",
+  "base_url": "https://api.parsely.com/v2",
+  "auth": {
+    "type": "api_key",
+    "in": "query",
+    "name": "secret",
+    "fields": [
+      {
+        "key": "site_id",
+        "label": "Site ID",
+        "type": "string",
+        "required": true,
+        "placeholder": "example.com",
+        "help": "Your Parse.ly Site ID (the 'apikey'), usually your domain."
+      },
+      {
+        "key": "api_key",
+        "label": "API secret",
+        "type": "password",
+        "required": true,
+        "help": "Parse.ly Dashboard → Settings → API: the shared secret."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "top_posts",
+      "name": "Top posts",
+      "description": "Most viewed posts in a period.",
+      "method": "GET",
+      "endpoint": "/analytics/posts",
+      "query": {
+        "apikey": "{{ credentials.site_id }}",
+        "period_start": "{{ inputs.period_start }}",
+        "period_end": "{{ inputs.period_end }}",
+        "sort": "{{ inputs.sort }}",
+        "limit": "{{ inputs.limit }}",
+        "page": "{{ inputs.page }}",
+        "section": "{{ inputs.section }}",
+        "author": "{{ inputs.author }}",
+        "tag": "{{ inputs.tag }}"
+      },
+      "output_fields": {
+        "posts": "data",
+        "titles": "data.*.title",
+        "urls": "data.*.url"
+      },
+      "inputs": [
+        {
+          "key": "period_start",
+          "label": "From",
+          "type": "string",
+          "placeholder": "2025-01-01",
+          "help": "Default: 3 days ago."
+        },
+        {
+          "key": "period_end",
+          "label": "To",
+          "type": "string",
+          "placeholder": "2025-01-31",
+          "help": "Default: now."
+        },
+        {
+          "key": "sort",
+          "label": "Sort by",
+          "type": "string",
+          "default": "views",
+          "placeholder": "views"
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 10
+        },
+        {
+          "key": "page",
+          "label": "Page",
+          "type": "number"
+        },
+        {
+          "key": "section",
+          "label": "Section",
+          "type": "string"
+        },
+        {
+          "key": "author",
+          "label": "Author",
+          "type": "string"
+        },
+        {
+          "key": "tag",
+          "label": "Tag",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "realtime_posts",
+      "name": "Real-time top posts",
+      "description": "Posts trending right now.",
+      "method": "GET",
+      "endpoint": "/realtime/posts",
+      "query": {
+        "apikey": "{{ credentials.site_id }}",
+        "time": "{{ inputs.time }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "posts": "data",
+        "titles": "data.*.title",
+        "urls": "data.*.url"
+      },
+      "inputs": [
+        {
+          "key": "time",
+          "label": "Time window",
+          "type": "string",
+          "default": "1h",
+          "placeholder": "1h",
+          "help": "e.g. 10m, 1h, 24h"
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 10
+        }
+      ]
+    },
+    {
+      "key": "post_details",
+      "name": "Post details",
+      "description": "Traffic for one post.",
+      "method": "GET",
+      "endpoint": "/analytics/post/detail",
+      "query": {
+        "apikey": "{{ credentials.site_id }}",
+        "url": "{{ inputs.url }}",
+        "period_start": "{{ inputs.period_start }}",
+        "period_end": "{{ inputs.period_end }}"
+      },
+      "output_fields": {
+        "post": "data.0",
+        "title": "data.0.title"
+      },
+      "inputs": [
+        {
+          "key": "period_start",
+          "label": "From",
+          "type": "string",
+          "placeholder": "2025-01-01",
+          "help": "Default: 3 days ago."
+        },
+        {
+          "key": "period_end",
+          "label": "To",
+          "type": "string",
+          "placeholder": "2025-01-31",
+          "help": "Default: now."
+        },
+        {
+          "key": "url",
+          "label": "Post URL",
+          "type": "string",
+          "required": true,
+          "placeholder": "https://example.com/2025/01/my-story",
+          "help": "Canonical URL, including https://."
+        }
+      ]
+    },
+    {
+      "key": "top_authors",
+      "name": "Top authors",
+      "description": "Authors ranked by views.",
+      "method": "GET",
+      "endpoint": "/analytics/authors",
+      "query": {
+        "apikey": "{{ credentials.site_id }}",
+        "period_start": "{{ inputs.period_start }}",
+        "period_end": "{{ inputs.period_end }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "authors": "data"
+      },
+      "inputs": [
+        {
+          "key": "period_start",
+          "label": "From",
+          "type": "string",
+          "placeholder": "2025-01-01",
+          "help": "Default: 3 days ago."
+        },
+        {
+          "key": "period_end",
+          "label": "To",
+          "type": "string",
+          "placeholder": "2025-01-31",
+          "help": "Default: now."
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 10
+        }
+      ]
+    },
+    {
+      "key": "top_referrers",
+      "name": "Top referrers",
+      "description": "Top referrers of one type.",
+      "method": "GET",
+      "endpoint": "/referrers/{{ inputs.referrer_type }}",
+      "query": {
+        "apikey": "{{ credentials.site_id }}",
+        "period_start": "{{ inputs.period_start }}",
+        "period_end": "{{ inputs.period_end }}"
+      },
+      "output_fields": {
+        "referrers": "data"
+      },
+      "inputs": [
+        {
+          "key": "referrer_type",
+          "label": "Referrer type",
+          "type": "select",
+          "required": true,
+          "default": "social",
+          "options": [
+            {
+              "value": "social",
+              "label": "Social"
+            },
+            {
+              "value": "search",
+              "label": "Search"
+            },
+            {
+              "value": "other",
+              "label": "Other sites"
+            },
+            {
+              "value": "internal",
+              "label": "Internal"
+            }
+          ]
+        },
+        {
+          "key": "period_start",
+          "label": "From",
+          "type": "string",
+          "placeholder": "2025-01-01",
+          "help": "Default: 3 days ago."
+        },
+        {
+          "key": "period_end",
+          "label": "To",
+          "type": "string",
+          "placeholder": "2025-01-31",
+          "help": "Default: now."
+        }
+      ]
+    },
+    {
+      "key": "search_posts",
+      "name": "Search posts",
+      "description": "Find posts by keyword.",
+      "method": "GET",
+      "endpoint": "/search",
+      "query": {
+        "apikey": "{{ credentials.site_id }}",
+        "q": "{{ inputs.q }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "posts": "data",
+        "titles": "data.*.title",
+        "urls": "data.*.url"
+      },
+      "inputs": [
+        {
+          "key": "q",
+          "label": "Search text",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 10
+        }
+      ]
+    }
+  ]
+}

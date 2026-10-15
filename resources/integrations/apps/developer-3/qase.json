@@ -1,0 +1,288 @@
+{
+  "key": "qase",
+  "name": "Qase",
+  "category": "Developer Tools",
+  "description": "Create test cases and runs and report test results in Qase.",
+  "brand": "qase",
+  "website": "https://qase.io",
+  "docs_url": "https://developers.qase.io/reference/introduction-to-the-qase-api",
+  "base_url": "https://api.qase.io/v1",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "Token",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "API token",
+        "type": "password",
+        "required": true,
+        "help": "Qase → Workspace settings → API tokens (Apps → API) → Create token."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_projects",
+      "name": "List projects",
+      "description": "List your projects.",
+      "method": "GET",
+      "endpoint": "/project",
+      "query": {
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "projects": "result.entities"
+      },
+      "inputs": [
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 100
+        }
+      ]
+    },
+    {
+      "key": "list_cases",
+      "name": "List test cases",
+      "description": "List or search test cases.",
+      "method": "GET",
+      "endpoint": "/case/{{ inputs.project_code }}",
+      "query": {
+        "search": "{{ inputs.search }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "cases": "result.entities",
+        "total": "result.total"
+      },
+      "inputs": [
+        {
+          "key": "project_code",
+          "label": "Project code",
+          "type": "string",
+          "required": true,
+          "placeholder": "DEMO",
+          "help": "The short code shown before case IDs (e.g. DEMO-12)."
+        },
+        {
+          "key": "search",
+          "label": "Search",
+          "type": "string"
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 100
+        }
+      ]
+    },
+    {
+      "key": "create_case",
+      "name": "Create test case",
+      "description": "Create a test case.",
+      "method": "POST",
+      "endpoint": "/case/{{ inputs.project_code }}",
+      "body": {
+        "title": "{{ inputs.title }}",
+        "description": "{{ inputs.description }}",
+        "preconditions": "{{ inputs.preconditions }}",
+        "suite_id": "{{ inputs.suite_id }}",
+        "severity": "{{ inputs.severity }}"
+      },
+      "output_fields": {
+        "case_id": "result.id"
+      },
+      "inputs": [
+        {
+          "key": "project_code",
+          "label": "Project code",
+          "type": "string",
+          "required": true,
+          "placeholder": "DEMO",
+          "help": "The short code shown before case IDs (e.g. DEMO-12)."
+        },
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "description",
+          "label": "Description",
+          "type": "text"
+        },
+        {
+          "key": "preconditions",
+          "label": "Preconditions",
+          "type": "text"
+        },
+        {
+          "key": "suite_id",
+          "label": "Suite ID",
+          "type": "number"
+        },
+        {
+          "key": "severity",
+          "label": "Severity (1-6)",
+          "type": "number",
+          "help": "1 Blocker, 2 Critical, 3 Major, 4 Normal, 5 Minor, 6 Trivial."
+        }
+      ]
+    },
+    {
+      "key": "create_run",
+      "name": "Create test run",
+      "description": "Start a test run.",
+      "method": "POST",
+      "endpoint": "/run/{{ inputs.project_code }}",
+      "body": {
+        "title": "{{ inputs.title }}",
+        "description": "{{ inputs.description }}",
+        "include_all_cases": "{{ inputs.include_all_cases }}",
+        "cases": "{{ inputs.cases }}"
+      },
+      "output_fields": {
+        "run_id": "result.id"
+      },
+      "inputs": [
+        {
+          "key": "project_code",
+          "label": "Project code",
+          "type": "string",
+          "required": true,
+          "placeholder": "DEMO",
+          "help": "The short code shown before case IDs (e.g. DEMO-12)."
+        },
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "string",
+          "required": true,
+          "placeholder": "Release 1.4 regression"
+        },
+        {
+          "key": "description",
+          "label": "Description",
+          "type": "text"
+        },
+        {
+          "key": "include_all_cases",
+          "label": "Include all cases",
+          "type": "boolean",
+          "default": true
+        },
+        {
+          "key": "cases",
+          "label": "Case IDs",
+          "type": "list",
+          "help": "Used when not including all cases."
+        }
+      ]
+    },
+    {
+      "key": "add_result",
+      "name": "Add test result",
+      "description": "Report the result of one test case in a run.",
+      "method": "POST",
+      "endpoint": "/result/{{ inputs.project_code }}/{{ inputs.run_id }}",
+      "body": {
+        "case_id": "{{ inputs.case_id }}",
+        "status": "{{ inputs.status }}",
+        "comment": "{{ inputs.comment }}",
+        "time_ms": "{{ inputs.time_ms }}"
+      },
+      "output_fields": {
+        "hash": "result.hash"
+      },
+      "inputs": [
+        {
+          "key": "project_code",
+          "label": "Project code",
+          "type": "string",
+          "required": true,
+          "placeholder": "DEMO",
+          "help": "The short code shown before case IDs (e.g. DEMO-12)."
+        },
+        {
+          "key": "run_id",
+          "label": "Run ID",
+          "type": "string",
+          "required": true,
+          "help": "Returned by Create test run."
+        },
+        {
+          "key": "case_id",
+          "label": "Case ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "required": true,
+          "default": "passed",
+          "options": [
+            {
+              "value": "passed",
+              "label": "passed"
+            },
+            {
+              "value": "failed",
+              "label": "failed"
+            },
+            {
+              "value": "blocked",
+              "label": "blocked"
+            },
+            {
+              "value": "skipped",
+              "label": "skipped"
+            },
+            {
+              "value": "invalid",
+              "label": "invalid"
+            }
+          ]
+        },
+        {
+          "key": "comment",
+          "label": "Comment",
+          "type": "text"
+        },
+        {
+          "key": "time_ms",
+          "label": "Duration (ms)",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "complete_run",
+      "name": "Complete test run",
+      "description": "Mark a test run as complete.",
+      "method": "POST",
+      "endpoint": "/run/{{ inputs.project_code }}/{{ inputs.run_id }}/complete",
+      "inputs": [
+        {
+          "key": "project_code",
+          "label": "Project code",
+          "type": "string",
+          "required": true,
+          "placeholder": "DEMO",
+          "help": "The short code shown before case IDs (e.g. DEMO-12)."
+        },
+        {
+          "key": "run_id",
+          "label": "Run ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ]
+}

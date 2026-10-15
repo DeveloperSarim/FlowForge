@@ -1,0 +1,144 @@
+{
+  "key": "mayan_edms",
+  "name": "Mayan EDMS",
+  "category": "Files & Documents",
+  "description": "Self-hosted document management: list, read and delete documents, cabinets and tags.",
+  "website": "https://www.mayan-edms.com",
+  "docs_url": "https://docs.mayan-edms.com/chapters/api.html",
+  "base_url": "{{ credentials.base_url }}/api/v4",
+  "auth": {
+    "type": "basic",
+    "fields": [
+      {
+        "key": "base_url",
+        "label": "Mayan URL",
+        "type": "string",
+        "required": true,
+        "placeholder": "https://docs.example.com",
+        "help": "The address of your Mayan EDMS, without a trailing slash."
+      },
+      {
+        "key": "username",
+        "label": "Username",
+        "type": "string",
+        "required": true,
+        "help": "Your Mayan username."
+      },
+      {
+        "key": "password",
+        "label": "Password",
+        "type": "password",
+        "required": true,
+        "help": "Your Mayan password."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_documents",
+      "name": "List documents",
+      "description": "Documents, newest first.",
+      "method": "GET",
+      "endpoint": "/documents/",
+      "query": {
+        "page_size": "{{ inputs.page_size }}",
+        "ordering": "-datetime_created"
+      },
+      "output_fields": {
+        "count": "count",
+        "labels": "results.*.label",
+        "ids": "results.*.id"
+      },
+      "inputs": [
+        {
+          "key": "page_size",
+          "label": "Max results",
+          "type": "number",
+          "default": 25
+        }
+      ]
+    },
+    {
+      "key": "get_document",
+      "name": "Get document",
+      "description": "One document.",
+      "method": "GET",
+      "endpoint": "/documents/{{ inputs.id }}/",
+      "output_fields": {
+        "label": "label",
+        "created": "datetime_created",
+        "type": "document_type.label"
+      },
+      "inputs": [
+        {
+          "key": "id",
+          "label": "Document ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "delete_document",
+      "name": "Delete document",
+      "description": "Move a document to the trash.",
+      "method": "DELETE",
+      "endpoint": "/documents/{{ inputs.id }}/",
+      "inputs": [
+        {
+          "key": "id",
+          "label": "Document ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_cabinets",
+      "name": "List cabinets",
+      "description": "Cabinets (folders).",
+      "method": "GET",
+      "endpoint": "/cabinets/",
+      "output_fields": {
+        "labels": "results.*.label",
+        "ids": "results.*.id"
+      },
+      "inputs": []
+    },
+    {
+      "key": "list_tags",
+      "name": "List tags",
+      "description": "Tags.",
+      "method": "GET",
+      "endpoint": "/tags/",
+      "output_fields": {
+        "labels": "results.*.label",
+        "ids": "results.*.id"
+      },
+      "inputs": []
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_document",
+      "name": "New document",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/documents/",
+      "query": {
+        "ordering": "-datetime_created",
+        "page_size": 25
+      },
+      "items_path": "results",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

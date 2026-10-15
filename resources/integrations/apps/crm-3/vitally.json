@@ -1,0 +1,300 @@
+{
+  "key": "vitally",
+  "name": "Vitally",
+  "category": "CRM & Sales",
+  "description": "Create accounts, users, notes and tasks in the Vitally customer success platform.",
+  "website": "https://www.vitally.io",
+  "docs_url": "https://docs.vitally.io/en/articles/9880649-rest-api-overview",
+  "base_url": "{{ credentials.api_url }}/resources",
+  "auth": {
+    "type": "basic",
+    "fields": [
+      {
+        "key": "username",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "Settings → Integrations → Vitally REST API: enable it and copy the secret token."
+      },
+      {
+        "key": "password",
+        "label": "Password",
+        "type": "password",
+        "required": false,
+        "default": "",
+        "help": "Leave empty."
+      },
+      {
+        "key": "api_url",
+        "label": "API URL",
+        "type": "string",
+        "required": true,
+        "placeholder": "https://yourcompany.rest.vitally.io",
+        "help": "US: https://<your subdomain>.rest.vitally.io · EU: https://rest.vitally-eu.io"
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "create_account",
+      "name": "Create account",
+      "method": "POST",
+      "endpoint": "/accounts",
+      "body": {
+        "externalId": "{{ inputs.external_id }}",
+        "name": "{{ inputs.name }}",
+        "organizationId": "{{ inputs.organization_id }}",
+        "traits": "{{ inputs.traits }}"
+      },
+      "output_fields": {
+        "id": "id",
+        "name": "name"
+      },
+      "inputs": [
+        {
+          "key": "external_id",
+          "label": "Your account ID",
+          "type": "string",
+          "required": true,
+          "help": "The account's unique ID in your own system."
+        },
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "organization_id",
+          "label": "Organization ID",
+          "type": "string"
+        },
+        {
+          "key": "traits",
+          "label": "Traits",
+          "type": "keyvalue",
+          "help": "Custom fields, e.g. plan = Pro."
+        }
+      ]
+    },
+    {
+      "key": "update_account",
+      "name": "Update account",
+      "method": "PUT",
+      "endpoint": "/accounts/{{ inputs.account_id }}",
+      "body": {
+        "traits": "{{ inputs.traits }}"
+      },
+      "output_fields": {
+        "id": "id"
+      },
+      "inputs": [
+        {
+          "key": "account_id",
+          "label": "Account ID",
+          "type": "string",
+          "required": true,
+          "help": "Vitally's ID for the account (not your external ID)."
+        },
+        {
+          "key": "traits",
+          "label": "Traits",
+          "type": "keyvalue",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "get_account",
+      "name": "Get account",
+      "method": "GET",
+      "endpoint": "/accounts/{{ inputs.account_id }}",
+      "output_fields": {
+        "id": "id",
+        "name": "name",
+        "health": "healthScore"
+      },
+      "inputs": [
+        {
+          "key": "account_id",
+          "label": "Account ID or external ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "create_user",
+      "name": "Create user",
+      "method": "POST",
+      "endpoint": "/users",
+      "body": {
+        "externalId": "{{ inputs.external_id }}",
+        "accountIds": [
+          "{{ inputs.account_id }}"
+        ],
+        "name": "{{ inputs.name }}",
+        "email": "{{ inputs.email }}",
+        "traits": "{{ inputs.traits }}"
+      },
+      "output_fields": {
+        "id": "id"
+      },
+      "inputs": [
+        {
+          "key": "external_id",
+          "label": "Your user ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "account_id",
+          "label": "Account ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string"
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string"
+        },
+        {
+          "key": "traits",
+          "label": "Traits",
+          "type": "keyvalue"
+        }
+      ]
+    },
+    {
+      "key": "find_user",
+      "name": "Find user by email",
+      "method": "GET",
+      "endpoint": "/users/search",
+      "query": {
+        "email": "{{ inputs.email }}"
+      },
+      "output_fields": {
+        "id": "results.0.id",
+        "users": "results"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "create_note",
+      "name": "Create note",
+      "method": "POST",
+      "endpoint": "/notes",
+      "body": {
+        "accountId": "{{ inputs.account_id }}",
+        "subject": "{{ inputs.subject }}",
+        "note": "{{ inputs.note }}",
+        "noteDate": "{{ inputs.note_date }}"
+      },
+      "output_fields": {
+        "id": "id"
+      },
+      "inputs": [
+        {
+          "key": "account_id",
+          "label": "Account ID",
+          "type": "string",
+          "required": true,
+          "help": "Vitally's ID for the account (not your external ID)."
+        },
+        {
+          "key": "subject",
+          "label": "Subject",
+          "type": "string"
+        },
+        {
+          "key": "note",
+          "label": "Note",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "note_date",
+          "label": "Note date (ISO)",
+          "type": "string",
+          "required": true,
+          "placeholder": "2026-01-31T12:00:00Z"
+        }
+      ]
+    },
+    {
+      "key": "create_task",
+      "name": "Create task",
+      "method": "POST",
+      "endpoint": "/tasks",
+      "body": {
+        "accountId": "{{ inputs.account_id }}",
+        "name": "{{ inputs.name }}",
+        "description": "{{ inputs.description }}",
+        "assignedToId": "{{ inputs.assigned_to_id }}"
+      },
+      "output_fields": {
+        "id": "id"
+      },
+      "inputs": [
+        {
+          "key": "account_id",
+          "label": "Account ID",
+          "type": "string",
+          "required": true,
+          "help": "Vitally's ID for the account (not your external ID)."
+        },
+        {
+          "key": "name",
+          "label": "Task",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "description",
+          "label": "Description",
+          "type": "text"
+        },
+        {
+          "key": "assigned_to_id",
+          "label": "Assign to admin ID",
+          "type": "string"
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_account",
+      "name": "New account",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/accounts",
+      "query": {
+        "sortBy": "createdAt",
+        "limit": 50
+      },
+      "items_path": "results",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

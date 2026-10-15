@@ -1,0 +1,203 @@
+{
+  "key": "buttondown",
+  "name": "Buttondown",
+  "category": "Marketing & Email",
+  "description": "Newsletters: manage subscribers, draft and send emails, list tags.",
+  "website": "https://buttondown.com",
+  "docs_url": "https://docs.buttondown.com/api-introduction",
+  "base_url": "https://api.buttondown.com/v1",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "Authorization",
+    "prefix": "Token ",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "Buttondown → Settings → Programming → API → copy your API key."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "create_subscriber",
+      "name": "Add subscriber",
+      "description": "Subscribe an email address.",
+      "method": "POST",
+      "endpoint": "/subscribers",
+      "body": {
+        "email_address": "{{ inputs.email }}",
+        "tags": "{{ inputs.tags }}",
+        "notes": "{{ inputs.notes }}"
+      },
+      "output_fields": {
+        "id": "id",
+        "email": "email_address",
+        "type": "type"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true,
+          "help": "The contact's email address."
+        },
+        {
+          "key": "tags",
+          "label": "Tags",
+          "type": "list"
+        },
+        {
+          "key": "notes",
+          "label": "Notes",
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "key": "get_subscriber",
+      "name": "Get subscriber",
+      "description": "Look up a subscriber by ID or email.",
+      "method": "GET",
+      "endpoint": "/subscribers/{{ inputs.id_or_email }}",
+      "output_fields": {
+        "id": "id",
+        "email": "email_address",
+        "type": "type",
+        "tags": "tags"
+      },
+      "inputs": [
+        {
+          "key": "id_or_email",
+          "label": "Email or ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_subscribers",
+      "name": "List subscribers",
+      "description": "Your subscribers.",
+      "method": "GET",
+      "endpoint": "/subscribers",
+      "query": {
+        "type": "{{ inputs.type }}"
+      },
+      "output_fields": {
+        "subscribers": "results",
+        "count": "count"
+      },
+      "inputs": [
+        {
+          "key": "type",
+          "label": "Status",
+          "type": "select",
+          "default": "",
+          "options": [
+            {
+              "value": "",
+              "label": "All"
+            },
+            {
+              "value": "regular",
+              "label": "Active"
+            },
+            {
+              "value": "unactivated",
+              "label": "Unconfirmed"
+            },
+            {
+              "value": "unsubscribed",
+              "label": "Unsubscribed"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "create_email",
+      "name": "Create email",
+      "description": "Create a draft (or send immediately) newsletter issue.",
+      "method": "POST",
+      "endpoint": "/emails",
+      "body": {
+        "subject": "{{ inputs.subject }}",
+        "body": "{{ inputs.body }}",
+        "status": "{{ inputs.status }}"
+      },
+      "output_fields": {
+        "id": "id",
+        "subject": "subject",
+        "status": "status"
+      },
+      "inputs": [
+        {
+          "key": "subject",
+          "label": "Subject",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "body",
+          "label": "Body (Markdown)",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "default": "draft",
+          "options": [
+            {
+              "value": "draft",
+              "label": "Save as draft"
+            },
+            {
+              "value": "about_to_send",
+              "label": "Send now"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "list_emails",
+      "name": "List emails",
+      "description": "Past and draft newsletter issues.",
+      "method": "GET",
+      "endpoint": "/emails",
+      "output_fields": {
+        "emails": "results"
+      },
+      "inputs": []
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_subscriber",
+      "name": "New subscriber",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/subscribers",
+      "query": {
+        "ordering": "-creation_date"
+      },
+      "items_path": "results",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

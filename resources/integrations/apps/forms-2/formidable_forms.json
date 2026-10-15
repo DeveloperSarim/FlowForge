@@ -1,0 +1,145 @@
+{
+  "key": "formidable_forms",
+  "name": "Formidable Forms",
+  "category": "Forms & Surveys",
+  "description": "Read forms and entries from a WordPress site running Formidable Forms, and add entries.",
+  "website": "https://formidableforms.com",
+  "docs_url": "https://formidableforms.com/knowledgebase/formidable-api/",
+  "base_url": "{{ credentials.site_url }}/wp-json/frm/v2",
+  "auth": {
+    "type": "basic",
+    "fields": [
+      {
+        "key": "site_url",
+        "label": "Website address",
+        "type": "string",
+        "required": true,
+        "placeholder": "https://example.com",
+        "help": "Your WordPress site, no trailing slash."
+      },
+      {
+        "key": "username",
+        "label": "API key",
+        "type": "string",
+        "required": true,
+        "help": "WordPress > Formidable > Global Settings > Formidable API: copy the API key."
+      },
+      {
+        "key": "password",
+        "label": "Password",
+        "type": "password",
+        "required": true,
+        "default": "x",
+        "help": "Type the letter x (Formidable ignores it)."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_forms",
+      "name": "List forms",
+      "description": "Get all Formidable forms.",
+      "method": "GET",
+      "endpoint": "/forms",
+      "inputs": []
+    },
+    {
+      "key": "list_entries",
+      "name": "List entries",
+      "description": "Get the entries submitted to a form.",
+      "method": "GET",
+      "endpoint": "/forms/{{ inputs.form_id }}/entries",
+      "query": {
+        "page_size": "{{ inputs.page_size }}",
+        "sort[id]": "{{ inputs.sort }}"
+      },
+      "inputs": [
+        {
+          "key": "form_id",
+          "label": "Form ID",
+          "type": "string",
+          "required": true,
+          "help": "Formidable > Forms: the ID column."
+        },
+        {
+          "key": "page_size",
+          "label": "Entries per page",
+          "type": "number",
+          "default": 25
+        },
+        {
+          "key": "sort",
+          "label": "Sort",
+          "type": "select",
+          "default": "desc",
+          "options": [
+            {
+              "value": "desc",
+              "label": "Newest first"
+            },
+            {
+              "value": "asc",
+              "label": "Oldest first"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "get_entry",
+      "name": "Get an entry",
+      "description": "Get one entry with its field values.",
+      "method": "GET",
+      "endpoint": "/entries/{{ inputs.entry_id }}",
+      "inputs": [
+        {
+          "key": "entry_id",
+          "label": "Entry ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "create_entry",
+      "name": "Create an entry",
+      "description": "Add an entry to a form.",
+      "method": "POST",
+      "endpoint": "/entries",
+      "body": {
+        "form_id": "{{ inputs.form_id }}",
+        "item_meta": "{{ inputs.item_meta }}"
+      },
+      "inputs": [
+        {
+          "key": "form_id",
+          "label": "Form ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "item_meta",
+          "label": "Field values",
+          "type": "json",
+          "required": true,
+          "help": "JSON of field ID to value, e.g. {\"12\":\"Hello\"}."
+        }
+      ]
+    },
+    {
+      "key": "delete_entry",
+      "name": "Delete an entry",
+      "description": "Permanently delete an entry.",
+      "method": "DELETE",
+      "endpoint": "/entries/{{ inputs.entry_id }}",
+      "inputs": [
+        {
+          "key": "entry_id",
+          "label": "Entry ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ]
+}

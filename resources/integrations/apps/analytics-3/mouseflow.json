@@ -1,0 +1,305 @@
+{
+  "key": "mouseflow",
+  "name": "Mouseflow",
+  "category": "Analytics",
+  "description": "Read session recordings, heatmap pages, funnels and form stats from Mouseflow.",
+  "website": "https://mouseflow.com",
+  "docs_url": "https://api-docs.mouseflow.com/",
+  "base_url": "https://api-{{ credentials.region }}.mouseflow.com",
+  "auth": {
+    "type": "basic",
+    "fields": [
+      {
+        "key": "region",
+        "label": "Data region",
+        "type": "select",
+        "required": true,
+        "default": "us",
+        "options": [
+          {
+            "value": "us",
+            "label": "United States"
+          },
+          {
+            "value": "eu",
+            "label": "Europe"
+          }
+        ],
+        "help": "Where your Mouseflow account is hosted. EU accounts log in at eu.mouseflow.com."
+      },
+      {
+        "key": "username",
+        "label": "Account email",
+        "type": "string",
+        "required": true,
+        "help": "The email you log in to Mouseflow with."
+      },
+      {
+        "key": "password",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "Mouseflow → Account (top right) → API keys → Create API key."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_websites",
+      "name": "List websites",
+      "description": "All websites in your Mouseflow account.",
+      "method": "GET",
+      "endpoint": "/websites",
+      "output_fields": {
+        "website_ids": "*.id",
+        "names": "*.name"
+      },
+      "inputs": []
+    },
+    {
+      "key": "get_website",
+      "name": "Get website",
+      "description": "Details and recording status of one website.",
+      "method": "GET",
+      "endpoint": "/websites/{{ inputs.website_id }}",
+      "output_fields": {
+        "id": "id",
+        "name": "name",
+        "status": "status"
+      },
+      "inputs": [
+        {
+          "key": "website_id",
+          "label": "Website ID",
+          "type": "string",
+          "required": true,
+          "help": "Open the website in Mouseflow; the ID is in the address bar after /websites/. Or use 'List websites'."
+        }
+      ]
+    },
+    {
+      "key": "list_recordings",
+      "name": "List recordings",
+      "description": "Session recordings for a website.",
+      "method": "GET",
+      "endpoint": "/websites/{{ inputs.website_id }}/recordings",
+      "query": {
+        "fromDate": "{{ inputs.from_date }}",
+        "toDate": "{{ inputs.to_date }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "count": "count",
+        "recording_ids": "recordings.*.id"
+      },
+      "inputs": [
+        {
+          "key": "website_id",
+          "label": "Website ID",
+          "type": "string",
+          "required": true,
+          "help": "Open the website in Mouseflow; the ID is in the address bar after /websites/. Or use 'List websites'."
+        },
+        {
+          "key": "from_date",
+          "label": "From date",
+          "type": "string",
+          "placeholder": "2025-01-31",
+          "help": "YYYY-MM-DD"
+        },
+        {
+          "key": "to_date",
+          "label": "To date",
+          "type": "string",
+          "placeholder": "2025-02-28",
+          "help": "YYYY-MM-DD"
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    },
+    {
+      "key": "get_recording",
+      "name": "Get recording",
+      "description": "Details of one session recording.",
+      "method": "GET",
+      "endpoint": "/websites/{{ inputs.website_id }}/recordings/{{ inputs.recording_id }}",
+      "output_fields": {
+        "id": "id",
+        "created": "created",
+        "duration": "duration",
+        "pages": "pages",
+        "country": "country",
+        "browser": "browser",
+        "device": "device"
+      },
+      "inputs": [
+        {
+          "key": "website_id",
+          "label": "Website ID",
+          "type": "string",
+          "required": true,
+          "help": "Open the website in Mouseflow; the ID is in the address bar after /websites/. Or use 'List websites'."
+        },
+        {
+          "key": "recording_id",
+          "label": "Recording ID",
+          "type": "string",
+          "required": true,
+          "help": "From 'List recordings' or the recording's URL."
+        }
+      ]
+    },
+    {
+      "key": "tag_recording",
+      "name": "Tag recording",
+      "description": "Add a tag to a recording.",
+      "method": "POST",
+      "endpoint": "/websites/{{ inputs.website_id }}/recordings/{{ inputs.recording_id }}/tag",
+      "query": {
+        "tag": "{{ inputs.tag }}"
+      },
+      "inputs": [
+        {
+          "key": "website_id",
+          "label": "Website ID",
+          "type": "string",
+          "required": true,
+          "help": "Open the website in Mouseflow; the ID is in the address bar after /websites/. Or use 'List websites'."
+        },
+        {
+          "key": "recording_id",
+          "label": "Recording ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "tag",
+          "label": "Tag",
+          "type": "string",
+          "required": true,
+          "placeholder": "vip-customer"
+        }
+      ]
+    },
+    {
+      "key": "star_recording",
+      "name": "Star recording",
+      "description": "Star a recording so the team can find it.",
+      "method": "POST",
+      "endpoint": "/websites/{{ inputs.website_id }}/recordings/{{ inputs.recording_id }}/star",
+      "inputs": [
+        {
+          "key": "website_id",
+          "label": "Website ID",
+          "type": "string",
+          "required": true,
+          "help": "Open the website in Mouseflow; the ID is in the address bar after /websites/. Or use 'List websites'."
+        },
+        {
+          "key": "recording_id",
+          "label": "Recording ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_heatmap_pages",
+      "name": "List heatmap pages",
+      "description": "Pages with heatmap data: views, clicks, scroll and friction.",
+      "method": "GET",
+      "endpoint": "/websites/{{ inputs.website_id }}/pagelist",
+      "query": {
+        "fromDate": "{{ inputs.from_date }}",
+        "toDate": "{{ inputs.to_date }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "count": "count",
+        "pages": "pages"
+      },
+      "inputs": [
+        {
+          "key": "website_id",
+          "label": "Website ID",
+          "type": "string",
+          "required": true,
+          "help": "Open the website in Mouseflow; the ID is in the address bar after /websites/. Or use 'List websites'."
+        },
+        {
+          "key": "from_date",
+          "label": "From date",
+          "type": "string",
+          "placeholder": "2025-01-31"
+        },
+        {
+          "key": "to_date",
+          "label": "To date",
+          "type": "string",
+          "placeholder": "2025-02-28"
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    },
+    {
+      "key": "list_funnels",
+      "name": "List funnels",
+      "description": "Conversion funnels and their step reports.",
+      "method": "GET",
+      "endpoint": "/websites/{{ inputs.website_id }}/funnels",
+      "output_fields": {
+        "funnel_ids": "*.funnelId",
+        "names": "*.name"
+      },
+      "inputs": [
+        {
+          "key": "website_id",
+          "label": "Website ID",
+          "type": "string",
+          "required": true,
+          "help": "Open the website in Mouseflow; the ID is in the address bar after /websites/. Or use 'List websites'."
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_recording",
+      "name": "New recording",
+      "type": "polling",
+      "description": "Starts when a new session recording appears.",
+      "method": "GET",
+      "endpoint": "/websites/{{ inputs.website_id }}/recordings",
+      "query": {
+        "limit": 50
+      },
+      "items_path": "recordings",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "website_id",
+          "label": "Website ID",
+          "type": "string",
+          "required": true,
+          "help": "Open the website in Mouseflow; the ID is in the address bar after /websites/. Or use 'List websites'."
+        },
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

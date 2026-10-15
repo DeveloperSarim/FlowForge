@@ -1,0 +1,269 @@
+{
+  "key": "agorapulse",
+  "name": "Agorapulse",
+  "category": "Social Media",
+  "description": "Create Agorapulse post drafts and read your social inbox (Custom plan API).",
+  "website": "https://www.agorapulse.com",
+  "docs_url": "https://api.agorapulse.com/docs",
+  "base_url": "https://api.agorapulse.com/v1.0",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "X-API-KEY",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "Agorapulse → your avatar → Personal settings → API Keys (shown once)."
+      }
+    ],
+    "profile": {
+      "endpoint": "/core/organizations",
+      "store": {
+        "organization_id": "{{ organizations.0.organizationId }}"
+      }
+    }
+  },
+  "actions": [
+    {
+      "key": "list_organizations",
+      "name": "List organizations",
+      "method": "GET",
+      "endpoint": "/core/organizations",
+      "output_fields": {
+        "ids": "organizations.*.organizationId",
+        "names": "organizations.*.organizationName"
+      },
+      "inputs": []
+    },
+    {
+      "key": "list_workspaces",
+      "name": "List workspaces",
+      "method": "GET",
+      "endpoint": "/core/organizations/{{ inputs.organization_id }}/workspaces",
+      "output_fields": {
+        "ids": "workspaces.*.workspaceId",
+        "names": "workspaces.*.workspaceName"
+      },
+      "inputs": [
+        {
+          "key": "organization_id",
+          "label": "Organization ID",
+          "type": "string",
+          "fallback": "credentials.organization_id",
+          "help": "Leave blank to use your first organization."
+        }
+      ]
+    },
+    {
+      "key": "list_profiles",
+      "name": "List social profiles",
+      "method": "GET",
+      "endpoint": "/core/organizations/{{ inputs.organization_id }}/workspaces/{{ inputs.workspace_id }}/profiles",
+      "output_fields": {
+        "profiles": "profiles",
+        "profile_uids": "profiles.*.profileUid",
+        "names": "profiles.*.profileName"
+      },
+      "inputs": [
+        {
+          "key": "organization_id",
+          "label": "Organization ID",
+          "type": "string",
+          "fallback": "credentials.organization_id",
+          "help": "Leave blank to use your first organization."
+        },
+        {
+          "key": "workspace_id",
+          "label": "Workspace ID",
+          "type": "string",
+          "required": true,
+          "help": "Get it with 'List workspaces'."
+        }
+      ]
+    },
+    {
+      "key": "create_draft",
+      "name": "Create post draft",
+      "method": "POST",
+      "endpoint": "/publishing/organizations/{{ inputs.organization_id }}/workspaces/{{ inputs.workspace_id }}/simple-drafts",
+      "body": {
+        "type": "{{ inputs.type }}",
+        "text": "{{ inputs.text }}",
+        "link": "{{ inputs.link }}",
+        "mediaUrls": "{{ inputs.mediaUrls }}",
+        "scheduling": [
+          {
+            "$if": "{{ inputs.profile_uid }}",
+            "profileUid": "{{ inputs.profile_uid }}",
+            "publishingDates": "{{ inputs.publishing_dates }}"
+          }
+        ]
+      },
+      "output_fields": {
+        "uid": "groupOfPosts.uid",
+        "link": "agorapulseLink"
+      },
+      "inputs": [
+        {
+          "key": "organization_id",
+          "label": "Organization ID",
+          "type": "string",
+          "fallback": "credentials.organization_id",
+          "help": "Leave blank to use your first organization."
+        },
+        {
+          "key": "workspace_id",
+          "label": "Workspace ID",
+          "type": "string",
+          "required": true,
+          "help": "Get it with 'List workspaces'."
+        },
+        {
+          "key": "type",
+          "label": "Type",
+          "type": "select",
+          "required": true,
+          "default": "TEXT",
+          "options": [
+            {
+              "value": "TEXT",
+              "label": "Text"
+            },
+            {
+              "value": "PHOTO",
+              "label": "Photo"
+            },
+            {
+              "value": "LINK",
+              "label": "Link"
+            },
+            {
+              "value": "VIDEO",
+              "label": "Video"
+            }
+          ]
+        },
+        {
+          "key": "text",
+          "label": "Post text",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "link",
+          "label": "Link URL",
+          "type": "string"
+        },
+        {
+          "key": "mediaUrls",
+          "label": "Image or video URLs",
+          "type": "list"
+        },
+        {
+          "key": "profile_uid",
+          "label": "Profile UID",
+          "type": "string",
+          "help": "From 'List social profiles'. Leave blank for an unscheduled draft."
+        },
+        {
+          "key": "publishing_dates",
+          "label": "Publish at",
+          "type": "list",
+          "placeholder": "2026-12-01T09:00:00Z"
+        }
+      ]
+    },
+    {
+      "key": "list_inbox_items",
+      "name": "List inbox items",
+      "method": "GET",
+      "endpoint": "/inbox/organizations/{{ inputs.organization_id }}/workspaces/{{ inputs.workspace_id }}/items",
+      "query": {
+        "profileUids": "{{ inputs.profileUids }}",
+        "limit": "{{ inputs.limit }}",
+        "order": "DESC"
+      },
+      "output_fields": {
+        "items": "items",
+        "latest_text": "items.0.text",
+        "latest_link": "items.0.networkLink"
+      },
+      "inputs": [
+        {
+          "key": "organization_id",
+          "label": "Organization ID",
+          "type": "string",
+          "fallback": "credentials.organization_id",
+          "help": "Leave blank to use your first organization."
+        },
+        {
+          "key": "workspace_id",
+          "label": "Workspace ID",
+          "type": "string",
+          "required": true,
+          "help": "Get it with 'List workspaces'."
+        },
+        {
+          "key": "profileUids",
+          "label": "Profile UIDs",
+          "type": "string",
+          "help": "Comma separated; from 'List social profiles'."
+        },
+        {
+          "key": "limit",
+          "label": "Max results (max 25)",
+          "type": "number",
+          "default": 25
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_inbox_item",
+      "name": "New inbox item",
+      "type": "polling",
+      "description": "Comments, messages and mentions arriving in your Agorapulse inbox.",
+      "method": "GET",
+      "endpoint": "/inbox/organizations/{{ inputs.organization_id }}/workspaces/{{ inputs.workspace_id }}/items",
+      "query": {
+        "profileUids": "{{ inputs.profileUids }}",
+        "limit": "25",
+        "order": "DESC"
+      },
+      "items_path": "items",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "organization_id",
+          "label": "Organization ID",
+          "type": "string",
+          "fallback": "credentials.organization_id",
+          "help": "Leave blank to use your first organization."
+        },
+        {
+          "key": "workspace_id",
+          "label": "Workspace ID",
+          "type": "string",
+          "required": true,
+          "help": "Get it with 'List workspaces'."
+        },
+        {
+          "key": "profileUids",
+          "label": "Profile UIDs",
+          "type": "string",
+          "help": "Comma separated; from 'List social profiles'."
+        },
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

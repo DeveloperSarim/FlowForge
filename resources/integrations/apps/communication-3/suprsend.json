@@ -1,0 +1,164 @@
+{
+  "key": "suprsend",
+  "name": "SuprSend",
+  "category": "Communication",
+  "description": "Trigger SuprSend notification workflows (email, SMS, push, WhatsApp) and track events.",
+  "website": "https://www.suprsend.com",
+  "docs_url": "https://docs.suprsend.com/reference/trigger-workflow-api",
+  "base_url": "https://hub.suprsend.com",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "SuprSend dashboard → Developers → API Keys."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "trigger_workflow",
+      "name": "Trigger workflow",
+      "method": "POST",
+      "endpoint": "/trigger/",
+      "body": {
+        "workflow": "{{ inputs.workflow }}",
+        "recipients": [
+          {
+            "distinct_id": "{{ inputs.distinct_id }}",
+            "$email": "{{ inputs.email }}",
+            "$sms": "{{ inputs.sms }}"
+          }
+        ],
+        "data": {
+          "$if": "{{ inputs.data }}",
+          "...": "{{ inputs.data }}"
+        },
+        "tenant_id": "{{ inputs.tenant_id }}"
+      },
+      "output_fields": {
+        "message_id": "message_id",
+        "status": "status"
+      },
+      "inputs": [
+        {
+          "key": "workflow",
+          "label": "Workflow slug",
+          "type": "string",
+          "required": true,
+          "help": "SuprSend → Workflows → the slug shown under the workflow name."
+        },
+        {
+          "key": "distinct_id",
+          "label": "Recipient ID",
+          "type": "string",
+          "required": true,
+          "help": "Your own unique ID for the user, e.g. their user ID or email."
+        },
+        {
+          "key": "email",
+          "label": "Recipient emails",
+          "type": "list"
+        },
+        {
+          "key": "sms",
+          "label": "Recipient phone numbers",
+          "type": "list",
+          "help": "With country code, e.g. +923001234567."
+        },
+        {
+          "key": "data",
+          "label": "Data for the template",
+          "type": "keyvalue"
+        },
+        {
+          "key": "tenant_id",
+          "label": "Tenant ID",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "trigger_workflow_many",
+      "name": "Trigger workflow for many recipients",
+      "method": "POST",
+      "endpoint": "/trigger/",
+      "body": {
+        "workflow": "{{ inputs.workflow }}",
+        "recipients": "{{ inputs.recipients }}",
+        "data": {
+          "$if": "{{ inputs.data }}",
+          "...": "{{ inputs.data }}"
+        }
+      },
+      "output_fields": {
+        "message_id": "message_id",
+        "status": "status"
+      },
+      "inputs": [
+        {
+          "key": "workflow",
+          "label": "Workflow slug",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "recipients",
+          "label": "Recipients (JSON)",
+          "type": "json",
+          "required": true,
+          "placeholder": "[{\"distinct_id\":\"u1\",\"$email\":[\"a@example.com\"]}]"
+        },
+        {
+          "key": "data",
+          "label": "Data for the template",
+          "type": "keyvalue"
+        }
+      ]
+    },
+    {
+      "key": "track_event",
+      "name": "Track event",
+      "description": "Runs every workflow that starts on this event.",
+      "method": "POST",
+      "endpoint": "/event/",
+      "body": {
+        "distinct_id": "{{ inputs.distinct_id }}",
+        "event": "{{ inputs.event }}",
+        "properties": {
+          "$if": "{{ inputs.properties }}",
+          "...": "{{ inputs.properties }}"
+        },
+        "tenant_id": "{{ inputs.tenant_id }}"
+      },
+      "inputs": [
+        {
+          "key": "distinct_id",
+          "label": "User ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "event",
+          "label": "Event name",
+          "type": "string",
+          "required": true,
+          "placeholder": "order_shipped"
+        },
+        {
+          "key": "properties",
+          "label": "Properties",
+          "type": "keyvalue"
+        },
+        {
+          "key": "tenant_id",
+          "label": "Tenant ID",
+          "type": "string"
+        }
+      ]
+    }
+  ]
+}

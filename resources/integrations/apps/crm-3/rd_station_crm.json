@@ -1,0 +1,302 @@
+{
+  "key": "rd_station_crm",
+  "name": "RD Station CRM",
+  "category": "CRM & Sales",
+  "description": "Create contacts, deals and notes in RD Station CRM.",
+  "website": "https://www.rdstation.com/crm/",
+  "docs_url": "https://developers.rdstation.com/reference/crm-v1-introducao-e-requisitos",
+  "base_url": "https://crm.rdstation.com/api/v1",
+  "auth": {
+    "type": "api_key",
+    "in": "query",
+    "name": "token",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "API token",
+        "type": "password",
+        "required": true,
+        "help": "In RD Station CRM click your name → Perfil → Token da instância (instance token)."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "create_contact",
+      "name": "Create contact",
+      "method": "POST",
+      "endpoint": "/contacts",
+      "body": {
+        "contact": {
+          "name": "{{ inputs.name }}",
+          "title": "{{ inputs.title }}",
+          "organization_id": "{{ inputs.organization_id }}",
+          "emails": [
+            {
+              "$if": "{{ inputs.email }}",
+              "email": "{{ inputs.email }}"
+            }
+          ],
+          "phones": [
+            {
+              "$if": "{{ inputs.phone }}",
+              "phone": "{{ inputs.phone }}"
+            }
+          ]
+        }
+      },
+      "output_fields": {
+        "id": "_id",
+        "name": "name"
+      },
+      "inputs": [
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string"
+        },
+        {
+          "key": "phone",
+          "label": "Phone",
+          "type": "string"
+        },
+        {
+          "key": "title",
+          "label": "Job title",
+          "type": "string"
+        },
+        {
+          "key": "organization_id",
+          "label": "Company ID",
+          "type": "string",
+          "help": "ID of an existing company (organization) in RD Station CRM."
+        }
+      ]
+    },
+    {
+      "key": "find_contacts",
+      "name": "Find contacts",
+      "method": "GET",
+      "endpoint": "/contacts",
+      "query": {
+        "email": "{{ inputs.email }}",
+        "q": "{{ inputs.q }}",
+        "phone": "{{ inputs.phone }}",
+        "limit": 20
+      },
+      "output_fields": {
+        "contacts": "contacts",
+        "id": "contacts.0._id"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string"
+        },
+        {
+          "key": "q",
+          "label": "Name contains",
+          "type": "string"
+        },
+        {
+          "key": "phone",
+          "label": "Phone",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "create_deal",
+      "name": "Create deal",
+      "description": "Creates a deal, optionally with a new contact.",
+      "method": "POST",
+      "endpoint": "/deals",
+      "body": {
+        "deal": {
+          "name": "{{ inputs.name }}",
+          "deal_stage_id": "{{ inputs.deal_stage_id }}",
+          "user_id": "{{ inputs.user_id }}",
+          "rating": "{{ inputs.rating }}"
+        },
+        "contacts": [
+          {
+            "$if": "{{ inputs.contact_name }}",
+            "name": "{{ inputs.contact_name }}",
+            "emails": [
+              {
+                "$if": "{{ inputs.contact_email }}",
+                "email": "{{ inputs.contact_email }}"
+              }
+            ],
+            "phones": [
+              {
+                "$if": "{{ inputs.contact_phone }}",
+                "phone": "{{ inputs.contact_phone }}"
+              }
+            ]
+          }
+        ],
+        "organization": {
+          "_id": "{{ inputs.organization_id }}"
+        },
+        "deal_source": {
+          "_id": "{{ inputs.deal_source_id }}"
+        },
+        "campaign": {
+          "_id": "{{ inputs.campaign_id }}"
+        }
+      },
+      "output_fields": {
+        "id": "_id",
+        "name": "name"
+      },
+      "inputs": [
+        {
+          "key": "name",
+          "label": "Deal name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "deal_stage_id",
+          "label": "Stage ID",
+          "type": "string",
+          "help": "Empty = first stage of the default pipeline."
+        },
+        {
+          "key": "user_id",
+          "label": "Owner user ID",
+          "type": "string"
+        },
+        {
+          "key": "rating",
+          "label": "Rating (1-5)",
+          "type": "number"
+        },
+        {
+          "key": "contact_name",
+          "label": "Contact name",
+          "type": "string"
+        },
+        {
+          "key": "contact_email",
+          "label": "Contact email",
+          "type": "string"
+        },
+        {
+          "key": "contact_phone",
+          "label": "Contact phone",
+          "type": "string"
+        },
+        {
+          "key": "organization_id",
+          "label": "Company ID",
+          "type": "string"
+        },
+        {
+          "key": "deal_source_id",
+          "label": "Source ID",
+          "type": "string"
+        },
+        {
+          "key": "campaign_id",
+          "label": "Campaign ID",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "get_deal",
+      "name": "Get deal",
+      "method": "GET",
+      "endpoint": "/deals/{{ inputs.deal_id }}",
+      "output_fields": {
+        "id": "_id",
+        "name": "name",
+        "win": "win"
+      },
+      "inputs": [
+        {
+          "key": "deal_id",
+          "label": "Deal ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "add_note",
+      "name": "Add note to deal",
+      "method": "POST",
+      "endpoint": "/activities",
+      "body": {
+        "activity": {
+          "deal_id": "{{ inputs.deal_id }}",
+          "text": "{{ inputs.text }}",
+          "user_id": "{{ inputs.user_id }}"
+        }
+      },
+      "output_fields": {
+        "id": "_id"
+      },
+      "inputs": [
+        {
+          "key": "deal_id",
+          "label": "Deal ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "text",
+          "label": "Note",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "user_id",
+          "label": "Author user ID",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "list_pipelines",
+      "name": "List pipelines",
+      "description": "Pipelines with their stages and IDs.",
+      "method": "GET",
+      "endpoint": "/deal_pipelines",
+      "inputs": []
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_deal",
+      "name": "New deal",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/deals",
+      "query": {
+        "order": "created_at",
+        "direction": "desc",
+        "limit": 50
+      },
+      "items_path": "deals",
+      "id_field": "_id",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

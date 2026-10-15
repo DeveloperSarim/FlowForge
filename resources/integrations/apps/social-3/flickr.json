@@ -1,0 +1,282 @@
+{
+  "key": "flickr",
+  "name": "Flickr",
+  "category": "Social Media",
+  "description": "Search public Flickr photos, look up users and photo details, watch new uploads.",
+  "website": "https://www.flickr.com",
+  "docs_url": "https://www.flickr.com/services/api/",
+  "base_url": "https://api.flickr.com/services/rest",
+  "auth": {
+    "type": "api_key",
+    "in": "query",
+    "name": "api_key",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "Flickr → The App Garden → Get an API key (https://www.flickr.com/services/apps/create/). Copy the 'Key', not the secret."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "search_photos",
+      "name": "Search photos",
+      "description": "Find public photos by text, tags or owner.",
+      "method": "GET",
+      "endpoint": "/",
+      "query": {
+        "method": "flickr.photos.search",
+        "format": "json",
+        "nojsoncallback": "1",
+        "text": "{{ inputs.text }}",
+        "tags": "{{ inputs.tags }}",
+        "user_id": "{{ inputs.user_id }}",
+        "sort": "{{ inputs.sort }}",
+        "per_page": "{{ inputs.per_page }}",
+        "extras": "date_upload,owner_name,url_m,url_l,description,tags"
+      },
+      "error_path": "message",
+      "output_fields": {
+        "photos": "photos.photo",
+        "total": "photos.total",
+        "first_photo_id": "photos.photo.0.id",
+        "first_photo_title": "photos.photo.0.title",
+        "first_photo_url": "photos.photo.0.url_l"
+      },
+      "inputs": [
+        {
+          "key": "text",
+          "label": "Search text",
+          "type": "string",
+          "placeholder": "sunset beach"
+        },
+        {
+          "key": "tags",
+          "label": "Tags (comma separated)",
+          "type": "string",
+          "placeholder": "travel,beach"
+        },
+        {
+          "key": "user_id",
+          "label": "Only from user ID",
+          "type": "string",
+          "help": "A Flickr NSID like 12345678@N00. Use 'Find user by username' to get it."
+        },
+        {
+          "key": "sort",
+          "label": "Sort by",
+          "type": "select",
+          "default": "date-posted-desc",
+          "options": [
+            {
+              "value": "date-posted-desc",
+              "label": "Newest first"
+            },
+            {
+              "value": "relevance",
+              "label": "Most relevant"
+            },
+            {
+              "value": "interestingness-desc",
+              "label": "Most interesting"
+            }
+          ]
+        },
+        {
+          "key": "per_page",
+          "label": "Results (max 500)",
+          "type": "number",
+          "default": 20
+        }
+      ]
+    },
+    {
+      "key": "get_photo",
+      "name": "Get photo info",
+      "method": "GET",
+      "endpoint": "/",
+      "query": {
+        "method": "flickr.photos.getInfo",
+        "format": "json",
+        "nojsoncallback": "1",
+        "photo_id": "{{ inputs.photo_id }}"
+      },
+      "error_path": "message",
+      "output_fields": {
+        "id": "photo.id",
+        "title": "photo.title._content",
+        "description": "photo.description._content",
+        "owner_id": "photo.owner.nsid",
+        "owner_username": "photo.owner.username",
+        "posted": "photo.dates.posted",
+        "taken": "photo.dates.taken",
+        "views": "photo.views",
+        "page_url": "photo.urls.url.0._content"
+      },
+      "inputs": [
+        {
+          "key": "photo_id",
+          "label": "Photo ID",
+          "type": "string",
+          "required": true,
+          "help": "The number at the end of the photo's URL."
+        }
+      ]
+    },
+    {
+      "key": "get_photo_sizes",
+      "name": "Get photo image URLs",
+      "description": "Lists every available size with its direct image URL.",
+      "method": "GET",
+      "endpoint": "/",
+      "query": {
+        "method": "flickr.photos.getSizes",
+        "format": "json",
+        "nojsoncallback": "1",
+        "photo_id": "{{ inputs.photo_id }}"
+      },
+      "error_path": "message",
+      "output_fields": {
+        "sizes": "sizes.size",
+        "image_urls": "sizes.size.*.source"
+      },
+      "inputs": [
+        {
+          "key": "photo_id",
+          "label": "Photo ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "find_user",
+      "name": "Find user by username",
+      "method": "GET",
+      "endpoint": "/",
+      "query": {
+        "method": "flickr.people.findByUsername",
+        "format": "json",
+        "nojsoncallback": "1",
+        "username": "{{ inputs.username }}"
+      },
+      "error_path": "message",
+      "output_fields": {
+        "user_id": "user.nsid",
+        "username": "user.username._content"
+      },
+      "inputs": [
+        {
+          "key": "username",
+          "label": "Username",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "get_user_photos",
+      "name": "Get user's public photos",
+      "method": "GET",
+      "endpoint": "/",
+      "query": {
+        "method": "flickr.people.getPublicPhotos",
+        "format": "json",
+        "nojsoncallback": "1",
+        "user_id": "{{ inputs.user_id }}",
+        "per_page": "{{ inputs.per_page }}",
+        "extras": "date_upload,owner_name,url_m,url_l,description,tags"
+      },
+      "error_path": "message",
+      "output_fields": {
+        "photos": "photos.photo",
+        "total": "photos.total"
+      },
+      "inputs": [
+        {
+          "key": "user_id",
+          "label": "User ID",
+          "type": "string",
+          "required": true,
+          "help": "Flickr NSID like 12345678@N00. Use 'Find user by username' to get it."
+        },
+        {
+          "key": "per_page",
+          "label": "Results (max 500)",
+          "type": "number",
+          "default": 20
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_photo_by_user",
+      "name": "New photo from a user",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/",
+      "query": {
+        "method": "flickr.photos.search",
+        "format": "json",
+        "nojsoncallback": "1",
+        "user_id": "{{ inputs.user_id }}",
+        "sort": "date-posted-desc",
+        "per_page": "50",
+        "extras": "date_upload,owner_name,url_m,url_l,description,tags"
+      },
+      "items_path": "photos.photo",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "user_id",
+          "label": "User ID",
+          "type": "string",
+          "required": true,
+          "help": "Flickr NSID like 12345678@N00."
+        },
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    },
+    {
+      "key": "new_photo_with_tag",
+      "name": "New photo with a tag",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/",
+      "query": {
+        "method": "flickr.photos.search",
+        "format": "json",
+        "nojsoncallback": "1",
+        "tags": "{{ inputs.tags }}",
+        "sort": "date-posted-desc",
+        "per_page": "50",
+        "extras": "date_upload,owner_name,url_m,url_l,description,tags"
+      },
+      "items_path": "photos.photo",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "tags",
+          "label": "Tags (comma separated)",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

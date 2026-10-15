@@ -1,0 +1,152 @@
+{
+  "key": "browse_ai",
+  "name": "Browse AI",
+  "category": "Utilities",
+  "description": "Run your web-scraping robots and collect the data they extract.",
+  "website": "https://www.browse.ai",
+  "docs_url": "https://docs.browse.ai/api/v2",
+  "base_url": "https://api.browse.ai/v2",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "dashboard.browse.ai → API → create or copy your API key."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_robots",
+      "name": "List robots",
+      "description": "List the robots in your account with their input parameters.",
+      "method": "GET",
+      "endpoint": "/robots",
+      "output_fields": {
+        "robots": "robots.items"
+      },
+      "inputs": []
+    },
+    {
+      "key": "run_robot",
+      "name": "Run robot",
+      "description": "Start a robot task. The task runs in the background; read it with Get task.",
+      "method": "POST",
+      "endpoint": "/robots/{{ inputs.robot_id }}/tasks",
+      "body": {
+        "inputParameters": {
+          "originUrl": "{{ inputs.origin_url }}",
+          "...": "{{ inputs.input_parameters }}"
+        }
+      },
+      "output_fields": {
+        "task_id": "result.id",
+        "status": "result.status",
+        "captured_texts": "result.capturedTexts",
+        "captured_lists": "result.capturedLists"
+      },
+      "inputs": [
+        {
+          "key": "robot_id",
+          "label": "Robot ID",
+          "type": "string",
+          "required": true,
+          "help": "Open the robot in Browse AI; the ID is in the page address (or use List robots)."
+        },
+        {
+          "key": "origin_url",
+          "label": "Page URL",
+          "type": "string",
+          "placeholder": "https://example.com/products",
+          "help": "The page the robot should open (its originUrl)."
+        },
+        {
+          "key": "input_parameters",
+          "label": "Other input parameters (JSON)",
+          "type": "json",
+          "placeholder": "{\"products_limit\": 10}",
+          "help": "Any other inputs your robot accepts."
+        }
+      ]
+    },
+    {
+      "key": "get_task",
+      "name": "Get task",
+      "description": "Get a task's status and the texts, lists and screenshots it captured.",
+      "method": "GET",
+      "endpoint": "/robots/{{ inputs.robot_id }}/tasks/{{ inputs.task_id }}",
+      "output_fields": {
+        "status": "result.status",
+        "captured_texts": "result.capturedTexts",
+        "captured_lists": "result.capturedLists",
+        "screenshots": "result.capturedScreenshots",
+        "error": "result.userFriendlyError"
+      },
+      "inputs": [
+        {
+          "key": "robot_id",
+          "label": "Robot ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "task_id",
+          "label": "Task ID",
+          "type": "string",
+          "required": true,
+          "help": "Returned by Run robot."
+        }
+      ]
+    },
+    {
+      "key": "bulk_run",
+      "name": "Bulk run robot",
+      "description": "Run a robot many times, once per set of input parameters.",
+      "method": "POST",
+      "endpoint": "/robots/{{ inputs.robot_id }}/bulk-runs",
+      "body": {
+        "title": "{{ inputs.title }}",
+        "inputParameters": "{{ inputs.input_parameters }}"
+      },
+      "inputs": [
+        {
+          "key": "robot_id",
+          "label": "Robot ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "title",
+          "label": "Bulk run name",
+          "type": "string",
+          "default": "FlowForge bulk run"
+        },
+        {
+          "key": "input_parameters",
+          "label": "Input parameters for each task (JSON list)",
+          "type": "json",
+          "required": true,
+          "placeholder": "[{\"originUrl\": \"https://a.com\"}, {\"originUrl\": \"https://b.com\"}]"
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Task finished (webhook)",
+      "type": "webhook",
+      "description": "Add the webhook URL to a robot under Integrate → Webhooks.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

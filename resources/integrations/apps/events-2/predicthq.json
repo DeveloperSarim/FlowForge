@@ -1,0 +1,148 @@
+{
+  "key": "predicthq",
+  "name": "PredictHQ",
+  "category": "Events & Webinars",
+  "description": "Find real-world events (concerts, holidays, sports, conferences) near any place.",
+  "website": "https://www.predicthq.com",
+  "docs_url": "https://docs.predicthq.com/",
+  "base_url": "https://api.predicthq.com/v1",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "Access token",
+        "type": "password",
+        "required": true,
+        "help": "PredictHQ console > Developer > Access Tokens > Create token."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "search_events",
+      "name": "Search events",
+      "description": "Find events by category, date and location.",
+      "method": "GET",
+      "endpoint": "/events/",
+      "query": {
+        "q": "{{ inputs.q }}",
+        "category": "{{ inputs.category }}",
+        "within": "{{ inputs.within }}",
+        "active.gte": "{{ inputs.start_gte }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "events": "results",
+        "titles": "results.*.title",
+        "ids": "results.*.id",
+        "count": "count"
+      },
+      "inputs": [
+        {
+          "key": "q",
+          "label": "Search",
+          "type": "string"
+        },
+        {
+          "key": "category",
+          "label": "Category",
+          "type": "select",
+          "default": "conferences",
+          "options": [
+            {
+              "value": "conferences",
+              "label": "Conferences"
+            },
+            {
+              "value": "concerts",
+              "label": "Concerts"
+            },
+            {
+              "value": "festivals",
+              "label": "Festivals"
+            },
+            {
+              "value": "expos",
+              "label": "Expos"
+            },
+            {
+              "value": "sports",
+              "label": "Sports"
+            },
+            {
+              "value": "community",
+              "label": "Community"
+            },
+            {
+              "value": "public-holidays",
+              "label": "Public holidays"
+            }
+          ]
+        },
+        {
+          "key": "within",
+          "label": "Within (radius@lat,lon)",
+          "type": "string",
+          "help": "e.g. 10km@40.7128,-74.0060"
+        },
+        {
+          "key": "start_gte",
+          "label": "Starts on or after",
+          "type": "string",
+          "help": "YYYY-MM-DD"
+        },
+        {
+          "key": "limit",
+          "label": "Results",
+          "type": "number",
+          "default": 20
+        }
+      ]
+    },
+    {
+      "key": "get_event",
+      "name": "Get an event",
+      "description": "Get one event.",
+      "method": "GET",
+      "endpoint": "/events/",
+      "query": {
+        "id": "{{ inputs.id }}"
+      },
+      "output_fields": {
+        "events": "results"
+      },
+      "inputs": [
+        {
+          "key": "id",
+          "label": "Event ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_places",
+      "name": "Search places",
+      "description": "Find a place ID (city, region, country) to filter events.",
+      "method": "GET",
+      "endpoint": "/places/",
+      "query": {
+        "q": "{{ inputs.q }}"
+      },
+      "output_fields": {
+        "places": "results",
+        "ids": "results.*.id",
+        "names": "results.*.name"
+      },
+      "inputs": [
+        {
+          "key": "q",
+          "label": "Search",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ]
+}

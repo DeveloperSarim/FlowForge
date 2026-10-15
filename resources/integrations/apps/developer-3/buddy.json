@@ -1,0 +1,276 @@
+{
+  "key": "buddy",
+  "name": "Buddy",
+  "category": "Developer Tools",
+  "description": "Run Buddy CI/CD pipelines and check their executions.",
+  "brand": "buddy",
+  "website": "https://buddy.works",
+  "docs_url": "https://buddy.works/docs/api/getting-started/overview",
+  "base_url": "https://{{ credentials.host }}",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "Personal access token",
+        "type": "password",
+        "required": true,
+        "help": "Buddy → My profile → API tokens → Add token with WORKSPACE, EXECUTION_RUN and EXECUTION_INFO scopes."
+      },
+      {
+        "key": "host",
+        "label": "Region",
+        "type": "select",
+        "required": true,
+        "default": "api.buddy.works",
+        "options": [
+          {
+            "value": "api.buddy.works",
+            "label": "US"
+          },
+          {
+            "value": "api.eu.buddy.works",
+            "label": "EU"
+          }
+        ]
+      }
+    ],
+    "profile": {
+      "endpoint": "/workspaces",
+      "store": {
+        "workspace": "{{ workspaces.0.domain }}"
+      }
+    }
+  },
+  "actions": [
+    {
+      "key": "list_projects",
+      "name": "List projects",
+      "description": "List the projects in a workspace.",
+      "method": "GET",
+      "endpoint": "/workspaces/{{ inputs.workspace }}/projects",
+      "output_fields": {
+        "projects": "projects"
+      },
+      "inputs": [
+        {
+          "key": "workspace",
+          "label": "Workspace",
+          "type": "string",
+          "fallback": "credentials.workspace",
+          "help": "Leave empty to use your first workspace (the part after app.buddy.works/ in the URL)."
+        }
+      ]
+    },
+    {
+      "key": "list_pipelines",
+      "name": "List pipelines",
+      "description": "List a project's pipelines.",
+      "method": "GET",
+      "endpoint": "/workspaces/{{ inputs.workspace }}/projects/{{ inputs.project }}/pipelines",
+      "output_fields": {
+        "pipelines": "pipelines"
+      },
+      "inputs": [
+        {
+          "key": "workspace",
+          "label": "Workspace",
+          "type": "string",
+          "fallback": "credentials.workspace",
+          "help": "Leave empty to use your first workspace (the part after app.buddy.works/ in the URL)."
+        },
+        {
+          "key": "project",
+          "label": "Project name",
+          "type": "string",
+          "required": true,
+          "help": "As in the project URL, e.g. my-website."
+        }
+      ]
+    },
+    {
+      "key": "run_pipeline",
+      "name": "Run pipeline",
+      "description": "Start a pipeline execution.",
+      "method": "POST",
+      "endpoint": "/workspaces/{{ inputs.workspace }}/projects/{{ inputs.project }}/pipelines/{{ inputs.pipeline_id }}/executions",
+      "body": {
+        "to_revision": {
+          "revision": "{{ inputs.revision }}"
+        },
+        "branch": {
+          "name": "{{ inputs.branch }}"
+        },
+        "comment": "{{ inputs.comment }}",
+        "refresh": "{{ inputs.refresh }}"
+      },
+      "output_fields": {
+        "execution_id": "id",
+        "status": "status",
+        "url": "html_url"
+      },
+      "inputs": [
+        {
+          "key": "workspace",
+          "label": "Workspace",
+          "type": "string",
+          "fallback": "credentials.workspace",
+          "help": "Leave empty to use your first workspace (the part after app.buddy.works/ in the URL)."
+        },
+        {
+          "key": "project",
+          "label": "Project name",
+          "type": "string",
+          "required": true,
+          "help": "As in the project URL, e.g. my-website."
+        },
+        {
+          "key": "pipeline_id",
+          "label": "Pipeline ID",
+          "type": "string",
+          "required": true,
+          "help": "Open the pipeline in Buddy; it's the number at the end of the URL, or use List pipelines."
+        },
+        {
+          "key": "revision",
+          "label": "Revision",
+          "type": "string",
+          "default": "HEAD",
+          "help": "Commit to run; HEAD is the latest."
+        },
+        {
+          "key": "branch",
+          "label": "Branch",
+          "type": "string",
+          "help": "Only for pipelines that run on any branch."
+        },
+        {
+          "key": "comment",
+          "label": "Comment",
+          "type": "string"
+        },
+        {
+          "key": "refresh",
+          "label": "Deploy from scratch",
+          "type": "boolean",
+          "default": false
+        }
+      ]
+    },
+    {
+      "key": "get_execution",
+      "name": "Get execution",
+      "description": "Get the status of a pipeline execution.",
+      "method": "GET",
+      "endpoint": "/workspaces/{{ inputs.workspace }}/projects/{{ inputs.project }}/pipelines/{{ inputs.pipeline_id }}/executions/{{ inputs.execution_id }}",
+      "output_fields": {
+        "status": "status",
+        "url": "html_url"
+      },
+      "inputs": [
+        {
+          "key": "workspace",
+          "label": "Workspace",
+          "type": "string",
+          "fallback": "credentials.workspace",
+          "help": "Leave empty to use your first workspace (the part after app.buddy.works/ in the URL)."
+        },
+        {
+          "key": "project",
+          "label": "Project name",
+          "type": "string",
+          "required": true,
+          "help": "As in the project URL, e.g. my-website."
+        },
+        {
+          "key": "pipeline_id",
+          "label": "Pipeline ID",
+          "type": "string",
+          "required": true,
+          "help": "Open the pipeline in Buddy; it's the number at the end of the URL, or use List pipelines."
+        },
+        {
+          "key": "execution_id",
+          "label": "Execution ID",
+          "type": "string",
+          "required": true,
+          "help": "Returned by Run pipeline."
+        }
+      ]
+    },
+    {
+      "key": "list_executions",
+      "name": "List executions",
+      "description": "List a pipeline's recent executions.",
+      "method": "GET",
+      "endpoint": "/workspaces/{{ inputs.workspace }}/projects/{{ inputs.project }}/pipelines/{{ inputs.pipeline_id }}/executions",
+      "output_fields": {
+        "executions": "executions"
+      },
+      "inputs": [
+        {
+          "key": "workspace",
+          "label": "Workspace",
+          "type": "string",
+          "fallback": "credentials.workspace",
+          "help": "Leave empty to use your first workspace (the part after app.buddy.works/ in the URL)."
+        },
+        {
+          "key": "project",
+          "label": "Project name",
+          "type": "string",
+          "required": true,
+          "help": "As in the project URL, e.g. my-website."
+        },
+        {
+          "key": "pipeline_id",
+          "label": "Pipeline ID",
+          "type": "string",
+          "required": true,
+          "help": "Open the pipeline in Buddy; it's the number at the end of the URL, or use List pipelines."
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_execution",
+      "name": "New pipeline execution",
+      "type": "polling",
+      "description": "Starts when a pipeline runs.",
+      "method": "GET",
+      "endpoint": "/workspaces/{{ inputs.workspace }}/projects/{{ inputs.project }}/pipelines/{{ inputs.pipeline_id }}/executions",
+      "items_path": "executions",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "workspace",
+          "label": "Workspace",
+          "type": "string",
+          "fallback": "credentials.workspace",
+          "help": "Leave empty to use your first workspace (the part after app.buddy.works/ in the URL)."
+        },
+        {
+          "key": "project",
+          "label": "Project name",
+          "type": "string",
+          "required": true,
+          "help": "As in the project URL, e.g. my-website."
+        },
+        {
+          "key": "pipeline_id",
+          "label": "Pipeline ID",
+          "type": "string",
+          "required": true,
+          "help": "Open the pipeline in Buddy; it's the number at the end of the URL, or use List pipelines."
+        },
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

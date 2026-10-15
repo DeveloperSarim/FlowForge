@@ -1,0 +1,266 @@
+{
+  "key": "laravel_forge",
+  "name": "Laravel Forge",
+  "category": "Developer Tools",
+  "description": "Deploy sites, run commands and reboot servers on Laravel Forge.",
+  "brand": "laravel",
+  "website": "https://forge.laravel.com",
+  "docs_url": "https://forge.laravel.com/docs/api-reference/introduction",
+  "base_url": "https://forge.laravel.com/api",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "API token",
+        "type": "password",
+        "required": true,
+        "help": "Forge → your profile (top right) → API tokens → Create token."
+      }
+    ],
+    "profile": {
+      "endpoint": "/orgs",
+      "store": {
+        "organization": "{{ data.0.attributes.slug }}"
+      }
+    }
+  },
+  "actions": [
+    {
+      "key": "list_servers",
+      "name": "List servers",
+      "description": "List the servers in your organization.",
+      "method": "GET",
+      "endpoint": "/orgs/{{ inputs.organization }}/servers",
+      "query": {
+        "filter[name]": "{{ inputs.name }}"
+      },
+      "inputs": [
+        {
+          "key": "organization",
+          "label": "Organization slug",
+          "type": "string",
+          "fallback": "credentials.organization",
+          "help": "Leave empty to use your first organization. The slug is in your Forge URL."
+        },
+        {
+          "key": "name",
+          "label": "Name filter",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "list_sites",
+      "name": "List sites",
+      "description": "List the sites on a server.",
+      "method": "GET",
+      "endpoint": "/orgs/{{ inputs.organization }}/servers/{{ inputs.server_id }}/sites",
+      "inputs": [
+        {
+          "key": "organization",
+          "label": "Organization slug",
+          "type": "string",
+          "fallback": "credentials.organization",
+          "help": "Leave empty to use your first organization. The slug is in your Forge URL."
+        },
+        {
+          "key": "server_id",
+          "label": "Server ID",
+          "type": "string",
+          "required": true,
+          "help": "Numeric ID: open the server in Forge (it's in the URL) or use List servers."
+        }
+      ]
+    },
+    {
+      "key": "deploy_site",
+      "name": "Deploy site",
+      "description": "Start a new deployment of a site.",
+      "method": "POST",
+      "endpoint": "/orgs/{{ inputs.organization }}/servers/{{ inputs.server_id }}/sites/{{ inputs.site_id }}/deployments",
+      "output_fields": {
+        "deployment_id": "data.id",
+        "status": "data.attributes.status"
+      },
+      "inputs": [
+        {
+          "key": "organization",
+          "label": "Organization slug",
+          "type": "string",
+          "fallback": "credentials.organization",
+          "help": "Leave empty to use your first organization. The slug is in your Forge URL."
+        },
+        {
+          "key": "server_id",
+          "label": "Server ID",
+          "type": "string",
+          "required": true,
+          "help": "Numeric ID: open the server in Forge (it's in the URL) or use List servers."
+        },
+        {
+          "key": "site_id",
+          "label": "Site ID",
+          "type": "string",
+          "required": true,
+          "help": "Numeric ID: open the site in Forge (it's in the URL) or use List sites."
+        }
+      ]
+    },
+    {
+      "key": "list_deployments",
+      "name": "List deployments",
+      "description": "List a site's deployments.",
+      "method": "GET",
+      "endpoint": "/orgs/{{ inputs.organization }}/servers/{{ inputs.server_id }}/sites/{{ inputs.site_id }}/deployments",
+      "inputs": [
+        {
+          "key": "organization",
+          "label": "Organization slug",
+          "type": "string",
+          "fallback": "credentials.organization",
+          "help": "Leave empty to use your first organization. The slug is in your Forge URL."
+        },
+        {
+          "key": "server_id",
+          "label": "Server ID",
+          "type": "string",
+          "required": true,
+          "help": "Numeric ID: open the server in Forge (it's in the URL) or use List servers."
+        },
+        {
+          "key": "site_id",
+          "label": "Site ID",
+          "type": "string",
+          "required": true,
+          "help": "Numeric ID: open the site in Forge (it's in the URL) or use List sites."
+        }
+      ]
+    },
+    {
+      "key": "get_deployment",
+      "name": "Get deployment",
+      "description": "Get the status and commit of a deployment.",
+      "method": "GET",
+      "endpoint": "/orgs/{{ inputs.organization }}/servers/{{ inputs.server_id }}/sites/{{ inputs.site_id }}/deployments/{{ inputs.deployment_id }}",
+      "output_fields": {
+        "status": "data.attributes.status",
+        "commit_message": "data.attributes.commit.message",
+        "ended_at": "data.attributes.ended_at"
+      },
+      "inputs": [
+        {
+          "key": "organization",
+          "label": "Organization slug",
+          "type": "string",
+          "fallback": "credentials.organization",
+          "help": "Leave empty to use your first organization. The slug is in your Forge URL."
+        },
+        {
+          "key": "server_id",
+          "label": "Server ID",
+          "type": "string",
+          "required": true,
+          "help": "Numeric ID: open the server in Forge (it's in the URL) or use List servers."
+        },
+        {
+          "key": "site_id",
+          "label": "Site ID",
+          "type": "string",
+          "required": true,
+          "help": "Numeric ID: open the site in Forge (it's in the URL) or use List sites."
+        },
+        {
+          "key": "deployment_id",
+          "label": "Deployment ID",
+          "type": "string",
+          "required": true,
+          "help": "Returned by Deploy site."
+        }
+      ]
+    },
+    {
+      "key": "run_site_command",
+      "name": "Run command on site",
+      "description": "Run a shell command in the site's directory.",
+      "method": "POST",
+      "endpoint": "/orgs/{{ inputs.organization }}/servers/{{ inputs.server_id }}/sites/{{ inputs.site_id }}/commands",
+      "body": {
+        "command": "{{ inputs.command }}"
+      },
+      "inputs": [
+        {
+          "key": "organization",
+          "label": "Organization slug",
+          "type": "string",
+          "fallback": "credentials.organization",
+          "help": "Leave empty to use your first organization. The slug is in your Forge URL."
+        },
+        {
+          "key": "server_id",
+          "label": "Server ID",
+          "type": "string",
+          "required": true,
+          "help": "Numeric ID: open the server in Forge (it's in the URL) or use List servers."
+        },
+        {
+          "key": "site_id",
+          "label": "Site ID",
+          "type": "string",
+          "required": true,
+          "help": "Numeric ID: open the site in Forge (it's in the URL) or use List sites."
+        },
+        {
+          "key": "command",
+          "label": "Command",
+          "type": "string",
+          "required": true,
+          "placeholder": "php artisan cache:clear"
+        }
+      ]
+    },
+    {
+      "key": "reboot_server",
+      "name": "Reboot server",
+      "description": "Reboot or power-cycle a server.",
+      "method": "POST",
+      "endpoint": "/orgs/{{ inputs.organization }}/servers/{{ inputs.server_id }}/actions",
+      "body": {
+        "action": "{{ inputs.action }}"
+      },
+      "inputs": [
+        {
+          "key": "organization",
+          "label": "Organization slug",
+          "type": "string",
+          "fallback": "credentials.organization",
+          "help": "Leave empty to use your first organization. The slug is in your Forge URL."
+        },
+        {
+          "key": "server_id",
+          "label": "Server ID",
+          "type": "string",
+          "required": true,
+          "help": "Numeric ID: open the server in Forge (it's in the URL) or use List servers."
+        },
+        {
+          "key": "action",
+          "label": "Action",
+          "type": "select",
+          "required": true,
+          "default": "reboot",
+          "options": [
+            {
+              "value": "reboot",
+              "label": "Reboot"
+            },
+            {
+              "value": "power-cycle",
+              "label": "Power-cycle"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

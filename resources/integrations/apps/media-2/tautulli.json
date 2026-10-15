@@ -1,0 +1,113 @@
+{
+  "key": "tautulli",
+  "name": "Tautulli",
+  "category": "Video & Media",
+  "description": "Plex monitoring: see who's watching, play history, libraries and recently added.",
+  "website": "https://tautulli.com",
+  "docs_url": "https://github.com/Tautulli/Tautulli/wiki/Tautulli-API-Reference",
+  "base_url": "{{ credentials.server_url }}",
+  "auth": {
+    "type": "api_key",
+    "in": "query",
+    "name": "apikey",
+    "fields": [
+      {
+        "key": "server_url",
+        "label": "Tautulli URL",
+        "type": "string",
+        "required": true,
+        "placeholder": "http://192.168.1.10:8181",
+        "help": "The address you open the app at, with http:// and the port, no trailing slash."
+      },
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "Tautulli > Settings > Web Interface > API Key."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "get_activity",
+      "name": "Current activity",
+      "description": "Who is watching right now.",
+      "method": "GET",
+      "endpoint": "/api/v2",
+      "query": {
+        "cmd": "get_activity"
+      },
+      "output_fields": {
+        "stream_count": "response.data.stream_count",
+        "sessions": "response.data.sessions"
+      },
+      "inputs": []
+    },
+    {
+      "key": "get_history",
+      "name": "Watch history",
+      "description": "Get play history.",
+      "method": "GET",
+      "endpoint": "/api/v2",
+      "query": {
+        "cmd": "get_history",
+        "length": "{{ inputs.length }}",
+        "user": "{{ inputs.user }}"
+      },
+      "output_fields": {
+        "history": "response.data.data",
+        "total": "response.data.recordsFiltered"
+      },
+      "inputs": [
+        {
+          "key": "length",
+          "label": "Max results",
+          "type": "number",
+          "default": 25
+        },
+        {
+          "key": "user",
+          "label": "User name",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "get_libraries",
+      "name": "List libraries",
+      "description": "Get your Plex libraries.",
+      "method": "GET",
+      "endpoint": "/api/v2",
+      "query": {
+        "cmd": "get_libraries"
+      },
+      "output_fields": {
+        "libraries": "response.data"
+      },
+      "inputs": []
+    },
+    {
+      "key": "recently_added",
+      "name": "Recently added",
+      "description": "Get newly added media.",
+      "method": "GET",
+      "endpoint": "/api/v2",
+      "query": {
+        "cmd": "get_recently_added",
+        "count": "{{ inputs.count }}"
+      },
+      "output_fields": {
+        "items": "response.data.recently_added"
+      },
+      "inputs": [
+        {
+          "key": "count",
+          "label": "Count",
+          "type": "number",
+          "default": 10
+        }
+      ]
+    }
+  ]
+}

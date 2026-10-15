@@ -1,0 +1,164 @@
+{
+  "key": "clockodo",
+  "name": "Clockodo",
+  "category": "Productivity",
+  "description": "Time tracking: start and stop the clock, list entries, customers and projects.",
+  "website": "https://www.clockodo.com",
+  "docs_url": "https://www.clockodo.com/en/api/",
+  "base_url": "https://my.clockodo.com/api",
+  "headers": {
+    "X-ClockodoApiUser": "{{ credentials.email }}",
+    "X-Clockodo-External-Application": "FlowForge;{{ credentials.email }}"
+  },
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "X-ClockodoApiKey",
+    "fields": [
+      {
+        "key": "email",
+        "label": "Account email",
+        "type": "string",
+        "required": true,
+        "help": "The email you sign in to Clockodo with."
+      },
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "Clockodo → Personal settings → Employee data → API key."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_customers",
+      "name": "List customers",
+      "description": "Your customers.",
+      "method": "GET",
+      "endpoint": "/v2/customers",
+      "output_fields": {
+        "names": "customers.*.name",
+        "ids": "customers.*.id"
+      },
+      "inputs": []
+    },
+    {
+      "key": "list_projects",
+      "name": "List projects",
+      "description": "Your projects.",
+      "method": "GET",
+      "endpoint": "/v2/projects",
+      "output_fields": {
+        "names": "projects.*.name",
+        "ids": "projects.*.id"
+      },
+      "inputs": []
+    },
+    {
+      "key": "list_services",
+      "name": "List services",
+      "description": "Services (task types).",
+      "method": "GET",
+      "endpoint": "/v2/services",
+      "output_fields": {
+        "names": "services.*.name",
+        "ids": "services.*.id"
+      },
+      "inputs": []
+    },
+    {
+      "key": "list_entries",
+      "name": "List time entries",
+      "description": "Entries between two times.",
+      "method": "GET",
+      "endpoint": "/v2/entries",
+      "query": {
+        "time_since": "{{ inputs.since }}",
+        "time_until": "{{ inputs.until }}"
+      },
+      "output_fields": {
+        "ids": "entries.*.id",
+        "texts": "entries.*.text"
+      },
+      "inputs": [
+        {
+          "key": "since",
+          "label": "From",
+          "type": "string",
+          "required": true,
+          "placeholder": "2025-01-01T00:00:00Z"
+        },
+        {
+          "key": "until",
+          "label": "To",
+          "type": "string",
+          "required": true,
+          "placeholder": "2025-01-31T23:59:59Z"
+        }
+      ]
+    },
+    {
+      "key": "start_clock",
+      "name": "Start clock",
+      "description": "Start the timer.",
+      "method": "POST",
+      "endpoint": "/v2/clock",
+      "body": {
+        "customers_id": "{{ inputs.customer }}",
+        "services_id": "{{ inputs.service }}",
+        "projects_id": "{{ inputs.project }}",
+        "text": "{{ inputs.text }}"
+      },
+      "output_fields": {
+        "id": "running.id"
+      },
+      "inputs": [
+        {
+          "key": "customer",
+          "label": "Customer ID",
+          "type": "number",
+          "required": true,
+          "help": "Use \"List customers\" to find it."
+        },
+        {
+          "key": "service",
+          "label": "Service ID",
+          "type": "number",
+          "required": true,
+          "help": "Use \"List services\"."
+        },
+        {
+          "key": "project",
+          "label": "Project ID",
+          "type": "number"
+        },
+        {
+          "key": "text",
+          "label": "Description",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "stop_clock",
+      "name": "Stop clock",
+      "description": "Stop the running timer.",
+      "method": "DELETE",
+      "endpoint": "/v2/clock/{{ inputs.id }}",
+      "output_fields": {
+        "duration": "stopped.duration"
+      },
+      "inputs": [
+        {
+          "key": "id",
+          "label": "Entry ID",
+          "type": "string",
+          "required": true,
+          "help": "The ID returned by \"Start clock\"."
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,268 @@
+{
+  "key": "fastspring",
+  "name": "FastSpring",
+  "category": "Payments & Finance",
+  "description": "Merchant of record for software: orders, subscriptions, accounts and checkouts.",
+  "website": "https://fastspring.com",
+  "docs_url": "https://developer.fastspring.com/reference/getting-started-with-your-api",
+  "base_url": "https://api.fastspring.com",
+  "auth": {
+    "type": "basic",
+    "fields": [
+      {
+        "key": "username",
+        "label": "API username",
+        "type": "string",
+        "required": true,
+        "help": "FastSpring app → Developer Tools → APIs → API Credentials → Create."
+      },
+      {
+        "key": "password",
+        "label": "API password",
+        "type": "password",
+        "required": true
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "get_order",
+      "name": "Get order",
+      "description": "Look up an order.",
+      "method": "GET",
+      "endpoint": "/orders/{{ inputs.order_id }}",
+      "inputs": [
+        {
+          "key": "order_id",
+          "label": "Order ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_orders",
+      "name": "List orders",
+      "description": "Order IDs in a date range.",
+      "method": "GET",
+      "endpoint": "/orders",
+      "query": {
+        "begin": "{{ inputs.begin }}",
+        "end": "{{ inputs.end }}",
+        "limit": "{{ inputs.limit }}",
+        "page": "{{ inputs.page }}"
+      },
+      "inputs": [
+        {
+          "key": "begin",
+          "label": "From",
+          "type": "string",
+          "placeholder": "2026-01-01"
+        },
+        {
+          "key": "end",
+          "label": "To",
+          "type": "string",
+          "placeholder": "2026-01-31"
+        },
+        {
+          "key": "limit",
+          "label": "How many",
+          "type": "number",
+          "default": 50
+        },
+        {
+          "key": "page",
+          "label": "Page",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "get_subscription",
+      "name": "Get subscription",
+      "description": "Look up a subscription.",
+      "method": "GET",
+      "endpoint": "/subscriptions/{{ inputs.subscription_id }}",
+      "inputs": [
+        {
+          "key": "subscription_id",
+          "label": "Subscription ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "cancel_subscription",
+      "name": "Cancel subscription",
+      "description": "Cancel a subscription.",
+      "method": "DELETE",
+      "endpoint": "/subscriptions/{{ inputs.subscription_id }}",
+      "query": {
+        "billingPeriod": "{{ inputs.billing_period }}"
+      },
+      "inputs": [
+        {
+          "key": "subscription_id",
+          "label": "Subscription ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "billing_period",
+          "label": "When",
+          "type": "select",
+          "default": "1",
+          "options": [
+            {
+              "value": "1",
+              "label": "At the end of the period"
+            },
+            {
+              "value": "0",
+              "label": "Immediately"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "find_account",
+      "name": "Find account by email",
+      "description": "Find a customer account.",
+      "method": "GET",
+      "endpoint": "/accounts",
+      "query": {
+        "email": "{{ inputs.email }}"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "create_account",
+      "name": "Create account",
+      "description": "Create a customer account.",
+      "method": "POST",
+      "endpoint": "/accounts",
+      "body": {
+        "contact": {
+          "first": "{{ inputs.first }}",
+          "last": "{{ inputs.last }}",
+          "email": "{{ inputs.email }}",
+          "company": "{{ inputs.company }}",
+          "phone": "{{ inputs.phone }}"
+        },
+        "language": "{{ inputs.language }}",
+        "country": "{{ inputs.country }}"
+      },
+      "output_fields": {
+        "account_id": "id"
+      },
+      "inputs": [
+        {
+          "key": "first",
+          "label": "First name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "last",
+          "label": "Last name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "company",
+          "label": "Company",
+          "type": "string"
+        },
+        {
+          "key": "phone",
+          "label": "Phone",
+          "type": "string"
+        },
+        {
+          "key": "language",
+          "label": "Language",
+          "type": "string",
+          "default": "en"
+        },
+        {
+          "key": "country",
+          "label": "Country",
+          "type": "string",
+          "placeholder": "US"
+        }
+      ]
+    },
+    {
+      "key": "create_session",
+      "name": "Create checkout session",
+      "description": "Prepare a checkout for an account and products.",
+      "method": "POST",
+      "endpoint": "/sessions",
+      "body": {
+        "account": "{{ inputs.account_id }}",
+        "items": [
+          {
+            "product": "{{ inputs.product }}",
+            "quantity": "{{ inputs.quantity }}"
+          }
+        ]
+      },
+      "output_fields": {
+        "session_id": "id"
+      },
+      "inputs": [
+        {
+          "key": "account_id",
+          "label": "Account ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "product",
+          "label": "Product path",
+          "type": "string",
+          "required": true,
+          "placeholder": "my-product"
+        },
+        {
+          "key": "quantity",
+          "label": "Quantity",
+          "type": "number",
+          "default": 1
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "FastSpring app → Developer Tools → Webhooks → Add webhook URL.",
+      "data_path": "events.0.data",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

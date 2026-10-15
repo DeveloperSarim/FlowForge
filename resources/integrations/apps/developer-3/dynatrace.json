@@ -1,0 +1,283 @@
+{
+  "key": "dynatrace",
+  "name": "Dynatrace",
+  "category": "Developer Tools",
+  "description": "Read and comment on Dynatrace problems and send custom events.",
+  "brand": "dynatrace",
+  "website": "https://www.dynatrace.com",
+  "docs_url": "https://docs.dynatrace.com/docs/dynatrace-api/environment-api",
+  "base_url": "{{ credentials.environment_url }}/api/v2",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "Authorization",
+    "prefix": "Api-Token ",
+    "fields": [
+      {
+        "key": "environment_url",
+        "label": "Environment URL",
+        "type": "string",
+        "required": true,
+        "placeholder": "https://abc12345.live.dynatrace.com",
+        "help": "Your Dynatrace environment address, without a trailing slash."
+      },
+      {
+        "key": "api_key",
+        "label": "Access token",
+        "type": "password",
+        "required": true,
+        "help": "Access tokens → Generate new token with problems.read, problems.write, events.ingest and entities.read."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_problems",
+      "name": "List problems",
+      "description": "List problems detected in a time range.",
+      "method": "GET",
+      "endpoint": "/problems",
+      "query": {
+        "from": "{{ inputs.from }}",
+        "problemSelector": "{{ inputs.problem_selector }}",
+        "pageSize": "{{ inputs.page_size }}"
+      },
+      "output_fields": {
+        "problems": "problems",
+        "total": "totalCount"
+      },
+      "inputs": [
+        {
+          "key": "from",
+          "label": "From",
+          "type": "string",
+          "default": "now-2h",
+          "help": "E.g. now-2h, now-1d or an ISO date."
+        },
+        {
+          "key": "problem_selector",
+          "label": "Problem selector",
+          "type": "string",
+          "placeholder": "status(\"open\")"
+        },
+        {
+          "key": "page_size",
+          "label": "Page size",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    },
+    {
+      "key": "get_problem",
+      "name": "Get problem",
+      "description": "Get a problem's status, severity and impact.",
+      "method": "GET",
+      "endpoint": "/problems/{{ inputs.problem_id }}",
+      "output_fields": {
+        "title": "title",
+        "status": "status",
+        "severity": "severityLevel",
+        "impact": "impactLevel"
+      },
+      "inputs": [
+        {
+          "key": "problem_id",
+          "label": "Problem ID",
+          "type": "string",
+          "required": true,
+          "help": "Use List problems."
+        }
+      ]
+    },
+    {
+      "key": "comment_problem",
+      "name": "Comment on problem",
+      "description": "Add a comment to a problem.",
+      "method": "POST",
+      "endpoint": "/problems/{{ inputs.problem_id }}/comments",
+      "body": {
+        "message": "{{ inputs.message }}",
+        "context": "{{ inputs.context }}"
+      },
+      "inputs": [
+        {
+          "key": "problem_id",
+          "label": "Problem ID",
+          "type": "string",
+          "required": true,
+          "help": "Use List problems."
+        },
+        {
+          "key": "message",
+          "label": "Comment",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "context",
+          "label": "Context",
+          "type": "string",
+          "placeholder": "FlowForge"
+        }
+      ]
+    },
+    {
+      "key": "close_problem",
+      "name": "Close problem",
+      "description": "Close a problem with a comment.",
+      "method": "POST",
+      "endpoint": "/problems/{{ inputs.problem_id }}/close",
+      "body": {
+        "message": "{{ inputs.message }}"
+      },
+      "inputs": [
+        {
+          "key": "problem_id",
+          "label": "Problem ID",
+          "type": "string",
+          "required": true,
+          "help": "Use List problems."
+        },
+        {
+          "key": "message",
+          "label": "Closing comment",
+          "type": "text",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "ingest_event",
+      "name": "Send event",
+      "description": "Send a deployment, alert or info event.",
+      "method": "POST",
+      "endpoint": "/events/ingest",
+      "body": {
+        "eventType": "{{ inputs.event_type }}",
+        "title": "{{ inputs.title }}",
+        "entitySelector": "{{ inputs.entity_selector }}",
+        "properties": "{{ inputs.properties }}"
+      },
+      "output_fields": {
+        "report_count": "reportCount"
+      },
+      "inputs": [
+        {
+          "key": "event_type",
+          "label": "Event type",
+          "type": "select",
+          "required": true,
+          "default": "CUSTOM_INFO",
+          "options": [
+            {
+              "value": "CUSTOM_INFO",
+              "label": "CUSTOM_INFO"
+            },
+            {
+              "value": "CUSTOM_ANNOTATION",
+              "label": "CUSTOM_ANNOTATION"
+            },
+            {
+              "value": "CUSTOM_DEPLOYMENT",
+              "label": "CUSTOM_DEPLOYMENT"
+            },
+            {
+              "value": "CUSTOM_CONFIGURATION",
+              "label": "CUSTOM_CONFIGURATION"
+            },
+            {
+              "value": "CUSTOM_ALERT",
+              "label": "CUSTOM_ALERT"
+            },
+            {
+              "value": "AVAILABILITY_EVENT",
+              "label": "AVAILABILITY_EVENT"
+            },
+            {
+              "value": "ERROR_EVENT",
+              "label": "ERROR_EVENT"
+            },
+            {
+              "value": "PERFORMANCE_EVENT",
+              "label": "PERFORMANCE_EVENT"
+            },
+            {
+              "value": "RESOURCE_CONTENTION_EVENT",
+              "label": "RESOURCE_CONTENTION_EVENT"
+            }
+          ]
+        },
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "entity_selector",
+          "label": "Entity selector",
+          "type": "string",
+          "placeholder": "type(SERVICE),entityName(\"checkout\")"
+        },
+        {
+          "key": "properties",
+          "label": "Properties",
+          "type": "keyvalue"
+        }
+      ]
+    },
+    {
+      "key": "list_entities",
+      "name": "List entities",
+      "description": "List monitored entities such as hosts or services.",
+      "method": "GET",
+      "endpoint": "/entities",
+      "query": {
+        "entitySelector": "{{ inputs.entity_selector }}",
+        "from": "{{ inputs.from }}"
+      },
+      "output_fields": {
+        "entities": "entities"
+      },
+      "inputs": [
+        {
+          "key": "entity_selector",
+          "label": "Entity selector",
+          "type": "string",
+          "required": true,
+          "placeholder": "type(HOST)"
+        },
+        {
+          "key": "from",
+          "label": "From",
+          "type": "string",
+          "default": "now-3d"
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_problem",
+      "name": "New problem",
+      "type": "polling",
+      "description": "Starts when Dynatrace opens a new problem.",
+      "method": "GET",
+      "endpoint": "/problems",
+      "query": {
+        "from": "now-2h"
+      },
+      "items_path": "problems",
+      "id_field": "problemId",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

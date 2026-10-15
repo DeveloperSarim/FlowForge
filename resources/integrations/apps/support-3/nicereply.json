@@ -1,0 +1,242 @@
+{
+  "key": "nicereply",
+  "name": "Nicereply",
+  "category": "Customer Support",
+  "description": "Read CSAT, NPS and CES ratings and scores from Nicereply and add ratings.",
+  "website": "https://www.nicereply.com",
+  "docs_url": "https://cdn.nicereply.com/s/api/v1",
+  "base_url": "https://api.nicereply.com/v1",
+  "headers": {
+    "Accept": "application/json"
+  },
+  "auth": {
+    "type": "basic",
+    "fields": [
+      {
+        "key": "username",
+        "label": "Username",
+        "type": "string",
+        "default": "x",
+        "help": "Not used by Nicereply; leave as x."
+      },
+      {
+        "key": "password",
+        "label": "Private key",
+        "type": "password",
+        "required": true,
+        "help": "In Nicereply open Settings > API and copy the private key."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_ratings",
+      "name": "List ratings",
+      "description": "Lists ratings of one metric.",
+      "method": "GET",
+      "endpoint": "/{{ inputs.metric }}/ratings",
+      "query": {
+        "per_page": "{{ inputs.per_page }}",
+        "period_start": "{{ inputs.period_start }}",
+        "sort_order": "desc"
+      },
+      "output_fields": {
+        "ratings": "_results",
+        "first_score": "_results.0.score",
+        "first_comment": "_results.0.comment",
+        "total": "_pagination.total"
+      },
+      "inputs": [
+        {
+          "key": "metric",
+          "label": "Metric",
+          "type": "select",
+          "required": true,
+          "default": "nps",
+          "options": [
+            {
+              "value": "nps",
+              "label": "NPS"
+            },
+            {
+              "value": "csat",
+              "label": "CSAT"
+            },
+            {
+              "value": "ces",
+              "label": "CES"
+            }
+          ]
+        },
+        {
+          "key": "per_page",
+          "label": "How many",
+          "type": "number",
+          "default": 25
+        },
+        {
+          "key": "period_start",
+          "label": "From date",
+          "type": "string",
+          "placeholder": "2026-01-01T00:00:00+00:00"
+        }
+      ]
+    },
+    {
+      "key": "get_stats",
+      "name": "Get score",
+      "description": "Gets the average score (or NPS) for a period.",
+      "method": "GET",
+      "endpoint": "/{{ inputs.metric }}/stats",
+      "query": {
+        "period_start": "{{ inputs.period_start }}",
+        "period_end": "{{ inputs.period_end }}"
+      },
+      "output_fields": {
+        "nps_score": "nps_score",
+        "average": "average",
+        "count": "count"
+      },
+      "inputs": [
+        {
+          "key": "metric",
+          "label": "Metric",
+          "type": "select",
+          "required": true,
+          "default": "nps",
+          "options": [
+            {
+              "value": "nps",
+              "label": "NPS"
+            },
+            {
+              "value": "csat",
+              "label": "CSAT"
+            },
+            {
+              "value": "ces",
+              "label": "CES"
+            }
+          ]
+        },
+        {
+          "key": "period_start",
+          "label": "From date",
+          "type": "string",
+          "placeholder": "2026-01-01T00:00:00+00:00"
+        },
+        {
+          "key": "period_end",
+          "label": "To date",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "list_surveys",
+      "name": "List surveys",
+      "description": "Lists your surveys and their IDs.",
+      "method": "GET",
+      "endpoint": "/surveys",
+      "output_fields": {
+        "surveys": "_results",
+        "first_id": "_results.0.id",
+        "first_name": "_results.0.name"
+      },
+      "inputs": []
+    },
+    {
+      "key": "list_users",
+      "name": "List agents",
+      "description": "Lists agents and their IDs.",
+      "method": "GET",
+      "endpoint": "/users",
+      "output_fields": {
+        "users": "_results",
+        "first_id": "_results.0.id"
+      },
+      "inputs": []
+    },
+    {
+      "key": "create_rating",
+      "name": "Add rating",
+      "description": "Records a rating you collected elsewhere.",
+      "method": "POST",
+      "endpoint": "/ratings",
+      "body": {
+        "survey_id": "{{ inputs.survey_id }}",
+        "score": "{{ inputs.score }}",
+        "user": {
+          "id": "{{ inputs.user_id }}"
+        },
+        "comment": "{{ inputs.comment }}",
+        "from": "{{ inputs.from }}",
+        "ticket": "{{ inputs.ticket }}"
+      },
+      "output_fields": {
+        "id": "id"
+      },
+      "inputs": [
+        {
+          "key": "survey_id",
+          "label": "Survey ID",
+          "type": "string",
+          "required": true,
+          "help": "Use \"List surveys\" to find it."
+        },
+        {
+          "key": "score",
+          "label": "Score",
+          "type": "number",
+          "required": true,
+          "help": "NPS 0-10, CSAT 1-10, CES 1-7."
+        },
+        {
+          "key": "user_id",
+          "label": "Agent ID",
+          "type": "string",
+          "required": true,
+          "help": "Use \"List agents\" to find it."
+        },
+        {
+          "key": "comment",
+          "label": "Comment",
+          "type": "text"
+        },
+        {
+          "key": "from",
+          "label": "Customer email",
+          "type": "string"
+        },
+        {
+          "key": "ticket",
+          "label": "Ticket reference",
+          "type": "string"
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_rating",
+      "name": "New NPS rating",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/nps/ratings",
+      "query": {
+        "sort_order": "desc",
+        "per_page": 25
+      },
+      "items_path": "_results",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,283 @@
+{
+  "key": "ontraport",
+  "name": "Ontraport",
+  "category": "CRM & Sales",
+  "description": "Create or update contacts, tag them and start automations in Ontraport.",
+  "website": "https://ontraport.com",
+  "docs_url": "https://api.ontraport.com/doc/",
+  "base_url": "https://api.ontraport.com/1",
+  "headers": {
+    "Api-Appid": "{{ credentials.app_id }}"
+  },
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "Api-Key",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "Ontraport → Administration → Integrations → Ontraport API Instructions and Key Manager → New API Key."
+      },
+      {
+        "key": "app_id",
+        "label": "App ID",
+        "type": "string",
+        "required": true,
+        "help": "Shown next to the API key."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "upsert_contact",
+      "name": "Create or update contact",
+      "description": "Updates the contact with this email, or creates it.",
+      "method": "POST",
+      "endpoint": "/Contacts/saveorupdate",
+      "body_format": "form",
+      "body": {
+        "email": "{{ inputs.email }}",
+        "firstname": "{{ inputs.firstname }}",
+        "lastname": "{{ inputs.lastname }}",
+        "office_phone": "{{ inputs.office_phone }}",
+        "sms_number": "{{ inputs.sms_number }}",
+        "company": "{{ inputs.company }}",
+        "address": "{{ inputs.address }}",
+        "city": "{{ inputs.city }}",
+        "state": "{{ inputs.state }}",
+        "zip": "{{ inputs.zip }}",
+        "country": "{{ inputs.country }}"
+      },
+      "output_fields": {
+        "id": "data.id",
+        "updated_id": "data.attrs.id"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "firstname",
+          "label": "First name",
+          "type": "string"
+        },
+        {
+          "key": "lastname",
+          "label": "Last name",
+          "type": "string"
+        },
+        {
+          "key": "office_phone",
+          "label": "Phone",
+          "type": "string"
+        },
+        {
+          "key": "sms_number",
+          "label": "SMS number",
+          "type": "string"
+        },
+        {
+          "key": "company",
+          "label": "Company",
+          "type": "string"
+        },
+        {
+          "key": "address",
+          "label": "Address",
+          "type": "string"
+        },
+        {
+          "key": "city",
+          "label": "City",
+          "type": "string"
+        },
+        {
+          "key": "state",
+          "label": "State",
+          "type": "string"
+        },
+        {
+          "key": "zip",
+          "label": "ZIP code",
+          "type": "string"
+        },
+        {
+          "key": "country",
+          "label": "Country",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "get_contact",
+      "name": "Get contact",
+      "method": "GET",
+      "endpoint": "/Contact",
+      "query": {
+        "id": "{{ inputs.contact_id }}"
+      },
+      "output_path": "data",
+      "output_fields": {
+        "id": "id",
+        "email": "email"
+      },
+      "inputs": [
+        {
+          "key": "contact_id",
+          "label": "Contact ID",
+          "type": "number",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "find_contact",
+      "name": "Find contact by email",
+      "method": "GET",
+      "endpoint": "/Contacts",
+      "query": {
+        "condition": "[{\"field\":{\"field\":\"email\"},\"op\":\"=\",\"value\":{\"value\":\"{{ inputs.email }}\"}}]"
+      },
+      "output_fields": {
+        "id": "data.0.id",
+        "contacts": "data"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "add_tags",
+      "name": "Add tags to contact",
+      "method": "PUT",
+      "endpoint": "/objects/tagByName",
+      "body": {
+        "objectID": 0,
+        "ids": [
+          "{{ inputs.contact_id }}"
+        ],
+        "add_names": "{{ inputs.tags }}"
+      },
+      "inputs": [
+        {
+          "key": "contact_id",
+          "label": "Contact ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "tags",
+          "label": "Tag names",
+          "type": "list",
+          "required": true,
+          "help": "Missing tags are created."
+        }
+      ]
+    },
+    {
+      "key": "remove_tags",
+      "name": "Remove tags from contact",
+      "method": "DELETE",
+      "endpoint": "/objects/tagByName",
+      "body": {
+        "objectID": 0,
+        "ids": [
+          "{{ inputs.contact_id }}"
+        ],
+        "remove_names": "{{ inputs.tags }}"
+      },
+      "inputs": [
+        {
+          "key": "contact_id",
+          "label": "Contact ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "tags",
+          "label": "Tag names",
+          "type": "list",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "subscribe",
+      "name": "Add contact to automation",
+      "method": "PUT",
+      "endpoint": "/objects/subscribe",
+      "body_format": "form",
+      "body": {
+        "objectID": 0,
+        "ids": "{{ inputs.contact_id }}",
+        "add_list": "{{ inputs.automation_id }}",
+        "sub_type": "{{ inputs.sub_type }}"
+      },
+      "inputs": [
+        {
+          "key": "contact_id",
+          "label": "Contact ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "automation_id",
+          "label": "Automation / sequence ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "sub_type",
+          "label": "Type",
+          "type": "select",
+          "default": "Campaign",
+          "options": [
+            {
+              "value": "Campaign",
+              "label": "Automation map"
+            },
+            {
+              "value": "Sequence",
+              "label": "Sequence"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_contact",
+      "name": "New contact",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/Contacts",
+      "query": {
+        "sort": "date",
+        "sortDir": "desc",
+        "range": 50
+      },
+      "items_path": "data",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

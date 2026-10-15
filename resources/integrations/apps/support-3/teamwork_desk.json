@@ -1,0 +1,143 @@
+{
+  "key": "teamwork_desk",
+  "name": "Teamwork Desk",
+  "category": "Customer Support",
+  "description": "Create, list and read Teamwork Desk helpdesk tickets.",
+  "website": "https://www.teamwork.com/desk/",
+  "docs_url": "https://apidocs.teamwork.com/docs/desk/",
+  "base_url": "https://{{ credentials.site }}.teamwork.com/desk/api/v2",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "site",
+        "label": "Site name",
+        "type": "string",
+        "required": true,
+        "placeholder": "yourcompany",
+        "help": "The part before .teamwork.com in your address."
+      },
+      {
+        "key": "token",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "In Teamwork Desk click your avatar > Edit profile > API Keys and copy a key."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_tickets",
+      "name": "List tickets",
+      "description": "Lists tickets in your help desk.",
+      "method": "GET",
+      "endpoint": "/tickets.json",
+      "query": {
+        "page": "{{ inputs.page }}",
+        "pageSize": "{{ inputs.page_size }}"
+      },
+      "output_fields": {
+        "tickets": "tickets",
+        "first_id": "tickets.0.id",
+        "first_subject": "tickets.0.subject"
+      },
+      "inputs": [
+        {
+          "key": "page",
+          "label": "Page",
+          "type": "number",
+          "default": 1
+        },
+        {
+          "key": "page_size",
+          "label": "How many",
+          "type": "number",
+          "default": 25
+        }
+      ]
+    },
+    {
+      "key": "get_ticket",
+      "name": "Get ticket",
+      "description": "Gets one ticket by its ID.",
+      "method": "GET",
+      "endpoint": "/tickets/{{ inputs.ticket_id }}.json",
+      "output_fields": {
+        "id": "ticket.id",
+        "subject": "ticket.subject",
+        "status": "ticket.status"
+      },
+      "inputs": [
+        {
+          "key": "ticket_id",
+          "label": "Ticket ID",
+          "type": "number",
+          "required": true,
+          "help": "The number in the ticket address in Teamwork Desk."
+        }
+      ]
+    },
+    {
+      "key": "create_ticket",
+      "name": "Create ticket",
+      "description": "Creates a ticket for a customer.",
+      "method": "POST",
+      "endpoint": "/tickets.json",
+      "body": {
+        "subject": "{{ inputs.subject }}",
+        "message": "{{ inputs.message }}",
+        "customer": {
+          "email": "{{ inputs.email }}"
+        }
+      },
+      "output_fields": {
+        "id": "ticket.id"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Customer email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "subject",
+          "label": "Subject",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "message",
+          "label": "Message",
+          "type": "text",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_ticket",
+      "name": "New ticket",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/tickets.json",
+      "query": {
+        "orderBy": "createdAt",
+        "orderMode": "desc",
+        "pageSize": 25
+      },
+      "items_path": "tickets",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

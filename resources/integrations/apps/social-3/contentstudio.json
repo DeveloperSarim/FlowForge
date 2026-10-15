@@ -1,0 +1,191 @@
+{
+  "key": "contentstudio",
+  "name": "ContentStudio",
+  "category": "Social Media",
+  "description": "Schedule, queue or draft social posts in ContentStudio and list accounts and posts.",
+  "website": "https://contentstudio.io",
+  "docs_url": "https://api-prod.contentstudio.io/docs",
+  "base_url": "https://api.contentstudio.io/api/v1",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "X-API-Key",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "ContentStudio → Settings → API Keys (starts with cs_)."
+      }
+    ],
+    "profile": {
+      "endpoint": "/workspaces",
+      "store": {
+        "workspace_id": "{{ data.0.id }}"
+      }
+    }
+  },
+  "actions": [
+    {
+      "key": "list_workspaces",
+      "name": "List workspaces",
+      "method": "GET",
+      "endpoint": "/workspaces",
+      "output_fields": {
+        "ids": "data.*.id",
+        "names": "data.*.name"
+      },
+      "inputs": []
+    },
+    {
+      "key": "list_accounts",
+      "name": "List social accounts",
+      "method": "GET",
+      "endpoint": "/workspaces/{{ inputs.workspace_id }}/accounts",
+      "output_fields": {
+        "accounts": "data",
+        "account_ids": "data.*.id",
+        "platforms": "data.*.platform"
+      },
+      "inputs": [
+        {
+          "key": "workspace_id",
+          "label": "Workspace ID",
+          "type": "string",
+          "fallback": "credentials.workspace_id",
+          "help": "Leave blank to use your first workspace. 'List workspaces' shows the others."
+        }
+      ]
+    },
+    {
+      "key": "create_post",
+      "name": "Create post",
+      "method": "POST",
+      "endpoint": "/workspaces/{{ inputs.workspace_id }}/posts",
+      "body": {
+        "content": {
+          "text": "{{ inputs.text }}",
+          "media": {
+            "images": "{{ inputs.images }}"
+          }
+        },
+        "accounts": "{{ inputs.accounts }}",
+        "scheduling": {
+          "publish_type": "{{ inputs.publish_type }}",
+          "scheduled_at": "{{ inputs.scheduled_at }}"
+        }
+      },
+      "output_fields": {
+        "id": "data.id",
+        "post_url": "data.post_url",
+        "status": "status"
+      },
+      "inputs": [
+        {
+          "key": "workspace_id",
+          "label": "Workspace ID",
+          "type": "string",
+          "fallback": "credentials.workspace_id",
+          "help": "Leave blank to use your first workspace. 'List workspaces' shows the others."
+        },
+        {
+          "key": "accounts",
+          "label": "Account IDs",
+          "type": "list",
+          "required": true,
+          "help": "From 'List social accounts'."
+        },
+        {
+          "key": "text",
+          "label": "Post text",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "images",
+          "label": "Image URLs",
+          "type": "list"
+        },
+        {
+          "key": "publish_type",
+          "label": "When",
+          "type": "select",
+          "default": "scheduled",
+          "options": [
+            {
+              "value": "scheduled",
+              "label": "At a date and time"
+            },
+            {
+              "value": "queued",
+              "label": "Add to queue"
+            },
+            {
+              "value": "draft",
+              "label": "Save as draft"
+            }
+          ]
+        },
+        {
+          "key": "scheduled_at",
+          "label": "Date and time",
+          "type": "string",
+          "placeholder": "2026-12-01 15:30:00"
+        }
+      ]
+    },
+    {
+      "key": "list_posts",
+      "name": "List posts",
+      "method": "GET",
+      "endpoint": "/workspaces/{{ inputs.workspace_id }}/posts",
+      "query": {
+        "status[]": "{{ inputs.status }}",
+        "per_page": "{{ inputs.per_page }}"
+      },
+      "output_fields": {
+        "posts": "data"
+      },
+      "inputs": [
+        {
+          "key": "workspace_id",
+          "label": "Workspace ID",
+          "type": "string",
+          "fallback": "credentials.workspace_id",
+          "help": "Leave blank to use your first workspace. 'List workspaces' shows the others."
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "default": "published",
+          "options": [
+            {
+              "value": "published",
+              "label": "Published"
+            },
+            {
+              "value": "scheduled",
+              "label": "Scheduled"
+            },
+            {
+              "value": "draft",
+              "label": "Draft"
+            },
+            {
+              "value": "failed",
+              "label": "Failed"
+            }
+          ]
+        },
+        {
+          "key": "per_page",
+          "label": "Max results",
+          "type": "number",
+          "default": 20
+        }
+      ]
+    }
+  ]
+}

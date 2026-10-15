@@ -1,0 +1,238 @@
+{
+  "key": "linkding",
+  "name": "linkding",
+  "category": "Productivity",
+  "description": "Self-hosted bookmark manager: save, search, update and delete bookmarks.",
+  "website": "https://linkding.link",
+  "docs_url": "https://linkding.link/api/",
+  "base_url": "{{ credentials.base_url }}/api",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "Authorization",
+    "prefix": "Token ",
+    "fields": [
+      {
+        "key": "base_url",
+        "label": "linkding URL",
+        "type": "string",
+        "required": true,
+        "placeholder": "https://links.example.com",
+        "help": "The address of your linkding server, without a trailing slash."
+      },
+      {
+        "key": "api_key",
+        "label": "REST API token",
+        "type": "password",
+        "required": true,
+        "help": "linkding → Settings → Integrations → REST API token."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "create_bookmark",
+      "name": "Save bookmark",
+      "description": "Save a URL (updates it if it already exists).",
+      "method": "POST",
+      "endpoint": "/bookmarks/",
+      "body": {
+        "url": "{{ inputs.url }}",
+        "title": "{{ inputs.title }}",
+        "description": "{{ inputs.description }}",
+        "notes": "{{ inputs.notes }}",
+        "tag_names": "{{ inputs.tag_names }}",
+        "unread": "{{ inputs.unread }}"
+      },
+      "output_fields": {
+        "id": "id",
+        "url": "url",
+        "title": "title"
+      },
+      "inputs": [
+        {
+          "key": "url",
+          "label": "URL",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "string"
+        },
+        {
+          "key": "description",
+          "label": "Description",
+          "type": "text"
+        },
+        {
+          "key": "notes",
+          "label": "Notes",
+          "type": "text"
+        },
+        {
+          "key": "tag_names",
+          "label": "Tags",
+          "type": "list",
+          "help": "One tag per line, without #."
+        },
+        {
+          "key": "unread",
+          "label": "Mark as unread",
+          "type": "boolean"
+        }
+      ]
+    },
+    {
+      "key": "search_bookmarks",
+      "name": "Search bookmarks",
+      "description": "Find bookmarks by text or #tag.",
+      "method": "GET",
+      "endpoint": "/bookmarks/",
+      "query": {
+        "q": "{{ inputs.q }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "count": "count",
+        "urls": "results.*.url"
+      },
+      "inputs": [
+        {
+          "key": "q",
+          "label": "Search",
+          "type": "string",
+          "help": "Words or #tags to look for. Leave empty for the latest."
+        },
+        {
+          "key": "limit",
+          "label": "Max results",
+          "type": "number",
+          "default": 20
+        }
+      ]
+    },
+    {
+      "key": "get_bookmark",
+      "name": "Get bookmark",
+      "description": "Fetch one bookmark by ID.",
+      "method": "GET",
+      "endpoint": "/bookmarks/{{ inputs.id }}/",
+      "output_fields": {
+        "url": "url",
+        "title": "title",
+        "tags": "tag_names"
+      },
+      "inputs": [
+        {
+          "key": "id",
+          "label": "Bookmark ID",
+          "type": "string",
+          "required": true,
+          "help": "The number at the end of the bookmark URL in the API."
+        }
+      ]
+    },
+    {
+      "key": "update_bookmark",
+      "name": "Update bookmark",
+      "description": "Change title, notes or tags of a bookmark.",
+      "method": "PATCH",
+      "endpoint": "/bookmarks/{{ inputs.id }}/",
+      "body": {
+        "title": "{{ inputs.title }}",
+        "description": "{{ inputs.description }}",
+        "notes": "{{ inputs.notes }}",
+        "tag_names": "{{ inputs.tag_names }}"
+      },
+      "output_fields": {
+        "id": "id",
+        "title": "title"
+      },
+      "inputs": [
+        {
+          "key": "id",
+          "label": "Bookmark ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "string"
+        },
+        {
+          "key": "description",
+          "label": "Description",
+          "type": "text"
+        },
+        {
+          "key": "notes",
+          "label": "Notes",
+          "type": "text"
+        },
+        {
+          "key": "tag_names",
+          "label": "Tags",
+          "type": "list"
+        }
+      ]
+    },
+    {
+      "key": "delete_bookmark",
+      "name": "Delete bookmark",
+      "description": "Permanently delete a bookmark.",
+      "method": "DELETE",
+      "endpoint": "/bookmarks/{{ inputs.id }}/",
+      "inputs": [
+        {
+          "key": "id",
+          "label": "Bookmark ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_tags",
+      "name": "List tags",
+      "description": "All tags in use.",
+      "method": "GET",
+      "endpoint": "/tags/",
+      "query": {
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "names": "results.*.name"
+      },
+      "inputs": [
+        {
+          "key": "limit",
+          "label": "Max results",
+          "type": "number",
+          "default": 100
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_bookmark",
+      "name": "New bookmark",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/bookmarks/",
+      "items_path": "results",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

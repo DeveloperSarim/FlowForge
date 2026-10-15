@@ -1,0 +1,219 @@
+{
+  "key": "fireflies",
+  "name": "Fireflies.ai",
+  "category": "AI",
+  "description": "Get meeting transcripts and AI summaries, upload recordings, send the notetaker.",
+  "website": "https://fireflies.ai",
+  "docs_url": "https://docs.fireflies.ai/graphql-api/query/transcripts",
+  "base_url": "https://api.fireflies.ai",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "app.fireflies.ai → Integrations → Fireflies API → copy your API key."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_transcripts",
+      "name": "List transcripts",
+      "description": "List recent meetings with their summaries.",
+      "method": "POST",
+      "endpoint": "/graphql",
+      "body": {
+        "query": "query Transcripts($limit: Int, $fromDate: DateTime, $keyword: String, $mine: Boolean) { transcripts(limit: $limit, fromDate: $fromDate, keyword: $keyword, mine: $mine) { id title date duration organizer_email transcript_url summary { overview action_items keywords } } }",
+        "variables": {
+          "limit": "{{ inputs.limit }}",
+          "fromDate": "{{ inputs.from_date }}",
+          "keyword": "{{ inputs.keyword }}",
+          "mine": "{{ inputs.mine }}"
+        }
+      },
+      "error_path": "errors",
+      "output_fields": {
+        "transcripts": "data.transcripts"
+      },
+      "inputs": [
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 10,
+          "help": "Up to 50."
+        },
+        {
+          "key": "from_date",
+          "label": "From date",
+          "type": "string",
+          "placeholder": "2025-01-01T00:00:00Z"
+        },
+        {
+          "key": "keyword",
+          "label": "Keyword",
+          "type": "string",
+          "help": "Search titles and spoken words."
+        },
+        {
+          "key": "mine",
+          "label": "Only meetings I organised",
+          "type": "boolean"
+        }
+      ]
+    },
+    {
+      "key": "get_transcript",
+      "name": "Get transcript",
+      "description": "Get a meeting's full transcript, summary and action items.",
+      "method": "POST",
+      "endpoint": "/graphql",
+      "body": {
+        "query": "query Transcript($id: String!) { transcript(id: $id) { id title date duration participants transcript_url summary { overview action_items keywords shorthand_bullet } sentences { speaker_name text } } }",
+        "variables": {
+          "id": "{{ inputs.id }}"
+        }
+      },
+      "error_path": "errors",
+      "output_fields": {
+        "title": "data.transcript.title",
+        "overview": "data.transcript.summary.overview",
+        "action_items": "data.transcript.summary.action_items",
+        "text": "data.transcript.sentences.*.text",
+        "participants": "data.transcript.participants"
+      },
+      "inputs": [
+        {
+          "key": "id",
+          "label": "Transcript ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "upload_audio",
+      "name": "Upload recording",
+      "description": "Send a recording to Fireflies to transcribe and summarise.",
+      "method": "POST",
+      "endpoint": "/graphql",
+      "body": {
+        "query": "mutation UploadAudio($input: AudioUploadInput) { uploadAudio(input: $input) { success title message } }",
+        "variables": {
+          "input": {
+            "url": "{{ inputs.url }}",
+            "title": "{{ inputs.title }}",
+            "webhook": "{{ inputs.webhook }}"
+          }
+        }
+      },
+      "error_path": "errors",
+      "output_fields": {
+        "success": "data.uploadAudio.success",
+        "message": "data.uploadAudio.message"
+      },
+      "inputs": [
+        {
+          "key": "url",
+          "label": "Audio/video URL",
+          "type": "string",
+          "required": true,
+          "help": "A public link to the recording."
+        },
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "string"
+        },
+        {
+          "key": "webhook",
+          "label": "Webhook URL",
+          "type": "string",
+          "help": "Optional URL Fireflies calls when processing is done."
+        }
+      ]
+    },
+    {
+      "key": "add_to_live_meeting",
+      "name": "Send notetaker to meeting",
+      "description": "Make the Fireflies bot join a live meeting now.",
+      "method": "POST",
+      "endpoint": "/graphql",
+      "body": {
+        "query": "mutation AddToLiveMeeting($meetingLink: String!) { addToLiveMeeting(meeting_link: $meetingLink) { success } }",
+        "variables": {
+          "meetingLink": "{{ inputs.meeting_link }}"
+        }
+      },
+      "error_path": "errors",
+      "output_fields": {
+        "success": "data.addToLiveMeeting.success"
+      },
+      "inputs": [
+        {
+          "key": "meeting_link",
+          "label": "Meeting link",
+          "type": "string",
+          "required": true,
+          "help": "Zoom, Google Meet or Teams link."
+        }
+      ]
+    },
+    {
+      "key": "get_user",
+      "name": "Get account",
+      "description": "Show the connected Fireflies account.",
+      "method": "POST",
+      "endpoint": "/graphql",
+      "body": {
+        "query": "query { user { user_id email name minutes_consumed is_admin } }",
+        "variables": null
+      },
+      "error_path": "errors",
+      "output_fields": {
+        "email": "data.user.email",
+        "name": "data.user.name"
+      },
+      "inputs": []
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_transcript",
+      "name": "New meeting transcript",
+      "type": "polling",
+      "description": "Fires when a new meeting has been transcribed.",
+      "method": "POST",
+      "endpoint": "/graphql",
+      "items_path": "data.transcripts",
+      "id_field": "id",
+      "body": {
+        "query": "query { transcripts(limit: 20) { id title date duration organizer_email transcript_url summary { overview action_items keywords } } }"
+      },
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    },
+    {
+      "key": "webhook_event",
+      "name": "Transcription completed (webhook)",
+      "type": "webhook",
+      "description": "Add this URL in Fireflies → Settings → Developer settings → Webhook.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

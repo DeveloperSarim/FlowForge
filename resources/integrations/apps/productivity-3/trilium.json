@@ -1,0 +1,184 @@
+{
+  "key": "trilium",
+  "name": "Trilium Notes",
+  "category": "Productivity",
+  "description": "Self-hosted hierarchical notes: create, search, read, rename and delete notes.",
+  "website": "https://github.com/TriliumNext/Trilium",
+  "docs_url": "https://docs.triliumnotes.org/user-guide/advanced-usage/etapi",
+  "base_url": "{{ credentials.base_url }}/etapi",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "Authorization",
+    "fields": [
+      {
+        "key": "base_url",
+        "label": "Trilium URL",
+        "type": "string",
+        "required": true,
+        "placeholder": "https://notes.example.com",
+        "help": "The address of your Trilium server, without a trailing slash."
+      },
+      {
+        "key": "api_key",
+        "label": "ETAPI token",
+        "type": "password",
+        "required": true,
+        "help": "Trilium → Options → ETAPI → Create new ETAPI token."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "create_note",
+      "name": "Create note",
+      "description": "Add a text note under a parent note.",
+      "method": "POST",
+      "endpoint": "/create-note",
+      "body": {
+        "parentNoteId": "{{ inputs.parent }}",
+        "title": "{{ inputs.title }}",
+        "type": "text",
+        "content": "{{ inputs.content }}"
+      },
+      "output_fields": {
+        "id": "note.noteId",
+        "title": "note.title"
+      },
+      "inputs": [
+        {
+          "key": "parent",
+          "label": "Parent note ID",
+          "type": "string",
+          "required": true,
+          "default": "root",
+          "help": "\"root\" puts it at the top level; otherwise paste a note ID."
+        },
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "content",
+          "label": "Content (HTML)",
+          "type": "text",
+          "required": true,
+          "default": "<p></p>"
+        }
+      ]
+    },
+    {
+      "key": "search_notes",
+      "name": "Search notes",
+      "description": "Search with Trilium search syntax or plain words.",
+      "method": "GET",
+      "endpoint": "/notes",
+      "query": {
+        "search": "{{ inputs.search }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "ids": "results.*.noteId",
+        "titles": "results.*.title"
+      },
+      "inputs": [
+        {
+          "key": "search",
+          "label": "Search",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "limit",
+          "label": "Max results",
+          "type": "number",
+          "default": 10
+        }
+      ]
+    },
+    {
+      "key": "get_note",
+      "name": "Get note",
+      "description": "Note details (title, type, dates).",
+      "method": "GET",
+      "endpoint": "/notes/{{ inputs.id }}",
+      "output_fields": {
+        "title": "title",
+        "type": "type",
+        "modified": "utcDateModified"
+      },
+      "inputs": [
+        {
+          "key": "id",
+          "label": "Note ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "rename_note",
+      "name": "Rename note",
+      "description": "Change a note title.",
+      "method": "PATCH",
+      "endpoint": "/notes/{{ inputs.id }}",
+      "body": {
+        "title": "{{ inputs.title }}"
+      },
+      "output_fields": {
+        "title": "title"
+      },
+      "inputs": [
+        {
+          "key": "id",
+          "label": "Note ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "title",
+          "label": "New title",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "delete_note",
+      "name": "Delete note",
+      "description": "Delete a note.",
+      "method": "DELETE",
+      "endpoint": "/notes/{{ inputs.id }}",
+      "inputs": [
+        {
+          "key": "id",
+          "label": "Note ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "get_day_note",
+      "name": "Get day note",
+      "description": "Find the journal note of a date.",
+      "method": "GET",
+      "endpoint": "/calendar/days/{{ inputs.date }}",
+      "output_fields": {
+        "id": "noteId",
+        "title": "title"
+      },
+      "inputs": [
+        {
+          "key": "date",
+          "label": "Date",
+          "type": "string",
+          "required": true,
+          "placeholder": "2025-01-31"
+        }
+      ]
+    }
+  ]
+}

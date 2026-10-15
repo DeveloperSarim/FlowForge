@@ -1,0 +1,442 @@
+{
+  "key": "lulu",
+  "name": "Lulu Print API",
+  "category": "E-commerce",
+  "description": "Print-on-demand books: cost quotes, print jobs, status and cancellations.",
+  "brand": "lulu",
+  "website": "https://www.lulu.com",
+  "docs_url": "https://api.lulu.com/docs/",
+  "base_url": "https://{{ credentials.host }}",
+  "auth": {
+    "type": "oauth2_client_credentials",
+    "token_url": "https://{{ credentials.host }}/auth/realms/glasstree/protocol/openid-connect/token",
+    "client_auth": "basic",
+    "fields": [
+      {
+        "key": "client_id",
+        "label": "Client key",
+        "type": "string",
+        "required": true,
+        "help": "developers.lulu.com → sign in → API Keys."
+      },
+      {
+        "key": "client_secret",
+        "label": "Client secret",
+        "type": "password",
+        "required": true
+      },
+      {
+        "key": "host",
+        "label": "Environment",
+        "type": "select",
+        "required": true,
+        "default": "api.lulu.com",
+        "options": [
+          {
+            "value": "api.lulu.com",
+            "label": "Production"
+          },
+          {
+            "value": "api.sandbox.lulu.com",
+            "label": "Sandbox"
+          }
+        ]
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "calculate_cost",
+      "name": "Calculate cost",
+      "description": "Price of printing and shipping a book.",
+      "method": "POST",
+      "endpoint": "/print-job-cost-calculations/",
+      "body": {
+        "line_items": [
+          {
+            "page_count": "{{ inputs.page_count }}",
+            "pod_package_id": "{{ inputs.pod_package_id }}",
+            "quantity": "{{ inputs.quantity }}"
+          }
+        ],
+        "shipping_address": {
+          "street1": "{{ inputs.street1 }}",
+          "city": "{{ inputs.city }}",
+          "state_code": "{{ inputs.state_code }}",
+          "postcode": "{{ inputs.postcode }}",
+          "country_code": "{{ inputs.country_code }}",
+          "phone_number": "{{ inputs.phone }}"
+        },
+        "shipping_option": "{{ inputs.shipping_level }}"
+      },
+      "output_fields": {
+        "total": "total_cost_incl_tax",
+        "currency": "currency"
+      },
+      "inputs": [
+        {
+          "key": "pod_package_id",
+          "label": "Book spec (pod_package_id)",
+          "type": "string",
+          "required": true,
+          "placeholder": "0600X0900BWSTDPB060UW444MXX",
+          "help": "From Lulu's pricing calculator / product spec."
+        },
+        {
+          "key": "page_count",
+          "label": "Pages",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "quantity",
+          "label": "Copies",
+          "type": "number",
+          "default": 1
+        },
+        {
+          "key": "street1",
+          "label": "Street",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "city",
+          "label": "City",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "state_code",
+          "label": "State code",
+          "type": "string"
+        },
+        {
+          "key": "postcode",
+          "label": "Postcode",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "country_code",
+          "label": "Country code",
+          "type": "string",
+          "required": true,
+          "placeholder": "US"
+        },
+        {
+          "key": "phone",
+          "label": "Phone",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "shipping_level",
+          "label": "Shipping",
+          "type": "select",
+          "required": true,
+          "default": "MAIL",
+          "options": [
+            {
+              "value": "MAIL",
+              "label": "MAIL"
+            },
+            {
+              "value": "PRIORITY_MAIL",
+              "label": "PRIORITY_MAIL"
+            },
+            {
+              "value": "GROUND",
+              "label": "GROUND"
+            },
+            {
+              "value": "EXPEDITED",
+              "label": "EXPEDITED"
+            },
+            {
+              "value": "EXPRESS",
+              "label": "EXPRESS"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "create_print_job",
+      "name": "Create print job",
+      "description": "Order printed copies of a book shipped to a customer.",
+      "method": "POST",
+      "endpoint": "/print-jobs/",
+      "body": {
+        "contact_email": "{{ inputs.contact_email }}",
+        "external_id": "{{ inputs.external_id }}",
+        "shipping_level": "{{ inputs.shipping_level }}",
+        "line_items": [
+          {
+            "external_id": "{{ inputs.external_id }}",
+            "title": "{{ inputs.title }}",
+            "quantity": "{{ inputs.quantity }}",
+            "printable_normalization": {
+              "pod_package_id": "{{ inputs.pod_package_id }}",
+              "cover": {
+                "source_url": "{{ inputs.cover_url }}"
+              },
+              "interior": {
+                "source_url": "{{ inputs.interior_url }}"
+              }
+            }
+          }
+        ],
+        "shipping_address": {
+          "name": "{{ inputs.name }}",
+          "street1": "{{ inputs.street1 }}",
+          "city": "{{ inputs.city }}",
+          "state_code": "{{ inputs.state_code }}",
+          "postcode": "{{ inputs.postcode }}",
+          "country_code": "{{ inputs.country_code }}",
+          "phone_number": "{{ inputs.phone }}",
+          "email": "{{ inputs.email }}"
+        }
+      },
+      "output_fields": {
+        "id": "id",
+        "status": "status.name"
+      },
+      "inputs": [
+        {
+          "key": "title",
+          "label": "Book title",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "pod_package_id",
+          "label": "Book spec (pod_package_id)",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "cover_url",
+          "label": "Cover PDF URL",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "interior_url",
+          "label": "Interior PDF URL",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "quantity",
+          "label": "Copies",
+          "type": "number",
+          "default": 1
+        },
+        {
+          "key": "contact_email",
+          "label": "Your contact email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "external_id",
+          "label": "Your order reference",
+          "type": "string"
+        },
+        {
+          "key": "name",
+          "label": "Recipient name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "street1",
+          "label": "Street",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "city",
+          "label": "City",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "state_code",
+          "label": "State code",
+          "type": "string"
+        },
+        {
+          "key": "postcode",
+          "label": "Postcode",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "country_code",
+          "label": "Country code",
+          "type": "string",
+          "required": true,
+          "placeholder": "US"
+        },
+        {
+          "key": "phone",
+          "label": "Phone",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "email",
+          "label": "Recipient email",
+          "type": "string"
+        },
+        {
+          "key": "shipping_level",
+          "label": "Shipping",
+          "type": "select",
+          "required": true,
+          "default": "MAIL",
+          "options": [
+            {
+              "value": "MAIL",
+              "label": "MAIL"
+            },
+            {
+              "value": "PRIORITY_MAIL",
+              "label": "PRIORITY_MAIL"
+            },
+            {
+              "value": "GROUND",
+              "label": "GROUND"
+            },
+            {
+              "value": "EXPEDITED",
+              "label": "EXPEDITED"
+            },
+            {
+              "value": "EXPRESS",
+              "label": "EXPRESS"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "get_print_job",
+      "name": "Get print job",
+      "description": "Status of a print job.",
+      "method": "GET",
+      "endpoint": "/print-jobs/{{ inputs.id }}/",
+      "output_fields": {
+        "status": "status.name",
+        "total": "costs.total_cost_incl_tax"
+      },
+      "inputs": [
+        {
+          "key": "id",
+          "label": "Print job ID",
+          "type": "number",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_print_jobs",
+      "name": "List print jobs",
+      "description": "Your print jobs, optionally by status.",
+      "method": "GET",
+      "endpoint": "/print-jobs/",
+      "query": {
+        "status": "{{ inputs.status }}",
+        "page_size": "{{ inputs.page_size }}"
+      },
+      "output_fields": {
+        "print_jobs": "results"
+      },
+      "inputs": [
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "options": [
+            {
+              "value": "CREATED",
+              "label": "CREATED"
+            },
+            {
+              "value": "UNPAID",
+              "label": "UNPAID"
+            },
+            {
+              "value": "PAYMENT_IN_PROGRESS",
+              "label": "PAYMENT_IN_PROGRESS"
+            },
+            {
+              "value": "PRODUCTION_READY",
+              "label": "PRODUCTION_READY"
+            },
+            {
+              "value": "IN_PRODUCTION",
+              "label": "IN_PRODUCTION"
+            },
+            {
+              "value": "SHIPPED",
+              "label": "SHIPPED"
+            },
+            {
+              "value": "REJECTED",
+              "label": "REJECTED"
+            },
+            {
+              "value": "CANCELED",
+              "label": "CANCELED"
+            }
+          ]
+        },
+        {
+          "key": "page_size",
+          "label": "How many",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    },
+    {
+      "key": "cancel_print_job",
+      "name": "Cancel print job",
+      "description": "Cancel a print job before production.",
+      "method": "PUT",
+      "endpoint": "/print-jobs/{{ inputs.id }}/status/",
+      "body": {
+        "name": "CANCELED"
+      },
+      "output_fields": {
+        "status": "name"
+      },
+      "inputs": [
+        {
+          "key": "id",
+          "label": "Print job ID",
+          "type": "number",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Print job status",
+      "type": "webhook",
+      "description": "Register this URL with Lulu's webhooks (topic PRINT_JOB_STATUS_CHANGED).",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

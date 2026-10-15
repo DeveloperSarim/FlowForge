@@ -1,0 +1,167 @@
+{
+  "key": "azure_ai_vision",
+  "name": "Azure AI Vision",
+  "category": "AI",
+  "description": "Caption images, read text (OCR), tag and detect objects with Azure.",
+  "brand": "microsoftazure",
+  "website": "https://azure.microsoft.com/products/ai-services/ai-vision",
+  "docs_url": "https://learn.microsoft.com/rest/api/computervision/image-analysis/analyze-image",
+  "base_url": "{{ credentials.endpoint }}/computervision",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "Ocp-Apim-Subscription-Key",
+    "fields": [
+      {
+        "key": "endpoint",
+        "label": "Endpoint",
+        "type": "string",
+        "required": true,
+        "placeholder": "https://my-resource.cognitiveservices.azure.com",
+        "help": "Azure portal → your Computer Vision resource → Keys and Endpoint → Endpoint (without a trailing slash)."
+      },
+      {
+        "key": "api_key",
+        "label": "Key",
+        "type": "password",
+        "required": true,
+        "help": "Azure portal → your Computer Vision resource → Keys and Endpoint → KEY 1."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "caption_image",
+      "name": "Caption image",
+      "description": "Describe an image in one sentence.",
+      "method": "POST",
+      "endpoint": "/imageanalysis:analyze",
+      "query": {
+        "api-version": "2024-02-01",
+        "features": "caption",
+        "language": "{{ inputs.language }}"
+      },
+      "body": {
+        "url": "{{ inputs.image_url }}"
+      },
+      "output_fields": {
+        "caption": "captionResult.text",
+        "confidence": "captionResult.confidence"
+      },
+      "inputs": [
+        {
+          "key": "image_url",
+          "label": "Image URL",
+          "type": "string",
+          "required": true,
+          "help": "A public image URL."
+        },
+        {
+          "key": "language",
+          "label": "Language",
+          "type": "string",
+          "placeholder": "en"
+        }
+      ]
+    },
+    {
+      "key": "read_text",
+      "name": "Read text in image (OCR)",
+      "description": "Extract printed and handwritten text from an image.",
+      "method": "POST",
+      "endpoint": "/imageanalysis:analyze",
+      "query": {
+        "api-version": "2024-02-01",
+        "features": "read",
+        "language": "{{ inputs.language }}"
+      },
+      "body": {
+        "url": "{{ inputs.image_url }}"
+      },
+      "output_fields": {
+        "text": "readResult.blocks.*.lines.*.text"
+      },
+      "inputs": [
+        {
+          "key": "image_url",
+          "label": "Image URL",
+          "type": "string",
+          "required": true,
+          "help": "A public image URL."
+        },
+        {
+          "key": "language",
+          "label": "Language",
+          "type": "string",
+          "placeholder": "en"
+        }
+      ]
+    },
+    {
+      "key": "tag_image",
+      "name": "Tag image",
+      "description": "Get tags describing the content of an image.",
+      "method": "POST",
+      "endpoint": "/imageanalysis:analyze",
+      "query": {
+        "api-version": "2024-02-01",
+        "features": "tags",
+        "language": "{{ inputs.language }}"
+      },
+      "body": {
+        "url": "{{ inputs.image_url }}"
+      },
+      "output_fields": {
+        "tags": "tagsResult.values.*.name"
+      },
+      "inputs": [
+        {
+          "key": "image_url",
+          "label": "Image URL",
+          "type": "string",
+          "required": true,
+          "help": "A public image URL."
+        },
+        {
+          "key": "language",
+          "label": "Language",
+          "type": "string",
+          "placeholder": "en"
+        }
+      ]
+    },
+    {
+      "key": "detect_objects",
+      "name": "Detect objects",
+      "description": "Find objects in an image.",
+      "method": "POST",
+      "endpoint": "/imageanalysis:analyze",
+      "query": {
+        "api-version": "2024-02-01",
+        "features": "objects",
+        "language": "{{ inputs.language }}"
+      },
+      "body": {
+        "url": "{{ inputs.image_url }}"
+      },
+      "output_fields": {
+        "objects": "objectsResult.values.*.tags.0.name"
+      },
+      "inputs": [
+        {
+          "key": "image_url",
+          "label": "Image URL",
+          "type": "string",
+          "required": true,
+          "help": "A public image URL."
+        },
+        {
+          "key": "language",
+          "label": "Language",
+          "type": "string",
+          "placeholder": "en"
+        }
+      ]
+    }
+  ]
+}

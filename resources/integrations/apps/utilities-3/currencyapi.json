@@ -1,0 +1,163 @@
+{
+  "key": "currencyapi",
+  "name": "currencyapi",
+  "category": "Utilities",
+  "description": "Live and historical exchange rates for 170+ currencies, crypto and metals.",
+  "website": "https://currencyapi.com",
+  "docs_url": "https://currencyapi.com/docs/",
+  "base_url": "https://api.currencyapi.com/v3",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "apikey",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "app.currencyapi.com → Dashboard → API key (starts with cur_)."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "latest_rates",
+      "name": "Latest exchange rates",
+      "description": "Current rates from the base currency.",
+      "method": "GET",
+      "endpoint": "/latest",
+      "query": {
+        "base_currency": "{{ inputs.base_currency }}",
+        "currencies": "{{ inputs.currencies }}"
+      },
+      "output_fields": {
+        "rates": "data",
+        "updated_at": "meta.last_updated_at"
+      },
+      "inputs": [
+        {
+          "key": "base_currency",
+          "label": "Base currency",
+          "type": "string",
+          "default": "USD"
+        },
+        {
+          "key": "currencies",
+          "label": "Only these currencies",
+          "type": "string",
+          "placeholder": "EUR,GBP,PKR"
+        }
+      ]
+    },
+    {
+      "key": "historical_rates",
+      "name": "Historical exchange rates",
+      "description": "Rates on a past date.",
+      "method": "GET",
+      "endpoint": "/historical",
+      "query": {
+        "date": "{{ inputs.date }}",
+        "base_currency": "{{ inputs.base_currency }}",
+        "currencies": "{{ inputs.currencies }}"
+      },
+      "output_fields": {
+        "rates": "data"
+      },
+      "inputs": [
+        {
+          "key": "date",
+          "label": "Date (YYYY-MM-DD)",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "base_currency",
+          "label": "Base currency",
+          "type": "string",
+          "default": "USD"
+        },
+        {
+          "key": "currencies",
+          "label": "Only these currencies",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "convert",
+      "name": "Convert amount",
+      "description": "Convert an amount into one or more currencies (paid plans).",
+      "method": "GET",
+      "endpoint": "/convert",
+      "query": {
+        "value": "{{ inputs.value }}",
+        "base_currency": "{{ inputs.base_currency }}",
+        "currencies": "{{ inputs.currencies }}",
+        "date": "{{ inputs.date }}"
+      },
+      "output_fields": {
+        "converted": "data"
+      },
+      "inputs": [
+        {
+          "key": "value",
+          "label": "Amount",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "base_currency",
+          "label": "From currency",
+          "type": "string",
+          "default": "USD"
+        },
+        {
+          "key": "currencies",
+          "label": "To currencies",
+          "type": "string",
+          "required": true,
+          "placeholder": "EUR"
+        },
+        {
+          "key": "date",
+          "label": "On date (optional)",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "list_currencies",
+      "name": "List currencies",
+      "description": "Names, symbols and codes of supported currencies.",
+      "method": "GET",
+      "endpoint": "/currencies",
+      "query": {
+        "currencies": "{{ inputs.currencies }}"
+      },
+      "output_fields": {
+        "currencies": "data"
+      },
+      "inputs": [
+        {
+          "key": "currencies",
+          "label": "Only these currencies",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "check_quota",
+      "name": "Check quota",
+      "description": "How many requests are left this month.",
+      "method": "GET",
+      "endpoint": "/status",
+      "output_fields": {
+        "used": "quotas.month.used",
+        "remaining": "quotas.month.remaining",
+        "total": "quotas.month.total"
+      },
+      "inputs": []
+    }
+  ]
+}

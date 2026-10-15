@@ -1,0 +1,330 @@
+{
+  "key": "lofty",
+  "name": "Lofty",
+  "category": "CRM & Sales",
+  "description": "Add real estate leads, notes and texts in Lofty (formerly Chime) CRM.",
+  "website": "https://lofty.com",
+  "docs_url": "https://api.lofty.com/docs/",
+  "base_url": "https://api.lofty.com/v1.0",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "Authorization",
+    "prefix": "token ",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "In Lofty go to Settings → Integrations → API and copy your API key."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "create_lead",
+      "name": "Create lead",
+      "method": "POST",
+      "endpoint": "/leads",
+      "body": {
+        "firstName": "{{ inputs.first_name }}",
+        "lastName": "{{ inputs.last_name }}",
+        "emails": "{{ inputs.emails }}",
+        "phones": "{{ inputs.phones }}",
+        "leadTypes": [
+          "{{ inputs.lead_type }}"
+        ],
+        "source": "{{ inputs.source }}",
+        "stage": "{{ inputs.stage }}",
+        "tags": "{{ inputs.tags }}",
+        "assignedUserId": "{{ inputs.assigned_user_id }}",
+        "content": "{{ inputs.note }}"
+      },
+      "output_fields": {
+        "lead_id": "leadId"
+      },
+      "inputs": [
+        {
+          "key": "first_name",
+          "label": "First name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string"
+        },
+        {
+          "key": "emails",
+          "label": "Emails",
+          "type": "list"
+        },
+        {
+          "key": "phones",
+          "label": "Phones",
+          "type": "list",
+          "help": "Digits only, e.g. 3479033333."
+        },
+        {
+          "key": "lead_type",
+          "label": "Lead type",
+          "type": "select",
+          "default": "2",
+          "options": [
+            {
+              "value": "2",
+              "label": "Buyer"
+            },
+            {
+              "value": "1",
+              "label": "Seller"
+            },
+            {
+              "value": "5",
+              "label": "Renter"
+            },
+            {
+              "value": "6",
+              "label": "Investor"
+            },
+            {
+              "value": "8",
+              "label": "Homeowner"
+            },
+            {
+              "value": "9",
+              "label": "Landlord"
+            },
+            {
+              "value": "-1",
+              "label": "Other"
+            }
+          ]
+        },
+        {
+          "key": "source",
+          "label": "Source",
+          "type": "string",
+          "default": "FlowForge"
+        },
+        {
+          "key": "stage",
+          "label": "Stage",
+          "type": "string"
+        },
+        {
+          "key": "tags",
+          "label": "Tags",
+          "type": "list"
+        },
+        {
+          "key": "assigned_user_id",
+          "label": "Assign to user ID",
+          "type": "number"
+        },
+        {
+          "key": "note",
+          "label": "Note",
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "key": "update_lead",
+      "name": "Update lead",
+      "method": "PUT",
+      "endpoint": "/leads/{{ inputs.lead_id }}",
+      "body": {
+        "firstName": "{{ inputs.first_name }}",
+        "lastName": "{{ inputs.last_name }}",
+        "stage": "{{ inputs.stage }}",
+        "source": "{{ inputs.source }}",
+        "tagsAdd": "{{ inputs.tags_add }}",
+        "tagsRemove": "{{ inputs.tags_remove }}",
+        "assignedUserId": "{{ inputs.assigned_user_id }}"
+      },
+      "output_fields": {
+        "lead_id": "leadId"
+      },
+      "inputs": [
+        {
+          "key": "lead_id",
+          "label": "Lead ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "first_name",
+          "label": "First name",
+          "type": "string"
+        },
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string"
+        },
+        {
+          "key": "stage",
+          "label": "Stage",
+          "type": "string"
+        },
+        {
+          "key": "source",
+          "label": "Source",
+          "type": "string"
+        },
+        {
+          "key": "tags_add",
+          "label": "Add tags",
+          "type": "list"
+        },
+        {
+          "key": "tags_remove",
+          "label": "Remove tags",
+          "type": "list"
+        },
+        {
+          "key": "assigned_user_id",
+          "label": "Assign to user ID",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "get_lead",
+      "name": "Get lead",
+      "method": "GET",
+      "endpoint": "/leads/{{ inputs.lead_id }}",
+      "output_fields": {
+        "lead_id": "leadId",
+        "stage": "stage"
+      },
+      "inputs": [
+        {
+          "key": "lead_id",
+          "label": "Lead ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "find_leads",
+      "name": "Find leads",
+      "method": "GET",
+      "endpoint": "/leads",
+      "query": {
+        "email": "{{ inputs.email }}",
+        "phone": "{{ inputs.phone }}",
+        "key": "{{ inputs.key }}",
+        "limit": 25
+      },
+      "output_fields": {
+        "leads": "leads",
+        "lead_id": "leads.0.leadId"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string"
+        },
+        {
+          "key": "phone",
+          "label": "Phone",
+          "type": "string"
+        },
+        {
+          "key": "key",
+          "label": "Name, email or phone",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "add_note",
+      "name": "Add note",
+      "method": "POST",
+      "endpoint": "/notes",
+      "body": {
+        "leadId": "{{ inputs.lead_id }}",
+        "content": "{{ inputs.content }}",
+        "isPin": "{{ inputs.pin }}"
+      },
+      "output_fields": {
+        "note_id": "noteId"
+      },
+      "inputs": [
+        {
+          "key": "lead_id",
+          "label": "Lead ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "content",
+          "label": "Note",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "pin",
+          "label": "Pin to top",
+          "type": "boolean",
+          "default": false
+        }
+      ]
+    },
+    {
+      "key": "send_sms",
+      "name": "Send text to lead",
+      "description": "Sends from your Lofty virtual number to the lead's primary phone.",
+      "method": "POST",
+      "endpoint": "/message/sms/send",
+      "body": {
+        "leadId": "{{ inputs.lead_id }}",
+        "content": "{{ inputs.content }}"
+      },
+      "inputs": [
+        {
+          "key": "lead_id",
+          "label": "Lead ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "content",
+          "label": "Message",
+          "type": "text",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_lead",
+      "name": "New lead",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/leads",
+      "query": {
+        "sort": "CreateTime",
+        "desc": "true",
+        "limit": 50
+      },
+      "items_path": "leads",
+      "id_field": "leadId",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

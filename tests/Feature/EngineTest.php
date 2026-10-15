@@ -41,7 +41,8 @@ class EngineTest extends TestCase
         $this->assertDatabaseCount('jobs', 1);
         $this->assertSame('pending', WorkflowExecution::query()->sole()->status);
 
-        $this->artisan('queue:work', ['connection' => 'database', '--stop-when-empty' => true])->assertExitCode(0);
+        // The whole suite runs in one PHP process, so give the worker room above its 128 MB default (a real cron worker is a fresh process).
+        $this->artisan('queue:work', ['connection' => 'database', '--stop-when-empty' => true, '--memory' => 1024])->assertExitCode(0);
 
         $execution = WorkflowExecution::query()->sole();
         $steps = collect($execution->steps)->keyBy('node_id');

@@ -1,0 +1,194 @@
+{
+  "key": "threatfox",
+  "name": "ThreatFox",
+  "category": "Security & IT",
+  "description": "Search abuse.ch ThreatFox for indicators of compromise and malware families.",
+  "brand": "abusech",
+  "website": "https://threatfox.abuse.ch",
+  "docs_url": "https://threatfox.abuse.ch/api/",
+  "base_url": "https://threatfox-api.abuse.ch/api/v1",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "Auth-Key",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "Auth-Key",
+        "type": "password",
+        "required": true,
+        "help": "Sign in at auth.abuse.ch → Optional → API keys → Generate key (free)."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "search_ioc",
+      "name": "Search IOC",
+      "description": "Check whether an IP, domain or URL is a known indicator.",
+      "method": "POST",
+      "endpoint": "/",
+      "body": {
+        "query": "search_ioc",
+        "search_term": "{{ inputs.search_term }}",
+        "exact_match": "{{ inputs.exact_match }}"
+      },
+      "output_fields": {
+        "result": "query_status",
+        "malware": "data.0.malware_printable",
+        "threat_type": "data.0.threat_type",
+        "confidence": "data.0.confidence_level",
+        "matches": "data"
+      },
+      "inputs": [
+        {
+          "key": "search_term",
+          "label": "IP, domain or URL",
+          "type": "string",
+          "required": true,
+          "placeholder": "139.180.203.104"
+        },
+        {
+          "key": "exact_match",
+          "label": "Exact match",
+          "type": "boolean",
+          "default": true
+        }
+      ]
+    },
+    {
+      "key": "search_hash",
+      "name": "Search file hash",
+      "description": "Find indicators linked to a malware file hash.",
+      "method": "POST",
+      "endpoint": "/",
+      "body": {
+        "query": "search_hash",
+        "hash": "{{ inputs.hash }}"
+      },
+      "output_fields": {
+        "result": "query_status",
+        "matches": "data"
+      },
+      "inputs": [
+        {
+          "key": "hash",
+          "label": "MD5 or SHA-256",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "recent_iocs",
+      "name": "Recent IOCs",
+      "description": "List indicators added in the last days.",
+      "method": "POST",
+      "endpoint": "/",
+      "body": {
+        "query": "get_iocs",
+        "days": "{{ inputs.days }}"
+      },
+      "output_fields": {
+        "result": "query_status",
+        "iocs": "data"
+      },
+      "inputs": [
+        {
+          "key": "days",
+          "label": "Days",
+          "type": "number",
+          "required": true,
+          "default": 1,
+          "help": "1 to 7."
+        }
+      ]
+    },
+    {
+      "key": "malware_info",
+      "name": "Malware family IOCs",
+      "description": "List indicators of a malware family.",
+      "method": "POST",
+      "endpoint": "/",
+      "body": {
+        "query": "malwareinfo",
+        "malware": "{{ inputs.malware }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "result": "query_status",
+        "iocs": "data"
+      },
+      "inputs": [
+        {
+          "key": "malware",
+          "label": "Malware family",
+          "type": "string",
+          "required": true,
+          "placeholder": "Cobalt Strike"
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 100
+        }
+      ]
+    },
+    {
+      "key": "tag_info",
+      "name": "Tag IOCs",
+      "description": "List indicators with a tag.",
+      "method": "POST",
+      "endpoint": "/",
+      "body": {
+        "query": "taginfo",
+        "tag": "{{ inputs.tag }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "result": "query_status",
+        "iocs": "data"
+      },
+      "inputs": [
+        {
+          "key": "tag",
+          "label": "Tag",
+          "type": "string",
+          "required": true,
+          "placeholder": "Magecart"
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 100
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_ioc",
+      "name": "New IOC",
+      "type": "polling",
+      "description": "Starts for each indicator newly added to ThreatFox.",
+      "method": "POST",
+      "endpoint": "/",
+      "items_path": "data",
+      "id_field": "id",
+      "body": {
+        "query": "get_iocs",
+        "days": 1
+      },
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

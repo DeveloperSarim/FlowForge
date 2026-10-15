@@ -1,0 +1,266 @@
+{
+  "key": "nowpayments",
+  "name": "NOWPayments",
+  "category": "Payments & Finance",
+  "description": "Accept crypto payments: create invoices and payments, check status and rates.",
+  "website": "https://nowpayments.io",
+  "docs_url": "https://documenter.getpostman.com/view/7907941/2s93JusNJt",
+  "base_url": "https://api.nowpayments.io/v1",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "x-api-key",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "NOWPayments dashboard → Settings → Payments → API keys → Add new key."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "create_invoice",
+      "name": "Create invoice",
+      "description": "Create a hosted crypto payment page the customer can pay in any coin.",
+      "method": "POST",
+      "endpoint": "/invoice",
+      "body": {
+        "price_amount": "{{ inputs.price_amount }}",
+        "price_currency": "{{ inputs.price_currency }}",
+        "pay_currency": "{{ inputs.pay_currency }}",
+        "order_id": "{{ inputs.order_id }}",
+        "order_description": "{{ inputs.order_description }}",
+        "ipn_callback_url": "{{ inputs.ipn_callback_url }}",
+        "success_url": "{{ inputs.success_url }}",
+        "cancel_url": "{{ inputs.cancel_url }}"
+      },
+      "output_fields": {
+        "id": "id",
+        "invoice_url": "invoice_url"
+      },
+      "inputs": [
+        {
+          "key": "price_amount",
+          "label": "Price",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "price_currency",
+          "label": "Price currency",
+          "type": "string",
+          "default": "usd",
+          "help": "Fiat or crypto ticker, e.g. usd, eur, btc."
+        },
+        {
+          "key": "pay_currency",
+          "label": "Pay currency",
+          "type": "string",
+          "placeholder": "btc",
+          "help": "Leave empty to let the customer choose the coin."
+        },
+        {
+          "key": "order_id",
+          "label": "Order ID",
+          "type": "string"
+        },
+        {
+          "key": "order_description",
+          "label": "Description",
+          "type": "string"
+        },
+        {
+          "key": "ipn_callback_url",
+          "label": "Status callback URL",
+          "type": "string",
+          "help": "Paste a FlowForge webhook URL to get payment updates."
+        },
+        {
+          "key": "success_url",
+          "label": "Success URL",
+          "type": "string"
+        },
+        {
+          "key": "cancel_url",
+          "label": "Cancel URL",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "create_payment",
+      "name": "Create payment",
+      "description": "Create a payment and get the deposit address and amount to pay.",
+      "method": "POST",
+      "endpoint": "/payment",
+      "body": {
+        "price_amount": "{{ inputs.price_amount }}",
+        "price_currency": "{{ inputs.price_currency }}",
+        "pay_currency": "{{ inputs.pay_currency }}",
+        "order_id": "{{ inputs.order_id }}",
+        "order_description": "{{ inputs.order_description }}",
+        "ipn_callback_url": "{{ inputs.ipn_callback_url }}"
+      },
+      "output_fields": {
+        "payment_id": "payment_id",
+        "pay_address": "pay_address",
+        "pay_amount": "pay_amount",
+        "payment_status": "payment_status"
+      },
+      "inputs": [
+        {
+          "key": "price_amount",
+          "label": "Price",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "price_currency",
+          "label": "Price currency",
+          "type": "string",
+          "default": "usd"
+        },
+        {
+          "key": "pay_currency",
+          "label": "Pay currency",
+          "type": "string",
+          "required": true,
+          "default": "btc",
+          "help": "Coin the customer pays with, e.g. btc, eth, usdttrc20."
+        },
+        {
+          "key": "order_id",
+          "label": "Order ID",
+          "type": "string"
+        },
+        {
+          "key": "order_description",
+          "label": "Description",
+          "type": "string"
+        },
+        {
+          "key": "ipn_callback_url",
+          "label": "Status callback URL",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "get_payment_status",
+      "name": "Get payment status",
+      "description": "Look up a payment's status and amounts.",
+      "method": "GET",
+      "endpoint": "/payment/{{ inputs.payment_id }}",
+      "output_fields": {
+        "payment_status": "payment_status",
+        "actually_paid": "actually_paid",
+        "pay_currency": "pay_currency",
+        "order_id": "order_id"
+      },
+      "inputs": [
+        {
+          "key": "payment_id",
+          "label": "Payment ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "get_estimate",
+      "name": "Estimate price",
+      "description": "Convert an amount from one currency to another at the current rate.",
+      "method": "GET",
+      "endpoint": "/estimate",
+      "query": {
+        "amount": "{{ inputs.amount }}",
+        "currency_from": "{{ inputs.currency_from }}",
+        "currency_to": "{{ inputs.currency_to }}"
+      },
+      "output_fields": {
+        "estimated_amount": "estimated_amount"
+      },
+      "inputs": [
+        {
+          "key": "amount",
+          "label": "Amount",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "currency_from",
+          "label": "From",
+          "type": "string",
+          "required": true,
+          "default": "usd"
+        },
+        {
+          "key": "currency_to",
+          "label": "To",
+          "type": "string",
+          "required": true,
+          "default": "btc"
+        }
+      ]
+    },
+    {
+      "key": "get_min_amount",
+      "name": "Get minimum amount",
+      "description": "Smallest payment amount accepted for a currency pair.",
+      "method": "GET",
+      "endpoint": "/min-amount",
+      "query": {
+        "currency_from": "{{ inputs.currency_from }}",
+        "currency_to": "{{ inputs.currency_to }}"
+      },
+      "output_fields": {
+        "min_amount": "min_amount"
+      },
+      "inputs": [
+        {
+          "key": "currency_from",
+          "label": "From",
+          "type": "string",
+          "required": true,
+          "default": "btc"
+        },
+        {
+          "key": "currency_to",
+          "label": "To",
+          "type": "string",
+          "required": true,
+          "default": "usd"
+        }
+      ]
+    },
+    {
+      "key": "list_currencies",
+      "name": "List currencies",
+      "description": "Coins available for payments.",
+      "method": "GET",
+      "endpoint": "/currencies",
+      "output_fields": {
+        "currencies": "currencies"
+      },
+      "inputs": []
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Payment status update (IPN)",
+      "type": "webhook",
+      "description": "Paste this URL as the IPN callback URL when you create an invoice or payment.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

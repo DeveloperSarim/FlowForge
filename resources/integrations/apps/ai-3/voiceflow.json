@@ -1,0 +1,160 @@
+{
+  "key": "voiceflow",
+  "name": "Voiceflow",
+  "category": "AI",
+  "description": "Talk to your Voiceflow AI agent and query its knowledge base.",
+  "website": "https://www.voiceflow.com",
+  "docs_url": "https://docs.voiceflow.com/reference/overview",
+  "base_url": "https://general-runtime.voiceflow.com",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "Authorization",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "Voiceflow → your agent → Settings (or Integrations) → API keys → Dialog API key (starts with VF.DM.)."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "send_message",
+      "name": "Send message",
+      "description": "Send the user's message to the agent and get its reply.",
+      "method": "POST",
+      "endpoint": "/state/user/{{ inputs.user_id }}/interact",
+      "timeout": 120,
+      "body": {
+        "action": {
+          "type": "text",
+          "payload": "{{ inputs.message }}"
+        },
+        "config": {
+          "tts": false,
+          "stripSSML": true
+        }
+      },
+      "output_fields": {
+        "text": "*.payload.message"
+      },
+      "inputs": [
+        {
+          "key": "user_id",
+          "label": "User ID",
+          "type": "string",
+          "required": true,
+          "help": "Any ID for the person chatting, e.g. their email or phone number. Keeps each conversation separate."
+        },
+        {
+          "key": "message",
+          "label": "Message",
+          "type": "text",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "launch",
+      "name": "Start conversation",
+      "description": "Start (or restart) the agent's flow and get its greeting.",
+      "method": "POST",
+      "endpoint": "/state/user/{{ inputs.user_id }}/interact",
+      "timeout": 120,
+      "body": {
+        "action": {
+          "type": "launch"
+        },
+        "config": {
+          "tts": false,
+          "stripSSML": true
+        }
+      },
+      "output_fields": {
+        "text": "*.payload.message"
+      },
+      "inputs": [
+        {
+          "key": "user_id",
+          "label": "User ID",
+          "type": "string",
+          "required": true,
+          "help": "Any ID for the person chatting, e.g. their email or phone number. Keeps each conversation separate."
+        }
+      ]
+    },
+    {
+      "key": "update_variables",
+      "name": "Set variables",
+      "description": "Set variables (e.g. name, plan) for a user's conversation.",
+      "method": "PATCH",
+      "endpoint": "/state/user/{{ inputs.user_id }}/variables",
+      "body": "{{ inputs.variables }}",
+      "inputs": [
+        {
+          "key": "user_id",
+          "label": "User ID",
+          "type": "string",
+          "required": true,
+          "help": "Any ID for the person chatting, e.g. their email or phone number. Keeps each conversation separate."
+        },
+        {
+          "key": "variables",
+          "label": "Variables",
+          "type": "keyvalue",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "reset",
+      "name": "Reset conversation",
+      "description": "Clear a user's conversation state.",
+      "method": "DELETE",
+      "endpoint": "/state/user/{{ inputs.user_id }}",
+      "inputs": [
+        {
+          "key": "user_id",
+          "label": "User ID",
+          "type": "string",
+          "required": true,
+          "help": "Any ID for the person chatting, e.g. their email or phone number. Keeps each conversation separate."
+        }
+      ]
+    },
+    {
+      "key": "query_knowledge_base",
+      "name": "Ask knowledge base",
+      "description": "Get an answer from the agent's knowledge base.",
+      "method": "POST",
+      "endpoint": "/knowledge-base/query",
+      "timeout": 120,
+      "body": {
+        "question": "{{ inputs.question }}",
+        "chunkLimit": "{{ inputs.chunk_limit }}",
+        "synthesis": true
+      },
+      "output_fields": {
+        "answer": "output",
+        "chunks": "chunks"
+      },
+      "inputs": [
+        {
+          "key": "question",
+          "label": "Question",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "chunk_limit",
+          "label": "Chunks to use",
+          "type": "number",
+          "default": 3
+        }
+      ]
+    }
+  ]
+}

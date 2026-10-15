@@ -1,0 +1,141 @@
+{
+  "key": "wakatime",
+  "name": "WakaTime",
+  "category": "Productivity",
+  "description": "Automatic coding time tracking: read summaries, stats, projects and durations.",
+  "website": "https://wakatime.com",
+  "docs_url": "https://wakatime.com/developers",
+  "base_url": "https://wakatime.com/api/v1",
+  "auth": {
+    "type": "api_key",
+    "in": "query",
+    "name": "api_key",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "Secret API key",
+        "type": "password",
+        "required": true,
+        "help": "wakatime.com → Settings → Account → Secret API Key."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "get_summaries",
+      "name": "Get summaries",
+      "description": "Daily coding time between two dates.",
+      "method": "GET",
+      "endpoint": "/users/current/summaries",
+      "query": {
+        "start": "{{ inputs.start }}",
+        "end": "{{ inputs.end }}"
+      },
+      "output_fields": {
+        "total": "cumulative_total.text",
+        "seconds": "cumulative_total.seconds"
+      },
+      "inputs": [
+        {
+          "key": "start",
+          "label": "From",
+          "type": "string",
+          "required": true,
+          "placeholder": "2025-01-01"
+        },
+        {
+          "key": "end",
+          "label": "To",
+          "type": "string",
+          "required": true,
+          "placeholder": "2025-01-07"
+        }
+      ]
+    },
+    {
+      "key": "get_stats",
+      "name": "Get stats",
+      "description": "Totals for a period.",
+      "method": "GET",
+      "endpoint": "/users/current/stats/{{ inputs.range }}",
+      "output_fields": {
+        "total": "data.human_readable_total",
+        "seconds": "data.total_seconds",
+        "daily_average": "data.human_readable_daily_average"
+      },
+      "inputs": [
+        {
+          "key": "range",
+          "label": "Period",
+          "type": "select",
+          "required": true,
+          "default": "last_7_days",
+          "options": [
+            {
+              "value": "last_7_days",
+              "label": "Last 7 days"
+            },
+            {
+              "value": "last_30_days",
+              "label": "Last 30 days"
+            },
+            {
+              "value": "last_6_months",
+              "label": "Last 6 months"
+            },
+            {
+              "value": "last_year",
+              "label": "Last year"
+            },
+            {
+              "value": "all_time",
+              "label": "All time"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "list_projects",
+      "name": "List projects",
+      "description": "Projects you coded in.",
+      "method": "GET",
+      "endpoint": "/users/current/projects",
+      "query": {
+        "q": "{{ inputs.q }}"
+      },
+      "output_fields": {
+        "names": "data.*.name"
+      },
+      "inputs": [
+        {
+          "key": "q",
+          "label": "Search",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "get_durations",
+      "name": "Get durations",
+      "description": "Coding sessions of one day.",
+      "method": "GET",
+      "endpoint": "/users/current/durations",
+      "query": {
+        "date": "{{ inputs.date }}"
+      },
+      "output_fields": {
+        "projects": "data.*.project"
+      },
+      "inputs": [
+        {
+          "key": "date",
+          "label": "Date",
+          "type": "string",
+          "required": true,
+          "placeholder": "2025-01-31"
+        }
+      ]
+    }
+  ]
+}

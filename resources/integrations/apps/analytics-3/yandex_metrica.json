@@ -1,0 +1,235 @@
+{
+  "key": "yandex_metrica",
+  "name": "Yandex Metrica",
+  "category": "Analytics",
+  "description": "Query Yandex Metrica visits, pageviews and goals for your sites.",
+  "website": "https://metrica.yandex.com",
+  "docs_url": "https://yandex.com/dev/metrika/en/",
+  "base_url": "https://api-metrika.yandex.net",
+  "auth": [
+    {
+      "type": "oauth2",
+      "authorize_url": "https://oauth.yandex.com/authorize",
+      "token_url": "https://oauth.yandex.com/token",
+      "scopes": [
+        "metrika:read",
+        "metrika:write"
+      ],
+      "token_type": "OAuth",
+      "fields": [
+        {
+          "key": "client_id",
+          "label": "Client ID",
+          "type": "string",
+          "required": true,
+          "help": "Create an app at oauth.yandex.com with Yandex Metrica read/write access."
+        },
+        {
+          "key": "client_secret",
+          "label": "Client secret",
+          "type": "password",
+          "required": true
+        }
+      ]
+    },
+    {
+      "type": "api_key",
+      "in": "header",
+      "name": "Authorization",
+      "prefix": "OAuth ",
+      "fields": [
+        {
+          "key": "api_key",
+          "label": "OAuth token",
+          "type": "password",
+          "required": true,
+          "help": "A Yandex OAuth token with Metrica access (from oauth.yandex.com)."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_counters",
+      "name": "List counters",
+      "description": "All Metrica tags you can access.",
+      "method": "GET",
+      "endpoint": "/management/v1/counters",
+      "output_fields": {
+        "counters": "counters",
+        "ids": "counters.*.id",
+        "names": "counters.*.name"
+      },
+      "inputs": []
+    },
+    {
+      "key": "get_report",
+      "name": "Get report",
+      "description": "Metrics for a date range, optionally grouped.",
+      "method": "GET",
+      "endpoint": "/stat/v1/data",
+      "query": {
+        "ids": "{{ inputs.counter_id }}",
+        "metrics": "{{ inputs.metrics }}",
+        "dimensions": "{{ inputs.dimensions }}",
+        "date1": "{{ inputs.date1 }}",
+        "date2": "{{ inputs.date2 }}",
+        "limit": "{{ inputs.limit }}",
+        "sort": "{{ inputs.sort }}",
+        "filters": "{{ inputs.filters }}"
+      },
+      "output_fields": {
+        "totals": "totals",
+        "rows": "data",
+        "total_rows": "total_rows"
+      },
+      "inputs": [
+        {
+          "key": "counter_id",
+          "label": "Counter (tag) ID",
+          "type": "string",
+          "required": true,
+          "help": "Metrica → your tag: the number next to its name. Or use 'List counters'."
+        },
+        {
+          "key": "metrics",
+          "label": "Metrics",
+          "type": "string",
+          "required": true,
+          "default": "ym:s:visits,ym:s:pageviews,ym:s:users"
+        },
+        {
+          "key": "dimensions",
+          "label": "Group by",
+          "type": "string",
+          "placeholder": "ym:s:trafficSource",
+          "help": "Optional, e.g. ym:s:date or ym:s:trafficSource."
+        },
+        {
+          "key": "date1",
+          "label": "From",
+          "type": "string",
+          "default": "7daysAgo",
+          "help": "YYYY-MM-DD, today, yesterday or NdaysAgo."
+        },
+        {
+          "key": "date2",
+          "label": "To",
+          "type": "string",
+          "default": "today"
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 100
+        },
+        {
+          "key": "sort",
+          "label": "Sort",
+          "type": "string",
+          "placeholder": "-ym:s:visits"
+        },
+        {
+          "key": "filters",
+          "label": "Filter",
+          "type": "string",
+          "placeholder": "ym:s:trafficSource=='organic'"
+        }
+      ]
+    },
+    {
+      "key": "get_report_by_time",
+      "name": "Get report over time",
+      "description": "Metrics per day, week or month.",
+      "method": "GET",
+      "endpoint": "/stat/v1/data/bytime",
+      "query": {
+        "ids": "{{ inputs.counter_id }}",
+        "metrics": "{{ inputs.metrics }}",
+        "date1": "{{ inputs.date1 }}",
+        "date2": "{{ inputs.date2 }}",
+        "group": "{{ inputs.group }}"
+      },
+      "output_fields": {
+        "totals": "totals",
+        "rows": "data",
+        "time_intervals": "time_intervals"
+      },
+      "inputs": [
+        {
+          "key": "counter_id",
+          "label": "Counter (tag) ID",
+          "type": "string",
+          "required": true,
+          "help": "Metrica → your tag: the number next to its name. Or use 'List counters'."
+        },
+        {
+          "key": "metrics",
+          "label": "Metrics",
+          "type": "string",
+          "required": true,
+          "default": "ym:s:visits"
+        },
+        {
+          "key": "date1",
+          "label": "From",
+          "type": "string",
+          "default": "7daysAgo",
+          "help": "YYYY-MM-DD, today, yesterday or NdaysAgo."
+        },
+        {
+          "key": "date2",
+          "label": "To",
+          "type": "string",
+          "default": "today"
+        },
+        {
+          "key": "group",
+          "label": "Group by",
+          "type": "select",
+          "default": "day",
+          "options": [
+            {
+              "value": "day",
+              "label": "Day"
+            },
+            {
+              "value": "week",
+              "label": "Week"
+            },
+            {
+              "value": "month",
+              "label": "Month"
+            },
+            {
+              "value": "hour",
+              "label": "Hour"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "list_goals",
+      "name": "List goals",
+      "description": "Goals set up on a tag.",
+      "method": "GET",
+      "endpoint": "/management/v1/counter/{{ inputs.counter_id }}/goals",
+      "output_fields": {
+        "goals": "goals",
+        "ids": "goals.*.id",
+        "names": "goals.*.name"
+      },
+      "inputs": [
+        {
+          "key": "counter_id",
+          "label": "Counter (tag) ID",
+          "type": "string",
+          "required": true,
+          "help": "Metrica → your tag: the number next to its name. Or use 'List counters'."
+        }
+      ]
+    }
+  ]
+}

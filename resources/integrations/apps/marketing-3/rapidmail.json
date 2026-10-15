@@ -1,0 +1,297 @@
+{
+  "key": "rapidmail",
+  "name": "rapidmail",
+  "category": "Marketing & Email",
+  "description": "German newsletter tool: add, find and remove recipients, list mailings.",
+  "website": "https://www.rapidmail.de",
+  "docs_url": "https://developer.rapidmail.wiki/",
+  "base_url": "https://apiv3.emailsys.net/v1",
+  "auth": {
+    "type": "basic",
+    "fields": [
+      {
+        "key": "username",
+        "label": "API username",
+        "type": "string",
+        "required": true,
+        "help": "rapidmail → Settings (Einstellungen) → API → Create API user. Copy the username (a long hash)."
+      },
+      {
+        "key": "password",
+        "label": "API password",
+        "type": "password",
+        "required": true,
+        "help": "The password hash shown for that API user."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_recipientlists",
+      "name": "List recipient lists",
+      "description": "Your recipient lists and their IDs.",
+      "method": "GET",
+      "endpoint": "/recipientlists",
+      "output_fields": {
+        "lists": "_embedded.recipientlists",
+        "ids": "_embedded.recipientlists.*.id",
+        "names": "_embedded.recipientlists.*.name"
+      },
+      "inputs": []
+    },
+    {
+      "key": "add_recipient",
+      "name": "Add recipient",
+      "description": "Add a recipient to a list, optionally sending the double opt-in email.",
+      "method": "POST",
+      "endpoint": "/recipients",
+      "query": {
+        "send_activationmail": "{{ inputs.send_activationmail }}"
+      },
+      "body": {
+        "recipientlist_id": "{{ inputs.recipientlist_id }}",
+        "email": "{{ inputs.email }}",
+        "firstname": "{{ inputs.firstname }}",
+        "lastname": "{{ inputs.lastname }}",
+        "gender": "{{ inputs.gender }}",
+        "foreign_id": "{{ inputs.foreign_id }}"
+      },
+      "output_fields": {
+        "id": "id",
+        "email": "email",
+        "status": "status"
+      },
+      "inputs": [
+        {
+          "key": "recipientlist_id",
+          "label": "Recipient list ID",
+          "type": "number",
+          "required": true,
+          "help": "Run \"List recipient lists\", or see Recipients → Lists in rapidmail."
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "firstname",
+          "label": "First name",
+          "type": "string"
+        },
+        {
+          "key": "lastname",
+          "label": "Last name",
+          "type": "string"
+        },
+        {
+          "key": "gender",
+          "label": "Gender",
+          "type": "select",
+          "default": "",
+          "options": [
+            {
+              "value": "",
+              "label": "Not set"
+            },
+            {
+              "value": "female",
+              "label": "Female"
+            },
+            {
+              "value": "male",
+              "label": "Male"
+            }
+          ]
+        },
+        {
+          "key": "foreign_id",
+          "label": "Your own ID",
+          "type": "string"
+        },
+        {
+          "key": "send_activationmail",
+          "label": "Send double opt-in email",
+          "type": "select",
+          "default": "yes",
+          "options": [
+            {
+              "value": "yes",
+              "label": "Yes (recipient must confirm)"
+            },
+            {
+              "value": "no",
+              "label": "No (consent already given)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "find_recipient",
+      "name": "Find recipient by email",
+      "description": "Look up a recipient on a list.",
+      "method": "GET",
+      "endpoint": "/recipients",
+      "query": {
+        "recipientlist_id": "{{ inputs.recipientlist_id }}",
+        "email": "{{ inputs.email }}"
+      },
+      "output_fields": {
+        "recipients": "_embedded.recipients",
+        "id": "_embedded.recipients.0.id",
+        "status": "_embedded.recipients.0.status"
+      },
+      "inputs": [
+        {
+          "key": "recipientlist_id",
+          "label": "Recipient list ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "update_recipient",
+      "name": "Update recipient",
+      "description": "Change a recipient's name or other details.",
+      "method": "PATCH",
+      "endpoint": "/recipients/{{ inputs.recipient_id }}",
+      "body": {
+        "email": "{{ inputs.email }}",
+        "firstname": "{{ inputs.firstname }}",
+        "lastname": "{{ inputs.lastname }}",
+        "foreign_id": "{{ inputs.foreign_id }}"
+      },
+      "output_fields": {
+        "id": "id",
+        "email": "email",
+        "status": "status"
+      },
+      "inputs": [
+        {
+          "key": "recipient_id",
+          "label": "Recipient ID",
+          "type": "string",
+          "required": true,
+          "help": "From an \"Add recipient\" or \"Find recipient\" step."
+        },
+        {
+          "key": "email",
+          "label": "New email",
+          "type": "string"
+        },
+        {
+          "key": "firstname",
+          "label": "First name",
+          "type": "string"
+        },
+        {
+          "key": "lastname",
+          "label": "Last name",
+          "type": "string"
+        },
+        {
+          "key": "foreign_id",
+          "label": "Your own ID",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "delete_recipient",
+      "name": "Unsubscribe recipient",
+      "description": "Remove a recipient from the list (counts as an unsubscribe).",
+      "method": "DELETE",
+      "endpoint": "/recipients/{{ inputs.recipient_id }}",
+      "query": {
+        "track_unsubscription": "yes"
+      },
+      "inputs": [
+        {
+          "key": "recipient_id",
+          "label": "Recipient ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_mailings",
+      "name": "List mailings",
+      "description": "Your newsletters, optionally filtered by status.",
+      "method": "GET",
+      "endpoint": "/mailings",
+      "query": {
+        "status": "{{ inputs.status }}"
+      },
+      "output_fields": {
+        "mailings": "_embedded.mailings",
+        "total": "total_items"
+      },
+      "inputs": [
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "default": "",
+          "options": [
+            {
+              "value": "",
+              "label": "All"
+            },
+            {
+              "value": "draft",
+              "label": "Draft"
+            },
+            {
+              "value": "scheduled",
+              "label": "Scheduled"
+            },
+            {
+              "value": "sent",
+              "label": "Sent"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_recipient",
+      "name": "New recipient",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/recipients",
+      "query": {
+        "recipientlist_id": "{{ inputs.recipientlist_id }}",
+        "sort_by": "created",
+        "sort_order": "desc"
+      },
+      "items_path": "_embedded.recipients",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "recipientlist_id",
+          "label": "Recipient list ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

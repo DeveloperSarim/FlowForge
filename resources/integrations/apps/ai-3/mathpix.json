@@ -1,0 +1,129 @@
+{
+  "key": "mathpix",
+  "name": "Mathpix",
+  "category": "AI",
+  "description": "OCR for math, tables and documents: turn images and PDFs into text, LaTeX or Markdown.",
+  "website": "https://mathpix.com",
+  "docs_url": "https://docs.mathpix.com",
+  "base_url": "https://api.mathpix.com/v3",
+  "headers": {
+    "app_id": "{{ credentials.app_id }}"
+  },
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "app_key",
+    "fields": [
+      {
+        "key": "app_id",
+        "label": "App ID",
+        "type": "string",
+        "required": true,
+        "help": "console.mathpix.com → Organization → API Keys (shown above your keys)."
+      },
+      {
+        "key": "api_key",
+        "label": "App key",
+        "type": "password",
+        "required": true,
+        "help": "console.mathpix.com → Organization → API Keys → Create key."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "image_to_text",
+      "name": "Read image",
+      "description": "Read text, equations and tables from an image.",
+      "method": "POST",
+      "endpoint": "/text",
+      "timeout": 120,
+      "body": {
+        "src": "{{ inputs.src }}",
+        "formats": [
+          "text",
+          "latex_styled"
+        ]
+      },
+      "output_fields": {
+        "text": "text",
+        "latex": "latex_styled",
+        "confidence": "confidence"
+      },
+      "error_path": "error",
+      "inputs": [
+        {
+          "key": "src",
+          "label": "Image URL",
+          "type": "string",
+          "required": true,
+          "help": "A public image URL (or a data:image/…;base64 string)."
+        }
+      ]
+    },
+    {
+      "key": "convert_pdf",
+      "name": "Convert PDF",
+      "description": "Start converting a PDF; check it with Get PDF status.",
+      "method": "POST",
+      "endpoint": "/pdf",
+      "body": {
+        "url": "{{ inputs.url }}",
+        "conversion_formats": {
+          "docx": "{{ inputs.docx }}"
+        }
+      },
+      "output_fields": {
+        "pdf_id": "pdf_id"
+      },
+      "error_path": "error",
+      "inputs": [
+        {
+          "key": "url",
+          "label": "PDF URL",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "docx",
+          "label": "Also make Word (.docx)",
+          "type": "boolean"
+        }
+      ]
+    },
+    {
+      "key": "get_pdf_status",
+      "name": "Get PDF status",
+      "description": "Check how far a PDF conversion is.",
+      "method": "GET",
+      "endpoint": "/pdf/{{ inputs.pdf_id }}",
+      "output_fields": {
+        "status": "status",
+        "percent_done": "percent_done"
+      },
+      "inputs": [
+        {
+          "key": "pdf_id",
+          "label": "PDF ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "get_pdf_markdown",
+      "name": "Get PDF as Markdown",
+      "description": "Download a finished conversion as Mathpix Markdown text.",
+      "method": "GET",
+      "endpoint": "/pdf/{{ inputs.pdf_id }}.mmd",
+      "inputs": [
+        {
+          "key": "pdf_id",
+          "label": "PDF ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ]
+}

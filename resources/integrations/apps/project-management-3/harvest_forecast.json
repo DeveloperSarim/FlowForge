@@ -1,0 +1,166 @@
+{
+  "key": "harvest_forecast",
+  "name": "Harvest Forecast",
+  "category": "Project Management",
+  "description": "Resource planning: projects, people, clients and scheduled assignments.",
+  "website": "https://www.getharvest.com/forecast",
+  "docs_url": "https://help.getharvest.com/forecast/faqs/faq-central/forecast-api/",
+  "base_url": "https://api.forecastapp.com",
+  "headers": {
+    "Forecast-Account-Id": "{{ credentials.account_id }}"
+  },
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "account_id",
+        "label": "Forecast account ID",
+        "type": "string",
+        "required": true,
+        "help": "Forecast → URL: forecastapp.com/<this number>/schedule. Digits only."
+      },
+      {
+        "key": "token",
+        "label": "Personal access token",
+        "type": "password",
+        "required": true,
+        "help": "id.getharvest.com/developers → Create new personal access token."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_projects",
+      "name": "List projects",
+      "description": "Forecast projects.",
+      "method": "GET",
+      "endpoint": "/projects",
+      "output_fields": {
+        "names": "projects.*.name",
+        "ids": "projects.*.id"
+      },
+      "inputs": []
+    },
+    {
+      "key": "list_people",
+      "name": "List people",
+      "description": "People you schedule.",
+      "method": "GET",
+      "endpoint": "/people",
+      "output_fields": {
+        "names": "people.*.first_name",
+        "ids": "people.*.id"
+      },
+      "inputs": []
+    },
+    {
+      "key": "list_clients",
+      "name": "List clients",
+      "description": "Clients.",
+      "method": "GET",
+      "endpoint": "/clients",
+      "output_fields": {
+        "names": "clients.*.name",
+        "ids": "clients.*.id"
+      },
+      "inputs": []
+    },
+    {
+      "key": "list_assignments",
+      "name": "List assignments",
+      "description": "Scheduled work in a date range.",
+      "method": "GET",
+      "endpoint": "/assignments",
+      "query": {
+        "start_date": "{{ inputs.start_date }}",
+        "end_date": "{{ inputs.end_date }}",
+        "project_id": "{{ inputs.project_id }}",
+        "person_id": "{{ inputs.person_id }}"
+      },
+      "output_fields": {
+        "ids": "assignments.*.id"
+      },
+      "inputs": [
+        {
+          "key": "start_date",
+          "label": "From",
+          "type": "string",
+          "placeholder": "2025-01-01"
+        },
+        {
+          "key": "end_date",
+          "label": "To",
+          "type": "string",
+          "placeholder": "2025-01-31"
+        },
+        {
+          "key": "project_id",
+          "label": "Project ID",
+          "type": "string"
+        },
+        {
+          "key": "person_id",
+          "label": "Person ID",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "create_assignment",
+      "name": "Create assignment",
+      "description": "Schedule a person on a project.",
+      "method": "POST",
+      "endpoint": "/assignments",
+      "body": {
+        "assignment": {
+          "project_id": "{{ inputs.project_id }}",
+          "person_id": "{{ inputs.person_id }}",
+          "start_date": "{{ inputs.start_date }}",
+          "end_date": "{{ inputs.end_date }}",
+          "allocation": "{{ inputs.allocation }}"
+        }
+      },
+      "output_fields": {
+        "id": "assignment.id"
+      },
+      "inputs": [
+        {
+          "key": "project_id",
+          "label": "Project ID",
+          "type": "number",
+          "required": true,
+          "help": "Use \"List projects\"."
+        },
+        {
+          "key": "person_id",
+          "label": "Person ID",
+          "type": "number",
+          "required": true,
+          "help": "Use \"List people\"."
+        },
+        {
+          "key": "start_date",
+          "label": "Start",
+          "type": "string",
+          "required": true,
+          "placeholder": "2025-01-01"
+        },
+        {
+          "key": "end_date",
+          "label": "End",
+          "type": "string",
+          "required": true,
+          "placeholder": "2025-01-31"
+        },
+        {
+          "key": "allocation",
+          "label": "Seconds per day",
+          "type": "number",
+          "required": true,
+          "default": 28800,
+          "help": "8 hours = 28800."
+        }
+      ]
+    }
+  ]
+}

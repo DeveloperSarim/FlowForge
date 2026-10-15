@@ -1,0 +1,256 @@
+{
+  "key": "mailslurp",
+  "name": "MailSlurp",
+  "category": "Developer Tools",
+  "description": "Create test inboxes, send emails and wait for incoming messages.",
+  "brand": "mailslurp",
+  "website": "https://www.mailslurp.com",
+  "docs_url": "https://docs.mailslurp.com/api/",
+  "base_url": "https://api.mailslurp.com",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "x-api-key",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "MailSlurp dashboard → API keys (shown on the home page)."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "create_inbox",
+      "name": "Create inbox",
+      "description": "Create a new email address you can receive mail at.",
+      "method": "POST",
+      "endpoint": "/inboxes",
+      "query": {
+        "name": "{{ inputs.name }}",
+        "expiresIn": "{{ inputs.expires_in }}"
+      },
+      "output_fields": {
+        "inbox_id": "id",
+        "email_address": "emailAddress"
+      },
+      "inputs": [
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string"
+        },
+        {
+          "key": "expires_in",
+          "label": "Expires in (ms)",
+          "type": "number",
+          "help": "Optional; leave empty to keep the inbox."
+        }
+      ]
+    },
+    {
+      "key": "send_email",
+      "name": "Send email",
+      "description": "Send an email from an inbox.",
+      "method": "POST",
+      "endpoint": "/inboxes/{{ inputs.inbox_id }}",
+      "body": {
+        "to": "{{ inputs.to }}",
+        "subject": "{{ inputs.subject }}",
+        "body": "{{ inputs.body }}",
+        "isHTML": "{{ inputs.is_html }}"
+      },
+      "inputs": [
+        {
+          "key": "inbox_id",
+          "label": "Inbox ID",
+          "type": "string",
+          "required": true,
+          "help": "Returned by Create inbox."
+        },
+        {
+          "key": "to",
+          "label": "To",
+          "type": "list",
+          "required": true
+        },
+        {
+          "key": "subject",
+          "label": "Subject",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "body",
+          "label": "Body",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "is_html",
+          "label": "Body is HTML",
+          "type": "boolean",
+          "default": false
+        }
+      ]
+    },
+    {
+      "key": "wait_for_latest_email",
+      "name": "Wait for email",
+      "description": "Return the latest email, waiting for one to arrive if the inbox is empty.",
+      "method": "GET",
+      "endpoint": "/waitForLatestEmail",
+      "query": {
+        "inboxId": "{{ inputs.inbox_id }}",
+        "timeout": "{{ inputs.timeout_ms }}",
+        "unreadOnly": "{{ inputs.unread_only }}"
+      },
+      "timeout": 150,
+      "output_fields": {
+        "email_id": "id",
+        "subject": "subject",
+        "from": "from",
+        "body": "body"
+      },
+      "inputs": [
+        {
+          "key": "inbox_id",
+          "label": "Inbox ID",
+          "type": "string",
+          "required": true,
+          "help": "Returned by Create inbox."
+        },
+        {
+          "key": "timeout_ms",
+          "label": "Wait up to (ms)",
+          "type": "number",
+          "default": 60000
+        },
+        {
+          "key": "unread_only",
+          "label": "Unread only",
+          "type": "boolean",
+          "default": true
+        }
+      ]
+    },
+    {
+      "key": "get_email",
+      "name": "Get email",
+      "description": "Get an email with its body.",
+      "method": "GET",
+      "endpoint": "/emails/{{ inputs.email_id }}",
+      "output_fields": {
+        "subject": "subject",
+        "from": "from",
+        "body": "body"
+      },
+      "inputs": [
+        {
+          "key": "email_id",
+          "label": "Email ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_emails",
+      "name": "List emails",
+      "description": "List emails, newest first.",
+      "method": "GET",
+      "endpoint": "/emails",
+      "query": {
+        "inboxId": "{{ inputs.inbox_id }}",
+        "unreadOnly": "{{ inputs.unread_only }}",
+        "size": "{{ inputs.size }}",
+        "sort": "DESC"
+      },
+      "output_fields": {
+        "emails": "content"
+      },
+      "inputs": [
+        {
+          "key": "inbox_id",
+          "label": "Inbox ID",
+          "type": "string",
+          "help": "Leave empty for all inboxes."
+        },
+        {
+          "key": "unread_only",
+          "label": "Unread only",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "key": "size",
+          "label": "Page size",
+          "type": "number",
+          "default": 20
+        }
+      ]
+    },
+    {
+      "key": "delete_inbox",
+      "name": "Delete inbox",
+      "description": "Delete an inbox and its emails.",
+      "method": "DELETE",
+      "endpoint": "/inboxes/{{ inputs.inbox_id }}",
+      "inputs": [
+        {
+          "key": "inbox_id",
+          "label": "Inbox ID",
+          "type": "string",
+          "required": true,
+          "help": "Returned by Create inbox."
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_email",
+      "name": "New email",
+      "type": "polling",
+      "description": "Starts when an email arrives.",
+      "method": "GET",
+      "endpoint": "/emails",
+      "query": {
+        "inboxId": "{{ inputs.inbox_id }}",
+        "sort": "DESC",
+        "size": 20
+      },
+      "items_path": "content",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "inbox_id",
+          "label": "Inbox ID",
+          "type": "string",
+          "help": "Leave empty for all inboxes."
+        },
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    },
+    {
+      "key": "webhook_event",
+      "name": "Webhook (email received)",
+      "type": "webhook",
+      "description": "Add the webhook URL to an inbox in MailSlurp → Webhooks.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,167 @@
+{
+  "key": "jfrog_artifactory",
+  "name": "JFrog Artifactory",
+  "category": "Developer Tools",
+  "description": "Search artifacts, list repositories and builds in JFrog Artifactory.",
+  "brand": "jfrog",
+  "website": "https://jfrog.com/artifactory/",
+  "docs_url": "https://jfrog.com/help/r/jfrog-rest-apis/artifactory-rest-apis",
+  "base_url": "{{ credentials.server_url }}/artifactory/api",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "server_url",
+        "label": "Platform URL",
+        "type": "string",
+        "required": true,
+        "placeholder": "https://mycompany.jfrog.io",
+        "help": "Your JFrog address without a trailing slash."
+      },
+      {
+        "key": "token",
+        "label": "Access token",
+        "type": "password",
+        "required": true,
+        "help": "JFrog Platform → your profile → Edit profile → Generate an Identity Token (or Administration → Access Tokens)."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_repositories",
+      "name": "List repositories",
+      "description": "List repositories, optionally by type.",
+      "method": "GET",
+      "endpoint": "/repositories",
+      "query": {
+        "type": "{{ inputs.type }}"
+      },
+      "inputs": [
+        {
+          "key": "type",
+          "label": "Type",
+          "type": "select",
+          "options": [
+            {
+              "value": "local",
+              "label": "Local"
+            },
+            {
+              "value": "remote",
+              "label": "Remote"
+            },
+            {
+              "value": "virtual",
+              "label": "Virtual"
+            },
+            {
+              "value": "federated",
+              "label": "Federated"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "get_repository",
+      "name": "Get repository settings",
+      "description": "Get a repository's configuration.",
+      "method": "GET",
+      "endpoint": "/repositories/{{ inputs.repo_key }}",
+      "output_fields": {
+        "key": "key",
+        "package_type": "packageType",
+        "rclass": "rclass"
+      },
+      "inputs": [
+        {
+          "key": "repo_key",
+          "label": "Repository key",
+          "type": "string",
+          "required": true,
+          "placeholder": "libs-release-local"
+        }
+      ]
+    },
+    {
+      "key": "search_artifacts",
+      "name": "Search artifacts by name",
+      "description": "Find artifacts by file name.",
+      "method": "GET",
+      "endpoint": "/search/artifact",
+      "query": {
+        "name": "{{ inputs.name }}",
+        "repos": "{{ inputs.repos }}"
+      },
+      "output_fields": {
+        "results": "results"
+      },
+      "inputs": [
+        {
+          "key": "name",
+          "label": "File name",
+          "type": "string",
+          "required": true,
+          "placeholder": "my-app-*.jar",
+          "help": "Wildcards * and ? are allowed."
+        },
+        {
+          "key": "repos",
+          "label": "Repositories",
+          "type": "string",
+          "placeholder": "libs-release-local,libs-snapshot-local"
+        }
+      ]
+    },
+    {
+      "key": "search_by_checksum",
+      "name": "Search by checksum",
+      "description": "Find artifacts with a given SHA-256 checksum.",
+      "method": "GET",
+      "endpoint": "/search/checksum",
+      "query": {
+        "sha256": "{{ inputs.sha256 }}",
+        "repos": "{{ inputs.repos }}"
+      },
+      "output_fields": {
+        "results": "results"
+      },
+      "inputs": [
+        {
+          "key": "sha256",
+          "label": "SHA-256",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "repos",
+          "label": "Repositories",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "list_builds",
+      "name": "List builds",
+      "description": "List the builds published to Artifactory.",
+      "method": "GET",
+      "endpoint": "/build",
+      "output_fields": {
+        "builds": "builds"
+      },
+      "inputs": []
+    },
+    {
+      "key": "get_storage_info",
+      "name": "Get storage summary",
+      "description": "Get storage usage per repository.",
+      "method": "GET",
+      "endpoint": "/storageinfo",
+      "output_fields": {
+        "repositories": "repositoriesSummaryList"
+      },
+      "inputs": []
+    }
+  ]
+}

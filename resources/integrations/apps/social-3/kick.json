@@ -1,0 +1,205 @@
+{
+  "key": "kick",
+  "name": "Kick",
+  "category": "Social Media",
+  "description": "Read Kick channels, update your stream title, send chat messages, get stream events.",
+  "website": "https://kick.com",
+  "docs_url": "https://docs.kick.com/",
+  "base_url": "https://api.kick.com/public/v1",
+  "auth": {
+    "type": "oauth2",
+    "authorize_url": "https://id.kick.com/oauth/authorize",
+    "token_url": "https://id.kick.com/oauth/token",
+    "pkce": true,
+    "scopes": [
+      "user:read",
+      "channel:read",
+      "channel:write",
+      "chat:write",
+      "events:subscribe"
+    ],
+    "profile": {
+      "endpoint": "/users",
+      "store": {
+        "broadcaster_user_id": "{{ data.0.user_id }}",
+        "account_name": "{{ data.0.name }}"
+      }
+    }
+  },
+  "actions": [
+    {
+      "key": "get_me",
+      "name": "Get my account",
+      "method": "GET",
+      "endpoint": "/users",
+      "output_fields": {
+        "user_id": "data.0.user_id",
+        "name": "data.0.name",
+        "email": "data.0.email"
+      },
+      "inputs": []
+    },
+    {
+      "key": "get_channel",
+      "name": "Get channel",
+      "method": "GET",
+      "endpoint": "/channels",
+      "query": {
+        "slug": "{{ inputs.slug }}"
+      },
+      "output_fields": {
+        "broadcaster_user_id": "data.0.broadcaster_user_id",
+        "title": "data.0.stream_title",
+        "is_live": "data.0.stream.is_live",
+        "viewers": "data.0.stream.viewer_count",
+        "category": "data.0.category.name"
+      },
+      "inputs": [
+        {
+          "key": "slug",
+          "label": "Channel name",
+          "type": "string",
+          "help": "As in kick.com/<name>. Leave blank for your own channel."
+        }
+      ]
+    },
+    {
+      "key": "update_stream",
+      "name": "Update stream title or category",
+      "method": "PATCH",
+      "endpoint": "/channels",
+      "body": {
+        "stream_title": "{{ inputs.stream_title }}",
+        "category_id": "{{ inputs.category_id }}"
+      },
+      "inputs": [
+        {
+          "key": "stream_title",
+          "label": "Stream title",
+          "type": "string"
+        },
+        {
+          "key": "category_id",
+          "label": "Category ID",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "send_chat_message",
+      "name": "Send chat message",
+      "method": "POST",
+      "endpoint": "/chat",
+      "body": {
+        "content": "{{ inputs.content }}",
+        "type": "{{ inputs.type }}",
+        "broadcaster_user_id": "{{ inputs.broadcaster_user_id }}"
+      },
+      "output_fields": {
+        "sent": "data.is_sent",
+        "message_id": "data.message_id"
+      },
+      "inputs": [
+        {
+          "key": "content",
+          "label": "Message (max 500)",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "broadcaster_user_id",
+          "label": "Channel user ID",
+          "type": "number",
+          "fallback": "credentials.broadcaster_user_id",
+          "help": "Leave blank for your own channel."
+        },
+        {
+          "key": "type",
+          "label": "Send as",
+          "type": "select",
+          "default": "user",
+          "options": [
+            {
+              "value": "user",
+              "label": "My account"
+            },
+            {
+              "value": "bot",
+              "label": "My app's bot"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "subscribe_event",
+      "name": "Subscribe to event",
+      "description": "Kick then sends this event to your app's webhook URL.",
+      "method": "POST",
+      "endpoint": "/events/subscriptions",
+      "body": {
+        "events": [
+          {
+            "name": "{{ inputs.event }}",
+            "version": 1
+          }
+        ],
+        "method": "webhook",
+        "broadcaster_user_id": "{{ inputs.broadcaster_user_id }}"
+      },
+      "inputs": [
+        {
+          "key": "event",
+          "label": "Event",
+          "type": "select",
+          "required": true,
+          "default": "channel.followed",
+          "options": [
+            {
+              "value": "channel.followed",
+              "label": "New follower"
+            },
+            {
+              "value": "channel.subscription.new",
+              "label": "New subscription"
+            },
+            {
+              "value": "channel.subscription.gifts",
+              "label": "Gifted subscriptions"
+            },
+            {
+              "value": "chat.message.sent",
+              "label": "Chat message"
+            },
+            {
+              "value": "livestream.status.updated",
+              "label": "Stream started or ended"
+            }
+          ]
+        },
+        {
+          "key": "broadcaster_user_id",
+          "label": "Channel user ID",
+          "type": "number",
+          "fallback": "credentials.broadcaster_user_id",
+          "help": "Leave blank for your own channel."
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Channel event",
+      "type": "webhook",
+      "description": "Set this URL as the webhook URL of your Kick app, then use 'Subscribe to event'.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

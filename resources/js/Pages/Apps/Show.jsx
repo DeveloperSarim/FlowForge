@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { Link, router } from '@inertiajs/react';
-import { ArrowLeft, BookOpen, ExternalLink, KeyRound, Play, Zap } from 'lucide-react';
+import { ArrowLeft, BookOpen, ExternalLink, KeyRound, Play, Puzzle, RefreshCw, Trash2, Zap } from 'lucide-react';
 import AppLayout from '@/Layouts/AppLayout';
 import IntegrationIcon from '@/Components/IntegrationIcon';
+import Markdown from '@/Components/Markdown';
 import TemplateCard from '@/Components/TemplateCard';
-import { Badge, Button, Card } from '@/Components/ui';
+import { Badge, Button, Card, ConfirmButton } from '@/Components/ui';
 import { categoryMeta } from '@/lib/categories';
 import { useCan } from '@/lib/can';
 
@@ -33,7 +34,13 @@ export default function Show({ app, credentials, templates }) {
                             <Badge className="gap-1.5"><meta.icon className="size-3" style={{ color: meta.color }} />{app.category}</Badge>
                         </Link>
                     </div>
-                    <p className="mt-1 max-w-2xl text-[14px] text-fg-muted">{app.description}</p>
+                    <Markdown text={app.description} className="mt-1 max-w-2xl text-[14px] text-fg-muted" />
+                    {app.custom && (
+                        <p className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[12.5px] text-fg-muted">
+                            <span className="inline-flex items-center gap-1.5 font-medium text-primary"><Puzzle className="size-3.5" />Custom app on this install</span>
+                            {app.used_by.length > 0 && <span>Used by {app.used_by.map((w) => w.name).join(', ')}</span>}
+                        </p>
+                    )}
                     <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-[13px] text-fg-muted">
                         {app.auth.length > 0 && <span className="inline-flex items-center gap-1.5"><KeyRound className="size-3.5" />{app.auth.map((a) => AUTH_LABELS[a] ?? a).join(' or ')}</span>}
                         {app.website && <a href={app.website} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 hover:text-primary">Website<ExternalLink className="size-3" /></a>}
@@ -44,6 +51,14 @@ export default function Show({ app, credentials, templates }) {
                 <div className="flex flex-wrap gap-2">
                     {can['workflows.edit'] && app.auth.length > 0 && <Button onClick={() => router.visit(`/credentials?new=${app.key}`)}><KeyRound className="size-4" />{credentials.length ? 'Add another credential' : 'Add credential'}</Button>}
                     {can['workflows.edit'] && app.actions[0] && <Button variant="primary" loading={creating === app.actions[0].key} onClick={() => startWith(app.actions[0])}><Play className="size-3.5" />Use in a workflow</Button>}
+                    {app.custom && app.openapi_url && can['workflows.edit'] && (
+                        <Button loading={creating === 'openapi'} onClick={() => { setCreating('openapi'); router.post('/apps/custom', { source: app.openapi_url, name: app.name }, { onFinish: () => setCreating(null) }); }}>
+                            <RefreshCw className="size-3.5" />Update from OpenAPI
+                        </Button>
+                    )}
+                    {app.custom && can['workflows.delete'] && app.used_by.length === 0 && (
+                        <ConfirmButton onConfirm={() => router.delete(`/apps/custom/${app.key}`)} confirmLabel="Click again to delete this app"><Trash2 className="size-3.5" />Delete</ConfirmButton>
+                    )}
                 </div>
             </Card>
 
@@ -55,7 +70,7 @@ export default function Show({ app, credentials, templates }) {
                             <li key={action.key} className="group flex items-center gap-4 px-5 py-3">
                                 <div className="min-w-0 flex-1">
                                     <p className="text-[13.5px] font-medium">{action.name}</p>
-                                    {action.description && <p className="mt-0.5 text-[12.5px] text-fg-muted">{action.description}</p>}
+                                    <Markdown text={action.description} className="mt-0.5 text-[12.5px] text-fg-muted" />
                                 </div>
                                 {can['workflows.edit'] && <Button size="sm" variant="ghost" className="opacity-0 group-hover:opacity-100 focus:opacity-100 pointer-coarse:opacity-100" loading={creating === action.key} onClick={() => startWith(action)}>Use</Button>}
                             </li>
@@ -74,7 +89,9 @@ export default function Show({ app, credentials, templates }) {
                                         <Zap className="mt-0.5 size-4 shrink-0 text-warn" />
                                         <div>
                                             <p className="text-[13.5px] font-medium">{t.name}</p>
-                                            <p className="text-[12.5px] text-fg-muted">{t.type === 'polling' ? 'Checks for new items on a schedule' : t.type === 'webhook' ? 'Instant, via a webhook URL you paste into the app' : t.description}</p>
+                                            {t.type === 'polling' || t.type === 'webhook'
+                                                ? <p className="text-[12.5px] text-fg-muted">{t.type === 'polling' ? 'Checks for new items on a schedule' : 'Instant, via a webhook URL you paste into the app'}</p>
+                                                : <Markdown text={t.description} className="text-[12.5px] text-fg-muted" />}
                                         </div>
                                     </li>
                                 ))}

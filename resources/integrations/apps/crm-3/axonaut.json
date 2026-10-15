@@ -1,0 +1,360 @@
+{
+  "key": "axonaut",
+  "name": "Axonaut",
+  "category": "CRM & Sales",
+  "description": "Add companies, contacts, opportunities and activities in the Axonaut CRM.",
+  "website": "https://axonaut.com",
+  "docs_url": "https://axonaut.com/api/v2/doc",
+  "base_url": "https://axonaut.com/api/v2",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "userApiKey",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "In Axonaut open Settings → API and copy your API key."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "create_company",
+      "name": "Create company",
+      "method": "POST",
+      "endpoint": "/companies",
+      "body": {
+        "name": "{{ inputs.name }}",
+        "is_prospect": "{{ inputs.is_prospect }}",
+        "is_customer": "{{ inputs.is_customer }}",
+        "address_street": "{{ inputs.address_street }}",
+        "address_zip_code": "{{ inputs.address_zip_code }}",
+        "address_city": "{{ inputs.address_city }}",
+        "address_country": "{{ inputs.address_country }}",
+        "comments": "{{ inputs.comments }}",
+        "internal_id": "{{ inputs.internal_id }}"
+      },
+      "output_fields": {
+        "id": "id",
+        "name": "name"
+      },
+      "inputs": [
+        {
+          "key": "name",
+          "label": "Company name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "is_prospect",
+          "label": "Prospect",
+          "type": "boolean",
+          "default": true
+        },
+        {
+          "key": "is_customer",
+          "label": "Customer",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "key": "address_street",
+          "label": "Street",
+          "type": "string"
+        },
+        {
+          "key": "address_zip_code",
+          "label": "Postal code",
+          "type": "string"
+        },
+        {
+          "key": "address_city",
+          "label": "City",
+          "type": "string"
+        },
+        {
+          "key": "address_country",
+          "label": "Country",
+          "type": "string"
+        },
+        {
+          "key": "comments",
+          "label": "Comments",
+          "type": "text"
+        },
+        {
+          "key": "internal_id",
+          "label": "Your own ID",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "get_company",
+      "name": "Get company",
+      "method": "GET",
+      "endpoint": "/companies/{{ inputs.company_id }}",
+      "output_fields": {
+        "id": "id",
+        "name": "name"
+      },
+      "inputs": [
+        {
+          "key": "company_id",
+          "label": "Company ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "search_companies",
+      "name": "Search companies",
+      "method": "GET",
+      "endpoint": "/companies",
+      "query": {
+        "search": "{{ inputs.search }}",
+        "type": "{{ inputs.type }}"
+      },
+      "output_fields": {
+        "id": "0.id",
+        "name": "0.name"
+      },
+      "inputs": [
+        {
+          "key": "search",
+          "label": "Search text",
+          "type": "string",
+          "required": true,
+          "help": "Name or other text to search for."
+        },
+        {
+          "key": "type",
+          "label": "Type",
+          "type": "select",
+          "default": "all",
+          "options": [
+            {
+              "value": "all",
+              "label": "All"
+            },
+            {
+              "value": "customer",
+              "label": "Customers"
+            },
+            {
+              "value": "prospect",
+              "label": "Prospects"
+            },
+            {
+              "value": "supplier",
+              "label": "Suppliers"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "create_contact",
+      "name": "Create contact",
+      "description": "Adds a person (employee) to a company.",
+      "method": "POST",
+      "endpoint": "/employees",
+      "body": {
+        "company_id": "{{ inputs.company_id }}",
+        "firstname": "{{ inputs.firstname }}",
+        "lastname": "{{ inputs.lastname }}",
+        "email": "{{ inputs.email }}",
+        "phone_number": "{{ inputs.phone_number }}",
+        "cellphone_number": "{{ inputs.cellphone_number }}"
+      },
+      "output_fields": {
+        "id": "id",
+        "email": "email"
+      },
+      "inputs": [
+        {
+          "key": "company_id",
+          "label": "Company ID",
+          "type": "number",
+          "required": true,
+          "help": "ID of the company this person works for (from Create or Search companies)."
+        },
+        {
+          "key": "firstname",
+          "label": "First name",
+          "type": "string"
+        },
+        {
+          "key": "lastname",
+          "label": "Last name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string"
+        },
+        {
+          "key": "phone_number",
+          "label": "Phone",
+          "type": "string"
+        },
+        {
+          "key": "cellphone_number",
+          "label": "Mobile",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "create_opportunity",
+      "name": "Create opportunity",
+      "method": "POST",
+      "endpoint": "/opportunities",
+      "body": {
+        "company_id": "{{ inputs.company_id }}",
+        "name": "{{ inputs.name }}",
+        "amount": "{{ inputs.amount }}",
+        "probability": "{{ inputs.probability }}",
+        "pipe_name": "{{ inputs.pipe_name }}",
+        "pipe_step_name": "{{ inputs.pipe_step_name }}",
+        "comments": "{{ inputs.comments }}"
+      },
+      "output_fields": {
+        "id": "id",
+        "name": "name"
+      },
+      "inputs": [
+        {
+          "key": "company_id",
+          "label": "Company ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "name",
+          "label": "Opportunity name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "amount",
+          "label": "Amount",
+          "type": "number"
+        },
+        {
+          "key": "probability",
+          "label": "Probability (%)",
+          "type": "number"
+        },
+        {
+          "key": "pipe_name",
+          "label": "Pipeline name",
+          "type": "string"
+        },
+        {
+          "key": "pipe_step_name",
+          "label": "Pipeline step name",
+          "type": "string"
+        },
+        {
+          "key": "comments",
+          "label": "Comments",
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "key": "create_event",
+      "name": "Log activity",
+      "description": "Adds a meeting, call, email or note to a company's history.",
+      "method": "POST",
+      "endpoint": "/events",
+      "body": {
+        "company_id": "{{ inputs.company_id }}",
+        "title": "{{ inputs.title }}",
+        "content": "{{ inputs.content }}",
+        "nature": "{{ inputs.nature }}",
+        "date": "{{ inputs.date }}",
+        "duration": "{{ inputs.duration }}",
+        "employee_email": "{{ inputs.employee_email }}"
+      },
+      "output_fields": {
+        "id": "id"
+      },
+      "inputs": [
+        {
+          "key": "company_id",
+          "label": "Company ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "content",
+          "label": "Details",
+          "type": "text"
+        },
+        {
+          "key": "nature",
+          "label": "Type",
+          "type": "select",
+          "default": "6",
+          "options": [
+            {
+              "value": "1",
+              "label": "Meeting"
+            },
+            {
+              "value": "2",
+              "label": "Email"
+            },
+            {
+              "value": "3",
+              "label": "Phone call"
+            },
+            {
+              "value": "4",
+              "label": "Mail"
+            },
+            {
+              "value": "5",
+              "label": "Text message"
+            },
+            {
+              "value": "6",
+              "label": "Note"
+            }
+          ]
+        },
+        {
+          "key": "date",
+          "label": "Date",
+          "type": "string",
+          "placeholder": "2026-01-31T14:00:00+01:00"
+        },
+        {
+          "key": "duration",
+          "label": "Duration (minutes)",
+          "type": "number"
+        },
+        {
+          "key": "employee_email",
+          "label": "Contact email",
+          "type": "string",
+          "help": "Links the activity to this contact."
+        }
+      ]
+    }
+  ]
+}

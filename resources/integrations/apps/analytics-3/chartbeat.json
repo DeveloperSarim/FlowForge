@@ -1,0 +1,199 @@
+{
+  "key": "chartbeat",
+  "name": "Chartbeat",
+  "category": "Analytics",
+  "description": "Get real-time top pages, concurrent readers and referrers from Chartbeat.",
+  "website": "https://chartbeat.com",
+  "docs_url": "https://docs.chartbeat.com/cbp/api/real-time-apis/traffic-data",
+  "base_url": "https://api.chartbeat.com",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "X-CB-AK",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "Chartbeat → Settings (gear) → API Keys → create a key with access to your site."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "get_top_pages",
+      "name": "Get top pages",
+      "description": "Pages with the most concurrent readers right now.",
+      "method": "GET",
+      "endpoint": "/live/toppages/v3/",
+      "query": {
+        "host": "{{ inputs.host }}",
+        "limit": "{{ inputs.limit }}",
+        "section": "{{ inputs.section }}",
+        "author": "{{ inputs.author }}",
+        "sort_by": "{{ inputs.sort_by }}"
+      },
+      "output_fields": {
+        "pages": "pages",
+        "paths": "pages.*.path",
+        "titles": "pages.*.title"
+      },
+      "inputs": [
+        {
+          "key": "host",
+          "label": "Site",
+          "type": "string",
+          "required": true,
+          "placeholder": "example.com",
+          "help": "Your site ID in Chartbeat, usually the domain."
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 10
+        },
+        {
+          "key": "section",
+          "label": "Section",
+          "type": "string"
+        },
+        {
+          "key": "author",
+          "label": "Author",
+          "type": "string"
+        },
+        {
+          "key": "sort_by",
+          "label": "Sort by",
+          "type": "select",
+          "options": [
+            {
+              "value": "engaged_time",
+              "label": "Engaged time"
+            },
+            {
+              "value": "new",
+              "label": "New visitors"
+            },
+            {
+              "value": "returning",
+              "label": "Returning visitors"
+            },
+            {
+              "value": "social",
+              "label": "Social"
+            },
+            {
+              "value": "search",
+              "label": "Search"
+            },
+            {
+              "value": "direct",
+              "label": "Direct"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "get_quickstats",
+      "name": "Get live stats",
+      "description": "Current visitors and engagement for the site or one page.",
+      "method": "GET",
+      "endpoint": "/live/quickstats/v4/",
+      "query": {
+        "host": "{{ inputs.host }}",
+        "path": "{{ inputs.path }}",
+        "section": "{{ inputs.section }}"
+      },
+      "output_fields": {
+        "stats": "data.stats",
+        "concurrents": "data.stats.people"
+      },
+      "inputs": [
+        {
+          "key": "host",
+          "label": "Site",
+          "type": "string",
+          "required": true,
+          "placeholder": "example.com",
+          "help": "Your site ID in Chartbeat, usually the domain."
+        },
+        {
+          "key": "path",
+          "label": "Path",
+          "type": "string",
+          "placeholder": "/news/story",
+          "help": "Only this page. Leave empty for the whole site."
+        },
+        {
+          "key": "section",
+          "label": "Section",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "get_referrers",
+      "name": "Get referrers",
+      "description": "Top referring sites right now.",
+      "method": "GET",
+      "endpoint": "/live/referrers/v3/",
+      "query": {
+        "host": "{{ inputs.host }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "referrers": "referrers"
+      },
+      "inputs": [
+        {
+          "key": "host",
+          "label": "Site",
+          "type": "string",
+          "required": true,
+          "placeholder": "example.com",
+          "help": "Your site ID in Chartbeat, usually the domain."
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 10
+        }
+      ]
+    },
+    {
+      "key": "get_top_geo",
+      "name": "Get top locations",
+      "description": "Where current readers are located.",
+      "method": "GET",
+      "endpoint": "/live/top_geo/v1/",
+      "query": {
+        "host": "{{ inputs.host }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "geo": "geo"
+      },
+      "inputs": [
+        {
+          "key": "host",
+          "label": "Site",
+          "type": "string",
+          "required": true,
+          "placeholder": "example.com",
+          "help": "Your site ID in Chartbeat, usually the domain."
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 10
+        }
+      ]
+    }
+  ]
+}

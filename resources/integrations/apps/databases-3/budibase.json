@@ -1,0 +1,171 @@
+{
+  "key": "budibase",
+  "name": "Budibase",
+  "category": "Databases",
+  "description": "Search, create, update and delete rows in Budibase apps and tables.",
+  "website": "https://budibase.com",
+  "docs_url": "https://docs.budibase.com/docs/public-api",
+  "base_url": "https://budibase.app/api/public/v1",
+  "headers": {
+    "x-budibase-app-id": "{{ credentials.app_id }}"
+  },
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "x-budibase-api-key",
+    "fields": [
+      {
+        "key": "app_id",
+        "label": "App ID",
+        "type": "string",
+        "required": true,
+        "help": "Open your app in the builder; the ID starts with app_ in the address.",
+        "placeholder": "app_abc123"
+      },
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "In Budibase click your profile → Settings → Developer → API key (copy it)."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "search_tables",
+      "name": "Find tables",
+      "description": "Find tables in the app by name.",
+      "method": "POST",
+      "endpoint": "/tables/search",
+      "body": {
+        "name": "{{ inputs.name }}"
+      },
+      "output_fields": {
+        "tables": "data",
+        "first_id": "data.0._id"
+      },
+      "inputs": [
+        {
+          "key": "name",
+          "label": "Name contains",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "search_rows",
+      "name": "Search rows",
+      "description": "Find rows in a table.",
+      "method": "POST",
+      "endpoint": "/tables/{{ inputs.table_id }}/rows/search",
+      "body": {
+        "query": "{{ inputs.query }}"
+      },
+      "output_fields": {
+        "rows": "data",
+        "first_id": "data.0._id"
+      },
+      "inputs": [
+        {
+          "key": "table_id",
+          "label": "Table ID",
+          "type": "string",
+          "required": true,
+          "help": "Use 'Find tables' to look it up."
+        },
+        {
+          "key": "query",
+          "label": "Query (JSON)",
+          "type": "json",
+          "help": "Example: {\"string\": {\"name\": \"Ada\"}}. Leave blank for all rows."
+        }
+      ]
+    },
+    {
+      "key": "create_row",
+      "name": "Create row",
+      "description": "Add a row to a table.",
+      "method": "POST",
+      "endpoint": "/tables/{{ inputs.table_id }}/rows",
+      "body": "{{ inputs.fields }}",
+      "output_fields": {
+        "id": "data._id",
+        "row": "data"
+      },
+      "inputs": [
+        {
+          "key": "table_id",
+          "label": "Table ID",
+          "type": "string",
+          "required": true,
+          "help": "Use 'Find tables' to look it up."
+        },
+        {
+          "key": "fields",
+          "label": "Fields (JSON)",
+          "type": "json",
+          "required": true,
+          "help": "Column names with values, e.g. {\"name\": \"Ada\"}"
+        }
+      ]
+    },
+    {
+      "key": "update_row",
+      "name": "Update row",
+      "description": "Change a row.",
+      "method": "PUT",
+      "endpoint": "/tables/{{ inputs.table_id }}/rows/{{ inputs.row_id }}",
+      "body": "{{ inputs.fields }}",
+      "output_fields": {
+        "id": "data._id"
+      },
+      "inputs": [
+        {
+          "key": "table_id",
+          "label": "Table ID",
+          "type": "string",
+          "required": true,
+          "help": "Use 'Find tables' to look it up."
+        },
+        {
+          "key": "row_id",
+          "label": "Row ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "fields",
+          "label": "Fields (JSON)",
+          "type": "json",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "delete_row",
+      "name": "Delete row",
+      "description": "Delete a row.",
+      "method": "DELETE",
+      "endpoint": "/tables/{{ inputs.table_id }}/rows/{{ inputs.row_id }}",
+      "output_fields": {
+        "id": "data._id"
+      },
+      "inputs": [
+        {
+          "key": "table_id",
+          "label": "Table ID",
+          "type": "string",
+          "required": true,
+          "help": "Use 'Find tables' to look it up."
+        },
+        {
+          "key": "row_id",
+          "label": "Row ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ]
+}

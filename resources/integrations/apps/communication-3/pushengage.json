@@ -1,0 +1,173 @@
+{
+  "key": "pushengage",
+  "name": "PushEngage",
+  "category": "Communication",
+  "description": "Send or schedule web push notifications to PushEngage subscribers and segments.",
+  "website": "https://www.pushengage.com",
+  "docs_url": "https://www.pushengage.com/api/rest-api/",
+  "base_url": "https://api.pushengage.com/apiv1",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "Api-Key",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "PushEngage → Site Settings → Site Details → API Key."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "send_notification",
+      "name": "Send push notification",
+      "method": "POST",
+      "endpoint": "/notifications",
+      "body": {
+        "notification_title": "{{ inputs.notification_title }}",
+        "notification_message": "{{ inputs.notification_message }}",
+        "notification_url": "{{ inputs.notification_url }}",
+        "image_url": "{{ inputs.image_url }}",
+        "big_image_url": "{{ inputs.big_image_url }}",
+        "include_segments": "{{ inputs.include_segments }}",
+        "notification_type": "now"
+      },
+      "body_format": "form",
+      "output_fields": {
+        "notification_id": "notification_id",
+        "success": "success",
+        "message": "message"
+      },
+      "inputs": [
+        {
+          "key": "notification_title",
+          "label": "Title (max 85)",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "notification_message",
+          "label": "Message (max 135)",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "notification_url",
+          "label": "Link URL",
+          "type": "string",
+          "required": true,
+          "placeholder": "https://example.com/sale"
+        },
+        {
+          "key": "image_url",
+          "label": "Icon URL",
+          "type": "string"
+        },
+        {
+          "key": "big_image_url",
+          "label": "Large image URL",
+          "type": "string"
+        },
+        {
+          "key": "include_segments",
+          "label": "Only these segment IDs",
+          "type": "list",
+          "help": "Leave blank to send to everyone. Get IDs with 'List segments'."
+        }
+      ]
+    },
+    {
+      "key": "schedule_notification",
+      "name": "Schedule push notification",
+      "method": "POST",
+      "endpoint": "/notifications",
+      "body": {
+        "notification_title": "{{ inputs.notification_title }}",
+        "notification_message": "{{ inputs.notification_message }}",
+        "notification_url": "{{ inputs.notification_url }}",
+        "image_url": "{{ inputs.image_url }}",
+        "big_image_url": "{{ inputs.big_image_url }}",
+        "include_segments": "{{ inputs.include_segments }}",
+        "notification_type": "later",
+        "valid_from_utc": "{{ inputs.valid_from_utc }}"
+      },
+      "body_format": "form",
+      "output_fields": {
+        "notification_id": "notification_id",
+        "success": "success",
+        "message": "message"
+      },
+      "inputs": [
+        {
+          "key": "notification_title",
+          "label": "Title (max 85)",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "notification_message",
+          "label": "Message (max 135)",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "notification_url",
+          "label": "Link URL",
+          "type": "string",
+          "required": true,
+          "placeholder": "https://example.com/sale"
+        },
+        {
+          "key": "image_url",
+          "label": "Icon URL",
+          "type": "string"
+        },
+        {
+          "key": "big_image_url",
+          "label": "Large image URL",
+          "type": "string"
+        },
+        {
+          "key": "include_segments",
+          "label": "Only these segment IDs",
+          "type": "list",
+          "help": "Leave blank to send to everyone. Get IDs with 'List segments'."
+        },
+        {
+          "key": "valid_from_utc",
+          "label": "Send at (UTC)",
+          "type": "string",
+          "required": true,
+          "placeholder": "2026-12-01 09:00:00",
+          "help": "Format YYYY-MM-DD HH:mm:ss in UTC."
+        }
+      ]
+    },
+    {
+      "key": "list_segments",
+      "name": "List segments",
+      "method": "GET",
+      "endpoint": "/segments",
+      "query": {
+        "limit": "{{ inputs.limit }}",
+        "segment_type": "all"
+      },
+      "output_fields": {
+        "segments": "segments",
+        "segment_ids": "segments.*.segment_id",
+        "segment_names": "segments.*.segment_name"
+      },
+      "inputs": [
+        {
+          "key": "limit",
+          "label": "Max results",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    }
+  ]
+}

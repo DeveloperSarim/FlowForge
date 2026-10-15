@@ -1,0 +1,199 @@
+{
+  "key": "sensibo",
+  "name": "Sensibo",
+  "category": "IoT & Smart Home",
+  "description": "Control Sensibo smart air conditioners: read temperature and humidity, set the AC.",
+  "website": "https://sensibo.com",
+  "docs_url": "https://sensibo.github.io/",
+  "base_url": "https://home.sensibo.com/api/v2",
+  "auth": {
+    "type": "api_key",
+    "in": "query",
+    "name": "apiKey",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "Sensibo app or home.sensibo.com > Account > API: create and copy a key."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_devices",
+      "name": "List devices",
+      "description": "Get your Sensibo devices.",
+      "method": "GET",
+      "endpoint": "/users/me/pods",
+      "query": {
+        "fields": "id,room"
+      },
+      "output_fields": {
+        "ids": "result.*.id",
+        "rooms": "result.*.room.name"
+      },
+      "inputs": []
+    },
+    {
+      "key": "get_measurements",
+      "name": "Get measurements",
+      "description": "Current temperature and humidity.",
+      "method": "GET",
+      "endpoint": "/pods/{{ inputs.device_id }}/measurements",
+      "output_fields": {
+        "temperature": "result.0.temperature",
+        "humidity": "result.0.humidity"
+      },
+      "inputs": [
+        {
+          "key": "device_id",
+          "label": "Device ID",
+          "type": "string",
+          "required": true,
+          "help": "The id from List devices."
+        }
+      ]
+    },
+    {
+      "key": "get_ac_state",
+      "name": "Get AC state",
+      "description": "Current AC settings.",
+      "method": "GET",
+      "endpoint": "/pods/{{ inputs.device_id }}/acStates",
+      "query": {
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "on": "result.0.acState.on",
+        "mode": "result.0.acState.mode",
+        "target": "result.0.acState.targetTemperature"
+      },
+      "inputs": [
+        {
+          "key": "device_id",
+          "label": "Device ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "limit",
+          "label": "Entries",
+          "type": "number",
+          "default": 1
+        }
+      ]
+    },
+    {
+      "key": "set_ac_state",
+      "name": "Set AC state",
+      "description": "Turn the AC on/off and set mode and temperature.",
+      "method": "POST",
+      "endpoint": "/pods/{{ inputs.device_id }}/acStates",
+      "body": {
+        "acState": {
+          "on": "{{ inputs.on }}",
+          "mode": "{{ inputs.mode }}",
+          "targetTemperature": "{{ inputs.target_temperature }}",
+          "temperatureUnit": "{{ inputs.temperature_unit }}",
+          "fanLevel": "{{ inputs.fan_level }}"
+        }
+      },
+      "output_fields": {
+        "status": "status"
+      },
+      "inputs": [
+        {
+          "key": "device_id",
+          "label": "Device ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "on",
+          "label": "Power on",
+          "type": "boolean",
+          "required": true,
+          "default": true
+        },
+        {
+          "key": "mode",
+          "label": "Mode",
+          "type": "select",
+          "default": "cool",
+          "options": [
+            {
+              "value": "cool",
+              "label": "Cool"
+            },
+            {
+              "value": "heat",
+              "label": "Heat"
+            },
+            {
+              "value": "fan",
+              "label": "Fan"
+            },
+            {
+              "value": "dry",
+              "label": "Dry"
+            },
+            {
+              "value": "auto",
+              "label": "Auto"
+            }
+          ]
+        },
+        {
+          "key": "target_temperature",
+          "label": "Target temperature",
+          "type": "number"
+        },
+        {
+          "key": "temperature_unit",
+          "label": "Unit",
+          "type": "select",
+          "default": "C",
+          "options": [
+            {
+              "value": "C",
+              "label": "Celsius"
+            },
+            {
+              "value": "F",
+              "label": "Fahrenheit"
+            }
+          ]
+        },
+        {
+          "key": "fan_level",
+          "label": "Fan level",
+          "type": "select",
+          "options": [
+            {
+              "value": "",
+              "label": "Unchanged"
+            },
+            {
+              "value": "auto",
+              "label": "Auto"
+            },
+            {
+              "value": "low",
+              "label": "Low"
+            },
+            {
+              "value": "medium",
+              "label": "Medium"
+            },
+            {
+              "value": "high",
+              "label": "High"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

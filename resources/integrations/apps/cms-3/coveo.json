@@ -1,0 +1,105 @@
+{
+  "key": "coveo",
+  "name": "Coveo",
+  "category": "CMS & Websites",
+  "description": "Run Coveo site and enterprise searches and list your search sources.",
+  "website": "https://www.coveo.com",
+  "docs_url": "https://docs.coveo.com/en/13/api-reference/search-api",
+  "base_url": "https://platform.cloud.coveo.com/rest",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "organization_id",
+        "label": "Organization ID",
+        "type": "string",
+        "required": true,
+        "help": "In the Coveo Administration Console it is shown under Organization → Organization settings.",
+        "placeholder": "myorg123abc"
+      },
+      {
+        "key": "token",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "Administration Console → Organization → API keys → Add key (give it Search and Source view access)."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "search",
+      "name": "Search",
+      "description": "Run a search query against your Coveo index.",
+      "method": "POST",
+      "endpoint": "/search/v2",
+      "body": {
+        "q": "{{ inputs.q }}",
+        "aq": "{{ inputs.filter }}",
+        "numberOfResults": "{{ inputs.results }}"
+      },
+      "query": {
+        "organizationId": "{{ credentials.organization_id }}"
+      },
+      "output_fields": {
+        "results": "results",
+        "total": "totalCount",
+        "first_title": "results.0.title",
+        "first_url": "results.0.clickUri"
+      },
+      "inputs": [
+        {
+          "key": "q",
+          "label": "Search text",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "filter",
+          "label": "Advanced filter",
+          "type": "string",
+          "help": "Coveo advanced query, e.g. @source==\"Blog\""
+        },
+        {
+          "key": "results",
+          "label": "Max results",
+          "type": "number",
+          "default": 10
+        }
+      ]
+    },
+    {
+      "key": "list_sources",
+      "name": "List sources",
+      "description": "List the content sources feeding your index.",
+      "method": "GET",
+      "endpoint": "/organizations/{{ credentials.organization_id }}/sources",
+      "output_fields": {
+        "first_id": "0.id",
+        "first_name": "0.name"
+      },
+      "inputs": []
+    },
+    {
+      "key": "get_source",
+      "name": "Get source",
+      "description": "Read one source's configuration and status.",
+      "method": "GET",
+      "endpoint": "/organizations/{{ credentials.organization_id }}/sources/{{ inputs.source_id }}",
+      "output_fields": {
+        "name": "name",
+        "type": "sourceType",
+        "status": "information.sourceStatus.type"
+      },
+      "inputs": [
+        {
+          "key": "source_id",
+          "label": "Source ID",
+          "type": "string",
+          "required": true,
+          "help": "Use 'List sources' to find it."
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,176 @@
+{
+  "key": "adalo",
+  "name": "Adalo",
+  "category": "CMS & Websites",
+  "description": "Read, add, update and delete records in your Adalo app collections.",
+  "website": "https://www.adalo.com",
+  "docs_url": "https://help.adalo.com/integrations/the-adalo-api",
+  "base_url": "https://api.adalo.com/v0/apps/{{ credentials.app_id }}",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "app_id",
+        "label": "App ID",
+        "type": "string",
+        "required": true,
+        "help": "Adalo → your app → Settings → App Access → the App ID is shown there.",
+        "placeholder": "abc123-def456"
+      },
+      {
+        "key": "token",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "Same place: Settings → App Access → Generate API key (needs a paid plan)."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_records",
+      "name": "List records",
+      "description": "Read records from a collection.",
+      "method": "GET",
+      "endpoint": "/collections/{{ inputs.collection_id }}",
+      "query": {
+        "limit": "{{ inputs.limit }}",
+        "offset": "{{ inputs.offset }}"
+      },
+      "output_fields": {
+        "records": "records",
+        "first_id": "records.0.id"
+      },
+      "inputs": [
+        {
+          "key": "collection_id",
+          "label": "Collection ID",
+          "type": "string",
+          "required": true,
+          "help": "Adalo → your app → Database → open a collection; the ID is in the address."
+        },
+        {
+          "key": "limit",
+          "label": "How many",
+          "type": "number",
+          "default": 100
+        },
+        {
+          "key": "offset",
+          "label": "Start at",
+          "type": "number",
+          "default": 0
+        }
+      ]
+    },
+    {
+      "key": "get_record",
+      "name": "Get record",
+      "description": "Read one record.",
+      "method": "GET",
+      "endpoint": "/collections/{{ inputs.collection_id }}/{{ inputs.record_id }}",
+      "output_fields": {
+        "id": "id"
+      },
+      "inputs": [
+        {
+          "key": "collection_id",
+          "label": "Collection ID",
+          "type": "string",
+          "required": true,
+          "help": "Adalo → your app → Database → open a collection; the ID is in the address."
+        },
+        {
+          "key": "record_id",
+          "label": "Record ID",
+          "type": "number",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "create_record",
+      "name": "Create record",
+      "description": "Add a record. Use property names as keys.",
+      "method": "POST",
+      "endpoint": "/collections/{{ inputs.collection_id }}",
+      "body": "{{ inputs.fields }}",
+      "output_fields": {
+        "id": "id"
+      },
+      "inputs": [
+        {
+          "key": "collection_id",
+          "label": "Collection ID",
+          "type": "string",
+          "required": true,
+          "help": "Adalo → your app → Database → open a collection; the ID is in the address."
+        },
+        {
+          "key": "fields",
+          "label": "Fields (JSON)",
+          "type": "json",
+          "required": true,
+          "help": "Example: {\"Name\": \"Ada\", \"Email\": \"ada@example.com\"}"
+        }
+      ]
+    },
+    {
+      "key": "update_record",
+      "name": "Update record",
+      "description": "Change a record.",
+      "method": "PUT",
+      "endpoint": "/collections/{{ inputs.collection_id }}/{{ inputs.record_id }}",
+      "body": "{{ inputs.fields }}",
+      "output_fields": {
+        "id": "id"
+      },
+      "inputs": [
+        {
+          "key": "collection_id",
+          "label": "Collection ID",
+          "type": "string",
+          "required": true,
+          "help": "Adalo → your app → Database → open a collection; the ID is in the address."
+        },
+        {
+          "key": "record_id",
+          "label": "Record ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "fields",
+          "label": "Fields (JSON)",
+          "type": "json",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "delete_record",
+      "name": "Delete record",
+      "description": "Delete a record.",
+      "method": "DELETE",
+      "endpoint": "/collections/{{ inputs.collection_id }}/{{ inputs.record_id }}",
+      "output_fields": {
+        "id": "id"
+      },
+      "inputs": [
+        {
+          "key": "collection_id",
+          "label": "Collection ID",
+          "type": "string",
+          "required": true,
+          "help": "Adalo → your app → Database → open a collection; the ID is in the address."
+        },
+        {
+          "key": "record_id",
+          "label": "Record ID",
+          "type": "number",
+          "required": true
+        }
+      ]
+    }
+  ]
+}

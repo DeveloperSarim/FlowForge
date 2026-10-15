@@ -1,0 +1,177 @@
+{
+  "key": "softr",
+  "name": "Softr",
+  "category": "CMS & Websites",
+  "description": "Read, add and update records in Softr databases that power your Softr apps.",
+  "website": "https://www.softr.io",
+  "docs_url": "https://docs.softr.io/softr-api",
+  "base_url": "https://tables-api.softr.io/api/v1",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "Softr-Api-Key",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "In Softr open Settings → Softr API (or Account → API keys) and copy your key."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_databases",
+      "name": "List databases",
+      "description": "List your Softr databases.",
+      "method": "GET",
+      "endpoint": "/databases",
+      "output_fields": {
+        "databases": "data",
+        "first_id": "data.0.id"
+      },
+      "inputs": []
+    },
+    {
+      "key": "list_tables",
+      "name": "List tables",
+      "description": "List tables in a database.",
+      "method": "GET",
+      "endpoint": "/databases/{{ inputs.database_id }}/tables",
+      "output_fields": {
+        "tables": "data",
+        "first_id": "data.0.id"
+      },
+      "inputs": [
+        {
+          "key": "database_id",
+          "label": "Database ID",
+          "type": "string",
+          "required": true,
+          "help": "Use 'List databases' to find it."
+        }
+      ]
+    },
+    {
+      "key": "list_records",
+      "name": "List records",
+      "description": "Read records from a table.",
+      "method": "GET",
+      "endpoint": "/databases/{{ inputs.database_id }}/tables/{{ inputs.table_id }}/records",
+      "query": {
+        "limit": "{{ inputs.limit }}",
+        "offset": "{{ inputs.offset }}"
+      },
+      "output_fields": {
+        "records": "data",
+        "first_id": "data.0.id"
+      },
+      "inputs": [
+        {
+          "key": "database_id",
+          "label": "Database ID",
+          "type": "string",
+          "required": true,
+          "help": "Use 'List databases' to find it."
+        },
+        {
+          "key": "table_id",
+          "label": "Table ID",
+          "type": "string",
+          "required": true,
+          "help": "Use 'List tables' to find it."
+        },
+        {
+          "key": "limit",
+          "label": "How many",
+          "type": "number",
+          "default": 50
+        },
+        {
+          "key": "offset",
+          "label": "Start at",
+          "type": "number",
+          "default": 0
+        }
+      ]
+    },
+    {
+      "key": "create_record",
+      "name": "Create record",
+      "description": "Add a record. Use field IDs as names.",
+      "method": "POST",
+      "endpoint": "/databases/{{ inputs.database_id }}/tables/{{ inputs.table_id }}/records",
+      "body": {
+        "fields": "{{ inputs.fields }}"
+      },
+      "output_fields": {
+        "id": "data.id"
+      },
+      "inputs": [
+        {
+          "key": "database_id",
+          "label": "Database ID",
+          "type": "string",
+          "required": true,
+          "help": "Use 'List databases' to find it."
+        },
+        {
+          "key": "table_id",
+          "label": "Table ID",
+          "type": "string",
+          "required": true,
+          "help": "Use 'List tables' to find it."
+        },
+        {
+          "key": "fields",
+          "label": "Fields (JSON)",
+          "type": "json",
+          "required": true,
+          "help": "Field IDs with values, e.g. {\"abc123\": \"Hello\"}"
+        }
+      ]
+    },
+    {
+      "key": "update_record",
+      "name": "Update record",
+      "description": "Change a record.",
+      "method": "PATCH",
+      "endpoint": "/databases/{{ inputs.database_id }}/tables/{{ inputs.table_id }}/records/{{ inputs.record_id }}",
+      "body": {
+        "fields": "{{ inputs.fields }}"
+      },
+      "output_fields": {
+        "id": "data.id"
+      },
+      "inputs": [
+        {
+          "key": "database_id",
+          "label": "Database ID",
+          "type": "string",
+          "required": true,
+          "help": "Use 'List databases' to find it."
+        },
+        {
+          "key": "table_id",
+          "label": "Table ID",
+          "type": "string",
+          "required": true,
+          "help": "Use 'List tables' to find it."
+        },
+        {
+          "key": "record_id",
+          "label": "Record ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "fields",
+          "label": "Fields (JSON)",
+          "type": "json",
+          "required": true
+        }
+      ]
+    }
+  ]
+}

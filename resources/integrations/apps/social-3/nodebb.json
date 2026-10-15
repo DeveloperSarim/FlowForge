@@ -1,0 +1,171 @@
+{
+  "key": "nodebb",
+  "name": "NodeBB",
+  "category": "Social Media",
+  "description": "Create topics and replies on your NodeBB forum and catch new topics.",
+  "website": "https://nodebb.org",
+  "docs_url": "https://docs.nodebb.org/api/write/",
+  "base_url": "{{ credentials.base_url }}/api/v3",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "base_url",
+        "label": "Forum address",
+        "type": "string",
+        "required": true,
+        "placeholder": "https://forum.example.com",
+        "help": "No trailing slash."
+      },
+      {
+        "key": "token",
+        "label": "API token",
+        "type": "password",
+        "required": true,
+        "help": "Admin → Settings → API Access → create a token for a user."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "create_topic",
+      "name": "Create topic",
+      "method": "POST",
+      "endpoint": "/topics",
+      "body": {
+        "cid": "{{ inputs.cid }}",
+        "title": "{{ inputs.title }}",
+        "content": "{{ inputs.content }}",
+        "tags": "{{ inputs.tags }}"
+      },
+      "output_fields": {
+        "tid": "response.tid",
+        "slug": "response.slug",
+        "main_pid": "response.mainPid"
+      },
+      "inputs": [
+        {
+          "key": "cid",
+          "label": "Category ID",
+          "type": "number",
+          "required": true,
+          "help": "The number in the category's link, e.g. /category/5/news."
+        },
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "content",
+          "label": "Content",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "tags",
+          "label": "Tags",
+          "type": "list"
+        }
+      ]
+    },
+    {
+      "key": "reply_to_topic",
+      "name": "Reply to topic",
+      "method": "POST",
+      "endpoint": "/topics/{{ inputs.tid }}",
+      "body": {
+        "content": "{{ inputs.content }}",
+        "toPid": "{{ inputs.toPid }}"
+      },
+      "output_fields": {
+        "pid": "response.pid",
+        "tid": "response.tid"
+      },
+      "inputs": [
+        {
+          "key": "tid",
+          "label": "Topic ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "content",
+          "label": "Reply",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "toPid",
+          "label": "In reply to post ID",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "get_topic",
+      "name": "Get topic",
+      "method": "GET",
+      "endpoint": "/topics/{{ inputs.tid }}",
+      "inputs": [
+        {
+          "key": "tid",
+          "label": "Topic ID",
+          "type": "number",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_category_topics",
+      "name": "List topics in category",
+      "method": "GET",
+      "endpoint": "/categories/{{ inputs.cid }}/topics",
+      "query": {
+        "categoryTopicSort": "newest_to_oldest"
+      },
+      "output_fields": {
+        "topics": "response.topics",
+        "latest_tid": "response.topics.0.tid",
+        "latest_title": "response.topics.0.title"
+      },
+      "inputs": [
+        {
+          "key": "cid",
+          "label": "Category ID",
+          "type": "number",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_topic",
+      "name": "New topic in category",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/categories/{{ inputs.cid }}/topics",
+      "query": {
+        "categoryTopicSort": "newest_to_oldest"
+      },
+      "items_path": "response.topics",
+      "id_field": "tid",
+      "inputs": [
+        {
+          "key": "cid",
+          "label": "Category ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

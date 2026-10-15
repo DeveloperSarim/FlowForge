@@ -1,0 +1,240 @@
+{
+  "key": "senja",
+  "name": "Senja",
+  "category": "Social Media",
+  "description": "Collect, approve and list Senja testimonials, and catch new ones.",
+  "website": "https://senja.io",
+  "docs_url": "https://support.senja.io/senja-for-developers/rest-api",
+  "base_url": "https://api.senja.io/v1",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "Senja → Automate → API (Pro plan) → copy the API key."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_testimonials",
+      "name": "List testimonials",
+      "method": "GET",
+      "endpoint": "/testimonials",
+      "query": {
+        "sort": "date",
+        "order": "desc",
+        "approved": "{{ inputs.approved }}",
+        "rating": "{{ inputs.rating }}",
+        "type": "{{ inputs.type }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "testimonials": "testimonials",
+        "latest_text": "testimonials.0.text",
+        "latest_name": "testimonials.0.customer_name"
+      },
+      "inputs": [
+        {
+          "key": "approved",
+          "label": "Approved only",
+          "type": "boolean"
+        },
+        {
+          "key": "rating",
+          "label": "Rating",
+          "type": "number"
+        },
+        {
+          "key": "type",
+          "label": "Type",
+          "type": "select",
+          "default": "",
+          "options": [
+            {
+              "value": "",
+              "label": "Any"
+            },
+            {
+              "value": "text",
+              "label": "Text"
+            },
+            {
+              "value": "video",
+              "label": "Video"
+            }
+          ]
+        },
+        {
+          "key": "limit",
+          "label": "Max results",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    },
+    {
+      "key": "get_testimonial",
+      "name": "Get testimonial",
+      "method": "GET",
+      "endpoint": "/testimonials/{{ inputs.id }}",
+      "inputs": [
+        {
+          "key": "id",
+          "label": "Testimonial ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "create_testimonial",
+      "name": "Add testimonial",
+      "method": "POST",
+      "endpoint": "/testimonials",
+      "body": {
+        "type": "text",
+        "customer_name": "{{ inputs.customer_name }}",
+        "text": "{{ inputs.text }}",
+        "rating": "{{ inputs.rating }}",
+        "title": "{{ inputs.title }}",
+        "customer_email": "{{ inputs.customer_email }}",
+        "customer_company": "{{ inputs.customer_company }}",
+        "customer_tagline": "{{ inputs.customer_tagline }}",
+        "url": "{{ inputs.url }}",
+        "approved": "{{ inputs.approved }}",
+        "tags": "{{ inputs.tags }}"
+      },
+      "inputs": [
+        {
+          "key": "customer_name",
+          "label": "Customer name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "text",
+          "label": "Testimonial",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "rating",
+          "label": "Rating (1-5)",
+          "type": "number"
+        },
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "string"
+        },
+        {
+          "key": "customer_email",
+          "label": "Customer email",
+          "type": "string"
+        },
+        {
+          "key": "customer_company",
+          "label": "Company",
+          "type": "string"
+        },
+        {
+          "key": "customer_tagline",
+          "label": "Job title / tagline",
+          "type": "string"
+        },
+        {
+          "key": "url",
+          "label": "Source link",
+          "type": "string"
+        },
+        {
+          "key": "approved",
+          "label": "Approve now",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "key": "tags",
+          "label": "Tags",
+          "type": "list"
+        }
+      ]
+    },
+    {
+      "key": "update_testimonial",
+      "name": "Approve or tag testimonial",
+      "method": "PATCH",
+      "endpoint": "/testimonials/{{ inputs.id }}",
+      "body": {
+        "approved": "{{ inputs.approved }}",
+        "add_tags": "{{ inputs.add_tags }}",
+        "remove_tags": "{{ inputs.remove_tags }}"
+      },
+      "inputs": [
+        {
+          "key": "id",
+          "label": "Testimonial ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "approved",
+          "label": "Approved",
+          "type": "boolean"
+        },
+        {
+          "key": "add_tags",
+          "label": "Add tags",
+          "type": "list"
+        },
+        {
+          "key": "remove_tags",
+          "label": "Remove tags",
+          "type": "list"
+        }
+      ]
+    },
+    {
+      "key": "delete_testimonial",
+      "name": "Delete testimonial",
+      "method": "DELETE",
+      "endpoint": "/testimonials/{{ inputs.id }}",
+      "inputs": [
+        {
+          "key": "id",
+          "label": "Testimonial ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_testimonial",
+      "name": "New testimonial",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/testimonials",
+      "query": {
+        "sort": "date",
+        "order": "desc",
+        "limit": "50"
+      },
+      "items_path": "testimonials",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

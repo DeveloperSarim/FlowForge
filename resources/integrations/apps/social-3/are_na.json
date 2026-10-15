@@ -1,0 +1,203 @@
+{
+  "key": "are_na",
+  "name": "Are.na",
+  "category": "Social Media",
+  "description": "Save links and notes to Are.na channels, create channels and watch for new blocks.",
+  "website": "https://www.are.na",
+  "docs_url": "https://www.are.na/developers/explore",
+  "base_url": "https://api.are.na/v3",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "Personal access token",
+        "type": "password",
+        "required": true,
+        "help": "are.na/developers/personal-access-tokens → create a token with write access."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "add_block",
+      "name": "Add block to channel",
+      "method": "POST",
+      "endpoint": "/blocks",
+      "body": {
+        "value": "{{ inputs.value }}",
+        "channel_ids": "{{ inputs.channel_ids }}",
+        "title": "{{ inputs.title }}",
+        "description": "{{ inputs.description }}"
+      },
+      "output_fields": {
+        "id": "id",
+        "type": "type",
+        "title": "title"
+      },
+      "inputs": [
+        {
+          "key": "value",
+          "label": "Link or text",
+          "type": "text",
+          "required": true,
+          "help": "A URL becomes a link/image block; anything else becomes a text block."
+        },
+        {
+          "key": "channel_ids",
+          "label": "Channel IDs or slugs",
+          "type": "list",
+          "required": true
+        },
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "string"
+        },
+        {
+          "key": "description",
+          "label": "Description",
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "key": "create_channel",
+      "name": "Create channel",
+      "method": "POST",
+      "endpoint": "/channels",
+      "body": {
+        "title": "{{ inputs.title }}",
+        "description": "{{ inputs.description }}",
+        "visibility": "{{ inputs.visibility }}"
+      },
+      "output_fields": {
+        "id": "id",
+        "slug": "slug"
+      },
+      "inputs": [
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "description",
+          "label": "Description",
+          "type": "text"
+        },
+        {
+          "key": "visibility",
+          "label": "Visibility",
+          "type": "select",
+          "default": "public",
+          "options": [
+            {
+              "value": "public",
+              "label": "Public"
+            },
+            {
+              "value": "closed",
+              "label": "Closed"
+            },
+            {
+              "value": "private",
+              "label": "Private"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "get_channel",
+      "name": "Get channel",
+      "method": "GET",
+      "endpoint": "/channels/{{ inputs.channel }}",
+      "output_fields": {
+        "id": "id",
+        "slug": "slug",
+        "title": "title",
+        "counts": "counts"
+      },
+      "inputs": [
+        {
+          "key": "channel",
+          "label": "Channel ID or slug",
+          "type": "string",
+          "required": true,
+          "help": "The last part of the channel's link."
+        }
+      ]
+    },
+    {
+      "key": "list_contents",
+      "name": "List channel contents",
+      "method": "GET",
+      "endpoint": "/channels/{{ inputs.channel }}/contents",
+      "query": {
+        "per": "{{ inputs.per }}",
+        "sort": "created_at_desc"
+      },
+      "output_fields": {
+        "blocks": "data",
+        "latest_title": "data.0.title"
+      },
+      "inputs": [
+        {
+          "key": "channel",
+          "label": "Channel ID or slug",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "per",
+          "label": "Max results (max 100)",
+          "type": "number",
+          "default": 24
+        }
+      ]
+    },
+    {
+      "key": "get_me",
+      "name": "Get my account",
+      "method": "GET",
+      "endpoint": "/me",
+      "output_fields": {
+        "id": "id",
+        "slug": "slug",
+        "name": "name"
+      },
+      "inputs": []
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_block",
+      "name": "New block in channel",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/channels/{{ inputs.channel }}/contents",
+      "query": {
+        "per": "50",
+        "sort": "created_at_desc"
+      },
+      "items_path": "data",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "channel",
+          "label": "Channel ID or slug",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

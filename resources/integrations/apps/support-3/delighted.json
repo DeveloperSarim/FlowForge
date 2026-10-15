@@ -1,0 +1,176 @@
+{
+  "key": "delighted",
+  "name": "Delighted",
+  "category": "Customer Support",
+  "description": "Send NPS/CSAT surveys to people, read survey answers and fetch your score.",
+  "website": "https://delighted.com",
+  "docs_url": "https://app.delighted.com/docs/api",
+  "base_url": "https://api.delighted.com/v1",
+  "auth": {
+    "type": "basic",
+    "fields": [
+      {
+        "key": "username",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "In Delighted open Settings > API and copy your API key."
+      },
+      {
+        "key": "password",
+        "label": "Password",
+        "type": "string",
+        "default": "x",
+        "help": "Not used by Delighted; leave as x."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "create_person",
+      "name": "Send survey to person",
+      "description": "Adds a person and sends them a survey (or schedules it).",
+      "method": "POST",
+      "endpoint": "/people.json",
+      "body": {
+        "email": "{{ inputs.email }}",
+        "name": "{{ inputs.name }}",
+        "delay": "{{ inputs.delay }}",
+        "send": "{{ inputs.send }}"
+      },
+      "output_fields": {
+        "id": "id",
+        "email": "email"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string"
+        },
+        {
+          "key": "delay",
+          "label": "Delay (seconds)",
+          "type": "number",
+          "help": "Wait this long before sending. Leave empty to send now."
+        },
+        {
+          "key": "send",
+          "label": "Send survey",
+          "type": "boolean",
+          "default": true,
+          "help": "Off: add the person without emailing them."
+        }
+      ]
+    },
+    {
+      "key": "list_responses",
+      "name": "List survey responses",
+      "description": "Lists survey answers, newest first.",
+      "method": "GET",
+      "endpoint": "/survey_responses.json",
+      "query": {
+        "order": "desc",
+        "per_page": "{{ inputs.per_page }}",
+        "person_email": "{{ inputs.person_email }}"
+      },
+      "output_fields": {
+        "first_score": "0.score",
+        "first_comment": "0.comment",
+        "first_email": "0.person.email"
+      },
+      "inputs": [
+        {
+          "key": "per_page",
+          "label": "How many",
+          "type": "number",
+          "default": 20
+        },
+        {
+          "key": "person_email",
+          "label": "Only this person (email)",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "get_metrics",
+      "name": "Get NPS metrics",
+      "description": "Gets your NPS score and answer counts.",
+      "method": "GET",
+      "endpoint": "/metrics.json",
+      "query": {
+        "since": "{{ inputs.since }}",
+        "until": "{{ inputs.until }}"
+      },
+      "output_fields": {
+        "nps": "nps",
+        "response_count": "response_count",
+        "promoter_count": "promoter_count",
+        "passive_count": "passive_count",
+        "detractor_count": "detractor_count"
+      },
+      "inputs": [
+        {
+          "key": "since",
+          "label": "From (unix time)",
+          "type": "number"
+        },
+        {
+          "key": "until",
+          "label": "Until (unix time)",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "unsubscribe",
+      "name": "Unsubscribe person",
+      "description": "Stops all surveys to an email address.",
+      "method": "POST",
+      "endpoint": "/unsubscribes.json",
+      "body": {
+        "person_email": "{{ inputs.person_email }}"
+      },
+      "output_fields": {
+        "ok": "ok"
+      },
+      "inputs": [
+        {
+          "key": "person_email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_response",
+      "name": "New survey response",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/survey_responses.json",
+      "query": {
+        "order": "desc",
+        "per_page": 25
+      },
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

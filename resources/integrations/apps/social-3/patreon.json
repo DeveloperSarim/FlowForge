@@ -1,0 +1,264 @@
+{
+  "key": "patreon",
+  "name": "Patreon",
+  "category": "Social Media",
+  "description": "Read your Patreon campaign, members and posts, and catch new members and posts.",
+  "website": "https://www.patreon.com",
+  "docs_url": "https://docs.patreon.com/",
+  "base_url": "https://www.patreon.com/api/oauth2/v2",
+  "auth": [
+    {
+      "type": "bearer",
+      "fields": [
+        {
+          "key": "token",
+          "label": "Creator's Access Token",
+          "type": "password",
+          "required": true,
+          "help": "patreon.com/portal/registration/register-clients → create a client → copy the Creator's Access Token."
+        }
+      ],
+      "profile": {
+        "endpoint": "/campaigns",
+        "store": {
+          "campaign_id": "{{ data.0.id }}"
+        }
+      }
+    },
+    {
+      "type": "oauth2",
+      "authorize_url": "https://www.patreon.com/oauth2/authorize",
+      "token_url": "https://www.patreon.com/api/oauth2/token",
+      "scopes": [
+        "identity",
+        "identity[email]",
+        "campaigns",
+        "campaigns.members",
+        "campaigns.members[email]",
+        "campaigns.posts"
+      ],
+      "profile": {
+        "endpoint": "/campaigns",
+        "store": {
+          "campaign_id": "{{ data.0.id }}"
+        }
+      }
+    }
+  ],
+  "actions": [
+    {
+      "key": "get_identity",
+      "name": "Get connected account",
+      "method": "GET",
+      "endpoint": "/identity",
+      "query": {
+        "fields[user]": "full_name,email,url,image_url,created",
+        "include": "campaign",
+        "fields[campaign]": "creation_name,patron_count,url"
+      },
+      "output_fields": {
+        "user_id": "data.id",
+        "full_name": "data.attributes.full_name",
+        "email": "data.attributes.email",
+        "url": "data.attributes.url",
+        "campaign_id": "data.relationships.campaign.data.id"
+      },
+      "inputs": []
+    },
+    {
+      "key": "list_campaigns",
+      "name": "List campaigns",
+      "method": "GET",
+      "endpoint": "/campaigns",
+      "query": {
+        "fields[campaign]": "creation_name,patron_count,url,summary,created_at,is_monthly"
+      },
+      "output_fields": {
+        "campaigns": "data",
+        "campaign_id": "data.0.id",
+        "name": "data.0.attributes.creation_name",
+        "patron_count": "data.0.attributes.patron_count"
+      },
+      "inputs": []
+    },
+    {
+      "key": "list_members",
+      "name": "List members",
+      "description": "Patrons and followers with their pledge status.",
+      "method": "GET",
+      "endpoint": "/campaigns/{{ inputs.campaign_id }}/members",
+      "query": {
+        "fields[member]": "full_name,email,patron_status,currently_entitled_amount_cents,lifetime_support_cents,last_charge_date,last_charge_status,pledge_relationship_start,note",
+        "page[count]": "{{ inputs.count }}",
+        "page[cursor]": "{{ inputs.cursor }}"
+      },
+      "output_fields": {
+        "members": "data",
+        "total": "meta.pagination.total",
+        "next_cursor": "meta.pagination.cursors.next"
+      },
+      "inputs": [
+        {
+          "key": "campaign_id",
+          "label": "Campaign ID",
+          "type": "string",
+          "fallback": "credentials.campaign_id",
+          "help": "Leave blank to use your own campaign (read from the connected account)."
+        },
+        {
+          "key": "count",
+          "label": "Members per page (max 1000)",
+          "type": "number",
+          "default": 100
+        },
+        {
+          "key": "cursor",
+          "label": "Page cursor",
+          "type": "string",
+          "help": "meta.pagination.cursors.next from the previous page."
+        }
+      ]
+    },
+    {
+      "key": "get_member",
+      "name": "Get member",
+      "method": "GET",
+      "endpoint": "/members/{{ inputs.member_id }}",
+      "query": {
+        "fields[member]": "full_name,email,patron_status,currently_entitled_amount_cents,lifetime_support_cents,last_charge_date,last_charge_status,pledge_relationship_start,note",
+        "include": "currently_entitled_tiers,user",
+        "fields[tier]": "title,amount_cents"
+      },
+      "output_fields": {
+        "id": "data.id",
+        "full_name": "data.attributes.full_name",
+        "email": "data.attributes.email",
+        "patron_status": "data.attributes.patron_status",
+        "amount_cents": "data.attributes.currently_entitled_amount_cents",
+        "lifetime_support_cents": "data.attributes.lifetime_support_cents",
+        "tier_titles": "included.*.attributes.title"
+      },
+      "inputs": [
+        {
+          "key": "member_id",
+          "label": "Member ID",
+          "type": "string",
+          "required": true,
+          "help": "The id of a member returned by 'List members' or the New member trigger."
+        }
+      ]
+    },
+    {
+      "key": "list_posts",
+      "name": "List posts",
+      "method": "GET",
+      "endpoint": "/campaigns/{{ inputs.campaign_id }}/posts",
+      "query": {
+        "fields[post]": "title,content,url,published_at,is_public,is_paid",
+        "page[count]": "{{ inputs.count }}"
+      },
+      "output_fields": {
+        "posts": "data",
+        "next_cursor": "meta.pagination.cursors.next"
+      },
+      "inputs": [
+        {
+          "key": "campaign_id",
+          "label": "Campaign ID",
+          "type": "string",
+          "fallback": "credentials.campaign_id",
+          "help": "Leave blank to use your own campaign (read from the connected account)."
+        },
+        {
+          "key": "count",
+          "label": "Posts per page",
+          "type": "number",
+          "default": 20
+        }
+      ]
+    },
+    {
+      "key": "get_post",
+      "name": "Get post",
+      "method": "GET",
+      "endpoint": "/posts/{{ inputs.post_id }}",
+      "query": {
+        "fields[post]": "title,content,url,published_at,is_public,is_paid"
+      },
+      "output_fields": {
+        "id": "data.id",
+        "title": "data.attributes.title",
+        "content": "data.attributes.content",
+        "url": "data.attributes.url",
+        "published_at": "data.attributes.published_at"
+      },
+      "inputs": [
+        {
+          "key": "post_id",
+          "label": "Post ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_member",
+      "name": "New member",
+      "type": "polling",
+      "description": "A new patron or follower joins (checks up to 1000 members per poll).",
+      "method": "GET",
+      "endpoint": "/campaigns/{{ inputs.campaign_id }}/members",
+      "query": {
+        "fields[member]": "full_name,email,patron_status,currently_entitled_amount_cents,lifetime_support_cents,last_charge_date,last_charge_status,pledge_relationship_start,note",
+        "page[count]": "1000"
+      },
+      "items_path": "data",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "campaign_id",
+          "label": "Campaign ID",
+          "type": "string",
+          "fallback": "credentials.campaign_id",
+          "help": "Leave blank to use your own campaign (read from the connected account)."
+        },
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    },
+    {
+      "key": "new_post",
+      "name": "New post",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/campaigns/{{ inputs.campaign_id }}/posts",
+      "query": {
+        "fields[post]": "title,content,url,published_at,is_public,is_paid",
+        "page[count]": "500"
+      },
+      "items_path": "data",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "campaign_id",
+          "label": "Campaign ID",
+          "type": "string",
+          "fallback": "credentials.campaign_id",
+          "help": "Leave blank to use your own campaign (read from the connected account)."
+        },
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

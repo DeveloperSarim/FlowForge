@@ -1,0 +1,209 @@
+{
+  "key": "weclapp",
+  "name": "weclapp",
+  "category": "CRM & Sales",
+  "description": "Read and create customers, contacts and opportunities in weclapp CRM/ERP.",
+  "website": "https://www.weclapp.com",
+  "docs_url": "https://www.weclapp.com/api/",
+  "base_url": "https://{{ credentials.tenant }}.weclapp.com/webapp/api/v1",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "AuthenticationToken",
+    "fields": [
+      {
+        "key": "tenant",
+        "label": "Tenant",
+        "type": "string",
+        "required": true,
+        "placeholder": "acme",
+        "help": "The part before .weclapp.com."
+      },
+      {
+        "key": "api_key",
+        "label": "API token",
+        "type": "password",
+        "required": true,
+        "help": "In weclapp open My settings > API and copy your token."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_customers",
+      "name": "List customers",
+      "description": "Lists customers, newest first.",
+      "method": "GET",
+      "endpoint": "/customer",
+      "query": {
+        "pageSize": "{{ inputs.page_size }}",
+        "sort": "-createdDate",
+        "serializeNulls": "false"
+      },
+      "output_fields": {
+        "customers": "result",
+        "first_id": "result.0.id",
+        "first_company": "result.0.company"
+      },
+      "inputs": [
+        {
+          "key": "page_size",
+          "label": "How many",
+          "type": "number",
+          "default": 25
+        }
+      ]
+    },
+    {
+      "key": "get_customer",
+      "name": "Get customer",
+      "description": "Gets one customer by ID.",
+      "method": "GET",
+      "endpoint": "/customer/id/{{ inputs.customer_id }}",
+      "output_fields": {
+        "id": "id",
+        "company": "company",
+        "email": "email",
+        "customer_number": "customerNumber"
+      },
+      "inputs": [
+        {
+          "key": "customer_id",
+          "label": "Customer ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "create_customer",
+      "name": "Create customer",
+      "description": "Adds a company or a person as customer.",
+      "method": "POST",
+      "endpoint": "/customer",
+      "body": {
+        "partyType": "{{ inputs.party_type }}",
+        "company": "{{ inputs.company }}",
+        "firstName": "{{ inputs.first_name }}",
+        "lastName": "{{ inputs.last_name }}",
+        "email": "{{ inputs.email }}"
+      },
+      "output_fields": {
+        "id": "id",
+        "customer_number": "customerNumber"
+      },
+      "inputs": [
+        {
+          "key": "party_type",
+          "label": "Type",
+          "type": "select",
+          "required": true,
+          "default": "ORGANIZATION",
+          "options": [
+            {
+              "value": "ORGANIZATION",
+              "label": "Company"
+            },
+            {
+              "value": "PERSON",
+              "label": "Person"
+            }
+          ]
+        },
+        {
+          "key": "company",
+          "label": "Company name",
+          "type": "string",
+          "help": "Required for companies."
+        },
+        {
+          "key": "first_name",
+          "label": "First name",
+          "type": "string"
+        },
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string",
+          "help": "Required for persons."
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "list_contacts",
+      "name": "List contacts",
+      "description": "Lists contact persons.",
+      "method": "GET",
+      "endpoint": "/contact",
+      "query": {
+        "pageSize": "{{ inputs.page_size }}",
+        "serializeNulls": "false"
+      },
+      "output_fields": {
+        "contacts": "result",
+        "first_id": "result.0.id",
+        "first_email": "result.0.email"
+      },
+      "inputs": [
+        {
+          "key": "page_size",
+          "label": "How many",
+          "type": "number",
+          "default": 25
+        }
+      ]
+    },
+    {
+      "key": "list_opportunities",
+      "name": "List opportunities",
+      "description": "Lists sales opportunities.",
+      "method": "GET",
+      "endpoint": "/opportunity",
+      "query": {
+        "pageSize": "{{ inputs.page_size }}",
+        "serializeNulls": "false"
+      },
+      "output_fields": {
+        "opportunities": "result",
+        "first_id": "result.0.id"
+      },
+      "inputs": [
+        {
+          "key": "page_size",
+          "label": "How many",
+          "type": "number",
+          "default": 25
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_customer",
+      "name": "New customer",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/customer",
+      "query": {
+        "sort": "-createdDate",
+        "pageSize": 25,
+        "serializeNulls": "false"
+      },
+      "items_path": "result",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

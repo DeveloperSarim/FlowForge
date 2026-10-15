@@ -1,0 +1,156 @@
+{
+  "key": "azure_ai_content_safety",
+  "name": "Azure AI Content Safety",
+  "category": "AI",
+  "description": "Detect hate, violence, sexual and self-harm content and prompt attacks.",
+  "brand": "microsoftazure",
+  "website": "https://azure.microsoft.com/products/ai-services/ai-content-safety",
+  "docs_url": "https://learn.microsoft.com/rest/api/contentsafety/text-operations/analyze-text",
+  "base_url": "{{ credentials.endpoint }}/contentsafety",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "Ocp-Apim-Subscription-Key",
+    "fields": [
+      {
+        "key": "endpoint",
+        "label": "Endpoint",
+        "type": "string",
+        "required": true,
+        "placeholder": "https://my-resource.cognitiveservices.azure.com",
+        "help": "Azure portal → your Content Safety resource → Keys and Endpoint → Endpoint (without a trailing slash)."
+      },
+      {
+        "key": "api_key",
+        "label": "Key",
+        "type": "password",
+        "required": true,
+        "help": "Azure portal → your Content Safety resource → Keys and Endpoint → KEY 1."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "analyze_text",
+      "name": "Analyse text",
+      "description": "Rate a text for hate, sexual, violence and self-harm (severity 0-6).",
+      "method": "POST",
+      "endpoint": "/text:analyze",
+      "query": {
+        "api-version": "2024-09-01"
+      },
+      "body": {
+        "text": "{{ inputs.text }}",
+        "blocklistNames": "{{ inputs.blocklists }}",
+        "outputType": "FourSeverityLevels"
+      },
+      "output_fields": {
+        "categories": "categoriesAnalysis",
+        "blocklist_matches": "blocklistsMatch"
+      },
+      "inputs": [
+        {
+          "key": "text",
+          "label": "Text",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "blocklists",
+          "label": "Blocklist names",
+          "type": "list",
+          "help": "Optional custom blocklists to check against."
+        }
+      ]
+    },
+    {
+      "key": "analyze_image",
+      "name": "Analyse image",
+      "description": "Rate an image for hate, sexual, violence and self-harm.",
+      "method": "POST",
+      "endpoint": "/image:analyze",
+      "query": {
+        "api-version": "2024-09-01"
+      },
+      "body": {
+        "image": {
+          "content": "{{ inputs.image_base64 }}",
+          "blobUrl": "{{ inputs.blob_url }}"
+        }
+      },
+      "output_fields": {
+        "categories": "categoriesAnalysis"
+      },
+      "inputs": [
+        {
+          "key": "image_base64",
+          "label": "Image (base64)",
+          "type": "text",
+          "help": "The image as base64. Or use an Azure Blob URL below."
+        },
+        {
+          "key": "blob_url",
+          "label": "Azure Blob URL",
+          "type": "string",
+          "help": "A blob URL your Content Safety resource can read."
+        }
+      ]
+    },
+    {
+      "key": "shield_prompt",
+      "name": "Detect prompt attack",
+      "description": "Spot jailbreak and prompt-injection attempts before they reach your AI.",
+      "method": "POST",
+      "endpoint": "/text:shieldPrompt",
+      "query": {
+        "api-version": "2024-09-01"
+      },
+      "body": {
+        "userPrompt": "{{ inputs.user_prompt }}",
+        "documents": "{{ inputs.documents }}"
+      },
+      "output_fields": {
+        "attack_detected": "userPromptAnalysis.attackDetected",
+        "document_attacks": "documentsAnalysis.*.attackDetected"
+      },
+      "inputs": [
+        {
+          "key": "user_prompt",
+          "label": "User prompt",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "documents",
+          "label": "Documents",
+          "type": "list",
+          "help": "Optional texts (emails, web pages) to scan for hidden instructions."
+        }
+      ]
+    },
+    {
+      "key": "detect_protected_material",
+      "name": "Detect protected material",
+      "description": "Check AI output for known copyrighted text such as song lyrics.",
+      "method": "POST",
+      "endpoint": "/text:detectProtectedMaterial",
+      "query": {
+        "api-version": "2024-09-01"
+      },
+      "body": {
+        "text": "{{ inputs.text }}"
+      },
+      "output_fields": {
+        "detected": "protectedMaterialAnalysis.detected"
+      },
+      "inputs": [
+        {
+          "key": "text",
+          "label": "AI-generated text",
+          "type": "text",
+          "required": true
+        }
+      ]
+    }
+  ]
+}

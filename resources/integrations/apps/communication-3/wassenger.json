@@ -1,0 +1,258 @@
+{
+  "key": "wassenger",
+  "name": "Wassenger",
+  "category": "Communication",
+  "description": "Send WhatsApp messages, media and group messages with Wassenger, get incoming chats.",
+  "website": "https://wassenger.com",
+  "docs_url": "https://app.wassenger.com/docs/",
+  "base_url": "https://api.wassenger.com/v1",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "Token",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "console.wassenger.com/apikeys → copy your API key."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "send_message",
+      "name": "Send WhatsApp message",
+      "method": "POST",
+      "endpoint": "/messages",
+      "body": {
+        "phone": "{{ inputs.phone }}",
+        "message": "{{ inputs.message }}",
+        "deliverAt": "{{ inputs.deliverAt }}",
+        "device": "{{ inputs.device }}",
+        "reference": "{{ inputs.reference }}"
+      },
+      "output_fields": {
+        "id": "id",
+        "status": "status"
+      },
+      "inputs": [
+        {
+          "key": "phone",
+          "label": "Phone number",
+          "type": "string",
+          "required": true,
+          "placeholder": "+923001234567",
+          "help": "International format with +."
+        },
+        {
+          "key": "message",
+          "label": "Message",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "deliverAt",
+          "label": "Send at",
+          "type": "string",
+          "placeholder": "2026-12-01T10:00:00Z",
+          "help": "Leave blank to send now."
+        },
+        {
+          "key": "device",
+          "label": "Device ID",
+          "type": "string",
+          "help": "Only if you have several numbers connected."
+        },
+        {
+          "key": "reference",
+          "label": "Your reference",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "send_media",
+      "name": "Send image or file",
+      "method": "POST",
+      "endpoint": "/messages",
+      "body": {
+        "phone": "{{ inputs.phone }}",
+        "message": "{{ inputs.message }}",
+        "media": {
+          "url": "{{ inputs.url }}"
+        },
+        "device": "{{ inputs.device }}"
+      },
+      "output_fields": {
+        "id": "id",
+        "status": "status"
+      },
+      "inputs": [
+        {
+          "key": "phone",
+          "label": "Phone number",
+          "type": "string",
+          "required": true,
+          "placeholder": "+923001234567"
+        },
+        {
+          "key": "url",
+          "label": "File URL",
+          "type": "string",
+          "required": true,
+          "help": "Public link to an image, PDF, video or audio file."
+        },
+        {
+          "key": "message",
+          "label": "Caption",
+          "type": "text"
+        },
+        {
+          "key": "device",
+          "label": "Device ID",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "send_group_message",
+      "name": "Send message to group",
+      "method": "POST",
+      "endpoint": "/messages",
+      "body": {
+        "group": "{{ inputs.group }}",
+        "message": "{{ inputs.message }}",
+        "device": "{{ inputs.device }}"
+      },
+      "output_fields": {
+        "id": "id",
+        "status": "status"
+      },
+      "inputs": [
+        {
+          "key": "group",
+          "label": "Group ID",
+          "type": "string",
+          "required": true,
+          "placeholder": "120363000000000000@g.us",
+          "help": "Wassenger → Groups; the group's WhatsApp ID."
+        },
+        {
+          "key": "message",
+          "label": "Message",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "device",
+          "label": "Device ID",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "check_number",
+      "name": "Check WhatsApp number",
+      "description": "Checks whether a phone number has WhatsApp.",
+      "method": "POST",
+      "endpoint": "/numbers/exists",
+      "body": {
+        "phone": "{{ inputs.phone }}"
+      },
+      "output_fields": {
+        "exists": "exists"
+      },
+      "inputs": [
+        {
+          "key": "phone",
+          "label": "Phone number",
+          "type": "string",
+          "required": true,
+          "placeholder": "+923001234567"
+        }
+      ]
+    },
+    {
+      "key": "list_messages",
+      "name": "List sent messages",
+      "method": "GET",
+      "endpoint": "/messages",
+      "query": {
+        "phone": "{{ inputs.phone }}",
+        "size": "{{ inputs.size }}",
+        "page": "0"
+      },
+      "output_fields": {
+        "latest_id": "0.id",
+        "latest_status": "0.status"
+      },
+      "inputs": [
+        {
+          "key": "phone",
+          "label": "Only to phone number",
+          "type": "string"
+        },
+        {
+          "key": "size",
+          "label": "Max results",
+          "type": "number",
+          "default": 20
+        }
+      ]
+    },
+    {
+      "key": "create_webhook",
+      "name": "Create webhook",
+      "method": "POST",
+      "endpoint": "/webhooks",
+      "body": {
+        "name": "{{ inputs.name }}",
+        "url": "{{ inputs.url }}",
+        "events": "{{ inputs.events }}"
+      },
+      "output_fields": {
+        "id": "id"
+      },
+      "inputs": [
+        {
+          "key": "url",
+          "label": "Webhook URL",
+          "type": "string",
+          "required": true,
+          "help": "Paste the URL of a FlowForge 'WhatsApp event' trigger."
+        },
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string",
+          "required": true,
+          "default": "FlowForge"
+        },
+        {
+          "key": "events",
+          "label": "Events",
+          "type": "list",
+          "required": true,
+          "help": "e.g. message:in:new for incoming messages, message:out:ack for read receipts."
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "WhatsApp event",
+      "type": "webhook",
+      "description": "Incoming messages and delivery updates. Register the URL with 'Create webhook'.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

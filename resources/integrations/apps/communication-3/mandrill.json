@@ -1,0 +1,278 @@
+{
+  "key": "mandrill",
+  "name": "Mailchimp Transactional (Mandrill)",
+  "category": "Communication",
+  "description": "Send transactional emails and templates with Mandrill and look up sent messages.",
+  "website": "https://mandrillapp.com",
+  "docs_url": "https://mailchimp.com/developer/transactional/api/",
+  "base_url": "https://mandrillapp.com/api/1.0",
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "Mandrill → Settings → SMTP & API Info → Add API key."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "send_message",
+      "name": "Send email",
+      "method": "POST",
+      "endpoint": "/messages/send",
+      "body": {
+        "key": "{{ credentials.api_key }}",
+        "message": {
+          "html": "{{ inputs.html }}",
+          "text": "{{ inputs.text }}",
+          "subject": "{{ inputs.subject }}",
+          "from_email": "{{ inputs.from_email }}",
+          "from_name": "{{ inputs.from_name }}",
+          "to": [
+            {
+              "email": "{{ inputs.to }}",
+              "name": "{{ inputs.to_name }}",
+              "type": "to"
+            }
+          ],
+          "tags": "{{ inputs.tags }}"
+        }
+      },
+      "output_fields": {
+        "id": "0._id",
+        "email": "0.email",
+        "status": "0.status",
+        "reject_reason": "0.reject_reason"
+      },
+      "inputs": [
+        {
+          "key": "to",
+          "label": "To (email)",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "to_name",
+          "label": "To name",
+          "type": "string"
+        },
+        {
+          "key": "from_email",
+          "label": "From (email)",
+          "type": "string",
+          "required": true,
+          "help": "Must be on a sending domain verified in Mandrill."
+        },
+        {
+          "key": "from_name",
+          "label": "From name",
+          "type": "string"
+        },
+        {
+          "key": "subject",
+          "label": "Subject",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "html",
+          "label": "HTML body",
+          "type": "text"
+        },
+        {
+          "key": "text",
+          "label": "Plain-text body",
+          "type": "text"
+        },
+        {
+          "key": "tags",
+          "label": "Tags",
+          "type": "list"
+        }
+      ]
+    },
+    {
+      "key": "send_template",
+      "name": "Send template email",
+      "method": "POST",
+      "endpoint": "/messages/send-template",
+      "body": {
+        "key": "{{ credentials.api_key }}",
+        "template_name": "{{ inputs.template_name }}",
+        "template_content": [],
+        "message": {
+          "subject": "{{ inputs.subject }}",
+          "from_email": "{{ inputs.from_email }}",
+          "from_name": "{{ inputs.from_name }}",
+          "to": [
+            {
+              "email": "{{ inputs.to }}",
+              "name": "{{ inputs.to_name }}",
+              "type": "to"
+            }
+          ],
+          "global_merge_vars": "{{ inputs.merge_vars }}",
+          "merge_language": "mailchimp",
+          "tags": "{{ inputs.tags }}"
+        }
+      },
+      "output_fields": {
+        "id": "0._id",
+        "email": "0.email",
+        "status": "0.status",
+        "reject_reason": "0.reject_reason"
+      },
+      "inputs": [
+        {
+          "key": "to",
+          "label": "To (email)",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "to_name",
+          "label": "To name",
+          "type": "string"
+        },
+        {
+          "key": "from_email",
+          "label": "From (email)",
+          "type": "string",
+          "required": true,
+          "help": "Must be on a sending domain verified in Mandrill."
+        },
+        {
+          "key": "from_name",
+          "label": "From name",
+          "type": "string"
+        },
+        {
+          "key": "template_name",
+          "label": "Template slug",
+          "type": "string",
+          "required": true,
+          "help": "Mandrill → Outbound → Templates; use the template's slug."
+        },
+        {
+          "key": "subject",
+          "label": "Subject",
+          "type": "string",
+          "help": "Leave blank to use the template's subject."
+        },
+        {
+          "key": "merge_vars",
+          "label": "Merge tags (JSON)",
+          "type": "json",
+          "placeholder": "[{\"name\":\"FNAME\",\"content\":\"Ali\"}]",
+          "help": "Fills *|FNAME|* style tags in the template."
+        },
+        {
+          "key": "tags",
+          "label": "Tags",
+          "type": "list"
+        }
+      ]
+    },
+    {
+      "key": "search_messages",
+      "name": "Search sent messages",
+      "description": "Defaults to the last 7 days.",
+      "method": "POST",
+      "endpoint": "/messages/search",
+      "body": {
+        "key": "{{ credentials.api_key }}",
+        "query": "{{ inputs.query }}",
+        "date_from": "{{ inputs.date_from }}",
+        "date_to": "{{ inputs.date_to }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "first_id": "0._id",
+        "first_state": "0.state",
+        "first_subject": "0.subject"
+      },
+      "inputs": [
+        {
+          "key": "query",
+          "label": "Search query",
+          "type": "string",
+          "placeholder": "email:someone@example.com",
+          "help": "Same syntax as the Mandrill Outbound search, e.g. email:, subject:, tags:."
+        },
+        {
+          "key": "date_from",
+          "label": "From date",
+          "type": "string",
+          "placeholder": "2026-01-01"
+        },
+        {
+          "key": "date_to",
+          "label": "To date",
+          "type": "string",
+          "placeholder": "2026-01-31"
+        },
+        {
+          "key": "limit",
+          "label": "Max results",
+          "type": "number",
+          "default": 100
+        }
+      ]
+    },
+    {
+      "key": "get_message",
+      "name": "Get message info",
+      "method": "POST",
+      "endpoint": "/messages/info",
+      "body": {
+        "key": "{{ credentials.api_key }}",
+        "id": "{{ inputs.id }}"
+      },
+      "output_fields": {
+        "id": "_id",
+        "state": "state",
+        "email": "email",
+        "subject": "subject",
+        "opens": "opens",
+        "clicks": "clicks"
+      },
+      "inputs": [
+        {
+          "key": "id",
+          "label": "Message ID",
+          "type": "string",
+          "required": true,
+          "help": "The _id returned when the email was sent."
+        }
+      ]
+    },
+    {
+      "key": "list_templates",
+      "name": "List templates",
+      "method": "POST",
+      "endpoint": "/templates/list",
+      "body": {
+        "key": "{{ credentials.api_key }}"
+      },
+      "output_fields": {
+        "slugs": "*.slug",
+        "names": "*.name"
+      },
+      "inputs": []
+    },
+    {
+      "key": "ping",
+      "name": "Test connection",
+      "method": "POST",
+      "endpoint": "/users/ping",
+      "body": {
+        "key": "{{ credentials.api_key }}"
+      },
+      "inputs": []
+    }
+  ]
+}

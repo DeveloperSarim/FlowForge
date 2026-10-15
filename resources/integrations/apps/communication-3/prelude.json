@@ -1,0 +1,243 @@
+{
+  "key": "prelude",
+  "name": "Prelude",
+  "category": "Communication",
+  "description": "Send and check one-time verification codes and transactional messages with Prelude.",
+  "website": "https://prelude.so",
+  "docs_url": "https://docs.prelude.so/",
+  "base_url": "https://api.prelude.dev/v2",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "Prelude dashboard → Settings → API keys."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "send_code",
+      "name": "Send verification code",
+      "description": "Sends a code, or resends it if one is already pending.",
+      "method": "POST",
+      "endpoint": "/verification",
+      "body": {
+        "target": {
+          "type": "{{ inputs.target_type }}",
+          "value": "{{ inputs.value }}"
+        },
+        "options": {
+          "preferred_channel": "{{ inputs.preferred_channel }}",
+          "locale": "{{ inputs.locale }}",
+          "code_size": "{{ inputs.code_size }}"
+        }
+      },
+      "output_fields": {
+        "id": "id",
+        "status": "status",
+        "method": "method",
+        "reason": "reason"
+      },
+      "inputs": [
+        {
+          "key": "target_type",
+          "label": "Send to",
+          "type": "select",
+          "default": "phone_number",
+          "options": [
+            {
+              "value": "phone_number",
+              "label": "Phone number"
+            },
+            {
+              "value": "email_address",
+              "label": "Email address"
+            }
+          ]
+        },
+        {
+          "key": "value",
+          "label": "Phone or email",
+          "type": "string",
+          "required": true,
+          "placeholder": "+923001234567",
+          "help": "Phone numbers in international format with +."
+        },
+        {
+          "key": "preferred_channel",
+          "label": "Preferred channel",
+          "type": "select",
+          "default": "",
+          "options": [
+            {
+              "value": "",
+              "label": "Automatic"
+            },
+            {
+              "value": "sms",
+              "label": "SMS"
+            },
+            {
+              "value": "whatsapp",
+              "label": "WhatsApp"
+            },
+            {
+              "value": "rcs",
+              "label": "RCS"
+            },
+            {
+              "value": "viber",
+              "label": "Viber"
+            },
+            {
+              "value": "telegram",
+              "label": "Telegram"
+            }
+          ]
+        },
+        {
+          "key": "locale",
+          "label": "Language",
+          "type": "string",
+          "placeholder": "en-GB"
+        },
+        {
+          "key": "code_size",
+          "label": "Code length (4-8)",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "check_code",
+      "name": "Check verification code",
+      "description": "status is 'success' when the code is right.",
+      "method": "POST",
+      "endpoint": "/verification/check",
+      "body": {
+        "target": {
+          "type": "{{ inputs.target_type }}",
+          "value": "{{ inputs.value }}"
+        },
+        "code": "{{ inputs.code }}"
+      },
+      "output_fields": {
+        "id": "id",
+        "status": "status"
+      },
+      "inputs": [
+        {
+          "key": "target_type",
+          "label": "Send to",
+          "type": "select",
+          "default": "phone_number",
+          "options": [
+            {
+              "value": "phone_number",
+              "label": "Phone number"
+            },
+            {
+              "value": "email_address",
+              "label": "Email address"
+            }
+          ]
+        },
+        {
+          "key": "value",
+          "label": "Phone or email",
+          "type": "string",
+          "required": true,
+          "placeholder": "+923001234567",
+          "help": "Phone numbers in international format with +."
+        },
+        {
+          "key": "code",
+          "label": "Code entered by the user",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "send_message",
+      "name": "Send transactional message",
+      "method": "POST",
+      "endpoint": "/notify",
+      "body": {
+        "to": "{{ inputs.to }}",
+        "template_id": "{{ inputs.template_id }}",
+        "variables": {
+          "$if": "{{ inputs.variables }}",
+          "...": "{{ inputs.variables }}"
+        },
+        "preferred_channel": "{{ inputs.preferred_channel }}",
+        "schedule_at": "{{ inputs.schedule_at }}",
+        "correlation_id": "{{ inputs.correlation_id }}"
+      },
+      "output_fields": {
+        "id": "id",
+        "created_at": "created_at"
+      },
+      "inputs": [
+        {
+          "key": "to",
+          "label": "To",
+          "type": "string",
+          "required": true,
+          "placeholder": "+923001234567"
+        },
+        {
+          "key": "template_id",
+          "label": "Template ID",
+          "type": "string",
+          "required": true,
+          "help": "Prelude dashboard → Notify → Templates."
+        },
+        {
+          "key": "variables",
+          "label": "Template variables",
+          "type": "keyvalue"
+        },
+        {
+          "key": "preferred_channel",
+          "label": "Preferred channel",
+          "type": "select",
+          "default": "",
+          "options": [
+            {
+              "value": "",
+              "label": "Automatic"
+            },
+            {
+              "value": "sms",
+              "label": "SMS"
+            },
+            {
+              "value": "whatsapp",
+              "label": "WhatsApp"
+            },
+            {
+              "value": "rcs",
+              "label": "RCS"
+            }
+          ]
+        },
+        {
+          "key": "schedule_at",
+          "label": "Send at",
+          "type": "string",
+          "placeholder": "2026-12-01T10:00:00Z"
+        },
+        {
+          "key": "correlation_id",
+          "label": "Your reference",
+          "type": "string"
+        }
+      ]
+    }
+  ]
+}

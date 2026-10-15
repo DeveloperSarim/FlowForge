@@ -1,0 +1,290 @@
+{
+  "key": "typefully",
+  "name": "Typefully",
+  "category": "Social Media",
+  "description": "Draft, schedule and publish posts to X, LinkedIn, Threads, Bluesky and Mastodon.",
+  "website": "https://typefully.com",
+  "docs_url": "https://typefully.com/docs/api",
+  "base_url": "https://api.typefully.com/v2",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "Typefully → Settings → API & Integrations → create an API key."
+      }
+    ],
+    "profile": {
+      "endpoint": "/social-sets",
+      "store": {
+        "social_set_id": "{{ results.0.id }}"
+      }
+    }
+  },
+  "actions": [
+    {
+      "key": "list_social_sets",
+      "name": "List social sets",
+      "method": "GET",
+      "endpoint": "/social-sets",
+      "output_fields": {
+        "ids": "results.*.id",
+        "usernames": "results.*.username"
+      },
+      "inputs": []
+    },
+    {
+      "key": "create_draft",
+      "name": "Create post",
+      "method": "POST",
+      "endpoint": "/social-sets/{{ inputs.social_set_id }}/drafts",
+      "body": {
+        "platforms": {
+          "x": {
+            "enabled": "{{ inputs.x }}",
+            "posts": [
+              {
+                "text": "{{ inputs.text }}"
+              }
+            ]
+          },
+          "linkedin": {
+            "enabled": "{{ inputs.linkedin }}",
+            "posts": [
+              {
+                "text": "{{ inputs.text }}"
+              }
+            ]
+          },
+          "threads": {
+            "enabled": "{{ inputs.threads }}",
+            "posts": [
+              {
+                "text": "{{ inputs.text }}"
+              }
+            ]
+          },
+          "bluesky": {
+            "enabled": "{{ inputs.bluesky }}",
+            "posts": [
+              {
+                "text": "{{ inputs.text }}"
+              }
+            ]
+          },
+          "mastodon": {
+            "enabled": "{{ inputs.mastodon }}",
+            "posts": [
+              {
+                "text": "{{ inputs.text }}"
+              }
+            ]
+          }
+        },
+        "publish_at": "{{ inputs.publish_at }}",
+        "draft_title": "{{ inputs.draft_title }}"
+      },
+      "output_fields": {
+        "id": "id",
+        "status": "status",
+        "scheduled_date": "scheduled_date",
+        "published_at": "published_at",
+        "share_url": "share_url",
+        "private_url": "private_url",
+        "x_url": "x_published_url"
+      },
+      "inputs": [
+        {
+          "key": "social_set_id",
+          "label": "Social set ID",
+          "type": "string",
+          "fallback": "credentials.social_set_id",
+          "help": "Leave blank to use your first account. 'List social sets' shows the others."
+        },
+        {
+          "key": "text",
+          "label": "Post text",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "x",
+          "label": "Post to X",
+          "type": "boolean",
+          "default": true
+        },
+        {
+          "key": "linkedin",
+          "label": "Post to LinkedIn",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "key": "threads",
+          "label": "Post to Threads",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "key": "bluesky",
+          "label": "Post to Bluesky",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "key": "mastodon",
+          "label": "Post to Mastodon",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "key": "publish_at",
+          "label": "When",
+          "type": "string",
+          "placeholder": "next-free-slot",
+          "help": "now, next-free-slot, or a date like 2026-12-01T09:00:00Z. Leave blank to keep it as a draft."
+        },
+        {
+          "key": "draft_title",
+          "label": "Internal title",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "get_draft",
+      "name": "Get post",
+      "description": "Publishing runs in the background; check status here.",
+      "method": "GET",
+      "endpoint": "/social-sets/{{ inputs.social_set_id }}/drafts/{{ inputs.draft_id }}",
+      "output_fields": {
+        "id": "id",
+        "status": "status",
+        "scheduled_date": "scheduled_date",
+        "published_at": "published_at",
+        "share_url": "share_url",
+        "private_url": "private_url",
+        "x_url": "x_published_url"
+      },
+      "inputs": [
+        {
+          "key": "social_set_id",
+          "label": "Social set ID",
+          "type": "string",
+          "fallback": "credentials.social_set_id",
+          "help": "Leave blank to use your first account. 'List social sets' shows the others."
+        },
+        {
+          "key": "draft_id",
+          "label": "Draft ID",
+          "type": "string",
+          "required": true,
+          "help": "id returned by 'Create post'."
+        }
+      ]
+    },
+    {
+      "key": "list_drafts",
+      "name": "List posts",
+      "method": "GET",
+      "endpoint": "/social-sets/{{ inputs.social_set_id }}/drafts",
+      "query": {
+        "status": "{{ inputs.status }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "drafts": "results"
+      },
+      "inputs": [
+        {
+          "key": "social_set_id",
+          "label": "Social set ID",
+          "type": "string",
+          "fallback": "credentials.social_set_id",
+          "help": "Leave blank to use your first account. 'List social sets' shows the others."
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "default": "",
+          "options": [
+            {
+              "value": "",
+              "label": "Any"
+            },
+            {
+              "value": "draft",
+              "label": "Draft"
+            },
+            {
+              "value": "scheduled",
+              "label": "Scheduled"
+            },
+            {
+              "value": "published",
+              "label": "Published"
+            },
+            {
+              "value": "error",
+              "label": "Error"
+            }
+          ]
+        },
+        {
+          "key": "limit",
+          "label": "Max results (max 50)",
+          "type": "number",
+          "default": 20
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_published_post",
+      "name": "Post published",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/social-sets/{{ inputs.social_set_id }}/drafts",
+      "query": {
+        "status": "published",
+        "order_by": "-published_at",
+        "limit": "50"
+      },
+      "items_path": "results",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "social_set_id",
+          "label": "Social set ID",
+          "type": "string",
+          "fallback": "credentials.social_set_id",
+          "help": "Leave blank to use your first account. 'List social sets' shows the others."
+        },
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    },
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Add this URL in Typefully → Settings → Webhooks (draft.published, draft.scheduled…).",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

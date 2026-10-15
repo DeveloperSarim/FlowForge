@@ -1,0 +1,413 @@
+{
+  "key": "tabby",
+  "name": "Tabby",
+  "category": "Payments & Finance",
+  "description": "Buy now, pay later in UAE and KSA: checkout sessions, captures and refunds.",
+  "website": "https://tabby.ai",
+  "docs_url": "https://docs.tabby.ai",
+  "base_url": "https://{{ credentials.host }}",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "Secret key (sk_…)",
+        "type": "password",
+        "required": true,
+        "help": "Provided by Tabby: merchant dashboard → API keys (use the secret key)."
+      },
+      {
+        "key": "merchant_code",
+        "label": "Merchant code",
+        "type": "string",
+        "required": true,
+        "help": "Given by your Tabby integration manager, e.g. your store code."
+      },
+      {
+        "key": "host",
+        "label": "Region",
+        "type": "select",
+        "required": true,
+        "default": "api.tabby.ai",
+        "options": [
+          {
+            "value": "api.tabby.ai",
+            "label": "UAE and other markets"
+          },
+          {
+            "value": "api.tabby.sa",
+            "label": "Saudi Arabia"
+          }
+        ]
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "create_checkout",
+      "name": "Create checkout session",
+      "description": "Create a session and get the Tabby payment page URL.",
+      "method": "POST",
+      "endpoint": "/api/v2/checkout",
+      "body": {
+        "lang": "{{ inputs.lang }}",
+        "merchant_code": "{{ credentials.merchant_code }}",
+        "merchant_urls": {
+          "success": "{{ inputs.success_url }}",
+          "cancel": "{{ inputs.cancel_url }}",
+          "failure": "{{ inputs.failure_url }}"
+        },
+        "payment": {
+          "amount": "{{ inputs.amount }}",
+          "currency": "{{ inputs.currency }}",
+          "description": "{{ inputs.description }}",
+          "buyer": {
+            "name": "{{ inputs.buyer_name }}",
+            "email": "{{ inputs.buyer_email }}",
+            "phone": "{{ inputs.buyer_phone }}"
+          },
+          "buyer_history": {
+            "registered_since": "{{ inputs.registered_since }}",
+            "loyalty_level": "{{ inputs.loyalty_level }}"
+          },
+          "shipping_address": {
+            "city": "{{ inputs.city }}",
+            "address": "{{ inputs.address }}",
+            "zip": "{{ inputs.zip }}"
+          },
+          "order": {
+            "reference_id": "{{ inputs.order_reference }}",
+            "items": "{{ inputs.items }}"
+          }
+        }
+      },
+      "output_fields": {
+        "session_id": "id",
+        "status": "status",
+        "payment_id": "payment.id",
+        "web_url": "configuration.available_products.installments.0.web_url"
+      },
+      "inputs": [
+        {
+          "key": "amount",
+          "label": "Amount",
+          "type": "string",
+          "required": true,
+          "placeholder": "100.00"
+        },
+        {
+          "key": "currency",
+          "label": "Currency",
+          "type": "select",
+          "required": true,
+          "default": "AED",
+          "options": [
+            {
+              "value": "AED",
+              "label": "AED"
+            },
+            {
+              "value": "SAR",
+              "label": "SAR"
+            },
+            {
+              "value": "KWD",
+              "label": "KWD"
+            }
+          ]
+        },
+        {
+          "key": "order_reference",
+          "label": "Order reference",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "description",
+          "label": "Description",
+          "type": "string"
+        },
+        {
+          "key": "buyer_name",
+          "label": "Customer name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "buyer_email",
+          "label": "Customer email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "buyer_phone",
+          "label": "Customer phone",
+          "type": "string",
+          "required": true,
+          "placeholder": "500000001"
+        },
+        {
+          "key": "registered_since",
+          "label": "Customer registered since",
+          "type": "string",
+          "required": true,
+          "placeholder": "2024-01-31T00:00:00Z",
+          "help": "When the customer created their account in your store (ISO date)."
+        },
+        {
+          "key": "loyalty_level",
+          "label": "Previous orders",
+          "type": "number",
+          "default": 0,
+          "help": "How many orders this customer has placed before."
+        },
+        {
+          "key": "city",
+          "label": "City",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "address",
+          "label": "Address",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "zip",
+          "label": "Postcode",
+          "type": "string",
+          "required": true,
+          "default": "00000"
+        },
+        {
+          "key": "items",
+          "label": "Items (JSON)",
+          "type": "json",
+          "required": true,
+          "placeholder": "[{\"title\":\"T-shirt\",\"quantity\":1,\"unit_price\":\"100.00\",\"category\":\"Clothes\"}]"
+        },
+        {
+          "key": "lang",
+          "label": "Language",
+          "type": "select",
+          "required": true,
+          "default": "en",
+          "options": [
+            {
+              "value": "en",
+              "label": "English"
+            },
+            {
+              "value": "ar",
+              "label": "Arabic"
+            }
+          ]
+        },
+        {
+          "key": "success_url",
+          "label": "Success URL",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "cancel_url",
+          "label": "Cancel URL",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "failure_url",
+          "label": "Failure URL",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "get_payment",
+      "name": "Get payment",
+      "description": "Retrieve a payment with its captures and refunds.",
+      "method": "GET",
+      "endpoint": "/api/v2/payments/{{ inputs.payment_id }}",
+      "output_fields": {
+        "status": "status",
+        "amount": "amount",
+        "currency": "currency",
+        "order_reference": "order.reference_id"
+      },
+      "inputs": [
+        {
+          "key": "payment_id",
+          "label": "Payment ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "capture_payment",
+      "name": "Capture payment",
+      "description": "Capture an authorized payment (do this when you ship).",
+      "method": "POST",
+      "endpoint": "/api/v2/payments/{{ inputs.payment_id }}/captures",
+      "body": {
+        "amount": "{{ inputs.amount }}",
+        "reference_id": "{{ inputs.reference_id }}"
+      },
+      "output_fields": {
+        "status": "status"
+      },
+      "inputs": [
+        {
+          "key": "payment_id",
+          "label": "Payment ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "amount",
+          "label": "Amount",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "reference_id",
+          "label": "Capture reference",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "refund_payment",
+      "name": "Refund payment",
+      "description": "Refund all or part of a closed payment.",
+      "method": "POST",
+      "endpoint": "/api/v2/payments/{{ inputs.payment_id }}/refunds",
+      "body": {
+        "amount": "{{ inputs.amount }}",
+        "reference_id": "{{ inputs.reference_id }}",
+        "reason": "{{ inputs.reason }}"
+      },
+      "output_fields": {
+        "status": "status"
+      },
+      "inputs": [
+        {
+          "key": "payment_id",
+          "label": "Payment ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "amount",
+          "label": "Amount",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "reference_id",
+          "label": "Refund reference",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "reason",
+          "label": "Reason",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "close_payment",
+      "name": "Close payment",
+      "description": "Close a payment, e.g. when the order is cancelled.",
+      "method": "POST",
+      "endpoint": "/api/v2/payments/{{ inputs.payment_id }}/close",
+      "output_fields": {
+        "status": "status"
+      },
+      "inputs": [
+        {
+          "key": "payment_id",
+          "label": "Payment ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_payments",
+      "name": "List payments",
+      "description": "Successful payments, most recent first.",
+      "method": "GET",
+      "endpoint": "/api/v2/payments",
+      "query": {
+        "created_at__gte": "{{ inputs.created_from }}",
+        "status": "{{ inputs.status }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "payments": "payments"
+      },
+      "inputs": [
+        {
+          "key": "created_from",
+          "label": "Created from",
+          "type": "string",
+          "placeholder": "2026-01-01"
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "options": [
+            {
+              "value": "authorized",
+              "label": "authorized"
+            },
+            {
+              "value": "closed",
+              "label": "closed"
+            },
+            {
+              "value": "rejected",
+              "label": "rejected"
+            },
+            {
+              "value": "captured",
+              "label": "captured"
+            },
+            {
+              "value": "refunded",
+              "label": "refunded"
+            }
+          ]
+        },
+        {
+          "key": "limit",
+          "label": "How many",
+          "type": "number",
+          "default": 20,
+          "help": "Up to 20."
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Payment webhook",
+      "type": "webhook",
+      "description": "Register this URL as a Tabby webhook (Tabby → API → webhooks) to get payment updates.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

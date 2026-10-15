@@ -1,0 +1,267 @@
+{
+  "key": "respond_io",
+  "name": "respond.io",
+  "category": "Communication",
+  "description": "Message contacts on WhatsApp and other channels and sync contacts in respond.io.",
+  "website": "https://respond.io",
+  "docs_url": "https://developers.respond.io/",
+  "base_url": "https://api.respond.io/v2",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "Access token",
+        "type": "password",
+        "required": true,
+        "help": "respond.io → Settings → Integrations → Developer API → Edit → Add Access Token (Growth plan or higher)."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "send_message",
+      "name": "Send text message",
+      "method": "POST",
+      "endpoint": "/contact/{{ inputs.identifier }}/message",
+      "body": {
+        "channelId": "{{ inputs.channelId }}",
+        "message": {
+          "type": "text",
+          "text": "{{ inputs.text }}"
+        }
+      },
+      "output_fields": {
+        "message_id": "messageId"
+      },
+      "inputs": [
+        {
+          "key": "identifier",
+          "label": "Contact",
+          "type": "string",
+          "required": true,
+          "placeholder": "phone:+60121233112",
+          "help": "phone:+<number>, email:<address> or id:<contact ID>."
+        },
+        {
+          "key": "text",
+          "label": "Message",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "channelId",
+          "label": "Channel ID",
+          "type": "number",
+          "help": "Leave blank to use the channel the contact last used."
+        }
+      ]
+    },
+    {
+      "key": "send_whatsapp_template",
+      "name": "Send WhatsApp template",
+      "method": "POST",
+      "endpoint": "/contact/{{ inputs.identifier }}/message",
+      "body": {
+        "channelId": "{{ inputs.channelId }}",
+        "message": {
+          "type": "whatsapp_template",
+          "template": {
+            "name": "{{ inputs.name }}",
+            "languageCode": "{{ inputs.languageCode }}",
+            "components": "{{ inputs.components }}"
+          }
+        }
+      },
+      "output_fields": {
+        "message_id": "messageId"
+      },
+      "inputs": [
+        {
+          "key": "identifier",
+          "label": "Contact",
+          "type": "string",
+          "required": true,
+          "placeholder": "phone:+60121233112",
+          "help": "phone:+<number>, email:<address> or id:<contact ID>."
+        },
+        {
+          "key": "name",
+          "label": "Template name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "languageCode",
+          "label": "Language",
+          "type": "string",
+          "default": "en"
+        },
+        {
+          "key": "components",
+          "label": "Components (JSON)",
+          "type": "json",
+          "placeholder": "[{\"type\":\"body\",\"parameters\":[{\"type\":\"text\",\"text\":\"Ali\"}]}]",
+          "help": "Template variables in WhatsApp's components format. Leave blank if the template has none."
+        },
+        {
+          "key": "channelId",
+          "label": "Channel ID",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "upsert_contact",
+      "name": "Create or update contact",
+      "method": "POST",
+      "endpoint": "/contact/create_or_update/{{ inputs.identifier }}",
+      "body": {
+        "firstName": "{{ inputs.firstName }}",
+        "lastName": "{{ inputs.lastName }}",
+        "phone": "{{ inputs.phone }}",
+        "email": "{{ inputs.email }}",
+        "language": "{{ inputs.language }}",
+        "countryCode": "{{ inputs.countryCode }}"
+      },
+      "output_fields": {
+        "contact_id": "contactId"
+      },
+      "inputs": [
+        {
+          "key": "identifier",
+          "label": "Contact",
+          "type": "string",
+          "required": true,
+          "placeholder": "phone:+60121233112",
+          "help": "phone:+<number>, email:<address> or id:<contact ID>."
+        },
+        {
+          "key": "firstName",
+          "label": "First name",
+          "type": "string"
+        },
+        {
+          "key": "lastName",
+          "label": "Last name",
+          "type": "string"
+        },
+        {
+          "key": "phone",
+          "label": "Phone",
+          "type": "string",
+          "placeholder": "+60121233112"
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string"
+        },
+        {
+          "key": "language",
+          "label": "Language code",
+          "type": "string",
+          "placeholder": "en"
+        },
+        {
+          "key": "countryCode",
+          "label": "Country code",
+          "type": "string",
+          "placeholder": "MY"
+        }
+      ]
+    },
+    {
+      "key": "get_contact",
+      "name": "Get contact",
+      "method": "GET",
+      "endpoint": "/contact/{{ inputs.identifier }}",
+      "output_fields": {
+        "id": "id",
+        "first_name": "firstName",
+        "last_name": "lastName",
+        "phone": "phone",
+        "email": "email"
+      },
+      "inputs": [
+        {
+          "key": "identifier",
+          "label": "Contact",
+          "type": "string",
+          "required": true,
+          "placeholder": "phone:+60121233112",
+          "help": "phone:+<number>, email:<address> or id:<contact ID>."
+        }
+      ]
+    },
+    {
+      "key": "get_message",
+      "name": "Get message",
+      "method": "GET",
+      "endpoint": "/contact/{{ inputs.identifier }}/message/{{ inputs.message_id }}",
+      "output_fields": {
+        "message_id": "messageId",
+        "status": "status"
+      },
+      "inputs": [
+        {
+          "key": "identifier",
+          "label": "Contact",
+          "type": "string",
+          "required": true,
+          "placeholder": "phone:+60121233112",
+          "help": "phone:+<number>, email:<address> or id:<contact ID>."
+        },
+        {
+          "key": "message_id",
+          "label": "Message ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_messages",
+      "name": "List contact messages",
+      "method": "GET",
+      "endpoint": "/contact/{{ inputs.identifier }}/message/list",
+      "query": {
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "messages": "items"
+      },
+      "inputs": [
+        {
+          "key": "identifier",
+          "label": "Contact",
+          "type": "string",
+          "required": true,
+          "placeholder": "phone:+60121233112",
+          "help": "phone:+<number>, email:<address> or id:<contact ID>."
+        },
+        {
+          "key": "limit",
+          "label": "Max results (max 50)",
+          "type": "number",
+          "default": 20
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Set this URL in respond.io → Settings → Integrations → Webhooks (Advanced plan).",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,410 @@
+{
+  "key": "tiendanube",
+  "name": "Tiendanube (Nuvemshop)",
+  "category": "E-commerce",
+  "description": "Latin American store platform: orders, products, stock and customers.",
+  "website": "https://www.tiendanube.com",
+  "docs_url": "https://tiendanube.github.io/api-documentation/intro",
+  "base_url": "https://api.tiendanube.com/v1/{{ credentials.store_id }}",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "Authentication",
+    "prefix": "bearer ",
+    "fields": [
+      {
+        "key": "store_id",
+        "label": "Store ID",
+        "type": "string",
+        "required": true,
+        "help": "The store's user_id, returned with the access token when the store installs your app."
+      },
+      {
+        "key": "api_key",
+        "label": "Access token",
+        "type": "password",
+        "required": true,
+        "help": "Create an app in the Tiendanube/Nuvemshop Partners portal, install it on your store and copy the access token."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_orders",
+      "name": "List orders",
+      "description": "Orders, filtered by status or date.",
+      "method": "GET",
+      "endpoint": "/orders",
+      "query": {
+        "status": "{{ inputs.status }}",
+        "payment_status": "{{ inputs.payment_status }}",
+        "created_at_min": "{{ inputs.created_at_min }}",
+        "q": "{{ inputs.q }}",
+        "per_page": "{{ inputs.per_page }}"
+      },
+      "inputs": [
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "options": [
+            {
+              "value": "any",
+              "label": "any"
+            },
+            {
+              "value": "open",
+              "label": "open"
+            },
+            {
+              "value": "closed",
+              "label": "closed"
+            },
+            {
+              "value": "cancelled",
+              "label": "cancelled"
+            }
+          ]
+        },
+        {
+          "key": "payment_status",
+          "label": "Payment status",
+          "type": "select",
+          "options": [
+            {
+              "value": "any",
+              "label": "any"
+            },
+            {
+              "value": "pending",
+              "label": "pending"
+            },
+            {
+              "value": "authorized",
+              "label": "authorized"
+            },
+            {
+              "value": "paid",
+              "label": "paid"
+            },
+            {
+              "value": "abandoned",
+              "label": "abandoned"
+            },
+            {
+              "value": "refunded",
+              "label": "refunded"
+            },
+            {
+              "value": "voided",
+              "label": "voided"
+            }
+          ]
+        },
+        {
+          "key": "created_at_min",
+          "label": "Created after",
+          "type": "string",
+          "placeholder": "2026-01-01T00:00:00-03:00"
+        },
+        {
+          "key": "q",
+          "label": "Search",
+          "type": "string"
+        },
+        {
+          "key": "per_page",
+          "label": "How many",
+          "type": "number",
+          "default": 30
+        }
+      ]
+    },
+    {
+      "key": "get_order",
+      "name": "Get order",
+      "description": "One order's details.",
+      "method": "GET",
+      "endpoint": "/orders/{{ inputs.order_id }}",
+      "output_fields": {
+        "number": "number",
+        "total": "total",
+        "status": "status",
+        "payment_status": "payment_status",
+        "email": "contact_email"
+      },
+      "inputs": [
+        {
+          "key": "order_id",
+          "label": "Order ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "close_order",
+      "name": "Close order",
+      "description": "Mark an order as closed (done).",
+      "method": "POST",
+      "endpoint": "/orders/{{ inputs.order_id }}/close",
+      "output_fields": {
+        "status": "status"
+      },
+      "inputs": [
+        {
+          "key": "order_id",
+          "label": "Order ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "cancel_order",
+      "name": "Cancel order",
+      "description": "Cancel an order.",
+      "method": "POST",
+      "endpoint": "/orders/{{ inputs.order_id }}/cancel",
+      "body": {
+        "reason": "{{ inputs.reason }}",
+        "email": "{{ inputs.notify }}",
+        "restock": "{{ inputs.restock }}"
+      },
+      "output_fields": {
+        "status": "status"
+      },
+      "inputs": [
+        {
+          "key": "order_id",
+          "label": "Order ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "reason",
+          "label": "Reason",
+          "type": "select",
+          "required": true,
+          "default": "customer",
+          "options": [
+            {
+              "value": "customer",
+              "label": "customer"
+            },
+            {
+              "value": "inventory",
+              "label": "inventory"
+            },
+            {
+              "value": "fraud",
+              "label": "fraud"
+            },
+            {
+              "value": "other",
+              "label": "other"
+            }
+          ]
+        },
+        {
+          "key": "notify",
+          "label": "Email the customer",
+          "type": "boolean",
+          "default": true
+        },
+        {
+          "key": "restock",
+          "label": "Restock items",
+          "type": "boolean",
+          "default": true
+        }
+      ]
+    },
+    {
+      "key": "list_products",
+      "name": "List products",
+      "description": "Products, optionally searched by name or SKU.",
+      "method": "GET",
+      "endpoint": "/products",
+      "query": {
+        "q": "{{ inputs.q }}",
+        "per_page": "{{ inputs.per_page }}"
+      },
+      "inputs": [
+        {
+          "key": "q",
+          "label": "Search",
+          "type": "string"
+        },
+        {
+          "key": "per_page",
+          "label": "How many",
+          "type": "number",
+          "default": 30
+        }
+      ]
+    },
+    {
+      "key": "create_product",
+      "name": "Create product",
+      "description": "Add a product with one variant.",
+      "method": "POST",
+      "endpoint": "/products",
+      "body": {
+        "name": {
+          "es": "{{ inputs.name_es }}",
+          "pt": "{{ inputs.name_pt }}",
+          "en": "{{ inputs.name_en }}"
+        },
+        "description": {
+          "es": "{{ inputs.description }}"
+        },
+        "variants": [
+          {
+            "price": "{{ inputs.price }}",
+            "stock": "{{ inputs.stock }}",
+            "sku": "{{ inputs.sku }}"
+          }
+        ]
+      },
+      "output_fields": {
+        "id": "id",
+        "variant_id": "variants.0.id"
+      },
+      "inputs": [
+        {
+          "key": "name_es",
+          "label": "Name (Spanish)",
+          "type": "string",
+          "help": "Fill the language(s) your store uses."
+        },
+        {
+          "key": "name_pt",
+          "label": "Name (Portuguese)",
+          "type": "string"
+        },
+        {
+          "key": "name_en",
+          "label": "Name (English)",
+          "type": "string"
+        },
+        {
+          "key": "description",
+          "label": "Description",
+          "type": "text"
+        },
+        {
+          "key": "price",
+          "label": "Price",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "stock",
+          "label": "Stock",
+          "type": "number"
+        },
+        {
+          "key": "sku",
+          "label": "SKU",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "update_variant",
+      "name": "Update price or stock",
+      "description": "Change a variant's price or stock.",
+      "method": "PUT",
+      "endpoint": "/products/{{ inputs.product_id }}/variants/{{ inputs.variant_id }}",
+      "body": {
+        "price": "{{ inputs.price }}",
+        "stock": "{{ inputs.stock }}"
+      },
+      "output_fields": {
+        "price": "price",
+        "stock": "stock"
+      },
+      "inputs": [
+        {
+          "key": "product_id",
+          "label": "Product ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "variant_id",
+          "label": "Variant ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "price",
+          "label": "Price",
+          "type": "number"
+        },
+        {
+          "key": "stock",
+          "label": "Stock",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "create_customer",
+      "name": "Create customer",
+      "description": "Add a customer.",
+      "method": "POST",
+      "endpoint": "/customers",
+      "body": {
+        "name": "{{ inputs.name }}",
+        "email": "{{ inputs.email }}",
+        "phone": "{{ inputs.phone }}",
+        "send_email_invite": "{{ inputs.invite }}"
+      },
+      "output_fields": {
+        "id": "id"
+      },
+      "inputs": [
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "phone",
+          "label": "Phone",
+          "type": "string"
+        },
+        {
+          "key": "invite",
+          "label": "Send account invite",
+          "type": "boolean",
+          "default": false
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Store event",
+      "type": "webhook",
+      "description": "Register this URL with the Tiendanube webhooks API (event e.g. order/created).",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

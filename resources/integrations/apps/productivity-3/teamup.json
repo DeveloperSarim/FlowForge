@@ -1,0 +1,155 @@
+{
+  "key": "teamup",
+  "name": "Teamup Calendar",
+  "category": "Productivity",
+  "description": "Shared calendars: list, create and delete events in a Teamup calendar.",
+  "website": "https://teamup.com",
+  "docs_url": "https://apidocs.teamup.com/",
+  "base_url": "https://api.teamup.com",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "Teamup-Token",
+    "fields": [
+      {
+        "key": "calendar_key",
+        "label": "Calendar key",
+        "type": "string",
+        "required": true,
+        "help": "Calendar → Settings → Sharing → a link's key, the last part of teamup.com/ksXXXXXXXX."
+      },
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "Request a free API key at teamup.com/api-keys/request."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_events",
+      "name": "List events",
+      "description": "Events between two dates.",
+      "method": "GET",
+      "endpoint": "/{{ credentials.calendar_key }}/events",
+      "query": {
+        "startDate": "{{ inputs.start }}",
+        "endDate": "{{ inputs.end }}"
+      },
+      "output_fields": {
+        "titles": "events.*.title",
+        "ids": "events.*.id"
+      },
+      "inputs": [
+        {
+          "key": "start",
+          "label": "From",
+          "type": "string",
+          "required": true,
+          "placeholder": "2025-01-01"
+        },
+        {
+          "key": "end",
+          "label": "To",
+          "type": "string",
+          "required": true,
+          "placeholder": "2025-01-31"
+        }
+      ]
+    },
+    {
+      "key": "create_event",
+      "name": "Create event",
+      "description": "Add an event to a sub-calendar.",
+      "method": "POST",
+      "endpoint": "/{{ credentials.calendar_key }}/events",
+      "body": {
+        "subcalendar_ids": [
+          "{{ inputs.subcalendar_id }}"
+        ],
+        "title": "{{ inputs.title }}",
+        "start_dt": "{{ inputs.start }}",
+        "end_dt": "{{ inputs.end }}",
+        "who": "{{ inputs.who }}",
+        "location": "{{ inputs.location }}",
+        "notes": "{{ inputs.notes }}"
+      },
+      "output_fields": {
+        "id": "event.id"
+      },
+      "inputs": [
+        {
+          "key": "subcalendar_id",
+          "label": "Sub-calendar ID",
+          "type": "number",
+          "required": true,
+          "help": "Use \"List sub-calendars\"."
+        },
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "start",
+          "label": "Start",
+          "type": "string",
+          "required": true,
+          "placeholder": "2025-01-31T10:00:00+00:00"
+        },
+        {
+          "key": "end",
+          "label": "End",
+          "type": "string",
+          "required": true,
+          "placeholder": "2025-01-31T11:00:00+00:00"
+        },
+        {
+          "key": "who",
+          "label": "Who",
+          "type": "string"
+        },
+        {
+          "key": "location",
+          "label": "Location",
+          "type": "string"
+        },
+        {
+          "key": "notes",
+          "label": "Notes",
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "key": "delete_event",
+      "name": "Delete event",
+      "description": "Delete an event.",
+      "method": "DELETE",
+      "endpoint": "/{{ credentials.calendar_key }}/events/{{ inputs.id }}",
+      "inputs": [
+        {
+          "key": "id",
+          "label": "Event ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_subcalendars",
+      "name": "List sub-calendars",
+      "description": "Sub-calendars and their IDs.",
+      "method": "GET",
+      "endpoint": "/{{ credentials.calendar_key }}/subcalendars",
+      "output_fields": {
+        "names": "subcalendars.*.name",
+        "ids": "subcalendars.*.id"
+      },
+      "inputs": []
+    }
+  ]
+}

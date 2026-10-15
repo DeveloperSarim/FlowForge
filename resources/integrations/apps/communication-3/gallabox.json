@@ -1,0 +1,242 @@
+{
+  "key": "gallabox",
+  "name": "Gallabox",
+  "category": "Communication",
+  "description": "Send WhatsApp texts and templates with Gallabox and add contacts.",
+  "website": "https://gallabox.com",
+  "docs_url": "https://api-docs.gallabox.com/",
+  "base_url": "https://server.gallabox.com/devapi",
+  "headers": {
+    "apiSecret": "{{ credentials.api_secret }}"
+  },
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "apiKey",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "Gallabox → Settings → API Keys (app.gallabox.com/apikey) → create a key."
+      },
+      {
+        "key": "api_secret",
+        "label": "API secret",
+        "type": "password",
+        "required": true,
+        "help": "Shown once next to the API key."
+      },
+      {
+        "key": "account_id",
+        "label": "Account ID",
+        "type": "string",
+        "required": true,
+        "help": "Gallabox → Settings → Account details → Copy account ID."
+      },
+      {
+        "key": "channel_id",
+        "label": "WhatsApp channel ID",
+        "type": "string",
+        "required": true,
+        "help": "Gallabox → Settings → Channels → your WhatsApp number → Copy channel ID."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "send_text",
+      "name": "Send WhatsApp text",
+      "description": "Free text only works within 24 hours of the customer's last message.",
+      "method": "POST",
+      "endpoint": "/messages/whatsapp",
+      "body": {
+        "channelId": "{{ credentials.channel_id }}",
+        "channelType": "whatsapp",
+        "recipient": {
+          "name": "{{ inputs.name }}",
+          "phone": "{{ inputs.phone }}"
+        },
+        "whatsapp": {
+          "type": "text",
+          "text": {
+            "body": "{{ inputs.text }}"
+          }
+        }
+      },
+      "output_fields": {
+        "id": "id",
+        "status": "status"
+      },
+      "inputs": [
+        {
+          "key": "phone",
+          "label": "Phone number",
+          "type": "string",
+          "required": true,
+          "placeholder": "919876543210",
+          "help": "Country code + number, no +."
+        },
+        {
+          "key": "name",
+          "label": "Contact name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "text",
+          "label": "Message",
+          "type": "text",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "send_template",
+      "name": "Send WhatsApp template",
+      "method": "POST",
+      "endpoint": "/messages/whatsapp",
+      "body": {
+        "channelId": "{{ credentials.channel_id }}",
+        "channelType": "whatsapp",
+        "recipient": {
+          "name": "{{ inputs.name }}",
+          "phone": "{{ inputs.phone }}"
+        },
+        "whatsapp": {
+          "type": "template",
+          "template": {
+            "templateName": "{{ inputs.templateName }}",
+            "bodyValues": {
+              "$if": "{{ inputs.bodyValues }}",
+              "...": "{{ inputs.bodyValues }}"
+            }
+          }
+        }
+      },
+      "output_fields": {
+        "id": "id",
+        "status": "status"
+      },
+      "inputs": [
+        {
+          "key": "phone",
+          "label": "Phone number",
+          "type": "string",
+          "required": true,
+          "placeholder": "919876543210",
+          "help": "Country code + number, no +."
+        },
+        {
+          "key": "name",
+          "label": "Contact name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "templateName",
+          "label": "Template name",
+          "type": "string",
+          "required": true,
+          "help": "Gallabox → Templates; the approved template's name."
+        },
+        {
+          "key": "bodyValues",
+          "label": "Template variables",
+          "type": "keyvalue",
+          "help": "Variable name → value, e.g. name = Ali."
+        }
+      ]
+    },
+    {
+      "key": "get_message_status",
+      "name": "Get message status",
+      "method": "GET",
+      "endpoint": "/accounts/{{ credentials.account_id }}/messages/{{ inputs.message_id }}/status",
+      "output_fields": {
+        "status": "status"
+      },
+      "inputs": [
+        {
+          "key": "message_id",
+          "label": "Message ID",
+          "type": "string",
+          "required": true,
+          "help": "id returned when the message was sent."
+        }
+      ]
+    },
+    {
+      "key": "add_contact",
+      "name": "Add contact",
+      "method": "POST",
+      "endpoint": "/accounts/{{ credentials.account_id }}/contacts",
+      "body": {
+        "name": "{{ inputs.name }}",
+        "phone": "{{ inputs.phone }}",
+        "email": "{{ inputs.email }}"
+      },
+      "output_fields": {
+        "id": "id"
+      },
+      "inputs": [
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "phone",
+          "label": "Phone numbers",
+          "type": "list",
+          "required": true,
+          "placeholder": "919876543210"
+        },
+        {
+          "key": "email",
+          "label": "Emails",
+          "type": "list"
+        }
+      ]
+    },
+    {
+      "key": "find_contact",
+      "name": "Find contact by phone",
+      "method": "GET",
+      "endpoint": "/accounts/{{ credentials.account_id }}/contacts",
+      "query": {
+        "phone": "{{ inputs.phone }}"
+      },
+      "output_fields": {
+        "id": "0.id",
+        "name": "0.name"
+      },
+      "inputs": [
+        {
+          "key": "phone",
+          "label": "Phone number",
+          "type": "string",
+          "required": true,
+          "placeholder": "919876543210"
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Set this URL in Gallabox → Settings → Webhooks (e.g. Message.Received, Contact.Created).",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

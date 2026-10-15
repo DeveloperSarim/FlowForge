@@ -1,0 +1,199 @@
+{
+  "key": "sonatype_nexus",
+  "name": "Sonatype Nexus Repository",
+  "category": "Developer Tools",
+  "description": "Search, list and delete components in Nexus Repository.",
+  "brand": "sonatype",
+  "website": "https://www.sonatype.com/products/sonatype-nexus-repository",
+  "docs_url": "https://help.sonatype.com/en/rest-apis.html",
+  "base_url": "{{ credentials.server_url }}/service/rest/v1",
+  "auth": {
+    "type": "basic",
+    "fields": [
+      {
+        "key": "server_url",
+        "label": "Server URL",
+        "type": "string",
+        "required": true,
+        "placeholder": "https://nexus.example.com",
+        "help": "Your Nexus address without a trailing slash."
+      },
+      {
+        "key": "username",
+        "label": "Username",
+        "type": "string",
+        "required": true,
+        "help": "A Nexus user (or a user token name)."
+      },
+      {
+        "key": "password",
+        "label": "Password",
+        "type": "password",
+        "required": true,
+        "help": "The user's password (or user token passcode)."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_repositories",
+      "name": "List repositories",
+      "description": "List all repositories.",
+      "method": "GET",
+      "endpoint": "/repositories",
+      "inputs": []
+    },
+    {
+      "key": "list_components",
+      "name": "List components",
+      "description": "List the components in a repository.",
+      "method": "GET",
+      "endpoint": "/components",
+      "query": {
+        "repository": "{{ inputs.repository }}",
+        "continuationToken": "{{ inputs.continuation_token }}"
+      },
+      "output_fields": {
+        "components": "items",
+        "next_page_token": "continuationToken"
+      },
+      "inputs": [
+        {
+          "key": "repository",
+          "label": "Repository",
+          "type": "string",
+          "required": true,
+          "placeholder": "maven-releases"
+        },
+        {
+          "key": "continuation_token",
+          "label": "Next page token",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "search_components",
+      "name": "Search components",
+      "description": "Search components by name, version or group.",
+      "method": "GET",
+      "endpoint": "/search",
+      "query": {
+        "repository": "{{ inputs.repository }}",
+        "name": "{{ inputs.name }}",
+        "version": "{{ inputs.version }}",
+        "group": "{{ inputs.group }}",
+        "format": "{{ inputs.format }}"
+      },
+      "output_fields": {
+        "components": "items",
+        "next_page_token": "continuationToken"
+      },
+      "inputs": [
+        {
+          "key": "repository",
+          "label": "Repository",
+          "type": "string",
+          "placeholder": "maven-releases"
+        },
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string"
+        },
+        {
+          "key": "version",
+          "label": "Version",
+          "type": "string"
+        },
+        {
+          "key": "group",
+          "label": "Group",
+          "type": "string"
+        },
+        {
+          "key": "format",
+          "label": "Format",
+          "type": "string",
+          "placeholder": "maven2"
+        }
+      ]
+    },
+    {
+      "key": "search_assets",
+      "name": "Search assets",
+      "description": "Search individual files (assets).",
+      "method": "GET",
+      "endpoint": "/search/assets",
+      "query": {
+        "repository": "{{ inputs.repository }}",
+        "name": "{{ inputs.name }}",
+        "version": "{{ inputs.version }}",
+        "sha256": "{{ inputs.sha256 }}"
+      },
+      "output_fields": {
+        "assets": "items"
+      },
+      "inputs": [
+        {
+          "key": "repository",
+          "label": "Repository",
+          "type": "string",
+          "placeholder": "maven-releases"
+        },
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string"
+        },
+        {
+          "key": "version",
+          "label": "Version",
+          "type": "string"
+        },
+        {
+          "key": "sha256",
+          "label": "SHA-256",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "get_component",
+      "name": "Get component",
+      "description": "Get a component and its assets.",
+      "method": "GET",
+      "endpoint": "/components/{{ inputs.id }}",
+      "output_fields": {
+        "name": "name",
+        "version": "version",
+        "repository": "repository"
+      },
+      "inputs": [
+        {
+          "key": "id",
+          "label": "Component ID",
+          "type": "string",
+          "required": true,
+          "help": "From List or Search components."
+        }
+      ]
+    },
+    {
+      "key": "delete_component",
+      "name": "Delete component",
+      "description": "Delete a component and its files.",
+      "method": "DELETE",
+      "endpoint": "/components/{{ inputs.id }}",
+      "inputs": [
+        {
+          "key": "id",
+          "label": "Component ID",
+          "type": "string",
+          "required": true,
+          "help": "From List or Search components."
+        }
+      ]
+    }
+  ]
+}

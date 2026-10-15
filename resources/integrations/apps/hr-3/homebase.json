@@ -1,0 +1,147 @@
+{
+  "key": "homebase",
+  "name": "Homebase",
+  "category": "HR & Recruiting",
+  "description": "Read locations, employees, shifts and timecards from Homebase scheduling.",
+  "website": "https://joinhomebase.com",
+  "docs_url": "https://joinhomebase.readme.io/reference",
+  "base_url": "https://app.joinhomebase.com/api/public",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "In Homebase open Settings → Integrations → API access (or ask support for an API key) and copy it."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_locations",
+      "name": "List locations",
+      "description": "List your business locations.",
+      "method": "GET",
+      "endpoint": "/locations",
+      "output_fields": {
+        "first_id": "0.id",
+        "first_name": "0.name"
+      },
+      "inputs": []
+    },
+    {
+      "key": "list_employees",
+      "name": "List employees",
+      "description": "List employees at a location.",
+      "method": "GET",
+      "endpoint": "/locations/{{ inputs.location_id }}/employees",
+      "query": {
+        "per_page": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "first_id": "0.id",
+        "first_name": "0.first_name",
+        "first_email": "0.email"
+      },
+      "inputs": [
+        {
+          "key": "location_id",
+          "label": "Location ID",
+          "type": "string",
+          "required": true,
+          "help": "Use 'List locations' to find it."
+        },
+        {
+          "key": "limit",
+          "label": "How many",
+          "type": "number",
+          "default": 100
+        }
+      ]
+    },
+    {
+      "key": "list_shifts",
+      "name": "List shifts",
+      "description": "List scheduled shifts between two dates.",
+      "method": "GET",
+      "endpoint": "/locations/{{ inputs.location_id }}/shifts",
+      "query": {
+        "start_date": "{{ inputs.start_date }}",
+        "end_date": "{{ inputs.end_date }}",
+        "per_page": 100
+      },
+      "output_fields": {
+        "first_id": "0.id",
+        "first_start": "0.start_at"
+      },
+      "inputs": [
+        {
+          "key": "location_id",
+          "label": "Location ID",
+          "type": "string",
+          "required": true,
+          "help": "Use 'List locations' to find it."
+        },
+        {
+          "key": "start_date",
+          "label": "From date",
+          "type": "string",
+          "required": true,
+          "help": "YYYY-MM-DD",
+          "placeholder": "2026-01-01"
+        },
+        {
+          "key": "end_date",
+          "label": "To date",
+          "type": "string",
+          "required": true,
+          "help": "YYYY-MM-DD",
+          "placeholder": "2026-01-31"
+        }
+      ]
+    },
+    {
+      "key": "list_timecards",
+      "name": "List timecards",
+      "description": "List worked hours between two dates.",
+      "method": "GET",
+      "endpoint": "/locations/{{ inputs.location_id }}/timecards",
+      "query": {
+        "start_date": "{{ inputs.start_date }}",
+        "end_date": "{{ inputs.end_date }}",
+        "per_page": 100
+      },
+      "output_fields": {
+        "first_id": "0.id",
+        "first_hours": "0.labor.regular_hours"
+      },
+      "inputs": [
+        {
+          "key": "location_id",
+          "label": "Location ID",
+          "type": "string",
+          "required": true,
+          "help": "Use 'List locations' to find it."
+        },
+        {
+          "key": "start_date",
+          "label": "From date",
+          "type": "string",
+          "required": true,
+          "help": "YYYY-MM-DD",
+          "placeholder": "2026-01-01"
+        },
+        {
+          "key": "end_date",
+          "label": "To date",
+          "type": "string",
+          "required": true,
+          "help": "YYYY-MM-DD",
+          "placeholder": "2026-01-31"
+        }
+      ]
+    }
+  ]
+}

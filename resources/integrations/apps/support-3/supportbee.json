@@ -1,0 +1,202 @@
+{
+  "key": "supportbee",
+  "name": "SupportBee",
+  "category": "Customer Support",
+  "description": "List, create and reply to shared-inbox tickets in SupportBee.",
+  "website": "https://supportbee.com",
+  "docs_url": "https://developer.supportbee.com/api",
+  "base_url": "https://{{ credentials.company }}.supportbee.com",
+  "headers": {
+    "Accept": "application/json"
+  },
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "Authorization",
+    "prefix": "Bearer ",
+    "fields": [
+      {
+        "key": "company",
+        "label": "Company subdomain",
+        "type": "string",
+        "required": true,
+        "placeholder": "acme",
+        "help": "The part before .supportbee.com."
+      },
+      {
+        "key": "api_key",
+        "label": "API token",
+        "type": "password",
+        "required": true,
+        "help": "In SupportBee click your avatar > Profile > API Token and copy it."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_tickets",
+      "name": "List tickets",
+      "description": "Lists tickets, newest activity first.",
+      "method": "GET",
+      "endpoint": "/tickets",
+      "query": {
+        "per_page": "{{ inputs.per_page }}",
+        "archived": "{{ inputs.archived }}",
+        "requester_emails": "{{ inputs.requester_emails }}"
+      },
+      "output_fields": {
+        "tickets": "tickets",
+        "total": "total",
+        "first_id": "tickets.0.id",
+        "first_subject": "tickets.0.subject"
+      },
+      "inputs": [
+        {
+          "key": "per_page",
+          "label": "How many",
+          "type": "number",
+          "default": 15,
+          "help": "Up to 99."
+        },
+        {
+          "key": "archived",
+          "label": "Include archived",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "key": "requester_emails",
+          "label": "Only from these emails",
+          "type": "string",
+          "help": "Comma separated."
+        }
+      ]
+    },
+    {
+      "key": "create_ticket",
+      "name": "Create ticket",
+      "description": "Creates a ticket on behalf of a customer.",
+      "method": "POST",
+      "endpoint": "/tickets",
+      "body": {
+        "ticket": {
+          "subject": "{{ inputs.subject }}",
+          "requester_name": "{{ inputs.requester_name }}",
+          "requester_email": "{{ inputs.requester_email }}",
+          "notify_requester": "{{ inputs.notify_requester }}",
+          "content": {
+            "text": "{{ inputs.text }}"
+          }
+        }
+      },
+      "output_fields": {
+        "id": "ticket.id"
+      },
+      "inputs": [
+        {
+          "key": "requester_email",
+          "label": "Customer email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "requester_name",
+          "label": "Customer name",
+          "type": "string"
+        },
+        {
+          "key": "subject",
+          "label": "Subject",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "text",
+          "label": "Message",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "notify_requester",
+          "label": "Email the customer",
+          "type": "boolean",
+          "default": false
+        }
+      ]
+    },
+    {
+      "key": "reply",
+      "name": "Reply to ticket",
+      "description": "Sends a reply to the customer.",
+      "method": "POST",
+      "endpoint": "/tickets/{{ inputs.ticket_id }}/replies",
+      "body": {
+        "reply": {
+          "content": {
+            "text": "{{ inputs.text }}"
+          }
+        }
+      },
+      "output_fields": {
+        "id": "reply.id"
+      },
+      "inputs": [
+        {
+          "key": "ticket_id",
+          "label": "Ticket ID",
+          "type": "number",
+          "required": true,
+          "help": "The number in the ticket address in SupportBee."
+        },
+        {
+          "key": "text",
+          "label": "Reply",
+          "type": "text",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_replies",
+      "name": "List replies",
+      "description": "Lists the replies on a ticket.",
+      "method": "GET",
+      "endpoint": "/tickets/{{ inputs.ticket_id }}/replies",
+      "output_fields": {
+        "replies": "replies"
+      },
+      "inputs": [
+        {
+          "key": "ticket_id",
+          "label": "Ticket ID",
+          "type": "number",
+          "required": true,
+          "help": "The number in the ticket address in SupportBee."
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_ticket",
+      "name": "New ticket",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/tickets",
+      "query": {
+        "sort_by": "creation_time",
+        "per_page": 25
+      },
+      "items_path": "tickets",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

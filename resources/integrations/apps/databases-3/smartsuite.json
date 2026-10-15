@@ -1,0 +1,192 @@
+{
+  "key": "smartsuite",
+  "name": "SmartSuite",
+  "category": "Databases",
+  "description": "List, create, update and delete records in SmartSuite tables.",
+  "website": "https://www.smartsuite.com",
+  "docs_url": "https://help.smartsuite.com/en/articles/4855681-smartsuite-api",
+  "base_url": "https://app.smartsuite.com/api/v1",
+  "headers": {
+    "ACCOUNT-ID": "{{ credentials.account_id }}"
+  },
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "Authorization",
+    "prefix": "Token ",
+    "fields": [
+      {
+        "key": "account_id",
+        "label": "Workspace ID",
+        "type": "string",
+        "required": true,
+        "help": "Your workspace ID is the 8-character code in the address after app.smartsuite.com/."
+      },
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "In SmartSuite open your profile → API Key → Generate and copy it."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_records",
+      "name": "List records",
+      "description": "Get records from a table, optionally filtered.",
+      "method": "POST",
+      "endpoint": "/applications/{{ inputs.app_id }}/records/list/",
+      "body": {
+        "filter": "{{ inputs.filter }}"
+      },
+      "query": {
+        "limit": "{{ inputs.limit }}",
+        "offset": "{{ inputs.offset }}"
+      },
+      "output_fields": {
+        "records": "items",
+        "total": "total",
+        "first_id": "items.0.id"
+      },
+      "inputs": [
+        {
+          "key": "app_id",
+          "label": "Table (application) ID",
+          "type": "string",
+          "required": true,
+          "help": "Open the table; the ID is the 24-character code in the address."
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 50
+        },
+        {
+          "key": "offset",
+          "label": "Offset",
+          "type": "number",
+          "default": 0
+        },
+        {
+          "key": "filter",
+          "label": "Filter (JSON)",
+          "type": "json",
+          "help": "SmartSuite filter object, optional."
+        }
+      ]
+    },
+    {
+      "key": "get_record",
+      "name": "Get record",
+      "description": "Read one record.",
+      "method": "GET",
+      "endpoint": "/applications/{{ inputs.app_id }}/records/{{ inputs.record_id }}/",
+      "output_fields": {
+        "id": "id",
+        "title": "title"
+      },
+      "inputs": [
+        {
+          "key": "app_id",
+          "label": "Table (application) ID",
+          "type": "string",
+          "required": true,
+          "help": "Open the table; the ID is the 24-character code in the address."
+        },
+        {
+          "key": "record_id",
+          "label": "Record ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "create_record",
+      "name": "Create record",
+      "description": "Add a record. Use field slugs as names.",
+      "method": "POST",
+      "endpoint": "/applications/{{ inputs.app_id }}/records/",
+      "body": "{{ inputs.fields }}",
+      "output_fields": {
+        "id": "id"
+      },
+      "inputs": [
+        {
+          "key": "app_id",
+          "label": "Table (application) ID",
+          "type": "string",
+          "required": true,
+          "help": "Open the table; the ID is the 24-character code in the address."
+        },
+        {
+          "key": "fields",
+          "label": "Fields (JSON)",
+          "type": "json",
+          "required": true,
+          "help": "Example: {\"title\": \"Hello\"}"
+        }
+      ]
+    },
+    {
+      "key": "update_record",
+      "name": "Update record",
+      "description": "Change fields on a record.",
+      "method": "PATCH",
+      "endpoint": "/applications/{{ inputs.app_id }}/records/{{ inputs.record_id }}/",
+      "body": "{{ inputs.fields }}",
+      "output_fields": {
+        "id": "id"
+      },
+      "inputs": [
+        {
+          "key": "app_id",
+          "label": "Table (application) ID",
+          "type": "string",
+          "required": true,
+          "help": "Open the table; the ID is the 24-character code in the address."
+        },
+        {
+          "key": "record_id",
+          "label": "Record ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "fields",
+          "label": "Fields (JSON)",
+          "type": "json",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "delete_record",
+      "name": "Delete record",
+      "description": "Delete a record.",
+      "method": "DELETE",
+      "endpoint": "/applications/{{ inputs.app_id }}/records/{{ inputs.record_id }}/",
+      "output_fields": {
+        "id": "id"
+      },
+      "inputs": [
+        {
+          "key": "app_id",
+          "label": "Table (application) ID",
+          "type": "string",
+          "required": true,
+          "help": "Open the table; the ID is the 24-character code in the address."
+        },
+        {
+          "key": "record_id",
+          "label": "Record ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ]
+}

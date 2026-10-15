@@ -1,0 +1,188 @@
+{
+  "key": "dust",
+  "name": "Dust",
+  "category": "AI",
+  "description": "Ask your company's Dust AI agents and add documents to their knowledge.",
+  "website": "https://dust.tt",
+  "docs_url": "https://docs.dust.tt/reference",
+  "base_url": "https://{{ credentials.host }}/api/v1/w/{{ credentials.workspace_id }}",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "workspace_id",
+        "label": "Workspace ID",
+        "type": "string",
+        "required": true,
+        "help": "The ID in your Dust URL: dust.tt/w/<workspace ID>/…"
+      },
+      {
+        "key": "host",
+        "label": "Region host",
+        "type": "string",
+        "required": true,
+        "default": "dust.tt",
+        "help": "dust.tt for US workspaces, eu.dust.tt for EU workspaces."
+      },
+      {
+        "key": "token",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "Dust → Admin → API Keys → Create API key."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "ask_agent",
+      "name": "Ask agent",
+      "description": "Start a conversation with an agent and wait for its answer.",
+      "method": "POST",
+      "endpoint": "/assistant/conversations",
+      "timeout": 300,
+      "body": {
+        "message": {
+          "content": "{{ inputs.message }}",
+          "mentions": [
+            {
+              "configurationId": "{{ inputs.agent_id }}"
+            }
+          ],
+          "context": {
+            "username": "{{ inputs.username }}",
+            "timezone": "{{ inputs.timezone }}"
+          }
+        },
+        "title": "{{ inputs.title }}",
+        "blocking": true
+      },
+      "output_fields": {
+        "conversation_id": "conversation.sId",
+        "reply": "conversation.content.1.0.content"
+      },
+      "inputs": [
+        {
+          "key": "agent_id",
+          "label": "Agent ID",
+          "type": "string",
+          "required": true,
+          "help": "Use List agents (the sId), e.g. \"dust\" or \"gpt-4\" for global agents."
+        },
+        {
+          "key": "message",
+          "label": "Message",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "title",
+          "label": "Conversation title",
+          "type": "string"
+        },
+        {
+          "key": "username",
+          "label": "Your name",
+          "type": "string",
+          "default": "FlowForge"
+        },
+        {
+          "key": "timezone",
+          "label": "Time zone",
+          "type": "string",
+          "default": "UTC"
+        }
+      ]
+    },
+    {
+      "key": "get_conversation",
+      "name": "Get conversation",
+      "description": "Get a conversation and all its messages.",
+      "method": "GET",
+      "endpoint": "/assistant/conversations/{{ inputs.conversation_id }}",
+      "output_fields": {
+        "messages": "conversation.content"
+      },
+      "inputs": [
+        {
+          "key": "conversation_id",
+          "label": "Conversation ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_agents",
+      "name": "List agents",
+      "description": "List the agents you can talk to.",
+      "method": "GET",
+      "endpoint": "/assistant/agent_configurations",
+      "output_fields": {
+        "agents": "agentConfigurations"
+      },
+      "inputs": []
+    },
+    {
+      "key": "upsert_document",
+      "name": "Add document to data source",
+      "description": "Create or update a document so agents can use it.",
+      "method": "POST",
+      "endpoint": "/spaces/{{ inputs.space_id }}/data_sources/{{ inputs.data_source_id }}/documents/{{ inputs.document_id }}",
+      "body": {
+        "title": "{{ inputs.title }}",
+        "text": "{{ inputs.text }}",
+        "source_url": "{{ inputs.source_url }}",
+        "tags": "{{ inputs.tags }}",
+        "light_document_output": true
+      },
+      "output_fields": {
+        "document_id": "document.document_id"
+      },
+      "inputs": [
+        {
+          "key": "space_id",
+          "label": "Space ID",
+          "type": "string",
+          "required": true,
+          "help": "Open the space in Dust; the ID is in the URL."
+        },
+        {
+          "key": "data_source_id",
+          "label": "Data source ID",
+          "type": "string",
+          "required": true,
+          "help": "Open the folder in the space; the ID is in the URL."
+        },
+        {
+          "key": "document_id",
+          "label": "Document ID",
+          "type": "string",
+          "required": true,
+          "help": "Your own unique ID; the same ID updates the document."
+        },
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "string"
+        },
+        {
+          "key": "text",
+          "label": "Text",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "source_url",
+          "label": "Source URL",
+          "type": "string"
+        },
+        {
+          "key": "tags",
+          "label": "Tags",
+          "type": "list"
+        }
+      ]
+    }
+  ]
+}

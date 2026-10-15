@@ -1,0 +1,184 @@
+{
+  "key": "hotjar",
+  "name": "Hotjar",
+  "category": "Analytics",
+  "description": "List Hotjar surveys and export new survey responses.",
+  "website": "https://www.hotjar.com",
+  "docs_url": "https://help.hotjar.com/hc/en-us/articles/36820005914001-Hotjar-API-Reference",
+  "base_url": "https://api.hotjar.io/v1",
+  "auth": {
+    "type": "oauth2_client_credentials",
+    "token_url": "https://api.hotjar.io/v1/oauth/token",
+    "fields": [
+      {
+        "key": "client_id",
+        "label": "Client ID",
+        "type": "string",
+        "required": true,
+        "help": "Hotjar → Settings → API → Create API key (organization admins only; Observe/Ask Scale plans)."
+      },
+      {
+        "key": "client_secret",
+        "label": "Client secret",
+        "type": "password",
+        "required": true,
+        "help": "Shown once when you create the API key."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_surveys",
+      "name": "List surveys",
+      "description": "Surveys on a site.",
+      "method": "GET",
+      "endpoint": "/sites/{{ inputs.site_id }}/surveys",
+      "query": {
+        "with_questions": "{{ inputs.with_questions }}",
+        "limit": "{{ inputs.limit }}",
+        "cursor": "{{ inputs.cursor }}"
+      },
+      "output_fields": {
+        "surveys": "results",
+        "survey_ids": "results.*.id",
+        "next_cursor": "next_cursor"
+      },
+      "inputs": [
+        {
+          "key": "site_id",
+          "label": "Site ID",
+          "type": "string",
+          "required": true,
+          "help": "Hotjar → Sites & Organizations: the number shown next to your site."
+        },
+        {
+          "key": "with_questions",
+          "label": "Include questions",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 50
+        },
+        {
+          "key": "cursor",
+          "label": "Next page cursor",
+          "type": "string",
+          "help": "next_cursor from a previous call."
+        }
+      ]
+    },
+    {
+      "key": "get_survey",
+      "name": "Get survey",
+      "description": "Details of one survey.",
+      "method": "GET",
+      "endpoint": "/sites/{{ inputs.site_id }}/surveys/{{ inputs.survey_id }}",
+      "output_fields": {
+        "id": "id",
+        "name": "name",
+        "url": "url",
+        "responses_url": "responses_url"
+      },
+      "inputs": [
+        {
+          "key": "site_id",
+          "label": "Site ID",
+          "type": "string",
+          "required": true,
+          "help": "Hotjar → Sites & Organizations: the number shown next to your site."
+        },
+        {
+          "key": "survey_id",
+          "label": "Survey ID",
+          "type": "string",
+          "required": true,
+          "help": "Use 'List surveys', or open the survey: the number in its URL."
+        }
+      ]
+    },
+    {
+      "key": "list_survey_responses",
+      "name": "List survey responses",
+      "description": "Responses to a survey, newest first.",
+      "method": "GET",
+      "endpoint": "/sites/{{ inputs.site_id }}/surveys/{{ inputs.survey_id }}/responses",
+      "query": {
+        "limit": "{{ inputs.limit }}",
+        "cursor": "{{ inputs.cursor }}"
+      },
+      "output_fields": {
+        "responses": "results",
+        "next_cursor": "next_cursor"
+      },
+      "inputs": [
+        {
+          "key": "site_id",
+          "label": "Site ID",
+          "type": "string",
+          "required": true,
+          "help": "Hotjar → Sites & Organizations: the number shown next to your site."
+        },
+        {
+          "key": "survey_id",
+          "label": "Survey ID",
+          "type": "string",
+          "required": true,
+          "help": "Use 'List surveys', or open the survey: the number in its URL."
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 100,
+          "help": "Up to 100 per page."
+        },
+        {
+          "key": "cursor",
+          "label": "Next page cursor",
+          "type": "string"
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_survey_response",
+      "name": "New survey response",
+      "type": "polling",
+      "description": "Starts when someone answers the survey.",
+      "method": "GET",
+      "endpoint": "/sites/{{ inputs.site_id }}/surveys/{{ inputs.survey_id }}/responses",
+      "query": {
+        "limit": 50
+      },
+      "items_path": "results",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "site_id",
+          "label": "Site ID",
+          "type": "string",
+          "required": true,
+          "help": "Hotjar → Sites & Organizations: the number shown next to your site."
+        },
+        {
+          "key": "survey_id",
+          "label": "Survey ID",
+          "type": "string",
+          "required": true,
+          "help": "Use 'List surveys', or open the survey: the number in its URL."
+        },
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

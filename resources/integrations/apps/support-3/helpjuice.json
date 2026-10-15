@@ -1,0 +1,202 @@
+{
+  "key": "helpjuice",
+  "name": "Helpjuice",
+  "category": "Customer Support",
+  "description": "Search, read, create and update knowledge base articles in Helpjuice.",
+  "website": "https://helpjuice.com",
+  "docs_url": "https://help.helpjuice.com/en_US/api-v3/using-api-v3",
+  "base_url": "https://{{ credentials.account }}.helpjuice.com/api/v3",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "Authorization",
+    "fields": [
+      {
+        "key": "account",
+        "label": "Account name",
+        "type": "string",
+        "required": true,
+        "placeholder": "acme",
+        "help": "The part before .helpjuice.com."
+      },
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "In Helpjuice open Settings > API Credentials, enable \"Require token for API\" and copy the key."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "search",
+      "name": "Search articles",
+      "description": "Searches the knowledge base.",
+      "method": "GET",
+      "endpoint": "/search",
+      "query": {
+        "query": "{{ inputs.query }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "results": "searches",
+        "first_name": "searches.0.name",
+        "first_url": "searches.0.url"
+      },
+      "inputs": [
+        {
+          "key": "query",
+          "label": "Search text",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "limit",
+          "label": "How many",
+          "type": "number",
+          "default": 10
+        }
+      ]
+    },
+    {
+      "key": "list_articles",
+      "name": "List articles",
+      "description": "Lists articles.",
+      "method": "GET",
+      "endpoint": "/articles",
+      "query": {
+        "limit": "{{ inputs.limit }}",
+        "updated_since": "{{ inputs.updated_since }}"
+      },
+      "output_fields": {
+        "articles": "articles",
+        "first_id": "articles.0.id",
+        "first_name": "articles.0.name"
+      },
+      "inputs": [
+        {
+          "key": "limit",
+          "label": "How many",
+          "type": "number",
+          "default": 25
+        },
+        {
+          "key": "updated_since",
+          "label": "Updated since",
+          "type": "string",
+          "placeholder": "2026-01-31"
+        }
+      ]
+    },
+    {
+      "key": "get_article",
+      "name": "Get article",
+      "description": "Gets one article including its body.",
+      "method": "GET",
+      "endpoint": "/articles/{{ inputs.article_id }}",
+      "output_fields": {
+        "name": "article.name",
+        "body": "article.body",
+        "published": "article.published"
+      },
+      "inputs": [
+        {
+          "key": "article_id",
+          "label": "Article ID",
+          "type": "number",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "create_article",
+      "name": "Create article",
+      "description": "Adds an article (draft unless you publish it).",
+      "method": "POST",
+      "endpoint": "/articles",
+      "body": {
+        "article": {
+          "name": "{{ inputs.name }}",
+          "body": "{{ inputs.body }}",
+          "published": "{{ inputs.published }}"
+        }
+      },
+      "output_fields": {
+        "id": "article.id",
+        "name": "article.name"
+      },
+      "inputs": [
+        {
+          "key": "name",
+          "label": "Title",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "body",
+          "label": "Body (HTML)",
+          "type": "text"
+        },
+        {
+          "key": "published",
+          "label": "Publish now",
+          "type": "boolean",
+          "default": false
+        }
+      ]
+    },
+    {
+      "key": "update_article",
+      "name": "Update article",
+      "description": "Changes the title, body or published state.",
+      "method": "PUT",
+      "endpoint": "/articles/{{ inputs.article_id }}",
+      "body": {
+        "article": {
+          "name": "{{ inputs.name }}",
+          "body": "{{ inputs.body }}",
+          "published": "{{ inputs.published }}"
+        }
+      },
+      "output_fields": {
+        "id": "article.id"
+      },
+      "inputs": [
+        {
+          "key": "article_id",
+          "label": "Article ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "name",
+          "label": "Title",
+          "type": "string"
+        },
+        {
+          "key": "body",
+          "label": "Body (HTML)",
+          "type": "text"
+        },
+        {
+          "key": "published",
+          "label": "Published",
+          "type": "boolean"
+        }
+      ]
+    },
+    {
+      "key": "list_categories",
+      "name": "List categories",
+      "description": "Lists categories.",
+      "method": "GET",
+      "endpoint": "/categories",
+      "output_fields": {
+        "categories": "categories",
+        "first_id": "categories.0.id"
+      },
+      "inputs": []
+    }
+  ]
+}

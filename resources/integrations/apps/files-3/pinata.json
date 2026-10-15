@@ -1,0 +1,159 @@
+{
+  "key": "pinata",
+  "name": "Pinata",
+  "category": "Files & Documents",
+  "description": "IPFS file hosting: list pinned files, pin JSON or an existing CID, unpin.",
+  "website": "https://pinata.cloud",
+  "docs_url": "https://docs.pinata.cloud/api-reference/endpoint/ipfs/pin-json-to-ipfs",
+  "base_url": "https://api.pinata.cloud",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "JWT",
+        "type": "password",
+        "required": true,
+        "help": "Pinata → API Keys → New Key → copy the JWT."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_pins",
+      "name": "List pinned files",
+      "description": "Files you pinned, newest first.",
+      "method": "GET",
+      "endpoint": "/data/pinList",
+      "query": {
+        "status": "{{ inputs.status }}",
+        "pageLimit": "{{ inputs.limit }}",
+        "metadata[name]": "{{ inputs.name }}"
+      },
+      "output_fields": {
+        "count": "count",
+        "cids": "rows.*.ipfs_pin_hash"
+      },
+      "inputs": [
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "default": "pinned",
+          "options": [
+            {
+              "value": "pinned",
+              "label": "Pinned"
+            },
+            {
+              "value": "unpinned",
+              "label": "Unpinned"
+            },
+            {
+              "value": "all",
+              "label": "All"
+            }
+          ]
+        },
+        {
+          "key": "limit",
+          "label": "Max results",
+          "type": "number",
+          "default": 25
+        },
+        {
+          "key": "name",
+          "label": "Name contains",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "pin_json",
+      "name": "Pin JSON",
+      "description": "Store a JSON document on IPFS.",
+      "method": "POST",
+      "endpoint": "/pinning/pinJSONToIPFS",
+      "body": {
+        "pinataContent": "{{ inputs.content }}",
+        "pinataMetadata": {
+          "name": "{{ inputs.name }}"
+        }
+      },
+      "output_fields": {
+        "cid": "IpfsHash",
+        "size": "PinSize"
+      },
+      "inputs": [
+        {
+          "key": "content",
+          "label": "JSON content",
+          "type": "json",
+          "required": true
+        },
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "pin_by_cid",
+      "name": "Pin by CID",
+      "description": "Pin content that is already on IPFS.",
+      "method": "POST",
+      "endpoint": "/pinning/pinByHash",
+      "body": {
+        "hashToPin": "{{ inputs.cid }}",
+        "pinataMetadata": {
+          "name": "{{ inputs.name }}"
+        }
+      },
+      "output_fields": {
+        "id": "id",
+        "status": "status"
+      },
+      "inputs": [
+        {
+          "key": "cid",
+          "label": "CID",
+          "type": "string",
+          "required": true,
+          "help": "The Qm… or bafy… content ID."
+        },
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "unpin",
+      "name": "Unpin",
+      "description": "Remove a pin.",
+      "method": "DELETE",
+      "endpoint": "/pinning/unpin/{{ inputs.cid }}",
+      "inputs": [
+        {
+          "key": "cid",
+          "label": "CID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "test_auth",
+      "name": "Test authentication",
+      "description": "Check that the key works.",
+      "method": "GET",
+      "endpoint": "/data/testAuthentication",
+      "output_fields": {
+        "message": "message"
+      },
+      "inputs": []
+    }
+  ]
+}

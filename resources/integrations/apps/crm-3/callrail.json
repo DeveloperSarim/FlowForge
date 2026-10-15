@@ -1,0 +1,224 @@
+{
+  "key": "callrail",
+  "name": "CallRail",
+  "category": "CRM & Sales",
+  "description": "Read tracked calls and form leads, tag them and add notes in CallRail.",
+  "website": "https://www.callrail.com",
+  "docs_url": "https://apidocs.callrail.com/",
+  "base_url": "https://api.callrail.com/v3",
+  "headers": {
+    "Authorization": "Token token=\"{{ credentials.api_key }}\""
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "In CallRail click your name > Settings > API Keys > Create API Key."
+      },
+      {
+        "key": "account_id",
+        "label": "Account ID",
+        "type": "string",
+        "required": true,
+        "placeholder": "ACC019f…",
+        "help": "Starts with ACC. Use the \"List accounts\" action once, or find it in the CallRail address bar."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_calls",
+      "name": "List calls",
+      "description": "Lists tracked calls, newest first.",
+      "method": "GET",
+      "endpoint": "/a/{{ credentials.account_id }}/calls.json",
+      "query": {
+        "per_page": "{{ inputs.per_page }}",
+        "start_date": "{{ inputs.start_date }}",
+        "end_date": "{{ inputs.end_date }}",
+        "lead_status": "{{ inputs.lead_status }}",
+        "fields": "call_summary,lead_score"
+      },
+      "output_fields": {
+        "calls": "calls",
+        "total": "total_records",
+        "first_id": "calls.0.id",
+        "first_number": "calls.0.customer_phone_number",
+        "first_name": "calls.0.customer_name"
+      },
+      "inputs": [
+        {
+          "key": "per_page",
+          "label": "How many",
+          "type": "number",
+          "default": 25
+        },
+        {
+          "key": "start_date",
+          "label": "From date",
+          "type": "string",
+          "placeholder": "2026-01-01"
+        },
+        {
+          "key": "end_date",
+          "label": "To date",
+          "type": "string",
+          "placeholder": "2026-01-31"
+        },
+        {
+          "key": "lead_status",
+          "label": "Lead status",
+          "type": "select",
+          "options": [
+            {
+              "value": "good_lead",
+              "label": "Good lead"
+            },
+            {
+              "value": "not_a_lead",
+              "label": "Not a lead"
+            },
+            {
+              "value": "previously_marked_good_lead",
+              "label": "Previously good lead"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "get_call",
+      "name": "Get call",
+      "description": "Gets one call with its recording link.",
+      "method": "GET",
+      "endpoint": "/a/{{ credentials.account_id }}/calls/{{ inputs.call_id }}.json",
+      "output_fields": {
+        "id": "id",
+        "customer_phone_number": "customer_phone_number",
+        "customer_name": "customer_name",
+        "duration": "duration",
+        "answered": "answered",
+        "recording": "recording",
+        "start_time": "start_time"
+      },
+      "inputs": [
+        {
+          "key": "call_id",
+          "label": "Call ID",
+          "type": "string",
+          "required": true,
+          "help": "Starts with CAL. Use \"List calls\" to find it."
+        }
+      ]
+    },
+    {
+      "key": "update_call",
+      "name": "Update call",
+      "description": "Sets the customer name, note, tags or lead status of a call.",
+      "method": "PUT",
+      "endpoint": "/a/{{ credentials.account_id }}/calls/{{ inputs.call_id }}.json",
+      "body": {
+        "customer_name": "{{ inputs.customer_name }}",
+        "note": "{{ inputs.note }}",
+        "lead_status": "{{ inputs.lead_status }}"
+      },
+      "output_fields": {
+        "id": "id"
+      },
+      "inputs": [
+        {
+          "key": "call_id",
+          "label": "Call ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "customer_name",
+          "label": "Customer name",
+          "type": "string"
+        },
+        {
+          "key": "note",
+          "label": "Note",
+          "type": "text"
+        },
+        {
+          "key": "lead_status",
+          "label": "Lead status",
+          "type": "select",
+          "options": [
+            {
+              "value": "good_lead",
+              "label": "Good lead"
+            },
+            {
+              "value": "not_a_lead",
+              "label": "Not a lead"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "list_form_submissions",
+      "name": "List form submissions",
+      "description": "Lists form leads captured by CallRail.",
+      "method": "GET",
+      "endpoint": "/a/{{ credentials.account_id }}/form_submissions.json",
+      "query": {
+        "per_page": "{{ inputs.per_page }}"
+      },
+      "output_fields": {
+        "submissions": "form_submissions",
+        "first_id": "form_submissions.0.id"
+      },
+      "inputs": [
+        {
+          "key": "per_page",
+          "label": "How many",
+          "type": "number",
+          "default": 25
+        }
+      ]
+    },
+    {
+      "key": "list_accounts",
+      "name": "List accounts",
+      "description": "Lists the CallRail accounts your key can use (to find the Account ID).",
+      "method": "GET",
+      "endpoint": "/a.json",
+      "output_fields": {
+        "accounts": "accounts",
+        "first_id": "accounts.0.id",
+        "first_name": "accounts.0.name"
+      },
+      "inputs": []
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_call",
+      "name": "New call",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/a/{{ credentials.account_id }}/calls.json",
+      "query": {
+        "per_page": 25
+      },
+      "items_path": "calls",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

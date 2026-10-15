@@ -1,0 +1,173 @@
+{
+  "key": "disqus",
+  "name": "Disqus",
+  "category": "Social Media",
+  "description": "Read and post Disqus comments on your site and get alerted about new comments.",
+  "website": "https://disqus.com",
+  "docs_url": "https://disqus.com/api/docs/",
+  "base_url": "https://disqus.com/api/3.0",
+  "auth": {
+    "type": "api_key",
+    "in": "query",
+    "name": "api_key",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "API key (public)",
+        "type": "password",
+        "required": true,
+        "help": "disqus.com/api/applications → register an app → API Key."
+      },
+      {
+        "key": "forum",
+        "label": "Site shortname",
+        "type": "string",
+        "required": true,
+        "help": "Disqus Admin → Settings → General → Shortname."
+      },
+      {
+        "key": "access_token",
+        "label": "Access token",
+        "type": "password",
+        "help": "Same app page → Access Token. Needed to post comments."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_comments",
+      "name": "List recent comments",
+      "method": "GET",
+      "endpoint": "/posts/list.json",
+      "query": {
+        "forum": "{{ credentials.forum }}",
+        "limit": "{{ inputs.limit }}",
+        "order": "desc",
+        "related": "thread"
+      },
+      "output_fields": {
+        "comments": "response",
+        "latest_message": "response.0.raw_message",
+        "latest_author": "response.0.author.name",
+        "latest_thread": "response.0.thread.title"
+      },
+      "inputs": [
+        {
+          "key": "limit",
+          "label": "Max results (max 100)",
+          "type": "number",
+          "default": 25
+        }
+      ]
+    },
+    {
+      "key": "list_threads",
+      "name": "List threads",
+      "method": "GET",
+      "endpoint": "/threads/list.json",
+      "query": {
+        "forum": "{{ credentials.forum }}",
+        "limit": "{{ inputs.limit }}",
+        "order": "desc"
+      },
+      "output_fields": {
+        "threads": "response",
+        "latest_id": "response.0.id",
+        "latest_title": "response.0.title"
+      },
+      "inputs": [
+        {
+          "key": "limit",
+          "label": "Max results (max 100)",
+          "type": "number",
+          "default": 25
+        }
+      ]
+    },
+    {
+      "key": "get_thread",
+      "name": "Get thread",
+      "method": "GET",
+      "endpoint": "/threads/details.json",
+      "query": {
+        "thread": "{{ inputs.thread }}"
+      },
+      "output_fields": {
+        "id": "response.id",
+        "title": "response.title",
+        "link": "response.link",
+        "comments": "response.posts"
+      },
+      "inputs": [
+        {
+          "key": "thread",
+          "label": "Thread ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "create_comment",
+      "name": "Post comment",
+      "method": "POST",
+      "endpoint": "/posts/create.json",
+      "body": {
+        "thread": "{{ inputs.thread }}",
+        "message": "{{ inputs.message }}",
+        "parent": "{{ inputs.parent }}",
+        "access_token": "{{ credentials.access_token }}"
+      },
+      "body_format": "form",
+      "output_fields": {
+        "id": "response.id",
+        "created_at": "response.createdAt"
+      },
+      "inputs": [
+        {
+          "key": "thread",
+          "label": "Thread ID",
+          "type": "string",
+          "required": true,
+          "help": "From 'List threads' or a comment's thread."
+        },
+        {
+          "key": "message",
+          "label": "Comment",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "parent",
+          "label": "Reply to comment ID",
+          "type": "string"
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_comment",
+      "name": "New comment",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/posts/list.json",
+      "query": {
+        "forum": "{{ credentials.forum }}",
+        "limit": "50",
+        "order": "desc",
+        "related": "thread"
+      },
+      "items_path": "response",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

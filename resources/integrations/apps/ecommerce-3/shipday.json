@@ -1,0 +1,267 @@
+{
+  "key": "shipday",
+  "name": "Shipday",
+  "category": "E-commerce",
+  "description": "Local delivery dispatch: create delivery orders, assign drivers and track them.",
+  "website": "https://www.shipday.com",
+  "docs_url": "https://docs.shipday.com/reference",
+  "base_url": "https://api.shipday.com",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "Authorization",
+    "prefix": "Basic ",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "Shipday dashboard → Integrations → API key."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "create_order",
+      "name": "Create delivery order",
+      "description": "Send a delivery order to Shipday for dispatch.",
+      "method": "POST",
+      "endpoint": "/orders",
+      "body": {
+        "orderNumber": "{{ inputs.order_number }}",
+        "customerName": "{{ inputs.customer_name }}",
+        "customerAddress": "{{ inputs.customer_address }}",
+        "customerEmail": "{{ inputs.customer_email }}",
+        "customerPhoneNumber": "{{ inputs.customer_phone }}",
+        "restaurantName": "{{ inputs.pickup_name }}",
+        "restaurantAddress": "{{ inputs.pickup_address }}",
+        "restaurantPhoneNumber": "{{ inputs.pickup_phone }}",
+        "expectedDeliveryDate": "{{ inputs.delivery_date }}",
+        "expectedPickupTime": "{{ inputs.pickup_time }}",
+        "expectedDeliveryTime": "{{ inputs.delivery_time }}",
+        "totalOrderCost": "{{ inputs.total }}",
+        "deliveryFee": "{{ inputs.delivery_fee }}",
+        "tips": "{{ inputs.tips }}",
+        "deliveryInstruction": "{{ inputs.instructions }}",
+        "orderItem": "{{ inputs.items }}"
+      },
+      "output_fields": {
+        "order_id": "orderId",
+        "success": "success"
+      },
+      "inputs": [
+        {
+          "key": "order_number",
+          "label": "Order number",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "customer_name",
+          "label": "Customer name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "customer_address",
+          "label": "Delivery address",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "customer_phone",
+          "label": "Customer phone",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "customer_email",
+          "label": "Customer email",
+          "type": "string"
+        },
+        {
+          "key": "pickup_name",
+          "label": "Pickup (store) name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "pickup_address",
+          "label": "Pickup address",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "pickup_phone",
+          "label": "Pickup phone",
+          "type": "string"
+        },
+        {
+          "key": "delivery_date",
+          "label": "Delivery date",
+          "type": "string",
+          "placeholder": "2026-01-31"
+        },
+        {
+          "key": "pickup_time",
+          "label": "Pickup time",
+          "type": "string",
+          "placeholder": "12:00:00"
+        },
+        {
+          "key": "delivery_time",
+          "label": "Delivery time",
+          "type": "string",
+          "placeholder": "12:45:00"
+        },
+        {
+          "key": "total",
+          "label": "Order total",
+          "type": "number"
+        },
+        {
+          "key": "delivery_fee",
+          "label": "Delivery fee",
+          "type": "number"
+        },
+        {
+          "key": "tips",
+          "label": "Tip",
+          "type": "number"
+        },
+        {
+          "key": "instructions",
+          "label": "Delivery instructions",
+          "type": "string"
+        },
+        {
+          "key": "items",
+          "label": "Items (JSON)",
+          "type": "json",
+          "placeholder": "[{\"name\":\"Pizza\",\"quantity\":1,\"unitPrice\":12.5}]"
+        }
+      ]
+    },
+    {
+      "key": "get_order",
+      "name": "Get order",
+      "description": "Status of an order by its order number.",
+      "method": "GET",
+      "endpoint": "/orders/{{ inputs.order_number }}",
+      "output_fields": {
+        "status": "0.orderStatus.orderState",
+        "order_id": "0.orderId"
+      },
+      "inputs": [
+        {
+          "key": "order_number",
+          "label": "Order number",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_active_orders",
+      "name": "List active orders",
+      "description": "Orders that are not yet delivered.",
+      "method": "GET",
+      "endpoint": "/orders",
+      "inputs": []
+    },
+    {
+      "key": "assign_driver",
+      "name": "Assign driver",
+      "description": "Assign an order to a driver.",
+      "method": "PUT",
+      "endpoint": "/orders/assign/{{ inputs.order_id }}/{{ inputs.carrier_id }}",
+      "inputs": [
+        {
+          "key": "order_id",
+          "label": "Order ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "carrier_id",
+          "label": "Driver ID",
+          "type": "string",
+          "required": true,
+          "help": "Use List drivers to find it."
+        }
+      ]
+    },
+    {
+      "key": "delete_order",
+      "name": "Delete order",
+      "description": "Remove an order.",
+      "method": "DELETE",
+      "endpoint": "/orders/{{ inputs.order_id }}",
+      "inputs": [
+        {
+          "key": "order_id",
+          "label": "Order ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_drivers",
+      "name": "List drivers",
+      "description": "Your drivers and their IDs.",
+      "method": "GET",
+      "endpoint": "/carriers",
+      "inputs": []
+    },
+    {
+      "key": "add_driver",
+      "name": "Add driver",
+      "description": "Add a driver to your team.",
+      "method": "POST",
+      "endpoint": "/carriers",
+      "body": {
+        "name": "{{ inputs.name }}",
+        "email": "{{ inputs.email }}",
+        "phoneNumber": "{{ inputs.phone }}"
+      },
+      "inputs": [
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "phone",
+          "label": "Phone",
+          "type": "string",
+          "required": true,
+          "placeholder": "+15555550123"
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Delivery update",
+      "type": "webhook",
+      "description": "Shipday dashboard → Integrations → Webhook, paste this URL.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

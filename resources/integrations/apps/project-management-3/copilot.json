@@ -1,0 +1,174 @@
+{
+  "key": "copilot",
+  "name": "Copilot",
+  "category": "Project Management",
+  "description": "Client portal: manage clients and companies (formerly Assembly).",
+  "website": "https://www.copilot.com",
+  "docs_url": "https://docs.copilot.com/docs/api",
+  "base_url": "https://api.copilot.com/v1",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "X-API-KEY",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "Copilot → Settings → Integrations → Copilot API → Create API key."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_clients",
+      "name": "List clients",
+      "description": "Your clients.",
+      "method": "GET",
+      "endpoint": "/clients",
+      "query": {
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "emails": "data.*.email",
+        "ids": "data.*.id"
+      },
+      "inputs": [
+        {
+          "key": "limit",
+          "label": "Max results",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    },
+    {
+      "key": "get_client",
+      "name": "Get client",
+      "description": "One client.",
+      "method": "GET",
+      "endpoint": "/clients/{{ inputs.id }}",
+      "output_fields": {
+        "email": "email",
+        "name": "givenName"
+      },
+      "inputs": [
+        {
+          "key": "id",
+          "label": "Client ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "create_client",
+      "name": "Create client",
+      "description": "Add a client (optionally invite them).",
+      "method": "POST",
+      "endpoint": "/clients",
+      "query": {
+        "sendInvite": "{{ inputs.send_invite }}"
+      },
+      "body": {
+        "email": "{{ inputs.email }}",
+        "givenName": "{{ inputs.given_name }}",
+        "familyName": "{{ inputs.family_name }}"
+      },
+      "output_fields": {
+        "id": "id"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "given_name",
+          "label": "First name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "family_name",
+          "label": "Last name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "send_invite",
+          "label": "Send invite",
+          "type": "boolean"
+        }
+      ]
+    },
+    {
+      "key": "list_companies",
+      "name": "List companies",
+      "description": "Client companies.",
+      "method": "GET",
+      "endpoint": "/companies",
+      "query": {
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "names": "data.*.name",
+        "ids": "data.*.id"
+      },
+      "inputs": [
+        {
+          "key": "limit",
+          "label": "Max results",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    },
+    {
+      "key": "create_company",
+      "name": "Create company",
+      "description": "Add a company.",
+      "method": "POST",
+      "endpoint": "/companies",
+      "body": {
+        "name": "{{ inputs.name }}"
+      },
+      "output_fields": {
+        "id": "id"
+      },
+      "inputs": [
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_client",
+      "name": "New client",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/clients",
+      "query": {
+        "limit": 25
+      },
+      "items_path": "data",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

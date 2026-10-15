@@ -1,0 +1,152 @@
+{
+  "key": "friendli_ai",
+  "name": "FriendliAI",
+  "category": "AI",
+  "description": "Fast serverless inference for open models like Llama, Qwen, GLM and DeepSeek.",
+  "website": "https://friendli.ai",
+  "docs_url": "https://friendli.ai/docs/openapi/serverless/chat-completions",
+  "base_url": "https://api.friendli.ai/serverless/v1",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "friendli.ai → Settings → Personal Access Tokens → Create token (starts with flp_)."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "chat_completion",
+      "name": "Chat completion",
+      "description": "Send a prompt and get the model's reply as text.",
+      "method": "POST",
+      "endpoint": "/chat/completions",
+      "timeout": 300,
+      "body": {
+        "model": "{{ inputs.model }}",
+        "messages": [
+          {
+            "$if": "{{ inputs.system }}",
+            "role": "system",
+            "content": "{{ inputs.system }}"
+          },
+          {
+            "role": "user",
+            "content": "{{ inputs.prompt }}"
+          }
+        ],
+        "temperature": "{{ inputs.temperature }}",
+        "max_tokens": "{{ inputs.max_tokens }}"
+      },
+      "output_fields": {
+        "text": "choices.0.message.content"
+      },
+      "inputs": [
+        {
+          "key": "model",
+          "label": "Model",
+          "type": "string",
+          "required": true,
+          "help": "A serverless model code, e.g. zai-org/GLM-5.3. See friendli.ai/models."
+        },
+        {
+          "key": "prompt",
+          "label": "Prompt",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "system",
+          "label": "System prompt",
+          "type": "text",
+          "help": "Optional instructions for how the model should behave."
+        },
+        {
+          "key": "temperature",
+          "label": "Temperature",
+          "type": "number",
+          "placeholder": "0.7",
+          "help": "0 = focused, 1 = creative. Leave blank for the default."
+        },
+        {
+          "key": "max_tokens",
+          "label": "Max output tokens",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "completion",
+      "name": "Text completion",
+      "description": "Continue a piece of text (no chat format).",
+      "method": "POST",
+      "endpoint": "/completions",
+      "timeout": 300,
+      "body": {
+        "model": "{{ inputs.model }}",
+        "prompt": "{{ inputs.prompt }}",
+        "max_tokens": "{{ inputs.max_tokens }}",
+        "temperature": "{{ inputs.temperature }}"
+      },
+      "output_fields": {
+        "text": "choices.0.text"
+      },
+      "inputs": [
+        {
+          "key": "model",
+          "label": "Model",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "prompt",
+          "label": "Prompt",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "max_tokens",
+          "label": "Max output tokens",
+          "type": "number"
+        },
+        {
+          "key": "temperature",
+          "label": "Temperature",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "tokenize",
+      "name": "Count tokens",
+      "description": "Split text into tokens to check its length.",
+      "method": "POST",
+      "endpoint": "/tokenize",
+      "body": {
+        "model": "{{ inputs.model }}",
+        "prompt": "{{ inputs.prompt }}"
+      },
+      "output_fields": {
+        "tokens": "tokens"
+      },
+      "inputs": [
+        {
+          "key": "model",
+          "label": "Model",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "prompt",
+          "label": "Text",
+          "type": "text",
+          "required": true
+        }
+      ]
+    }
+  ]
+}

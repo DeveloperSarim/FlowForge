@@ -1,0 +1,108 @@
+{
+  "key": "avaza",
+  "name": "Avaza",
+  "category": "Project Management",
+  "description": "Projects, tasks and timesheets: list projects and tasks, create tasks.",
+  "website": "https://www.avaza.com",
+  "docs_url": "https://api.avaza.com/swagger/ui/index",
+  "base_url": "https://api.avaza.com/api",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "Access token",
+        "type": "password",
+        "required": true,
+        "help": "Avaza → Settings → My Profile → API Access Token (personal token)."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_projects",
+      "name": "List projects",
+      "description": "Your projects.",
+      "method": "GET",
+      "endpoint": "/Project",
+      "query": {
+        "PageSize": "{{ inputs.page_size }}"
+      },
+      "output_fields": {
+        "titles": "Projects.*.Title",
+        "ids": "Projects.*.ProjectID"
+      },
+      "inputs": [
+        {
+          "key": "page_size",
+          "label": "Max results",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    },
+    {
+      "key": "list_tasks",
+      "name": "List tasks",
+      "description": "Tasks, optionally of one project.",
+      "method": "GET",
+      "endpoint": "/Task",
+      "query": {
+        "ProjectID": "{{ inputs.project_id }}",
+        "PageSize": "{{ inputs.page_size }}"
+      },
+      "output_fields": {
+        "titles": "Tasks.*.Title",
+        "ids": "Tasks.*.TaskID"
+      },
+      "inputs": [
+        {
+          "key": "project_id",
+          "label": "Project ID",
+          "type": "string"
+        },
+        {
+          "key": "page_size",
+          "label": "Max results",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    },
+    {
+      "key": "create_task",
+      "name": "Create task",
+      "description": "Add a task to a project.",
+      "method": "POST",
+      "endpoint": "/Task",
+      "body": {
+        "ProjectIDFK": "{{ inputs.project_id }}",
+        "Title": "{{ inputs.title }}",
+        "Description": "{{ inputs.description }}"
+      },
+      "output_fields": {
+        "id": "TaskID"
+      },
+      "inputs": [
+        {
+          "key": "project_id",
+          "label": "Project ID",
+          "type": "number",
+          "required": true,
+          "help": "Use \"List projects\"."
+        },
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "description",
+          "label": "Description",
+          "type": "text"
+        }
+      ]
+    }
+  ]
+}

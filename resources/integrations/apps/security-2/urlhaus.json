@@ -1,0 +1,171 @@
+{
+  "key": "urlhaus",
+  "name": "URLhaus",
+  "category": "Security & IT",
+  "description": "Check URLs, hosts and file hashes against abuse.ch URLhaus malware data.",
+  "brand": "abusech",
+  "website": "https://urlhaus.abuse.ch",
+  "docs_url": "https://urlhaus.abuse.ch/api/",
+  "base_url": "https://urlhaus-api.abuse.ch/v1",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "Auth-Key",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "Auth-Key",
+        "type": "password",
+        "required": true,
+        "help": "Sign in at auth.abuse.ch → Optional → API keys → Generate key (free)."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "lookup_url",
+      "name": "Look up URL",
+      "description": "Check whether a URL is known to spread malware.",
+      "method": "POST",
+      "endpoint": "/url/",
+      "body_format": "form",
+      "body": {
+        "url": "{{ inputs.url }}"
+      },
+      "output_fields": {
+        "result": "query_status",
+        "url_status": "url_status",
+        "threat": "threat",
+        "reference": "urlhaus_reference"
+      },
+      "inputs": [
+        {
+          "key": "url",
+          "label": "URL",
+          "type": "string",
+          "required": true,
+          "placeholder": "http://example.com/file.exe"
+        }
+      ]
+    },
+    {
+      "key": "lookup_host",
+      "name": "Look up host",
+      "description": "List malware URLs seen on a domain or IP.",
+      "method": "POST",
+      "endpoint": "/host/",
+      "body_format": "form",
+      "body": {
+        "host": "{{ inputs.host }}"
+      },
+      "output_fields": {
+        "result": "query_status",
+        "url_count": "url_count",
+        "urls": "urls"
+      },
+      "inputs": [
+        {
+          "key": "host",
+          "label": "Domain or IP",
+          "type": "string",
+          "required": true,
+          "placeholder": "example.com"
+        }
+      ]
+    },
+    {
+      "key": "lookup_payload",
+      "name": "Look up file hash",
+      "description": "Get information about a malware file by hash.",
+      "method": "POST",
+      "endpoint": "/payload/",
+      "body_format": "form",
+      "body": {
+        "sha256_hash": "{{ inputs.sha256_hash }}",
+        "md5_hash": "{{ inputs.md5_hash }}"
+      },
+      "output_fields": {
+        "result": "query_status",
+        "signature": "signature",
+        "file_type": "file_type",
+        "url_count": "url_count"
+      },
+      "inputs": [
+        {
+          "key": "sha256_hash",
+          "label": "SHA-256",
+          "type": "string"
+        },
+        {
+          "key": "md5_hash",
+          "label": "MD5",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "lookup_tag",
+      "name": "Look up tag",
+      "description": "List URLs with a tag.",
+      "method": "POST",
+      "endpoint": "/tag/",
+      "body_format": "form",
+      "body": {
+        "tag": "{{ inputs.tag }}"
+      },
+      "output_fields": {
+        "result": "query_status",
+        "urls": "urls"
+      },
+      "inputs": [
+        {
+          "key": "tag",
+          "label": "Tag",
+          "type": "string",
+          "required": true,
+          "placeholder": "Emotet"
+        }
+      ]
+    },
+    {
+      "key": "recent_urls",
+      "name": "Recent malware URLs",
+      "description": "List the most recently added malware URLs.",
+      "method": "GET",
+      "endpoint": "/urls/recent/limit/{{ inputs.limit }}/",
+      "output_fields": {
+        "urls": "urls"
+      },
+      "inputs": [
+        {
+          "key": "limit",
+          "label": "How many",
+          "type": "number",
+          "required": true,
+          "default": 100,
+          "help": "Up to 1000."
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_url",
+      "name": "New malware URL",
+      "type": "polling",
+      "description": "Starts for each URL newly added to URLhaus.",
+      "method": "GET",
+      "endpoint": "/urls/recent/limit/100/",
+      "items_path": "urls",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,148 @@
+{
+  "key": "keycdn",
+  "name": "KeyCDN",
+  "category": "Developer Tools",
+  "description": "Purge KeyCDN zone cache or URLs and read traffic reports.",
+  "brand": "keycdn",
+  "website": "https://www.keycdn.com",
+  "docs_url": "https://www.keycdn.com/api",
+  "base_url": "https://api.keycdn.com",
+  "auth": {
+    "type": "basic",
+    "fields": [
+      {
+        "key": "username",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "KeyCDN → Account settings → Authentication → API key."
+      },
+      {
+        "key": "password",
+        "label": "Password",
+        "type": "password",
+        "default": "",
+        "help": "Leave empty."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_zones",
+      "name": "List zones",
+      "description": "List your zones.",
+      "method": "GET",
+      "endpoint": "/zones.json",
+      "output_fields": {
+        "zones": "data.zones"
+      },
+      "inputs": []
+    },
+    {
+      "key": "get_zone",
+      "name": "Get zone",
+      "description": "Get a zone's settings.",
+      "method": "GET",
+      "endpoint": "/zones/{{ inputs.zone_id }}.json",
+      "output_fields": {
+        "name": "data.zone.name",
+        "status": "data.zone.status"
+      },
+      "inputs": [
+        {
+          "key": "zone_id",
+          "label": "Zone ID",
+          "type": "string",
+          "required": true,
+          "help": "Use List zones."
+        }
+      ]
+    },
+    {
+      "key": "purge_zone",
+      "name": "Purge zone cache",
+      "description": "Clear the whole cache of a pull zone.",
+      "method": "GET",
+      "endpoint": "/zones/purge/{{ inputs.zone_id }}.json",
+      "output_fields": {
+        "status": "status",
+        "description": "description"
+      },
+      "inputs": [
+        {
+          "key": "zone_id",
+          "label": "Zone ID",
+          "type": "string",
+          "required": true,
+          "help": "Use List zones."
+        }
+      ]
+    },
+    {
+      "key": "purge_urls",
+      "name": "Purge URLs",
+      "description": "Clear specific files from the cache.",
+      "method": "DELETE",
+      "endpoint": "/zones/purgeurl/{{ inputs.zone_id }}.json",
+      "body": {
+        "urls": "{{ inputs.urls }}"
+      },
+      "output_fields": {
+        "status": "status",
+        "description": "description"
+      },
+      "inputs": [
+        {
+          "key": "zone_id",
+          "label": "Zone ID",
+          "type": "string",
+          "required": true,
+          "help": "Use List zones."
+        },
+        {
+          "key": "urls",
+          "label": "URLs",
+          "type": "list",
+          "required": true,
+          "placeholder": "example-1.kxcdn.com/images/logo.png",
+          "help": "Without https://, as zone host + path."
+        }
+      ]
+    },
+    {
+      "key": "traffic_report",
+      "name": "Traffic report",
+      "description": "Get traffic in bytes for a time range.",
+      "method": "GET",
+      "endpoint": "/reports/traffic.json",
+      "query": {
+        "start": "{{ inputs.start }}",
+        "end": "{{ inputs.end }}",
+        "zone_id": "{{ inputs.zone_id }}"
+      },
+      "output_fields": {
+        "stats": "data.stats"
+      },
+      "inputs": [
+        {
+          "key": "start",
+          "label": "Start (Unix time)",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "end",
+          "label": "End (Unix time)",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "zone_id",
+          "label": "Zone ID",
+          "type": "string",
+          "help": "Leave empty for all zones."
+        }
+      ]
+    }
+  ]
+}

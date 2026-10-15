@@ -1,0 +1,166 @@
+{
+  "key": "webpagetest",
+  "name": "WebPageTest",
+  "category": "Ads & SEO",
+  "description": "Run page speed tests from real browsers and read load times and Speed Index.",
+  "website": "https://www.webpagetest.org",
+  "docs_url": "https://docs.webpagetest.org/api/reference/",
+  "base_url": "https://www.webpagetest.org",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "X-WPT-API-KEY",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "WebPageTest → sign in → Account → API Consumers → create a key."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "run_test",
+      "name": "Run test",
+      "description": "Start a test for a URL; results are ready after a minute or two.",
+      "method": "GET",
+      "endpoint": "/runtest.php",
+      "query": {
+        "url": "{{ inputs.url }}",
+        "location": "{{ inputs.location }}",
+        "runs": "{{ inputs.runs }}",
+        "fvonly": "{{ inputs.fvonly }}",
+        "mobile": "{{ inputs.mobile }}",
+        "f": "json"
+      },
+      "output_fields": {
+        "test_id": "data.testId",
+        "result_url": "data.userUrl",
+        "json_url": "data.jsonUrl",
+        "status_code": "statusCode"
+      },
+      "inputs": [
+        {
+          "key": "url",
+          "label": "Page URL",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "location",
+          "label": "Location",
+          "type": "string",
+          "placeholder": "ec2-us-east-1:Chrome.Cable",
+          "help": "Optional. Run \"List locations\" to see the options."
+        },
+        {
+          "key": "runs",
+          "label": "Runs",
+          "type": "number",
+          "default": 1
+        },
+        {
+          "key": "fvonly",
+          "label": "First view only",
+          "type": "select",
+          "default": "1",
+          "options": [
+            {
+              "value": "1",
+              "label": "Yes"
+            },
+            {
+              "value": "0",
+              "label": "No (also test repeat view)"
+            }
+          ]
+        },
+        {
+          "key": "mobile",
+          "label": "Emulate mobile",
+          "type": "select",
+          "default": "0",
+          "options": [
+            {
+              "value": "0",
+              "label": "No"
+            },
+            {
+              "value": "1",
+              "label": "Yes"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "test_status",
+      "name": "Test status",
+      "description": "Whether a test is queued, running or finished.",
+      "method": "GET",
+      "endpoint": "/testStatus.php",
+      "query": {
+        "test": "{{ inputs.test_id }}",
+        "f": "json"
+      },
+      "output_fields": {
+        "status_code": "statusCode",
+        "status_text": "statusText"
+      },
+      "inputs": [
+        {
+          "key": "test_id",
+          "label": "Test ID",
+          "type": "string",
+          "required": true,
+          "help": "From a \"Run test\" step. Status 200 means finished, 100/101 still running."
+        }
+      ]
+    },
+    {
+      "key": "get_results",
+      "name": "Get results",
+      "description": "Median load time, Speed Index, TTFB and page weight of a finished test.",
+      "method": "GET",
+      "endpoint": "/jsonResult.php",
+      "query": {
+        "test": "{{ inputs.test_id }}"
+      },
+      "output_fields": {
+        "load_time_ms": "data.median.firstView.loadTime",
+        "speed_index": "data.median.firstView.SpeedIndex",
+        "ttfb_ms": "data.median.firstView.TTFB",
+        "start_render_ms": "data.median.firstView.render",
+        "fully_loaded_ms": "data.median.firstView.fullyLoaded",
+        "bytes": "data.median.firstView.bytesIn",
+        "requests": "data.median.firstView.requestsFull",
+        "result_url": "data.summary"
+      },
+      "inputs": [
+        {
+          "key": "test_id",
+          "label": "Test ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_locations",
+      "name": "List locations",
+      "description": "Test locations and browsers you can use.",
+      "method": "GET",
+      "endpoint": "/getLocations.php",
+      "query": {
+        "f": "json"
+      },
+      "output_fields": {
+        "locations": "data"
+      },
+      "inputs": []
+    }
+  ],
+  "triggers": []
+}

@@ -1,0 +1,276 @@
+{
+  "key": "paymob",
+  "name": "Paymob",
+  "category": "Payments & Finance",
+  "description": "Payments in Egypt, Pakistan, UAE, KSA and Oman: checkout intentions and refunds.",
+  "website": "https://paymob.com",
+  "docs_url": "https://developers.paymob.com",
+  "base_url": "https://{{ credentials.region }}",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "Authorization",
+    "prefix": "Token ",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "Secret key (sk_…)",
+        "type": "password",
+        "required": true,
+        "help": "Paymob dashboard → Settings → Account info → Secret key."
+      },
+      {
+        "key": "region",
+        "label": "Country",
+        "type": "select",
+        "required": true,
+        "default": "accept.paymob.com",
+        "options": [
+          {
+            "value": "accept.paymob.com",
+            "label": "Egypt"
+          },
+          {
+            "value": "pakistan.paymob.com",
+            "label": "Pakistan"
+          },
+          {
+            "value": "uae.paymob.com",
+            "label": "UAE"
+          },
+          {
+            "value": "ksa.paymob.com",
+            "label": "Saudi Arabia"
+          },
+          {
+            "value": "oman.paymob.com",
+            "label": "Oman"
+          }
+        ]
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "create_intention",
+      "name": "Create payment intention",
+      "description": "Start a payment. Open https://<country host>/unifiedcheckout/?publicKey=<your public key>&clientSecret=<client secret> to pay.",
+      "method": "POST",
+      "endpoint": "/v1/intention/",
+      "body": {
+        "amount": "{{ inputs.amount_cents }}",
+        "currency": "{{ inputs.currency }}",
+        "payment_methods": "{{ inputs.payment_methods }}",
+        "items": "{{ inputs.items }}",
+        "special_reference": "{{ inputs.reference }}",
+        "notification_url": "{{ inputs.notification_url }}",
+        "redirection_url": "{{ inputs.redirection_url }}",
+        "billing_data": {
+          "first_name": "{{ inputs.first_name }}",
+          "last_name": "{{ inputs.last_name }}",
+          "email": "{{ inputs.email }}",
+          "phone_number": "{{ inputs.phone }}"
+        },
+        "extras": "{{ inputs.extras }}"
+      },
+      "output_fields": {
+        "intention_id": "id",
+        "client_secret": "client_secret",
+        "status": "status"
+      },
+      "inputs": [
+        {
+          "key": "amount_cents",
+          "label": "Amount (in cents)",
+          "type": "number",
+          "required": true,
+          "help": "Smallest unit: 100 EGP = 10000."
+        },
+        {
+          "key": "currency",
+          "label": "Currency",
+          "type": "select",
+          "required": true,
+          "default": "EGP",
+          "options": [
+            {
+              "value": "EGP",
+              "label": "EGP"
+            },
+            {
+              "value": "PKR",
+              "label": "PKR"
+            },
+            {
+              "value": "AED",
+              "label": "AED"
+            },
+            {
+              "value": "SAR",
+              "label": "SAR"
+            },
+            {
+              "value": "OMR",
+              "label": "OMR"
+            }
+          ]
+        },
+        {
+          "key": "payment_methods",
+          "label": "Integration IDs",
+          "type": "list",
+          "required": true,
+          "help": "Paymob dashboard → Developers → Payment integrations (the ID column)."
+        },
+        {
+          "key": "first_name",
+          "label": "First name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "phone",
+          "label": "Phone",
+          "type": "string",
+          "required": true,
+          "placeholder": "+201000000000"
+        },
+        {
+          "key": "reference",
+          "label": "Your reference",
+          "type": "string",
+          "help": "Unique, e.g. the order number."
+        },
+        {
+          "key": "items",
+          "label": "Items (JSON)",
+          "type": "json",
+          "placeholder": "[{\"name\":\"T-shirt\",\"amount\":10000,\"quantity\":1}]"
+        },
+        {
+          "key": "notification_url",
+          "label": "Notification URL",
+          "type": "string"
+        },
+        {
+          "key": "redirection_url",
+          "label": "Redirect URL",
+          "type": "string"
+        },
+        {
+          "key": "extras",
+          "label": "Extras (JSON)",
+          "type": "json"
+        }
+      ]
+    },
+    {
+      "key": "refund_transaction",
+      "name": "Refund transaction",
+      "description": "Refund all or part of a settled transaction.",
+      "method": "POST",
+      "endpoint": "/api/acceptance/void_refund/refund",
+      "body": {
+        "transaction_id": "{{ inputs.transaction_id }}",
+        "amount_cents": "{{ inputs.amount_cents }}"
+      },
+      "output_fields": {
+        "id": "id",
+        "success": "success",
+        "amount_cents": "amount_cents"
+      },
+      "inputs": [
+        {
+          "key": "transaction_id",
+          "label": "Transaction ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "amount_cents",
+          "label": "Amount (in cents)",
+          "type": "number",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "void_transaction",
+      "name": "Void transaction",
+      "description": "Cancel a same-day transaction before settlement.",
+      "method": "POST",
+      "endpoint": "/api/acceptance/void_refund/void",
+      "body": {
+        "transaction_id": "{{ inputs.transaction_id }}"
+      },
+      "output_fields": {
+        "id": "id",
+        "success": "success"
+      },
+      "inputs": [
+        {
+          "key": "transaction_id",
+          "label": "Transaction ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "capture_transaction",
+      "name": "Capture transaction",
+      "description": "Capture an authorized card transaction.",
+      "method": "POST",
+      "endpoint": "/api/acceptance/capture",
+      "body": {
+        "transaction_id": "{{ inputs.transaction_id }}",
+        "amount_cents": "{{ inputs.amount_cents }}"
+      },
+      "output_fields": {
+        "id": "id",
+        "success": "success"
+      },
+      "inputs": [
+        {
+          "key": "transaction_id",
+          "label": "Transaction ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "amount_cents",
+          "label": "Amount (in cents)",
+          "type": "number",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Transaction callback",
+      "type": "webhook",
+      "description": "Paste this URL as the notification URL, or in Developers → Payment integrations → Transaction processed callback.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

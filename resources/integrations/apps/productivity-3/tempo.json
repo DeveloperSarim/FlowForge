@@ -1,0 +1,166 @@
+{
+  "key": "tempo",
+  "name": "Tempo Timesheets",
+  "category": "Productivity",
+  "description": "Jira time tracking: list, log and delete worklogs.",
+  "website": "https://www.tempo.io",
+  "docs_url": "https://apidocs.tempo.io/",
+  "base_url": "https://api.tempo.io/4",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "API token",
+        "type": "password",
+        "required": true,
+        "help": "Jira → Apps → Tempo → Settings → API integration → New Token."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_worklogs",
+      "name": "List worklogs",
+      "description": "Logged time in a date range.",
+      "method": "GET",
+      "endpoint": "/worklogs",
+      "query": {
+        "from": "{{ inputs.from }}",
+        "to": "{{ inputs.to }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "ids": "results.*.tempoWorklogId",
+        "seconds": "results.*.timeSpentSeconds"
+      },
+      "inputs": [
+        {
+          "key": "from",
+          "label": "From",
+          "type": "string",
+          "placeholder": "2025-01-01"
+        },
+        {
+          "key": "to",
+          "label": "To",
+          "type": "string",
+          "placeholder": "2025-01-31"
+        },
+        {
+          "key": "limit",
+          "label": "Max results",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    },
+    {
+      "key": "create_worklog",
+      "name": "Log time",
+      "description": "Add a worklog on a Jira issue.",
+      "method": "POST",
+      "endpoint": "/worklogs",
+      "body": {
+        "issueId": "{{ inputs.issue_id }}",
+        "authorAccountId": "{{ inputs.author }}",
+        "timeSpentSeconds": "{{ inputs.seconds }}",
+        "startDate": "{{ inputs.date }}",
+        "startTime": "{{ inputs.start_time }}",
+        "description": "{{ inputs.description }}"
+      },
+      "output_fields": {
+        "id": "tempoWorklogId",
+        "seconds": "timeSpentSeconds"
+      },
+      "inputs": [
+        {
+          "key": "issue_id",
+          "label": "Jira issue ID (number)",
+          "type": "number",
+          "required": true,
+          "help": "The numeric ID of the issue, not the KEY-123 key. Open your-site.atlassian.net/rest/api/3/issue/KEY-123 and copy \"id\"."
+        },
+        {
+          "key": "author",
+          "label": "Author account ID",
+          "type": "string",
+          "required": true,
+          "help": "Jira user accountId: open the profile, it is the last part of the URL."
+        },
+        {
+          "key": "seconds",
+          "label": "Time spent (seconds)",
+          "type": "number",
+          "required": true,
+          "help": "1 hour = 3600."
+        },
+        {
+          "key": "date",
+          "label": "Start date",
+          "type": "string",
+          "required": true,
+          "placeholder": "2025-01-31"
+        },
+        {
+          "key": "start_time",
+          "label": "Start time",
+          "type": "string",
+          "default": "09:00:00"
+        },
+        {
+          "key": "description",
+          "label": "Description",
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "key": "get_worklog",
+      "name": "Get worklog",
+      "description": "Fetch a worklog.",
+      "method": "GET",
+      "endpoint": "/worklogs/{{ inputs.id }}",
+      "output_fields": {
+        "seconds": "timeSpentSeconds",
+        "date": "startDate",
+        "description": "description"
+      },
+      "inputs": [
+        {
+          "key": "id",
+          "label": "Worklog ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "delete_worklog",
+      "name": "Delete worklog",
+      "description": "Delete a worklog.",
+      "method": "DELETE",
+      "endpoint": "/worklogs/{{ inputs.id }}",
+      "inputs": [
+        {
+          "key": "id",
+          "label": "Worklog ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_teams",
+      "name": "List teams",
+      "description": "Tempo teams.",
+      "method": "GET",
+      "endpoint": "/teams",
+      "output_fields": {
+        "names": "results.*.name",
+        "ids": "results.*.id"
+      },
+      "inputs": []
+    }
+  ]
+}

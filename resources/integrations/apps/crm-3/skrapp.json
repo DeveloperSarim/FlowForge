@@ -1,0 +1,205 @@
+{
+  "key": "skrapp",
+  "name": "Skrapp.io",
+  "category": "CRM & Sales",
+  "description": "Find and verify professional emails and enrich company data with Skrapp.io.",
+  "website": "https://skrapp.io",
+  "docs_url": "https://skrapp.io/api",
+  "base_url": "https://api.skrapp.io",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "X-Access-Key",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "In Skrapp open Account → API and copy your API key."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "find_email",
+      "name": "Find email",
+      "description": "Finds a person's work email from their name and company.",
+      "method": "GET",
+      "endpoint": "/api/v2/find",
+      "timeout": 60,
+      "query": {
+        "firstName": "{{ inputs.first_name }}",
+        "lastName": "{{ inputs.last_name }}",
+        "fullName": "{{ inputs.full_name }}",
+        "domain": "{{ inputs.domain }}",
+        "company": "{{ inputs.company }}",
+        "includeCompanyData": "{{ inputs.include_company_data }}"
+      },
+      "output_fields": {
+        "email": "email",
+        "status": "quality.status"
+      },
+      "inputs": [
+        {
+          "key": "first_name",
+          "label": "First name",
+          "type": "string"
+        },
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string"
+        },
+        {
+          "key": "full_name",
+          "label": "Full name",
+          "type": "string",
+          "help": "Use instead of first + last name."
+        },
+        {
+          "key": "domain",
+          "label": "Company domain",
+          "type": "string",
+          "placeholder": "acme.com"
+        },
+        {
+          "key": "company",
+          "label": "Company name",
+          "type": "string",
+          "help": "Used when you don't know the domain."
+        },
+        {
+          "key": "include_company_data",
+          "label": "Include company data",
+          "type": "boolean",
+          "default": false
+        }
+      ]
+    },
+    {
+      "key": "verify_email",
+      "name": "Verify email",
+      "method": "GET",
+      "endpoint": "/v3/verify",
+      "timeout": 60,
+      "query": {
+        "email": "{{ inputs.email }}"
+      },
+      "output_fields": {
+        "status": "email_status",
+        "mailbox_type": "mailbox_type"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "enrich_company",
+      "name": "Enrich company",
+      "method": "GET",
+      "endpoint": "/api/v3/companies/enrich",
+      "query": {
+        "domain": "{{ inputs.domain }}",
+        "categories": "{{ inputs.categories }}"
+      },
+      "output_fields": {
+        "name": "company_name",
+        "firmographics": "categories.firmographics.data"
+      },
+      "inputs": [
+        {
+          "key": "domain",
+          "label": "Company domain",
+          "type": "string",
+          "required": true,
+          "placeholder": "stripe.com"
+        },
+        {
+          "key": "categories",
+          "label": "Data categories",
+          "type": "string",
+          "default": "firmographics",
+          "help": "Comma separated: firmographics, headcount, funding…"
+        }
+      ]
+    },
+    {
+      "key": "save_lead",
+      "name": "Save lead to list",
+      "method": "POST",
+      "endpoint": "/api/v2/list/{{ inputs.list_id }}/load",
+      "body": {
+        "listName": "{{ inputs.list_name }}",
+        "leads": [
+          {
+            "email": "{{ inputs.email }}",
+            "firstName": "{{ inputs.first_name }}",
+            "lastName": "{{ inputs.last_name }}",
+            "title": "{{ inputs.title }}",
+            "company": "{{ inputs.company }}",
+            "domain": "{{ inputs.domain }}"
+          }
+        ]
+      },
+      "inputs": [
+        {
+          "key": "list_id",
+          "label": "List ID",
+          "type": "string",
+          "default": "0",
+          "help": "0 creates a new list with the name below."
+        },
+        {
+          "key": "list_name",
+          "label": "New list name",
+          "type": "string"
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "first_name",
+          "label": "First name",
+          "type": "string"
+        },
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string"
+        },
+        {
+          "key": "title",
+          "label": "Job title",
+          "type": "string"
+        },
+        {
+          "key": "company",
+          "label": "Company",
+          "type": "string"
+        },
+        {
+          "key": "domain",
+          "label": "Company domain",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "get_account",
+      "name": "Get account",
+      "description": "Your plan and remaining credits.",
+      "method": "GET",
+      "endpoint": "/api/v2/account",
+      "inputs": []
+    }
+  ]
+}

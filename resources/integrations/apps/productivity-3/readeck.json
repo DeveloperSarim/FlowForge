@@ -1,0 +1,158 @@
+{
+  "key": "readeck",
+  "name": "Readeck",
+  "category": "Productivity",
+  "description": "Self-hosted read-it-later: save web pages, list, read and delete bookmarks.",
+  "website": "https://readeck.org",
+  "docs_url": "https://readeck.org/en/docs/api/",
+  "base_url": "{{ credentials.base_url }}/api",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "base_url",
+        "label": "Readeck URL",
+        "type": "string",
+        "required": true,
+        "placeholder": "https://read.example.com",
+        "help": "The address of your Readeck server, without a trailing slash."
+      },
+      {
+        "key": "token",
+        "label": "API token",
+        "type": "password",
+        "required": true,
+        "help": "Readeck → Profile → API Tokens → Create a new token."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "save_bookmark",
+      "name": "Save bookmark",
+      "description": "Save a web page to read later (processed in the background).",
+      "method": "POST",
+      "endpoint": "/bookmarks",
+      "body": {
+        "url": "{{ inputs.url }}",
+        "title": "{{ inputs.title }}",
+        "labels": "{{ inputs.labels }}"
+      },
+      "output_fields": {
+        "message": "message",
+        "status": "status"
+      },
+      "inputs": [
+        {
+          "key": "url",
+          "label": "URL",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "string"
+        },
+        {
+          "key": "labels",
+          "label": "Labels",
+          "type": "list"
+        }
+      ]
+    },
+    {
+      "key": "list_bookmarks",
+      "name": "List bookmarks",
+      "description": "Your bookmarks, newest first.",
+      "method": "GET",
+      "endpoint": "/bookmarks",
+      "query": {
+        "search": "{{ inputs.search }}",
+        "limit": "{{ inputs.limit }}",
+        "is_archived": "{{ inputs.is_archived }}",
+        "sort": "-created"
+      },
+      "output_fields": {
+        "titles": "*.title",
+        "urls": "*.url",
+        "ids": "*.id"
+      },
+      "inputs": [
+        {
+          "key": "search",
+          "label": "Search",
+          "type": "string"
+        },
+        {
+          "key": "limit",
+          "label": "Max results",
+          "type": "number",
+          "default": 20
+        },
+        {
+          "key": "is_archived",
+          "label": "Archived only",
+          "type": "boolean"
+        }
+      ]
+    },
+    {
+      "key": "get_bookmark",
+      "name": "Get bookmark",
+      "description": "Details of one bookmark.",
+      "method": "GET",
+      "endpoint": "/bookmarks/{{ inputs.id }}",
+      "output_fields": {
+        "title": "title",
+        "url": "url",
+        "site": "site_name"
+      },
+      "inputs": [
+        {
+          "key": "id",
+          "label": "Bookmark ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "delete_bookmark",
+      "name": "Delete bookmark",
+      "description": "Delete a bookmark.",
+      "method": "DELETE",
+      "endpoint": "/bookmarks/{{ inputs.id }}",
+      "inputs": [
+        {
+          "key": "id",
+          "label": "Bookmark ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_bookmark",
+      "name": "New bookmark",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/bookmarks",
+      "query": {
+        "sort": "-created",
+        "limit": 20
+      },
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

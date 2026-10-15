@@ -1,0 +1,160 @@
+{
+  "key": "lessonly",
+  "name": "Lessonly",
+  "category": "Education",
+  "description": "Training platform (Seismic Learning): users, lessons, courses and assignments.",
+  "website": "https://www.lessonly.com",
+  "docs_url": "https://api-doc.lessonly.com/",
+  "base_url": "https://api.lessonly.com/api/v1.1",
+  "auth": {
+    "type": "basic",
+    "fields": [
+      {
+        "key": "username",
+        "label": "Subdomain",
+        "type": "string",
+        "required": true,
+        "help": "Your Lessonly subdomain, e.g. acme for acme.lessonly.com."
+      },
+      {
+        "key": "password",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "Lessonly > Settings > Integrations > API: copy the API key."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_users",
+      "name": "List users",
+      "description": "Get your learners.",
+      "method": "GET",
+      "endpoint": "/users",
+      "query": {
+        "page": "{{ inputs.page }}",
+        "per_page": "{{ inputs.per_page }}"
+      },
+      "output_fields": {
+        "users": "users",
+        "ids": "users.*.id"
+      },
+      "inputs": [
+        {
+          "key": "page",
+          "label": "Page",
+          "type": "number",
+          "default": 1
+        },
+        {
+          "key": "per_page",
+          "label": "Per page",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    },
+    {
+      "key": "list_lessons",
+      "name": "List lessons",
+      "description": "Get your lessons.",
+      "method": "GET",
+      "endpoint": "/lessons",
+      "query": {
+        "page": "{{ inputs.page }}"
+      },
+      "output_fields": {
+        "lessons": "lessons",
+        "ids": "lessons.*.id"
+      },
+      "inputs": [
+        {
+          "key": "page",
+          "label": "Page",
+          "type": "number",
+          "default": 1
+        }
+      ]
+    },
+    {
+      "key": "list_courses",
+      "name": "List courses",
+      "description": "Get your courses.",
+      "method": "GET",
+      "endpoint": "/courses",
+      "query": {
+        "page": "{{ inputs.page }}"
+      },
+      "output_fields": {
+        "courses": "courses",
+        "ids": "courses.*.id"
+      },
+      "inputs": [
+        {
+          "key": "page",
+          "label": "Page",
+          "type": "number",
+          "default": 1
+        }
+      ]
+    },
+    {
+      "key": "create_user",
+      "name": "Create a user",
+      "description": "Add a learner.",
+      "method": "POST",
+      "endpoint": "/users",
+      "body": {
+        "name": "{{ inputs.name }}",
+        "email": "{{ inputs.email }}"
+      },
+      "output_fields": {
+        "id": "id"
+      },
+      "inputs": [
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "assign_lesson",
+      "name": "Assign a lesson",
+      "description": "Assign a lesson to a user.",
+      "method": "POST",
+      "endpoint": "/users/{{ inputs.user_id }}/assignments",
+      "body": {
+        "assignments": [
+          {
+            "assignable_id": "{{ inputs.lesson_id }}",
+            "assignable_type": "Lesson"
+          }
+        ]
+      },
+      "inputs": [
+        {
+          "key": "user_id",
+          "label": "User ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "lesson_id",
+          "label": "Lesson ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ]
+}

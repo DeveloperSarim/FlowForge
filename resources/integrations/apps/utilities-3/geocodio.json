@@ -1,0 +1,144 @@
+{
+  "key": "geocodio",
+  "name": "Geocodio",
+  "category": "Utilities",
+  "description": "Turn US and Canadian addresses into coordinates and back, one at a time or in bulk.",
+  "website": "https://www.geocod.io",
+  "docs_url": "https://www.geocod.io/docs/",
+  "base_url": "https://api.geocod.io/v2",
+  "auth": {
+    "type": "api_key",
+    "in": "query",
+    "name": "api_key",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "dash.geocod.io → API Keys."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "geocode_address",
+      "name": "Geocode address",
+      "description": "Get the coordinates and the standardized address.",
+      "method": "GET",
+      "endpoint": "/geocode",
+      "query": {
+        "q": "{{ inputs.address }}",
+        "country": "{{ inputs.country }}",
+        "fields": "{{ inputs.fields }}",
+        "limit": 1
+      },
+      "output_fields": {
+        "formatted_address": "results.0.formatted_address",
+        "latitude": "results.0.location.lat",
+        "longitude": "results.0.location.lng",
+        "accuracy": "results.0.accuracy",
+        "accuracy_type": "results.0.accuracy_type",
+        "zip": "results.0.address_components.zip"
+      },
+      "inputs": [
+        {
+          "key": "address",
+          "label": "Address",
+          "type": "string",
+          "required": true,
+          "placeholder": "1109 N Highland St, Arlington VA"
+        },
+        {
+          "key": "country",
+          "label": "Country",
+          "type": "select",
+          "default": "US",
+          "options": [
+            {
+              "value": "US",
+              "label": "United States"
+            },
+            {
+              "value": "CA",
+              "label": "Canada"
+            }
+          ]
+        },
+        {
+          "key": "fields",
+          "label": "Extra data",
+          "type": "string",
+          "placeholder": "timezone,cd",
+          "help": "Optional comma-separated appends, e.g. timezone, cd, census, school."
+        }
+      ]
+    },
+    {
+      "key": "reverse_geocode",
+      "name": "Reverse geocode",
+      "description": "Find the nearest address to a pair of coordinates.",
+      "method": "GET",
+      "endpoint": "/reverse",
+      "query": {
+        "q": "{{ inputs.latitude }},{{ inputs.longitude }}",
+        "fields": "{{ inputs.fields }}",
+        "limit": 1
+      },
+      "output_fields": {
+        "formatted_address": "results.0.formatted_address",
+        "city": "results.0.address_components.city",
+        "state": "results.0.address_components.state",
+        "zip": "results.0.address_components.zip"
+      },
+      "inputs": [
+        {
+          "key": "latitude",
+          "label": "Latitude",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "longitude",
+          "label": "Longitude",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "fields",
+          "label": "Extra data",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "batch_geocode",
+      "name": "Geocode many addresses",
+      "description": "Geocode a list of addresses in one request.",
+      "method": "POST",
+      "endpoint": "/geocode",
+      "query": {
+        "fields": "{{ inputs.fields }}"
+      },
+      "body": "{{ inputs.addresses }}",
+      "timeout": 300,
+      "output_fields": {
+        "results": "results"
+      },
+      "inputs": [
+        {
+          "key": "addresses",
+          "label": "Addresses",
+          "type": "list",
+          "required": true,
+          "help": "One address per row (up to 10,000)."
+        },
+        {
+          "key": "fields",
+          "label": "Extra data",
+          "type": "string"
+        }
+      ]
+    }
+  ]
+}

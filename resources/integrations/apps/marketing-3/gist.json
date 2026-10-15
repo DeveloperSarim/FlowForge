@@ -1,0 +1,200 @@
+{
+  "key": "gist",
+  "name": "Gist",
+  "category": "Marketing & Email",
+  "description": "Add and update contacts, tags and see campaigns in Gist (getgist.com).",
+  "website": "https://getgist.com",
+  "docs_url": "https://developers.getgist.com/api/",
+  "base_url": "https://api.getgist.com",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "Access token",
+        "type": "password",
+        "required": true,
+        "help": "Gist → Settings → Integrations → API → copy your Access token (secret key)."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "upsert_contact",
+      "name": "Create or update contact",
+      "description": "Create a contact, or update it if the email already exists.",
+      "method": "POST",
+      "endpoint": "/contacts",
+      "body": {
+        "email": "{{ inputs.email }}",
+        "name": "{{ inputs.name }}",
+        "phone": "{{ inputs.phone }}",
+        "custom_properties": "{{ inputs.custom_properties }}",
+        "tags": "{{ inputs.tags }}"
+      },
+      "output_fields": {
+        "id": "contact.id",
+        "email": "contact.email",
+        "name": "contact.name"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true,
+          "help": "The contact's email address."
+        },
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string"
+        },
+        {
+          "key": "phone",
+          "label": "Phone",
+          "type": "string"
+        },
+        {
+          "key": "custom_properties",
+          "label": "Custom properties",
+          "type": "keyvalue",
+          "help": "Extra fields to store on the contact."
+        },
+        {
+          "key": "tags",
+          "label": "Tags",
+          "type": "list",
+          "help": "Tag names to add."
+        }
+      ]
+    },
+    {
+      "key": "get_contact",
+      "name": "Find contact by email",
+      "description": "Look up one contact by email.",
+      "method": "GET",
+      "endpoint": "/contacts",
+      "query": {
+        "email": "{{ inputs.email }}"
+      },
+      "output_fields": {
+        "id": "contact.id",
+        "name": "contact.name",
+        "email": "contact.email",
+        "tags": "contact.tags"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true,
+          "help": "The contact's email address."
+        }
+      ]
+    },
+    {
+      "key": "list_contacts",
+      "name": "List contacts",
+      "description": "List contacts, optionally filtered by part of the email.",
+      "method": "GET",
+      "endpoint": "/contacts",
+      "query": {
+        "email_like": "{{ inputs.email_like }}",
+        "per_page": "{{ inputs.per_page }}",
+        "page": "{{ inputs.page }}"
+      },
+      "output_fields": {
+        "contacts": "contacts"
+      },
+      "inputs": [
+        {
+          "key": "email_like",
+          "label": "Email contains",
+          "type": "string"
+        },
+        {
+          "key": "per_page",
+          "label": "Per page",
+          "type": "number",
+          "default": 50
+        },
+        {
+          "key": "page",
+          "label": "Page",
+          "type": "number",
+          "default": 1
+        }
+      ]
+    },
+    {
+      "key": "list_tags",
+      "name": "List tags",
+      "description": "All tags in your workspace.",
+      "method": "GET",
+      "endpoint": "/tags",
+      "output_fields": {
+        "tags": "tags"
+      },
+      "inputs": []
+    },
+    {
+      "key": "tag_contact",
+      "name": "Add tag to contact",
+      "description": "Tag a contact (the tag is created if missing).",
+      "method": "POST",
+      "endpoint": "/tags",
+      "body": {
+        "name": "{{ inputs.tag }}",
+        "contacts": [
+          {
+            "email": "{{ inputs.email }}"
+          }
+        ]
+      },
+      "output_fields": {
+        "id": "tag.id",
+        "name": "tag.name"
+      },
+      "inputs": [
+        {
+          "key": "tag",
+          "label": "Tag name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true,
+          "help": "The contact's email address."
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_contact",
+      "name": "New contact",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/contacts",
+      "query": {
+        "order": "desc",
+        "order_by": "created_at"
+      },
+      "items_path": "contacts",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

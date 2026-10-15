@@ -1,0 +1,359 @@
+{
+  "key": "mparticle",
+  "name": "mParticle",
+  "category": "Analytics",
+  "description": "Send server-side events, screen views, purchases and user attributes to mParticle.",
+  "website": "https://www.mparticle.com",
+  "docs_url": "https://docs.mparticle.com/developers/apis/http/",
+  "base_url": "https://{{ credentials.pod }}/v2",
+  "auth": {
+    "type": "basic",
+    "fields": [
+      {
+        "key": "pod",
+        "label": "Data center",
+        "type": "select",
+        "required": true,
+        "default": "s2s.mparticle.com",
+        "options": [
+          {
+            "value": "s2s.mparticle.com",
+            "label": "US1"
+          },
+          {
+            "value": "s2s.us2.mparticle.com",
+            "label": "US2"
+          },
+          {
+            "value": "s2s.eu1.mparticle.com",
+            "label": "EU1"
+          },
+          {
+            "value": "s2s.au1.mparticle.com",
+            "label": "AU1"
+          }
+        ],
+        "help": "Where your mParticle workspace lives (see your login URL)."
+      },
+      {
+        "key": "username",
+        "label": "Server-to-server key",
+        "type": "string",
+        "required": true,
+        "help": "mParticle → Setup → Inputs → Feeds → Custom Feed → Issue keys."
+      },
+      {
+        "key": "password",
+        "label": "Server-to-server secret",
+        "type": "password",
+        "required": true
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "track_event",
+      "name": "Track custom event",
+      "description": "Record a custom event for a user.",
+      "method": "POST",
+      "endpoint": "/events",
+      "body": {
+        "environment": "{{ inputs.environment }}",
+        "user_identities": {
+          "customerid": "{{ inputs.customer_id }}",
+          "email": "{{ inputs.email }}"
+        },
+        "events": [
+          {
+            "event_type": "custom_event",
+            "data": {
+              "event_name": "{{ inputs.event_name }}",
+              "custom_event_type": "{{ inputs.custom_event_type }}",
+              "custom_attributes": "{{ inputs.attributes }}"
+            }
+          }
+        ]
+      },
+      "inputs": [
+        {
+          "key": "event_name",
+          "label": "Event name",
+          "type": "string",
+          "required": true,
+          "placeholder": "Signed up"
+        },
+        {
+          "key": "custom_event_type",
+          "label": "Event type",
+          "type": "select",
+          "default": "other",
+          "options": [
+            {
+              "value": "navigation",
+              "label": "navigation"
+            },
+            {
+              "value": "location",
+              "label": "location"
+            },
+            {
+              "value": "search",
+              "label": "search"
+            },
+            {
+              "value": "transaction",
+              "label": "transaction"
+            },
+            {
+              "value": "user_content",
+              "label": "user_content"
+            },
+            {
+              "value": "user_preference",
+              "label": "user_preference"
+            },
+            {
+              "value": "social",
+              "label": "social"
+            },
+            {
+              "value": "other",
+              "label": "other"
+            }
+          ]
+        },
+        {
+          "key": "attributes",
+          "label": "Event attributes",
+          "type": "keyvalue"
+        },
+        {
+          "key": "customer_id",
+          "label": "Customer ID",
+          "type": "string",
+          "help": "Your own user ID. Give this or an email."
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string"
+        },
+        {
+          "key": "environment",
+          "label": "Environment",
+          "type": "select",
+          "required": true,
+          "default": "production",
+          "options": [
+            {
+              "value": "production",
+              "label": "Production"
+            },
+            {
+              "value": "development",
+              "label": "Development"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "track_screen_view",
+      "name": "Track screen view",
+      "description": "Record a screen or page view.",
+      "method": "POST",
+      "endpoint": "/events",
+      "body": {
+        "environment": "{{ inputs.environment }}",
+        "user_identities": {
+          "customerid": "{{ inputs.customer_id }}",
+          "email": "{{ inputs.email }}"
+        },
+        "events": [
+          {
+            "event_type": "screen_view",
+            "data": {
+              "screen_name": "{{ inputs.screen_name }}",
+              "custom_attributes": "{{ inputs.attributes }}"
+            }
+          }
+        ]
+      },
+      "inputs": [
+        {
+          "key": "screen_name",
+          "label": "Screen or page name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "attributes",
+          "label": "Attributes",
+          "type": "keyvalue"
+        },
+        {
+          "key": "customer_id",
+          "label": "Customer ID",
+          "type": "string",
+          "help": "Your own user ID. Give this or an email."
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string"
+        },
+        {
+          "key": "environment",
+          "label": "Environment",
+          "type": "select",
+          "required": true,
+          "default": "production",
+          "options": [
+            {
+              "value": "production",
+              "label": "Production"
+            },
+            {
+              "value": "development",
+              "label": "Development"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "track_purchase",
+      "name": "Track purchase",
+      "description": "Record a completed purchase (commerce event).",
+      "method": "POST",
+      "endpoint": "/events",
+      "body": {
+        "environment": "{{ inputs.environment }}",
+        "user_identities": {
+          "customerid": "{{ inputs.customer_id }}",
+          "email": "{{ inputs.email }}"
+        },
+        "events": [
+          {
+            "event_type": "commerce_event",
+            "data": {
+              "currency_code": "{{ inputs.currency_code }}",
+              "product_action": {
+                "action": "purchase",
+                "transaction_id": "{{ inputs.transaction_id }}",
+                "total_amount": "{{ inputs.total_amount }}",
+                "products": "{{ inputs.products }}"
+              }
+            }
+          }
+        ]
+      },
+      "inputs": [
+        {
+          "key": "transaction_id",
+          "label": "Order ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "total_amount",
+          "label": "Total amount",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "currency_code",
+          "label": "Currency",
+          "type": "string",
+          "default": "USD"
+        },
+        {
+          "key": "products",
+          "label": "Products (JSON)",
+          "type": "json",
+          "placeholder": "[{\"id\":\"sku-1\",\"name\":\"T-shirt\",\"price\":20,\"quantity\":1}]"
+        },
+        {
+          "key": "customer_id",
+          "label": "Customer ID",
+          "type": "string",
+          "help": "Your own user ID. Give this or an email."
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string"
+        },
+        {
+          "key": "environment",
+          "label": "Environment",
+          "type": "select",
+          "required": true,
+          "default": "production",
+          "options": [
+            {
+              "value": "production",
+              "label": "Production"
+            },
+            {
+              "value": "development",
+              "label": "Development"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "set_user_attributes",
+      "name": "Set user attributes",
+      "description": "Update profile attributes for a user.",
+      "method": "POST",
+      "endpoint": "/events",
+      "body": {
+        "environment": "{{ inputs.environment }}",
+        "user_identities": {
+          "customerid": "{{ inputs.customer_id }}",
+          "email": "{{ inputs.email }}"
+        },
+        "user_attributes": "{{ inputs.attributes }}"
+      },
+      "inputs": [
+        {
+          "key": "attributes",
+          "label": "User attributes",
+          "type": "keyvalue",
+          "required": true,
+          "help": "e.g. plan = pro, city = Berlin"
+        },
+        {
+          "key": "customer_id",
+          "label": "Customer ID",
+          "type": "string",
+          "help": "Your own user ID. Give this or an email."
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string"
+        },
+        {
+          "key": "environment",
+          "label": "Environment",
+          "type": "select",
+          "required": true,
+          "default": "production",
+          "options": [
+            {
+              "value": "production",
+              "label": "Production"
+            },
+            {
+              "value": "development",
+              "label": "Development"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

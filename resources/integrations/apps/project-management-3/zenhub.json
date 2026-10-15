@@ -1,0 +1,94 @@
+{
+  "key": "zenhub",
+  "name": "ZenHub",
+  "category": "Project Management",
+  "description": "GitHub-based agile boards: list workspaces and run any GraphQL query.",
+  "website": "https://www.zenhub.com",
+  "docs_url": "https://github.com/ZenHubIO/zenhub-public-api",
+  "base_url": "https://api.zenhub.com/public",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "ZenHub → Settings → Personal API keys → Generate."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_workspaces",
+      "name": "List workspaces",
+      "description": "Your ZenHub workspaces.",
+      "method": "POST",
+      "endpoint": "/graphql",
+      "body": {
+        "query": "query { viewer { searchWorkspaces(query: \"\") { nodes { id name } } } }"
+      },
+      "output_fields": {
+        "names": "data.viewer.searchWorkspaces.nodes.*.name",
+        "ids": "data.viewer.searchWorkspaces.nodes.*.id"
+      },
+      "error_path": "errors",
+      "inputs": []
+    },
+    {
+      "key": "list_pipelines",
+      "name": "List pipelines",
+      "description": "Pipelines (columns) of a workspace.",
+      "method": "POST",
+      "endpoint": "/graphql",
+      "body": {
+        "query": "query($id: ID!) { workspace(id: $id) { pipelines { nodes { id name } } } }",
+        "variables": {
+          "id": "{{ inputs.workspace_id }}"
+        }
+      },
+      "output_fields": {
+        "names": "data.workspace.pipelines.nodes.*.name",
+        "ids": "data.workspace.pipelines.nodes.*.id"
+      },
+      "error_path": "errors",
+      "inputs": [
+        {
+          "key": "workspace_id",
+          "label": "Workspace ID",
+          "type": "string",
+          "required": true,
+          "help": "Use \"List workspaces\"."
+        }
+      ]
+    },
+    {
+      "key": "graphql",
+      "name": "Run GraphQL query",
+      "description": "Run any ZenHub GraphQL query or mutation.",
+      "method": "POST",
+      "endpoint": "/graphql",
+      "body": {
+        "query": "{{ inputs.query }}",
+        "variables": "{{ inputs.variables }}"
+      },
+      "output_fields": {
+        "data": "data"
+      },
+      "error_path": "errors",
+      "inputs": [
+        {
+          "key": "query",
+          "label": "Query",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "variables",
+          "label": "Variables",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

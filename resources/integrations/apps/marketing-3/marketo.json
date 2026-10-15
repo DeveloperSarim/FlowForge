@@ -1,0 +1,283 @@
+{
+  "key": "marketo",
+  "name": "Adobe Marketo Engage",
+  "category": "Marketing & Email",
+  "description": "Create or update leads, add them to lists and trigger smart campaigns.",
+  "website": "https://business.adobe.com/products/marketo.html",
+  "docs_url": "https://experienceleague.adobe.com/en/docs/marketo-developer/marketo/rest/rest-api",
+  "base_url": "https://{{ credentials.munchkin_id }}.mktorest.com/rest",
+  "auth": {
+    "type": "oauth2_client_credentials",
+    "token_url": "https://{{ credentials.munchkin_id }}.mktorest.com/identity/oauth/token",
+    "fields": [
+      {
+        "key": "munchkin_id",
+        "label": "Munchkin ID",
+        "type": "string",
+        "required": true,
+        "placeholder": "123-ABC-456",
+        "help": "Marketo → Admin → Integration → Web Services: the REST API endpoint looks like https://123-ABC-456.mktorest.com/rest. Enter the 123-ABC-456 part."
+      },
+      {
+        "key": "client_id",
+        "label": "Client ID",
+        "type": "string",
+        "required": true,
+        "help": "Admin → Integration → LaunchPoint → your custom API service → View Details."
+      },
+      {
+        "key": "client_secret",
+        "label": "Client secret",
+        "type": "password",
+        "required": true,
+        "help": "Shown next to the Client ID in LaunchPoint."
+      }
+    ]
+  },
+  "error_hints": {
+    "401": "Check the Munchkin ID and that the LaunchPoint service's API user has an API role."
+  },
+  "actions": [
+    {
+      "key": "upsert_lead",
+      "name": "Create or update lead",
+      "description": "Create a lead, or update the one with the same email.",
+      "method": "POST",
+      "endpoint": "/v1/leads.json",
+      "error_path": "errors.0.message",
+      "body": {
+        "action": "createOrUpdate",
+        "lookupField": "email",
+        "input": [
+          {
+            "email": "{{ inputs.email }}",
+            "firstName": "{{ inputs.first_name }}",
+            "lastName": "{{ inputs.last_name }}",
+            "company": "{{ inputs.company }}",
+            "phone": "{{ inputs.phone }}",
+            "title": "{{ inputs.title }}",
+            "...": "{{ inputs.fields }}"
+          }
+        ]
+      },
+      "output_fields": {
+        "id": "result.0.id",
+        "status": "result.0.status",
+        "reasons": "result.0.reasons"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "first_name",
+          "label": "First name",
+          "type": "string"
+        },
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string"
+        },
+        {
+          "key": "company",
+          "label": "Company",
+          "type": "string"
+        },
+        {
+          "key": "phone",
+          "label": "Phone",
+          "type": "string"
+        },
+        {
+          "key": "title",
+          "label": "Job title",
+          "type": "string"
+        },
+        {
+          "key": "fields",
+          "label": "Other fields",
+          "type": "keyvalue",
+          "help": "Any other lead fields by their REST API name, e.g. leadSource, city, country."
+        }
+      ]
+    },
+    {
+      "key": "find_lead",
+      "name": "Find lead by email",
+      "description": "Look up leads with an email address.",
+      "method": "GET",
+      "endpoint": "/v1/leads.json",
+      "error_path": "errors.0.message",
+      "query": {
+        "filterType": "email",
+        "filterValues": "{{ inputs.email }}",
+        "fields": "{{ inputs.fields }}"
+      },
+      "output_fields": {
+        "leads": "result",
+        "id": "result.0.id",
+        "first_name": "result.0.firstName",
+        "last_name": "result.0.lastName"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "fields",
+          "label": "Fields to return",
+          "type": "string",
+          "placeholder": "email,firstName,lastName,company",
+          "help": "Comma-separated REST API field names. Leave empty for the defaults."
+        }
+      ]
+    },
+    {
+      "key": "list_static_lists",
+      "name": "List static lists",
+      "description": "Static lists and their IDs.",
+      "method": "GET",
+      "endpoint": "/v1/lists.json",
+      "error_path": "errors.0.message",
+      "query": {
+        "name": "{{ inputs.name }}"
+      },
+      "output_fields": {
+        "lists": "result",
+        "ids": "result.*.id",
+        "names": "result.*.name"
+      },
+      "inputs": [
+        {
+          "key": "name",
+          "label": "Name filter",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "add_to_list",
+      "name": "Add lead to list",
+      "description": "Add a lead to a static list.",
+      "method": "POST",
+      "endpoint": "/v1/lists/{{ inputs.list_id }}/leads.json",
+      "error_path": "errors.0.message",
+      "body": {
+        "input": [
+          {
+            "id": "{{ inputs.lead_id }}"
+          }
+        ]
+      },
+      "output_fields": {
+        "status": "result.0.status",
+        "reasons": "result.0.reasons"
+      },
+      "inputs": [
+        {
+          "key": "list_id",
+          "label": "List ID",
+          "type": "string",
+          "required": true,
+          "help": "Run \"List static lists\", or open the list in Marketo: the number after ST in the address bar."
+        },
+        {
+          "key": "lead_id",
+          "label": "Lead ID",
+          "type": "string",
+          "required": true,
+          "help": "From a \"Create or update lead\" or \"Find lead\" step."
+        }
+      ]
+    },
+    {
+      "key": "remove_from_list",
+      "name": "Remove lead from list",
+      "description": "Remove a lead from a static list.",
+      "method": "DELETE",
+      "endpoint": "/v1/lists/{{ inputs.list_id }}/leads.json",
+      "error_path": "errors.0.message",
+      "query": {
+        "id": "{{ inputs.lead_id }}"
+      },
+      "output_fields": {
+        "status": "result.0.status"
+      },
+      "inputs": [
+        {
+          "key": "list_id",
+          "label": "List ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "lead_id",
+          "label": "Lead ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_campaigns",
+      "name": "List triggerable campaigns",
+      "description": "Smart campaigns that can be requested through the API.",
+      "method": "GET",
+      "endpoint": "/v1/campaigns.json",
+      "error_path": "errors.0.message",
+      "query": {
+        "isTriggerable": "true"
+      },
+      "output_fields": {
+        "campaigns": "result",
+        "ids": "result.*.id",
+        "names": "result.*.name"
+      },
+      "inputs": []
+    },
+    {
+      "key": "trigger_campaign",
+      "name": "Trigger campaign for lead",
+      "description": "Run a smart campaign (with a \"Campaign is Requested\" trigger) for a lead.",
+      "method": "POST",
+      "endpoint": "/v1/campaigns/{{ inputs.campaign_id }}/trigger.json",
+      "error_path": "errors.0.message",
+      "body": {
+        "input": {
+          "leads": [
+            {
+              "id": "{{ inputs.lead_id }}"
+            }
+          ]
+        }
+      },
+      "output_fields": {
+        "campaign_id": "result.0.id",
+        "success": "success"
+      },
+      "inputs": [
+        {
+          "key": "campaign_id",
+          "label": "Campaign ID",
+          "type": "string",
+          "required": true,
+          "help": "Run \"List triggerable campaigns\" to see the IDs."
+        },
+        {
+          "key": "lead_id",
+          "label": "Lead ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": []
+}

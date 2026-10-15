@@ -1,0 +1,136 @@
+{
+  "key": "beeminder",
+  "name": "Beeminder",
+  "category": "Productivity",
+  "description": "Goal tracker with commitment: list goals, add datapoints and read progress.",
+  "website": "https://www.beeminder.com",
+  "docs_url": "https://api.beeminder.com/",
+  "base_url": "https://www.beeminder.com/api/v1",
+  "auth": {
+    "type": "api_key",
+    "in": "query",
+    "name": "auth_token",
+    "fields": [
+      {
+        "key": "username",
+        "label": "Username",
+        "type": "string",
+        "required": true,
+        "help": "Your Beeminder username (shown in your profile URL)."
+      },
+      {
+        "key": "api_key",
+        "label": "Personal auth token",
+        "type": "password",
+        "required": true,
+        "help": "beeminder.com → Settings → Account Settings → Apps & API → Personal Auth Token."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_goals",
+      "name": "List goals",
+      "description": "All your active goals.",
+      "method": "GET",
+      "endpoint": "/users/{{ credentials.username }}/goals.json",
+      "output_fields": {
+        "slugs": "*.slug",
+        "titles": "*.title"
+      },
+      "inputs": []
+    },
+    {
+      "key": "get_goal",
+      "name": "Get goal",
+      "description": "Status of one goal.",
+      "method": "GET",
+      "endpoint": "/users/{{ credentials.username }}/goals/{{ inputs.slug }}.json",
+      "output_fields": {
+        "title": "title",
+        "losedate": "losedate",
+        "safebuf": "safebuf",
+        "pledge": "pledge",
+        "delta_text": "delta_text"
+      },
+      "inputs": [
+        {
+          "key": "slug",
+          "label": "Goal slug",
+          "type": "string",
+          "required": true,
+          "help": "The short name in the goal URL, e.g. \"weight\"."
+        }
+      ]
+    },
+    {
+      "key": "add_datapoint",
+      "name": "Add datapoint",
+      "description": "Report progress on a goal.",
+      "method": "POST",
+      "endpoint": "/users/{{ credentials.username }}/goals/{{ inputs.slug }}/datapoints.json",
+      "body": {
+        "value": "{{ inputs.value }}",
+        "comment": "{{ inputs.comment }}",
+        "requestid": "{{ inputs.requestid }}"
+      },
+      "output_fields": {
+        "id": "id",
+        "value": "value"
+      },
+      "inputs": [
+        {
+          "key": "slug",
+          "label": "Goal slug",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "value",
+          "label": "Value",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "comment",
+          "label": "Comment",
+          "type": "string"
+        },
+        {
+          "key": "requestid",
+          "label": "Unique request ID",
+          "type": "string",
+          "help": "Optional. Re-sending the same ID will not create a duplicate."
+        }
+      ]
+    },
+    {
+      "key": "list_datapoints",
+      "name": "List datapoints",
+      "description": "Latest datapoints of a goal.",
+      "method": "GET",
+      "endpoint": "/users/{{ credentials.username }}/goals/{{ inputs.slug }}/datapoints.json",
+      "query": {
+        "count": "{{ inputs.count }}",
+        "sort": "daystamp"
+      },
+      "output_fields": {
+        "values": "*.value"
+      },
+      "inputs": [
+        {
+          "key": "slug",
+          "label": "Goal slug",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "count",
+          "label": "How many",
+          "type": "number",
+          "default": 20
+        }
+      ]
+    }
+  ]
+}

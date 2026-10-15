@@ -1,0 +1,164 @@
+{
+  "key": "jamf_pro",
+  "name": "Jamf Pro",
+  "category": "Security & IT",
+  "description": "Read Mac and mobile device inventory from Jamf Pro and redeploy its agent.",
+  "brand": "jamf",
+  "website": "https://www.jamf.com/products/jamf-pro/",
+  "docs_url": "https://developer.jamf.com/jamf-pro/reference/jamf-pro-api",
+  "base_url": "{{ credentials.server_url }}/api",
+  "auth": {
+    "type": "oauth2_client_credentials",
+    "token_url": "{{ credentials.server_url }}/api/oauth/token",
+    "fields": [
+      {
+        "key": "server_url",
+        "label": "Jamf Pro URL",
+        "type": "string",
+        "required": true,
+        "placeholder": "https://yourcompany.jamfcloud.com",
+        "help": "Without a trailing slash."
+      },
+      {
+        "key": "client_id",
+        "label": "Client ID",
+        "type": "string",
+        "required": true,
+        "help": "Jamf Pro → Settings → System → API roles and clients → API clients → New (give it a role with Read Computers / Mobile Devices)."
+      },
+      {
+        "key": "client_secret",
+        "label": "Client secret",
+        "type": "password",
+        "required": true,
+        "help": "Generate it on the API client's page."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_computers",
+      "name": "List computers",
+      "description": "List computers with general inventory details.",
+      "method": "GET",
+      "endpoint": "/v1/computers-inventory",
+      "query": {
+        "section": "GENERAL",
+        "filter": "{{ inputs.filter }}",
+        "page-size": "{{ inputs.page_size }}"
+      },
+      "output_fields": {
+        "total": "totalCount",
+        "computers": "results"
+      },
+      "inputs": [
+        {
+          "key": "filter",
+          "label": "Filter (RSQL)",
+          "type": "string",
+          "placeholder": "general.name==\"MacBook*\""
+        },
+        {
+          "key": "page_size",
+          "label": "Page size",
+          "type": "number",
+          "default": 100
+        }
+      ]
+    },
+    {
+      "key": "get_computer",
+      "name": "Get computer",
+      "description": "Get a computer's full inventory.",
+      "method": "GET",
+      "endpoint": "/v1/computers-inventory-detail/{{ inputs.id }}",
+      "output_fields": {
+        "name": "general.name",
+        "serial_number": "hardware.serialNumber",
+        "os_version": "operatingSystem.version",
+        "last_contact": "general.lastContactTime"
+      },
+      "inputs": [
+        {
+          "key": "id",
+          "label": "Computer ID",
+          "type": "string",
+          "required": true,
+          "help": "From List computers."
+        }
+      ]
+    },
+    {
+      "key": "list_mobile_devices",
+      "name": "List mobile devices",
+      "description": "List iPhones and iPads.",
+      "method": "GET",
+      "endpoint": "/v2/mobile-devices",
+      "query": {
+        "page-size": "{{ inputs.page_size }}"
+      },
+      "output_fields": {
+        "total": "totalCount",
+        "devices": "results"
+      },
+      "inputs": [
+        {
+          "key": "page_size",
+          "label": "Page size",
+          "type": "number",
+          "default": 100
+        }
+      ]
+    },
+    {
+      "key": "get_mobile_device",
+      "name": "Get mobile device",
+      "description": "Get a mobile device's details.",
+      "method": "GET",
+      "endpoint": "/v2/mobile-devices/{{ inputs.id }}/detail",
+      "output_fields": {
+        "name": "name",
+        "serial_number": "serialNumber",
+        "os_version": "osVersion"
+      },
+      "inputs": [
+        {
+          "key": "id",
+          "label": "Mobile device ID",
+          "type": "string",
+          "required": true,
+          "help": "From List mobile devices."
+        }
+      ]
+    },
+    {
+      "key": "redeploy_framework",
+      "name": "Redeploy Jamf agent",
+      "description": "Reinstall the Jamf management framework on a computer.",
+      "method": "POST",
+      "endpoint": "/v1/jamf-management-framework/redeploy/{{ inputs.id }}",
+      "output_fields": {
+        "command_uuid": "commandUuid"
+      },
+      "inputs": [
+        {
+          "key": "id",
+          "label": "Computer ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_departments",
+      "name": "List departments",
+      "description": "List departments.",
+      "method": "GET",
+      "endpoint": "/v1/departments",
+      "output_fields": {
+        "departments": "results"
+      },
+      "inputs": []
+    }
+  ]
+}

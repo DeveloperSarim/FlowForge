@@ -1,0 +1,115 @@
+{
+  "key": "prowlarr",
+  "name": "Prowlarr",
+  "category": "Video & Media",
+  "description": "Indexer manager for your media stack: search indexers and check health.",
+  "website": "https://prowlarr.com",
+  "docs_url": "https://prowlarr.com/docs/api/",
+  "base_url": "{{ credentials.server_url }}/api/v1",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "X-Api-Key",
+    "fields": [
+      {
+        "key": "server_url",
+        "label": "Prowlarr URL",
+        "type": "string",
+        "required": true,
+        "placeholder": "http://192.168.1.10:9696",
+        "help": "The address you open the app at, with http:// and the port, no trailing slash."
+      },
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "Prowlarr > Settings > General > Security > API Key."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "search",
+      "name": "Search indexers",
+      "description": "Search across all your indexers.",
+      "method": "GET",
+      "endpoint": "/search",
+      "query": {
+        "query": "{{ inputs.query }}",
+        "type": "{{ inputs.type }}"
+      },
+      "output_fields": {
+        "titles": "*.title",
+        "sizes": "*.size",
+        "indexers": "*.indexer"
+      },
+      "inputs": [
+        {
+          "key": "query",
+          "label": "Search",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "type",
+          "label": "Type",
+          "type": "select",
+          "default": "search",
+          "options": [
+            {
+              "value": "search",
+              "label": "General"
+            },
+            {
+              "value": "tvsearch",
+              "label": "TV"
+            },
+            {
+              "value": "movie",
+              "label": "Movies"
+            },
+            {
+              "value": "music",
+              "label": "Music"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "list_indexers",
+      "name": "List indexers",
+      "description": "Get configured indexers.",
+      "method": "GET",
+      "endpoint": "/indexer",
+      "output_fields": {
+        "ids": "*.id",
+        "names": "*.name"
+      },
+      "inputs": []
+    },
+    {
+      "key": "get_health",
+      "name": "Health check",
+      "description": "See warnings and errors.",
+      "method": "GET",
+      "endpoint": "/health",
+      "output_fields": {
+        "messages": "*.message"
+      },
+      "inputs": []
+    },
+    {
+      "key": "indexer_stats",
+      "name": "Indexer stats",
+      "description": "Get queries and grabs per indexer.",
+      "method": "GET",
+      "endpoint": "/indexerstats",
+      "output_fields": {
+        "stats": "indexers"
+      },
+      "inputs": []
+    }
+  ]
+}

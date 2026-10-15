@@ -1,0 +1,226 @@
+{
+  "key": "request_tracker",
+  "name": "Request Tracker",
+  "category": "Customer Support",
+  "description": "Create, search and reply to tickets in your Request Tracker (RT) help desk.",
+  "website": "https://bestpractical.com/request-tracker",
+  "docs_url": "https://docs.bestpractical.com/rt/latest/RT/REST2.html",
+  "base_url": "{{ credentials.site_url }}/REST/2.0",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "Authorization",
+    "prefix": "token ",
+    "fields": [
+      {
+        "key": "site_url",
+        "label": "RT address",
+        "type": "string",
+        "required": true,
+        "placeholder": "https://rt.example.com",
+        "help": "The address of your RT server, without a trailing slash."
+      },
+      {
+        "key": "api_key",
+        "label": "Auth token",
+        "type": "password",
+        "required": true,
+        "help": "In RT open Logged in as > Settings > Auth Tokens and create a token."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "create_ticket",
+      "name": "Create ticket",
+      "description": "Creates a ticket in a queue.",
+      "method": "POST",
+      "endpoint": "/ticket",
+      "body": {
+        "Queue": "{{ inputs.queue }}",
+        "Subject": "{{ inputs.subject }}",
+        "Requestor": "{{ inputs.requestor }}",
+        "Content": "{{ inputs.content }}",
+        "ContentType": "text/plain"
+      },
+      "output_fields": {
+        "id": "id",
+        "url": "_url"
+      },
+      "inputs": [
+        {
+          "key": "queue",
+          "label": "Queue",
+          "type": "string",
+          "required": true,
+          "default": "General"
+        },
+        {
+          "key": "subject",
+          "label": "Subject",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "requestor",
+          "label": "Requestor email",
+          "type": "string"
+        },
+        {
+          "key": "content",
+          "label": "Message",
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "key": "search_tickets",
+      "name": "Search tickets",
+      "description": "Finds tickets with a TicketSQL query.",
+      "method": "GET",
+      "endpoint": "/tickets",
+      "query": {
+        "query": "{{ inputs.query }}",
+        "per_page": "{{ inputs.per_page }}",
+        "fields": "Subject,Status,Queue,Created"
+      },
+      "output_fields": {
+        "tickets": "items",
+        "count": "count",
+        "total": "total",
+        "first_id": "items.0.id"
+      },
+      "inputs": [
+        {
+          "key": "query",
+          "label": "Query",
+          "type": "string",
+          "required": true,
+          "default": "Status = 'new'",
+          "help": "TicketSQL, e.g. Queue = 'General' AND Status = 'open'"
+        },
+        {
+          "key": "per_page",
+          "label": "How many",
+          "type": "number",
+          "default": 20
+        }
+      ]
+    },
+    {
+      "key": "get_ticket",
+      "name": "Get ticket",
+      "description": "Gets one ticket by ID.",
+      "method": "GET",
+      "endpoint": "/ticket/{{ inputs.ticket_id }}",
+      "output_fields": {
+        "subject": "Subject",
+        "status": "Status",
+        "queue": "Queue.id"
+      },
+      "inputs": [
+        {
+          "key": "ticket_id",
+          "label": "Ticket ID",
+          "type": "number",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "reply",
+      "name": "Reply to ticket",
+      "description": "Sends a reply to the requestor.",
+      "method": "POST",
+      "endpoint": "/ticket/{{ inputs.ticket_id }}/correspond",
+      "body": {
+        "Content": "{{ inputs.content }}",
+        "ContentType": "text/plain",
+        "Status": "{{ inputs.status }}"
+      },
+      "inputs": [
+        {
+          "key": "ticket_id",
+          "label": "Ticket ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "content",
+          "label": "Message",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "status",
+          "label": "Set status",
+          "type": "select",
+          "options": [
+            {
+              "value": "open",
+              "label": "Open"
+            },
+            {
+              "value": "resolved",
+              "label": "Resolved"
+            },
+            {
+              "value": "stalled",
+              "label": "Stalled"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "comment",
+      "name": "Add internal comment",
+      "description": "Adds a private comment (not sent to the requestor).",
+      "method": "POST",
+      "endpoint": "/ticket/{{ inputs.ticket_id }}/comment",
+      "body": {
+        "Content": "{{ inputs.content }}",
+        "ContentType": "text/plain"
+      },
+      "inputs": [
+        {
+          "key": "ticket_id",
+          "label": "Ticket ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "content",
+          "label": "Comment",
+          "type": "text",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_ticket",
+      "name": "New ticket",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/tickets",
+      "query": {
+        "query": "id > 0",
+        "orderby": "id",
+        "order": "DESC",
+        "per_page": 25
+      },
+      "items_path": "items",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

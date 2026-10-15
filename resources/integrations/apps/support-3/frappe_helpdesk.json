@@ -1,0 +1,244 @@
+{
+  "key": "frappe_helpdesk",
+  "name": "Frappe Helpdesk",
+  "category": "Customer Support",
+  "description": "Create, list and update tickets in your Frappe Helpdesk (open source help desk).",
+  "website": "https://frappe.io/helpdesk",
+  "docs_url": "https://docs.frappe.io/framework/user/en/api/rest",
+  "base_url": "{{ credentials.site_url }}/api/resource",
+  "headers": {
+    "Accept": "application/json"
+  },
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "Authorization",
+    "prefix": "token ",
+    "fields": [
+      {
+        "key": "site_url",
+        "label": "Helpdesk address",
+        "type": "string",
+        "required": true,
+        "placeholder": "https://help.example.com",
+        "help": "The address of your Frappe site, without a trailing slash."
+      },
+      {
+        "key": "api_key",
+        "label": "API key and secret",
+        "type": "password",
+        "required": true,
+        "help": "In Frappe open your user > API Access > Generate Keys. Type the key, a colon, then the secret: KEY:SECRET."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "create_ticket",
+      "name": "Create ticket",
+      "description": "Creates a new ticket.",
+      "method": "POST",
+      "endpoint": "/HD%20Ticket",
+      "body": {
+        "subject": "{{ inputs.subject }}",
+        "description": "{{ inputs.description }}",
+        "raised_by": "{{ inputs.raised_by }}",
+        "priority": "{{ inputs.priority }}"
+      },
+      "output_fields": {
+        "name": "data.name",
+        "subject": "data.subject",
+        "status": "data.status"
+      },
+      "inputs": [
+        {
+          "key": "subject",
+          "label": "Subject",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "description",
+          "label": "Description",
+          "type": "text"
+        },
+        {
+          "key": "raised_by",
+          "label": "Customer email",
+          "type": "string"
+        },
+        {
+          "key": "priority",
+          "label": "Priority",
+          "type": "select",
+          "default": "Medium",
+          "options": [
+            {
+              "value": "Low",
+              "label": "Low"
+            },
+            {
+              "value": "Medium",
+              "label": "Medium"
+            },
+            {
+              "value": "High",
+              "label": "High"
+            },
+            {
+              "value": "Urgent",
+              "label": "Urgent"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "list_tickets",
+      "name": "List tickets",
+      "description": "Lists tickets, newest first.",
+      "method": "GET",
+      "endpoint": "/HD%20Ticket",
+      "query": {
+        "fields": "[\"name\",\"subject\",\"status\",\"priority\",\"raised_by\",\"creation\"]",
+        "filters": "{{ inputs.filters }}",
+        "limit_page_length": "{{ inputs.limit }}",
+        "order_by": "creation desc"
+      },
+      "output_fields": {
+        "tickets": "data",
+        "first_name": "data.0.name",
+        "first_subject": "data.0.subject"
+      },
+      "inputs": [
+        {
+          "key": "limit",
+          "label": "How many",
+          "type": "number",
+          "default": 20
+        },
+        {
+          "key": "filters",
+          "label": "Filters (JSON)",
+          "type": "json",
+          "help": "Optional, e.g. [[\"status\",\"=\",\"Open\"]]"
+        }
+      ]
+    },
+    {
+      "key": "get_ticket",
+      "name": "Get ticket",
+      "description": "Gets one ticket by its number.",
+      "method": "GET",
+      "endpoint": "/HD%20Ticket/{{ inputs.name }}",
+      "output_fields": {
+        "subject": "data.subject",
+        "status": "data.status",
+        "priority": "data.priority",
+        "raised_by": "data.raised_by"
+      },
+      "inputs": [
+        {
+          "key": "name",
+          "label": "Ticket number",
+          "type": "string",
+          "required": true,
+          "help": "The ticket ID, e.g. 12."
+        }
+      ]
+    },
+    {
+      "key": "update_ticket",
+      "name": "Update ticket",
+      "description": "Changes the status or priority of a ticket.",
+      "method": "PUT",
+      "endpoint": "/HD%20Ticket/{{ inputs.name }}",
+      "body": {
+        "status": "{{ inputs.status }}",
+        "priority": "{{ inputs.priority }}"
+      },
+      "output_fields": {
+        "name": "data.name",
+        "status": "data.status"
+      },
+      "inputs": [
+        {
+          "key": "name",
+          "label": "Ticket number",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "options": [
+            {
+              "value": "Open",
+              "label": "Open"
+            },
+            {
+              "value": "Replied",
+              "label": "Replied"
+            },
+            {
+              "value": "Resolved",
+              "label": "Resolved"
+            },
+            {
+              "value": "Closed",
+              "label": "Closed"
+            }
+          ]
+        },
+        {
+          "key": "priority",
+          "label": "Priority",
+          "type": "select",
+          "options": [
+            {
+              "value": "Low",
+              "label": "Low"
+            },
+            {
+              "value": "Medium",
+              "label": "Medium"
+            },
+            {
+              "value": "High",
+              "label": "High"
+            },
+            {
+              "value": "Urgent",
+              "label": "Urgent"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_ticket",
+      "name": "New ticket",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/HD%20Ticket",
+      "query": {
+        "fields": "[\"name\",\"subject\",\"status\",\"priority\",\"raised_by\",\"creation\"]",
+        "order_by": "creation desc",
+        "limit_page_length": 25
+      },
+      "items_path": "data",
+      "id_field": "name",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

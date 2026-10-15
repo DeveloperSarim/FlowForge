@@ -1,0 +1,179 @@
+{
+  "key": "upcloud",
+  "name": "UpCloud",
+  "category": "Developer Tools",
+  "description": "List, start, stop and restart UpCloud cloud servers.",
+  "brand": "upcloud",
+  "website": "https://upcloud.com",
+  "docs_url": "https://developers.upcloud.com/1.3/",
+  "base_url": "https://api.upcloud.com/1.3",
+  "auth": {
+    "type": "basic",
+    "fields": [
+      {
+        "key": "username",
+        "label": "API username",
+        "type": "string",
+        "required": true,
+        "help": "UpCloud Control Panel → People → create a sub-account with API access allowed."
+      },
+      {
+        "key": "password",
+        "label": "Password",
+        "type": "password",
+        "required": true
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "get_account",
+      "name": "Get account",
+      "description": "Get your remaining credits.",
+      "method": "GET",
+      "endpoint": "/account",
+      "output_fields": {
+        "credits": "account.credits",
+        "username": "account.username"
+      },
+      "inputs": []
+    },
+    {
+      "key": "list_servers",
+      "name": "List servers",
+      "description": "List all servers.",
+      "method": "GET",
+      "endpoint": "/server",
+      "output_fields": {
+        "servers": "servers.server"
+      },
+      "inputs": []
+    },
+    {
+      "key": "get_server",
+      "name": "Get server",
+      "description": "Get a server's state and details.",
+      "method": "GET",
+      "endpoint": "/server/{{ inputs.uuid }}",
+      "output_fields": {
+        "hostname": "server.hostname",
+        "state": "server.state",
+        "title": "server.title"
+      },
+      "inputs": [
+        {
+          "key": "uuid",
+          "label": "Server UUID",
+          "type": "string",
+          "required": true,
+          "help": "Use List servers."
+        }
+      ]
+    },
+    {
+      "key": "start_server",
+      "name": "Start server",
+      "description": "Start a stopped server.",
+      "method": "POST",
+      "endpoint": "/server/{{ inputs.uuid }}/start",
+      "inputs": [
+        {
+          "key": "uuid",
+          "label": "Server UUID",
+          "type": "string",
+          "required": true,
+          "help": "Use List servers."
+        }
+      ]
+    },
+    {
+      "key": "stop_server",
+      "name": "Stop server",
+      "description": "Stop a running server.",
+      "method": "POST",
+      "endpoint": "/server/{{ inputs.uuid }}/stop",
+      "body": {
+        "stop_server": {
+          "stop_type": "{{ inputs.stop_type }}",
+          "timeout": "{{ inputs.timeout }}"
+        }
+      },
+      "inputs": [
+        {
+          "key": "uuid",
+          "label": "Server UUID",
+          "type": "string",
+          "required": true,
+          "help": "Use List servers."
+        },
+        {
+          "key": "stop_type",
+          "label": "Stop type",
+          "type": "select",
+          "default": "soft",
+          "options": [
+            {
+              "value": "soft",
+              "label": "Soft (graceful)"
+            },
+            {
+              "value": "hard",
+              "label": "Hard"
+            }
+          ]
+        },
+        {
+          "key": "timeout",
+          "label": "Timeout (seconds)",
+          "type": "number",
+          "default": 60
+        }
+      ]
+    },
+    {
+      "key": "restart_server",
+      "name": "Restart server",
+      "description": "Restart a running server.",
+      "method": "POST",
+      "endpoint": "/server/{{ inputs.uuid }}/restart",
+      "body": {
+        "restart_server": {
+          "stop_type": "{{ inputs.stop_type }}",
+          "timeout": "{{ inputs.timeout }}",
+          "timeout_action": "ignore"
+        }
+      },
+      "inputs": [
+        {
+          "key": "uuid",
+          "label": "Server UUID",
+          "type": "string",
+          "required": true,
+          "help": "Use List servers."
+        },
+        {
+          "key": "stop_type",
+          "label": "Stop type",
+          "type": "select",
+          "default": "soft",
+          "options": [
+            {
+              "value": "soft",
+              "label": "Soft (graceful)"
+            },
+            {
+              "value": "hard",
+              "label": "Hard"
+            }
+          ]
+        },
+        {
+          "key": "timeout",
+          "label": "Timeout (seconds)",
+          "type": "number",
+          "default": 60
+        }
+      ]
+    }
+  ]
+}

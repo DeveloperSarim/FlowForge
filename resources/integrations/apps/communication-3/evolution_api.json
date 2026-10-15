@@ -1,0 +1,252 @@
+{
+  "key": "evolution_api",
+  "name": "Evolution API",
+  "category": "Communication",
+  "description": "Send WhatsApp texts and media through your self-hosted Evolution API server.",
+  "website": "https://evolution-api.com",
+  "docs_url": "https://doc.evolution-api.com/",
+  "base_url": "{{ credentials.base_url }}",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "apikey",
+    "fields": [
+      {
+        "key": "base_url",
+        "label": "Server address",
+        "type": "string",
+        "required": true,
+        "placeholder": "https://evo.example.com",
+        "help": "Where your Evolution API runs. No trailing slash."
+      },
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "The AUTHENTICATION_API_KEY from your server's .env file, or the instance's own token."
+      },
+      {
+        "key": "instance_name",
+        "label": "Instance name",
+        "type": "string",
+        "required": true,
+        "placeholder": "my-whatsapp",
+        "help": "The name you gave the WhatsApp instance in Evolution API."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "send_text",
+      "name": "Send WhatsApp text",
+      "method": "POST",
+      "endpoint": "/message/sendText/{{ credentials.instance_name }}",
+      "body": {
+        "number": "{{ inputs.number }}",
+        "text": "{{ inputs.text }}",
+        "delay": "{{ inputs.delay }}",
+        "linkPreview": "{{ inputs.linkPreview }}"
+      },
+      "output_fields": {
+        "message_id": "key.id",
+        "remote_jid": "key.remoteJid",
+        "status": "status"
+      },
+      "inputs": [
+        {
+          "key": "number",
+          "label": "Phone number",
+          "type": "string",
+          "required": true,
+          "placeholder": "923001234567",
+          "help": "Country code + number, digits only."
+        },
+        {
+          "key": "text",
+          "label": "Message",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "delay",
+          "label": "Typing delay (ms)",
+          "type": "number",
+          "help": "Shows 'typing…' for this long before sending."
+        },
+        {
+          "key": "linkPreview",
+          "label": "Show link preview",
+          "type": "boolean",
+          "default": true
+        }
+      ]
+    },
+    {
+      "key": "send_media",
+      "name": "Send image, video or document",
+      "method": "POST",
+      "endpoint": "/message/sendMedia/{{ credentials.instance_name }}",
+      "body": {
+        "number": "{{ inputs.number }}",
+        "mediatype": "{{ inputs.mediatype }}",
+        "media": "{{ inputs.media }}",
+        "caption": "{{ inputs.caption }}",
+        "fileName": "{{ inputs.fileName }}",
+        "mimetype": "{{ inputs.mimetype }}"
+      },
+      "output_fields": {
+        "message_id": "key.id",
+        "remote_jid": "key.remoteJid",
+        "status": "status"
+      },
+      "inputs": [
+        {
+          "key": "number",
+          "label": "Phone number",
+          "type": "string",
+          "required": true,
+          "placeholder": "923001234567",
+          "help": "Country code + number, digits only."
+        },
+        {
+          "key": "mediatype",
+          "label": "Type",
+          "type": "select",
+          "required": true,
+          "default": "image",
+          "options": [
+            {
+              "value": "image",
+              "label": "Image"
+            },
+            {
+              "value": "video",
+              "label": "Video"
+            },
+            {
+              "value": "audio",
+              "label": "Audio"
+            },
+            {
+              "value": "document",
+              "label": "Document"
+            }
+          ]
+        },
+        {
+          "key": "media",
+          "label": "File URL",
+          "type": "string",
+          "required": true,
+          "help": "Public link to the file (or base64 data)."
+        },
+        {
+          "key": "caption",
+          "label": "Caption",
+          "type": "text"
+        },
+        {
+          "key": "fileName",
+          "label": "File name",
+          "type": "string",
+          "placeholder": "invoice.pdf",
+          "help": "Needed for documents."
+        },
+        {
+          "key": "mimetype",
+          "label": "MIME type",
+          "type": "string",
+          "placeholder": "application/pdf"
+        }
+      ]
+    },
+    {
+      "key": "check_numbers",
+      "name": "Check WhatsApp numbers",
+      "description": "Tells you which numbers have WhatsApp.",
+      "method": "POST",
+      "endpoint": "/chat/whatsappNumbers/{{ credentials.instance_name }}",
+      "body": {
+        "numbers": "{{ inputs.numbers }}"
+      },
+      "output_fields": {
+        "exists": "0.exists",
+        "jid": "0.jid"
+      },
+      "inputs": [
+        {
+          "key": "numbers",
+          "label": "Phone numbers",
+          "type": "list",
+          "required": true,
+          "placeholder": "923001234567"
+        }
+      ]
+    },
+    {
+      "key": "list_instances",
+      "name": "List instances",
+      "method": "GET",
+      "endpoint": "/instance/fetchInstances",
+      "output_fields": {
+        "names": "*.name",
+        "statuses": "*.connectionStatus"
+      },
+      "inputs": []
+    },
+    {
+      "key": "connection_state",
+      "name": "Get connection state",
+      "method": "GET",
+      "endpoint": "/instance/connectionState/{{ credentials.instance_name }}",
+      "inputs": []
+    },
+    {
+      "key": "set_webhook",
+      "name": "Set webhook",
+      "method": "POST",
+      "endpoint": "/webhook/set/{{ credentials.instance_name }}",
+      "body": {
+        "webhook": {
+          "enabled": true,
+          "url": "{{ inputs.url }}",
+          "byEvents": false,
+          "base64": false,
+          "events": "{{ inputs.events }}"
+        }
+      },
+      "inputs": [
+        {
+          "key": "url",
+          "label": "Webhook URL",
+          "type": "string",
+          "required": true,
+          "help": "Paste the URL of a FlowForge 'WhatsApp event' trigger."
+        },
+        {
+          "key": "events",
+          "label": "Events",
+          "type": "list",
+          "required": true,
+          "help": "e.g. MESSAGES_UPSERT for new messages, CONNECTION_UPDATE for disconnects."
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "WhatsApp event",
+      "type": "webhook",
+      "description": "New messages, status updates and connection changes. Register with 'Set webhook'.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

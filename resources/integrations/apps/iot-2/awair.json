@@ -1,0 +1,108 @@
+{
+  "key": "awair",
+  "name": "Awair",
+  "category": "IoT & Smart Home",
+  "description": "Indoor air quality: read Awair monitor scores, CO2, temperature and humidity.",
+  "website": "https://www.getawair.com",
+  "docs_url": "https://developer.getawair.com/onboard/welcome",
+  "base_url": "https://developer-apis.awair.is/v1",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "Access token",
+        "type": "password",
+        "required": true,
+        "help": "Request one at developer.getawair.com (Get access token), then copy it."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_devices",
+      "name": "List devices",
+      "description": "Get your Awair monitors.",
+      "method": "GET",
+      "endpoint": "/users/self/devices",
+      "output_fields": {
+        "devices": "devices",
+        "ids": "devices.*.deviceId",
+        "types": "devices.*.deviceType"
+      },
+      "inputs": []
+    },
+    {
+      "key": "latest",
+      "name": "Latest air data",
+      "description": "Latest readings and score for a monitor.",
+      "method": "GET",
+      "endpoint": "/users/self/devices/{{ inputs.device_type }}/{{ inputs.device_id }}/air-data/latest",
+      "output_fields": {
+        "score": "data.0.score",
+        "sensors": "data.0.sensors"
+      },
+      "inputs": [
+        {
+          "key": "device_type",
+          "label": "Device type",
+          "type": "string",
+          "required": true,
+          "help": "deviceType from List devices, e.g. awair-r2."
+        },
+        {
+          "key": "device_id",
+          "label": "Device ID",
+          "type": "string",
+          "required": true,
+          "help": "deviceId from List devices."
+        }
+      ]
+    },
+    {
+      "key": "averages",
+      "name": "15-minute averages",
+      "description": "Averaged readings over a time range.",
+      "method": "GET",
+      "endpoint": "/users/self/devices/{{ inputs.device_type }}/{{ inputs.device_id }}/air-data/15-min-avg",
+      "query": {
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "data": "data"
+      },
+      "inputs": [
+        {
+          "key": "device_type",
+          "label": "Device type",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "device_id",
+          "label": "Device ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "limit",
+          "label": "Entries",
+          "type": "number",
+          "default": 12
+        }
+      ]
+    },
+    {
+      "key": "get_user",
+      "name": "Get your account",
+      "description": "Your Awair account info and usage.",
+      "method": "GET",
+      "endpoint": "/users/self",
+      "output_fields": {
+        "id": "id",
+        "email": "email"
+      },
+      "inputs": []
+    }
+  ]
+}

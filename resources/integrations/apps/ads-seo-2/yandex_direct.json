@@ -1,0 +1,219 @@
+{
+  "key": "yandex_direct",
+  "name": "Yandex Direct",
+  "category": "Ads & SEO",
+  "description": "Yandex search and display ads: list campaigns, ad groups and keywords; pause or resume.",
+  "website": "https://direct.yandex.com",
+  "docs_url": "https://yandex.com/dev/direct/doc/en/",
+  "base_url": "https://api.direct.yandex.com/json/v5",
+  "headers": {
+    "Accept-Language": "en"
+  },
+  "auth": [
+    {
+      "type": "oauth2",
+      "authorize_url": "https://oauth.yandex.com/authorize",
+      "token_url": "https://oauth.yandex.com/token",
+      "scopes": [
+        "direct:api"
+      ],
+      "fields": [
+        {
+          "key": "client_id",
+          "label": "Client ID",
+          "type": "string",
+          "required": true,
+          "help": "Create an app at oauth.yandex.com with the Yandex Direct API permission, then request API access in Direct → Tools → API."
+        },
+        {
+          "key": "client_secret",
+          "label": "Client secret",
+          "type": "password",
+          "required": true
+        }
+      ]
+    },
+    {
+      "type": "bearer",
+      "fields": [
+        {
+          "key": "token",
+          "label": "OAuth token",
+          "type": "password",
+          "required": true,
+          "help": "A Yandex OAuth token with Yandex Direct API access."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_campaigns",
+      "name": "List campaigns",
+      "description": "Your campaigns with their state and status.",
+      "method": "POST",
+      "endpoint": "/campaigns",
+      "error_path": "error.error_detail",
+      "body": {
+        "method": "get",
+        "params": {
+          "SelectionCriteria": "{{ empty_object }}",
+          "FieldNames": [
+            "Id",
+            "Name",
+            "Type",
+            "State",
+            "Status",
+            "StartDate",
+            "DailyBudget"
+          ]
+        }
+      },
+      "output_fields": {
+        "campaigns": "result.Campaigns",
+        "ids": "result.Campaigns.*.Id",
+        "names": "result.Campaigns.*.Name",
+        "states": "result.Campaigns.*.State"
+      },
+      "inputs": []
+    },
+    {
+      "key": "suspend_campaign",
+      "name": "Pause campaign",
+      "description": "Stop a campaign's ads from showing.",
+      "method": "POST",
+      "endpoint": "/campaigns",
+      "error_path": "error.error_detail",
+      "body": {
+        "method": "suspend",
+        "params": {
+          "SelectionCriteria": {
+            "Ids": [
+              "{{ inputs.campaign_id }}"
+            ]
+          }
+        }
+      },
+      "output_fields": {
+        "result": "result.SuspendResults.0",
+        "errors": "result.SuspendResults.0.Errors"
+      },
+      "inputs": [
+        {
+          "key": "campaign_id",
+          "label": "Campaign ID",
+          "type": "number",
+          "required": true,
+          "help": "Run \"List campaigns\" to see the IDs."
+        }
+      ]
+    },
+    {
+      "key": "resume_campaign",
+      "name": "Resume campaign",
+      "description": "Start showing a paused campaign's ads again.",
+      "method": "POST",
+      "endpoint": "/campaigns",
+      "error_path": "error.error_detail",
+      "body": {
+        "method": "resume",
+        "params": {
+          "SelectionCriteria": {
+            "Ids": [
+              "{{ inputs.campaign_id }}"
+            ]
+          }
+        }
+      },
+      "output_fields": {
+        "result": "result.ResumeResults.0",
+        "errors": "result.ResumeResults.0.Errors"
+      },
+      "inputs": [
+        {
+          "key": "campaign_id",
+          "label": "Campaign ID",
+          "type": "number",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_ad_groups",
+      "name": "List ad groups",
+      "description": "Ad groups of a campaign.",
+      "method": "POST",
+      "endpoint": "/adgroups",
+      "error_path": "error.error_detail",
+      "body": {
+        "method": "get",
+        "params": {
+          "SelectionCriteria": {
+            "CampaignIds": [
+              "{{ inputs.campaign_id }}"
+            ]
+          },
+          "FieldNames": [
+            "Id",
+            "Name",
+            "CampaignId",
+            "Status",
+            "Type"
+          ]
+        }
+      },
+      "output_fields": {
+        "ad_groups": "result.AdGroups",
+        "ids": "result.AdGroups.*.Id",
+        "names": "result.AdGroups.*.Name"
+      },
+      "inputs": [
+        {
+          "key": "campaign_id",
+          "label": "Campaign ID",
+          "type": "number",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_keywords",
+      "name": "List keywords",
+      "description": "Keywords of a campaign with their bids and status.",
+      "method": "POST",
+      "endpoint": "/keywords",
+      "error_path": "error.error_detail",
+      "body": {
+        "method": "get",
+        "params": {
+          "SelectionCriteria": {
+            "CampaignIds": [
+              "{{ inputs.campaign_id }}"
+            ]
+          },
+          "FieldNames": [
+            "Id",
+            "Keyword",
+            "AdGroupId",
+            "Bid",
+            "State",
+            "Status"
+          ]
+        }
+      },
+      "output_fields": {
+        "keywords": "result.Keywords",
+        "texts": "result.Keywords.*.Keyword"
+      },
+      "inputs": [
+        {
+          "key": "campaign_id",
+          "label": "Campaign ID",
+          "type": "number",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": []
+}

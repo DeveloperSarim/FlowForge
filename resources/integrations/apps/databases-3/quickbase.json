@@ -1,0 +1,184 @@
+{
+  "key": "quickbase",
+  "name": "Quickbase",
+  "category": "Databases",
+  "description": "Query, add, update and delete records in Quickbase apps and tables.",
+  "website": "https://www.quickbase.com",
+  "docs_url": "https://developer.quickbase.com/",
+  "base_url": "https://api.quickbase.com/v1",
+  "headers": {
+    "QB-Realm-Hostname": "{{ credentials.realm }}"
+  },
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "Authorization",
+    "prefix": "QB-USER-TOKEN ",
+    "fields": [
+      {
+        "key": "realm",
+        "label": "Realm hostname",
+        "type": "string",
+        "required": true,
+        "help": "The address you sign in at, without https://.",
+        "placeholder": "mycompany.quickbase.com"
+      },
+      {
+        "key": "api_key",
+        "label": "User token",
+        "type": "password",
+        "required": true,
+        "help": "In Quickbase click your name → My preferences → Manage user tokens → New user token, and copy it."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "query_records",
+      "name": "Query records",
+      "description": "Get records from a table, optionally filtered.",
+      "method": "POST",
+      "endpoint": "/records/query",
+      "body": {
+        "from": "{{ inputs.table_id }}",
+        "where": "{{ inputs.where }}",
+        "options": {
+          "top": "{{ inputs.top }}"
+        }
+      },
+      "output_fields": {
+        "records": "data",
+        "count": "metadata.numRecords",
+        "first": "data.0"
+      },
+      "inputs": [
+        {
+          "key": "table_id",
+          "label": "Table ID",
+          "type": "string",
+          "required": true,
+          "help": "The table's ID is the short code in its address, e.g. bq3x4abc5 in /db/bq3x4abc5.",
+          "placeholder": "bq3x4abc5"
+        },
+        {
+          "key": "where",
+          "label": "Filter",
+          "type": "string",
+          "help": "Quickbase query, e.g. {6.EX.'Open'} (field ID 6 equals Open). Leave blank for all records."
+        },
+        {
+          "key": "top",
+          "label": "Max records",
+          "type": "number",
+          "default": 100
+        }
+      ]
+    },
+    {
+      "key": "upsert_records",
+      "name": "Add or update records",
+      "description": "Insert records, or update them when a key field matches.",
+      "method": "POST",
+      "endpoint": "/records",
+      "body": {
+        "to": "{{ inputs.table_id }}",
+        "data": "{{ inputs.data }}"
+      },
+      "output_fields": {
+        "created_ids": "metadata.createdRecordIds",
+        "updated_ids": "metadata.updatedRecordIds"
+      },
+      "inputs": [
+        {
+          "key": "table_id",
+          "label": "Table ID",
+          "type": "string",
+          "required": true,
+          "help": "The table's ID is the short code in its address, e.g. bq3x4abc5 in /db/bq3x4abc5.",
+          "placeholder": "bq3x4abc5"
+        },
+        {
+          "key": "data",
+          "label": "Records (JSON list)",
+          "type": "json",
+          "required": true,
+          "help": "Each record maps field IDs to values, e.g. [{\"6\": {\"value\": \"Hello\"}}]. Include field 3 (Record ID) to update."
+        }
+      ]
+    },
+    {
+      "key": "delete_records",
+      "name": "Delete records",
+      "description": "Delete all records in a table that match a filter.",
+      "method": "DELETE",
+      "endpoint": "/records",
+      "body": {
+        "from": "{{ inputs.table_id }}",
+        "where": "{{ inputs.where }}"
+      },
+      "output_fields": {
+        "deleted": "numberDeleted"
+      },
+      "inputs": [
+        {
+          "key": "table_id",
+          "label": "Table ID",
+          "type": "string",
+          "required": true,
+          "help": "The table's ID is the short code in its address, e.g. bq3x4abc5 in /db/bq3x4abc5.",
+          "placeholder": "bq3x4abc5"
+        },
+        {
+          "key": "where",
+          "label": "Filter",
+          "type": "string",
+          "required": true,
+          "help": "Quickbase query, e.g. {3.EX.123} deletes record 123."
+        }
+      ]
+    },
+    {
+      "key": "list_fields",
+      "name": "List fields",
+      "description": "See the field IDs and names of a table.",
+      "method": "GET",
+      "endpoint": "/fields",
+      "query": {
+        "tableId": "{{ inputs.table_id }}"
+      },
+      "output_fields": {
+        "first_field": "0.label"
+      },
+      "inputs": [
+        {
+          "key": "table_id",
+          "label": "Table ID",
+          "type": "string",
+          "required": true,
+          "help": "The table's ID is the short code in its address, e.g. bq3x4abc5 in /db/bq3x4abc5.",
+          "placeholder": "bq3x4abc5"
+        }
+      ]
+    },
+    {
+      "key": "get_app",
+      "name": "Get app",
+      "description": "Read an app's name and details.",
+      "method": "GET",
+      "endpoint": "/apps/{{ inputs.app_id }}",
+      "output_fields": {
+        "name": "name",
+        "id": "id"
+      },
+      "inputs": [
+        {
+          "key": "app_id",
+          "label": "App ID",
+          "type": "string",
+          "required": true,
+          "help": "The code in the app's address, e.g. bq3x4abc5."
+        }
+      ]
+    }
+  ]
+}

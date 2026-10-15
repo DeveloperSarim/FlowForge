@@ -1,0 +1,376 @@
+{
+  "key": "cs_cart",
+  "name": "CS-Cart",
+  "category": "E-commerce",
+  "description": "Self-hosted store and marketplace: orders, statuses, products and customers.",
+  "website": "https://www.cs-cart.com",
+  "docs_url": "https://docs.cs-cart.com/latest/developer_guide/api/index.html",
+  "base_url": "{{ credentials.store_url }}/api",
+  "auth": {
+    "type": "basic",
+    "fields": [
+      {
+        "key": "store_url",
+        "label": "Store URL",
+        "type": "string",
+        "required": true,
+        "placeholder": "https://shop.example.com",
+        "help": "Your store's address, without a trailing slash."
+      },
+      {
+        "key": "username",
+        "label": "Admin email",
+        "type": "string",
+        "required": true,
+        "help": "The email of an administrator with API access."
+      },
+      {
+        "key": "password",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "Administration → Customers → Administrators → edit the admin → API access → Yes, allow; copy the key."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_orders",
+      "name": "List orders",
+      "description": "Newest orders first.",
+      "method": "GET",
+      "endpoint": "/orders",
+      "query": {
+        "status": "{{ inputs.status }}",
+        "sort_by": "date",
+        "sort_order": "desc",
+        "items_per_page": "{{ inputs.items_per_page }}"
+      },
+      "output_fields": {
+        "orders": "orders"
+      },
+      "inputs": [
+        {
+          "key": "status",
+          "label": "Status code",
+          "type": "string",
+          "placeholder": "O",
+          "help": "O open, P processed, C complete, F failed, D declined, I cancelled."
+        },
+        {
+          "key": "items_per_page",
+          "label": "How many",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    },
+    {
+      "key": "get_order",
+      "name": "Get order",
+      "description": "One order's details.",
+      "method": "GET",
+      "endpoint": "/orders/{{ inputs.order_id }}",
+      "output_fields": {
+        "status": "status",
+        "total": "total",
+        "email": "email",
+        "firstname": "firstname",
+        "lastname": "lastname"
+      },
+      "inputs": [
+        {
+          "key": "order_id",
+          "label": "Order ID",
+          "type": "number",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "update_order_status",
+      "name": "Update order status",
+      "description": "Change an order's status.",
+      "method": "PUT",
+      "endpoint": "/orders/{{ inputs.order_id }}",
+      "body": {
+        "status": "{{ inputs.status }}"
+      },
+      "output_fields": {
+        "order_id": "order_id"
+      },
+      "inputs": [
+        {
+          "key": "order_id",
+          "label": "Order ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "required": true,
+          "options": [
+            {
+              "value": "O",
+              "label": "Open"
+            },
+            {
+              "value": "P",
+              "label": "Processed"
+            },
+            {
+              "value": "C",
+              "label": "Complete"
+            },
+            {
+              "value": "F",
+              "label": "Failed"
+            },
+            {
+              "value": "D",
+              "label": "Declined"
+            },
+            {
+              "value": "B",
+              "label": "Backordered"
+            },
+            {
+              "value": "I",
+              "label": "Cancelled"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "list_products",
+      "name": "List products",
+      "description": "Search products by name.",
+      "method": "GET",
+      "endpoint": "/products",
+      "query": {
+        "q": "{{ inputs.q }}",
+        "pname": "Y",
+        "items_per_page": "{{ inputs.items_per_page }}"
+      },
+      "output_fields": {
+        "products": "products"
+      },
+      "inputs": [
+        {
+          "key": "q",
+          "label": "Search",
+          "type": "string"
+        },
+        {
+          "key": "items_per_page",
+          "label": "How many",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    },
+    {
+      "key": "create_product",
+      "name": "Create product",
+      "description": "Add a product.",
+      "method": "POST",
+      "endpoint": "/products",
+      "body": {
+        "product": "{{ inputs.name }}",
+        "category_ids": "{{ inputs.category_id }}",
+        "main_category": "{{ inputs.category_id }}",
+        "price": "{{ inputs.price }}",
+        "amount": "{{ inputs.amount }}",
+        "product_code": "{{ inputs.sku }}",
+        "full_description": "{{ inputs.description }}",
+        "status": "{{ inputs.status }}"
+      },
+      "output_fields": {
+        "product_id": "product_id"
+      },
+      "inputs": [
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "category_id",
+          "label": "Category ID",
+          "type": "number",
+          "required": true,
+          "help": "Products → Categories; the ID is in the category's URL."
+        },
+        {
+          "key": "price",
+          "label": "Price",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "amount",
+          "label": "Stock",
+          "type": "number"
+        },
+        {
+          "key": "sku",
+          "label": "Product code (SKU)",
+          "type": "string"
+        },
+        {
+          "key": "description",
+          "label": "Description",
+          "type": "text"
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "default": "A",
+          "options": [
+            {
+              "value": "A",
+              "label": "Active"
+            },
+            {
+              "value": "H",
+              "label": "Hidden"
+            },
+            {
+              "value": "D",
+              "label": "Disabled"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "update_product",
+      "name": "Update product",
+      "description": "Change price, stock or status.",
+      "method": "PUT",
+      "endpoint": "/products/{{ inputs.product_id }}",
+      "body": {
+        "price": "{{ inputs.price }}",
+        "amount": "{{ inputs.amount }}",
+        "status": "{{ inputs.status }}"
+      },
+      "output_fields": {
+        "product_id": "product_id"
+      },
+      "inputs": [
+        {
+          "key": "product_id",
+          "label": "Product ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "price",
+          "label": "Price",
+          "type": "number"
+        },
+        {
+          "key": "amount",
+          "label": "Stock",
+          "type": "number"
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "options": [
+            {
+              "value": "A",
+              "label": "Active"
+            },
+            {
+              "value": "H",
+              "label": "Hidden"
+            },
+            {
+              "value": "D",
+              "label": "Disabled"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "create_customer",
+      "name": "Create customer",
+      "description": "Add a customer account.",
+      "method": "POST",
+      "endpoint": "/users",
+      "body": {
+        "email": "{{ inputs.email }}",
+        "user_type": "C",
+        "status": "A",
+        "firstname": "{{ inputs.firstname }}",
+        "lastname": "{{ inputs.lastname }}",
+        "phone": "{{ inputs.phone }}",
+        "company_id": "{{ inputs.company_id }}"
+      },
+      "output_fields": {
+        "user_id": "user_id"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "firstname",
+          "label": "First name",
+          "type": "string"
+        },
+        {
+          "key": "lastname",
+          "label": "Last name",
+          "type": "string"
+        },
+        {
+          "key": "phone",
+          "label": "Phone",
+          "type": "string"
+        },
+        {
+          "key": "company_id",
+          "label": "Storefront / vendor ID",
+          "type": "number",
+          "default": 1
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_order",
+      "name": "New order",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/orders",
+      "query": {
+        "sort_by": "date",
+        "sort_order": "desc",
+        "items_per_page": 50
+      },
+      "items_path": "orders",
+      "id_field": "order_id",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

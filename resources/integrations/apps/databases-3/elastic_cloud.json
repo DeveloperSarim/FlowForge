@@ -1,0 +1,104 @@
+{
+  "key": "elastic_cloud",
+  "name": "Elastic Cloud",
+  "category": "Databases",
+  "description": "List, inspect and stop Elasticsearch deployments in Elastic Cloud.",
+  "website": "https://www.elastic.co/cloud",
+  "docs_url": "https://www.elastic.co/docs/api/doc/cloud/",
+  "base_url": "https://api.elastic-cloud.com/api/v1",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "Authorization",
+    "prefix": "ApiKey ",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "Cloud API key",
+        "type": "password",
+        "required": true,
+        "help": "In cloud.elastic.co open your profile → Organization → API keys → Create API key."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_deployments",
+      "name": "List deployments",
+      "description": "List all deployments.",
+      "method": "GET",
+      "endpoint": "/deployments",
+      "output_fields": {
+        "deployments": "deployments",
+        "first_id": "deployments.0.id",
+        "first_name": "deployments.0.name"
+      },
+      "inputs": []
+    },
+    {
+      "key": "get_deployment",
+      "name": "Get deployment",
+      "description": "Read a deployment's name, health and resources.",
+      "method": "GET",
+      "endpoint": "/deployments/{{ inputs.deployment_id }}",
+      "output_fields": {
+        "name": "name",
+        "healthy": "healthy"
+      },
+      "inputs": [
+        {
+          "key": "deployment_id",
+          "label": "Deployment ID",
+          "type": "string",
+          "required": true,
+          "help": "Use 'List deployments' to find it."
+        }
+      ]
+    },
+    {
+      "key": "search_deployments",
+      "name": "Search deployments",
+      "description": "Find deployments by name.",
+      "method": "POST",
+      "endpoint": "/deployments/_search",
+      "body": {
+        "query": {
+          "match": {
+            "name": "{{ inputs.name }}"
+          }
+        }
+      },
+      "output_fields": {
+        "deployments": "deployments",
+        "first_id": "deployments.0.id"
+      },
+      "inputs": [
+        {
+          "key": "name",
+          "label": "Name contains",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "shutdown_deployment",
+      "name": "Shut down deployment",
+      "description": "Stop a deployment (data is kept for restore).",
+      "method": "POST",
+      "endpoint": "/deployments/{{ inputs.deployment_id }}/_shutdown",
+      "output_fields": {
+        "id": "id"
+      },
+      "inputs": [
+        {
+          "key": "deployment_id",
+          "label": "Deployment ID",
+          "type": "string",
+          "required": true,
+          "help": "Use 'List deployments' to find it."
+        }
+      ]
+    }
+  ]
+}

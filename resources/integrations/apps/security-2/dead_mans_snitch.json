@@ -1,0 +1,189 @@
+{
+  "key": "dead_mans_snitch",
+  "name": "Dead Man's Snitch",
+  "category": "Security & IT",
+  "description": "Create, pause and check Dead Man's Snitch monitors for cron jobs.",
+  "brand": "deadmanssnitch",
+  "website": "https://deadmanssnitch.com",
+  "docs_url": "https://deadmanssnitch.com/docs/api/v1",
+  "base_url": "https://api.deadmanssnitch.com/v1",
+  "auth": {
+    "type": "basic",
+    "fields": [
+      {
+        "key": "username",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "Dead Man's Snitch → Settings → API keys → create a key."
+      },
+      {
+        "key": "password",
+        "label": "Password",
+        "type": "password",
+        "default": "",
+        "help": "Leave empty."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_snitches",
+      "name": "List snitches",
+      "description": "List your snitches and their status.",
+      "method": "GET",
+      "endpoint": "/snitches",
+      "query": {
+        "tags": "{{ inputs.tags }}"
+      },
+      "inputs": [
+        {
+          "key": "tags",
+          "label": "Tags",
+          "type": "string",
+          "placeholder": "production"
+        }
+      ]
+    },
+    {
+      "key": "get_snitch",
+      "name": "Get snitch",
+      "description": "Get a snitch's status and last check-in.",
+      "method": "GET",
+      "endpoint": "/snitches/{{ inputs.token }}",
+      "output_fields": {
+        "name": "name",
+        "status": "status",
+        "checked_in_at": "checked_in_at",
+        "check_in_url": "check_in_url"
+      },
+      "inputs": [
+        {
+          "key": "token",
+          "label": "Snitch token",
+          "type": "string",
+          "required": true,
+          "help": "The token from List snitches (also the last part of the check-in URL)."
+        }
+      ]
+    },
+    {
+      "key": "create_snitch",
+      "name": "Create snitch",
+      "description": "Create a snitch and get its check-in URL.",
+      "method": "POST",
+      "endpoint": "/snitches",
+      "body": {
+        "name": "{{ inputs.name }}",
+        "interval": "{{ inputs.interval }}",
+        "alert_type": "{{ inputs.alert_type }}",
+        "notes": "{{ inputs.notes }}",
+        "tags": "{{ inputs.tags }}"
+      },
+      "output_fields": {
+        "token": "token",
+        "check_in_url": "check_in_url"
+      },
+      "inputs": [
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string",
+          "required": true,
+          "placeholder": "Nightly backup"
+        },
+        {
+          "key": "interval",
+          "label": "Expected every",
+          "type": "select",
+          "required": true,
+          "default": "daily",
+          "options": [
+            {
+              "value": "15_minute",
+              "label": "15 minutes"
+            },
+            {
+              "value": "30_minute",
+              "label": "30 minutes"
+            },
+            {
+              "value": "hourly",
+              "label": "Hour"
+            },
+            {
+              "value": "daily",
+              "label": "Day"
+            },
+            {
+              "value": "weekly",
+              "label": "Week"
+            },
+            {
+              "value": "monthly",
+              "label": "Month"
+            }
+          ]
+        },
+        {
+          "key": "alert_type",
+          "label": "Alert type",
+          "type": "select",
+          "default": "basic",
+          "options": [
+            {
+              "value": "basic",
+              "label": "Basic"
+            },
+            {
+              "value": "smart",
+              "label": "Smart"
+            }
+          ]
+        },
+        {
+          "key": "notes",
+          "label": "Notes",
+          "type": "text"
+        },
+        {
+          "key": "tags",
+          "label": "Tags",
+          "type": "list"
+        }
+      ]
+    },
+    {
+      "key": "pause_snitch",
+      "name": "Pause snitch",
+      "description": "Pause a snitch until its next check-in.",
+      "method": "PATCH",
+      "endpoint": "/snitches/{{ inputs.token }}/pause",
+      "inputs": [
+        {
+          "key": "token",
+          "label": "Snitch token",
+          "type": "string",
+          "required": true,
+          "help": "The token from List snitches (also the last part of the check-in URL)."
+        }
+      ]
+    },
+    {
+      "key": "delete_snitch",
+      "name": "Delete snitch",
+      "description": "Delete a snitch.",
+      "method": "DELETE",
+      "endpoint": "/snitches/{{ inputs.token }}",
+      "inputs": [
+        {
+          "key": "token",
+          "label": "Snitch token",
+          "type": "string",
+          "required": true,
+          "help": "The token from List snitches (also the last part of the check-in URL)."
+        }
+      ]
+    }
+  ]
+}

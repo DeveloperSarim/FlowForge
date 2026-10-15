@@ -1,0 +1,247 @@
+{
+  "key": "oxylabs",
+  "name": "Oxylabs Web Scraper API",
+  "category": "Ads & SEO",
+  "description": "Google and Bing results, Amazon products and any web page, scraped and parsed.",
+  "website": "https://oxylabs.io",
+  "docs_url": "https://developers.oxylabs.io/products/web-scraper-api",
+  "base_url": "https://realtime.oxylabs.io/v1",
+  "auth": {
+    "type": "basic",
+    "fields": [
+      {
+        "key": "username",
+        "label": "API username",
+        "type": "string",
+        "required": true,
+        "help": "Oxylabs dashboard → Web Scraper API → Users: the API user you created."
+      },
+      {
+        "key": "password",
+        "label": "API password",
+        "type": "password",
+        "required": true
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "google_search",
+      "name": "Google search",
+      "description": "Parsed Google results: organic listings, ads and more.",
+      "method": "POST",
+      "endpoint": "/queries",
+      "timeout": 120,
+      "body": {
+        "source": "google_search",
+        "query": "{{ inputs.query }}",
+        "geo_location": "{{ inputs.geo_location }}",
+        "domain": "{{ inputs.domain }}",
+        "locale": "{{ inputs.locale }}",
+        "pages": "{{ inputs.pages }}",
+        "parse": true
+      },
+      "output_fields": {
+        "organic": "results.0.content.results.organic",
+        "paid": "results.0.content.results.paid",
+        "first_url": "results.0.content.results.organic.0.url",
+        "first_title": "results.0.content.results.organic.0.title"
+      },
+      "inputs": [
+        {
+          "key": "query",
+          "label": "Search query",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "geo_location",
+          "label": "Location",
+          "type": "string",
+          "placeholder": "United States",
+          "help": "Country, state or city name, e.g. \"New York,New York,United States\"."
+        },
+        {
+          "key": "domain",
+          "label": "Google domain",
+          "type": "string",
+          "placeholder": "com",
+          "help": "e.g. com, co.uk, de."
+        },
+        {
+          "key": "locale",
+          "label": "Language",
+          "type": "string",
+          "placeholder": "en-us"
+        },
+        {
+          "key": "pages",
+          "label": "Pages",
+          "type": "number",
+          "default": 1
+        }
+      ]
+    },
+    {
+      "key": "bing_search",
+      "name": "Bing search",
+      "description": "Parsed Bing results.",
+      "method": "POST",
+      "endpoint": "/queries",
+      "timeout": 120,
+      "body": {
+        "source": "bing_search",
+        "query": "{{ inputs.query }}",
+        "geo_location": "{{ inputs.geo_location }}",
+        "parse": true
+      },
+      "output_fields": {
+        "organic": "results.0.content.results.organic",
+        "first_url": "results.0.content.results.organic.0.url"
+      },
+      "inputs": [
+        {
+          "key": "query",
+          "label": "Search query",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "geo_location",
+          "label": "Location",
+          "type": "string",
+          "placeholder": "United States"
+        }
+      ]
+    },
+    {
+      "key": "amazon_search",
+      "name": "Amazon search",
+      "description": "Parsed Amazon search results with prices and ratings.",
+      "method": "POST",
+      "endpoint": "/queries",
+      "timeout": 120,
+      "body": {
+        "source": "amazon_search",
+        "query": "{{ inputs.query }}",
+        "domain": "{{ inputs.domain }}",
+        "geo_location": "{{ inputs.geo_location }}",
+        "parse": true
+      },
+      "output_fields": {
+        "organic": "results.0.content.results.organic",
+        "paid": "results.0.content.results.paid"
+      },
+      "inputs": [
+        {
+          "key": "query",
+          "label": "Search query",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "domain",
+          "label": "Amazon domain",
+          "type": "string",
+          "default": "com",
+          "help": "e.g. com, co.uk, de."
+        },
+        {
+          "key": "geo_location",
+          "label": "Delivery ZIP / postcode",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "amazon_product",
+      "name": "Amazon product",
+      "description": "Title, price, rating and details of an Amazon product by ASIN.",
+      "method": "POST",
+      "endpoint": "/queries",
+      "timeout": 120,
+      "body": {
+        "source": "amazon_product",
+        "query": "{{ inputs.asin }}",
+        "domain": "{{ inputs.domain }}",
+        "geo_location": "{{ inputs.geo_location }}",
+        "parse": true
+      },
+      "output_fields": {
+        "product": "results.0.content",
+        "title": "results.0.content.title",
+        "price": "results.0.content.price",
+        "rating": "results.0.content.rating",
+        "currency": "results.0.content.currency"
+      },
+      "inputs": [
+        {
+          "key": "asin",
+          "label": "ASIN",
+          "type": "string",
+          "required": true,
+          "placeholder": "B07FZ8S74R"
+        },
+        {
+          "key": "domain",
+          "label": "Amazon domain",
+          "type": "string",
+          "default": "com"
+        },
+        {
+          "key": "geo_location",
+          "label": "Delivery ZIP / postcode",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "scrape_url",
+      "name": "Scrape any URL",
+      "description": "Fetch the HTML of any page through Oxylabs, optionally rendering JavaScript.",
+      "method": "POST",
+      "endpoint": "/queries",
+      "timeout": 120,
+      "body": {
+        "source": "universal",
+        "url": "{{ inputs.url }}",
+        "render": "{{ inputs.render }}",
+        "geo_location": "{{ inputs.geo_location }}"
+      },
+      "output_fields": {
+        "html": "results.0.content",
+        "status_code": "results.0.status_code"
+      },
+      "inputs": [
+        {
+          "key": "url",
+          "label": "URL",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "render",
+          "label": "Render JavaScript",
+          "type": "select",
+          "default": "",
+          "options": [
+            {
+              "value": "",
+              "label": "No"
+            },
+            {
+              "value": "html",
+              "label": "Yes"
+            }
+          ]
+        },
+        {
+          "key": "geo_location",
+          "label": "Country",
+          "type": "string"
+        }
+      ]
+    }
+  ],
+  "triggers": []
+}

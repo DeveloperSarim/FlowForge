@@ -1,0 +1,185 @@
+{
+  "key": "languagetool",
+  "name": "LanguageTool",
+  "category": "Utilities",
+  "description": "Check grammar, spelling and style in 30+ languages and manage your dictionary.",
+  "website": "https://languagetool.org",
+  "docs_url": "https://languagetool.org/http-api/",
+  "base_url": "https://api.languagetoolplus.com/v2",
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "key": "username",
+        "label": "Account email",
+        "type": "string",
+        "required": true,
+        "placeholder": "you@example.com",
+        "help": "The email you use to sign in to LanguageTool Premium."
+      },
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "languagetool.org → Account → Access tokens / API key → Generate."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "check_text",
+      "name": "Check text",
+      "description": "Find grammar, spelling and style problems with suggested fixes.",
+      "method": "POST",
+      "endpoint": "/check",
+      "body": {
+        "text": "{{ inputs.text }}",
+        "language": "{{ inputs.language }}",
+        "motherTongue": "{{ inputs.mother_tongue }}",
+        "level": "{{ inputs.level }}",
+        "disabledRules": "{{ inputs.disabled_rules }}",
+        "username": "{{ credentials.username }}",
+        "apiKey": "{{ credentials.api_key }}"
+      },
+      "body_format": "form",
+      "timeout": 60,
+      "output_fields": {
+        "matches": "matches",
+        "issues_found": "matches.*.message",
+        "detected_language": "language.detectedLanguage.name"
+      },
+      "inputs": [
+        {
+          "key": "text",
+          "label": "Text",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "language",
+          "label": "Language",
+          "type": "string",
+          "default": "auto",
+          "help": "auto, or a code like en-US, de-DE, fr."
+        },
+        {
+          "key": "mother_tongue",
+          "label": "Writer's native language",
+          "type": "string",
+          "placeholder": "ur",
+          "help": "Optional; finds false friends."
+        },
+        {
+          "key": "level",
+          "label": "Strictness",
+          "type": "select",
+          "default": "default",
+          "options": [
+            {
+              "value": "default",
+              "label": "Normal"
+            },
+            {
+              "value": "picky",
+              "label": "Picky (more style tips)"
+            }
+          ]
+        },
+        {
+          "key": "disabled_rules",
+          "label": "Rules to ignore",
+          "type": "string",
+          "placeholder": "WHITESPACE_RULE",
+          "help": "Comma-separated rule IDs."
+        }
+      ]
+    },
+    {
+      "key": "list_languages",
+      "name": "List languages",
+      "description": "Languages LanguageTool can check.",
+      "method": "GET",
+      "endpoint": "/languages",
+      "inputs": []
+    },
+    {
+      "key": "list_words",
+      "name": "List dictionary words",
+      "description": "Words in your personal dictionary.",
+      "method": "GET",
+      "endpoint": "/words",
+      "query": {
+        "limit": "{{ inputs.limit }}",
+        "offset": "{{ inputs.offset }}",
+        "username": "{{ credentials.username }}",
+        "apiKey": "{{ credentials.api_key }}"
+      },
+      "output_fields": {
+        "words": "words"
+      },
+      "inputs": [
+        {
+          "key": "limit",
+          "label": "How many",
+          "type": "number",
+          "default": 100
+        },
+        {
+          "key": "offset",
+          "label": "Skip",
+          "type": "number",
+          "default": 0
+        }
+      ]
+    },
+    {
+      "key": "add_word",
+      "name": "Add word to dictionary",
+      "description": "Stop flagging a word (e.g. your brand name) as a spelling mistake.",
+      "method": "POST",
+      "endpoint": "/words/add",
+      "body": {
+        "word": "{{ inputs.word }}",
+        "username": "{{ credentials.username }}",
+        "apiKey": "{{ credentials.api_key }}"
+      },
+      "body_format": "form",
+      "output_fields": {
+        "added": "added"
+      },
+      "inputs": [
+        {
+          "key": "word",
+          "label": "Word",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "delete_word",
+      "name": "Remove word from dictionary",
+      "description": "Remove a word from your personal dictionary.",
+      "method": "POST",
+      "endpoint": "/words/delete",
+      "body": {
+        "word": "{{ inputs.word }}",
+        "username": "{{ credentials.username }}",
+        "apiKey": "{{ credentials.api_key }}"
+      },
+      "body_format": "form",
+      "output_fields": {
+        "deleted": "deleted"
+      },
+      "inputs": [
+        {
+          "key": "word",
+          "label": "Word",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,154 @@
+{
+  "key": "seatgeek",
+  "name": "SeatGeek",
+  "category": "Events & Webinars",
+  "description": "Search live events, venues and performers on SeatGeek.",
+  "website": "https://seatgeek.com",
+  "docs_url": "https://platform.seatgeek.com/",
+  "base_url": "https://api.seatgeek.com/2",
+  "auth": {
+    "type": "api_key",
+    "in": "query",
+    "name": "client_id",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "Client ID",
+        "type": "password",
+        "required": true,
+        "help": "Register at seatgeek.com/account/develop and copy your Client ID."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "search_events",
+      "name": "Search events",
+      "description": "Find events by keyword, city or date.",
+      "method": "GET",
+      "endpoint": "/events",
+      "query": {
+        "q": "{{ inputs.q }}",
+        "venue.city": "{{ inputs.city }}",
+        "datetime_utc.gte": "{{ inputs.datetime_utc_gte }}",
+        "per_page": "{{ inputs.per_page }}"
+      },
+      "output_fields": {
+        "events": "events",
+        "titles": "events.*.title",
+        "ids": "events.*.id",
+        "urls": "events.*.url",
+        "total": "meta.total"
+      },
+      "inputs": [
+        {
+          "key": "q",
+          "label": "Search",
+          "type": "string"
+        },
+        {
+          "key": "city",
+          "label": "City",
+          "type": "string",
+          "help": "Use the venue.city filter."
+        },
+        {
+          "key": "datetime_utc_gte",
+          "label": "Starts after",
+          "type": "string",
+          "help": "ISO, e.g. 2025-06-01"
+        },
+        {
+          "key": "per_page",
+          "label": "Results",
+          "type": "number",
+          "default": 20
+        }
+      ]
+    },
+    {
+      "key": "get_event",
+      "name": "Get an event",
+      "description": "Get one event.",
+      "method": "GET",
+      "endpoint": "/events/{{ inputs.event_id }}",
+      "output_fields": {
+        "title": "title",
+        "url": "url",
+        "datetime": "datetime_local",
+        "venue": "venue.name"
+      },
+      "inputs": [
+        {
+          "key": "event_id",
+          "label": "Event ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "search_performers",
+      "name": "Search performers",
+      "description": "Find artists and teams.",
+      "method": "GET",
+      "endpoint": "/performers",
+      "query": {
+        "q": "{{ inputs.q }}",
+        "per_page": "{{ inputs.per_page }}"
+      },
+      "output_fields": {
+        "names": "performers.*.name",
+        "ids": "performers.*.id"
+      },
+      "inputs": [
+        {
+          "key": "q",
+          "label": "Search",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "per_page",
+          "label": "Results",
+          "type": "number",
+          "default": 20
+        }
+      ]
+    },
+    {
+      "key": "search_venues",
+      "name": "Search venues",
+      "description": "Find venues.",
+      "method": "GET",
+      "endpoint": "/venues",
+      "query": {
+        "q": "{{ inputs.q }}",
+        "city": "{{ inputs.city }}",
+        "per_page": "{{ inputs.per_page }}"
+      },
+      "output_fields": {
+        "names": "venues.*.name",
+        "ids": "venues.*.id"
+      },
+      "inputs": [
+        {
+          "key": "q",
+          "label": "Search",
+          "type": "string"
+        },
+        {
+          "key": "city",
+          "label": "City",
+          "type": "string"
+        },
+        {
+          "key": "per_page",
+          "label": "Results",
+          "type": "number",
+          "default": 20
+        }
+      ]
+    }
+  ]
+}

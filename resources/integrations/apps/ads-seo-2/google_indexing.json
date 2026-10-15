@@ -1,0 +1,114 @@
+{
+  "key": "google_indexing",
+  "name": "Google Indexing API",
+  "category": "Ads & SEO",
+  "description": "Tell Google a page was added, updated or removed so it gets recrawled fast.",
+  "website": "https://developers.google.com/search/apis/indexing-api/v3/quickstart",
+  "docs_url": "https://developers.google.com/search/apis/indexing-api/v3/using-api",
+  "base_url": "https://indexing.googleapis.com/v3",
+  "auth": [
+    {
+      "type": "google_service_account",
+      "scopes": [
+        "https://www.googleapis.com/auth/indexing"
+      ],
+      "fields": [
+        {
+          "key": "service_account_json",
+          "label": "Service Account JSON key",
+          "type": "code",
+          "required": true,
+          "help": "Google Cloud Console → enable the Web Search Indexing API → create a service account and a JSON key. Then in Search Console → Settings → Users and permissions, add the service account email as an Owner of your site."
+        }
+      ]
+    },
+    {
+      "type": "oauth2",
+      "authorize_url": "https://accounts.google.com/o/oauth2/v2/auth",
+      "token_url": "https://oauth2.googleapis.com/token",
+      "scopes": [
+        "https://www.googleapis.com/auth/indexing"
+      ],
+      "authorize_params": {
+        "access_type": "offline",
+        "prompt": "consent"
+      }
+    }
+  ],
+  "error_hints": {
+    "403": "The service account (or signed-in user) must be an Owner of the site in Search Console, and the Indexing API must be enabled in Google Cloud."
+  },
+  "actions": [
+    {
+      "key": "notify_updated",
+      "name": "Notify URL updated",
+      "description": "Ask Google to crawl a new or changed page.",
+      "method": "POST",
+      "endpoint": "/urlNotifications:publish",
+      "body": {
+        "url": "{{ inputs.url }}",
+        "type": "URL_UPDATED"
+      },
+      "output_fields": {
+        "url": "urlNotificationMetadata.url",
+        "notify_time": "urlNotificationMetadata.latestUpdate.notifyTime"
+      },
+      "inputs": [
+        {
+          "key": "url",
+          "label": "Page URL",
+          "type": "string",
+          "required": true,
+          "placeholder": "https://example.com/jobs/123"
+        }
+      ]
+    },
+    {
+      "key": "notify_deleted",
+      "name": "Notify URL removed",
+      "description": "Tell Google a page was removed so it drops out of results.",
+      "method": "POST",
+      "endpoint": "/urlNotifications:publish",
+      "body": {
+        "url": "{{ inputs.url }}",
+        "type": "URL_DELETED"
+      },
+      "output_fields": {
+        "url": "urlNotificationMetadata.url",
+        "notify_time": "urlNotificationMetadata.latestRemove.notifyTime"
+      },
+      "inputs": [
+        {
+          "key": "url",
+          "label": "Page URL",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "get_status",
+      "name": "Get notification status",
+      "description": "When Google last received an update or removal notice for a URL.",
+      "method": "GET",
+      "endpoint": "/urlNotifications/metadata",
+      "query": {
+        "url": "{{ inputs.url }}"
+      },
+      "output_fields": {
+        "url": "url",
+        "last_update": "latestUpdate.notifyTime",
+        "last_remove": "latestRemove.notifyTime"
+      },
+      "inputs": [
+        {
+          "key": "url",
+          "label": "Page URL",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": []
+}

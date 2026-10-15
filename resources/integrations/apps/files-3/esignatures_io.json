@@ -1,0 +1,151 @@
+{
+  "key": "esignatures_io",
+  "name": "eSignatures.io",
+  "category": "Files & Documents",
+  "description": "Contracts from templates: send for signing, check status, withdraw, list templates.",
+  "website": "https://esignatures.io",
+  "docs_url": "https://esignatures.io/docs/api",
+  "base_url": "https://esignatures.io/api",
+  "auth": {
+    "type": "api_key",
+    "in": "query",
+    "name": "token",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "API token",
+        "type": "password",
+        "required": true,
+        "help": "eSignatures.io → API → Token (Settings)."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "send_contract",
+      "name": "Send contract",
+      "description": "Create a contract from a template and email the signer.",
+      "method": "POST",
+      "endpoint": "/contracts",
+      "body": {
+        "template_id": "{{ inputs.template_id }}",
+        "title": "{{ inputs.title }}",
+        "test": "{{ inputs.test }}",
+        "signers": [
+          {
+            "name": "{{ inputs.signer_name }}",
+            "email": "{{ inputs.signer_email }}"
+          }
+        ]
+      },
+      "output_fields": {
+        "id": "data.contract.id",
+        "status": "data.contract.status"
+      },
+      "inputs": [
+        {
+          "key": "template_id",
+          "label": "Template ID",
+          "type": "string",
+          "required": true,
+          "help": "Use \"List templates\"."
+        },
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "signer_name",
+          "label": "Signer name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "signer_email",
+          "label": "Signer email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "test",
+          "label": "Test mode",
+          "type": "select",
+          "default": "yes",
+          "options": [
+            {
+              "value": "yes",
+              "label": "Yes (not binding, free)"
+            },
+            {
+              "value": "no",
+              "label": "No (real contract)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "get_contract",
+      "name": "Get contract",
+      "description": "Status of a contract.",
+      "method": "GET",
+      "endpoint": "/contracts/{{ inputs.id }}",
+      "output_fields": {
+        "status": "data.contract.status",
+        "title": "data.contract.title",
+        "pdf": "data.contract.contract_pdf_url"
+      },
+      "inputs": [
+        {
+          "key": "id",
+          "label": "Contract ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "withdraw_contract",
+      "name": "Withdraw contract",
+      "description": "Cancel an unsigned contract.",
+      "method": "POST",
+      "endpoint": "/contracts/{{ inputs.id }}/withdraw",
+      "inputs": [
+        {
+          "key": "id",
+          "label": "Contract ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_templates",
+      "name": "List templates",
+      "description": "Your templates.",
+      "method": "GET",
+      "endpoint": "/templates",
+      "output_fields": {
+        "titles": "data.*.title",
+        "ids": "data.*.template_id"
+      },
+      "inputs": []
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

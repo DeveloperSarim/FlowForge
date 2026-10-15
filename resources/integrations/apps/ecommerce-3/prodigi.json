@@ -1,0 +1,402 @@
+{
+  "key": "prodigi",
+  "name": "Prodigi",
+  "category": "E-commerce",
+  "description": "Global print on demand: quotes, orders, order status and product details.",
+  "website": "https://www.prodigi.com",
+  "docs_url": "https://www.prodigi.com/print-api/docs/reference/",
+  "base_url": "https://{{ credentials.host }}/v4.0",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "X-API-Key",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "Prodigi dashboard → Settings → Integrations → API key (sandbox and live keys differ)."
+      },
+      {
+        "key": "host",
+        "label": "Environment",
+        "type": "select",
+        "required": true,
+        "default": "api.prodigi.com",
+        "options": [
+          {
+            "value": "api.prodigi.com",
+            "label": "Live"
+          },
+          {
+            "value": "api.sandbox.prodigi.com",
+            "label": "Sandbox"
+          }
+        ]
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "create_order",
+      "name": "Create order",
+      "description": "Order one printed product shipped to a customer.",
+      "method": "POST",
+      "endpoint": "/Orders",
+      "body": {
+        "merchantReference": "{{ inputs.reference }}",
+        "shippingMethod": "{{ inputs.shipping_method }}",
+        "callbackUrl": "{{ inputs.callback_url }}",
+        "recipient": {
+          "name": "{{ inputs.name }}",
+          "email": "{{ inputs.email }}",
+          "phoneNumber": "{{ inputs.phone }}",
+          "address": {
+            "line1": "{{ inputs.line1 }}",
+            "line2": "{{ inputs.line2 }}",
+            "postalOrZipCode": "{{ inputs.postcode }}",
+            "countryCode": "{{ inputs.country }}",
+            "townOrCity": "{{ inputs.city }}",
+            "stateOrCounty": "{{ inputs.state }}"
+          }
+        },
+        "items": [
+          {
+            "sku": "{{ inputs.sku }}",
+            "copies": "{{ inputs.copies }}",
+            "sizing": "{{ inputs.sizing }}",
+            "assets": [
+              {
+                "printArea": "default",
+                "url": "{{ inputs.image_url }}"
+              }
+            ]
+          }
+        ]
+      },
+      "output_fields": {
+        "order_id": "order.id",
+        "stage": "order.status.stage",
+        "outcome": "outcome"
+      },
+      "inputs": [
+        {
+          "key": "sku",
+          "label": "Product SKU",
+          "type": "string",
+          "required": true,
+          "placeholder": "GLOBAL-CAN-10x10"
+        },
+        {
+          "key": "image_url",
+          "label": "Print image URL",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "copies",
+          "label": "Copies",
+          "type": "number",
+          "default": 1
+        },
+        {
+          "key": "sizing",
+          "label": "Sizing",
+          "type": "select",
+          "default": "fillPrintArea",
+          "options": [
+            {
+              "value": "fillPrintArea",
+              "label": "fillPrintArea"
+            },
+            {
+              "value": "fitPrintArea",
+              "label": "fitPrintArea"
+            },
+            {
+              "value": "stretchToPrintArea",
+              "label": "stretchToPrintArea"
+            }
+          ]
+        },
+        {
+          "key": "shipping_method",
+          "label": "Shipping",
+          "type": "select",
+          "default": "Standard",
+          "options": [
+            {
+              "value": "Budget",
+              "label": "Budget"
+            },
+            {
+              "value": "Standard",
+              "label": "Standard"
+            },
+            {
+              "value": "Express",
+              "label": "Express"
+            },
+            {
+              "value": "Overnight",
+              "label": "Overnight"
+            }
+          ]
+        },
+        {
+          "key": "name",
+          "label": "Recipient name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "email",
+          "label": "Recipient email",
+          "type": "string"
+        },
+        {
+          "key": "phone",
+          "label": "Recipient phone",
+          "type": "string"
+        },
+        {
+          "key": "line1",
+          "label": "Address line 1",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "line2",
+          "label": "Address line 2",
+          "type": "string"
+        },
+        {
+          "key": "city",
+          "label": "City",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "state",
+          "label": "State / county",
+          "type": "string"
+        },
+        {
+          "key": "postcode",
+          "label": "Postcode",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "country",
+          "label": "Country code",
+          "type": "string",
+          "required": true,
+          "placeholder": "GB"
+        },
+        {
+          "key": "reference",
+          "label": "Your reference",
+          "type": "string"
+        },
+        {
+          "key": "callback_url",
+          "label": "Status callback URL",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "get_order",
+      "name": "Get order",
+      "description": "Order status and shipments.",
+      "method": "GET",
+      "endpoint": "/Orders/{{ inputs.order_id }}",
+      "output_fields": {
+        "stage": "order.status.stage",
+        "shipments": "order.shipments"
+      },
+      "inputs": [
+        {
+          "key": "order_id",
+          "label": "Order ID",
+          "type": "string",
+          "required": true,
+          "placeholder": "ord_123456"
+        }
+      ]
+    },
+    {
+      "key": "list_orders",
+      "name": "List orders",
+      "description": "Your orders.",
+      "method": "GET",
+      "endpoint": "/Orders",
+      "query": {
+        "top": "{{ inputs.top }}",
+        "status": "{{ inputs.status }}"
+      },
+      "output_fields": {
+        "orders": "orders"
+      },
+      "inputs": [
+        {
+          "key": "top",
+          "label": "How many",
+          "type": "number",
+          "default": 50
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "options": [
+            {
+              "value": "InProgress",
+              "label": "InProgress"
+            },
+            {
+              "value": "Complete",
+              "label": "Complete"
+            },
+            {
+              "value": "Cancelled",
+              "label": "Cancelled"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "cancel_order",
+      "name": "Cancel order",
+      "description": "Cancel an order that hasn't gone to print.",
+      "method": "POST",
+      "endpoint": "/Orders/{{ inputs.order_id }}/actions/cancel",
+      "output_fields": {
+        "outcome": "outcome"
+      },
+      "inputs": [
+        {
+          "key": "order_id",
+          "label": "Order ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "get_quote",
+      "name": "Get quote",
+      "description": "Price and shipping for a product to a country.",
+      "method": "POST",
+      "endpoint": "/quotes",
+      "body": {
+        "shippingMethod": "{{ inputs.shipping_method }}",
+        "destinationCountryCode": "{{ inputs.country }}",
+        "currencyCode": "{{ inputs.currency }}",
+        "items": [
+          {
+            "sku": "{{ inputs.sku }}",
+            "copies": "{{ inputs.copies }}",
+            "assets": [
+              {
+                "printArea": "default"
+              }
+            ]
+          }
+        ]
+      },
+      "output_fields": {
+        "outcome": "outcome",
+        "total": "quotes.0.costSummary.totalCost.amount",
+        "currency": "quotes.0.costSummary.totalCost.currency"
+      },
+      "inputs": [
+        {
+          "key": "sku",
+          "label": "Product SKU",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "copies",
+          "label": "Copies",
+          "type": "number",
+          "default": 1
+        },
+        {
+          "key": "country",
+          "label": "Destination country",
+          "type": "string",
+          "required": true,
+          "placeholder": "US"
+        },
+        {
+          "key": "shipping_method",
+          "label": "Shipping",
+          "type": "select",
+          "default": "Standard",
+          "options": [
+            {
+              "value": "Budget",
+              "label": "Budget"
+            },
+            {
+              "value": "Standard",
+              "label": "Standard"
+            },
+            {
+              "value": "Express",
+              "label": "Express"
+            },
+            {
+              "value": "Overnight",
+              "label": "Overnight"
+            }
+          ]
+        },
+        {
+          "key": "currency",
+          "label": "Currency",
+          "type": "string",
+          "placeholder": "USD"
+        }
+      ]
+    },
+    {
+      "key": "get_product",
+      "name": "Get product",
+      "description": "Product details, sizes and print areas.",
+      "method": "GET",
+      "endpoint": "/products/{{ inputs.sku }}",
+      "output_fields": {
+        "description": "product.description"
+      },
+      "inputs": [
+        {
+          "key": "sku",
+          "label": "Product SKU",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Order status callback",
+      "type": "webhook",
+      "description": "Paste this URL as the callback URL when you create an order.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

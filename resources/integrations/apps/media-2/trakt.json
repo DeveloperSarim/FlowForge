@@ -1,0 +1,185 @@
+{
+  "key": "trakt",
+  "name": "Trakt",
+  "category": "Video & Media",
+  "description": "Movie and TV data from Trakt: search, trending and popular titles.",
+  "website": "https://trakt.tv",
+  "docs_url": "https://trakt.docs.apiary.io/",
+  "base_url": "https://api.trakt.tv",
+  "headers": {
+    "trakt-api-version": "2"
+  },
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "trakt-api-key",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "Client ID",
+        "type": "password",
+        "required": true,
+        "help": "Trakt > Settings > Your API Apps > New Application, then copy the Client ID."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "search",
+      "name": "Search",
+      "description": "Search movies and shows.",
+      "method": "GET",
+      "endpoint": "/search/{{ inputs.type }}",
+      "query": {
+        "query": "{{ inputs.query }}"
+      },
+      "output_fields": {
+        "titles": "*.movie.title",
+        "ids": "*.movie.ids.trakt"
+      },
+      "inputs": [
+        {
+          "key": "type",
+          "label": "Type",
+          "type": "select",
+          "required": true,
+          "default": "movie",
+          "options": [
+            {
+              "value": "movie",
+              "label": "Movies"
+            },
+            {
+              "value": "show",
+              "label": "Shows"
+            }
+          ]
+        },
+        {
+          "key": "query",
+          "label": "Search",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "trending",
+      "name": "Trending",
+      "description": "What is trending right now.",
+      "method": "GET",
+      "endpoint": "/{{ inputs.type }}/trending",
+      "query": {
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "watchers": "*.watchers"
+      },
+      "inputs": [
+        {
+          "key": "type",
+          "label": "Type",
+          "type": "select",
+          "required": true,
+          "default": "movies",
+          "options": [
+            {
+              "value": "movies",
+              "label": "Movies"
+            },
+            {
+              "value": "shows",
+              "label": "Shows"
+            }
+          ]
+        },
+        {
+          "key": "limit",
+          "label": "Max results",
+          "type": "number",
+          "default": 10
+        }
+      ]
+    },
+    {
+      "key": "popular",
+      "name": "Popular",
+      "description": "Most popular titles.",
+      "method": "GET",
+      "endpoint": "/{{ inputs.type }}/popular",
+      "query": {
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "titles": "*.title"
+      },
+      "inputs": [
+        {
+          "key": "type",
+          "label": "Type",
+          "type": "select",
+          "required": true,
+          "default": "movies",
+          "options": [
+            {
+              "value": "movies",
+              "label": "Movies"
+            },
+            {
+              "value": "shows",
+              "label": "Shows"
+            }
+          ]
+        },
+        {
+          "key": "limit",
+          "label": "Max results",
+          "type": "number",
+          "default": 10
+        }
+      ]
+    },
+    {
+      "key": "get_summary",
+      "name": "Get details",
+      "description": "Details for a movie or show by Trakt ID or slug.",
+      "method": "GET",
+      "endpoint": "/{{ inputs.type }}/{{ inputs.id }}",
+      "query": {
+        "extended": "full"
+      },
+      "output_fields": {
+        "title": "title",
+        "year": "year",
+        "rating": "rating",
+        "overview": "overview"
+      },
+      "inputs": [
+        {
+          "key": "type",
+          "label": "Type",
+          "type": "select",
+          "required": true,
+          "default": "movies",
+          "options": [
+            {
+              "value": "movies",
+              "label": "Movies"
+            },
+            {
+              "value": "shows",
+              "label": "Shows"
+            }
+          ]
+        },
+        {
+          "key": "id",
+          "label": "Trakt ID or slug",
+          "type": "string",
+          "required": true,
+          "help": "e.g. tron-legacy-2010"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,241 @@
+{
+  "key": "mailrelay",
+  "name": "Mailrelay",
+  "category": "Marketing & Email",
+  "description": "Email marketing: add or update subscribers, list groups and send campaigns.",
+  "website": "https://mailrelay.com",
+  "docs_url": "https://apidocs.mailrelay.com/",
+  "base_url": "https://{{ credentials.account }}.ipzmarketing.com/api/v1",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "X-AUTH-TOKEN",
+    "fields": [
+      {
+        "key": "account",
+        "label": "Account name",
+        "type": "string",
+        "required": true,
+        "placeholder": "mycompany",
+        "help": "The first part of your Mailrelay address: for https://mycompany.ipzmarketing.com enter mycompany."
+      },
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "Mailrelay → Settings → API access → Add API key."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "sync_subscriber",
+      "name": "Add or update subscriber",
+      "description": "Create a subscriber, or update the one with the same email.",
+      "method": "POST",
+      "endpoint": "/subscribers/sync",
+      "body": {
+        "email": "{{ inputs.email }}",
+        "name": "{{ inputs.name }}",
+        "status": "{{ inputs.status }}",
+        "group_ids": "{{ inputs.group_ids }}",
+        "city": "{{ inputs.city }}",
+        "country": "{{ inputs.country }}",
+        "locale": "{{ inputs.locale }}",
+        "restore_if_deleted": "{{ inputs.restore_if_deleted }}"
+      },
+      "output_fields": {
+        "id": "id",
+        "email": "email",
+        "status": "status",
+        "groups": "groups"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string"
+        },
+        {
+          "key": "status",
+          "label": "Status (new subscribers)",
+          "type": "select",
+          "required": true,
+          "default": "active",
+          "options": [
+            {
+              "value": "active",
+              "label": "Active"
+            },
+            {
+              "value": "inactive",
+              "label": "Inactive"
+            }
+          ]
+        },
+        {
+          "key": "group_ids",
+          "label": "Group IDs",
+          "type": "list",
+          "help": "Run \"List groups\" to find the IDs."
+        },
+        {
+          "key": "city",
+          "label": "City",
+          "type": "string"
+        },
+        {
+          "key": "country",
+          "label": "Country",
+          "type": "string",
+          "placeholder": "US",
+          "help": "Two-letter country code."
+        },
+        {
+          "key": "locale",
+          "label": "Language",
+          "type": "string",
+          "placeholder": "en"
+        },
+        {
+          "key": "restore_if_deleted",
+          "label": "Restore if deleted",
+          "type": "boolean",
+          "default": false
+        }
+      ]
+    },
+    {
+      "key": "find_subscriber",
+      "name": "Find subscriber by email",
+      "description": "Look up a subscriber by email.",
+      "method": "GET",
+      "endpoint": "/subscribers",
+      "query": {
+        "q[email_eq]": "{{ inputs.email }}",
+        "include_groups": "true"
+      },
+      "output_fields": {
+        "id": "0.id",
+        "status": "0.status",
+        "groups": "0.groups"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "get_subscriber",
+      "name": "Get subscriber",
+      "description": "Get a subscriber by ID.",
+      "method": "GET",
+      "endpoint": "/subscribers/{{ inputs.id }}",
+      "output_fields": {
+        "id": "id",
+        "email": "email",
+        "name": "name",
+        "status": "status",
+        "unsubscribed": "unsubscribed"
+      },
+      "inputs": [
+        {
+          "key": "id",
+          "label": "Subscriber ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_groups",
+      "name": "List groups",
+      "description": "Your subscriber groups and their IDs.",
+      "method": "GET",
+      "endpoint": "/groups",
+      "output_fields": {
+        "ids": "*.id",
+        "names": "*.name"
+      },
+      "inputs": []
+    },
+    {
+      "key": "create_group",
+      "name": "Create group",
+      "description": "Create a subscriber group.",
+      "method": "POST",
+      "endpoint": "/groups",
+      "body": {
+        "name": "{{ inputs.name }}",
+        "description": "{{ inputs.description }}"
+      },
+      "output_fields": {
+        "id": "id",
+        "name": "name"
+      },
+      "inputs": [
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "description",
+          "label": "Description",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "send_campaign",
+      "name": "Send campaign",
+      "description": "Send a saved campaign to all of its recipients.",
+      "method": "POST",
+      "endpoint": "/campaigns/{{ inputs.campaign_id }}/send_all",
+      "inputs": [
+        {
+          "key": "campaign_id",
+          "label": "Campaign ID",
+          "type": "string",
+          "required": true,
+          "help": "Open the campaign in Mailrelay: the ID is in the address bar."
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_subscriber",
+      "name": "New subscriber",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/subscribers",
+      "query": {
+        "q[s]": "id desc",
+        "per_page": "50"
+      },
+      "items_path": "",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

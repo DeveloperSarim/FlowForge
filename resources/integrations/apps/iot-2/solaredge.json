@@ -1,0 +1,148 @@
+{
+  "key": "solaredge",
+  "name": "SolarEdge",
+  "category": "IoT & Smart Home",
+  "description": "Solar monitoring: read SolarEdge site details, energy production and live power flow.",
+  "website": "https://www.solaredge.com",
+  "docs_url": "https://knowledge-center.solaredge.com/sites/kc/files/se_monitoring_api.pdf",
+  "base_url": "https://monitoringapi.solaredge.com",
+  "auth": {
+    "type": "api_key",
+    "in": "query",
+    "name": "api_key",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "monitoring.solaredge.com > Admin > Site Access > API Access: enable and copy the API key."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_sites",
+      "name": "List sites",
+      "description": "Get your solar sites.",
+      "method": "GET",
+      "endpoint": "/sites/list",
+      "output_fields": {
+        "sites": "sites.site",
+        "ids": "sites.site.*.id",
+        "names": "sites.site.*.name"
+      },
+      "inputs": []
+    },
+    {
+      "key": "site_overview",
+      "name": "Site overview",
+      "description": "Current power, today's and lifetime energy.",
+      "method": "GET",
+      "endpoint": "/site/{{ inputs.site_id }}/overview",
+      "output_fields": {
+        "current_power": "overview.currentPower.power",
+        "energy_today": "overview.lastDayData.energy",
+        "lifetime_energy": "overview.lifeTimeData.energy"
+      },
+      "inputs": [
+        {
+          "key": "site_id",
+          "label": "Site ID",
+          "type": "string",
+          "required": true,
+          "help": "The id from List sites."
+        }
+      ]
+    },
+    {
+      "key": "site_energy",
+      "name": "Energy production",
+      "description": "Energy produced per day, week or month.",
+      "method": "GET",
+      "endpoint": "/site/{{ inputs.site_id }}/energy",
+      "query": {
+        "timeUnit": "{{ inputs.time_unit }}",
+        "startDate": "{{ inputs.start_date }}",
+        "endDate": "{{ inputs.end_date }}"
+      },
+      "output_fields": {
+        "values": "energy.values",
+        "unit": "energy.unit"
+      },
+      "inputs": [
+        {
+          "key": "site_id",
+          "label": "Site ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "time_unit",
+          "label": "Group by",
+          "type": "select",
+          "required": true,
+          "default": "DAY",
+          "options": [
+            {
+              "value": "QUARTER_OF_AN_HOUR",
+              "label": "15 minutes"
+            },
+            {
+              "value": "HOUR",
+              "label": "Hour"
+            },
+            {
+              "value": "DAY",
+              "label": "Day"
+            },
+            {
+              "value": "WEEK",
+              "label": "Week"
+            },
+            {
+              "value": "MONTH",
+              "label": "Month"
+            },
+            {
+              "value": "YEAR",
+              "label": "Year"
+            }
+          ]
+        },
+        {
+          "key": "start_date",
+          "label": "Start date",
+          "type": "string",
+          "required": true,
+          "help": "YYYY-MM-DD"
+        },
+        {
+          "key": "end_date",
+          "label": "End date",
+          "type": "string",
+          "required": true,
+          "help": "YYYY-MM-DD"
+        }
+      ]
+    },
+    {
+      "key": "power_flow",
+      "name": "Current power flow",
+      "description": "Live production, consumption and grid flow.",
+      "method": "GET",
+      "endpoint": "/site/{{ inputs.site_id }}/currentPowerFlow",
+      "output_fields": {
+        "flow": "siteCurrentPowerFlow"
+      },
+      "inputs": [
+        {
+          "key": "site_id",
+          "label": "Site ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ]
+}

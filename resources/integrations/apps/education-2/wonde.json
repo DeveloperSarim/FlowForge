@@ -1,0 +1,233 @@
+{
+  "key": "wonde",
+  "name": "Wonde",
+  "category": "Education",
+  "description": "School data from MIS systems: schools, students, staff, classes and parent contacts.",
+  "website": "https://www.wonde.com",
+  "docs_url": "https://docs.wonde.com/docs/api/sync",
+  "base_url": "https://{{ credentials.api_domain }}/v1.0",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "api_domain",
+        "label": "API domain",
+        "type": "string",
+        "required": true,
+        "default": "api.wonde.com",
+        "help": "Keep api.wonde.com unless the school's data lives in another region (shown in the school's \"region\" details)."
+      },
+      {
+        "key": "token",
+        "label": "API access token",
+        "type": "password",
+        "required": true,
+        "help": "Wonde dashboard → API Access → copy your access token."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_schools",
+      "name": "List schools",
+      "description": "Schools that approved your access, with their IDs.",
+      "method": "GET",
+      "endpoint": "/schools",
+      "output_fields": {
+        "schools": "data",
+        "ids": "data.*.id",
+        "names": "data.*.name"
+      },
+      "inputs": []
+    },
+    {
+      "key": "list_students",
+      "name": "List students",
+      "description": "Students of a school, optionally with classes and contact details.",
+      "method": "GET",
+      "endpoint": "/schools/{{ inputs.school_id }}/students",
+      "query": {
+        "include": "{{ inputs.include }}",
+        "updated_after": "{{ inputs.updated_after }}",
+        "per_page": "{{ inputs.per_page }}",
+        "page": "{{ inputs.page }}"
+      },
+      "output_fields": {
+        "students": "data",
+        "ids": "data.*.id",
+        "more": "meta.pagination.more"
+      },
+      "inputs": [
+        {
+          "key": "school_id",
+          "label": "School ID",
+          "type": "string",
+          "required": true,
+          "help": "Run \"List schools\" to see the IDs."
+        },
+        {
+          "key": "include",
+          "label": "Include",
+          "type": "string",
+          "placeholder": "classes,contact_details",
+          "help": "Optional related data, comma-separated."
+        },
+        {
+          "key": "updated_after",
+          "label": "Updated after",
+          "type": "string",
+          "placeholder": "2026-09-01 00:00:00"
+        },
+        {
+          "key": "per_page",
+          "label": "Per page",
+          "type": "number",
+          "default": 50
+        },
+        {
+          "key": "page",
+          "label": "Page",
+          "type": "number",
+          "default": 1
+        }
+      ]
+    },
+    {
+      "key": "list_employees",
+      "name": "List staff",
+      "description": "Employees (teachers and staff) of a school.",
+      "method": "GET",
+      "endpoint": "/schools/{{ inputs.school_id }}/employees",
+      "query": {
+        "include": "{{ inputs.include }}",
+        "updated_after": "{{ inputs.updated_after }}",
+        "per_page": "{{ inputs.per_page }}",
+        "page": "{{ inputs.page }}"
+      },
+      "output_fields": {
+        "employees": "data",
+        "ids": "data.*.id",
+        "more": "meta.pagination.more"
+      },
+      "inputs": [
+        {
+          "key": "school_id",
+          "label": "School ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "include",
+          "label": "Include",
+          "type": "string",
+          "placeholder": "contact_details,classes"
+        },
+        {
+          "key": "updated_after",
+          "label": "Updated after",
+          "type": "string"
+        },
+        {
+          "key": "per_page",
+          "label": "Per page",
+          "type": "number",
+          "default": 50
+        },
+        {
+          "key": "page",
+          "label": "Page",
+          "type": "number",
+          "default": 1
+        }
+      ]
+    },
+    {
+      "key": "list_classes",
+      "name": "List classes",
+      "description": "Classes of a school, optionally with students and teachers.",
+      "method": "GET",
+      "endpoint": "/schools/{{ inputs.school_id }}/classes",
+      "query": {
+        "include": "{{ inputs.include }}",
+        "per_page": "{{ inputs.per_page }}",
+        "page": "{{ inputs.page }}"
+      },
+      "output_fields": {
+        "classes": "data",
+        "ids": "data.*.id",
+        "names": "data.*.name",
+        "more": "meta.pagination.more"
+      },
+      "inputs": [
+        {
+          "key": "school_id",
+          "label": "School ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "include",
+          "label": "Include",
+          "type": "string",
+          "placeholder": "students,employees"
+        },
+        {
+          "key": "per_page",
+          "label": "Per page",
+          "type": "number",
+          "default": 50
+        },
+        {
+          "key": "page",
+          "label": "Page",
+          "type": "number",
+          "default": 1
+        }
+      ]
+    },
+    {
+      "key": "list_contacts",
+      "name": "List parent contacts",
+      "description": "Parents and guardians of a school's students.",
+      "method": "GET",
+      "endpoint": "/schools/{{ inputs.school_id }}/contacts",
+      "query": {
+        "include": "{{ inputs.include }}",
+        "per_page": "{{ inputs.per_page }}",
+        "page": "{{ inputs.page }}"
+      },
+      "output_fields": {
+        "contacts": "data",
+        "ids": "data.*.id",
+        "more": "meta.pagination.more"
+      },
+      "inputs": [
+        {
+          "key": "school_id",
+          "label": "School ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "include",
+          "label": "Include",
+          "type": "string",
+          "placeholder": "contact_details,students"
+        },
+        {
+          "key": "per_page",
+          "label": "Per page",
+          "type": "number",
+          "default": 50
+        },
+        {
+          "key": "page",
+          "label": "Page",
+          "type": "number",
+          "default": 1
+        }
+      ]
+    }
+  ],
+  "triggers": []
+}

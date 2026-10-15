@@ -1,0 +1,134 @@
+{
+  "key": "ragic",
+  "name": "Ragic",
+  "category": "Databases",
+  "description": "Read, create and delete records in Ragic online database sheets.",
+  "website": "https://www.ragic.com",
+  "docs_url": "https://www.ragic.com/intl/en/doc-api",
+  "base_url": "https://{{ credentials.server }}.ragic.com/{{ credentials.account }}",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "Authorization",
+    "prefix": "Basic ",
+    "fields": [
+      {
+        "key": "server",
+        "label": "Server",
+        "type": "string",
+        "required": true,
+        "help": "The first part of your Ragic address (na3, ap5, eu2, www...).",
+        "placeholder": "na3"
+      },
+      {
+        "key": "account",
+        "label": "Account name",
+        "type": "string",
+        "required": true,
+        "help": "Your account name, the first path segment after the server in your Ragic address.",
+        "placeholder": "mycompany"
+      },
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "In Ragic click your name → Personal Settings → API Key → generate and copy it."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_records",
+      "name": "List records",
+      "description": "Read records from a sheet.",
+      "method": "GET",
+      "endpoint": "/{{ inputs.sheet }}",
+      "query": {
+        "api": "true",
+        "v": "3",
+        "limit": "{{ inputs.limit }}",
+        "where": "{{ inputs.where }}"
+      },
+      "output_fields": {},
+      "inputs": [
+        {
+          "key": "sheet",
+          "label": "Sheet path",
+          "type": "string",
+          "required": true,
+          "help": "The tab and sheet number from the sheet's address, e.g. sales/1."
+        },
+        {
+          "key": "limit",
+          "label": "Max records",
+          "type": "number",
+          "default": 50
+        },
+        {
+          "key": "where",
+          "label": "Filter",
+          "type": "string",
+          "help": "Example: 1000001,eq,Open (field ID, operator, value)."
+        }
+      ]
+    },
+    {
+      "key": "create_record",
+      "name": "Create record",
+      "description": "Add a record. Use field IDs as names.",
+      "method": "POST",
+      "endpoint": "/{{ inputs.sheet }}",
+      "body": "{{ inputs.fields }}",
+      "query": {
+        "api": "true",
+        "v": "3"
+      },
+      "body_format": "form",
+      "output_fields": {
+        "ragic_id": "ragicId"
+      },
+      "inputs": [
+        {
+          "key": "sheet",
+          "label": "Sheet path",
+          "type": "string",
+          "required": true,
+          "help": "e.g. sales/1"
+        },
+        {
+          "key": "fields",
+          "label": "Fields (field ID → value)",
+          "type": "keyvalue",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "delete_record",
+      "name": "Delete record",
+      "description": "Delete a record by ID.",
+      "method": "DELETE",
+      "endpoint": "/{{ inputs.sheet }}/{{ inputs.record_id }}",
+      "query": {
+        "api": "true"
+      },
+      "output_fields": {},
+      "inputs": [
+        {
+          "key": "sheet",
+          "label": "Sheet path",
+          "type": "string",
+          "required": true,
+          "help": "e.g. sales/1"
+        },
+        {
+          "key": "record_id",
+          "label": "Record ID",
+          "type": "number",
+          "required": true
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,223 @@
+{
+  "key": "yelp",
+  "name": "Yelp",
+  "category": "Social Media",
+  "description": "Search Yelp businesses, read business details and their latest reviews.",
+  "website": "https://www.yelp.com",
+  "docs_url": "https://docs.developer.yelp.com/docs/fusion-intro",
+  "base_url": "https://api.yelp.com/v3",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "Create an app at https://www.yelp.com/developers/v3/manage_app and copy its API Key."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "search_businesses",
+      "name": "Search businesses",
+      "method": "GET",
+      "endpoint": "/businesses/search",
+      "query": {
+        "term": "{{ inputs.term }}",
+        "location": "{{ inputs.location }}",
+        "categories": "{{ inputs.categories }}",
+        "sort_by": "{{ inputs.sort_by }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "businesses": "businesses",
+        "total": "total",
+        "first_id": "businesses.0.id",
+        "first_name": "businesses.0.name",
+        "first_rating": "businesses.0.rating"
+      },
+      "inputs": [
+        {
+          "key": "term",
+          "label": "Search term",
+          "type": "string",
+          "placeholder": "coffee"
+        },
+        {
+          "key": "location",
+          "label": "Location",
+          "type": "string",
+          "required": true,
+          "placeholder": "San Francisco, CA"
+        },
+        {
+          "key": "categories",
+          "label": "Categories",
+          "type": "string",
+          "placeholder": "bars,french",
+          "help": "Comma separated Yelp category aliases (optional)."
+        },
+        {
+          "key": "sort_by",
+          "label": "Sort by",
+          "type": "select",
+          "default": "best_match",
+          "options": [
+            {
+              "value": "best_match",
+              "label": "Best match"
+            },
+            {
+              "value": "rating",
+              "label": "Rating"
+            },
+            {
+              "value": "review_count",
+              "label": "Review count"
+            },
+            {
+              "value": "distance",
+              "label": "Distance"
+            }
+          ]
+        },
+        {
+          "key": "limit",
+          "label": "Results (max 50)",
+          "type": "number",
+          "default": 20
+        }
+      ]
+    },
+    {
+      "key": "search_by_phone",
+      "name": "Find business by phone",
+      "method": "GET",
+      "endpoint": "/businesses/search/phone",
+      "query": {
+        "phone": "{{ inputs.phone }}"
+      },
+      "output_fields": {
+        "businesses": "businesses",
+        "id": "businesses.0.id",
+        "name": "businesses.0.name"
+      },
+      "inputs": [
+        {
+          "key": "phone",
+          "label": "Phone number",
+          "type": "string",
+          "required": true,
+          "placeholder": "+14157492060",
+          "help": "International format starting with +."
+        }
+      ]
+    },
+    {
+      "key": "get_business",
+      "name": "Get business details",
+      "method": "GET",
+      "endpoint": "/businesses/{{ inputs.business_id }}",
+      "output_fields": {
+        "id": "id",
+        "name": "name",
+        "rating": "rating",
+        "review_count": "review_count",
+        "url": "url",
+        "phone": "display_phone",
+        "address": "location.display_address",
+        "is_closed": "is_closed",
+        "price": "price"
+      },
+      "inputs": [
+        {
+          "key": "business_id",
+          "label": "Business ID or alias",
+          "type": "string",
+          "required": true,
+          "help": "From a search result, or the last part of the yelp.com/biz/ link."
+        }
+      ]
+    },
+    {
+      "key": "get_reviews",
+      "name": "Get business reviews",
+      "description": "Returns review excerpts (availability depends on your Yelp API plan).",
+      "method": "GET",
+      "endpoint": "/businesses/{{ inputs.business_id }}/reviews",
+      "query": {
+        "sort_by": "{{ inputs.sort_by }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "reviews": "reviews",
+        "total": "total",
+        "latest_text": "reviews.0.text",
+        "latest_rating": "reviews.0.rating"
+      },
+      "inputs": [
+        {
+          "key": "business_id",
+          "label": "Business ID or alias",
+          "type": "string",
+          "required": true,
+          "help": "From a search result, or the last part of the yelp.com/biz/ link."
+        },
+        {
+          "key": "sort_by",
+          "label": "Sort by",
+          "type": "select",
+          "default": "newest",
+          "options": [
+            {
+              "value": "newest",
+              "label": "Newest"
+            },
+            {
+              "value": "yelp_sort",
+              "label": "Yelp sort"
+            }
+          ]
+        },
+        {
+          "key": "limit",
+          "label": "Reviews",
+          "type": "number",
+          "default": 20
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_review",
+      "name": "New review",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/businesses/{{ inputs.business_id }}/reviews",
+      "query": {
+        "sort_by": "newest",
+        "limit": "20"
+      },
+      "items_path": "reviews",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "business_id",
+          "label": "Business ID or alias",
+          "type": "string",
+          "required": true,
+          "help": "The last part of your yelp.com/biz/ link."
+        },
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

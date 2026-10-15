@@ -1,0 +1,134 @@
+{
+  "key": "blackboard",
+  "name": "Blackboard Learn",
+  "category": "Education",
+  "description": "Read Blackboard Learn courses, users and course memberships.",
+  "website": "https://www.anthology.com/products/teaching-and-learning/learning-effectiveness/blackboard-learn",
+  "docs_url": "https://developer.anthology.com/portal/displayApi",
+  "base_url": "https://{{ credentials.host }}/learn/api/public/v1",
+  "auth": {
+    "type": "oauth2_client_credentials",
+    "token_url": "https://{{ credentials.host }}/learn/api/public/v1/oauth2/token",
+    "client_auth": "basic",
+    "fields": [
+      {
+        "key": "host",
+        "label": "Server address",
+        "type": "string",
+        "required": true,
+        "placeholder": "school.blackboard.com",
+        "help": "Your Blackboard address without https://."
+      },
+      {
+        "key": "client_id",
+        "label": "Application key",
+        "type": "string",
+        "required": true,
+        "help": "Register an app at developer.anthology.com and copy its Application Key."
+      },
+      {
+        "key": "client_secret",
+        "label": "Application secret",
+        "type": "password",
+        "required": true,
+        "help": "The secret for that application."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_courses",
+      "name": "List courses",
+      "description": "Get courses.",
+      "method": "GET",
+      "endpoint": "/courses",
+      "query": {
+        "limit": "{{ inputs.limit }}",
+        "name": "{{ inputs.name }}"
+      },
+      "output_fields": {
+        "courses": "results",
+        "ids": "results.*.id",
+        "names": "results.*.name"
+      },
+      "inputs": [
+        {
+          "key": "limit",
+          "label": "Max results",
+          "type": "number",
+          "default": 25
+        },
+        {
+          "key": "name",
+          "label": "Name contains",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "get_course",
+      "name": "Get a course",
+      "description": "Get one course by ID (or externalId:xyz).",
+      "method": "GET",
+      "endpoint": "/courses/{{ inputs.course_id }}",
+      "inputs": [
+        {
+          "key": "course_id",
+          "label": "Course ID",
+          "type": "string",
+          "required": true,
+          "help": "Use the id from List courses, or externalId:YOUR-ID."
+        }
+      ]
+    },
+    {
+      "key": "list_users",
+      "name": "List users",
+      "description": "Get users.",
+      "method": "GET",
+      "endpoint": "/users",
+      "query": {
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "users": "results",
+        "ids": "results.*.id"
+      },
+      "inputs": [
+        {
+          "key": "limit",
+          "label": "Max results",
+          "type": "number",
+          "default": 25
+        }
+      ]
+    },
+    {
+      "key": "list_course_users",
+      "name": "List course members",
+      "description": "Get the people enrolled in a course.",
+      "method": "GET",
+      "endpoint": "/courses/{{ inputs.course_id }}/users",
+      "query": {
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "members": "results"
+      },
+      "inputs": [
+        {
+          "key": "course_id",
+          "label": "Course ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "limit",
+          "label": "Max results",
+          "type": "number",
+          "default": 25
+        }
+      ]
+    }
+  ]
+}

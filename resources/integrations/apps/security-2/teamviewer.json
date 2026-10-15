@@ -1,0 +1,206 @@
+{
+  "key": "teamviewer",
+  "name": "TeamViewer",
+  "category": "Security & IT",
+  "description": "Create TeamViewer support sessions and list devices, users and connections.",
+  "brand": "teamviewer",
+  "website": "https://www.teamviewer.com",
+  "docs_url": "https://webapi.teamviewer.com/api/v1/docs/index",
+  "base_url": "https://webapi.teamviewer.com/api/v1",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "Script token",
+        "type": "password",
+        "required": true,
+        "help": "TeamViewer Management Console → Edit profile → Apps → Create script token (pick the permissions you need)."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "get_account",
+      "name": "Get account",
+      "description": "Get the account the token belongs to.",
+      "method": "GET",
+      "endpoint": "/account",
+      "output_fields": {
+        "name": "name",
+        "email": "email"
+      },
+      "inputs": []
+    },
+    {
+      "key": "create_session",
+      "name": "Create support session",
+      "description": "Create a service case with links for you and your customer.",
+      "method": "POST",
+      "endpoint": "/sessions",
+      "body": {
+        "groupname": "{{ inputs.groupname }}",
+        "description": "{{ inputs.description }}",
+        "end_customer": {
+          "name": "{{ inputs.customer_name }}",
+          "email": "{{ inputs.customer_email }}"
+        }
+      },
+      "output_fields": {
+        "code": "code",
+        "supporter_link": "supporter_link",
+        "customer_link": "end_customer_link"
+      },
+      "inputs": [
+        {
+          "key": "groupname",
+          "label": "Session group",
+          "type": "string",
+          "required": true,
+          "default": "FlowForge",
+          "help": "Created if it doesn't exist."
+        },
+        {
+          "key": "description",
+          "label": "Description",
+          "type": "string"
+        },
+        {
+          "key": "customer_name",
+          "label": "Customer name",
+          "type": "string"
+        },
+        {
+          "key": "customer_email",
+          "label": "Customer email",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "list_sessions",
+      "name": "List support sessions",
+      "description": "List service cases.",
+      "method": "GET",
+      "endpoint": "/sessions",
+      "query": {
+        "state": "{{ inputs.state }}",
+        "groupname": "{{ inputs.groupname }}"
+      },
+      "output_fields": {
+        "sessions": "sessions"
+      },
+      "inputs": [
+        {
+          "key": "state",
+          "label": "State",
+          "type": "select",
+          "options": [
+            {
+              "value": "open",
+              "label": "open"
+            },
+            {
+              "value": "closed",
+              "label": "closed"
+            }
+          ]
+        },
+        {
+          "key": "groupname",
+          "label": "Session group",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "list_devices",
+      "name": "List devices",
+      "description": "List devices in your Computers & Contacts list.",
+      "method": "GET",
+      "endpoint": "/devices",
+      "query": {
+        "online_state": "{{ inputs.online_state }}"
+      },
+      "output_fields": {
+        "devices": "devices"
+      },
+      "inputs": [
+        {
+          "key": "online_state",
+          "label": "Online state",
+          "type": "select",
+          "options": [
+            {
+              "value": "online",
+              "label": "online"
+            },
+            {
+              "value": "offline",
+              "label": "offline"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "list_connections",
+      "name": "List connection reports",
+      "description": "List remote connections made by your company's users.",
+      "method": "GET",
+      "endpoint": "/reports/connections",
+      "query": {
+        "from_date": "{{ inputs.from_date }}",
+        "to_date": "{{ inputs.to_date }}",
+        "username": "{{ inputs.username }}"
+      },
+      "output_fields": {
+        "connections": "records"
+      },
+      "inputs": [
+        {
+          "key": "from_date",
+          "label": "From",
+          "type": "string",
+          "placeholder": "2026-01-01T00:00:00Z"
+        },
+        {
+          "key": "to_date",
+          "label": "To",
+          "type": "string"
+        },
+        {
+          "key": "username",
+          "label": "User name",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "list_users",
+      "name": "List users",
+      "description": "List users in your company.",
+      "method": "GET",
+      "endpoint": "/users",
+      "query": {
+        "email": "{{ inputs.email }}",
+        "name": "{{ inputs.name }}"
+      },
+      "output_fields": {
+        "users": "users"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string"
+        },
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,397 @@
+{
+  "key": "deputy",
+  "name": "Deputy",
+  "category": "HR & Recruiting",
+  "description": "Add employees, read timesheets and rosters, and book leave in Deputy.",
+  "website": "https://www.deputy.com",
+  "docs_url": "https://developer.deputy.com",
+  "base_url": "https://{{ credentials.install }}/api",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "install",
+        "label": "Deputy address",
+        "type": "string",
+        "required": true,
+        "placeholder": "yourbusiness.au.deputy.com",
+        "help": "The address you log in to, without https:// (it ends in .au, .uk, .eu or .na.deputy.com)."
+      },
+      {
+        "key": "token",
+        "label": "Permanent token",
+        "type": "password",
+        "required": true,
+        "help": "In Deputy open https://<your address>/exec/devapp/oauth_clients, add an OAuth client, then click \"Get an Access Token\". The token is shown once."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "add_employee",
+      "name": "Add employee",
+      "description": "Creates an employee at a location.",
+      "method": "POST",
+      "endpoint": "/v1/supervise/employee",
+      "body": {
+        "strFirstName": "{{ inputs.first_name }}",
+        "strLastName": "{{ inputs.last_name }}",
+        "intCompanyId": "{{ inputs.location_id }}",
+        "strStartDate": "{{ inputs.start_date }}",
+        "strDob": "{{ inputs.dob }}",
+        "strMobilePhone": "{{ inputs.mobile }}",
+        "strPayrollId": "{{ inputs.payroll_id }}"
+      },
+      "inputs": [
+        {
+          "key": "first_name",
+          "label": "First name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "location_id",
+          "label": "Location ID",
+          "type": "number",
+          "required": true,
+          "help": "The Deputy location (company) ID. Open the location in Deputy: the number in the URL."
+        },
+        {
+          "key": "start_date",
+          "label": "Start date",
+          "type": "string",
+          "placeholder": "2026-11-01"
+        },
+        {
+          "key": "dob",
+          "label": "Date of birth",
+          "type": "string",
+          "placeholder": "1990-05-20"
+        },
+        {
+          "key": "mobile",
+          "label": "Mobile phone",
+          "type": "string"
+        },
+        {
+          "key": "payroll_id",
+          "label": "Payroll ID",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "find_employees",
+      "name": "Find employees",
+      "description": "Searches employees with Deputy's resource query.",
+      "method": "POST",
+      "endpoint": "/v1/resource/Employee/QUERY",
+      "body": {
+        "search": {
+          "s1": {
+            "field": "{{ inputs.field }}",
+            "data": "{{ inputs.value }}",
+            "type": "{{ inputs.match }}"
+          }
+        },
+        "max": "{{ inputs.max }}"
+      },
+      "output_fields": {
+        "id": "0.Id",
+        "display_name": "0.DisplayName"
+      },
+      "inputs": [
+        {
+          "key": "field",
+          "label": "Search field",
+          "type": "select",
+          "required": true,
+          "default": "DisplayName",
+          "options": [
+            {
+              "value": "DisplayName",
+              "label": "Display name"
+            },
+            {
+              "value": "FirstName",
+              "label": "First name"
+            },
+            {
+              "value": "LastName",
+              "label": "Last name"
+            },
+            {
+              "value": "Company",
+              "label": "Location ID"
+            },
+            {
+              "value": "Active",
+              "label": "Active (1/0)"
+            }
+          ]
+        },
+        {
+          "key": "match",
+          "label": "Match",
+          "type": "select",
+          "default": "lk",
+          "options": [
+            {
+              "value": "lk",
+              "label": "Contains"
+            },
+            {
+              "value": "eq",
+              "label": "Equals"
+            }
+          ]
+        },
+        {
+          "key": "value",
+          "label": "Value",
+          "type": "string",
+          "required": true,
+          "help": "For \"Contains\" use % as a wildcard, e.g. %smith%."
+        },
+        {
+          "key": "max",
+          "label": "Max results",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    },
+    {
+      "key": "list_timesheets",
+      "name": "List timesheets",
+      "description": "Returns timesheets on or after a date, optionally for one employee.",
+      "method": "POST",
+      "endpoint": "/v1/resource/Timesheet/QUERY",
+      "body": {
+        "search": {
+          "s1": {
+            "field": "Date",
+            "data": "{{ inputs.from_date }}",
+            "type": "ge"
+          },
+          "s2": {
+            "$if": "{{ inputs.employee_id }}",
+            "field": "Employee",
+            "data": "{{ inputs.employee_id }}",
+            "type": "eq"
+          }
+        },
+        "sort": {
+          "Date": "asc"
+        },
+        "max": "{{ inputs.max }}"
+      },
+      "inputs": [
+        {
+          "key": "from_date",
+          "label": "From date",
+          "type": "string",
+          "required": true,
+          "placeholder": "2026-11-01"
+        },
+        {
+          "key": "employee_id",
+          "label": "Employee ID",
+          "type": "number"
+        },
+        {
+          "key": "max",
+          "label": "Max results",
+          "type": "number",
+          "default": 100
+        }
+      ]
+    },
+    {
+      "key": "list_rosters",
+      "name": "List shifts",
+      "description": "Returns rostered shifts on or after a date.",
+      "method": "POST",
+      "endpoint": "/v1/resource/Roster/QUERY",
+      "body": {
+        "search": {
+          "s1": {
+            "field": "Date",
+            "data": "{{ inputs.from_date }}",
+            "type": "ge"
+          },
+          "s2": {
+            "$if": "{{ inputs.employee_id }}",
+            "field": "Employee",
+            "data": "{{ inputs.employee_id }}",
+            "type": "eq"
+          }
+        },
+        "sort": {
+          "Date": "asc"
+        },
+        "max": "{{ inputs.max }}"
+      },
+      "inputs": [
+        {
+          "key": "from_date",
+          "label": "From date",
+          "type": "string",
+          "required": true,
+          "placeholder": "2026-11-01"
+        },
+        {
+          "key": "employee_id",
+          "label": "Employee ID",
+          "type": "number"
+        },
+        {
+          "key": "max",
+          "label": "Max results",
+          "type": "number",
+          "default": 100
+        }
+      ]
+    },
+    {
+      "key": "add_leave",
+      "name": "Add leave",
+      "description": "Adds a leave request for an employee.",
+      "method": "POST",
+      "endpoint": "/v1/supervise/leave",
+      "body": {
+        "Employee": "{{ inputs.employee_id }}",
+        "DateStart": "{{ inputs.date_start }}",
+        "DateEnd": "{{ inputs.date_end }}",
+        "LeaveRule": "{{ inputs.leave_rule }}",
+        "Status": "{{ inputs.status }}",
+        "ApprovalComment": "{{ inputs.comment }}"
+      },
+      "inputs": [
+        {
+          "key": "employee_id",
+          "label": "Employee ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "date_start",
+          "label": "First day",
+          "type": "string",
+          "required": true,
+          "placeholder": "2026/11/03"
+        },
+        {
+          "key": "date_end",
+          "label": "Last day",
+          "type": "string",
+          "required": true,
+          "placeholder": "2026/11/05"
+        },
+        {
+          "key": "leave_rule",
+          "label": "Leave type ID",
+          "type": "number",
+          "help": "The Leave Rule ID (e.g. annual leave). List them with GET /v1/resource/LeaveRules via \"Make an API call\"."
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "default": "0",
+          "options": [
+            {
+              "value": "0",
+              "label": "Awaiting approval"
+            },
+            {
+              "value": "1",
+              "label": "Approved"
+            }
+          ]
+        },
+        {
+          "key": "comment",
+          "label": "Comment",
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "key": "post_memo",
+      "name": "Post news memo",
+      "description": "Posts a memo to the newsfeed of a location.",
+      "method": "PUT",
+      "endpoint": "/v1/supervise/memo",
+      "body": {
+        "strContent": "{{ inputs.content }}",
+        "intCompany": "{{ inputs.location_id }}",
+        "blnRequireConfirm": "{{ inputs.require_confirm }}"
+      },
+      "inputs": [
+        {
+          "key": "content",
+          "label": "Message",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "location_id",
+          "label": "Location ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "require_confirm",
+          "label": "Ask staff to confirm they read it",
+          "type": "boolean",
+          "default": false
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_timesheet",
+      "name": "New timesheet",
+      "type": "polling",
+      "description": "Fires when a new timesheet is started or added.",
+      "method": "POST",
+      "endpoint": "/v1/resource/Timesheet/QUERY",
+      "id_field": "Id",
+      "body": {
+        "sort": {
+          "Id": "desc"
+        },
+        "max": 50
+      },
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    },
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Point a Deputy webhook (Settings → Integrations → Webhooks) at this workflow's URL.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

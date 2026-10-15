@@ -1,0 +1,233 @@
+{
+  "key": "waha",
+  "name": "WAHA (WhatsApp HTTP API)",
+  "category": "Communication",
+  "description": "Send WhatsApp messages and images from your self-hosted WAHA server.",
+  "website": "https://waha.devlike.pro",
+  "docs_url": "https://waha.devlike.pro/docs/how-to/send-messages/",
+  "base_url": "{{ credentials.base_url }}/api",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "X-Api-Key",
+    "fields": [
+      {
+        "key": "base_url",
+        "label": "Server address",
+        "type": "string",
+        "required": true,
+        "placeholder": "https://waha.example.com",
+        "help": "Where your WAHA server runs. No trailing slash."
+      },
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "The WAHA_API_KEY set on your server."
+      },
+      {
+        "key": "session",
+        "label": "Session name",
+        "type": "string",
+        "required": true,
+        "default": "default",
+        "help": "The WhatsApp session in WAHA (usually 'default')."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "send_text",
+      "name": "Send WhatsApp text",
+      "method": "POST",
+      "endpoint": "/sendText",
+      "body": {
+        "session": "{{ credentials.session }}",
+        "chatId": "{{ inputs.phone }}@c.us",
+        "text": "{{ inputs.text }}"
+      },
+      "output_fields": {
+        "id": "id"
+      },
+      "inputs": [
+        {
+          "key": "phone",
+          "label": "Phone number",
+          "type": "string",
+          "required": true,
+          "placeholder": "923001234567",
+          "help": "Country code + number, digits only."
+        },
+        {
+          "key": "text",
+          "label": "Message",
+          "type": "text",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "send_to_chat",
+      "name": "Send text to a chat or group",
+      "method": "POST",
+      "endpoint": "/sendText",
+      "body": {
+        "session": "{{ credentials.session }}",
+        "chatId": "{{ inputs.chatId }}",
+        "text": "{{ inputs.text }}",
+        "reply_to": "{{ inputs.reply_to }}"
+      },
+      "output_fields": {
+        "id": "id"
+      },
+      "inputs": [
+        {
+          "key": "chatId",
+          "label": "Chat ID",
+          "type": "string",
+          "required": true,
+          "placeholder": "123456789-987654321@g.us",
+          "help": "Groups end with @g.us, people with @c.us."
+        },
+        {
+          "key": "text",
+          "label": "Message",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "reply_to",
+          "label": "Reply to message ID",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "send_image",
+      "name": "Send image",
+      "description": "Sending media may need WAHA Plus.",
+      "method": "POST",
+      "endpoint": "/sendImage",
+      "body": {
+        "session": "{{ credentials.session }}",
+        "chatId": "{{ inputs.phone }}@c.us",
+        "caption": "{{ inputs.caption }}",
+        "file": {
+          "url": "{{ inputs.url }}",
+          "mimetype": "{{ inputs.mimetype }}"
+        }
+      },
+      "output_fields": {
+        "id": "id"
+      },
+      "inputs": [
+        {
+          "key": "phone",
+          "label": "Phone number",
+          "type": "string",
+          "required": true,
+          "placeholder": "923001234567"
+        },
+        {
+          "key": "url",
+          "label": "Image URL",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "mimetype",
+          "label": "MIME type",
+          "type": "string",
+          "default": "image/jpeg"
+        },
+        {
+          "key": "caption",
+          "label": "Caption",
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "key": "check_number",
+      "name": "Check WhatsApp number",
+      "method": "GET",
+      "endpoint": "/contacts/check-exists",
+      "query": {
+        "phone": "{{ inputs.phone }}",
+        "session": "{{ credentials.session }}"
+      },
+      "output_fields": {
+        "exists": "numberExists",
+        "chat_id": "chatId"
+      },
+      "inputs": [
+        {
+          "key": "phone",
+          "label": "Phone number",
+          "type": "string",
+          "required": true,
+          "placeholder": "923001234567"
+        }
+      ]
+    },
+    {
+      "key": "list_sessions",
+      "name": "List sessions",
+      "method": "GET",
+      "endpoint": "/sessions",
+      "query": {
+        "all": "true"
+      },
+      "output_fields": {
+        "names": "*.name",
+        "statuses": "*.status"
+      },
+      "inputs": []
+    },
+    {
+      "key": "get_messages",
+      "name": "Get chat messages",
+      "method": "GET",
+      "endpoint": "/{{ credentials.session }}/chats/{{ inputs.chatId }}/messages",
+      "query": {
+        "limit": "{{ inputs.limit }}",
+        "downloadMedia": "false"
+      },
+      "output_fields": {
+        "latest_body": "0.body",
+        "latest_from": "0.from"
+      },
+      "inputs": [
+        {
+          "key": "chatId",
+          "label": "Chat ID",
+          "type": "string",
+          "required": true,
+          "placeholder": "923001234567@c.us"
+        },
+        {
+          "key": "limit",
+          "label": "Max results",
+          "type": "number",
+          "default": 20
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "WhatsApp event",
+      "type": "webhook",
+      "description": "Add this URL to your WAHA session's webhooks (events: message, message.ack…).",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

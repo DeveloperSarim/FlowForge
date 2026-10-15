@@ -1,0 +1,150 @@
+{
+  "key": "northpass",
+  "name": "Northpass",
+  "category": "Education",
+  "description": "Customer education LMS (Gainsight Northpass): courses, learners and groups.",
+  "website": "https://northpass.com",
+  "docs_url": "https://developers.northpass.com/",
+  "base_url": "https://api.northpass.com/v2",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "X-Api-Key",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "Northpass > Settings > Integrations > API keys: create and copy a key."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_courses",
+      "name": "List courses",
+      "description": "Get your courses.",
+      "method": "GET",
+      "endpoint": "/courses",
+      "query": {
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "courses": "data",
+        "ids": "data.*.id",
+        "names": "data.*.attributes.name"
+      },
+      "inputs": [
+        {
+          "key": "limit",
+          "label": "Max results",
+          "type": "number",
+          "default": 25
+        }
+      ]
+    },
+    {
+      "key": "list_people",
+      "name": "List learners",
+      "description": "Get your learners.",
+      "method": "GET",
+      "endpoint": "/people",
+      "query": {
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "people": "data",
+        "ids": "data.*.id",
+        "emails": "data.*.attributes.email"
+      },
+      "inputs": [
+        {
+          "key": "limit",
+          "label": "Max results",
+          "type": "number",
+          "default": 25
+        }
+      ]
+    },
+    {
+      "key": "get_person",
+      "name": "Get a learner",
+      "description": "Get one learner.",
+      "method": "GET",
+      "endpoint": "/people/{{ inputs.person_id }}",
+      "output_fields": {
+        "id": "data.id",
+        "email": "data.attributes.email"
+      },
+      "inputs": [
+        {
+          "key": "person_id",
+          "label": "Learner ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "create_person",
+      "name": "Create a learner",
+      "description": "Add a learner.",
+      "method": "POST",
+      "endpoint": "/people",
+      "body": {
+        "data": {
+          "type": "people",
+          "attributes": {
+            "email": "{{ inputs.email }}",
+            "first_name": "{{ inputs.first_name }}",
+            "last_name": "{{ inputs.last_name }}"
+          }
+        }
+      },
+      "output_fields": {
+        "id": "data.id"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "first_name",
+          "label": "First name",
+          "type": "string"
+        },
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "list_groups",
+      "name": "List groups",
+      "description": "Get your groups.",
+      "method": "GET",
+      "endpoint": "/groups",
+      "query": {
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "ids": "data.*.id",
+        "names": "data.*.attributes.name"
+      },
+      "inputs": [
+        {
+          "key": "limit",
+          "label": "Max results",
+          "type": "number",
+          "default": 25
+        }
+      ]
+    }
+  ]
+}

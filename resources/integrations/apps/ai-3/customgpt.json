@@ -1,0 +1,172 @@
+{
+  "key": "customgpt",
+  "name": "CustomGPT.ai",
+  "category": "AI",
+  "description": "Build AI agents from your website or docs and chat with them.",
+  "website": "https://customgpt.ai",
+  "docs_url": "https://docs.customgpt.ai/reference/i-api-homepage",
+  "base_url": "https://app.customgpt.ai/api/v1",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "app.customgpt.ai → your profile → API → Create API key."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_agents",
+      "name": "List agents",
+      "description": "List your agents.",
+      "method": "GET",
+      "endpoint": "/projects",
+      "output_fields": {
+        "agents": "data.data"
+      },
+      "inputs": []
+    },
+    {
+      "key": "create_agent",
+      "name": "Create agent from sitemap",
+      "description": "Create an agent that learns from every page in a sitemap.",
+      "method": "POST",
+      "endpoint": "/projects",
+      "body_format": "form",
+      "body": {
+        "project_name": "{{ inputs.project_name }}",
+        "sitemap_path": "{{ inputs.sitemap_path }}"
+      },
+      "output_fields": {
+        "project_id": "data.id"
+      },
+      "inputs": [
+        {
+          "key": "project_name",
+          "label": "Agent name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "sitemap_path",
+          "label": "Sitemap URL",
+          "type": "string",
+          "required": true,
+          "placeholder": "https://example.com/sitemap.xml"
+        }
+      ]
+    },
+    {
+      "key": "create_conversation",
+      "name": "Start conversation",
+      "description": "Start a new conversation and get its session ID.",
+      "method": "POST",
+      "endpoint": "/projects/{{ inputs.project_id }}/conversations",
+      "body": {
+        "name": "{{ inputs.name }}"
+      },
+      "output_fields": {
+        "session_id": "data.session_id"
+      },
+      "inputs": [
+        {
+          "key": "project_id",
+          "label": "Agent ID",
+          "type": "string",
+          "required": true,
+          "help": "CustomGPT → your agent; the number in its URL. Or use List agents."
+        },
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "send_message",
+      "name": "Send message",
+      "description": "Ask the agent a question and get its answer.",
+      "method": "POST",
+      "endpoint": "/projects/{{ inputs.project_id }}/conversations/{{ inputs.session_id }}/messages",
+      "timeout": 180,
+      "body_format": "form",
+      "body": {
+        "prompt": "{{ inputs.prompt }}",
+        "response_source": "{{ inputs.response_source }}"
+      },
+      "output_fields": {
+        "answer": "data.openai_response",
+        "citations": "data.citations"
+      },
+      "inputs": [
+        {
+          "key": "project_id",
+          "label": "Agent ID",
+          "type": "string",
+          "required": true,
+          "help": "CustomGPT → your agent; the number in its URL. Or use List agents."
+        },
+        {
+          "key": "session_id",
+          "label": "Session ID",
+          "type": "string",
+          "required": true,
+          "help": "From Start conversation."
+        },
+        {
+          "key": "prompt",
+          "label": "Message",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "response_source",
+          "label": "Answer from",
+          "type": "select",
+          "default": "default",
+          "options": [
+            {
+              "value": "default",
+              "label": "My content only"
+            },
+            {
+              "value": "openai_content",
+              "label": "My content + general AI knowledge"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "add_sitemap",
+      "name": "Add sitemap to agent",
+      "description": "Teach an existing agent the pages in another sitemap.",
+      "method": "POST",
+      "endpoint": "/projects/{{ inputs.project_id }}/sources",
+      "body_format": "form",
+      "body": {
+        "sitemap_path": "{{ inputs.sitemap_path }}"
+      },
+      "inputs": [
+        {
+          "key": "project_id",
+          "label": "Agent ID",
+          "type": "string",
+          "required": true,
+          "help": "CustomGPT → your agent; the number in its URL. Or use List agents."
+        },
+        {
+          "key": "sitemap_path",
+          "label": "Sitemap URL",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ]
+}

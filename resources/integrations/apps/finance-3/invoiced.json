@@ -1,0 +1,338 @@
+{
+  "key": "invoiced",
+  "name": "Invoiced",
+  "category": "Payments & Finance",
+  "description": "Accounts receivable: customers, invoices, sending invoices and payments.",
+  "website": "https://www.invoiced.com",
+  "docs_url": "https://developer.invoiced.com/api/",
+  "base_url": "https://{{ credentials.host }}",
+  "auth": {
+    "type": "basic",
+    "fields": [
+      {
+        "key": "username",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "Invoiced → Settings → Developers → API Keys → New API key."
+      },
+      {
+        "key": "password",
+        "label": "Password",
+        "type": "password",
+        "required": false,
+        "default": "",
+        "help": "Leave blank."
+      },
+      {
+        "key": "host",
+        "label": "Environment",
+        "type": "select",
+        "required": true,
+        "default": "api.invoiced.com",
+        "options": [
+          {
+            "value": "api.invoiced.com",
+            "label": "Production"
+          },
+          {
+            "value": "api.sandbox.invoiced.com",
+            "label": "Sandbox"
+          }
+        ]
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "create_customer",
+      "name": "Create customer",
+      "description": "Add a customer account.",
+      "method": "POST",
+      "endpoint": "/customers",
+      "body": {
+        "name": "{{ inputs.name }}",
+        "email": "{{ inputs.email }}",
+        "number": "{{ inputs.number }}",
+        "type": "{{ inputs.type }}",
+        "phone": "{{ inputs.phone }}",
+        "address1": "{{ inputs.address1 }}",
+        "city": "{{ inputs.city }}",
+        "state": "{{ inputs.state }}",
+        "postal_code": "{{ inputs.postal_code }}",
+        "country": "{{ inputs.country }}"
+      },
+      "output_fields": {
+        "id": "id",
+        "number": "number"
+      },
+      "inputs": [
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string"
+        },
+        {
+          "key": "number",
+          "label": "Account number",
+          "type": "string",
+          "help": "Leave empty to auto-number."
+        },
+        {
+          "key": "type",
+          "label": "Type",
+          "type": "select",
+          "default": "company",
+          "options": [
+            {
+              "value": "company",
+              "label": "Company"
+            },
+            {
+              "value": "person",
+              "label": "Person"
+            }
+          ]
+        },
+        {
+          "key": "phone",
+          "label": "Phone",
+          "type": "string"
+        },
+        {
+          "key": "address1",
+          "label": "Address",
+          "type": "string"
+        },
+        {
+          "key": "city",
+          "label": "City",
+          "type": "string"
+        },
+        {
+          "key": "state",
+          "label": "State",
+          "type": "string"
+        },
+        {
+          "key": "postal_code",
+          "label": "Postal code",
+          "type": "string"
+        },
+        {
+          "key": "country",
+          "label": "Country code",
+          "type": "string",
+          "placeholder": "US"
+        }
+      ]
+    },
+    {
+      "key": "create_invoice",
+      "name": "Create invoice",
+      "description": "Create an invoice for a customer.",
+      "method": "POST",
+      "endpoint": "/invoices",
+      "body": {
+        "customer": "{{ inputs.customer_id }}",
+        "items": "{{ inputs.items }}",
+        "payment_terms": "{{ inputs.payment_terms }}",
+        "currency": "{{ inputs.currency }}",
+        "notes": "{{ inputs.notes }}",
+        "draft": "{{ inputs.draft }}"
+      },
+      "output_fields": {
+        "id": "id",
+        "number": "number",
+        "status": "status",
+        "total": "total",
+        "url": "url",
+        "payment_url": "payment_url"
+      },
+      "inputs": [
+        {
+          "key": "customer_id",
+          "label": "Customer ID",
+          "type": "number",
+          "required": true,
+          "help": "From Create customer, or the number in the customer's URL in Invoiced."
+        },
+        {
+          "key": "items",
+          "label": "Line items (JSON)",
+          "type": "json",
+          "required": true,
+          "placeholder": "[{\"name\":\"Consulting\",\"quantity\":2,\"unit_cost\":150}]"
+        },
+        {
+          "key": "payment_terms",
+          "label": "Payment terms",
+          "type": "string",
+          "placeholder": "NET 30"
+        },
+        {
+          "key": "currency",
+          "label": "Currency",
+          "type": "string",
+          "placeholder": "usd"
+        },
+        {
+          "key": "notes",
+          "label": "Notes",
+          "type": "text"
+        },
+        {
+          "key": "draft",
+          "label": "Save as draft",
+          "type": "boolean",
+          "default": false
+        }
+      ]
+    },
+    {
+      "key": "get_invoice",
+      "name": "Get invoice",
+      "description": "Look up an invoice and its balance.",
+      "method": "GET",
+      "endpoint": "/invoices/{{ inputs.invoice_id }}",
+      "output_fields": {
+        "status": "status",
+        "balance": "balance",
+        "total": "total",
+        "paid": "paid"
+      },
+      "inputs": [
+        {
+          "key": "invoice_id",
+          "label": "Invoice ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "send_invoice",
+      "name": "Email invoice",
+      "description": "Email an invoice to the customer.",
+      "method": "POST",
+      "endpoint": "/invoices/{{ inputs.invoice_id }}/emails",
+      "body": {
+        "to": [
+          {
+            "name": "{{ inputs.to_name }}",
+            "email": "{{ inputs.to_email }}"
+          }
+        ],
+        "subject": "{{ inputs.subject }}",
+        "message": "{{ inputs.message }}"
+      },
+      "inputs": [
+        {
+          "key": "invoice_id",
+          "label": "Invoice ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "to_email",
+          "label": "To email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "to_name",
+          "label": "To name",
+          "type": "string"
+        },
+        {
+          "key": "subject",
+          "label": "Subject",
+          "type": "string"
+        },
+        {
+          "key": "message",
+          "label": "Message",
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "key": "void_invoice",
+      "name": "Void invoice",
+      "description": "Void an invoice.",
+      "method": "POST",
+      "endpoint": "/invoices/{{ inputs.invoice_id }}/void",
+      "output_fields": {
+        "status": "status"
+      },
+      "inputs": [
+        {
+          "key": "invoice_id",
+          "label": "Invoice ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_invoices",
+      "name": "List invoices",
+      "description": "Newest invoices first.",
+      "method": "GET",
+      "endpoint": "/invoices",
+      "query": {
+        "sort": "id DESC",
+        "per_page": "{{ inputs.per_page }}"
+      },
+      "inputs": [
+        {
+          "key": "per_page",
+          "label": "How many",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_invoice",
+      "name": "New invoice",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/invoices",
+      "query": {
+        "sort": "id DESC",
+        "per_page": 50
+      },
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    },
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Invoiced → Settings → Developers → Webhooks → New webhook, paste this URL.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

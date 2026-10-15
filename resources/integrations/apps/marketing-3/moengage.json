@@ -1,0 +1,202 @@
+{
+  "key": "moengage",
+  "name": "MoEngage",
+  "category": "Marketing & Email",
+  "description": "Customer engagement: create or update users, track events, delete users.",
+  "website": "https://www.moengage.com",
+  "docs_url": "https://www.moengage.com/docs/api/data/data-overview",
+  "base_url": "https://api-{{ credentials.dc }}.moengage.com/v1",
+  "auth": {
+    "type": "basic",
+    "fields": [
+      {
+        "key": "dc",
+        "label": "Data center",
+        "type": "select",
+        "required": true,
+        "default": "01",
+        "help": "Shown in your dashboard address, e.g. dashboard-01.moengage.com → 01.",
+        "options": [
+          {
+            "value": "01",
+            "label": "DC 01"
+          },
+          {
+            "value": "02",
+            "label": "DC 02"
+          },
+          {
+            "value": "03",
+            "label": "DC 03"
+          },
+          {
+            "value": "04",
+            "label": "DC 04"
+          },
+          {
+            "value": "05",
+            "label": "DC 05"
+          },
+          {
+            "value": "06",
+            "label": "DC 06"
+          },
+          {
+            "value": "101",
+            "label": "DC 101"
+          }
+        ]
+      },
+      {
+        "key": "username",
+        "label": "Workspace ID",
+        "type": "string",
+        "required": true,
+        "help": "MoEngage → Settings → Account → APIs → Workspace ID (earlier: App ID)."
+      },
+      {
+        "key": "password",
+        "label": "Data API key",
+        "type": "password",
+        "required": true,
+        "help": "Same page → Data tile → API key."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "track_user",
+      "name": "Create or update user",
+      "description": "Create a user, or update the attributes of an existing one.",
+      "method": "POST",
+      "endpoint": "/customer/{{ credentials.username }}",
+      "error_path": "error.message",
+      "body": {
+        "type": "customer",
+        "customer_id": "{{ inputs.customer_id }}",
+        "attributes": {
+          "name": "{{ inputs.name }}",
+          "first_name": "{{ inputs.first_name }}",
+          "last_name": "{{ inputs.last_name }}",
+          "email": "{{ inputs.email }}",
+          "mobile": "{{ inputs.mobile }}",
+          "...": "{{ inputs.attributes }}"
+        }
+      },
+      "output_fields": {
+        "status": "status",
+        "message": "message"
+      },
+      "inputs": [
+        {
+          "key": "customer_id",
+          "label": "Customer ID",
+          "type": "string",
+          "required": true,
+          "help": "Your unique ID for this user (often the email)."
+        },
+        {
+          "key": "name",
+          "label": "Full name",
+          "type": "string"
+        },
+        {
+          "key": "first_name",
+          "label": "First name",
+          "type": "string"
+        },
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string"
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string"
+        },
+        {
+          "key": "mobile",
+          "label": "Mobile number",
+          "type": "string",
+          "placeholder": "+14155551234"
+        },
+        {
+          "key": "attributes",
+          "label": "Other attributes",
+          "type": "keyvalue"
+        }
+      ]
+    },
+    {
+      "key": "track_event",
+      "name": "Track event",
+      "description": "Record an action a user took, e.g. Order Placed.",
+      "method": "POST",
+      "endpoint": "/event/{{ credentials.username }}",
+      "error_path": "error.message",
+      "body": {
+        "type": "event",
+        "customer_id": "{{ inputs.customer_id }}",
+        "actions": [
+          {
+            "action": "{{ inputs.action }}",
+            "attributes": "{{ inputs.attributes }}"
+          }
+        ]
+      },
+      "output_fields": {
+        "status": "status",
+        "message": "message"
+      },
+      "inputs": [
+        {
+          "key": "customer_id",
+          "label": "Customer ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "action",
+          "label": "Event name",
+          "type": "string",
+          "required": true,
+          "placeholder": "Order Placed"
+        },
+        {
+          "key": "attributes",
+          "label": "Event attributes",
+          "type": "keyvalue"
+        }
+      ]
+    },
+    {
+      "key": "delete_user",
+      "name": "Delete user",
+      "description": "Delete a user (removed for good after 24 hours).",
+      "method": "POST",
+      "endpoint": "/customer/delete",
+      "error_path": "error.message",
+      "query": {
+        "app_id": "{{ credentials.username }}"
+      },
+      "body": {
+        "identity_type": "customer_id",
+        "identity_value": "{{ inputs.customer_id }}"
+      },
+      "output_fields": {
+        "status": "status",
+        "message": "message"
+      },
+      "inputs": [
+        {
+          "key": "customer_id",
+          "label": "Customer ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": []
+}

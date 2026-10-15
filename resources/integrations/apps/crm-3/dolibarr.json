@@ -1,0 +1,321 @@
+{
+  "key": "dolibarr",
+  "name": "Dolibarr",
+  "category": "CRM & Sales",
+  "description": "Create and find third parties (customers, prospects) and contacts in Dolibarr ERP CRM.",
+  "website": "https://www.dolibarr.org",
+  "docs_url": "https://wiki.dolibarr.org/index.php?title=Module_Web_Services_API_REST_(developer)",
+  "base_url": "{{ credentials.site_url }}/api/index.php",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "DOLAPIKEY",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "Enable the API REST module, then open your user card → Edit → API key (generate one)."
+      },
+      {
+        "key": "site_url",
+        "label": "Dolibarr URL",
+        "type": "string",
+        "required": true,
+        "placeholder": "https://erp.example.com",
+        "help": "The address you open Dolibarr at (without /index.php)."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "create_thirdparty",
+      "name": "Create third party",
+      "description": "Adds a company or person as customer and/or prospect. Returns the new ID.",
+      "method": "POST",
+      "endpoint": "/thirdparties",
+      "body": {
+        "name": "{{ inputs.name }}",
+        "client": "{{ inputs.client }}",
+        "email": "{{ inputs.email }}",
+        "phone": "{{ inputs.phone }}",
+        "address": "{{ inputs.address }}",
+        "zip": "{{ inputs.zip }}",
+        "town": "{{ inputs.town }}",
+        "url": "{{ inputs.url }}",
+        "code_client": "{{ inputs.code_client }}",
+        "note_private": "{{ inputs.note_private }}"
+      },
+      "inputs": [
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "client",
+          "label": "Type",
+          "type": "select",
+          "default": "2",
+          "options": [
+            {
+              "value": "2",
+              "label": "Prospect"
+            },
+            {
+              "value": "1",
+              "label": "Customer"
+            },
+            {
+              "value": "3",
+              "label": "Customer and prospect"
+            },
+            {
+              "value": "0",
+              "label": "Neither"
+            }
+          ]
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string"
+        },
+        {
+          "key": "phone",
+          "label": "Phone",
+          "type": "string"
+        },
+        {
+          "key": "address",
+          "label": "Address",
+          "type": "string"
+        },
+        {
+          "key": "zip",
+          "label": "ZIP code",
+          "type": "string"
+        },
+        {
+          "key": "town",
+          "label": "City",
+          "type": "string"
+        },
+        {
+          "key": "url",
+          "label": "Website",
+          "type": "string"
+        },
+        {
+          "key": "code_client",
+          "label": "Customer code",
+          "type": "string",
+          "default": "-1",
+          "help": "-1 = generate automatically."
+        },
+        {
+          "key": "note_private",
+          "label": "Private note",
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "key": "update_thirdparty",
+      "name": "Update third party",
+      "method": "PUT",
+      "endpoint": "/thirdparties/{{ inputs.id }}",
+      "body": {
+        "name": "{{ inputs.name }}",
+        "email": "{{ inputs.email }}",
+        "phone": "{{ inputs.phone }}",
+        "address": "{{ inputs.address }}",
+        "zip": "{{ inputs.zip }}",
+        "town": "{{ inputs.town }}",
+        "url": "{{ inputs.url }}"
+      },
+      "output_fields": {
+        "id": "id",
+        "name": "name"
+      },
+      "inputs": [
+        {
+          "key": "id",
+          "label": "Third party ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string"
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string"
+        },
+        {
+          "key": "phone",
+          "label": "Phone",
+          "type": "string"
+        },
+        {
+          "key": "address",
+          "label": "Address",
+          "type": "string"
+        },
+        {
+          "key": "zip",
+          "label": "ZIP code",
+          "type": "string"
+        },
+        {
+          "key": "town",
+          "label": "City",
+          "type": "string"
+        },
+        {
+          "key": "url",
+          "label": "Website",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "get_thirdparty",
+      "name": "Get third party",
+      "method": "GET",
+      "endpoint": "/thirdparties/{{ inputs.id }}",
+      "output_fields": {
+        "id": "id",
+        "name": "name",
+        "email": "email"
+      },
+      "inputs": [
+        {
+          "key": "id",
+          "label": "Third party ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "find_thirdparty_by_email",
+      "name": "Find third party by email",
+      "method": "GET",
+      "endpoint": "/thirdparties/email/{{ inputs.email }}",
+      "output_fields": {
+        "id": "id",
+        "name": "name"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "create_contact",
+      "name": "Create contact",
+      "description": "Adds a contact person. Returns the new ID.",
+      "method": "POST",
+      "endpoint": "/contacts",
+      "body": {
+        "lastname": "{{ inputs.lastname }}",
+        "firstname": "{{ inputs.firstname }}",
+        "email": "{{ inputs.email }}",
+        "phone_pro": "{{ inputs.phone_pro }}",
+        "phone_mobile": "{{ inputs.phone_mobile }}",
+        "poste": "{{ inputs.poste }}",
+        "socid": "{{ inputs.socid }}"
+      },
+      "inputs": [
+        {
+          "key": "lastname",
+          "label": "Last name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "firstname",
+          "label": "First name",
+          "type": "string"
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string"
+        },
+        {
+          "key": "phone_pro",
+          "label": "Work phone",
+          "type": "string"
+        },
+        {
+          "key": "phone_mobile",
+          "label": "Mobile",
+          "type": "string"
+        },
+        {
+          "key": "poste",
+          "label": "Job title",
+          "type": "string"
+        },
+        {
+          "key": "socid",
+          "label": "Third party ID",
+          "type": "number",
+          "help": "Company the contact belongs to."
+        }
+      ]
+    },
+    {
+      "key": "find_contact_by_email",
+      "name": "Find contact by email",
+      "method": "GET",
+      "endpoint": "/contacts/email/{{ inputs.email }}",
+      "output_fields": {
+        "id": "id",
+        "socid": "socid"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_thirdparty",
+      "name": "New third party",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/thirdparties",
+      "query": {
+        "sortfield": "t.rowid",
+        "sortorder": "DESC",
+        "limit": 50
+      },
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

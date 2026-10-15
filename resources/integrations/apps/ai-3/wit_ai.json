@@ -1,0 +1,155 @@
+{
+  "key": "wit_ai",
+  "name": "Wit.ai",
+  "category": "AI",
+  "description": "Meta's free natural-language API: get intents and entities from user messages.",
+  "website": "https://wit.ai",
+  "docs_url": "https://wit.ai/docs/http/20240304",
+  "base_url": "https://api.wit.ai",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "Server access token",
+        "type": "password",
+        "required": true,
+        "help": "wit.ai → your app → Management → Settings → Server Access Token."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "understand",
+      "name": "Understand message",
+      "description": "Get the intent, entities and traits of a sentence.",
+      "method": "GET",
+      "endpoint": "/message",
+      "query": {
+        "q": "{{ inputs.q }}",
+        "v": "20240304"
+      },
+      "output_fields": {
+        "intent": "intents.0.name",
+        "confidence": "intents.0.confidence",
+        "entities": "entities",
+        "traits": "traits"
+      },
+      "inputs": [
+        {
+          "key": "q",
+          "label": "Message",
+          "type": "text",
+          "required": true,
+          "help": "Up to 280 characters."
+        }
+      ]
+    },
+    {
+      "key": "detect_language",
+      "name": "Detect language",
+      "description": "Detect the language (locale) of a text.",
+      "method": "GET",
+      "endpoint": "/language",
+      "query": {
+        "q": "{{ inputs.q }}",
+        "n": "{{ inputs.n }}",
+        "v": "20240304"
+      },
+      "output_fields": {
+        "locale": "detected_locales.0.locale",
+        "confidence": "detected_locales.0.confidence"
+      },
+      "inputs": [
+        {
+          "key": "q",
+          "label": "Text",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "n",
+          "label": "Max languages",
+          "type": "number",
+          "default": 1
+        }
+      ]
+    },
+    {
+      "key": "list_intents",
+      "name": "List intents",
+      "description": "List the intents of your app.",
+      "method": "GET",
+      "endpoint": "/intents",
+      "query": {
+        "v": "20240304"
+      },
+      "output_fields": {
+        "intents": "*.name"
+      },
+      "inputs": []
+    },
+    {
+      "key": "create_intent",
+      "name": "Create intent",
+      "description": "Add a new intent to your app.",
+      "method": "POST",
+      "endpoint": "/intents",
+      "query": {
+        "v": "20240304"
+      },
+      "body": {
+        "name": "{{ inputs.name }}"
+      },
+      "output_fields": {
+        "id": "id",
+        "name": "name"
+      },
+      "inputs": [
+        {
+          "key": "name",
+          "label": "Intent name",
+          "type": "string",
+          "required": true,
+          "placeholder": "book_table"
+        }
+      ]
+    },
+    {
+      "key": "train_utterance",
+      "name": "Train with example",
+      "description": "Teach the app that a sentence means an intent.",
+      "method": "POST",
+      "endpoint": "/utterances",
+      "query": {
+        "v": "20240304"
+      },
+      "body": [
+        {
+          "text": "{{ inputs.text }}",
+          "intent": "{{ inputs.intent }}",
+          "entities": [],
+          "traits": []
+        }
+      ],
+      "output_fields": {
+        "sent": "sent",
+        "count": "n"
+      },
+      "inputs": [
+        {
+          "key": "text",
+          "label": "Example sentence",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "intent",
+          "label": "Intent",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ]
+}

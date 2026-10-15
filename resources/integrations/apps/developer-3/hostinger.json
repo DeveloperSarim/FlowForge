@@ -1,0 +1,203 @@
+{
+  "key": "hostinger",
+  "name": "Hostinger",
+  "category": "Developer Tools",
+  "description": "Manage Hostinger websites, VPS servers, domains, DNS and cache.",
+  "brand": "hostinger",
+  "website": "https://www.hostinger.com",
+  "docs_url": "https://docs.hostinger.com/api-reference/overview",
+  "base_url": "https://developers.hostinger.com/api",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "API token",
+        "type": "password",
+        "required": true,
+        "help": "hPanel → Profile → API (hpanel.hostinger.com/profile/api) → Generate token."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_websites",
+      "name": "List websites",
+      "description": "List the websites on your hosting plans.",
+      "method": "GET",
+      "endpoint": "/hosting/v1/websites",
+      "query": {
+        "domain": "{{ inputs.domain }}",
+        "username": "{{ inputs.username }}",
+        "page": "{{ inputs.page }}",
+        "per_page": "{{ inputs.per_page }}"
+      },
+      "output_fields": {
+        "websites": "data",
+        "total": "meta.total"
+      },
+      "inputs": [
+        {
+          "key": "domain",
+          "label": "Domain filter",
+          "type": "string",
+          "placeholder": "example.com"
+        },
+        {
+          "key": "username",
+          "label": "Hosting account username",
+          "type": "string",
+          "help": "Optional. Shown as username in each website (e.g. u123456789)."
+        },
+        {
+          "key": "page",
+          "label": "Page",
+          "type": "number"
+        },
+        {
+          "key": "per_page",
+          "label": "Per page",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    },
+    {
+      "key": "clear_website_cache",
+      "name": "Clear website cache",
+      "description": "Clear all server-side cache for a website.",
+      "method": "DELETE",
+      "endpoint": "/hosting/v1/accounts/{{ inputs.username }}/websites/{{ inputs.domain }}/cache/clear",
+      "output_fields": {
+        "message": "message"
+      },
+      "inputs": [
+        {
+          "key": "username",
+          "label": "Hosting account username",
+          "type": "string",
+          "required": true,
+          "help": "Use List websites: it's the username of the website (e.g. u123456789)."
+        },
+        {
+          "key": "domain",
+          "label": "Website domain",
+          "type": "string",
+          "required": true,
+          "placeholder": "example.com"
+        }
+      ]
+    },
+    {
+      "key": "list_vps",
+      "name": "List VPS servers",
+      "description": "List your VPS virtual machines.",
+      "method": "GET",
+      "endpoint": "/vps/v1/virtual-machines",
+      "inputs": []
+    },
+    {
+      "key": "get_vps",
+      "name": "Get VPS server",
+      "description": "Get a VPS's state, plan, IPs and resources.",
+      "method": "GET",
+      "endpoint": "/vps/v1/virtual-machines/{{ inputs.vm_id }}",
+      "output_fields": {
+        "hostname": "hostname",
+        "state": "state",
+        "plan": "plan",
+        "ipv4": "ipv4"
+      },
+      "inputs": [
+        {
+          "key": "vm_id",
+          "label": "VPS ID",
+          "type": "string",
+          "required": true,
+          "help": "Numeric ID from List VPS servers."
+        }
+      ]
+    },
+    {
+      "key": "restart_vps",
+      "name": "Restart VPS server",
+      "description": "Restart a VPS virtual machine.",
+      "method": "POST",
+      "endpoint": "/vps/v1/virtual-machines/{{ inputs.vm_id }}/restart",
+      "output_fields": {
+        "action_id": "id",
+        "state": "state"
+      },
+      "inputs": [
+        {
+          "key": "vm_id",
+          "label": "VPS ID",
+          "type": "string",
+          "required": true,
+          "help": "Numeric ID from List VPS servers."
+        }
+      ]
+    },
+    {
+      "key": "list_domains",
+      "name": "List domains",
+      "description": "List the domains in your account with their status and expiry.",
+      "method": "GET",
+      "endpoint": "/domains/v1/portfolio",
+      "inputs": []
+    },
+    {
+      "key": "check_domain_availability",
+      "name": "Check domain availability",
+      "description": "Check if a domain name is available on several extensions.",
+      "method": "POST",
+      "endpoint": "/domains/v1/availability",
+      "body": {
+        "domain": "{{ inputs.domain }}",
+        "tlds": "{{ inputs.tlds }}",
+        "with_alternatives": "{{ inputs.with_alternatives }}"
+      },
+      "inputs": [
+        {
+          "key": "domain",
+          "label": "Domain name (without extension)",
+          "type": "string",
+          "required": true,
+          "placeholder": "mybusiness"
+        },
+        {
+          "key": "tlds",
+          "label": "Extensions",
+          "type": "list",
+          "required": true,
+          "default": [
+            "com"
+          ],
+          "help": "Without the dot, e.g. com, net, org."
+        },
+        {
+          "key": "with_alternatives",
+          "label": "Suggest alternatives",
+          "type": "boolean",
+          "default": false
+        }
+      ]
+    },
+    {
+      "key": "get_dns_records",
+      "name": "Get DNS records",
+      "description": "List the DNS records of a domain hosted on Hostinger nameservers.",
+      "method": "GET",
+      "endpoint": "/dns/v1/zones/{{ inputs.domain }}",
+      "inputs": [
+        {
+          "key": "domain",
+          "label": "Domain",
+          "type": "string",
+          "required": true,
+          "placeholder": "example.com"
+        }
+      ]
+    }
+  ]
+}

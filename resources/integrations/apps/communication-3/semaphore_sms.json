@@ -1,0 +1,242 @@
+{
+  "key": "semaphore_sms",
+  "name": "Semaphore SMS",
+  "category": "Communication",
+  "description": "Philippine SMS gateway: send regular, priority and OTP texts, check credits.",
+  "website": "https://semaphore.co",
+  "docs_url": "https://semaphore.co/docs",
+  "base_url": "https://api.semaphore.co/api/v4",
+  "auth": {
+    "type": "api_key",
+    "in": "query",
+    "name": "apikey",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "semaphore.co → log in → Account → API: copy your API key."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "send_sms",
+      "name": "Send SMS",
+      "description": "Send a text to one or more numbers (bulk queue).",
+      "method": "POST",
+      "endpoint": "/messages",
+      "body_format": "form",
+      "body": {
+        "number": "{{ inputs.number }}",
+        "message": "{{ inputs.message }}",
+        "sendername": "{{ inputs.sendername }}"
+      },
+      "output_fields": {
+        "message_id": "0.message_id",
+        "status": "0.status",
+        "recipient": "0.recipient"
+      },
+      "inputs": [
+        {
+          "key": "number",
+          "label": "Mobile number(s)",
+          "type": "string",
+          "required": true,
+          "placeholder": "09171234567",
+          "help": "Several numbers: separate with commas (up to 1,000)."
+        },
+        {
+          "key": "message",
+          "label": "Message",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "sendername",
+          "label": "Sender name",
+          "type": "string",
+          "help": "Leave empty for your default approved sender name."
+        }
+      ]
+    },
+    {
+      "key": "send_priority",
+      "name": "Send priority SMS",
+      "description": "Send a time-sensitive text that skips the queue (costs more).",
+      "method": "POST",
+      "endpoint": "/priority",
+      "body_format": "form",
+      "body": {
+        "number": "{{ inputs.number }}",
+        "message": "{{ inputs.message }}",
+        "sendername": "{{ inputs.sendername }}"
+      },
+      "output_fields": {
+        "message_id": "0.message_id",
+        "status": "0.status"
+      },
+      "inputs": [
+        {
+          "key": "number",
+          "label": "Mobile number",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "message",
+          "label": "Message",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "sendername",
+          "label": "Sender name",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "send_otp",
+      "name": "Send OTP",
+      "description": "Send a one-time password; Semaphore generates the code unless you pass one.",
+      "method": "POST",
+      "endpoint": "/otp",
+      "body_format": "form",
+      "body": {
+        "number": "{{ inputs.number }}",
+        "message": "{{ inputs.message }}",
+        "code": "{{ inputs.code }}",
+        "sendername": "{{ inputs.sendername }}"
+      },
+      "output_fields": {
+        "code": "0.code",
+        "message_id": "0.message_id",
+        "status": "0.status"
+      },
+      "inputs": [
+        {
+          "key": "number",
+          "label": "Mobile number",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "message",
+          "label": "Message",
+          "type": "text",
+          "required": true,
+          "default": "Your verification code is {otp}.",
+          "help": "Put {otp} where the code should appear."
+        },
+        {
+          "key": "code",
+          "label": "Your own code",
+          "type": "string",
+          "help": "Optional."
+        },
+        {
+          "key": "sendername",
+          "label": "Sender name",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "get_message",
+      "name": "Get message",
+      "description": "Delivery status of a sent message.",
+      "method": "GET",
+      "endpoint": "/messages/{{ inputs.id }}",
+      "output_fields": {
+        "status": "0.status",
+        "network": "0.network",
+        "recipient": "0.recipient"
+      },
+      "inputs": [
+        {
+          "key": "id",
+          "label": "Message ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_messages",
+      "name": "List messages",
+      "description": "Sent messages, filtered by date or status.",
+      "method": "GET",
+      "endpoint": "/messages",
+      "query": {
+        "limit": "{{ inputs.limit }}",
+        "startDate": "{{ inputs.start_date }}",
+        "endDate": "{{ inputs.end_date }}",
+        "status": "{{ inputs.status }}"
+      },
+      "output_fields": {
+        "ids": "*.message_id",
+        "statuses": "*.status"
+      },
+      "inputs": [
+        {
+          "key": "limit",
+          "label": "How many",
+          "type": "number",
+          "default": 100
+        },
+        {
+          "key": "start_date",
+          "label": "From date",
+          "type": "string",
+          "placeholder": "2026-01-01"
+        },
+        {
+          "key": "end_date",
+          "label": "To date",
+          "type": "string",
+          "placeholder": "2026-01-31"
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "default": "",
+          "options": [
+            {
+              "value": "",
+              "label": "Any"
+            },
+            {
+              "value": "pending",
+              "label": "Pending"
+            },
+            {
+              "value": "sent",
+              "label": "Sent"
+            },
+            {
+              "value": "failed",
+              "label": "Failed"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "get_account",
+      "name": "Get account balance",
+      "description": "Your remaining credits (1 credit = 1 SMS).",
+      "method": "GET",
+      "endpoint": "/account",
+      "output_fields": {
+        "credit_balance": "credit_balance",
+        "account_name": "account_name",
+        "status": "status"
+      },
+      "inputs": []
+    }
+  ],
+  "triggers": []
+}

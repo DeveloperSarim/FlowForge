@@ -1,0 +1,133 @@
+{
+  "key": "adjust",
+  "name": "Adjust",
+  "category": "Analytics",
+  "description": "Pull Adjust mobile attribution reports: installs, sessions, revenue and cost.",
+  "website": "https://www.adjust.com",
+  "docs_url": "https://dev.adjust.com/en/api/rs-api",
+  "base_url": "https://automate.adjust.com",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "API token",
+        "type": "password",
+        "required": true,
+        "help": "Adjust Suite → settings icon (bottom left) → Account settings → My profile → API token."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "get_report",
+      "name": "Get report",
+      "description": "Aggregated KPIs grouped by the dimensions you pick.",
+      "method": "GET",
+      "endpoint": "/reports-service/report",
+      "query": {
+        "app_token__in": "{{ inputs.app_token }}",
+        "date_period": "{{ inputs.date_period }}",
+        "dimensions": "{{ inputs.dimensions }}",
+        "metrics": "{{ inputs.metrics }}",
+        "country_code__in": "{{ inputs.country_code }}"
+      },
+      "output_fields": {
+        "rows": "rows",
+        "totals": "totals",
+        "warnings": "warnings"
+      },
+      "inputs": [
+        {
+          "key": "app_token",
+          "label": "App tokens",
+          "type": "string",
+          "placeholder": "abc123xyz",
+          "help": "Comma-separated app tokens. Use 'List apps' to find them. Empty = all apps."
+        },
+        {
+          "key": "date_period",
+          "label": "Date range",
+          "type": "string",
+          "required": true,
+          "placeholder": "2025-01-01:2025-01-31",
+          "help": "YYYY-MM-DD:YYYY-MM-DD"
+        },
+        {
+          "key": "dimensions",
+          "label": "Group by",
+          "type": "string",
+          "required": true,
+          "default": "day,app",
+          "help": "e.g. day, app, partner_name, campaign, country"
+        },
+        {
+          "key": "metrics",
+          "label": "Metrics",
+          "type": "string",
+          "required": true,
+          "default": "installs,clicks,sessions",
+          "help": "e.g. installs, clicks, impressions, sessions, network_cost, revenue"
+        },
+        {
+          "key": "country_code",
+          "label": "Countries",
+          "type": "string",
+          "placeholder": "us,gb",
+          "help": "Optional comma-separated country codes."
+        }
+      ]
+    },
+    {
+      "key": "list_apps",
+      "name": "List apps",
+      "description": "Apps in your account with their tokens.",
+      "method": "GET",
+      "endpoint": "/reports-service/filters_data",
+      "query": {
+        "required_filters": "apps",
+        "apps__contains": "{{ inputs.search }}"
+      },
+      "output_fields": {
+        "apps": "apps",
+        "app_tokens": "apps.*.id",
+        "names": "apps.*.name"
+      },
+      "inputs": [
+        {
+          "key": "search",
+          "label": "Name contains",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "list_events",
+      "name": "List events",
+      "description": "Tracked in-app events and their slugs for reports.",
+      "method": "GET",
+      "endpoint": "/reports-service/events",
+      "query": {
+        "events__contains": "{{ inputs.search }}",
+        "app_token__in": "{{ inputs.app_token }}"
+      },
+      "output_fields": {
+        "slugs": "*.id",
+        "names": "*.name"
+      },
+      "inputs": [
+        {
+          "key": "search",
+          "label": "Event name contains",
+          "type": "string"
+        },
+        {
+          "key": "app_token",
+          "label": "App tokens",
+          "type": "string",
+          "help": "Comma-separated; empty = all apps."
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,215 @@
+{
+  "key": "userlist",
+  "name": "Userlist",
+  "category": "Marketing & Email",
+  "description": "Email automation for SaaS: sync users and companies, track events, send emails.",
+  "website": "https://userlist.com",
+  "docs_url": "https://userlist.com/docs/developers/push-api/",
+  "base_url": "https://push.userlist.com",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "Authorization",
+    "prefix": "Push ",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "Push API key",
+        "type": "password",
+        "required": true,
+        "help": "Userlist → Settings → Push API → copy the Push Key."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "upsert_user",
+      "name": "Create or update user",
+      "description": "Send a user and their properties to Userlist.",
+      "method": "POST",
+      "endpoint": "/users",
+      "body": {
+        "identifier": "{{ inputs.identifier }}",
+        "email": "{{ inputs.email }}",
+        "signed_up_at": "{{ inputs.signed_up_at }}",
+        "properties": "{{ inputs.properties }}",
+        "company": "{{ inputs.company_identifier }}"
+      },
+      "inputs": [
+        {
+          "key": "identifier",
+          "label": "User ID",
+          "type": "string",
+          "help": "Your app's ID for this user. Fill this or the email."
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string"
+        },
+        {
+          "key": "signed_up_at",
+          "label": "Signed up at",
+          "type": "string",
+          "placeholder": "2026-01-31T10:00:00Z"
+        },
+        {
+          "key": "properties",
+          "label": "Properties",
+          "type": "keyvalue",
+          "help": "e.g. name = Jane, plan = pro."
+        },
+        {
+          "key": "company_identifier",
+          "label": "Company ID",
+          "type": "string",
+          "help": "Optional: links the user to this company."
+        }
+      ]
+    },
+    {
+      "key": "track_event",
+      "name": "Track event",
+      "description": "Record something a user did, e.g. project_created.",
+      "method": "POST",
+      "endpoint": "/events",
+      "body": {
+        "name": "{{ inputs.name }}",
+        "user": "{{ inputs.user }}",
+        "company": "{{ inputs.company }}",
+        "occurred_at": "{{ inputs.occurred_at }}",
+        "properties": "{{ inputs.properties }}"
+      },
+      "inputs": [
+        {
+          "key": "name",
+          "label": "Event name",
+          "type": "string",
+          "required": true,
+          "placeholder": "project_created"
+        },
+        {
+          "key": "user",
+          "label": "User ID",
+          "type": "string",
+          "help": "Fill the user or the company."
+        },
+        {
+          "key": "company",
+          "label": "Company ID",
+          "type": "string"
+        },
+        {
+          "key": "occurred_at",
+          "label": "Occurred at",
+          "type": "string",
+          "help": "Leave empty for now."
+        },
+        {
+          "key": "properties",
+          "label": "Properties",
+          "type": "keyvalue"
+        }
+      ]
+    },
+    {
+      "key": "upsert_company",
+      "name": "Create or update company",
+      "description": "Send a company (account) and its properties.",
+      "method": "POST",
+      "endpoint": "/companies",
+      "body": {
+        "identifier": "{{ inputs.identifier }}",
+        "name": "{{ inputs.name }}",
+        "signed_up_at": "{{ inputs.signed_up_at }}",
+        "properties": "{{ inputs.properties }}"
+      },
+      "inputs": [
+        {
+          "key": "identifier",
+          "label": "Company ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string"
+        },
+        {
+          "key": "signed_up_at",
+          "label": "Signed up at",
+          "type": "string"
+        },
+        {
+          "key": "properties",
+          "label": "Properties",
+          "type": "keyvalue"
+        }
+      ]
+    },
+    {
+      "key": "send_message",
+      "name": "Send transactional email",
+      "description": "Send a transactional message using a Userlist template.",
+      "method": "POST",
+      "endpoint": "/messages",
+      "body": {
+        "template": "{{ inputs.template }}",
+        "user": "{{ inputs.user }}",
+        "to": "{{ inputs.to }}",
+        "properties": "{{ inputs.properties }}"
+      },
+      "inputs": [
+        {
+          "key": "template",
+          "label": "Template ID",
+          "type": "string",
+          "required": true,
+          "help": "Userlist → Messages → Transactional → open the template; its identifier is shown in the API section."
+        },
+        {
+          "key": "user",
+          "label": "User ID",
+          "type": "string",
+          "help": "Fill the user or an email address."
+        },
+        {
+          "key": "to",
+          "label": "Email address",
+          "type": "string"
+        },
+        {
+          "key": "properties",
+          "label": "Template data",
+          "type": "keyvalue"
+        }
+      ]
+    },
+    {
+      "key": "delete_user",
+      "name": "Delete user",
+      "description": "Remove a user and their data from Userlist.",
+      "method": "DELETE",
+      "endpoint": "/users",
+      "body": {
+        "identifier": "{{ inputs.identifier }}",
+        "email": "{{ inputs.email }}"
+      },
+      "inputs": [
+        {
+          "key": "identifier",
+          "label": "User ID",
+          "type": "string",
+          "help": "Fill this or the email."
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string"
+        }
+      ]
+    }
+  ],
+  "triggers": []
+}

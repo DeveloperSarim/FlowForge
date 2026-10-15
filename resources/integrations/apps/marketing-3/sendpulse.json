@@ -1,0 +1,153 @@
+{
+  "key": "sendpulse",
+  "name": "SendPulse",
+  "category": "Marketing & Email",
+  "description": "Email marketing: manage address books, subscribers and campaigns.",
+  "website": "https://sendpulse.com",
+  "docs_url": "https://sendpulse.com/integrations/api",
+  "base_url": "https://api.sendpulse.com",
+  "auth": {
+    "type": "oauth2_client_credentials",
+    "token_url": "https://api.sendpulse.com/oauth/access_token",
+    "fields": [
+      {
+        "key": "client_id",
+        "label": "API ID",
+        "type": "string",
+        "required": true,
+        "help": "SendPulse → Account settings → API → copy the ID."
+      },
+      {
+        "key": "client_secret",
+        "label": "API secret",
+        "type": "password",
+        "required": true,
+        "help": "Same page; copy the Secret."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_address_books",
+      "name": "List address books",
+      "description": "Your mailing lists.",
+      "method": "GET",
+      "endpoint": "/addressbooks",
+      "output_fields": {
+        "address_books": "$"
+      },
+      "inputs": []
+    },
+    {
+      "key": "add_emails",
+      "name": "Add subscribers",
+      "description": "Add an email to an address book.",
+      "method": "POST",
+      "endpoint": "/addressbooks/{{ inputs.book_id }}/emails",
+      "body": {
+        "emails": [
+          {
+            "email": "{{ inputs.email }}"
+          }
+        ]
+      },
+      "output_fields": {
+        "result": "result"
+      },
+      "inputs": [
+        {
+          "key": "book_id",
+          "label": "Address book ID",
+          "type": "number",
+          "required": true,
+          "help": "Use \"List address books\" to find it."
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true,
+          "help": "The contact's email address."
+        }
+      ]
+    },
+    {
+      "key": "list_subscribers",
+      "name": "List subscribers",
+      "description": "Emails in an address book.",
+      "method": "GET",
+      "endpoint": "/addressbooks/{{ inputs.book_id }}/emails",
+      "query": {
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "subscribers": "$"
+      },
+      "inputs": [
+        {
+          "key": "book_id",
+          "label": "Address book ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 100
+        }
+      ]
+    },
+    {
+      "key": "delete_emails",
+      "name": "Remove subscriber",
+      "description": "Remove an email from an address book.",
+      "method": "DELETE",
+      "endpoint": "/addressbooks/{{ inputs.book_id }}/emails",
+      "body": {
+        "emails": [
+          "{{ inputs.email }}"
+        ]
+      },
+      "output_fields": {
+        "result": "result"
+      },
+      "inputs": [
+        {
+          "key": "book_id",
+          "label": "Address book ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true,
+          "help": "The contact's email address."
+        }
+      ]
+    },
+    {
+      "key": "list_campaigns",
+      "name": "List campaigns",
+      "description": "Email campaigns.",
+      "method": "GET",
+      "endpoint": "/campaigns",
+      "query": {
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "campaigns": "$"
+      },
+      "inputs": [
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 20
+        }
+      ]
+    }
+  ]
+}

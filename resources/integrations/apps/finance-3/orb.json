@@ -1,0 +1,330 @@
+{
+  "key": "orb",
+  "name": "Orb",
+  "category": "Payments & Finance",
+  "description": "Usage-based billing: customers, usage events, subscriptions and invoices.",
+  "website": "https://www.withorb.com",
+  "docs_url": "https://docs.withorb.com/api-reference",
+  "base_url": "https://api.withorb.com/v1",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "Orb dashboard → Developers → API keys → Create API key."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "create_customer",
+      "name": "Create customer",
+      "description": "Create a billable customer.",
+      "method": "POST",
+      "endpoint": "/customers",
+      "body": {
+        "name": "{{ inputs.name }}",
+        "email": "{{ inputs.email }}",
+        "external_customer_id": "{{ inputs.external_customer_id }}",
+        "currency": "{{ inputs.currency }}",
+        "timezone": "{{ inputs.timezone }}"
+      },
+      "output_fields": {
+        "id": "id",
+        "portal_url": "portal_url"
+      },
+      "inputs": [
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "external_customer_id",
+          "label": "Your customer ID",
+          "type": "string",
+          "help": "Your own ID for this customer, used to send usage."
+        },
+        {
+          "key": "currency",
+          "label": "Currency",
+          "type": "string",
+          "placeholder": "USD"
+        },
+        {
+          "key": "timezone",
+          "label": "Timezone",
+          "type": "string",
+          "placeholder": "Europe/London"
+        }
+      ]
+    },
+    {
+      "key": "get_customer",
+      "name": "Get customer",
+      "description": "Look up a customer by Orb ID.",
+      "method": "GET",
+      "endpoint": "/customers/{{ inputs.customer_id }}",
+      "output_fields": {
+        "name": "name",
+        "email": "email",
+        "balance": "balance"
+      },
+      "inputs": [
+        {
+          "key": "customer_id",
+          "label": "Orb customer ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "ingest_event",
+      "name": "Send usage event",
+      "description": "Record usage for a customer (e.g. API calls, seats, GB).",
+      "method": "POST",
+      "endpoint": "/ingest",
+      "body": {
+        "events": [
+          {
+            "event_name": "{{ inputs.event_name }}",
+            "timestamp": "{{ inputs.timestamp }}",
+            "properties": "{{ inputs.properties }}",
+            "external_customer_id": "{{ inputs.external_customer_id }}",
+            "customer_id": "{{ inputs.customer_id }}",
+            "idempotency_key": "{{ inputs.idempotency_key }}"
+          }
+        ]
+      },
+      "output_fields": {
+        "validation_failed": "validation_failed"
+      },
+      "inputs": [
+        {
+          "key": "event_name",
+          "label": "Event name",
+          "type": "string",
+          "required": true,
+          "placeholder": "api_call"
+        },
+        {
+          "key": "timestamp",
+          "label": "Time",
+          "type": "string",
+          "required": true,
+          "placeholder": "2026-01-31T10:00:00Z"
+        },
+        {
+          "key": "external_customer_id",
+          "label": "Your customer ID",
+          "type": "string",
+          "help": "Fill this or the Orb customer ID."
+        },
+        {
+          "key": "customer_id",
+          "label": "Orb customer ID",
+          "type": "string"
+        },
+        {
+          "key": "idempotency_key",
+          "label": "Unique event key",
+          "type": "string",
+          "required": true,
+          "help": "Any unique text so the event is never counted twice, e.g. the request ID."
+        },
+        {
+          "key": "properties",
+          "label": "Properties (JSON)",
+          "type": "json",
+          "placeholder": "{\"tokens\": 1200}"
+        }
+      ]
+    },
+    {
+      "key": "create_subscription",
+      "name": "Create subscription",
+      "description": "Subscribe a customer to a plan.",
+      "method": "POST",
+      "endpoint": "/subscriptions",
+      "body": {
+        "customer_id": "{{ inputs.customer_id }}",
+        "external_customer_id": "{{ inputs.external_customer_id }}",
+        "plan_id": "{{ inputs.plan_id }}",
+        "external_plan_id": "{{ inputs.external_plan_id }}",
+        "start_date": "{{ inputs.start_date }}"
+      },
+      "output_fields": {
+        "id": "id",
+        "status": "status"
+      },
+      "inputs": [
+        {
+          "key": "customer_id",
+          "label": "Orb customer ID",
+          "type": "string"
+        },
+        {
+          "key": "external_customer_id",
+          "label": "Your customer ID",
+          "type": "string"
+        },
+        {
+          "key": "plan_id",
+          "label": "Plan ID",
+          "type": "string",
+          "help": "Orb → Plans → open the plan → ID."
+        },
+        {
+          "key": "external_plan_id",
+          "label": "Plan external ID",
+          "type": "string"
+        },
+        {
+          "key": "start_date",
+          "label": "Start date",
+          "type": "string",
+          "placeholder": "2026-02-01"
+        }
+      ]
+    },
+    {
+      "key": "cancel_subscription",
+      "name": "Cancel subscription",
+      "description": "Cancel a subscription now or at the end of the term.",
+      "method": "POST",
+      "endpoint": "/subscriptions/{{ inputs.subscription_id }}/cancel",
+      "body": {
+        "cancel_option": "{{ inputs.cancel_option }}"
+      },
+      "output_fields": {
+        "status": "status"
+      },
+      "inputs": [
+        {
+          "key": "subscription_id",
+          "label": "Subscription ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "cancel_option",
+          "label": "When",
+          "type": "select",
+          "required": true,
+          "default": "end_of_subscription_term",
+          "options": [
+            {
+              "value": "end_of_subscription_term",
+              "label": "End of term"
+            },
+            {
+              "value": "immediate",
+              "label": "Immediately"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "list_invoices",
+      "name": "List invoices",
+      "description": "Invoices, optionally for one customer or status.",
+      "method": "GET",
+      "endpoint": "/invoices",
+      "query": {
+        "customer_id": "{{ inputs.customer_id }}",
+        "status": "{{ inputs.status }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "invoices": "data"
+      },
+      "inputs": [
+        {
+          "key": "customer_id",
+          "label": "Orb customer ID",
+          "type": "string"
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "options": [
+            {
+              "value": "draft",
+              "label": "draft"
+            },
+            {
+              "value": "issued",
+              "label": "issued"
+            },
+            {
+              "value": "paid",
+              "label": "paid"
+            },
+            {
+              "value": "synced",
+              "label": "synced"
+            },
+            {
+              "value": "void",
+              "label": "void"
+            }
+          ]
+        },
+        {
+          "key": "limit",
+          "label": "How many",
+          "type": "number",
+          "default": 20
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_invoice",
+      "name": "New invoice",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/invoices",
+      "query": {
+        "limit": 50
+      },
+      "items_path": "data",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    },
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Orb → Developers → Webhooks → Add endpoint, paste this URL.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

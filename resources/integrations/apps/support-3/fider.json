@@ -1,0 +1,229 @@
+{
+  "key": "fider",
+  "name": "Fider",
+  "category": "Customer Support",
+  "description": "Collect feature ideas: list, add and comment on posts and change their status in Fider.",
+  "website": "https://fider.io",
+  "docs_url": "https://docs.fider.io/api",
+  "base_url": "{{ credentials.site_url }}/api/v1",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "site_url",
+        "label": "Fider address",
+        "type": "string",
+        "required": true,
+        "placeholder": "https://feedback.example.com",
+        "help": "Your Fider site address, without a trailing slash."
+      },
+      {
+        "key": "token",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "In Fider open Settings > My Settings > API Key (Generate) and copy it."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_posts",
+      "name": "List posts",
+      "description": "Lists feedback posts.",
+      "method": "GET",
+      "endpoint": "/posts",
+      "query": {
+        "view": "{{ inputs.view }}",
+        "query": "{{ inputs.query }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "first_number": "0.number",
+        "first_title": "0.title"
+      },
+      "inputs": [
+        {
+          "key": "view",
+          "label": "View",
+          "type": "select",
+          "default": "recent",
+          "options": [
+            {
+              "value": "recent",
+              "label": "Recent"
+            },
+            {
+              "value": "trending",
+              "label": "Trending"
+            },
+            {
+              "value": "most-wanted",
+              "label": "Most wanted"
+            },
+            {
+              "value": "most-discussed",
+              "label": "Most discussed"
+            },
+            {
+              "value": "planned",
+              "label": "Planned"
+            },
+            {
+              "value": "started",
+              "label": "Started"
+            },
+            {
+              "value": "completed",
+              "label": "Completed"
+            }
+          ]
+        },
+        {
+          "key": "query",
+          "label": "Search text",
+          "type": "string"
+        },
+        {
+          "key": "limit",
+          "label": "How many",
+          "type": "number",
+          "default": 20
+        }
+      ]
+    },
+    {
+      "key": "create_post",
+      "name": "Create post",
+      "description": "Adds a new idea or feedback post.",
+      "method": "POST",
+      "endpoint": "/posts",
+      "body": {
+        "title": "{{ inputs.title }}",
+        "description": "{{ inputs.description }}"
+      },
+      "output_fields": {
+        "id": "id",
+        "number": "number",
+        "title": "title"
+      },
+      "inputs": [
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "description",
+          "label": "Description",
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "key": "add_comment",
+      "name": "Add comment",
+      "description": "Comments on a post.",
+      "method": "POST",
+      "endpoint": "/posts/{{ inputs.number }}/comments",
+      "body": {
+        "content": "{{ inputs.content }}"
+      },
+      "output_fields": {
+        "id": "id"
+      },
+      "inputs": [
+        {
+          "key": "number",
+          "label": "Post number",
+          "type": "number",
+          "required": true,
+          "help": "The # shown next to the post."
+        },
+        {
+          "key": "content",
+          "label": "Comment",
+          "type": "text",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "set_status",
+      "name": "Set post status",
+      "description": "Marks a post as planned, started, completed, declined or duplicate.",
+      "method": "PUT",
+      "endpoint": "/posts/{{ inputs.number }}/status",
+      "body": {
+        "status": "{{ inputs.status }}",
+        "text": "{{ inputs.text }}"
+      },
+      "inputs": [
+        {
+          "key": "number",
+          "label": "Post number",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "required": true,
+          "default": "planned",
+          "options": [
+            {
+              "value": "open",
+              "label": "Open"
+            },
+            {
+              "value": "planned",
+              "label": "Planned"
+            },
+            {
+              "value": "started",
+              "label": "Started"
+            },
+            {
+              "value": "completed",
+              "label": "Completed"
+            },
+            {
+              "value": "declined",
+              "label": "Declined"
+            }
+          ]
+        },
+        {
+          "key": "text",
+          "label": "Public note",
+          "type": "text",
+          "help": "Shown to people following the post."
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_post",
+      "name": "New post",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/posts",
+      "query": {
+        "view": "recent",
+        "limit": 20
+      },
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

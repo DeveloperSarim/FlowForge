@@ -1,0 +1,160 @@
+{
+  "key": "cloudsmith",
+  "name": "Cloudsmith",
+  "category": "Developer Tools",
+  "description": "List, inspect and delete packages in Cloudsmith repositories.",
+  "brand": "cloudsmith",
+  "website": "https://cloudsmith.com",
+  "docs_url": "https://help.cloudsmith.io/reference/introduction",
+  "base_url": "https://api.cloudsmith.io/v1",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "X-Api-Key",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "Cloudsmith → User settings → API Settings → API key."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "get_user",
+      "name": "Get current user",
+      "description": "Check which user the key belongs to.",
+      "method": "GET",
+      "endpoint": "/user/self/",
+      "output_fields": {
+        "slug": "slug",
+        "email": "email",
+        "name": "name"
+      },
+      "inputs": []
+    },
+    {
+      "key": "list_repositories",
+      "name": "List repositories",
+      "description": "List the repositories of a workspace.",
+      "method": "GET",
+      "endpoint": "/repos/{{ inputs.owner }}/",
+      "inputs": [
+        {
+          "key": "owner",
+          "label": "Workspace",
+          "type": "string",
+          "required": true,
+          "help": "Your workspace (organization) slug from the Cloudsmith URL."
+        }
+      ]
+    },
+    {
+      "key": "list_packages",
+      "name": "List packages",
+      "description": "List or search the packages in a repository.",
+      "method": "GET",
+      "endpoint": "/packages/{{ inputs.owner }}/{{ inputs.repo }}/",
+      "query": {
+        "query": "{{ inputs.query }}",
+        "page_size": "{{ inputs.page_size }}"
+      },
+      "inputs": [
+        {
+          "key": "owner",
+          "label": "Workspace",
+          "type": "string",
+          "required": true,
+          "help": "Your workspace (organization) slug from the Cloudsmith URL."
+        },
+        {
+          "key": "repo",
+          "label": "Repository",
+          "type": "string",
+          "required": true,
+          "help": "Repository slug, from List repositories."
+        },
+        {
+          "key": "query",
+          "label": "Search",
+          "type": "string",
+          "placeholder": "name:my-lib version:1.2"
+        },
+        {
+          "key": "page_size",
+          "label": "Page size",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    },
+    {
+      "key": "get_package",
+      "name": "Get package",
+      "description": "Get a package's version, status and download URL.",
+      "method": "GET",
+      "endpoint": "/packages/{{ inputs.owner }}/{{ inputs.repo }}/{{ inputs.identifier }}/",
+      "output_fields": {
+        "name": "name",
+        "version": "version",
+        "status": "status_str",
+        "cdn_url": "cdn_url"
+      },
+      "inputs": [
+        {
+          "key": "owner",
+          "label": "Workspace",
+          "type": "string",
+          "required": true,
+          "help": "Your workspace (organization) slug from the Cloudsmith URL."
+        },
+        {
+          "key": "repo",
+          "label": "Repository",
+          "type": "string",
+          "required": true,
+          "help": "Repository slug, from List repositories."
+        },
+        {
+          "key": "identifier",
+          "label": "Package identifier",
+          "type": "string",
+          "required": true,
+          "help": "The slug_perm of the package, from List packages."
+        }
+      ]
+    },
+    {
+      "key": "delete_package",
+      "name": "Delete package",
+      "description": "Delete a package from a repository.",
+      "method": "DELETE",
+      "endpoint": "/packages/{{ inputs.owner }}/{{ inputs.repo }}/{{ inputs.identifier }}/",
+      "inputs": [
+        {
+          "key": "owner",
+          "label": "Workspace",
+          "type": "string",
+          "required": true,
+          "help": "Your workspace (organization) slug from the Cloudsmith URL."
+        },
+        {
+          "key": "repo",
+          "label": "Repository",
+          "type": "string",
+          "required": true,
+          "help": "Repository slug, from List repositories."
+        },
+        {
+          "key": "identifier",
+          "label": "Package identifier",
+          "type": "string",
+          "required": true,
+          "help": "The slug_perm of the package, from List packages."
+        }
+      ]
+    }
+  ]
+}

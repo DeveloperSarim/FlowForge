@@ -1,0 +1,125 @@
+{
+  "key": "speechify",
+  "name": "Speechify",
+  "category": "AI",
+  "description": "Turn text into lifelike speech with Speechify's AI voices.",
+  "website": "https://speechify.com",
+  "docs_url": "https://docs.speechify.ai/build/api-reference/v1/audio/speech",
+  "base_url": "https://api.speechify.ai/v1",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "console.speechify.ai → API Keys → Create key (starts with sk_)."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "text_to_speech",
+      "name": "Text to speech",
+      "description": "Convert text to audio. Returns the audio as base64.",
+      "method": "POST",
+      "endpoint": "/audio/speech",
+      "timeout": 120,
+      "body": {
+        "input": "{{ inputs.input }}",
+        "voice_id": "{{ inputs.voice_id }}",
+        "model": "{{ inputs.model }}",
+        "audio_format": "{{ inputs.audio_format }}",
+        "language": "{{ inputs.language }}"
+      },
+      "output_fields": {
+        "audio_base64": "audio_data",
+        "format": "audio_format",
+        "characters": "billable_characters_count"
+      },
+      "inputs": [
+        {
+          "key": "input",
+          "label": "Text",
+          "type": "text",
+          "required": true,
+          "help": "Plain text or SSML."
+        },
+        {
+          "key": "voice_id",
+          "label": "Voice ID",
+          "type": "string",
+          "required": true,
+          "placeholder": "geffen_32",
+          "help": "Use List voices to find voice IDs."
+        },
+        {
+          "key": "model",
+          "label": "Model",
+          "type": "select",
+          "default": "simba-3.0",
+          "options": [
+            {
+              "value": "simba-3.0",
+              "label": "Simba 3.0 (multilingual)"
+            },
+            {
+              "value": "simba-3.2",
+              "label": "Simba 3.2 (English)"
+            }
+          ]
+        },
+        {
+          "key": "audio_format",
+          "label": "Audio format",
+          "type": "select",
+          "default": "mp3",
+          "options": [
+            {
+              "value": "mp3",
+              "label": "mp3"
+            },
+            {
+              "value": "wav",
+              "label": "wav"
+            },
+            {
+              "value": "ogg",
+              "label": "ogg"
+            },
+            {
+              "value": "aac",
+              "label": "aac"
+            }
+          ]
+        },
+        {
+          "key": "language",
+          "label": "Language",
+          "type": "string",
+          "placeholder": "en-US"
+        }
+      ]
+    },
+    {
+      "key": "list_voices",
+      "name": "List voices",
+      "description": "List the voices you can use.",
+      "method": "GET",
+      "endpoint": "/voices",
+      "output_fields": {
+        "voice_ids": "*.id"
+      },
+      "inputs": []
+    },
+    {
+      "key": "list_models",
+      "name": "List models",
+      "description": "List the available speech models.",
+      "method": "GET",
+      "endpoint": "/audio/models",
+      "inputs": []
+    }
+  ]
+}

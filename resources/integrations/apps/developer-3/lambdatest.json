@@ -1,0 +1,154 @@
+{
+  "key": "lambdatest",
+  "name": "LambdaTest",
+  "category": "Developer Tools",
+  "description": "Read LambdaTest automation builds and sessions and mark tests passed or failed.",
+  "brand": "lambdatest",
+  "website": "https://www.lambdatest.com",
+  "docs_url": "https://www.lambdatest.com/support/api-doc/",
+  "base_url": "https://api.lambdatest.com/automation/api/v1",
+  "auth": {
+    "type": "basic",
+    "fields": [
+      {
+        "key": "username",
+        "label": "Username",
+        "type": "string",
+        "required": true,
+        "help": "LambdaTest → Automation dashboard → Access key button shows your username and key."
+      },
+      {
+        "key": "password",
+        "label": "Access key",
+        "type": "password",
+        "required": true
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_builds",
+      "name": "List builds",
+      "description": "List recent automation builds.",
+      "method": "GET",
+      "endpoint": "/builds",
+      "query": {
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "builds": "data"
+      },
+      "inputs": [
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 20
+        }
+      ]
+    },
+    {
+      "key": "list_sessions",
+      "name": "List sessions",
+      "description": "List test sessions, optionally for one build.",
+      "method": "GET",
+      "endpoint": "/sessions",
+      "query": {
+        "build_id": "{{ inputs.build_id }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "sessions": "data"
+      },
+      "inputs": [
+        {
+          "key": "build_id",
+          "label": "Build ID",
+          "type": "string"
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 20
+        }
+      ]
+    },
+    {
+      "key": "get_session",
+      "name": "Get session",
+      "description": "Get a session's status, browser and video.",
+      "method": "GET",
+      "endpoint": "/sessions/{{ inputs.session_id }}",
+      "output_fields": {
+        "name": "data.name",
+        "status": "data.status_ind",
+        "video_url": "data.video_url"
+      },
+      "inputs": [
+        {
+          "key": "session_id",
+          "label": "Session (test) ID",
+          "type": "string",
+          "required": true,
+          "help": "Shown in the LambdaTest Automation dashboard, or use List sessions."
+        }
+      ]
+    },
+    {
+      "key": "update_session",
+      "name": "Mark session passed / failed",
+      "description": "Set a session's result or name.",
+      "method": "PATCH",
+      "endpoint": "/sessions/{{ inputs.session_id }}",
+      "body": {
+        "status_ind": "{{ inputs.status }}",
+        "name": "{{ inputs.name }}"
+      },
+      "inputs": [
+        {
+          "key": "session_id",
+          "label": "Session (test) ID",
+          "type": "string",
+          "required": true,
+          "help": "Shown in the LambdaTest Automation dashboard, or use List sessions."
+        },
+        {
+          "key": "status",
+          "label": "Result",
+          "type": "select",
+          "options": [
+            {
+              "value": "passed",
+              "label": "passed"
+            },
+            {
+              "value": "failed",
+              "label": "failed"
+            }
+          ]
+        },
+        {
+          "key": "name",
+          "label": "Rename to",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "delete_build",
+      "name": "Delete build",
+      "description": "Delete a build and its sessions.",
+      "method": "DELETE",
+      "endpoint": "/builds/{{ inputs.build_id }}",
+      "inputs": [
+        {
+          "key": "build_id",
+          "label": "Build ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ]
+}

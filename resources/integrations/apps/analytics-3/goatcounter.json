@@ -1,0 +1,252 @@
+{
+  "key": "goatcounter",
+  "name": "GoatCounter",
+  "category": "Analytics",
+  "description": "Record pageviews and read visitor stats from privacy-friendly GoatCounter.",
+  "website": "https://www.goatcounter.com",
+  "docs_url": "https://www.goatcounter.com/help/api",
+  "base_url": "https://{{ credentials.site_code }}.goatcounter.com/api/v0",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "site_code",
+        "label": "Site code",
+        "type": "string",
+        "required": true,
+        "placeholder": "mysite",
+        "help": "The part before .goatcounter.com in your dashboard address."
+      },
+      {
+        "key": "token",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "GoatCounter → User → API → New API key (tick 'Read statistics' and 'Record pageviews')."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "count_pageview",
+      "name": "Record pageview or event",
+      "description": "Count a pageview or custom event from your server.",
+      "method": "POST",
+      "endpoint": "/count",
+      "body": {
+        "no_sessions": "{{ inputs.no_sessions }}",
+        "hits": [
+          {
+            "path": "{{ inputs.path }}",
+            "title": "{{ inputs.title }}",
+            "ref": "{{ inputs.ref }}",
+            "event": "{{ inputs.event }}"
+          }
+        ]
+      },
+      "inputs": [
+        {
+          "key": "path",
+          "label": "Path or event name",
+          "type": "string",
+          "required": true,
+          "placeholder": "/pricing"
+        },
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "string"
+        },
+        {
+          "key": "ref",
+          "label": "Referrer",
+          "type": "string",
+          "placeholder": "https://google.com"
+        },
+        {
+          "key": "event",
+          "label": "Is an event",
+          "type": "boolean",
+          "default": false,
+          "help": "Turn on to count a custom event instead of a page."
+        },
+        {
+          "key": "no_sessions",
+          "label": "Skip session tracking",
+          "type": "boolean",
+          "default": true,
+          "help": "Keep on unless you also send a session ID, otherwise GoatCounter rejects the hit."
+        }
+      ]
+    },
+    {
+      "key": "get_total",
+      "name": "Get total pageviews",
+      "description": "Total pageviews and events in a period.",
+      "method": "GET",
+      "endpoint": "/stats/total",
+      "query": {
+        "start": "{{ inputs.start }}",
+        "end": "{{ inputs.end }}"
+      },
+      "output_fields": {
+        "total": "total",
+        "total_events": "total_events"
+      },
+      "inputs": [
+        {
+          "key": "start",
+          "label": "Start",
+          "type": "string",
+          "placeholder": "2025-01-01T00:00:00Z",
+          "help": "Defaults to one week ago."
+        },
+        {
+          "key": "end",
+          "label": "End",
+          "type": "string",
+          "placeholder": "2025-01-31T23:59:59Z",
+          "help": "Defaults to now."
+        }
+      ]
+    },
+    {
+      "key": "list_top_pages",
+      "name": "List top pages",
+      "description": "Most visited paths with view counts.",
+      "method": "GET",
+      "endpoint": "/stats/hits",
+      "query": {
+        "start": "{{ inputs.start }}",
+        "end": "{{ inputs.end }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "hits": "hits",
+        "paths": "hits.*.path",
+        "total": "total"
+      },
+      "inputs": [
+        {
+          "key": "start",
+          "label": "Start",
+          "type": "string",
+          "placeholder": "2025-01-01T00:00:00Z",
+          "help": "Defaults to one week ago."
+        },
+        {
+          "key": "end",
+          "label": "End",
+          "type": "string",
+          "placeholder": "2025-01-31T23:59:59Z",
+          "help": "Defaults to now."
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 20
+        }
+      ]
+    },
+    {
+      "key": "get_breakdown",
+      "name": "Get breakdown",
+      "description": "Visitors grouped by referrer, browser, location and more.",
+      "method": "GET",
+      "endpoint": "/stats/{{ inputs.page }}",
+      "query": {
+        "start": "{{ inputs.start }}",
+        "end": "{{ inputs.end }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "stats": "stats",
+        "names": "stats.*.name"
+      },
+      "inputs": [
+        {
+          "key": "page",
+          "label": "Breakdown",
+          "type": "select",
+          "required": true,
+          "default": "toprefs",
+          "options": [
+            {
+              "value": "toprefs",
+              "label": "Top referrers"
+            },
+            {
+              "value": "browsers",
+              "label": "Browsers"
+            },
+            {
+              "value": "systems",
+              "label": "Operating systems"
+            },
+            {
+              "value": "locations",
+              "label": "Locations"
+            },
+            {
+              "value": "languages",
+              "label": "Languages"
+            },
+            {
+              "value": "sizes",
+              "label": "Screen sizes"
+            },
+            {
+              "value": "campaigns",
+              "label": "Campaigns"
+            }
+          ]
+        },
+        {
+          "key": "start",
+          "label": "Start",
+          "type": "string",
+          "placeholder": "2025-01-01T00:00:00Z",
+          "help": "Defaults to one week ago."
+        },
+        {
+          "key": "end",
+          "label": "End",
+          "type": "string",
+          "placeholder": "2025-01-31T23:59:59Z",
+          "help": "Defaults to now."
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 20
+        }
+      ]
+    },
+    {
+      "key": "list_sites",
+      "name": "List sites",
+      "description": "Sites in your GoatCounter account.",
+      "method": "GET",
+      "endpoint": "/sites",
+      "output_fields": {
+        "sites": "sites",
+        "codes": "sites.*.code"
+      },
+      "inputs": []
+    },
+    {
+      "key": "get_me",
+      "name": "Get current user",
+      "description": "The user and permissions of this API key.",
+      "method": "GET",
+      "endpoint": "/me",
+      "output_fields": {
+        "email": "user.email",
+        "permissions": "token.permissions"
+      },
+      "inputs": []
+    }
+  ]
+}

@@ -1,0 +1,162 @@
+{
+  "key": "runpod",
+  "name": "Runpod",
+  "category": "AI",
+  "description": "Run jobs on your Runpod serverless GPU endpoints and check their results.",
+  "website": "https://www.runpod.io",
+  "docs_url": "https://docs.runpod.io/serverless/endpoints/send-requests",
+  "base_url": "https://api.runpod.ai/v2",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "Runpod console → Settings → API Keys → Create API key."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "run_job",
+      "name": "Start job",
+      "description": "Queue a job and get its ID right away.",
+      "method": "POST",
+      "endpoint": "/{{ inputs.endpoint_id }}/run",
+      "body": {
+        "input": "{{ inputs.input }}",
+        "webhook": "{{ inputs.webhook }}"
+      },
+      "output_fields": {
+        "job_id": "id",
+        "status": "status"
+      },
+      "inputs": [
+        {
+          "key": "endpoint_id",
+          "label": "Endpoint ID",
+          "type": "string",
+          "required": true,
+          "help": "Runpod console → Serverless → your endpoint; the ID is shown under its name."
+        },
+        {
+          "key": "input",
+          "label": "Input (JSON)",
+          "type": "json",
+          "required": true,
+          "help": "The JSON your worker expects, e.g. {\"prompt\": \"Hello\"}."
+        },
+        {
+          "key": "webhook",
+          "label": "Webhook URL",
+          "type": "string",
+          "help": "Optional URL Runpod calls when the job finishes."
+        }
+      ]
+    },
+    {
+      "key": "run_sync",
+      "name": "Run job and wait",
+      "description": "Run a job and wait for the output (short jobs).",
+      "method": "POST",
+      "endpoint": "/{{ inputs.endpoint_id }}/runsync",
+      "timeout": 300,
+      "body": {
+        "input": "{{ inputs.input }}"
+      },
+      "output_fields": {
+        "job_id": "id",
+        "status": "status",
+        "output": "output"
+      },
+      "inputs": [
+        {
+          "key": "endpoint_id",
+          "label": "Endpoint ID",
+          "type": "string",
+          "required": true,
+          "help": "Runpod console → Serverless → your endpoint; the ID is shown under its name."
+        },
+        {
+          "key": "input",
+          "label": "Input (JSON)",
+          "type": "json",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "get_status",
+      "name": "Get job status",
+      "description": "Check a job and read its output when finished.",
+      "method": "GET",
+      "endpoint": "/{{ inputs.endpoint_id }}/status/{{ inputs.job_id }}",
+      "output_fields": {
+        "status": "status",
+        "output": "output"
+      },
+      "inputs": [
+        {
+          "key": "endpoint_id",
+          "label": "Endpoint ID",
+          "type": "string",
+          "required": true,
+          "help": "Runpod console → Serverless → your endpoint; the ID is shown under its name."
+        },
+        {
+          "key": "job_id",
+          "label": "Job ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "cancel_job",
+      "name": "Cancel job",
+      "description": "Stop a queued or running job.",
+      "method": "POST",
+      "endpoint": "/{{ inputs.endpoint_id }}/cancel/{{ inputs.job_id }}",
+      "output_fields": {
+        "status": "status"
+      },
+      "inputs": [
+        {
+          "key": "endpoint_id",
+          "label": "Endpoint ID",
+          "type": "string",
+          "required": true,
+          "help": "Runpod console → Serverless → your endpoint; the ID is shown under its name."
+        },
+        {
+          "key": "job_id",
+          "label": "Job ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "get_health",
+      "name": "Get endpoint health",
+      "description": "See queued/running jobs and worker counts.",
+      "method": "GET",
+      "endpoint": "/{{ inputs.endpoint_id }}/health",
+      "output_fields": {
+        "jobs": "jobs",
+        "workers": "workers"
+      },
+      "inputs": [
+        {
+          "key": "endpoint_id",
+          "label": "Endpoint ID",
+          "type": "string",
+          "required": true,
+          "help": "Runpod console → Serverless → your endpoint; the ID is shown under its name."
+        }
+      ]
+    }
+  ]
+}

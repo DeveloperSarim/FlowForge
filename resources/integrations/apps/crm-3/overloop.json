@@ -1,0 +1,355 @@
+{
+  "key": "overloop",
+  "name": "Overloop",
+  "category": "CRM & Sales",
+  "description": "Add prospects, enroll them in campaigns and create deals in Overloop.",
+  "website": "https://overloop.com",
+  "docs_url": "https://apidoc.overloop.com/",
+  "base_url": "https://api.overloop.com/public/v1",
+  "headers": {
+    "Content-Type": "application/vnd.api+json"
+  },
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "Authorization",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "In Overloop open Settings → API and copy your API key."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "create_prospect",
+      "name": "Create prospect",
+      "method": "POST",
+      "endpoint": "/prospects",
+      "body": {
+        "data": {
+          "type": "prospects",
+          "attributes": {
+            "email": "{{ inputs.email }}",
+            "first_name": "{{ inputs.first_name }}",
+            "last_name": "{{ inputs.last_name }}",
+            "jobtitle": "{{ inputs.jobtitle }}",
+            "phone": "{{ inputs.phone }}",
+            "linkedin_profile": "{{ inputs.linkedin_profile }}",
+            "country": "{{ inputs.country }}",
+            "city": "{{ inputs.city }}",
+            "organization_id": "{{ inputs.organization_id }}",
+            "lists": "{{ inputs.lists }}"
+          }
+        }
+      },
+      "output_fields": {
+        "id": "data.id",
+        "email": "data.attributes.email"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string"
+        },
+        {
+          "key": "first_name",
+          "label": "First name",
+          "type": "string"
+        },
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string"
+        },
+        {
+          "key": "jobtitle",
+          "label": "Job title",
+          "type": "string"
+        },
+        {
+          "key": "phone",
+          "label": "Phone",
+          "type": "string"
+        },
+        {
+          "key": "linkedin_profile",
+          "label": "LinkedIn URL",
+          "type": "string"
+        },
+        {
+          "key": "country",
+          "label": "Country",
+          "type": "string"
+        },
+        {
+          "key": "city",
+          "label": "City",
+          "type": "string"
+        },
+        {
+          "key": "organization_id",
+          "label": "Organization ID",
+          "type": "number"
+        },
+        {
+          "key": "lists",
+          "label": "Lists",
+          "type": "list",
+          "help": "List names; missing lists are created."
+        }
+      ]
+    },
+    {
+      "key": "update_prospect",
+      "name": "Update prospect",
+      "method": "PATCH",
+      "endpoint": "/prospects/{{ inputs.prospect_id }}",
+      "body": {
+        "data": {
+          "type": "prospects",
+          "attributes": {
+            "email": "{{ inputs.email }}",
+            "first_name": "{{ inputs.first_name }}",
+            "last_name": "{{ inputs.last_name }}",
+            "jobtitle": "{{ inputs.jobtitle }}",
+            "phone": "{{ inputs.phone }}",
+            "linkedin_profile": "{{ inputs.linkedin_profile }}",
+            "country": "{{ inputs.country }}",
+            "city": "{{ inputs.city }}",
+            "organization_id": "{{ inputs.organization_id }}"
+          }
+        }
+      },
+      "output_fields": {
+        "id": "data.id"
+      },
+      "inputs": [
+        {
+          "key": "prospect_id",
+          "label": "Prospect ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string"
+        },
+        {
+          "key": "first_name",
+          "label": "First name",
+          "type": "string"
+        },
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string"
+        },
+        {
+          "key": "jobtitle",
+          "label": "Job title",
+          "type": "string"
+        },
+        {
+          "key": "phone",
+          "label": "Phone",
+          "type": "string"
+        },
+        {
+          "key": "linkedin_profile",
+          "label": "LinkedIn URL",
+          "type": "string"
+        },
+        {
+          "key": "country",
+          "label": "Country",
+          "type": "string"
+        },
+        {
+          "key": "city",
+          "label": "City",
+          "type": "string"
+        },
+        {
+          "key": "organization_id",
+          "label": "Organization ID",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "find_prospect",
+      "name": "Find prospect by email",
+      "method": "GET",
+      "endpoint": "/prospects",
+      "query": {
+        "filter": "email:{{ inputs.email }}"
+      },
+      "output_fields": {
+        "id": "data.0.id",
+        "prospects": "data"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "enroll_prospect",
+      "name": "Add prospect to campaign",
+      "method": "POST",
+      "endpoint": "/automations/{{ inputs.automation_id }}/enrollments",
+      "body": {
+        "data": {
+          "type": "enrollments",
+          "attributes": {
+            "prospect_id": "{{ inputs.prospect_id }}",
+            "reenroll": "{{ inputs.reenroll }}"
+          }
+        }
+      },
+      "output_fields": {
+        "id": "data.id"
+      },
+      "inputs": [
+        {
+          "key": "automation_id",
+          "label": "Campaign / automation ID",
+          "type": "string",
+          "required": true,
+          "help": "Run \"List campaigns\" to find it."
+        },
+        {
+          "key": "prospect_id",
+          "label": "Prospect ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "reenroll",
+          "label": "Re-enroll if already enrolled",
+          "type": "boolean",
+          "default": false
+        }
+      ]
+    },
+    {
+      "key": "list_automations",
+      "name": "List campaigns",
+      "description": "Lists your campaigns and workflows with their IDs.",
+      "method": "GET",
+      "endpoint": "/automations",
+      "output_fields": {
+        "automations": "data"
+      },
+      "inputs": []
+    },
+    {
+      "key": "create_organization",
+      "name": "Create organization",
+      "method": "POST",
+      "endpoint": "/organizations",
+      "body": {
+        "data": {
+          "type": "organizations",
+          "attributes": {
+            "name": "{{ inputs.name }}",
+            "website": "{{ inputs.website }}",
+            "description": "{{ inputs.description }}"
+          }
+        }
+      },
+      "output_fields": {
+        "id": "data.id"
+      },
+      "inputs": [
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "website",
+          "label": "Website",
+          "type": "string"
+        },
+        {
+          "key": "description",
+          "label": "Description",
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "key": "create_deal",
+      "name": "Create deal",
+      "method": "POST",
+      "endpoint": "/deals",
+      "body": {
+        "data": {
+          "type": "deals",
+          "attributes": {
+            "title": "{{ inputs.title }}",
+            "stage_id": "{{ inputs.stage_id }}",
+            "value": "{{ inputs.value }}"
+          }
+        }
+      },
+      "output_fields": {
+        "id": "data.id"
+      },
+      "inputs": [
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "stage_id",
+          "label": "Stage ID",
+          "type": "number",
+          "required": true,
+          "help": "Find stage IDs under Settings → Pipelines or GET /stages."
+        },
+        {
+          "key": "value",
+          "label": "Value",
+          "type": "number"
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_prospect",
+      "name": "New prospect",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/prospects",
+      "query": {
+        "sort": "-created_at"
+      },
+      "items_path": "data",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

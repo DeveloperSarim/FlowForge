@@ -1,0 +1,190 @@
+{
+  "key": "asknicely",
+  "name": "AskNicely",
+  "category": "Customer Support",
+  "description": "Send NPS surveys, read responses and fetch your score from AskNicely.",
+  "website": "https://www.asknicely.com",
+  "docs_url": "https://asknicely.asknice.ly/help/apidocs/auth",
+  "base_url": "https://{{ credentials.subdomain }}.asknice.ly/api/v1",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "X-apikey",
+    "fields": [
+      {
+        "key": "subdomain",
+        "label": "Account subdomain",
+        "type": "string",
+        "required": true,
+        "placeholder": "acme",
+        "help": "The part before .asknice.ly in your AskNicely address."
+      },
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "In AskNicely open Settings > Integrations (API) and copy your API key."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "send_survey",
+      "name": "Send survey",
+      "description": "Adds a contact and sends them a survey (or only adds them).",
+      "method": "POST",
+      "endpoint": "/contact/trigger",
+      "body": {
+        "email": "{{ inputs.email }}",
+        "name": "{{ inputs.name }}",
+        "segment": "{{ inputs.segment }}",
+        "delayminutes": "{{ inputs.delayminutes }}",
+        "addcontact": "{{ inputs.addcontact }}"
+      },
+      "body_format": "form",
+      "output_fields": {
+        "success": "success",
+        "surveys_sent": "surveys_sent",
+        "contact_id": "result.0.id"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string"
+        },
+        {
+          "key": "segment",
+          "label": "Segment",
+          "type": "string"
+        },
+        {
+          "key": "delayminutes",
+          "label": "Delay (minutes)",
+          "type": "number",
+          "help": "Wait this long before sending. Leave empty to send now."
+        },
+        {
+          "key": "addcontact",
+          "label": "Only add, do not send",
+          "type": "boolean",
+          "default": false,
+          "help": "On: add or update the contact without emailing a survey."
+        }
+      ]
+    },
+    {
+      "key": "get_contact",
+      "name": "Get contact",
+      "description": "Finds a contact by email.",
+      "method": "GET",
+      "endpoint": "/contact/get/{{ inputs.email }}/email",
+      "output_fields": {
+        "id": "data.id",
+        "name": "data.name",
+        "active": "data.active",
+        "segment": "data.segment"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "remove_contact",
+      "name": "Remove contact",
+      "description": "Deactivates a contact so they get no more surveys.",
+      "method": "GET",
+      "endpoint": "/contact/remove/{{ inputs.email }}/email",
+      "output_fields": {
+        "message": "msg",
+        "success": "success"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "get_nps",
+      "name": "Get NPS score",
+      "description": "Gets your NPS score for the last days.",
+      "method": "GET",
+      "endpoint": "/getnps/{{ inputs.days }}",
+      "output_fields": {
+        "nps": "NPS"
+      },
+      "inputs": [
+        {
+          "key": "days",
+          "label": "Days back",
+          "type": "number",
+          "default": 30
+        }
+      ]
+    },
+    {
+      "key": "list_responses",
+      "name": "List responses",
+      "description": "Lists survey answers, newest first.",
+      "method": "GET",
+      "endpoint": "/responses/desc/{{ inputs.page_size }}/1/{{ inputs.since }}/json/answered/responded",
+      "output_fields": {
+        "responses": "data",
+        "total": "total",
+        "first_score": "data.0.answer",
+        "first_comment": "data.0.comment",
+        "first_email": "data.0.email"
+      },
+      "inputs": [
+        {
+          "key": "page_size",
+          "label": "How many",
+          "type": "number",
+          "default": 25
+        },
+        {
+          "key": "since",
+          "label": "Since (unix time)",
+          "type": "number",
+          "default": 0,
+          "help": "0 means from the beginning."
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_response",
+      "name": "New survey response",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/responses/desc/25/1/0/json/answered/responded",
+      "items_path": "data",
+      "id_field": "response_id",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,197 @@
+{
+  "key": "msegat",
+  "name": "Msegat",
+  "category": "Communication",
+  "description": "Send SMS and OTP codes in Saudi Arabia with Msegat and check your balance.",
+  "website": "https://www.msegat.com",
+  "docs_url": "https://msegat.docs.apiary.io/",
+  "base_url": "https://www.msegat.com/gw",
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "key": "username",
+        "label": "Username",
+        "type": "string",
+        "required": true,
+        "help": "Your Msegat login username."
+      },
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "Msegat → Settings → API key."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "send_sms",
+      "name": "Send SMS",
+      "description": "Code 1 or M0000 means success.",
+      "method": "POST",
+      "endpoint": "/sendsms.php",
+      "body": {
+        "userName": "{{ credentials.username }}",
+        "apiKey": "{{ credentials.api_key }}",
+        "numbers": "{{ inputs.numbers }}",
+        "userSender": "{{ inputs.userSender }}",
+        "msg": "{{ inputs.msg }}",
+        "msgEncoding": "UTF8",
+        "exactTime": "{{ inputs.exactTime }}"
+      },
+      "output_fields": {
+        "code": "code",
+        "message": "message"
+      },
+      "inputs": [
+        {
+          "key": "numbers",
+          "label": "To",
+          "type": "string",
+          "required": true,
+          "placeholder": "966500000000",
+          "help": "Comma separate several numbers."
+        },
+        {
+          "key": "userSender",
+          "label": "Sender name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "msg",
+          "label": "Message",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "exactTime",
+          "label": "Send at",
+          "type": "string",
+          "placeholder": "2026-12-01 10:30:00",
+          "help": "Leave blank to send now."
+        }
+      ]
+    },
+    {
+      "key": "send_otp",
+      "name": "Send OTP",
+      "method": "POST",
+      "endpoint": "/sendOTPCode.php",
+      "body": {
+        "userName": "{{ credentials.username }}",
+        "apiKey": "{{ credentials.api_key }}",
+        "number": "{{ inputs.number }}",
+        "userSender": "{{ inputs.userSender }}",
+        "lang": "{{ inputs.lang }}"
+      },
+      "output_fields": {
+        "id": "id",
+        "code": "code",
+        "message": "message"
+      },
+      "inputs": [
+        {
+          "key": "number",
+          "label": "Phone number",
+          "type": "string",
+          "required": true,
+          "placeholder": "966500000000"
+        },
+        {
+          "key": "userSender",
+          "label": "Sender name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "lang",
+          "label": "Language",
+          "type": "select",
+          "default": "En",
+          "options": [
+            {
+              "value": "En",
+              "label": "English"
+            },
+            {
+              "value": "Ar",
+              "label": "Arabic"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "verify_otp",
+      "name": "Verify OTP",
+      "method": "POST",
+      "endpoint": "/verifyOTPCode.php",
+      "body": {
+        "userName": "{{ credentials.username }}",
+        "apiKey": "{{ credentials.api_key }}",
+        "id": "{{ inputs.id }}",
+        "code": "{{ inputs.code }}",
+        "userSender": "{{ inputs.userSender }}",
+        "lang": "{{ inputs.lang }}"
+      },
+      "output_fields": {
+        "code": "code",
+        "message": "message"
+      },
+      "inputs": [
+        {
+          "key": "id",
+          "label": "OTP ID",
+          "type": "string",
+          "required": true,
+          "help": "id returned by Send OTP."
+        },
+        {
+          "key": "code",
+          "label": "Code entered by the user",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "userSender",
+          "label": "Sender name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "lang",
+          "label": "Language",
+          "type": "select",
+          "default": "En",
+          "options": [
+            {
+              "value": "En",
+              "label": "English"
+            },
+            {
+              "value": "Ar",
+              "label": "Arabic"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "get_balance",
+      "name": "Get balance",
+      "description": "Returns your remaining credit as a number.",
+      "method": "POST",
+      "endpoint": "/Credits.php",
+      "body": {
+        "userName": "{{ credentials.username }}",
+        "apiKey": "{{ credentials.api_key }}",
+        "msgEncoding": "UTF8"
+      },
+      "body_format": "form",
+      "inputs": []
+    }
+  ]
+}

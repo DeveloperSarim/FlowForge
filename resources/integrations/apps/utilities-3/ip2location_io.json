@@ -1,0 +1,124 @@
+{
+  "key": "ip2location_io",
+  "name": "IP2Location.io",
+  "category": "Utilities",
+  "description": "Geolocate IP addresses, look up domain WHOIS and find domains hosted on an IP.",
+  "website": "https://www.ip2location.io",
+  "docs_url": "https://www.ip2location.io/ip2location-documentation",
+  "base_url": "https://api.ip2location.io",
+  "auth": {
+    "type": "api_key",
+    "in": "query",
+    "name": "key",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "ip2location.io → Log in → Dashboard → API key (the same key works for WHOIS)."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "lookup_ip",
+      "name": "Look up IP address",
+      "description": "Get the country, region, city, coordinates, time zone and ISP of an IP.",
+      "method": "GET",
+      "endpoint": "/",
+      "query": {
+        "ip": "{{ inputs.ip }}",
+        "lang": "{{ inputs.lang }}",
+        "format": "json"
+      },
+      "output_fields": {
+        "country": "country_name",
+        "country_code": "country_code",
+        "region": "region_name",
+        "city": "city_name",
+        "latitude": "latitude",
+        "longitude": "longitude",
+        "zip_code": "zip_code",
+        "time_zone": "time_zone",
+        "asn": "asn",
+        "isp": "as",
+        "is_proxy": "is_proxy"
+      },
+      "inputs": [
+        {
+          "key": "ip",
+          "label": "IP address",
+          "type": "string",
+          "required": true,
+          "placeholder": "8.8.8.8"
+        },
+        {
+          "key": "lang",
+          "label": "Language",
+          "type": "string",
+          "placeholder": "en",
+          "help": "Translate place names (Plus and Security plans)."
+        }
+      ]
+    },
+    {
+      "key": "whois_lookup",
+      "name": "Look up domain WHOIS",
+      "description": "Get a domain's registrar, creation and expiry dates and contacts.",
+      "method": "GET",
+      "endpoint": "https://api.ip2whois.com/v2",
+      "query": {
+        "domain": "{{ inputs.domain }}"
+      },
+      "output_fields": {
+        "registrar": "registrar.name",
+        "created": "create_date",
+        "expires": "expire_date",
+        "domain_age_days": "domain_age",
+        "registrant_organization": "registrant.organization",
+        "registrant_country": "registrant.country",
+        "nameservers": "nameservers"
+      },
+      "inputs": [
+        {
+          "key": "domain",
+          "label": "Domain",
+          "type": "string",
+          "required": true,
+          "placeholder": "example.com"
+        }
+      ]
+    },
+    {
+      "key": "hosted_domains",
+      "name": "List domains hosted on an IP",
+      "description": "List the websites that share an IP address (100 per page).",
+      "method": "GET",
+      "endpoint": "https://domains.ip2whois.com/domains",
+      "query": {
+        "ip": "{{ inputs.ip }}",
+        "page": "{{ inputs.page }}"
+      },
+      "output_fields": {
+        "total": "total_domains",
+        "domains": "domains",
+        "total_pages": "total_pages"
+      },
+      "inputs": [
+        {
+          "key": "ip",
+          "label": "IP address",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "page",
+          "label": "Page",
+          "type": "number",
+          "default": 1
+        }
+      ]
+    }
+  ]
+}

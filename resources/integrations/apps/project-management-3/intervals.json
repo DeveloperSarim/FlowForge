@@ -1,0 +1,151 @@
+{
+  "key": "intervals",
+  "name": "Intervals",
+  "category": "Project Management",
+  "description": "Task and time tracking: list projects, tasks and clients, create tasks.",
+  "website": "https://www.myintervals.com",
+  "docs_url": "https://www.myintervals.com/api/",
+  "base_url": "https://api.myintervals.com",
+  "headers": {
+    "Accept": "application/json"
+  },
+  "auth": {
+    "type": "basic",
+    "fields": [
+      {
+        "key": "username",
+        "label": "API token",
+        "type": "string",
+        "required": true,
+        "help": "Intervals → Options → Personal API → API access token."
+      },
+      {
+        "key": "password",
+        "label": "Password",
+        "type": "string",
+        "required": true,
+        "default": "X",
+        "help": "Leave as X."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_projects",
+      "name": "List projects",
+      "description": "Your projects.",
+      "method": "GET",
+      "endpoint": "/project/",
+      "query": {
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "names": "project.*.name",
+        "ids": "project.*.id"
+      },
+      "inputs": [
+        {
+          "key": "limit",
+          "label": "Max results",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    },
+    {
+      "key": "list_tasks",
+      "name": "List tasks",
+      "description": "Tasks, optionally of one project.",
+      "method": "GET",
+      "endpoint": "/task/",
+      "query": {
+        "projectid": "{{ inputs.project_id }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "titles": "task.*.title",
+        "ids": "task.*.id"
+      },
+      "inputs": [
+        {
+          "key": "project_id",
+          "label": "Project ID",
+          "type": "string"
+        },
+        {
+          "key": "limit",
+          "label": "Max results",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    },
+    {
+      "key": "create_task",
+      "name": "Create task",
+      "description": "Add a task to a project.",
+      "method": "POST",
+      "endpoint": "/task/",
+      "body": {
+        "projectid": "{{ inputs.project_id }}",
+        "title": "{{ inputs.title }}",
+        "summary": "{{ inputs.summary }}"
+      },
+      "output_fields": {
+        "id": "task.id",
+        "title": "task.title"
+      },
+      "inputs": [
+        {
+          "key": "project_id",
+          "label": "Project ID",
+          "type": "number",
+          "required": true,
+          "help": "Use \"List projects\"."
+        },
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "summary",
+          "label": "Description",
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "key": "list_clients",
+      "name": "List clients",
+      "description": "Clients.",
+      "method": "GET",
+      "endpoint": "/client/",
+      "output_fields": {
+        "names": "client.*.name",
+        "ids": "client.*.id"
+      },
+      "inputs": []
+    },
+    {
+      "key": "get_task",
+      "name": "Get task",
+      "description": "One task.",
+      "method": "GET",
+      "endpoint": "/task/{{ inputs.id }}/",
+      "output_fields": {
+        "title": "task.title",
+        "status": "task.status"
+      },
+      "inputs": [
+        {
+          "key": "id",
+          "label": "Task ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ]
+}

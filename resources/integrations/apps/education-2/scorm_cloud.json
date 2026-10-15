@@ -1,0 +1,211 @@
+{
+  "key": "scorm_cloud",
+  "name": "SCORM Cloud",
+  "category": "Education",
+  "description": "Host e-learning courses: register learners, get launch links and track progress.",
+  "website": "https://rusticisoftware.com/products/scorm-cloud/",
+  "docs_url": "https://cloud.scorm.com/docs/v2/",
+  "base_url": "https://cloud.scorm.com/api/v2",
+  "auth": {
+    "type": "basic",
+    "fields": [
+      {
+        "key": "username",
+        "label": "App ID",
+        "type": "string",
+        "required": true,
+        "help": "SCORM Cloud → Apps → open your app: copy the App ID."
+      },
+      {
+        "key": "password",
+        "label": "Secret key",
+        "type": "password",
+        "required": true,
+        "help": "Same page → Secret Keys (use a key with read/write access)."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_courses",
+      "name": "List courses",
+      "description": "Courses in your app and their IDs.",
+      "method": "GET",
+      "endpoint": "/courses",
+      "query": {
+        "filter": "{{ inputs.filter }}"
+      },
+      "output_fields": {
+        "courses": "courses",
+        "ids": "courses.*.id",
+        "titles": "courses.*.title"
+      },
+      "inputs": [
+        {
+          "key": "filter",
+          "label": "Search title",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "create_registration",
+      "name": "Register learner",
+      "description": "Enroll a learner in a course.",
+      "method": "POST",
+      "endpoint": "/registrations",
+      "body": {
+        "courseId": "{{ inputs.course_id }}",
+        "registrationId": "{{ inputs.registration_id }}",
+        "learner": {
+          "id": "{{ inputs.learner_id }}",
+          "email": "{{ inputs.email }}",
+          "firstName": "{{ inputs.first_name }}",
+          "lastName": "{{ inputs.last_name }}"
+        }
+      },
+      "inputs": [
+        {
+          "key": "course_id",
+          "label": "Course ID",
+          "type": "string",
+          "required": true,
+          "help": "Run \"List courses\" to see the IDs."
+        },
+        {
+          "key": "registration_id",
+          "label": "Registration ID",
+          "type": "string",
+          "required": true,
+          "placeholder": "jane@example.com-safety101",
+          "help": "Any unique ID you choose for this enrollment; reuse it to get the launch link and progress."
+        },
+        {
+          "key": "learner_id",
+          "label": "Learner ID",
+          "type": "string",
+          "required": true,
+          "help": "Your ID for the person, e.g. their email."
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string"
+        },
+        {
+          "key": "first_name",
+          "label": "First name",
+          "type": "string"
+        },
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "launch_link",
+      "name": "Get launch link",
+      "description": "A link the learner opens to take the course.",
+      "method": "POST",
+      "endpoint": "/registrations/{{ inputs.registration_id }}/launchLink",
+      "body": {
+        "redirectOnExitUrl": "{{ inputs.redirect_url }}",
+        "expiry": "{{ inputs.expiry }}"
+      },
+      "output_fields": {
+        "launch_link": "launchLink"
+      },
+      "inputs": [
+        {
+          "key": "registration_id",
+          "label": "Registration ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "redirect_url",
+          "label": "Return URL",
+          "type": "string",
+          "required": true,
+          "default": "https://example.com",
+          "help": "Where the learner goes after closing the course."
+        },
+        {
+          "key": "expiry",
+          "label": "Valid for (seconds)",
+          "type": "number",
+          "default": 0,
+          "help": "0 means no expiry."
+        }
+      ]
+    },
+    {
+      "key": "get_progress",
+      "name": "Get progress",
+      "description": "Completion, pass/fail, score and time spent for a registration.",
+      "method": "GET",
+      "endpoint": "/registrations/{{ inputs.registration_id }}",
+      "output_fields": {
+        "completion": "registrationCompletion",
+        "success": "registrationSuccess",
+        "score": "score.scaled",
+        "seconds_tracked": "totalSecondsTracked",
+        "completed_date": "completedDate",
+        "course_title": "course.title"
+      },
+      "inputs": [
+        {
+          "key": "registration_id",
+          "label": "Registration ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_registrations",
+      "name": "List registrations",
+      "description": "Enrollments, optionally for one course or learner.",
+      "method": "GET",
+      "endpoint": "/registrations",
+      "query": {
+        "courseId": "{{ inputs.course_id }}",
+        "learnerId": "{{ inputs.learner_id }}"
+      },
+      "output_fields": {
+        "registrations": "registrations",
+        "ids": "registrations.*.id"
+      },
+      "inputs": [
+        {
+          "key": "course_id",
+          "label": "Course ID",
+          "type": "string"
+        },
+        {
+          "key": "learner_id",
+          "label": "Learner ID",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "delete_registration",
+      "name": "Delete registration",
+      "description": "Remove an enrollment and its data.",
+      "method": "DELETE",
+      "endpoint": "/registrations/{{ inputs.registration_id }}",
+      "inputs": [
+        {
+          "key": "registration_id",
+          "label": "Registration ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": []
+}

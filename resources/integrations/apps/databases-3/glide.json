@@ -1,0 +1,152 @@
+{
+  "key": "glide",
+  "name": "Glide",
+  "category": "Databases",
+  "description": "Read and write rows in Glide Big Tables from your workflows.",
+  "website": "https://www.glideapps.com",
+  "docs_url": "https://apidocs.glideapps.com/",
+  "base_url": "https://api.glideapps.com",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "API token",
+        "type": "password",
+        "required": true,
+        "help": "In Glide open Settings → Glide API → copy your API token (Business plans and up)."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_tables",
+      "name": "List tables",
+      "description": "List your Big Tables.",
+      "method": "GET",
+      "endpoint": "/tables",
+      "output_fields": {
+        "tables": "data",
+        "first_id": "data.0.id"
+      },
+      "inputs": []
+    },
+    {
+      "key": "list_rows",
+      "name": "List rows",
+      "description": "Read rows from a table.",
+      "method": "GET",
+      "endpoint": "/tables/{{ inputs.table_id }}/rows",
+      "query": {
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "rows": "data",
+        "first_id": "data.0.$rowID",
+        "next": "next"
+      },
+      "inputs": [
+        {
+          "key": "table_id",
+          "label": "Table ID",
+          "type": "string",
+          "required": true,
+          "help": "Use 'List tables' to find it."
+        },
+        {
+          "key": "limit",
+          "label": "Max rows",
+          "type": "number",
+          "default": 100
+        }
+      ]
+    },
+    {
+      "key": "add_rows",
+      "name": "Add rows",
+      "description": "Add one or more rows.",
+      "method": "POST",
+      "endpoint": "/tables/{{ inputs.table_id }}/rows",
+      "body": {
+        "rows": "{{ inputs.rows }}"
+      },
+      "output_fields": {
+        "row_ids": "rowIDs"
+      },
+      "inputs": [
+        {
+          "key": "table_id",
+          "label": "Table ID",
+          "type": "string",
+          "required": true,
+          "help": "Use 'List tables' to find it."
+        },
+        {
+          "key": "rows",
+          "label": "Rows (JSON list)",
+          "type": "json",
+          "required": true,
+          "help": "Example: [{\"Name\": \"Ada\", \"Email\": \"ada@example.com\"}]"
+        }
+      ]
+    },
+    {
+      "key": "update_row",
+      "name": "Update row",
+      "description": "Change columns on one row.",
+      "method": "PATCH",
+      "endpoint": "/tables/{{ inputs.table_id }}/rows/{{ inputs.row_id }}",
+      "body": "{{ inputs.columns }}",
+      "output_fields": {
+        "ok": "data"
+      },
+      "inputs": [
+        {
+          "key": "table_id",
+          "label": "Table ID",
+          "type": "string",
+          "required": true,
+          "help": "Use 'List tables' to find it."
+        },
+        {
+          "key": "row_id",
+          "label": "Row ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "columns",
+          "label": "Columns (JSON)",
+          "type": "json",
+          "required": true,
+          "help": "Example: {\"Status\": \"Done\"}"
+        }
+      ]
+    },
+    {
+      "key": "delete_row",
+      "name": "Delete row",
+      "description": "Delete one row.",
+      "method": "DELETE",
+      "endpoint": "/tables/{{ inputs.table_id }}/rows/{{ inputs.row_id }}",
+      "output_fields": {
+        "ok": "data"
+      },
+      "inputs": [
+        {
+          "key": "table_id",
+          "label": "Table ID",
+          "type": "string",
+          "required": true,
+          "help": "Use 'List tables' to find it."
+        },
+        {
+          "key": "row_id",
+          "label": "Row ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ]
+}

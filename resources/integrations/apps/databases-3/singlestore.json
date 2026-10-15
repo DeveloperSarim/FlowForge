@@ -1,0 +1,117 @@
+{
+  "key": "singlestore",
+  "name": "SingleStore",
+  "category": "Databases",
+  "description": "Manage SingleStore Helios workspace groups and workspaces: list, check, suspend, resume.",
+  "website": "https://www.singlestore.com",
+  "docs_url": "https://docs.singlestore.com/cloud/reference/management-api/",
+  "base_url": "https://api.singlestore.com/v1",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "In the SingleStore portal open Organization → API keys → Create API key."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_workspace_groups",
+      "name": "List workspace groups",
+      "description": "List all workspace groups.",
+      "method": "GET",
+      "endpoint": "/workspaceGroups",
+      "output_fields": {
+        "first_id": "0.workspaceGroupID",
+        "first_name": "0.name"
+      },
+      "inputs": []
+    },
+    {
+      "key": "list_workspaces",
+      "name": "List workspaces",
+      "description": "List workspaces in a group.",
+      "method": "GET",
+      "endpoint": "/workspaces",
+      "query": {
+        "workspaceGroupID": "{{ inputs.group_id }}"
+      },
+      "output_fields": {
+        "first_id": "0.workspaceID",
+        "first_name": "0.name",
+        "first_state": "0.state",
+        "first_host": "0.endpoint"
+      },
+      "inputs": [
+        {
+          "key": "group_id",
+          "label": "Workspace group ID",
+          "type": "string",
+          "required": true,
+          "help": "Use 'List workspace groups' to find it."
+        }
+      ]
+    },
+    {
+      "key": "get_workspace",
+      "name": "Get workspace",
+      "description": "Read a workspace's state and endpoint.",
+      "method": "GET",
+      "endpoint": "/workspaces/{{ inputs.workspace_id }}",
+      "output_fields": {
+        "name": "name",
+        "state": "state",
+        "endpoint": "endpoint",
+        "size": "size"
+      },
+      "inputs": [
+        {
+          "key": "workspace_id",
+          "label": "Workspace ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "suspend_workspace",
+      "name": "Suspend workspace",
+      "description": "Pause a workspace to stop compute charges.",
+      "method": "POST",
+      "endpoint": "/workspaces/{{ inputs.workspace_id }}/suspend",
+      "output_fields": {
+        "id": "workspaceID"
+      },
+      "inputs": [
+        {
+          "key": "workspace_id",
+          "label": "Workspace ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "resume_workspace",
+      "name": "Resume workspace",
+      "description": "Start a suspended workspace.",
+      "method": "POST",
+      "endpoint": "/workspaces/{{ inputs.workspace_id }}/resume",
+      "output_fields": {
+        "id": "workspaceID"
+      },
+      "inputs": [
+        {
+          "key": "workspace_id",
+          "label": "Workspace ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ]
+}

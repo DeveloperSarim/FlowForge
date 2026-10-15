@@ -1,0 +1,232 @@
+{
+  "key": "octopus_deploy",
+  "name": "Octopus Deploy",
+  "category": "Developer Tools",
+  "description": "Create releases, deploy them to environments and track Octopus tasks.",
+  "brand": "octopusdeploy",
+  "website": "https://octopus.com",
+  "docs_url": "https://octopus.com/docs/octopus-rest-api",
+  "base_url": "{{ credentials.server_url }}/api",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "X-Octopus-ApiKey",
+    "fields": [
+      {
+        "key": "server_url",
+        "label": "Octopus URL",
+        "type": "string",
+        "required": true,
+        "placeholder": "https://mycompany.octopus.app",
+        "help": "Your Octopus address without a trailing slash."
+      },
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "Octopus → your profile → My API keys → New API key."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_projects",
+      "name": "List projects",
+      "description": "List all projects in a space.",
+      "method": "GET",
+      "endpoint": "/{{ inputs.space_id }}/projects/all",
+      "inputs": [
+        {
+          "key": "space_id",
+          "label": "Space ID",
+          "type": "string",
+          "required": true,
+          "default": "Spaces-1",
+          "help": "Keep Spaces-1 unless you use several spaces (the ID is in the Octopus URL)."
+        }
+      ]
+    },
+    {
+      "key": "list_environments",
+      "name": "List environments",
+      "description": "List all environments in a space.",
+      "method": "GET",
+      "endpoint": "/{{ inputs.space_id }}/environments/all",
+      "inputs": [
+        {
+          "key": "space_id",
+          "label": "Space ID",
+          "type": "string",
+          "required": true,
+          "default": "Spaces-1",
+          "help": "Keep Spaces-1 unless you use several spaces (the ID is in the Octopus URL)."
+        }
+      ]
+    },
+    {
+      "key": "list_releases",
+      "name": "List releases",
+      "description": "List recent releases.",
+      "method": "GET",
+      "endpoint": "/{{ inputs.space_id }}/releases",
+      "query": {
+        "take": "{{ inputs.take }}"
+      },
+      "output_fields": {
+        "releases": "Items"
+      },
+      "inputs": [
+        {
+          "key": "space_id",
+          "label": "Space ID",
+          "type": "string",
+          "required": true,
+          "default": "Spaces-1",
+          "help": "Keep Spaces-1 unless you use several spaces (the ID is in the Octopus URL)."
+        },
+        {
+          "key": "take",
+          "label": "Number of releases",
+          "type": "number",
+          "default": 20
+        }
+      ]
+    },
+    {
+      "key": "create_release",
+      "name": "Create release",
+      "description": "Create a release of a project.",
+      "method": "POST",
+      "endpoint": "/{{ inputs.space_id }}/releases/create/v1",
+      "body": {
+        "spaceIdOrName": "{{ inputs.space_id }}",
+        "ProjectName": "{{ inputs.project_name }}",
+        "ReleaseVersion": "{{ inputs.release_version }}",
+        "ChannelName": "{{ inputs.channel_name }}",
+        "PackageVersion": "{{ inputs.package_version }}",
+        "ReleaseNotes": "{{ inputs.release_notes }}"
+      },
+      "output_fields": {
+        "release_id": "ReleaseId",
+        "release_version": "ReleaseVersion"
+      },
+      "inputs": [
+        {
+          "key": "space_id",
+          "label": "Space ID",
+          "type": "string",
+          "required": true,
+          "default": "Spaces-1",
+          "help": "Keep Spaces-1 unless you use several spaces (the ID is in the Octopus URL)."
+        },
+        {
+          "key": "project_name",
+          "label": "Project name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "release_version",
+          "label": "Release version",
+          "type": "string",
+          "help": "Leave empty to use the project's versioning rule."
+        },
+        {
+          "key": "channel_name",
+          "label": "Channel",
+          "type": "string"
+        },
+        {
+          "key": "package_version",
+          "label": "Package version",
+          "type": "string",
+          "help": "Version to use for all packages."
+        },
+        {
+          "key": "release_notes",
+          "label": "Release notes",
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "key": "deploy_release",
+      "name": "Deploy release",
+      "description": "Deploy a release to one or more environments.",
+      "method": "POST",
+      "endpoint": "/{{ inputs.space_id }}/deployments/create/untenanted/v1",
+      "body": {
+        "spaceIdOrName": "{{ inputs.space_id }}",
+        "ProjectName": "{{ inputs.project_name }}",
+        "ReleaseVersion": "{{ inputs.release_version }}",
+        "EnvironmentNames": "{{ inputs.environment_names }}"
+      },
+      "output_fields": {
+        "task_id": "DeploymentServerTasks.0.ServerTaskId",
+        "deployment_id": "DeploymentServerTasks.0.DeploymentId"
+      },
+      "inputs": [
+        {
+          "key": "space_id",
+          "label": "Space ID",
+          "type": "string",
+          "required": true,
+          "default": "Spaces-1",
+          "help": "Keep Spaces-1 unless you use several spaces (the ID is in the Octopus URL)."
+        },
+        {
+          "key": "project_name",
+          "label": "Project name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "release_version",
+          "label": "Release version",
+          "type": "string",
+          "required": true,
+          "placeholder": "1.4.2"
+        },
+        {
+          "key": "environment_names",
+          "label": "Environments",
+          "type": "list",
+          "required": true,
+          "placeholder": "Production"
+        }
+      ]
+    },
+    {
+      "key": "get_task",
+      "name": "Get task status",
+      "description": "Check whether a deployment task has finished.",
+      "method": "GET",
+      "endpoint": "/{{ inputs.space_id }}/tasks/{{ inputs.task_id }}",
+      "output_fields": {
+        "state": "State",
+        "completed": "IsCompleted",
+        "succeeded": "FinishedSuccessfully",
+        "error": "ErrorMessage"
+      },
+      "inputs": [
+        {
+          "key": "space_id",
+          "label": "Space ID",
+          "type": "string",
+          "required": true,
+          "default": "Spaces-1",
+          "help": "Keep Spaces-1 unless you use several spaces (the ID is in the Octopus URL)."
+        },
+        {
+          "key": "task_id",
+          "label": "Task ID",
+          "type": "string",
+          "required": true,
+          "placeholder": "ServerTasks-123",
+          "help": "Returned by Deploy release."
+        }
+      ]
+    }
+  ]
+}

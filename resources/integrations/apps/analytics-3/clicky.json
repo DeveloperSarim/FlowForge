@@ -1,0 +1,292 @@
+{
+  "key": "clicky",
+  "name": "Clicky",
+  "category": "Analytics",
+  "description": "Pull real-time visitor stats, top pages and traffic sources from Clicky.",
+  "website": "https://clicky.com",
+  "docs_url": "https://clicky.com/help/api",
+  "base_url": "https://api.clicky.com/api/stats",
+  "auth": {
+    "type": "api_key",
+    "in": "query",
+    "name": "sitekey",
+    "fields": [
+      {
+        "key": "site_id",
+        "label": "Site ID",
+        "type": "string",
+        "required": true,
+        "help": "Clicky → your site → Preferences: the numeric Site ID."
+      },
+      {
+        "key": "api_key",
+        "label": "Site key",
+        "type": "password",
+        "required": true,
+        "help": "Clicky → your site → Preferences: the 'Site key' under Info."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "get_stats",
+      "name": "Get site stats",
+      "description": "A single tally such as visitors or bounce rate.",
+      "method": "GET",
+      "endpoint": "/4",
+      "query": {
+        "site_id": "{{ credentials.site_id }}",
+        "output": "json",
+        "type": "{{ inputs.type }}",
+        "date": "{{ inputs.date }}",
+        "daily": "{{ inputs.daily }}"
+      },
+      "output_fields": {
+        "value": "0.dates.0.items.0.value"
+      },
+      "inputs": [
+        {
+          "key": "type",
+          "label": "Metric",
+          "type": "select",
+          "required": true,
+          "default": "visitors",
+          "options": [
+            {
+              "value": "visitors",
+              "label": "Visitors"
+            },
+            {
+              "value": "visitors-unique",
+              "label": "Unique visitors"
+            },
+            {
+              "value": "visitors-new",
+              "label": "New visitors"
+            },
+            {
+              "value": "visitors-online",
+              "label": "Visitors online now"
+            },
+            {
+              "value": "actions",
+              "label": "Actions"
+            },
+            {
+              "value": "actions-pageviews",
+              "label": "Page views"
+            },
+            {
+              "value": "bounce-rate",
+              "label": "Bounce rate"
+            },
+            {
+              "value": "time-average-pretty",
+              "label": "Average time on site"
+            }
+          ]
+        },
+        {
+          "key": "date",
+          "label": "Date range",
+          "type": "string",
+          "default": "today",
+          "placeholder": "today",
+          "help": "today, yesterday, last-7-days, this-month, last-month, YYYY-MM-DD or YYYY-MM-DD,YYYY-MM-DD"
+        },
+        {
+          "key": "daily",
+          "label": "Break down by day",
+          "type": "boolean",
+          "default": false
+        }
+      ]
+    },
+    {
+      "key": "get_top_pages",
+      "name": "Get top pages",
+      "description": "Most popular pages.",
+      "method": "GET",
+      "endpoint": "/4",
+      "query": {
+        "site_id": "{{ credentials.site_id }}",
+        "output": "json",
+        "type": "pages",
+        "date": "{{ inputs.date }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "pages": "0.dates.0.items",
+        "titles": "0.dates.0.items.*.title"
+      },
+      "inputs": [
+        {
+          "key": "date",
+          "label": "Date range",
+          "type": "string",
+          "default": "today",
+          "placeholder": "today",
+          "help": "today, yesterday, last-7-days, this-month, last-month, YYYY-MM-DD or YYYY-MM-DD,YYYY-MM-DD"
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 10
+        }
+      ]
+    },
+    {
+      "key": "get_traffic_sources",
+      "name": "Get traffic sources",
+      "description": "Where visitors come from (search, social, links…).",
+      "method": "GET",
+      "endpoint": "/4",
+      "query": {
+        "site_id": "{{ credentials.site_id }}",
+        "output": "json",
+        "type": "traffic-sources",
+        "date": "{{ inputs.date }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "sources": "0.dates.0.items"
+      },
+      "inputs": [
+        {
+          "key": "date",
+          "label": "Date range",
+          "type": "string",
+          "default": "today",
+          "placeholder": "today",
+          "help": "today, yesterday, last-7-days, this-month, last-month, YYYY-MM-DD or YYYY-MM-DD,YYYY-MM-DD"
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 10
+        }
+      ]
+    },
+    {
+      "key": "get_top_countries",
+      "name": "Get top countries",
+      "description": "Visitors by country.",
+      "method": "GET",
+      "endpoint": "/4",
+      "query": {
+        "site_id": "{{ credentials.site_id }}",
+        "output": "json",
+        "type": "countries",
+        "date": "{{ inputs.date }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "countries": "0.dates.0.items"
+      },
+      "inputs": [
+        {
+          "key": "date",
+          "label": "Date range",
+          "type": "string",
+          "default": "today",
+          "placeholder": "today",
+          "help": "today, yesterday, last-7-days, this-month, last-month, YYYY-MM-DD or YYYY-MM-DD,YYYY-MM-DD"
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 10
+        }
+      ]
+    },
+    {
+      "key": "list_recent_visitors",
+      "name": "List recent visitors",
+      "description": "Latest visitor sessions, newest first.",
+      "method": "GET",
+      "endpoint": "/4",
+      "query": {
+        "site_id": "{{ credentials.site_id }}",
+        "output": "json",
+        "type": "visitors-list",
+        "date": "{{ inputs.date }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "visitors": "0.dates.0.items"
+      },
+      "inputs": [
+        {
+          "key": "date",
+          "label": "Date range",
+          "type": "string",
+          "default": "today",
+          "placeholder": "today",
+          "help": "today, yesterday, last-7-days, this-month, last-month, YYYY-MM-DD or YYYY-MM-DD,YYYY-MM-DD"
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 25
+        }
+      ]
+    },
+    {
+      "key": "get_goals",
+      "name": "Get goal conversions",
+      "description": "Goal completions, conversion rate and revenue.",
+      "method": "GET",
+      "endpoint": "/4",
+      "query": {
+        "site_id": "{{ credentials.site_id }}",
+        "output": "json",
+        "type": "goals",
+        "date": "{{ inputs.date }}"
+      },
+      "output_fields": {
+        "goals": "0.dates.0.items"
+      },
+      "inputs": [
+        {
+          "key": "date",
+          "label": "Date range",
+          "type": "string",
+          "default": "today",
+          "placeholder": "today",
+          "help": "today, yesterday, last-7-days, this-month, last-month, YYYY-MM-DD or YYYY-MM-DD,YYYY-MM-DD"
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_visitor",
+      "name": "New visitor session",
+      "type": "polling",
+      "description": "Starts for each new visitor session today.",
+      "method": "GET",
+      "endpoint": "/4",
+      "query": {
+        "site_id": "{{ credentials.site_id }}",
+        "output": "json",
+        "type": "visitors-list",
+        "date": "today",
+        "limit": 50
+      },
+      "items_path": "0.dates.0.items",
+      "id_field": "session_id",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

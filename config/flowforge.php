@@ -5,6 +5,8 @@ return [
     'installed' => (bool) env('FLOWFORGE_INSTALLED', false),
 
     'integrations_path' => resource_path('integrations'),
+    // Custom apps made in the app or by the AI builder; in storage so updates never touch them.
+    'custom_integrations_path' => storage_path('app/integrations'),
 
     'execution_retention_days' => (int) env('FLOWFORGE_EXECUTION_RETENTION_DAYS', 30),
 

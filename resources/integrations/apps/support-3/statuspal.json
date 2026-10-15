@@ -1,0 +1,175 @@
+{
+  "key": "statuspal",
+  "name": "Statuspal",
+  "category": "Customer Support",
+  "description": "Open and list incidents and check the live status of your Statuspal status page.",
+  "website": "https://statuspal.io",
+  "docs_url": "https://docs.statuspal.io/platform/api-reference",
+  "base_url": "https://{{ credentials.host }}/api/v2",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "Authorization",
+    "fields": [
+      {
+        "key": "host",
+        "label": "Server",
+        "type": "string",
+        "required": true,
+        "default": "statuspal.io",
+        "help": "statuspal.io, or statuspal.eu if your account is in the EU region."
+      },
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "In Statuspal open your user menu > API and copy the key."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "create_incident",
+      "name": "Create incident",
+      "description": "Opens an incident or scheduled maintenance on the status page.",
+      "method": "POST",
+      "endpoint": "/status_pages/{{ inputs.subdomain }}/incidents",
+      "body": {
+        "incident": {
+          "title": "{{ inputs.title }}",
+          "type": "{{ inputs.type }}",
+          "notify": "{{ inputs.notify }}",
+          "updates": [
+            {
+              "type": "{{ inputs.update_type }}",
+              "description": "{{ inputs.message }}"
+            }
+          ]
+        }
+      },
+      "output_fields": {
+        "id": "incident.id",
+        "url": "incident.url"
+      },
+      "inputs": [
+        {
+          "key": "subdomain",
+          "label": "Status page subdomain",
+          "type": "string",
+          "required": true,
+          "help": "The first part of your status page address, e.g. \"acme\" for acme.statuspal.io."
+        },
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "type",
+          "label": "Type",
+          "type": "select",
+          "default": "major",
+          "options": [
+            {
+              "value": "major",
+              "label": "Major outage"
+            },
+            {
+              "value": "minor",
+              "label": "Minor issue"
+            },
+            {
+              "value": "scheduled",
+              "label": "Scheduled maintenance"
+            }
+          ]
+        },
+        {
+          "key": "message",
+          "label": "First update",
+          "type": "text",
+          "help": "What your customers will read."
+        },
+        {
+          "key": "update_type",
+          "label": "Update status",
+          "type": "select",
+          "default": "investigating",
+          "options": [
+            {
+              "value": "investigating",
+              "label": "Investigating"
+            },
+            {
+              "value": "identified",
+              "label": "Identified"
+            },
+            {
+              "value": "monitoring",
+              "label": "Monitoring"
+            }
+          ]
+        },
+        {
+          "key": "notify",
+          "label": "Notify subscribers",
+          "type": "boolean",
+          "default": true
+        }
+      ]
+    },
+    {
+      "key": "list_incidents",
+      "name": "List incidents",
+      "description": "Lists recent incidents of a status page.",
+      "method": "GET",
+      "endpoint": "/status_pages/{{ inputs.subdomain }}/incidents",
+      "query": {
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "incidents": "incidents",
+        "first_id": "incidents.0.id",
+        "first_title": "incidents.0.title"
+      },
+      "inputs": [
+        {
+          "key": "subdomain",
+          "label": "Status page subdomain",
+          "type": "string",
+          "required": true,
+          "help": "The first part of your status page address, e.g. \"acme\" for acme.statuspal.io."
+        },
+        {
+          "key": "limit",
+          "label": "How many",
+          "type": "number",
+          "default": 20
+        }
+      ]
+    },
+    {
+      "key": "get_summary",
+      "name": "Get status summary",
+      "description": "Gets the current overall status with services and open incidents.",
+      "method": "GET",
+      "endpoint": "/status_pages/{{ inputs.subdomain }}/summary",
+      "output_fields": {
+        "status": "current_status_type",
+        "services": "services",
+        "incidents": "incidents"
+      },
+      "inputs": [
+        {
+          "key": "subdomain",
+          "label": "Status page subdomain",
+          "type": "string",
+          "required": true,
+          "help": "The first part of your status page address, e.g. \"acme\" for acme.statuspal.io."
+        }
+      ]
+    }
+  ]
+}

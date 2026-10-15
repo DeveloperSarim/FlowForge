@@ -1,0 +1,103 @@
+{
+  "key": "mailboxvalidator",
+  "name": "MailboxValidator",
+  "category": "Marketing & Email",
+  "description": "Verify email addresses and spot disposable or free email providers.",
+  "website": "https://www.mailboxvalidator.com",
+  "docs_url": "https://www.mailboxvalidator.com/api-single-validation",
+  "base_url": "https://api.mailboxvalidator.com/v2",
+  "auth": {
+    "type": "api_key",
+    "in": "query",
+    "name": "key",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "MailboxValidator → log in → Dashboard: your API key is shown at the top."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "validate_email",
+      "name": "Validate email",
+      "description": "Full check: syntax, domain, mailbox, disposable, role and catch-all.",
+      "method": "GET",
+      "endpoint": "/validation/single",
+      "error_path": "error.error_message",
+      "query": {
+        "email": "{{ inputs.email }}"
+      },
+      "output_fields": {
+        "valid": "status",
+        "score": "mailboxvalidator_score",
+        "is_verified": "is_verified",
+        "is_disposable": "is_disposable",
+        "is_free": "is_free",
+        "is_role": "is_role",
+        "is_catchall": "is_catchall",
+        "is_high_risk": "is_high_risk",
+        "domain": "domain",
+        "credits_left": "credits_available"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "check_disposable",
+      "name": "Check disposable email",
+      "description": "Is the address from a throwaway email provider?",
+      "method": "GET",
+      "endpoint": "/email/disposable",
+      "error_path": "error.error_message",
+      "query": {
+        "email": "{{ inputs.email }}"
+      },
+      "output_fields": {
+        "is_disposable": "is_disposable",
+        "credits_left": "credits_available"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "check_free",
+      "name": "Check free email",
+      "description": "Is the address from a free provider like Gmail or Yahoo?",
+      "method": "GET",
+      "endpoint": "/email/free",
+      "error_path": "error.error_message",
+      "query": {
+        "email": "{{ inputs.email }}"
+      },
+      "output_fields": {
+        "is_free": "is_free",
+        "credits_left": "credits_available"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": []
+}

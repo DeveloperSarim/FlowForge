@@ -1,0 +1,143 @@
+{
+  "key": "discogs",
+  "name": "Discogs",
+  "category": "Video & Media",
+  "description": "Search the Discogs music database and read releases, artists and labels.",
+  "website": "https://www.discogs.com",
+  "docs_url": "https://www.discogs.com/developers",
+  "base_url": "https://api.discogs.com",
+  "headers": {
+    "User-Agent": "FlowForge/1.0 +https://github.com"
+  },
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "Authorization",
+    "prefix": "Discogs token=",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "Personal access token",
+        "type": "password",
+        "required": true,
+        "help": "Discogs > Settings > Developers > Generate new token."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "search",
+      "name": "Search the database",
+      "description": "Search releases, artists, masters and labels.",
+      "method": "GET",
+      "endpoint": "/database/search",
+      "query": {
+        "q": "{{ inputs.q }}",
+        "type": "{{ inputs.type }}",
+        "per_page": "{{ inputs.per_page }}"
+      },
+      "output_fields": {
+        "results": "results",
+        "ids": "results.*.id",
+        "titles": "results.*.title"
+      },
+      "inputs": [
+        {
+          "key": "q",
+          "label": "Search",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "type",
+          "label": "Type",
+          "type": "select",
+          "default": "release",
+          "options": [
+            {
+              "value": "release",
+              "label": "Release"
+            },
+            {
+              "value": "master",
+              "label": "Master"
+            },
+            {
+              "value": "artist",
+              "label": "Artist"
+            },
+            {
+              "value": "label",
+              "label": "Label"
+            }
+          ]
+        },
+        {
+          "key": "per_page",
+          "label": "Per page",
+          "type": "number",
+          "default": 25
+        }
+      ]
+    },
+    {
+      "key": "get_release",
+      "name": "Get a release",
+      "description": "Get a release with tracklist and credits.",
+      "method": "GET",
+      "endpoint": "/releases/{{ inputs.release_id }}",
+      "output_fields": {
+        "title": "title",
+        "year": "year",
+        "artists": "artists_sum",
+        "tracklist": "tracklist"
+      },
+      "inputs": [
+        {
+          "key": "release_id",
+          "label": "Release ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "get_artist",
+      "name": "Get an artist",
+      "description": "Get an artist profile.",
+      "method": "GET",
+      "endpoint": "/artists/{{ inputs.artist_id }}",
+      "output_fields": {
+        "name": "name",
+        "profile": "profile"
+      },
+      "inputs": [
+        {
+          "key": "artist_id",
+          "label": "Artist ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "get_label",
+      "name": "Get a label",
+      "description": "Get a record label.",
+      "method": "GET",
+      "endpoint": "/labels/{{ inputs.label_id }}",
+      "output_fields": {
+        "name": "name",
+        "profile": "profile"
+      },
+      "inputs": [
+        {
+          "key": "label_id",
+          "label": "Label ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ]
+}

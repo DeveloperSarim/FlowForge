@@ -1,0 +1,155 @@
+{
+  "key": "soniox",
+  "name": "Soniox",
+  "category": "AI",
+  "description": "Accurate speech-to-text for 60+ languages with speaker labels and translation.",
+  "website": "https://soniox.com",
+  "docs_url": "https://soniox.com/docs/stt/api-reference",
+  "base_url": "https://api.soniox.com/v1",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "console.soniox.com → API Keys → Create API key."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "create_transcription",
+      "name": "Transcribe audio from URL",
+      "description": "Start a transcription; read it with Get transcript when completed.",
+      "method": "POST",
+      "endpoint": "/transcriptions",
+      "body": {
+        "audio_url": "{{ inputs.audio_url }}",
+        "model": "{{ inputs.model }}",
+        "language_hints": "{{ inputs.language_hints }}",
+        "enable_speaker_diarization": "{{ inputs.enable_speaker_diarization }}",
+        "enable_language_identification": "{{ inputs.enable_language_identification }}",
+        "webhook_url": "{{ inputs.webhook_url }}"
+      },
+      "output_fields": {
+        "id": "id",
+        "status": "status"
+      },
+      "inputs": [
+        {
+          "key": "audio_url",
+          "label": "Audio URL",
+          "type": "string",
+          "required": true,
+          "help": "A public link to the audio or video file."
+        },
+        {
+          "key": "model",
+          "label": "Model",
+          "type": "string",
+          "required": true,
+          "default": "stt-async-v5"
+        },
+        {
+          "key": "language_hints",
+          "label": "Expected languages",
+          "type": "list",
+          "placeholder": "en",
+          "help": "Optional language codes to improve accuracy."
+        },
+        {
+          "key": "enable_speaker_diarization",
+          "label": "Label speakers",
+          "type": "boolean"
+        },
+        {
+          "key": "enable_language_identification",
+          "label": "Identify languages",
+          "type": "boolean"
+        },
+        {
+          "key": "webhook_url",
+          "label": "Webhook URL",
+          "type": "string",
+          "help": "Optional URL Soniox calls when the transcript is ready."
+        }
+      ]
+    },
+    {
+      "key": "get_transcription",
+      "name": "Get transcription status",
+      "description": "Check whether a transcription is queued, processing, completed or failed.",
+      "method": "GET",
+      "endpoint": "/transcriptions/{{ inputs.id }}",
+      "output_fields": {
+        "status": "status",
+        "error": "error_message",
+        "duration_ms": "audio_duration_ms"
+      },
+      "inputs": [
+        {
+          "key": "id",
+          "label": "Transcription ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "get_transcript",
+      "name": "Get transcript",
+      "description": "Get the full text of a completed transcription.",
+      "method": "GET",
+      "endpoint": "/transcriptions/{{ inputs.id }}/transcript",
+      "output_fields": {
+        "text": "text"
+      },
+      "inputs": [
+        {
+          "key": "id",
+          "label": "Transcription ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_transcriptions",
+      "name": "List transcriptions",
+      "description": "List your transcriptions.",
+      "method": "GET",
+      "endpoint": "/transcriptions",
+      "query": {
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "transcriptions": "transcriptions"
+      },
+      "inputs": [
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    },
+    {
+      "key": "delete_transcription",
+      "name": "Delete transcription",
+      "description": "Delete a transcription and its transcript.",
+      "method": "DELETE",
+      "endpoint": "/transcriptions/{{ inputs.id }}",
+      "inputs": [
+        {
+          "key": "id",
+          "label": "Transcription ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ]
+}

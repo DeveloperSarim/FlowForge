@@ -1,0 +1,213 @@
+{
+  "key": "looker",
+  "name": "Looker",
+  "category": "Analytics",
+  "description": "Run Looker Looks and queries, and search dashboards on your Looker instance.",
+  "website": "https://cloud.google.com/looker",
+  "docs_url": "https://cloud.google.com/looker/docs/reference/looker-api/latest",
+  "base_url": "https://{{ credentials.instance }}/api/4.0",
+  "auth": {
+    "type": "oauth2_client_credentials",
+    "token_url": "https://{{ credentials.instance }}/api/4.0/login",
+    "token_type": "token",
+    "fields": [
+      {
+        "key": "instance",
+        "label": "Instance address",
+        "type": "string",
+        "required": true,
+        "placeholder": "mycompany.cloud.looker.com",
+        "help": "Your Looker host without https:// (add :19999 if your admin uses that API port)."
+      },
+      {
+        "key": "client_id",
+        "label": "Client ID",
+        "type": "string",
+        "required": true,
+        "help": "Looker → Admin → Users → your user → Edit Keys → New API key."
+      },
+      {
+        "key": "client_secret",
+        "label": "Client secret",
+        "type": "password",
+        "required": true
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "run_look",
+      "name": "Run Look",
+      "description": "Run a saved Look and return its rows.",
+      "method": "GET",
+      "endpoint": "/looks/{{ inputs.look_id }}/run/json",
+      "query": {
+        "limit": "{{ inputs.limit }}"
+      },
+      "timeout": 120,
+      "output_fields": {
+        "first_row": "0"
+      },
+      "inputs": [
+        {
+          "key": "look_id",
+          "label": "Look ID",
+          "type": "string",
+          "required": true,
+          "help": "The number in the Look's URL after /looks/. Or use 'List Looks'."
+        },
+        {
+          "key": "limit",
+          "label": "Row limit",
+          "type": "number",
+          "default": 500
+        }
+      ]
+    },
+    {
+      "key": "run_inline_query",
+      "name": "Run query",
+      "description": "Run an ad-hoc query against an Explore.",
+      "method": "POST",
+      "endpoint": "/queries/run/json",
+      "timeout": 120,
+      "body": {
+        "model": "{{ inputs.model }}",
+        "view": "{{ inputs.view }}",
+        "fields": "{{ inputs.fields }}",
+        "filters": "{{ inputs.filters }}",
+        "sorts": "{{ inputs.sorts }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "first_row": "0"
+      },
+      "inputs": [
+        {
+          "key": "model",
+          "label": "Model",
+          "type": "string",
+          "required": true,
+          "placeholder": "ecommerce"
+        },
+        {
+          "key": "view",
+          "label": "Explore",
+          "type": "string",
+          "required": true,
+          "placeholder": "orders"
+        },
+        {
+          "key": "fields",
+          "label": "Fields",
+          "type": "list",
+          "required": true,
+          "help": "e.g. orders.created_date, orders.count"
+        },
+        {
+          "key": "filters",
+          "label": "Filters",
+          "type": "keyvalue",
+          "help": "Field → filter expression, e.g. orders.created_date = 7 days"
+        },
+        {
+          "key": "sorts",
+          "label": "Sorts",
+          "type": "list",
+          "help": "e.g. orders.count desc"
+        },
+        {
+          "key": "limit",
+          "label": "Row limit",
+          "type": "string",
+          "default": "500"
+        }
+      ]
+    },
+    {
+      "key": "list_looks",
+      "name": "List Looks",
+      "description": "Saved Looks you can access.",
+      "method": "GET",
+      "endpoint": "/looks",
+      "query": {
+        "fields": "{{ inputs.fields }}"
+      },
+      "output_fields": {
+        "ids": "*.id",
+        "titles": "*.title"
+      },
+      "inputs": [
+        {
+          "key": "fields",
+          "label": "Fields",
+          "type": "string",
+          "default": "id,title,folder"
+        }
+      ]
+    },
+    {
+      "key": "search_dashboards",
+      "name": "Search dashboards",
+      "description": "Find dashboards by title.",
+      "method": "GET",
+      "endpoint": "/dashboards/search",
+      "query": {
+        "title": "{{ inputs.title }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "ids": "*.id",
+        "titles": "*.title"
+      },
+      "inputs": [
+        {
+          "key": "title",
+          "label": "Title contains",
+          "type": "string",
+          "placeholder": "%sales%"
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 25
+        }
+      ]
+    },
+    {
+      "key": "get_dashboard",
+      "name": "Get dashboard",
+      "description": "Dashboard details and tiles.",
+      "method": "GET",
+      "endpoint": "/dashboards/{{ inputs.dashboard_id }}",
+      "output_fields": {
+        "id": "id",
+        "title": "title",
+        "elements": "dashboard_elements"
+      },
+      "inputs": [
+        {
+          "key": "dashboard_id",
+          "label": "Dashboard ID",
+          "type": "string",
+          "required": true,
+          "help": "The number in the dashboard URL."
+        }
+      ]
+    },
+    {
+      "key": "get_me",
+      "name": "Get current user",
+      "description": "The user these API keys belong to.",
+      "method": "GET",
+      "endpoint": "/user",
+      "output_fields": {
+        "id": "id",
+        "email": "email",
+        "display_name": "display_name"
+      },
+      "inputs": []
+    }
+  ]
+}

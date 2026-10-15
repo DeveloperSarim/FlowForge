@@ -1,0 +1,157 @@
+{
+  "key": "immich",
+  "name": "Immich",
+  "category": "Files & Documents",
+  "description": "Self-hosted photo library: list and search assets, manage albums.",
+  "website": "https://immich.app",
+  "docs_url": "https://immich.app/docs/api",
+  "base_url": "{{ credentials.base_url }}/api",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "x-api-key",
+    "fields": [
+      {
+        "key": "base_url",
+        "label": "Immich URL",
+        "type": "string",
+        "required": true,
+        "placeholder": "https://photos.example.com",
+        "help": "The address of your Immich server, without a trailing slash."
+      },
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "Immich → Account Settings → API Keys → New API Key."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_albums",
+      "name": "List albums",
+      "description": "Your albums.",
+      "method": "GET",
+      "endpoint": "/albums",
+      "output_fields": {
+        "names": "*.albumName",
+        "ids": "*.id"
+      },
+      "inputs": []
+    },
+    {
+      "key": "get_album",
+      "name": "Get album",
+      "description": "Album with its assets.",
+      "method": "GET",
+      "endpoint": "/albums/{{ inputs.id }}",
+      "output_fields": {
+        "name": "albumName",
+        "count": "assetCount"
+      },
+      "inputs": [
+        {
+          "key": "id",
+          "label": "Album ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "create_album",
+      "name": "Create album",
+      "description": "New album.",
+      "method": "POST",
+      "endpoint": "/albums",
+      "body": {
+        "albumName": "{{ inputs.name }}",
+        "description": "{{ inputs.description }}"
+      },
+      "output_fields": {
+        "id": "id"
+      },
+      "inputs": [
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "description",
+          "label": "Description",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "delete_album",
+      "name": "Delete album",
+      "description": "Delete an album (photos are kept).",
+      "method": "DELETE",
+      "endpoint": "/albums/{{ inputs.id }}",
+      "inputs": [
+        {
+          "key": "id",
+          "label": "Album ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "search_assets",
+      "name": "Search assets",
+      "description": "Find photos and videos by file name, city or type.",
+      "method": "POST",
+      "endpoint": "/search/metadata",
+      "body": {
+        "originalFileName": "{{ inputs.file_name }}",
+        "city": "{{ inputs.city }}",
+        "type": "{{ inputs.type }}",
+        "size": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "total": "assets.total",
+        "ids": "assets.items.*.id",
+        "names": "assets.items.*.originalFileName"
+      },
+      "inputs": [
+        {
+          "key": "file_name",
+          "label": "File name",
+          "type": "string"
+        },
+        {
+          "key": "city",
+          "label": "City",
+          "type": "string"
+        },
+        {
+          "key": "type",
+          "label": "Type",
+          "type": "select",
+          "options": [
+            {
+              "value": "IMAGE",
+              "label": "Photo"
+            },
+            {
+              "value": "VIDEO",
+              "label": "Video"
+            }
+          ]
+        },
+        {
+          "key": "limit",
+          "label": "Max results",
+          "type": "number",
+          "default": 25
+        }
+      ]
+    }
+  ]
+}

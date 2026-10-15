@@ -1,0 +1,198 @@
+{
+  "key": "jasper",
+  "name": "Jasper",
+  "category": "AI",
+  "description": "On-brand AI marketing copy with your Jasper brand voice, style guide and templates.",
+  "website": "https://www.jasper.ai",
+  "docs_url": "https://developers.jasper.ai/reference",
+  "base_url": "https://api.jasper.ai/v1",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "X-API-Key",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "Jasper → Settings → API (workspace admins) → Create API key."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "run_command",
+      "name": "Write with a command",
+      "description": "Tell Jasper what to write and get the text back.",
+      "method": "POST",
+      "endpoint": "/command",
+      "timeout": 180,
+      "body": {
+        "inputs": {
+          "command": "{{ inputs.command }}",
+          "context": "{{ inputs.context }}",
+          "toneId": "{{ inputs.tone_id }}",
+          "styleId": "{{ inputs.style_id }}"
+        },
+        "options": {
+          "outputCount": "{{ inputs.output_count }}",
+          "outputLanguage": "{{ inputs.output_language }}"
+        }
+      },
+      "output_fields": {
+        "text": "data.0.text",
+        "versions": "data.*.text"
+      },
+      "inputs": [
+        {
+          "key": "command",
+          "label": "Instruction",
+          "type": "text",
+          "required": true,
+          "placeholder": "Write a LinkedIn post announcing our new feature"
+        },
+        {
+          "key": "context",
+          "label": "Background",
+          "type": "text",
+          "help": "Facts Jasper should use."
+        },
+        {
+          "key": "tone_id",
+          "label": "Brand voice ID",
+          "type": "string",
+          "help": "Optional voice ID (starts with ton_)."
+        },
+        {
+          "key": "style_id",
+          "label": "Style guide ID",
+          "type": "string",
+          "help": "Optional style guide ID."
+        },
+        {
+          "key": "output_count",
+          "label": "Number of versions",
+          "type": "number",
+          "default": 1
+        },
+        {
+          "key": "output_language",
+          "label": "Output language",
+          "type": "select",
+          "default": "English",
+          "options": [
+            {
+              "value": "English",
+              "label": "English"
+            },
+            {
+              "value": "French",
+              "label": "French"
+            },
+            {
+              "value": "Spanish",
+              "label": "Spanish"
+            },
+            {
+              "value": "Italian",
+              "label": "Italian"
+            },
+            {
+              "value": "Portuguese",
+              "label": "Portuguese"
+            },
+            {
+              "value": "German",
+              "label": "German"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "run_template",
+      "name": "Run template",
+      "description": "Generate content with one of Jasper's templates.",
+      "method": "POST",
+      "endpoint": "/templates/{{ inputs.template_id }}/run",
+      "timeout": 180,
+      "body": {
+        "inputs": "{{ inputs.template_inputs }}",
+        "options": {
+          "outputCount": "{{ inputs.output_count }}",
+          "outputLanguage": "{{ inputs.output_language }}"
+        }
+      },
+      "output_fields": {
+        "text": "data.0.text",
+        "versions": "data.*.text"
+      },
+      "inputs": [
+        {
+          "key": "template_id",
+          "label": "Template ID",
+          "type": "string",
+          "required": true,
+          "help": "Use List templates (IDs start with skl_)."
+        },
+        {
+          "key": "template_inputs",
+          "label": "Template inputs",
+          "type": "json",
+          "required": true,
+          "help": "Keys must match the template's inputs, e.g. {\"topic\": \"…\"}."
+        },
+        {
+          "key": "output_count",
+          "label": "Number of versions",
+          "type": "number",
+          "default": 1
+        },
+        {
+          "key": "output_language",
+          "label": "Output language",
+          "type": "select",
+          "default": "English",
+          "options": [
+            {
+              "value": "English",
+              "label": "English"
+            },
+            {
+              "value": "French",
+              "label": "French"
+            },
+            {
+              "value": "Spanish",
+              "label": "Spanish"
+            },
+            {
+              "value": "Italian",
+              "label": "Italian"
+            },
+            {
+              "value": "Portuguese",
+              "label": "Portuguese"
+            },
+            {
+              "value": "German",
+              "label": "German"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "list_templates",
+      "name": "List templates",
+      "description": "List the templates you can run, with their inputs.",
+      "method": "GET",
+      "endpoint": "/templates",
+      "output_fields": {
+        "templates": "data"
+      },
+      "inputs": []
+    }
+  ]
+}

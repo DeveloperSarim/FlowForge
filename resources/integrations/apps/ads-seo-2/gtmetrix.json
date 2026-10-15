@@ -1,0 +1,174 @@
+{
+  "key": "gtmetrix",
+  "name": "GTmetrix",
+  "category": "Ads & SEO",
+  "description": "Test page speed and Core Web Vitals, then read grades and timings.",
+  "website": "https://gtmetrix.com",
+  "docs_url": "https://gtmetrix.com/api/docs/2.0/",
+  "base_url": "https://gtmetrix.com/api/2.0",
+  "auth": {
+    "type": "basic",
+    "fields": [
+      {
+        "key": "username",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "GTmetrix → Account → API → Generate API key."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "start_test",
+      "name": "Start test",
+      "description": "Queue a performance test for a URL (uses API credits).",
+      "method": "POST",
+      "endpoint": "/tests",
+      "headers": {
+        "Content-Type": "application/vnd.api+json"
+      },
+      "body": {
+        "data": {
+          "type": "test",
+          "attributes": {
+            "url": "{{ inputs.url }}",
+            "location": "{{ inputs.location }}",
+            "browser": "{{ inputs.browser }}",
+            "report": "{{ inputs.report }}"
+          }
+        }
+      },
+      "output_fields": {
+        "test_id": "data.id",
+        "state": "data.attributes.state",
+        "credits_left": "meta.credits_left"
+      },
+      "inputs": [
+        {
+          "key": "url",
+          "label": "Page URL",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "location",
+          "label": "Test location ID",
+          "type": "string",
+          "help": "Optional. Run \"List locations\" to see IDs; empty uses your default (Vancouver)."
+        },
+        {
+          "key": "browser",
+          "label": "Browser ID",
+          "type": "string",
+          "help": "Optional. Empty uses Chrome desktop."
+        },
+        {
+          "key": "report",
+          "label": "Report type",
+          "type": "select",
+          "default": "lighthouse",
+          "options": [
+            {
+              "value": "lighthouse",
+              "label": "Lighthouse"
+            },
+            {
+              "value": "legacy",
+              "label": "Legacy (PageSpeed/YSlow)"
+            },
+            {
+              "value": "lighthouse,legacy",
+              "label": "Both"
+            },
+            {
+              "value": "none",
+              "label": "Metrics only"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "get_test",
+      "name": "Get test",
+      "description": "Check a test; when finished it returns the report with grades.",
+      "method": "GET",
+      "endpoint": "/tests/{{ inputs.test_id }}",
+      "output_fields": {
+        "state": "data.attributes.state",
+        "report_id": "data.id",
+        "grade": "data.attributes.gtmetrix_grade",
+        "performance_score": "data.attributes.performance_score",
+        "structure_score": "data.attributes.structure_score",
+        "lcp_ms": "data.attributes.largest_contentful_paint",
+        "tbt_ms": "data.attributes.total_blocking_time",
+        "cls": "data.attributes.cumulative_layout_shift",
+        "fully_loaded_ms": "data.attributes.fully_loaded_time",
+        "report_url": "data.links.report_url"
+      },
+      "inputs": [
+        {
+          "key": "test_id",
+          "label": "Test ID",
+          "type": "string",
+          "required": true,
+          "help": "From a \"Start test\" step. Tests take about a minute; add a Wait step before this one."
+        }
+      ]
+    },
+    {
+      "key": "get_report",
+      "name": "Get report",
+      "description": "Grades, scores and timings of a finished report.",
+      "method": "GET",
+      "endpoint": "/reports/{{ inputs.report_id }}",
+      "output_fields": {
+        "grade": "data.attributes.gtmetrix_grade",
+        "performance_score": "data.attributes.performance_score",
+        "structure_score": "data.attributes.structure_score",
+        "lcp_ms": "data.attributes.largest_contentful_paint",
+        "tbt_ms": "data.attributes.total_blocking_time",
+        "cls": "data.attributes.cumulative_layout_shift",
+        "fully_loaded_ms": "data.attributes.fully_loaded_time",
+        "page_bytes": "data.attributes.page_bytes",
+        "page_requests": "data.attributes.page_requests",
+        "report_url": "data.links.report_url"
+      },
+      "inputs": [
+        {
+          "key": "report_id",
+          "label": "Report ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_locations",
+      "name": "List locations",
+      "description": "Test server locations you can use.",
+      "method": "GET",
+      "endpoint": "/locations",
+      "output_fields": {
+        "locations": "data",
+        "ids": "data.*.id",
+        "names": "data.*.attributes.name"
+      },
+      "inputs": []
+    },
+    {
+      "key": "account_status",
+      "name": "Account status",
+      "description": "API credits left and when they refill.",
+      "method": "GET",
+      "endpoint": "/status",
+      "output_fields": {
+        "credits_left": "data.attributes.api_credits",
+        "refill_at": "data.attributes.api_refill"
+      },
+      "inputs": []
+    }
+  ],
+  "triggers": []
+}

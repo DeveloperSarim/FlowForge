@@ -1,0 +1,182 @@
+{
+  "key": "kanbanflow",
+  "name": "KanbanFlow",
+  "category": "Productivity",
+  "description": "Kanban boards with a built-in timer: read the board, create and manage tasks.",
+  "website": "https://kanbanflow.com",
+  "docs_url": "https://kanbanflow.com/api/v1/docs",
+  "base_url": "https://kanbanflow.com/api/v1",
+  "auth": {
+    "type": "basic",
+    "fields": [
+      {
+        "key": "username",
+        "label": "Username",
+        "type": "string",
+        "required": true,
+        "default": "apiToken",
+        "help": "Leave as apiToken."
+      },
+      {
+        "key": "password",
+        "label": "API token",
+        "type": "password",
+        "required": true,
+        "help": "KanbanFlow → Board settings → API & Webhooks → API token (one per board)."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "get_board",
+      "name": "Get board",
+      "description": "Board name, columns and their IDs.",
+      "method": "GET",
+      "endpoint": "/board",
+      "output_fields": {
+        "name": "name",
+        "column_names": "columns.*.name",
+        "column_ids": "columns.*.uniqueId"
+      },
+      "inputs": []
+    },
+    {
+      "key": "create_task",
+      "name": "Create task",
+      "description": "Add a task to a column.",
+      "method": "POST",
+      "endpoint": "/tasks",
+      "body": {
+        "name": "{{ inputs.name }}",
+        "columnId": "{{ inputs.column_id }}",
+        "description": "{{ inputs.description }}",
+        "color": "{{ inputs.color }}"
+      },
+      "output_fields": {
+        "id": "taskId"
+      },
+      "inputs": [
+        {
+          "key": "name",
+          "label": "Task name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "column_id",
+          "label": "Column ID",
+          "type": "string",
+          "required": true,
+          "help": "Use \"Get board\" to list column IDs."
+        },
+        {
+          "key": "description",
+          "label": "Description",
+          "type": "text"
+        },
+        {
+          "key": "color",
+          "label": "Colour",
+          "type": "select",
+          "default": "yellow",
+          "options": [
+            {
+              "value": "yellow",
+              "label": "Yellow"
+            },
+            {
+              "value": "white",
+              "label": "White"
+            },
+            {
+              "value": "red",
+              "label": "Red"
+            },
+            {
+              "value": "green",
+              "label": "Green"
+            },
+            {
+              "value": "blue",
+              "label": "Blue"
+            },
+            {
+              "value": "purple",
+              "label": "Purple"
+            },
+            {
+              "value": "orange",
+              "label": "Orange"
+            },
+            {
+              "value": "cyan",
+              "label": "Cyan"
+            },
+            {
+              "value": "brown",
+              "label": "Brown"
+            },
+            {
+              "value": "magenta",
+              "label": "Magenta"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "list_tasks",
+      "name": "List tasks",
+      "description": "Tasks in a column (or all).",
+      "method": "GET",
+      "endpoint": "/tasks",
+      "query": {
+        "columnId": "{{ inputs.column_id }}"
+      },
+      "output_fields": {
+        "names": "*.tasks.*.name"
+      },
+      "inputs": [
+        {
+          "key": "column_id",
+          "label": "Column ID",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "get_task",
+      "name": "Get task",
+      "description": "One task.",
+      "method": "GET",
+      "endpoint": "/tasks/{{ inputs.id }}",
+      "output_fields": {
+        "name": "name",
+        "column_id": "columnId"
+      },
+      "inputs": [
+        {
+          "key": "id",
+          "label": "Task ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "delete_task",
+      "name": "Delete task",
+      "description": "Delete a task.",
+      "method": "DELETE",
+      "endpoint": "/tasks/{{ inputs.id }}",
+      "inputs": [
+        {
+          "key": "id",
+          "label": "Task ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ]
+}

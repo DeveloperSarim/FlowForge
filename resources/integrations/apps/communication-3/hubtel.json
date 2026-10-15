@@ -1,0 +1,124 @@
+{
+  "key": "hubtel",
+  "name": "Hubtel SMS",
+  "category": "Communication",
+  "description": "Send single or batch SMS in Ghana with Hubtel and check message status.",
+  "website": "https://hubtel.com",
+  "docs_url": "https://developers.hubtel.com/docs/business/api_documentation/notification_apis/sms",
+  "base_url": "https://sms.hubtel.com/v1",
+  "auth": {
+    "type": "basic",
+    "fields": [
+      {
+        "key": "username",
+        "label": "Client ID",
+        "type": "string",
+        "required": true,
+        "help": "Hubtel → Developer / API keys → Client ID."
+      },
+      {
+        "key": "password",
+        "label": "Client secret",
+        "type": "password",
+        "required": true,
+        "help": "Shown next to the Client ID."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "send_sms",
+      "name": "Send SMS",
+      "method": "POST",
+      "endpoint": "/messages/send",
+      "body": {
+        "From": "{{ inputs.From }}",
+        "To": "{{ inputs.To }}",
+        "Content": "{{ inputs.Content }}"
+      },
+      "output_fields": {
+        "message_id": "messageId",
+        "status": "status",
+        "rate": "rate",
+        "description": "statusDescription"
+      },
+      "inputs": [
+        {
+          "key": "From",
+          "label": "Sender ID (max 11)",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "To",
+          "label": "To",
+          "type": "string",
+          "required": true,
+          "placeholder": "233241234567"
+        },
+        {
+          "key": "Content",
+          "label": "Message",
+          "type": "text",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "send_batch_sms",
+      "name": "Send SMS to many",
+      "method": "POST",
+      "endpoint": "/messages/batch/simple/send",
+      "body": {
+        "From": "{{ inputs.From }}",
+        "Recipients": "{{ inputs.Recipients }}",
+        "Content": "{{ inputs.Content }}"
+      },
+      "output_fields": {
+        "batch_id": "batchId",
+        "status": "status"
+      },
+      "inputs": [
+        {
+          "key": "From",
+          "label": "Sender ID (max 11)",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "Recipients",
+          "label": "To (phone numbers)",
+          "type": "list",
+          "required": true
+        },
+        {
+          "key": "Content",
+          "label": "Message",
+          "type": "text",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "get_message",
+      "name": "Get message status",
+      "method": "GET",
+      "endpoint": "/messages/{{ inputs.id }}",
+      "output_fields": {
+        "status": "status",
+        "rate": "rate",
+        "to": "to",
+        "updated": "updateTime"
+      },
+      "inputs": [
+        {
+          "key": "id",
+          "label": "Message ID",
+          "type": "string",
+          "required": true,
+          "help": "messageId returned by Send SMS."
+        }
+      ]
+    }
+  ]
+}

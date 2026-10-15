@@ -1,0 +1,145 @@
+{
+  "key": "leankit",
+  "name": "Planview AgilePlace",
+  "category": "Project Management",
+  "description": "Kanban boards (formerly LeanKit): list boards and cards, create cards.",
+  "website": "https://www.planview.com/products-solutions/products/agileplace/",
+  "docs_url": "https://success.planview.com/Planview_AgilePlace/AgilePlace_API",
+  "base_url": "https://{{ credentials.subdomain }}.leankit.com/io",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "subdomain",
+        "label": "Account name",
+        "type": "string",
+        "required": true,
+        "help": "The first part of your AgilePlace address: yourcompany in yourcompany.leankit.com."
+      },
+      {
+        "key": "token",
+        "label": "API token",
+        "type": "password",
+        "required": true,
+        "help": "AgilePlace → your avatar → API Tokens → Create Token."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_boards",
+      "name": "List boards",
+      "description": "Boards you can see.",
+      "method": "GET",
+      "endpoint": "/board",
+      "query": {
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "titles": "boards.*.title",
+        "ids": "boards.*.id"
+      },
+      "inputs": [
+        {
+          "key": "limit",
+          "label": "Max results",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    },
+    {
+      "key": "list_cards",
+      "name": "List cards",
+      "description": "Cards on a board.",
+      "method": "GET",
+      "endpoint": "/card",
+      "query": {
+        "board": "{{ inputs.board_id }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "titles": "cards.*.title",
+        "ids": "cards.*.id"
+      },
+      "inputs": [
+        {
+          "key": "board_id",
+          "label": "Board ID",
+          "type": "string",
+          "required": true,
+          "help": "Use \"List boards\"."
+        },
+        {
+          "key": "limit",
+          "label": "Max results",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    },
+    {
+      "key": "create_card",
+      "name": "Create card",
+      "description": "Add a card to a board.",
+      "method": "POST",
+      "endpoint": "/card",
+      "body": {
+        "boardId": "{{ inputs.board_id }}",
+        "title": "{{ inputs.title }}",
+        "description": "{{ inputs.description }}",
+        "destination": {
+          "laneId": "{{ inputs.lane_id }}"
+        }
+      },
+      "output_fields": {
+        "id": "id",
+        "title": "title"
+      },
+      "inputs": [
+        {
+          "key": "board_id",
+          "label": "Board ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "description",
+          "label": "Description",
+          "type": "text"
+        },
+        {
+          "key": "lane_id",
+          "label": "Lane ID",
+          "type": "string",
+          "help": "Leave empty for the default lane."
+        }
+      ]
+    },
+    {
+      "key": "get_card",
+      "name": "Get card",
+      "description": "One card.",
+      "method": "GET",
+      "endpoint": "/card/{{ inputs.id }}",
+      "output_fields": {
+        "title": "title",
+        "lane": "lane.name"
+      },
+      "inputs": [
+        {
+          "key": "id",
+          "label": "Card ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ]
+}

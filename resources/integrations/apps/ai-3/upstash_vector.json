@@ -1,0 +1,234 @@
+{
+  "key": "upstash_vector",
+  "name": "Upstash Vector",
+  "category": "AI",
+  "description": "Serverless vector database: store text or vectors and run similarity search.",
+  "brand": "upstash",
+  "website": "https://upstash.com/vector",
+  "docs_url": "https://upstash.com/docs/vector/api/get-started",
+  "base_url": "{{ credentials.url }}",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "url",
+        "label": "REST URL",
+        "type": "string",
+        "required": true,
+        "placeholder": "https://my-index-us1-vector.upstash.io",
+        "help": "Upstash console → Vector → your index → Connect → REST URL (UPSTASH_VECTOR_REST_URL)."
+      },
+      {
+        "key": "token",
+        "label": "REST token",
+        "type": "password",
+        "required": true,
+        "help": "Upstash console → Vector → your index → Connect → REST Token (UPSTASH_VECTOR_REST_TOKEN)."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "upsert_text",
+      "name": "Add or update text",
+      "description": "Store text; the index embeds it for you (index needs an embedding model).",
+      "method": "POST",
+      "endpoint": "/upsert-data",
+      "body": {
+        "id": "{{ inputs.id }}",
+        "data": "{{ inputs.data }}",
+        "metadata": "{{ inputs.metadata }}"
+      },
+      "output_fields": {
+        "result": "result"
+      },
+      "inputs": [
+        {
+          "key": "id",
+          "label": "ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "data",
+          "label": "Text",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "metadata",
+          "label": "Metadata",
+          "type": "json"
+        }
+      ]
+    },
+    {
+      "key": "query_text",
+      "name": "Search by text",
+      "description": "Find the stored items most similar to a text.",
+      "method": "POST",
+      "endpoint": "/query-data",
+      "body": {
+        "data": "{{ inputs.data }}",
+        "topK": "{{ inputs.top_k }}",
+        "filter": "{{ inputs.filter }}",
+        "includeMetadata": true,
+        "includeData": true
+      },
+      "output_fields": {
+        "matches": "result",
+        "top_id": "result.0.id",
+        "top_score": "result.0.score",
+        "top_data": "result.0.data"
+      },
+      "inputs": [
+        {
+          "key": "data",
+          "label": "Query",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "top_k",
+          "label": "Results",
+          "type": "number",
+          "default": 5
+        },
+        {
+          "key": "filter",
+          "label": "Metadata filter",
+          "type": "string",
+          "placeholder": "genre = 'news'"
+        }
+      ]
+    },
+    {
+      "key": "upsert_vector",
+      "name": "Add or update vector",
+      "description": "Store a vector you already have.",
+      "method": "POST",
+      "endpoint": "/upsert",
+      "body": {
+        "id": "{{ inputs.id }}",
+        "vector": "{{ inputs.vector }}",
+        "metadata": "{{ inputs.metadata }}"
+      },
+      "output_fields": {
+        "result": "result"
+      },
+      "inputs": [
+        {
+          "key": "id",
+          "label": "ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "vector",
+          "label": "Vector",
+          "type": "json",
+          "required": true,
+          "help": "An array of numbers, e.g. from an embedding step."
+        },
+        {
+          "key": "metadata",
+          "label": "Metadata",
+          "type": "json"
+        }
+      ]
+    },
+    {
+      "key": "query_vector",
+      "name": "Search by vector",
+      "description": "Find the stored items closest to a vector.",
+      "method": "POST",
+      "endpoint": "/query",
+      "body": {
+        "vector": "{{ inputs.vector }}",
+        "topK": "{{ inputs.top_k }}",
+        "filter": "{{ inputs.filter }}",
+        "includeMetadata": true
+      },
+      "output_fields": {
+        "matches": "result",
+        "top_id": "result.0.id",
+        "top_score": "result.0.score"
+      },
+      "inputs": [
+        {
+          "key": "vector",
+          "label": "Vector",
+          "type": "json",
+          "required": true
+        },
+        {
+          "key": "top_k",
+          "label": "Results",
+          "type": "number",
+          "default": 5
+        },
+        {
+          "key": "filter",
+          "label": "Metadata filter",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "fetch",
+      "name": "Get items",
+      "description": "Get stored items by ID.",
+      "method": "POST",
+      "endpoint": "/fetch",
+      "body": {
+        "ids": "{{ inputs.ids }}",
+        "includeMetadata": true,
+        "includeData": true
+      },
+      "output_fields": {
+        "items": "result"
+      },
+      "inputs": [
+        {
+          "key": "ids",
+          "label": "IDs",
+          "type": "list",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "delete",
+      "name": "Delete items",
+      "description": "Delete stored items by ID.",
+      "method": "DELETE",
+      "endpoint": "/delete",
+      "body": {
+        "ids": "{{ inputs.ids }}"
+      },
+      "output_fields": {
+        "deleted": "result.deleted"
+      },
+      "inputs": [
+        {
+          "key": "ids",
+          "label": "IDs",
+          "type": "list",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "info",
+      "name": "Get index info",
+      "description": "Show vector count, dimension and similarity function.",
+      "method": "GET",
+      "endpoint": "/info",
+      "output_fields": {
+        "vector_count": "result.vectorCount",
+        "dimension": "result.dimension"
+      },
+      "inputs": []
+    }
+  ]
+}

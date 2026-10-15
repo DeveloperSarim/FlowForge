@@ -1,0 +1,189 @@
+{
+  "key": "ssl_labs",
+  "name": "Qualys SSL Labs",
+  "category": "Security & IT",
+  "description": "Grade a website's SSL/TLS setup with the Qualys SSL Labs server test.",
+  "brand": "qualys",
+  "website": "https://www.ssllabs.com",
+  "docs_url": "https://github.com/ssllabs/ssllabs-scan/blob/master/ssllabs-api-docs-v4.md",
+  "base_url": "https://api.ssllabs.com/api/v4",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "email",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "Registered email",
+        "type": "string",
+        "required": true,
+        "help": "An organization email registered once with the Register action (free; Gmail/Yahoo/Hotmail are not accepted)."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "register",
+      "name": "Register email",
+      "description": "Register your organization email once to use the API.",
+      "method": "POST",
+      "endpoint": "/register",
+      "body": {
+        "firstName": "{{ inputs.first_name }}",
+        "lastName": "{{ inputs.last_name }}",
+        "email": "{{ inputs.email }}",
+        "organization": "{{ inputs.organization }}"
+      },
+      "output_fields": {
+        "message": "message",
+        "status": "status"
+      },
+      "inputs": [
+        {
+          "key": "first_name",
+          "label": "First name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "email",
+          "label": "Organization email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "organization",
+          "label": "Organization",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "start_scan",
+      "name": "Start new scan",
+      "description": "Start a fresh SSL test of a host (takes a few minutes).",
+      "method": "GET",
+      "endpoint": "/analyze",
+      "query": {
+        "host": "{{ inputs.host }}",
+        "startNew": "on",
+        "publish": "{{ inputs.publish }}",
+        "all": "done"
+      },
+      "output_fields": {
+        "status": "status",
+        "status_message": "statusMessage"
+      },
+      "inputs": [
+        {
+          "key": "host",
+          "label": "Host name",
+          "type": "string",
+          "required": true,
+          "placeholder": "www.example.com"
+        },
+        {
+          "key": "publish",
+          "label": "Publish on public boards",
+          "type": "select",
+          "default": "off",
+          "options": [
+            {
+              "value": "off",
+              "label": "off"
+            },
+            {
+              "value": "on",
+              "label": "on"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "get_report",
+      "name": "Get scan result",
+      "description": "Get the latest result; status READY means grades are available.",
+      "method": "GET",
+      "endpoint": "/analyze",
+      "query": {
+        "host": "{{ inputs.host }}",
+        "fromCache": "on",
+        "maxAge": "{{ inputs.max_age }}",
+        "all": "done"
+      },
+      "output_fields": {
+        "status": "status",
+        "grade": "endpoints.0.grade",
+        "grades": "endpoints.*.grade",
+        "has_warnings": "endpoints.0.hasWarnings"
+      },
+      "inputs": [
+        {
+          "key": "host",
+          "label": "Host name",
+          "type": "string",
+          "required": true,
+          "placeholder": "www.example.com"
+        },
+        {
+          "key": "max_age",
+          "label": "Accept cached results up to (hours)",
+          "type": "number",
+          "default": 24
+        }
+      ]
+    },
+    {
+      "key": "get_endpoint_data",
+      "name": "Get endpoint details",
+      "description": "Get full TLS details for one server IP.",
+      "method": "GET",
+      "endpoint": "/getEndpointData",
+      "query": {
+        "host": "{{ inputs.host }}",
+        "s": "{{ inputs.ip }}",
+        "fromCache": "on"
+      },
+      "output_fields": {
+        "grade": "grade",
+        "details": "details"
+      },
+      "inputs": [
+        {
+          "key": "host",
+          "label": "Host name",
+          "type": "string",
+          "required": true,
+          "placeholder": "www.example.com"
+        },
+        {
+          "key": "ip",
+          "label": "Server IP",
+          "type": "string",
+          "required": true,
+          "help": "From the scan result's endpoints."
+        }
+      ]
+    },
+    {
+      "key": "get_info",
+      "name": "Get API status",
+      "description": "Check availability and your current assessment limits.",
+      "method": "GET",
+      "endpoint": "/info",
+      "output_fields": {
+        "max_assessments": "maxAssessments",
+        "current_assessments": "currentAssessments"
+      },
+      "inputs": []
+    }
+  ]
+}

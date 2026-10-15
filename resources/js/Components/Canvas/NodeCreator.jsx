@@ -3,6 +3,7 @@ import { ArrowLeft, Blocks, ChevronRight, X, Zap } from 'lucide-react';
 import IntegrationIcon from '@/Components/IntegrationIcon';
 import { CATEGORIES, categoryMeta, CORE_CATEGORIES } from '@/lib/categories';
 import { cn } from '@/lib/utils';
+import { plainText } from '@/Components/Markdown';
 
 function Row({ icon, title, subtitle, onClick, chevron = false, leading }) {
     return (
@@ -10,7 +11,7 @@ function Row({ icon, title, subtitle, onClick, chevron = false, leading }) {
             {leading ?? <IntegrationIcon icon={icon} name={title} size="md" />}
             <span className="min-w-0 flex-1">
                 <span className="block truncate text-[13.5px] font-medium">{title}</span>
-                {subtitle && <span className="block truncate text-[12px] text-fg-subtle">{subtitle}</span>}
+                {subtitle && <span className="block truncate text-[12px] text-fg-subtle">{plainText(subtitle)}</span>}
             </span>
             {chevron && <ChevronRight className="size-4 text-fg-subtle group-hover:text-fg" />}
         </button>

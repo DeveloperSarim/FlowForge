@@ -1,0 +1,237 @@
+{
+  "key": "whm",
+  "name": "WHM",
+  "category": "CMS & Websites",
+  "description": "Reseller/server hosting: create, suspend and list cPanel accounts and packages.",
+  "website": "https://cpanel.net",
+  "docs_url": "https://api.docs.cpanel.net/whm/introduction/",
+  "base_url": "https://{{ credentials.host }}:2087/json-api",
+  "headers": {
+    "Authorization": "whm {{ credentials.username }}:{{ credentials.api_key }}"
+  },
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "key": "host",
+        "label": "Server hostname",
+        "type": "string",
+        "required": true,
+        "placeholder": "server.example.com",
+        "help": "The host you use to open WHM (without https:// and :2087)."
+      },
+      {
+        "key": "username",
+        "label": "WHM username",
+        "type": "string",
+        "required": true,
+        "default": "root",
+        "help": "root, or your reseller username."
+      },
+      {
+        "key": "api_key",
+        "label": "API token",
+        "type": "password",
+        "required": true,
+        "help": "WHM → Development → Manage API Tokens → Generate Token."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_accounts",
+      "name": "List accounts",
+      "description": "cPanel accounts on the server, optionally searched by domain or user.",
+      "method": "GET",
+      "endpoint": "/listaccts",
+      "query": {
+        "api.version": "1",
+        "search": "{{ inputs.search }}",
+        "searchtype": "{{ inputs.search_type }}"
+      },
+      "output_fields": {
+        "accounts": "data.acct",
+        "users": "data.acct.*.user",
+        "domains": "data.acct.*.domain",
+        "result": "metadata.result",
+        "reason": "metadata.reason"
+      },
+      "inputs": [
+        {
+          "key": "search",
+          "label": "Search",
+          "type": "string"
+        },
+        {
+          "key": "search_type",
+          "label": "Search in",
+          "type": "select",
+          "default": "domain",
+          "options": [
+            {
+              "value": "domain",
+              "label": "Domain"
+            },
+            {
+              "value": "user",
+              "label": "Username"
+            },
+            {
+              "value": "owner",
+              "label": "Owner (reseller)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "create_account",
+      "name": "Create account",
+      "description": "Create a new cPanel hosting account.",
+      "method": "GET",
+      "endpoint": "/createacct",
+      "query": {
+        "api.version": "1",
+        "username": "{{ inputs.username }}",
+        "domain": "{{ inputs.domain }}",
+        "plan": "{{ inputs.plan }}",
+        "contactemail": "{{ inputs.contact_email }}",
+        "password": "{{ inputs.password }}"
+      },
+      "output_fields": {
+        "result": "metadata.result",
+        "reason": "metadata.reason",
+        "ip": "data.ip",
+        "nameservers": "data.nameserver"
+      },
+      "inputs": [
+        {
+          "key": "username",
+          "label": "Username",
+          "type": "string",
+          "required": true,
+          "help": "Up to 16 lowercase letters and digits, starting with a letter."
+        },
+        {
+          "key": "domain",
+          "label": "Domain",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "plan",
+          "label": "Package",
+          "type": "string",
+          "help": "Run \"List packages\" to see names."
+        },
+        {
+          "key": "contact_email",
+          "label": "Contact email",
+          "type": "string"
+        },
+        {
+          "key": "password",
+          "label": "Password",
+          "type": "password",
+          "help": "Leave empty to generate one."
+        }
+      ]
+    },
+    {
+      "key": "account_summary",
+      "name": "Account summary",
+      "description": "Details of one account: domain, package, disk use, suspended.",
+      "method": "GET",
+      "endpoint": "/accountsummary",
+      "query": {
+        "api.version": "1",
+        "user": "{{ inputs.user }}"
+      },
+      "output_fields": {
+        "account": "data.acct.0",
+        "domain": "data.acct.0.domain",
+        "plan": "data.acct.0.plan",
+        "suspended": "data.acct.0.suspended",
+        "disk_used": "data.acct.0.diskused",
+        "result": "metadata.result",
+        "reason": "metadata.reason"
+      },
+      "inputs": [
+        {
+          "key": "user",
+          "label": "Username",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "suspend_account",
+      "name": "Suspend account",
+      "description": "Suspend a cPanel account (e.g. unpaid invoice).",
+      "method": "GET",
+      "endpoint": "/suspendacct",
+      "query": {
+        "api.version": "1",
+        "user": "{{ inputs.user }}",
+        "reason": "{{ inputs.reason }}"
+      },
+      "output_fields": {
+        "result": "metadata.result",
+        "reason": "metadata.reason"
+      },
+      "inputs": [
+        {
+          "key": "user",
+          "label": "Username",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "reason",
+          "label": "Reason",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "unsuspend_account",
+      "name": "Unsuspend account",
+      "description": "Reactivate a suspended account.",
+      "method": "GET",
+      "endpoint": "/unsuspendacct",
+      "query": {
+        "api.version": "1",
+        "user": "{{ inputs.user }}"
+      },
+      "output_fields": {
+        "result": "metadata.result",
+        "reason": "metadata.reason"
+      },
+      "inputs": [
+        {
+          "key": "user",
+          "label": "Username",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_packages",
+      "name": "List packages",
+      "description": "Hosting packages (plans) available on the server.",
+      "method": "GET",
+      "endpoint": "/listpkgs",
+      "query": {
+        "api.version": "1"
+      },
+      "output_fields": {
+        "packages": "data.pkg",
+        "names": "data.pkg.*.name"
+      },
+      "inputs": []
+    }
+  ],
+  "triggers": []
+}

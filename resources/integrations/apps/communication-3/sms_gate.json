@@ -1,0 +1,174 @@
+{
+  "key": "sms_gate",
+  "name": "SMS Gateway for Android",
+  "category": "Communication",
+  "description": "Send SMS through your Android phone with SMS Gate and get delivery or inbox webhooks.",
+  "website": "https://sms-gate.app",
+  "docs_url": "https://docs.sms-gate.app/",
+  "base_url": "https://api.sms-gate.app/3rdparty/v1",
+  "auth": {
+    "type": "basic",
+    "fields": [
+      {
+        "key": "username",
+        "label": "Username",
+        "type": "string",
+        "required": true,
+        "help": "In the SMS Gate app: Home → Cloud Server (shown once the app is online)."
+      },
+      {
+        "key": "password",
+        "label": "Password",
+        "type": "password",
+        "required": true,
+        "help": "Shown next to the username in the app's Cloud Server section."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "send_sms",
+      "name": "Send SMS",
+      "method": "POST",
+      "endpoint": "/messages",
+      "body": {
+        "phoneNumbers": "{{ inputs.phoneNumbers }}",
+        "textMessage": {
+          "text": "{{ inputs.text }}"
+        },
+        "simNumber": "{{ inputs.simNumber }}",
+        "withDeliveryReport": "{{ inputs.withDeliveryReport }}",
+        "deviceId": "{{ inputs.deviceId }}"
+      },
+      "output_fields": {
+        "id": "id",
+        "state": "state",
+        "device_id": "deviceId"
+      },
+      "inputs": [
+        {
+          "key": "phoneNumbers",
+          "label": "To (phone numbers)",
+          "type": "list",
+          "required": true,
+          "placeholder": "+923001234567"
+        },
+        {
+          "key": "text",
+          "label": "Message",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "simNumber",
+          "label": "SIM slot (1, 2…)",
+          "type": "number"
+        },
+        {
+          "key": "withDeliveryReport",
+          "label": "Delivery report",
+          "type": "boolean",
+          "default": true
+        },
+        {
+          "key": "deviceId",
+          "label": "Device ID",
+          "type": "string",
+          "help": "Only if several phones are linked. Get IDs with 'List devices'."
+        }
+      ]
+    },
+    {
+      "key": "get_message_status",
+      "name": "Get message status",
+      "method": "GET",
+      "endpoint": "/messages/{{ inputs.id }}",
+      "output_fields": {
+        "state": "state",
+        "recipients": "recipients"
+      },
+      "inputs": [
+        {
+          "key": "id",
+          "label": "Message ID",
+          "type": "string",
+          "required": true,
+          "help": "id returned by 'Send SMS'."
+        }
+      ]
+    },
+    {
+      "key": "list_devices",
+      "name": "List devices",
+      "method": "GET",
+      "endpoint": "/devices",
+      "output_fields": {
+        "device_ids": "*.id",
+        "device_names": "*.name"
+      },
+      "inputs": []
+    },
+    {
+      "key": "register_webhook",
+      "name": "Register webhook",
+      "method": "POST",
+      "endpoint": "/webhooks",
+      "body": {
+        "url": "{{ inputs.url }}",
+        "event": "{{ inputs.event }}"
+      },
+      "output_fields": {
+        "id": "id"
+      },
+      "inputs": [
+        {
+          "key": "url",
+          "label": "Webhook URL",
+          "type": "string",
+          "required": true,
+          "help": "Paste the URL of a FlowForge 'Phone event' trigger."
+        },
+        {
+          "key": "event",
+          "label": "Event",
+          "type": "select",
+          "required": true,
+          "default": "sms:received",
+          "options": [
+            {
+              "value": "sms:received",
+              "label": "SMS received"
+            },
+            {
+              "value": "sms:sent",
+              "label": "SMS sent"
+            },
+            {
+              "value": "sms:delivered",
+              "label": "SMS delivered"
+            },
+            {
+              "value": "sms:failed",
+              "label": "SMS failed"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Phone event",
+      "type": "webhook",
+      "description": "Incoming SMS or delivery status. Register the URL with 'Register webhook'.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

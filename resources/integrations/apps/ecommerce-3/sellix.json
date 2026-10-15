@@ -1,0 +1,240 @@
+{
+  "key": "sellix",
+  "name": "Sellix",
+  "category": "E-commerce",
+  "description": "Sell digital goods: orders, products, payment links and coupons.",
+  "website": "https://sellix.io",
+  "docs_url": "https://developers.sellix.io",
+  "base_url": "https://dev.sellix.io/v1",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "Sellix dashboard → Settings → Security → API key."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_orders",
+      "name": "List orders",
+      "description": "Your orders, newest first.",
+      "method": "GET",
+      "endpoint": "/orders",
+      "query": {
+        "page": "{{ inputs.page }}"
+      },
+      "output_fields": {
+        "orders": "data.orders"
+      },
+      "inputs": [
+        {
+          "key": "page",
+          "label": "Page",
+          "type": "number",
+          "default": 1
+        }
+      ]
+    },
+    {
+      "key": "get_order",
+      "name": "Get order",
+      "description": "One order's details.",
+      "method": "GET",
+      "endpoint": "/orders/{{ inputs.uniqid }}",
+      "output_fields": {
+        "status": "data.order.status",
+        "total": "data.order.total",
+        "email": "data.order.customer_email",
+        "product": "data.order.product_title"
+      },
+      "inputs": [
+        {
+          "key": "uniqid",
+          "label": "Order ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_products",
+      "name": "List products",
+      "description": "Your products.",
+      "method": "GET",
+      "endpoint": "/products",
+      "output_fields": {
+        "products": "data.products"
+      },
+      "inputs": []
+    },
+    {
+      "key": "get_product",
+      "name": "Get product",
+      "description": "One product's details.",
+      "method": "GET",
+      "endpoint": "/products/{{ inputs.uniqid }}",
+      "output_fields": {
+        "title": "data.product.title",
+        "price": "data.product.price",
+        "stock": "data.product.stock"
+      },
+      "inputs": [
+        {
+          "key": "uniqid",
+          "label": "Product ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "create_payment",
+      "name": "Create payment link",
+      "description": "Create a checkout for a product or a custom amount.",
+      "method": "POST",
+      "endpoint": "/payments",
+      "body": {
+        "product_id": "{{ inputs.product_id }}",
+        "title": "{{ inputs.title }}",
+        "value": "{{ inputs.value }}",
+        "currency": "{{ inputs.currency }}",
+        "quantity": "{{ inputs.quantity }}",
+        "email": "{{ inputs.email }}",
+        "gateway": "{{ inputs.gateway }}",
+        "return_url": "{{ inputs.return_url }}",
+        "white_label": false
+      },
+      "output_fields": {
+        "url": "data.url",
+        "uniqid": "data.uniqid"
+      },
+      "inputs": [
+        {
+          "key": "product_id",
+          "label": "Product ID",
+          "type": "string",
+          "help": "Or fill title and amount for a custom payment."
+        },
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "string"
+        },
+        {
+          "key": "value",
+          "label": "Amount",
+          "type": "number"
+        },
+        {
+          "key": "currency",
+          "label": "Currency",
+          "type": "string",
+          "default": "USD"
+        },
+        {
+          "key": "quantity",
+          "label": "Quantity",
+          "type": "number",
+          "default": 1
+        },
+        {
+          "key": "email",
+          "label": "Customer email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "gateway",
+          "label": "Gateway",
+          "type": "string",
+          "placeholder": "STRIPE",
+          "help": "Optional, e.g. PAYPAL, STRIPE, BITCOIN."
+        },
+        {
+          "key": "return_url",
+          "label": "Return URL",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "create_coupon",
+      "name": "Create coupon",
+      "description": "Create a discount code.",
+      "method": "POST",
+      "endpoint": "/coupons",
+      "body": {
+        "code": "{{ inputs.code }}",
+        "discount_value": "{{ inputs.discount }}",
+        "max_uses": "{{ inputs.max_uses }}",
+        "products_bound": "{{ inputs.products }}"
+      },
+      "output_fields": {
+        "uniqid": "data.uniqid"
+      },
+      "inputs": [
+        {
+          "key": "code",
+          "label": "Code",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "discount",
+          "label": "Discount (%)",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "max_uses",
+          "label": "Max uses",
+          "type": "number",
+          "default": -1,
+          "help": "-1 for unlimited."
+        },
+        {
+          "key": "products",
+          "label": "Only for product IDs",
+          "type": "list"
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_order",
+      "name": "New order",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/orders",
+      "items_path": "data.orders",
+      "id_field": "uniqid",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    },
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Sellix dashboard → Developers → Webhooks → Add endpoint, paste this URL.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

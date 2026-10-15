@@ -1,0 +1,195 @@
+{
+  "key": "brightcove",
+  "name": "Brightcove",
+  "category": "Video & Media",
+  "description": "Manage Brightcove Video Cloud videos and playlists.",
+  "website": "https://www.brightcove.com",
+  "docs_url": "https://apis.support.brightcove.com/cms/index.html",
+  "base_url": "https://cms.api.brightcove.com/v1/accounts/{{ credentials.account_id }}",
+  "auth": {
+    "type": "oauth2_client_credentials",
+    "token_url": "https://oauth.brightcove.com/v4/access_token",
+    "client_auth": "basic",
+    "fields": [
+      {
+        "key": "account_id",
+        "label": "Account ID",
+        "type": "string",
+        "required": true,
+        "placeholder": "1234567890123",
+        "help": "Video Cloud Studio > Account Settings: the Account ID number."
+      },
+      {
+        "key": "client_id",
+        "label": "Client ID",
+        "type": "string",
+        "required": true,
+        "help": "Studio > Admin > API Authentication > Register new client (give it the CMS Videos read/write permission)."
+      },
+      {
+        "key": "client_secret",
+        "label": "Client secret",
+        "type": "password",
+        "required": true,
+        "help": "Shown once when you register the client."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_videos",
+      "name": "List videos",
+      "description": "Get videos, optionally searching.",
+      "method": "GET",
+      "endpoint": "/videos",
+      "query": {
+        "limit": "{{ inputs.limit }}",
+        "q": "{{ inputs.q }}",
+        "offset": "{{ inputs.offset }}"
+      },
+      "output_fields": {
+        "ids": "*.id",
+        "names": "*.name"
+      },
+      "inputs": [
+        {
+          "key": "limit",
+          "label": "Max results",
+          "type": "number",
+          "default": 20
+        },
+        {
+          "key": "q",
+          "label": "Search",
+          "type": "string",
+          "help": "e.g. name:keynote or tags:launch"
+        },
+        {
+          "key": "offset",
+          "label": "Skip",
+          "type": "number",
+          "default": 0
+        }
+      ]
+    },
+    {
+      "key": "get_video",
+      "name": "Get a video",
+      "description": "Get one video.",
+      "method": "GET",
+      "endpoint": "/videos/{{ inputs.video_id }}",
+      "output_fields": {
+        "name": "name",
+        "state": "state",
+        "duration": "duration"
+      },
+      "inputs": [
+        {
+          "key": "video_id",
+          "label": "Video ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "create_video",
+      "name": "Create a video",
+      "description": "Create an empty video object (then ingest a file).",
+      "method": "POST",
+      "endpoint": "/videos",
+      "body": {
+        "name": "{{ inputs.name }}",
+        "description": "{{ inputs.description }}",
+        "tags": "{{ inputs.tags }}"
+      },
+      "output_fields": {
+        "id": "id"
+      },
+      "inputs": [
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "description",
+          "label": "Description",
+          "type": "string"
+        },
+        {
+          "key": "tags",
+          "label": "Tags",
+          "type": "list"
+        }
+      ]
+    },
+    {
+      "key": "update_video",
+      "name": "Update a video",
+      "description": "Change a video's name or description.",
+      "method": "PATCH",
+      "endpoint": "/videos/{{ inputs.video_id }}",
+      "body": {
+        "name": "{{ inputs.name }}",
+        "description": "{{ inputs.description }}"
+      },
+      "inputs": [
+        {
+          "key": "video_id",
+          "label": "Video ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string"
+        },
+        {
+          "key": "description",
+          "label": "Description",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "delete_video",
+      "name": "Delete a video",
+      "description": "Permanently delete a video.",
+      "method": "DELETE",
+      "endpoint": "/videos/{{ inputs.video_id }}",
+      "inputs": [
+        {
+          "key": "video_id",
+          "label": "Video ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_playlists",
+      "name": "List playlists",
+      "description": "Get playlists.",
+      "method": "GET",
+      "endpoint": "/playlists",
+      "query": {
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "ids": "*.id",
+        "names": "*.name"
+      },
+      "inputs": [
+        {
+          "key": "limit",
+          "label": "Max results",
+          "type": "number",
+          "default": 20
+        }
+      ]
+    }
+  ]
+}

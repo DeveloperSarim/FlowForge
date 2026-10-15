@@ -1,0 +1,185 @@
+{
+  "key": "listrak",
+  "name": "Listrak",
+  "category": "Marketing & Email",
+  "description": "Retail email marketing: subscribe or unsubscribe contacts and look them up.",
+  "website": "https://www.listrak.com",
+  "docs_url": "https://api.listrak.com/email",
+  "base_url": "https://api.listrak.com/email/v1",
+  "auth": {
+    "type": "oauth2_client_credentials",
+    "token_url": "https://auth.listrak.com/OAuth2/Token",
+    "fields": [
+      {
+        "key": "client_id",
+        "label": "Client ID",
+        "type": "string",
+        "required": true,
+        "help": "Listrak → Integrations → Integrations Management → New Integration → Email API. Copy the Client ID and allow FlowForge's server IP."
+      },
+      {
+        "key": "client_secret",
+        "label": "Client secret",
+        "type": "password",
+        "required": true
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_lists",
+      "name": "List lists",
+      "description": "Your Listrak email lists and their IDs.",
+      "method": "GET",
+      "endpoint": "/List",
+      "output_fields": {
+        "lists": "data",
+        "ids": "data.*.listId",
+        "names": "data.*.listName"
+      },
+      "inputs": []
+    },
+    {
+      "key": "subscribe_contact",
+      "name": "Subscribe contact",
+      "description": "Create or update a contact on a list as subscribed.",
+      "method": "POST",
+      "endpoint": "/List/{{ inputs.list_id }}/Contact",
+      "query": {
+        "overrideUnsubscribe": "{{ inputs.override_unsubscribe }}",
+        "subscribedByContact": "{{ inputs.subscribed_by_contact }}",
+        "sendDoubleOptIn": "{{ inputs.send_double_opt_in }}",
+        "updateType": "{{ inputs.update_type }}"
+      },
+      "body": {
+        "emailAddress": "{{ inputs.email }}",
+        "subscriptionState": "Subscribed",
+        "externalContactID": "{{ inputs.external_id }}",
+        "segmentationFieldValues": "{{ inputs.segmentation_field_values }}"
+      },
+      "output_fields": {
+        "status": "status",
+        "resource_id": "resourceId"
+      },
+      "inputs": [
+        {
+          "key": "list_id",
+          "label": "List ID",
+          "type": "string",
+          "required": true,
+          "help": "Run \"List lists\" to see the IDs."
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "external_id",
+          "label": "Your contact ID",
+          "type": "string"
+        },
+        {
+          "key": "segmentation_field_values",
+          "label": "Profile fields (JSON)",
+          "type": "json",
+          "placeholder": "[{\"segmentationFieldId\": 123, \"value\": \"Jane\"}]",
+          "help": "Optional profile field values by field ID."
+        },
+        {
+          "key": "subscribed_by_contact",
+          "label": "Subscribed by the contact",
+          "type": "boolean",
+          "default": true
+        },
+        {
+          "key": "send_double_opt_in",
+          "label": "Send double opt-in email",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "key": "override_unsubscribe",
+          "label": "Resubscribe if unsubscribed",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "key": "update_type",
+          "label": "Profile update",
+          "type": "select",
+          "default": "Update",
+          "options": [
+            {
+              "value": "Update",
+              "label": "Update given fields"
+            },
+            {
+              "value": "Overwrite",
+              "label": "Overwrite all fields"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "unsubscribe_contact",
+      "name": "Unsubscribe contact",
+      "description": "Mark a contact on a list as unsubscribed.",
+      "method": "POST",
+      "endpoint": "/List/{{ inputs.list_id }}/Contact",
+      "body": {
+        "emailAddress": "{{ inputs.email }}",
+        "subscriptionState": "Unsubscribed"
+      },
+      "output_fields": {
+        "status": "status",
+        "resource_id": "resourceId"
+      },
+      "inputs": [
+        {
+          "key": "list_id",
+          "label": "List ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "get_contact",
+      "name": "Get contact",
+      "description": "Look up a contact on a list by email.",
+      "method": "GET",
+      "endpoint": "/List/{{ inputs.list_id }}/Contact/{{ inputs.email }}",
+      "output_fields": {
+        "email": "data.emailAddress",
+        "subscription_state": "data.subscriptionState",
+        "subscribe_date": "data.subscribeDate",
+        "unsubscribe_date": "data.unsubscribeDate",
+        "fields": "data.segmentationFieldValues"
+      },
+      "inputs": [
+        {
+          "key": "list_id",
+          "label": "List ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": []
+}

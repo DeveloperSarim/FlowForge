@@ -1,0 +1,270 @@
+{
+  "key": "nusii",
+  "name": "Nusii",
+  "category": "CRM & Sales",
+  "description": "Create clients and proposals and send them for signature with Nusii.",
+  "website": "https://nusii.com",
+  "docs_url": "https://developer.nusii.com",
+  "base_url": "https://app.nusii.com/api/v2",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "Authorization",
+    "prefix": "Token token=",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "In Nusii go to Settings → Integrations → API and copy your API key."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "create_client",
+      "name": "Create client",
+      "method": "POST",
+      "endpoint": "/clients",
+      "body": {
+        "client": {
+          "email": "{{ inputs.email }}",
+          "name": "{{ inputs.name }}",
+          "surname": "{{ inputs.surname }}",
+          "business": "{{ inputs.business }}",
+          "telephone": "{{ inputs.telephone }}",
+          "web": "{{ inputs.web }}"
+        }
+      },
+      "output_fields": {
+        "id": "data.id",
+        "email": "data.attributes.email"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "name",
+          "label": "First name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "surname",
+          "label": "Last name",
+          "type": "string"
+        },
+        {
+          "key": "business",
+          "label": "Business name",
+          "type": "string"
+        },
+        {
+          "key": "telephone",
+          "label": "Phone",
+          "type": "string"
+        },
+        {
+          "key": "web",
+          "label": "Website",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "find_client",
+      "name": "Find client by email",
+      "method": "GET",
+      "endpoint": "/clients",
+      "query": {
+        "email": "{{ inputs.email }}"
+      },
+      "output_fields": {
+        "id": "data.0.id",
+        "clients": "data"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "create_proposal",
+      "name": "Create proposal",
+      "method": "POST",
+      "endpoint": "/proposals",
+      "body": {
+        "proposal": {
+          "title": "{{ inputs.title }}",
+          "client_id": "{{ inputs.client_id }}",
+          "template_id": "{{ inputs.template_id }}"
+        }
+      },
+      "output_fields": {
+        "id": "data.id",
+        "status": "data.attributes.status",
+        "public_id": "data.attributes.public_id"
+      },
+      "inputs": [
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "client_id",
+          "label": "Client ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "template_id",
+          "label": "Template ID",
+          "type": "number",
+          "help": "Run \"List templates\" to find it."
+        }
+      ]
+    },
+    {
+      "key": "send_proposal",
+      "name": "Send proposal",
+      "method": "PUT",
+      "endpoint": "/proposals/{{ inputs.proposal_id }}/send_proposal",
+      "body": {
+        "email": "{{ inputs.email }}",
+        "subject": "{{ inputs.subject }}",
+        "message": "{{ inputs.message }}",
+        "sender_email": "{{ inputs.sender_email }}"
+      },
+      "output_fields": {
+        "status": "status",
+        "sent_at": "sent_at"
+      },
+      "inputs": [
+        {
+          "key": "proposal_id",
+          "label": "Proposal ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "email",
+          "label": "Send to email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "subject",
+          "label": "Email subject",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "message",
+          "label": "Message",
+          "type": "text"
+        },
+        {
+          "key": "sender_email",
+          "label": "From (Nusii user email)",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "get_proposal",
+      "name": "Get proposal",
+      "method": "GET",
+      "endpoint": "/proposals/{{ inputs.proposal_id }}",
+      "output_fields": {
+        "id": "data.id",
+        "status": "data.attributes.status",
+        "accepted_at": "data.attributes.accepted_at"
+      },
+      "inputs": [
+        {
+          "key": "proposal_id",
+          "label": "Proposal ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_proposals",
+      "name": "List proposals",
+      "method": "GET",
+      "endpoint": "/proposals",
+      "query": {
+        "status": "{{ inputs.status }}"
+      },
+      "output_fields": {
+        "proposals": "data"
+      },
+      "inputs": [
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "options": [
+            {
+              "value": "draft",
+              "label": "Draft"
+            },
+            {
+              "value": "pending",
+              "label": "Pending"
+            },
+            {
+              "value": "accepted",
+              "label": "Accepted"
+            },
+            {
+              "value": "rejected",
+              "label": "Rejected"
+            },
+            {
+              "value": "clarification",
+              "label": "Clarification"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "list_templates",
+      "name": "List templates",
+      "method": "GET",
+      "endpoint": "/templates",
+      "output_fields": {
+        "templates": "data"
+      },
+      "inputs": []
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Proposal accepted, rejected, sent and more (Settings → Integrations → Webhooks).",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

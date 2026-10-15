@@ -1,0 +1,248 @@
+{
+  "key": "up_bank",
+  "name": "Up Bank",
+  "category": "Payments & Finance",
+  "description": "Read your Up accounts and transactions, and categorise or tag transactions.",
+  "website": "https://up.com.au",
+  "docs_url": "https://developer.up.com.au",
+  "base_url": "https://api.up.com.au/api/v1",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "Personal access token",
+        "type": "password",
+        "required": true,
+        "help": "Get it at api.up.com.au/getting_started (sign in with the Up app)."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_accounts",
+      "name": "List accounts",
+      "description": "Your spending and saver accounts.",
+      "method": "GET",
+      "endpoint": "/accounts",
+      "query": {
+        "filter[accountType]": "{{ inputs.account_type }}"
+      },
+      "output_fields": {
+        "account_id": "data.0.id",
+        "name": "data.0.attributes.displayName",
+        "balance": "data.0.attributes.balance.value"
+      },
+      "inputs": [
+        {
+          "key": "account_type",
+          "label": "Type",
+          "type": "select",
+          "options": [
+            {
+              "value": "TRANSACTIONAL",
+              "label": "Spending"
+            },
+            {
+              "value": "SAVER",
+              "label": "Saver"
+            },
+            {
+              "value": "HOME_LOAN",
+              "label": "Home loan"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "get_account",
+      "name": "Get account",
+      "description": "One account's balance.",
+      "method": "GET",
+      "endpoint": "/accounts/{{ inputs.account_id }}",
+      "output_fields": {
+        "name": "data.attributes.displayName",
+        "balance": "data.attributes.balance.value",
+        "currency": "data.attributes.balance.currencyCode"
+      },
+      "inputs": [
+        {
+          "key": "account_id",
+          "label": "Account ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_transactions",
+      "name": "List transactions",
+      "description": "Newest transactions first.",
+      "method": "GET",
+      "endpoint": "/transactions",
+      "query": {
+        "filter[status]": "{{ inputs.status }}",
+        "filter[since]": "{{ inputs.since }}",
+        "filter[until]": "{{ inputs.until }}",
+        "filter[category]": "{{ inputs.category }}",
+        "page[size]": "{{ inputs.page_size }}"
+      },
+      "output_fields": {
+        "transactions": "data"
+      },
+      "inputs": [
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "options": [
+            {
+              "value": "HELD",
+              "label": "HELD"
+            },
+            {
+              "value": "SETTLED",
+              "label": "SETTLED"
+            }
+          ]
+        },
+        {
+          "key": "since",
+          "label": "Since",
+          "type": "string",
+          "placeholder": "2026-01-01T00:00:00+10:00"
+        },
+        {
+          "key": "until",
+          "label": "Until",
+          "type": "string"
+        },
+        {
+          "key": "category",
+          "label": "Category",
+          "type": "string",
+          "placeholder": "groceries"
+        },
+        {
+          "key": "page_size",
+          "label": "How many",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    },
+    {
+      "key": "get_transaction",
+      "name": "Get transaction",
+      "description": "One transaction's details.",
+      "method": "GET",
+      "endpoint": "/transactions/{{ inputs.transaction_id }}",
+      "output_fields": {
+        "description": "data.attributes.description",
+        "amount": "data.attributes.amount.value",
+        "status": "data.attributes.status"
+      },
+      "inputs": [
+        {
+          "key": "transaction_id",
+          "label": "Transaction ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "categorize_transaction",
+      "name": "Categorise transaction",
+      "description": "Set a transaction's category.",
+      "method": "PATCH",
+      "endpoint": "/transactions/{{ inputs.transaction_id }}/relationships/category",
+      "body": {
+        "data": {
+          "type": "categories",
+          "id": "{{ inputs.category }}"
+        }
+      },
+      "inputs": [
+        {
+          "key": "transaction_id",
+          "label": "Transaction ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "category",
+          "label": "Category ID",
+          "type": "string",
+          "required": true,
+          "placeholder": "restaurants-and-cafes"
+        }
+      ]
+    },
+    {
+      "key": "add_tag",
+      "name": "Add tag",
+      "description": "Tag a transaction.",
+      "method": "POST",
+      "endpoint": "/transactions/{{ inputs.transaction_id }}/relationships/tags",
+      "body": {
+        "data": [
+          {
+            "type": "tags",
+            "id": "{{ inputs.tag }}"
+          }
+        ]
+      },
+      "inputs": [
+        {
+          "key": "transaction_id",
+          "label": "Transaction ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "tag",
+          "label": "Tag",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_transaction",
+      "name": "New transaction",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/transactions",
+      "query": {
+        "page[size]": 50
+      },
+      "items_path": "data",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    },
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Register this URL with Up's webhooks API (POST /webhooks).",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,250 @@
+{
+  "key": "memberpress",
+  "name": "MemberPress",
+  "category": "CMS & Websites",
+  "description": "WordPress memberships: find and create members, list memberships and transactions.",
+  "website": "https://memberpress.com",
+  "docs_url": "https://memberpress.com/docs/overview-of-using-the-developer-tools/",
+  "base_url": "{{ credentials.site_url }}/wp-json/mp/v1",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "MEMBERPRESS-API-KEY",
+    "fields": [
+      {
+        "key": "site_url",
+        "label": "WordPress site URL",
+        "type": "string",
+        "required": true,
+        "placeholder": "https://example.com",
+        "help": "Your site's address, without a trailing slash."
+      },
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "Needs the Developer Tools add-on (Plus/Pro plans). WordPress admin → MemberPress → Developer → REST API: copy the API key."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "search_members",
+      "name": "Search members",
+      "description": "Find members by name, username or email.",
+      "method": "GET",
+      "endpoint": "/members",
+      "query": {
+        "search": "{{ inputs.search }}",
+        "per_page": "{{ inputs.per_page }}"
+      },
+      "output_fields": {
+        "id": "0.id",
+        "email": "0.email",
+        "active_memberships": "0.active_memberships"
+      },
+      "inputs": [
+        {
+          "key": "search",
+          "label": "Search",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "per_page",
+          "label": "How many",
+          "type": "number",
+          "default": 10
+        }
+      ]
+    },
+    {
+      "key": "get_member",
+      "name": "Get member",
+      "description": "A member with active memberships and recent transactions.",
+      "method": "GET",
+      "endpoint": "/members/{{ inputs.id }}",
+      "output_fields": {
+        "id": "id",
+        "email": "email",
+        "username": "username",
+        "first_name": "first_name",
+        "last_name": "last_name",
+        "active_memberships": "active_memberships",
+        "recent_transactions": "recent_transactions",
+        "recent_subscriptions": "recent_subscriptions"
+      },
+      "inputs": [
+        {
+          "key": "id",
+          "label": "Member (user) ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "create_member",
+      "name": "Create member",
+      "description": "Create a WordPress user as a member, optionally with a membership.",
+      "method": "POST",
+      "endpoint": "/members",
+      "body": {
+        "email": "{{ inputs.email }}",
+        "username": "{{ inputs.username }}",
+        "first_name": "{{ inputs.first_name }}",
+        "last_name": "{{ inputs.last_name }}",
+        "password": "{{ inputs.password }}",
+        "send_welcome_email": "{{ inputs.send_welcome_email }}",
+        "transaction": {
+          "$if": "{{ inputs.membership_id }}",
+          "membership": "{{ inputs.membership_id }}",
+          "amount": "0.00",
+          "total": "0.00",
+          "gateway": "manual",
+          "status": "complete",
+          "expires_at": "{{ inputs.expires_at }}"
+        }
+      },
+      "output_fields": {
+        "id": "id",
+        "email": "email",
+        "username": "username"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "username",
+          "label": "Username",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "first_name",
+          "label": "First name",
+          "type": "string"
+        },
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string"
+        },
+        {
+          "key": "password",
+          "label": "Password",
+          "type": "password",
+          "help": "Leave empty to let WordPress generate one."
+        },
+        {
+          "key": "membership_id",
+          "label": "Give membership (ID)",
+          "type": "string",
+          "help": "Optional. Run \"List memberships\" to see IDs. Adds a free, completed manual transaction."
+        },
+        {
+          "key": "expires_at",
+          "label": "Membership expires",
+          "type": "string",
+          "placeholder": "2027-01-01 00:00:00",
+          "help": "Optional; empty follows the membership's own term."
+        },
+        {
+          "key": "send_welcome_email",
+          "label": "Send welcome email",
+          "type": "boolean",
+          "default": true
+        }
+      ]
+    },
+    {
+      "key": "list_memberships",
+      "name": "List memberships",
+      "description": "Your membership levels and their IDs.",
+      "method": "GET",
+      "endpoint": "/memberships",
+      "output_fields": {
+        "ids": "*.id",
+        "titles": "*.title"
+      },
+      "inputs": []
+    },
+    {
+      "key": "list_transactions",
+      "name": "List transactions",
+      "description": "Recent payments and manual transactions.",
+      "method": "GET",
+      "endpoint": "/transactions",
+      "query": {
+        "per_page": "{{ inputs.per_page }}",
+        "member": "{{ inputs.member_id }}"
+      },
+      "output_fields": {
+        "ids": "*.id",
+        "totals": "*.total",
+        "statuses": "*.status"
+      },
+      "inputs": [
+        {
+          "key": "per_page",
+          "label": "How many",
+          "type": "number",
+          "default": 20
+        },
+        {
+          "key": "member_id",
+          "label": "Only for member ID",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "list_subscriptions",
+      "name": "List subscriptions",
+      "description": "Recurring subscriptions and their status.",
+      "method": "GET",
+      "endpoint": "/subscriptions",
+      "query": {
+        "per_page": "{{ inputs.per_page }}",
+        "member": "{{ inputs.member_id }}"
+      },
+      "output_fields": {
+        "ids": "*.id",
+        "statuses": "*.status"
+      },
+      "inputs": [
+        {
+          "key": "per_page",
+          "label": "How many",
+          "type": "number",
+          "default": 20
+        },
+        {
+          "key": "member_id",
+          "label": "Only for member ID",
+          "type": "string"
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json",
+          "help": "MemberPress → Developer → Webhooks → add this URL and pick events such as member-signup-completed or transaction-completed."
+        }
+      ]
+    }
+  ]
+}

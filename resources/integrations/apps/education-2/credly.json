@@ -1,0 +1,190 @@
+{
+  "key": "credly",
+  "name": "Credly",
+  "category": "Education",
+  "description": "Issue digital badges with Credly and list issued badges and templates.",
+  "website": "https://info.credly.com",
+  "docs_url": "https://developers.credly.com/",
+  "base_url": "https://api.credly.com/v1",
+  "auth": {
+    "type": "basic",
+    "fields": [
+      {
+        "key": "username",
+        "label": "Authorization token",
+        "type": "string",
+        "required": true,
+        "help": "Credly Org Management > Settings > API: generate and copy the authorization token."
+      },
+      {
+        "key": "password",
+        "label": "Password (leave blank)",
+        "type": "password",
+        "help": "Leave empty."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_templates",
+      "name": "List badge templates",
+      "description": "Get your badge templates.",
+      "method": "GET",
+      "endpoint": "/organizations/{{ inputs.organization_id }}/badge_templates",
+      "output_fields": {
+        "templates": "data",
+        "ids": "data.*.id",
+        "names": "data.*.name"
+      },
+      "inputs": [
+        {
+          "key": "organization_id",
+          "label": "Organization ID",
+          "type": "string",
+          "required": true,
+          "help": "Credly Org Management > Settings > API: shown next to the token."
+        }
+      ]
+    },
+    {
+      "key": "issue_badge",
+      "name": "Issue a badge",
+      "description": "Award a badge to a person by email.",
+      "method": "POST",
+      "endpoint": "/organizations/{{ inputs.organization_id }}/badges",
+      "body": {
+        "badge_template_id": "{{ inputs.badge_template_id }}",
+        "recipient_email": "{{ inputs.recipient_email }}",
+        "issued_to_first_name": "{{ inputs.issued_to_first_name }}",
+        "issued_to_last_name": "{{ inputs.issued_to_last_name }}",
+        "issued_at": "{{ inputs.issued_at }}"
+      },
+      "output_fields": {
+        "id": "data.id",
+        "state": "data.state"
+      },
+      "inputs": [
+        {
+          "key": "organization_id",
+          "label": "Organization ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "badge_template_id",
+          "label": "Badge template ID",
+          "type": "string",
+          "required": true,
+          "help": "From List badge templates."
+        },
+        {
+          "key": "recipient_email",
+          "label": "Recipient email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "issued_to_first_name",
+          "label": "First name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "issued_to_last_name",
+          "label": "Last name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "issued_at",
+          "label": "Issue date",
+          "type": "string",
+          "required": true,
+          "help": "YYYY-MM-DD HH:MM:SS -0000, e.g. 2025-01-31 09:00:00 -0000."
+        }
+      ]
+    },
+    {
+      "key": "list_badges",
+      "name": "List issued badges",
+      "description": "Get the badges you've issued.",
+      "method": "GET",
+      "endpoint": "/organizations/{{ inputs.organization_id }}/badges",
+      "query": {
+        "filter": "{{ inputs.filter }}"
+      },
+      "output_fields": {
+        "badges": "data",
+        "ids": "data.*.id"
+      },
+      "inputs": [
+        {
+          "key": "organization_id",
+          "label": "Organization ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "filter",
+          "label": "Filter",
+          "type": "string",
+          "help": "Optional, e.g. state::accepted"
+        }
+      ]
+    },
+    {
+      "key": "get_badge",
+      "name": "Get a badge",
+      "description": "Get one issued badge.",
+      "method": "GET",
+      "endpoint": "/organizations/{{ inputs.organization_id }}/badges/{{ inputs.badge_id }}",
+      "output_fields": {
+        "state": "data.state",
+        "badge_url": "data.badge_url"
+      },
+      "inputs": [
+        {
+          "key": "organization_id",
+          "label": "Organization ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "badge_id",
+          "label": "Badge ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "revoke_badge",
+      "name": "Revoke a badge",
+      "description": "Revoke an issued badge.",
+      "method": "PUT",
+      "endpoint": "/organizations/{{ inputs.organization_id }}/badges/{{ inputs.badge_id }}/revoke",
+      "body": {
+        "reason": "{{ inputs.reason }}"
+      },
+      "inputs": [
+        {
+          "key": "organization_id",
+          "label": "Organization ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "badge_id",
+          "label": "Badge ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "reason",
+          "label": "Reason",
+          "type": "string"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,135 @@
+{
+  "key": "textbee",
+  "name": "TextBee",
+  "category": "Communication",
+  "description": "Send SMS from your own Android phone with TextBee and catch incoming texts.",
+  "website": "https://textbee.dev",
+  "docs_url": "https://textbee.dev/docs",
+  "base_url": "https://api.textbee.dev/api/v1",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "x-api-key",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "textbee.dev dashboard → API Keys → Generate API Key (shown once)."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "send_sms",
+      "name": "Send SMS",
+      "method": "POST",
+      "endpoint": "/gateway/send-sms",
+      "body": {
+        "recipients": "{{ inputs.recipients }}",
+        "message": "{{ inputs.message }}",
+        "deviceId": "{{ inputs.deviceId }}"
+      },
+      "output_fields": {
+        "batch_id": "data.smsBatchId",
+        "success_count": "data.successCount",
+        "failure_count": "data.failureCount"
+      },
+      "inputs": [
+        {
+          "key": "recipients",
+          "label": "To (phone numbers)",
+          "type": "list",
+          "required": true,
+          "placeholder": "+923001234567"
+        },
+        {
+          "key": "message",
+          "label": "Message",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "deviceId",
+          "label": "Device ID",
+          "type": "string",
+          "help": "Leave blank to use your default phone. Get IDs with 'List devices'."
+        }
+      ]
+    },
+    {
+      "key": "list_devices",
+      "name": "List devices",
+      "method": "GET",
+      "endpoint": "/gateway/devices",
+      "output_fields": {
+        "devices": "data",
+        "device_ids": "data.*._id",
+        "device_names": "data.*.name"
+      },
+      "inputs": []
+    },
+    {
+      "key": "list_received",
+      "name": "List received SMS",
+      "method": "GET",
+      "endpoint": "/gateway/messages",
+      "query": {
+        "direction": "received",
+        "order": "desc",
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "messages": "data",
+        "latest_sender": "data.0.sender",
+        "latest_text": "data.0.message"
+      },
+      "inputs": [
+        {
+          "key": "limit",
+          "label": "Max results",
+          "type": "number",
+          "default": 20
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_sms",
+      "name": "New SMS received",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/gateway/messages",
+      "query": {
+        "direction": "received",
+        "order": "desc",
+        "limit": "50"
+      },
+      "items_path": "data",
+      "id_field": "_id",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    },
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Register the trigger URL in TextBee → Webhooks (e.g. MESSAGE_RECEIVED).",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

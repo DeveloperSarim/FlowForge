@@ -1,0 +1,220 @@
+{
+  "key": "emma",
+  "name": "Emma",
+  "category": "Marketing & Email",
+  "description": "Email marketing: add members, manage groups and opt-outs.",
+  "website": "https://myemma.com",
+  "docs_url": "https://api.myemma.com/",
+  "base_url": "https://api.e2ma.net/{{ credentials.account_id }}",
+  "auth": {
+    "type": "basic",
+    "fields": [
+      {
+        "key": "account_id",
+        "label": "Account ID",
+        "type": "string",
+        "required": true,
+        "help": "Emma → Settings → API key: the account ID is shown with your keys."
+      },
+      {
+        "key": "username",
+        "label": "Public API key",
+        "type": "string",
+        "required": true,
+        "help": "Emma → Settings → API key → Generate API key."
+      },
+      {
+        "key": "password",
+        "label": "Private API key",
+        "type": "password",
+        "required": true,
+        "help": "Shown only once when you generate the key."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "add_member",
+      "name": "Add or update member",
+      "description": "Add a contact (or update one with the same email) and put them in groups.",
+      "method": "POST",
+      "endpoint": "/members/add",
+      "body": {
+        "email": "{{ inputs.email }}",
+        "fields": {
+          "first_name": "{{ inputs.first_name }}",
+          "last_name": "{{ inputs.last_name }}",
+          "...": "{{ inputs.fields }}"
+        },
+        "group_ids": "{{ inputs.group_ids }}"
+      },
+      "output_fields": {
+        "member_id": "member_id",
+        "added": "added",
+        "status": "status"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "first_name",
+          "label": "First name",
+          "type": "string"
+        },
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string"
+        },
+        {
+          "key": "fields",
+          "label": "Other fields",
+          "type": "keyvalue",
+          "help": "Field shortcut names from Emma → Audience → Fields."
+        },
+        {
+          "key": "group_ids",
+          "label": "Group IDs",
+          "type": "list",
+          "help": "Run \"List groups\" to find the IDs."
+        }
+      ]
+    },
+    {
+      "key": "signup_member",
+      "name": "Sign up member (opt-in)",
+      "description": "Sign someone up through your opt-in flow, sending a confirmation if configured.",
+      "method": "POST",
+      "endpoint": "/members/signup",
+      "body": {
+        "email": "{{ inputs.email }}",
+        "group_ids": "{{ inputs.group_ids }}",
+        "fields": "{{ inputs.fields }}",
+        "signup_form_id": "{{ inputs.signup_form_id }}"
+      },
+      "output_fields": {
+        "member_id": "member_id",
+        "status": "status"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "group_ids",
+          "label": "Group IDs",
+          "type": "list",
+          "required": true
+        },
+        {
+          "key": "fields",
+          "label": "Fields",
+          "type": "keyvalue",
+          "help": "e.g. first_name = Jane."
+        },
+        {
+          "key": "signup_form_id",
+          "label": "Signup form ID",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "get_member",
+      "name": "Get member by email",
+      "description": "Look up a member by email address.",
+      "method": "GET",
+      "endpoint": "/members/email/{{ inputs.email }}",
+      "output_fields": {
+        "member_id": "member_id",
+        "email": "email",
+        "status": "status",
+        "fields": "fields",
+        "member_since": "member_since"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_groups",
+      "name": "List groups",
+      "description": "Your audience groups and their IDs.",
+      "method": "GET",
+      "endpoint": "/groups",
+      "output_fields": {
+        "ids": "*.member_group_id",
+        "names": "*.group_name"
+      },
+      "inputs": []
+    },
+    {
+      "key": "add_to_groups",
+      "name": "Add member to groups",
+      "description": "Add an existing member to one or more groups.",
+      "method": "PUT",
+      "endpoint": "/members/{{ inputs.member_id }}/groups",
+      "body": {
+        "group_ids": "{{ inputs.group_ids }}"
+      },
+      "inputs": [
+        {
+          "key": "member_id",
+          "label": "Member ID",
+          "type": "string",
+          "required": true,
+          "help": "From an \"Add member\" or \"Get member\" step."
+        },
+        {
+          "key": "group_ids",
+          "label": "Group IDs",
+          "type": "list",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "opt_out",
+      "name": "Opt out member",
+      "description": "Opt a member out of all mailings by email.",
+      "method": "PUT",
+      "endpoint": "/members/email/optout/{{ inputs.email }}",
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "delete_member",
+      "name": "Delete member",
+      "description": "Archive a member.",
+      "method": "DELETE",
+      "endpoint": "/members/{{ inputs.member_id }}",
+      "inputs": [
+        {
+          "key": "member_id",
+          "label": "Member ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": []
+}

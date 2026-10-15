@@ -1,0 +1,178 @@
+{
+  "key": "ninjaone",
+  "name": "NinjaOne",
+  "category": "Security & IT",
+  "description": "List NinjaOne organizations, devices and alerts and reboot devices.",
+  "brand": "ninjaone",
+  "website": "https://www.ninjaone.com",
+  "docs_url": "https://app.ninjarmm.com/apidocs/",
+  "base_url": "https://{{ credentials.region }}.ninjarmm.com/v2",
+  "auth": {
+    "type": "oauth2_client_credentials",
+    "token_url": "https://{{ credentials.region }}.ninjarmm.com/ws/oauth/token",
+    "scopes": [
+      "monitoring",
+      "management"
+    ],
+    "fields": [
+      {
+        "key": "region",
+        "label": "Region",
+        "type": "select",
+        "required": true,
+        "default": "app",
+        "options": [
+          {
+            "value": "app",
+            "label": "US (app.ninjarmm.com)"
+          },
+          {
+            "value": "us2",
+            "label": "US 2"
+          },
+          {
+            "value": "eu",
+            "label": "EU"
+          },
+          {
+            "value": "ca",
+            "label": "Canada"
+          },
+          {
+            "value": "oc",
+            "label": "Oceania"
+          }
+        ]
+      },
+      {
+        "key": "client_id",
+        "label": "Client ID",
+        "type": "string",
+        "required": true,
+        "help": "NinjaOne → Administration → Apps → API → Client app IDs → Add: API services, Client credentials, scopes Monitoring and Management."
+      },
+      {
+        "key": "client_secret",
+        "label": "Client secret",
+        "type": "password",
+        "required": true
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_organizations",
+      "name": "List organizations",
+      "description": "List your client organizations.",
+      "method": "GET",
+      "endpoint": "/organizations",
+      "inputs": []
+    },
+    {
+      "key": "list_devices",
+      "name": "List devices",
+      "description": "List managed devices.",
+      "method": "GET",
+      "endpoint": "/devices",
+      "query": {
+        "df": "{{ inputs.filter }}",
+        "pageSize": "{{ inputs.page_size }}"
+      },
+      "inputs": [
+        {
+          "key": "filter",
+          "label": "Device filter",
+          "type": "string",
+          "placeholder": "org = 1",
+          "help": "NinjaOne device filter (df), e.g. org = 1 or status = APPROVED."
+        },
+        {
+          "key": "page_size",
+          "label": "Page size",
+          "type": "number",
+          "default": 100
+        }
+      ]
+    },
+    {
+      "key": "get_device",
+      "name": "Get device",
+      "description": "Get a device's status and details.",
+      "method": "GET",
+      "endpoint": "/device/{{ inputs.device_id }}",
+      "output_fields": {
+        "name": "systemName",
+        "offline": "offline",
+        "last_contact": "lastContact",
+        "organization_id": "organizationId"
+      },
+      "inputs": [
+        {
+          "key": "device_id",
+          "label": "Device ID",
+          "type": "string",
+          "required": true,
+          "help": "Use List devices."
+        }
+      ]
+    },
+    {
+      "key": "list_alerts",
+      "name": "List alerts",
+      "description": "List active alerts.",
+      "method": "GET",
+      "endpoint": "/alerts",
+      "query": {
+        "df": "{{ inputs.filter }}"
+      },
+      "inputs": [
+        {
+          "key": "filter",
+          "label": "Device filter",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "reboot_device",
+      "name": "Reboot device",
+      "description": "Reboot a Windows or Mac device.",
+      "method": "POST",
+      "endpoint": "/device/{{ inputs.device_id }}/reboot/{{ inputs.mode }}",
+      "body": {
+        "reason": "{{ inputs.reason }}"
+      },
+      "inputs": [
+        {
+          "key": "device_id",
+          "label": "Device ID",
+          "type": "string",
+          "required": true,
+          "help": "Use List devices."
+        },
+        {
+          "key": "mode",
+          "label": "Mode",
+          "type": "select",
+          "required": true,
+          "default": "NORMAL",
+          "options": [
+            {
+              "value": "NORMAL",
+              "label": "Normal"
+            },
+            {
+              "value": "FORCED",
+              "label": "Forced"
+            }
+          ]
+        },
+        {
+          "key": "reason",
+          "label": "Reason",
+          "type": "string"
+        }
+      ]
+    }
+  ]
+}

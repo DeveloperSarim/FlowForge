@@ -1,0 +1,135 @@
+{
+  "key": "scrapegraph_ai",
+  "name": "ScrapeGraphAI",
+  "category": "AI",
+  "description": "AI web scraping: extract structured data from any page with a prompt.",
+  "website": "https://scrapegraphai.com",
+  "docs_url": "https://docs.scrapegraphai.com/api-reference/introduction",
+  "base_url": "https://v2-api.scrapegraphai.com/api",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "SGAI-APIKEY",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "dashboard.scrapegraphai.com → API Key."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "extract",
+      "name": "Extract data from page",
+      "description": "Describe what you want and get it back as JSON.",
+      "method": "POST",
+      "endpoint": "/extract",
+      "timeout": 180,
+      "body": {
+        "url": "{{ inputs.url }}",
+        "prompt": "{{ inputs.prompt }}",
+        "schema": "{{ inputs.schema }}"
+      },
+      "output_fields": {
+        "data": "json"
+      },
+      "inputs": [
+        {
+          "key": "url",
+          "label": "Page URL",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "prompt",
+          "label": "What to extract",
+          "type": "text",
+          "required": true,
+          "placeholder": "List every product name and price"
+        },
+        {
+          "key": "schema",
+          "label": "Output schema (JSON Schema)",
+          "type": "json",
+          "help": "Optional shape for the result."
+        }
+      ]
+    },
+    {
+      "key": "search",
+      "name": "Search the web",
+      "description": "Search and fetch the top pages, optionally extracting data.",
+      "method": "POST",
+      "endpoint": "/search",
+      "timeout": 180,
+      "body": {
+        "query": "{{ inputs.query }}",
+        "numResults": "{{ inputs.num_results }}",
+        "prompt": "{{ inputs.prompt }}"
+      },
+      "output_fields": {
+        "results": "results",
+        "data": "json"
+      },
+      "inputs": [
+        {
+          "key": "query",
+          "label": "Query",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "num_results",
+          "label": "Results",
+          "type": "number",
+          "default": 3,
+          "help": "1 to 20."
+        },
+        {
+          "key": "prompt",
+          "label": "What to extract",
+          "type": "text",
+          "help": "Optional: also extract data across the results."
+        }
+      ]
+    },
+    {
+      "key": "scrape_markdown",
+      "name": "Get page as markdown",
+      "description": "Fetch a page and convert it to clean markdown.",
+      "method": "POST",
+      "endpoint": "/scrape",
+      "timeout": 120,
+      "body": {
+        "url": "{{ inputs.url }}",
+        "formats": [
+          {
+            "type": "markdown"
+          }
+        ]
+      },
+      "output_fields": {
+        "markdown": "results.markdown.data.0"
+      },
+      "inputs": [
+        {
+          "key": "url",
+          "label": "Page URL",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "get_credits",
+      "name": "Get credits",
+      "description": "Show your remaining credits.",
+      "method": "GET",
+      "endpoint": "/credits",
+      "inputs": []
+    }
+  ]
+}

@@ -1,0 +1,230 @@
+{
+  "key": "holiday_api",
+  "name": "Holiday API",
+  "category": "Utilities",
+  "description": "Public holidays for 250+ countries and working-day calculations.",
+  "website": "https://holidayapi.com",
+  "docs_url": "https://holidayapi.com/docs",
+  "base_url": "https://holidayapi.com/v1",
+  "auth": {
+    "type": "api_key",
+    "in": "query",
+    "name": "key",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "holidayapi.com → Dashboard → API key."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_holidays",
+      "name": "List holidays",
+      "description": "Holidays of a country in a year (or month/day).",
+      "method": "GET",
+      "endpoint": "/holidays",
+      "query": {
+        "country": "{{ inputs.country }}",
+        "year": "{{ inputs.year }}",
+        "month": "{{ inputs.month }}",
+        "day": "{{ inputs.day }}",
+        "public": "{{ inputs.public }}",
+        "language": "{{ inputs.language }}"
+      },
+      "output_fields": {
+        "holidays": "holidays",
+        "first_holiday": "holidays.0.name",
+        "first_date": "holidays.0.date"
+      },
+      "inputs": [
+        {
+          "key": "country",
+          "label": "Country",
+          "type": "string",
+          "required": true,
+          "placeholder": "PK",
+          "help": "Two-letter country code; up to 10, comma-separated."
+        },
+        {
+          "key": "year",
+          "label": "Year",
+          "type": "number",
+          "required": true,
+          "placeholder": "2026",
+          "help": "The free plan only covers the previous year."
+        },
+        {
+          "key": "month",
+          "label": "Month (1-12)",
+          "type": "number"
+        },
+        {
+          "key": "day",
+          "label": "Day",
+          "type": "number"
+        },
+        {
+          "key": "public",
+          "label": "Public holidays only",
+          "type": "boolean",
+          "default": true
+        },
+        {
+          "key": "language",
+          "label": "Language",
+          "type": "string",
+          "placeholder": "en"
+        }
+      ]
+    },
+    {
+      "key": "next_holiday",
+      "name": "Next holiday after a date",
+      "description": "The first holiday after the given date.",
+      "method": "GET",
+      "endpoint": "/holidays",
+      "query": {
+        "country": "{{ inputs.country }}",
+        "year": "{{ inputs.year }}",
+        "month": "{{ inputs.month }}",
+        "day": "{{ inputs.day }}",
+        "public": "{{ inputs.public }}",
+        "upcoming": "true"
+      },
+      "output_fields": {
+        "name": "holidays.0.name",
+        "date": "holidays.0.date",
+        "observed": "holidays.0.observed"
+      },
+      "inputs": [
+        {
+          "key": "country",
+          "label": "Country",
+          "type": "string",
+          "required": true,
+          "placeholder": "US"
+        },
+        {
+          "key": "year",
+          "label": "Year",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "month",
+          "label": "Month",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "day",
+          "label": "Day",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "public",
+          "label": "Public holidays only",
+          "type": "boolean",
+          "default": true
+        }
+      ]
+    },
+    {
+      "key": "add_workdays",
+      "name": "Add working days",
+      "description": "The date that is N working days after a date, skipping weekends and holidays.",
+      "method": "GET",
+      "endpoint": "/workday",
+      "query": {
+        "country": "{{ inputs.country }}",
+        "start": "{{ inputs.start }}",
+        "days": "{{ inputs.days }}"
+      },
+      "output_fields": {
+        "date": "workday.date",
+        "weekday": "workday.weekday.name"
+      },
+      "inputs": [
+        {
+          "key": "country",
+          "label": "Country",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "start",
+          "label": "Start date (YYYY-MM-DD)",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "days",
+          "label": "Working days to add",
+          "type": "number",
+          "required": true,
+          "help": "Negative to go back."
+        }
+      ]
+    },
+    {
+      "key": "count_workdays",
+      "name": "Count working days",
+      "description": "Number of working days between two dates.",
+      "method": "GET",
+      "endpoint": "/workdays",
+      "query": {
+        "country": "{{ inputs.country }}",
+        "start": "{{ inputs.start }}",
+        "end": "{{ inputs.end }}"
+      },
+      "output_fields": {
+        "workdays": "workdays"
+      },
+      "inputs": [
+        {
+          "key": "country",
+          "label": "Country",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "start",
+          "label": "Start date (YYYY-MM-DD)",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "end",
+          "label": "End date (YYYY-MM-DD)",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_countries",
+      "name": "List countries",
+      "description": "Supported countries and their subdivisions.",
+      "method": "GET",
+      "endpoint": "/countries",
+      "query": {
+        "search": "{{ inputs.search }}"
+      },
+      "output_fields": {
+        "countries": "countries"
+      },
+      "inputs": [
+        {
+          "key": "search",
+          "label": "Search",
+          "type": "string"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,237 @@
+{
+  "key": "azure_ai_language",
+  "name": "Azure AI Language",
+  "category": "AI",
+  "description": "Sentiment, key phrases, entities, PII redaction and language detection.",
+  "brand": "microsoftazure",
+  "website": "https://azure.microsoft.com/products/ai-services/ai-language",
+  "docs_url": "https://learn.microsoft.com/rest/api/language/text-analysis-runtime/analyze-text",
+  "base_url": "{{ credentials.endpoint }}/language",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "Ocp-Apim-Subscription-Key",
+    "fields": [
+      {
+        "key": "endpoint",
+        "label": "Endpoint",
+        "type": "string",
+        "required": true,
+        "placeholder": "https://my-resource.cognitiveservices.azure.com",
+        "help": "Azure portal → your Language resource → Keys and Endpoint → Endpoint (without a trailing slash)."
+      },
+      {
+        "key": "api_key",
+        "label": "Key",
+        "type": "password",
+        "required": true,
+        "help": "Azure portal → your Language resource → Keys and Endpoint → KEY 1."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "analyze_sentiment",
+      "name": "Analyse sentiment",
+      "description": "Tell whether a text is positive, neutral or negative.",
+      "method": "POST",
+      "endpoint": "/:analyze-text",
+      "query": {
+        "api-version": "2023-04-01"
+      },
+      "body": {
+        "kind": "SentimentAnalysis",
+        "analysisInput": {
+          "documents": [
+            {
+              "id": "1",
+              "language": "{{ inputs.language }}",
+              "text": "{{ inputs.text }}"
+            }
+          ]
+        }
+      },
+      "output_fields": {
+        "sentiment": "results.documents.0.sentiment",
+        "scores": "results.documents.0.confidenceScores"
+      },
+      "inputs": [
+        {
+          "key": "text",
+          "label": "Text",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "language",
+          "label": "Language",
+          "type": "string",
+          "placeholder": "en",
+          "help": "Optional language code."
+        }
+      ]
+    },
+    {
+      "key": "extract_key_phrases",
+      "name": "Extract key phrases",
+      "description": "Pull out the main talking points of a text.",
+      "method": "POST",
+      "endpoint": "/:analyze-text",
+      "query": {
+        "api-version": "2023-04-01"
+      },
+      "body": {
+        "kind": "KeyPhraseExtraction",
+        "analysisInput": {
+          "documents": [
+            {
+              "id": "1",
+              "language": "{{ inputs.language }}",
+              "text": "{{ inputs.text }}"
+            }
+          ]
+        }
+      },
+      "output_fields": {
+        "key_phrases": "results.documents.0.keyPhrases"
+      },
+      "inputs": [
+        {
+          "key": "text",
+          "label": "Text",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "language",
+          "label": "Language",
+          "type": "string",
+          "placeholder": "en",
+          "help": "Optional language code."
+        }
+      ]
+    },
+    {
+      "key": "recognize_entities",
+      "name": "Find entities",
+      "description": "Find people, places, organisations, dates and more.",
+      "method": "POST",
+      "endpoint": "/:analyze-text",
+      "query": {
+        "api-version": "2023-04-01"
+      },
+      "body": {
+        "kind": "EntityRecognition",
+        "analysisInput": {
+          "documents": [
+            {
+              "id": "1",
+              "language": "{{ inputs.language }}",
+              "text": "{{ inputs.text }}"
+            }
+          ]
+        }
+      },
+      "output_fields": {
+        "entities": "results.documents.0.entities"
+      },
+      "inputs": [
+        {
+          "key": "text",
+          "label": "Text",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "language",
+          "label": "Language",
+          "type": "string",
+          "placeholder": "en",
+          "help": "Optional language code."
+        }
+      ]
+    },
+    {
+      "key": "redact_pii",
+      "name": "Redact personal data",
+      "description": "Find and mask emails, phone numbers, names and other PII.",
+      "method": "POST",
+      "endpoint": "/:analyze-text",
+      "query": {
+        "api-version": "2023-04-01"
+      },
+      "body": {
+        "kind": "PiiEntityRecognition",
+        "analysisInput": {
+          "documents": [
+            {
+              "id": "1",
+              "language": "{{ inputs.language }}",
+              "text": "{{ inputs.text }}"
+            }
+          ]
+        }
+      },
+      "output_fields": {
+        "redacted_text": "results.documents.0.redactedText",
+        "entities": "results.documents.0.entities"
+      },
+      "inputs": [
+        {
+          "key": "text",
+          "label": "Text",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "language",
+          "label": "Language",
+          "type": "string",
+          "placeholder": "en",
+          "help": "Optional language code."
+        }
+      ]
+    },
+    {
+      "key": "detect_language",
+      "name": "Detect language",
+      "description": "Detect which language a text is written in.",
+      "method": "POST",
+      "endpoint": "/:analyze-text",
+      "query": {
+        "api-version": "2023-04-01"
+      },
+      "body": {
+        "kind": "LanguageDetection",
+        "analysisInput": {
+          "documents": [
+            {
+              "id": "1",
+              "text": "{{ inputs.text }}",
+              "countryHint": "{{ inputs.country_hint }}"
+            }
+          ]
+        }
+      },
+      "output_fields": {
+        "language": "results.documents.0.detectedLanguage.name",
+        "language_code": "results.documents.0.detectedLanguage.iso6391Name",
+        "confidence": "results.documents.0.detectedLanguage.confidenceScore"
+      },
+      "inputs": [
+        {
+          "key": "text",
+          "label": "Text",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "country_hint",
+          "label": "Country hint",
+          "type": "string",
+          "placeholder": "US"
+        }
+      ]
+    }
+  ]
+}

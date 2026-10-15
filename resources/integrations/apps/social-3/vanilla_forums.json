@@ -1,0 +1,247 @@
+{
+  "key": "vanilla_forums",
+  "name": "Vanilla Forums",
+  "category": "Social Media",
+  "description": "Post discussions and comments to your Vanilla community and catch new discussions.",
+  "website": "https://vanillaforums.com",
+  "docs_url": "https://success.vanillaforums.com/kb/articles/41-api-v2",
+  "base_url": "{{ credentials.base_url }}/api/v2",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "base_url",
+        "label": "Community address",
+        "type": "string",
+        "required": true,
+        "placeholder": "https://community.example.com",
+        "help": "No trailing slash."
+      },
+      {
+        "key": "token",
+        "label": "Access token",
+        "type": "password",
+        "required": true,
+        "help": "Your profile → Edit Profile → Access Tokens → Generate New Token."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "create_discussion",
+      "name": "Create discussion",
+      "method": "POST",
+      "endpoint": "/discussions",
+      "body": {
+        "name": "{{ inputs.name }}",
+        "body": "{{ inputs.body }}",
+        "format": "{{ inputs.format }}",
+        "categoryID": "{{ inputs.categoryID }}"
+      },
+      "output_fields": {
+        "id": "discussionID",
+        "url": "url",
+        "name": "name"
+      },
+      "inputs": [
+        {
+          "key": "name",
+          "label": "Title",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "body",
+          "label": "Body",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "categoryID",
+          "label": "Category ID",
+          "type": "number",
+          "help": "Get it with 'List categories'."
+        },
+        {
+          "key": "format",
+          "label": "Format",
+          "type": "select",
+          "default": "markdown",
+          "options": [
+            {
+              "value": "markdown",
+              "label": "Markdown"
+            },
+            {
+              "value": "text",
+              "label": "Plain text"
+            },
+            {
+              "value": "wysiwyg",
+              "label": "HTML"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "add_comment",
+      "name": "Add comment",
+      "method": "POST",
+      "endpoint": "/comments",
+      "body": {
+        "discussionID": "{{ inputs.discussionID }}",
+        "body": "{{ inputs.body }}",
+        "format": "{{ inputs.format }}"
+      },
+      "output_fields": {
+        "id": "commentID",
+        "url": "url"
+      },
+      "inputs": [
+        {
+          "key": "discussionID",
+          "label": "Discussion ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "body",
+          "label": "Comment",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "format",
+          "label": "Format",
+          "type": "select",
+          "default": "markdown",
+          "options": [
+            {
+              "value": "markdown",
+              "label": "Markdown"
+            },
+            {
+              "value": "text",
+              "label": "Plain text"
+            },
+            {
+              "value": "wysiwyg",
+              "label": "HTML"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "list_discussions",
+      "name": "List discussions",
+      "method": "GET",
+      "endpoint": "/discussions",
+      "query": {
+        "categoryID": "{{ inputs.categoryID }}",
+        "limit": "{{ inputs.limit }}",
+        "sort": "-dateInserted"
+      },
+      "output_fields": {
+        "latest_id": "0.discussionID",
+        "latest_name": "0.name",
+        "latest_url": "0.url"
+      },
+      "inputs": [
+        {
+          "key": "categoryID",
+          "label": "Category ID",
+          "type": "number"
+        },
+        {
+          "key": "limit",
+          "label": "Max results",
+          "type": "number",
+          "default": 30
+        }
+      ]
+    },
+    {
+      "key": "list_comments",
+      "name": "List comments of a discussion",
+      "method": "GET",
+      "endpoint": "/comments",
+      "query": {
+        "discussionID": "{{ inputs.discussionID }}",
+        "limit": "{{ inputs.limit }}",
+        "sort": "-dateInserted"
+      },
+      "output_fields": {
+        "latest_id": "0.commentID",
+        "latest_body": "0.body"
+      },
+      "inputs": [
+        {
+          "key": "discussionID",
+          "label": "Discussion ID",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "limit",
+          "label": "Max results",
+          "type": "number",
+          "default": 30
+        }
+      ]
+    },
+    {
+      "key": "list_categories",
+      "name": "List categories",
+      "method": "GET",
+      "endpoint": "/categories",
+      "output_fields": {
+        "ids": "*.categoryID",
+        "names": "*.name"
+      },
+      "inputs": []
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_discussion",
+      "name": "New discussion",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/discussions",
+      "query": {
+        "categoryID": "{{ inputs.categoryID }}",
+        "limit": "30",
+        "sort": "-dateInserted"
+      },
+      "id_field": "discussionID",
+      "inputs": [
+        {
+          "key": "categoryID",
+          "label": "Only category ID",
+          "type": "number"
+        },
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    },
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Add this URL as a webhook in your Vanilla dashboard.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

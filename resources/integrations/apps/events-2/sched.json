@@ -1,0 +1,84 @@
+{
+  "key": "sched",
+  "name": "Sched",
+  "category": "Events & Webinars",
+  "description": "Conference scheduling: read sessions, speakers and attendees from your Sched event.",
+  "website": "https://sched.com",
+  "docs_url": "https://sched.com/api",
+  "base_url": "https://{{ credentials.subdomain }}.sched.com/api",
+  "auth": {
+    "type": "api_key",
+    "in": "query",
+    "name": "api_key",
+    "fields": [
+      {
+        "key": "subdomain",
+        "label": "Event subdomain",
+        "type": "string",
+        "required": true,
+        "placeholder": "myevent",
+        "help": "The first part of your Sched address: myevent.sched.com"
+      },
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "Sched event dashboard > Settings > API: copy the API key."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_sessions",
+      "name": "List sessions",
+      "description": "Get all sessions in the schedule.",
+      "method": "GET",
+      "endpoint": "/session/export",
+      "query": {
+        "format": "json",
+        "strip_html": "Y"
+      },
+      "output_fields": {
+        "titles": "*.name",
+        "ids": "*.id",
+        "starts": "*.event_start"
+      },
+      "inputs": []
+    },
+    {
+      "key": "list_users",
+      "name": "List users",
+      "description": "Get attendees, speakers and artists.",
+      "method": "GET",
+      "endpoint": "/user/list",
+      "query": {
+        "format": "json",
+        "role": "{{ inputs.role }}"
+      },
+      "output_fields": {
+        "usernames": "*.username",
+        "names": "*.name"
+      },
+      "inputs": [
+        {
+          "key": "role",
+          "label": "Role",
+          "type": "string",
+          "help": "Filter by role name, e.g. speaker."
+        }
+      ]
+    },
+    {
+      "key": "list_roles",
+      "name": "List roles",
+      "description": "Get the roles users can have.",
+      "method": "GET",
+      "endpoint": "/role/list",
+      "query": {
+        "format": "json"
+      },
+      "inputs": []
+    }
+  ]
+}

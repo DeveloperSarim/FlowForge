@@ -1,0 +1,152 @@
+{
+  "key": "rocketlane",
+  "name": "Rocketlane",
+  "category": "Project Management",
+  "description": "Customer onboarding projects: list projects and create or read tasks.",
+  "website": "https://www.rocketlane.com",
+  "docs_url": "https://developer.rocketlane.com/",
+  "base_url": "https://services.api.rocketlane.com/api/1.0",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "api-key",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "Rocketlane → Settings → API → Generate API key."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_projects",
+      "name": "List projects",
+      "description": "Your projects.",
+      "method": "GET",
+      "endpoint": "/projects",
+      "query": {
+        "pageSize": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "names": "data.*.projectName",
+        "ids": "data.*.projectId"
+      },
+      "inputs": [
+        {
+          "key": "limit",
+          "label": "Max results",
+          "type": "number",
+          "default": 25
+        }
+      ]
+    },
+    {
+      "key": "get_project",
+      "name": "Get project",
+      "description": "One project.",
+      "method": "GET",
+      "endpoint": "/projects/{{ inputs.id }}",
+      "output_fields": {
+        "name": "projectName",
+        "id": "projectId"
+      },
+      "inputs": [
+        {
+          "key": "id",
+          "label": "Project ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_tasks",
+      "name": "List tasks",
+      "description": "Tasks in your account.",
+      "method": "GET",
+      "endpoint": "/tasks",
+      "query": {
+        "pageSize": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "names": "data.*.taskName",
+        "ids": "data.*.taskId"
+      },
+      "inputs": [
+        {
+          "key": "limit",
+          "label": "Max results",
+          "type": "number",
+          "default": 25
+        }
+      ]
+    },
+    {
+      "key": "create_task",
+      "name": "Create task",
+      "description": "Add a task to a project.",
+      "method": "POST",
+      "endpoint": "/tasks",
+      "body": {
+        "taskName": "{{ inputs.name }}",
+        "project": {
+          "projectId": "{{ inputs.project_id }}"
+        },
+        "taskDescription": "{{ inputs.description }}",
+        "dueDate": "{{ inputs.due_date }}"
+      },
+      "output_fields": {
+        "id": "taskId",
+        "name": "taskName"
+      },
+      "inputs": [
+        {
+          "key": "project_id",
+          "label": "Project ID",
+          "type": "number",
+          "required": true,
+          "help": "Use \"List projects\"."
+        },
+        {
+          "key": "name",
+          "label": "Task name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "description",
+          "label": "Description",
+          "type": "text"
+        },
+        {
+          "key": "due_date",
+          "label": "Due date",
+          "type": "string",
+          "placeholder": "2025-01-31"
+        }
+      ]
+    },
+    {
+      "key": "get_task",
+      "name": "Get task",
+      "description": "One task.",
+      "method": "GET",
+      "endpoint": "/tasks/{{ inputs.id }}",
+      "output_fields": {
+        "name": "taskName",
+        "id": "taskId"
+      },
+      "inputs": [
+        {
+          "key": "id",
+          "label": "Task ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ]
+}

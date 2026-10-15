@@ -1,0 +1,349 @@
+{
+  "key": "facturapi",
+  "name": "Facturapi",
+  "category": "Payments & Finance",
+  "description": "Mexican e-invoicing (CFDI): customers, products, invoices, email and cancel.",
+  "website": "https://www.facturapi.io",
+  "docs_url": "https://docs.facturapi.io/api/",
+  "base_url": "https://www.facturapi.io/v2",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "Secret key (sk_…)",
+        "type": "password",
+        "required": true,
+        "help": "Facturapi dashboard → your organization → API keys (test or live secret key)."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "create_customer",
+      "name": "Create customer",
+      "description": "Add a customer with tax details.",
+      "method": "POST",
+      "endpoint": "/customers",
+      "body": {
+        "legal_name": "{{ inputs.legal_name }}",
+        "tax_id": "{{ inputs.tax_id }}",
+        "tax_system": "{{ inputs.tax_system }}",
+        "email": "{{ inputs.email }}",
+        "phone": "{{ inputs.phone }}",
+        "address": {
+          "zip": "{{ inputs.zip }}"
+        }
+      },
+      "output_fields": {
+        "id": "id"
+      },
+      "inputs": [
+        {
+          "key": "legal_name",
+          "label": "Legal name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "tax_id",
+          "label": "RFC",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "tax_system",
+          "label": "Tax system (régimen)",
+          "type": "string",
+          "required": true,
+          "default": "601"
+        },
+        {
+          "key": "zip",
+          "label": "Postal code",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string"
+        },
+        {
+          "key": "phone",
+          "label": "Phone",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "create_product",
+      "name": "Create product",
+      "description": "Save a product or service.",
+      "method": "POST",
+      "endpoint": "/products",
+      "body": {
+        "description": "{{ inputs.description }}",
+        "product_key": "{{ inputs.product_key }}",
+        "price": "{{ inputs.price }}",
+        "unit_key": "{{ inputs.unit_key }}",
+        "sku": "{{ inputs.sku }}"
+      },
+      "output_fields": {
+        "id": "id"
+      },
+      "inputs": [
+        {
+          "key": "description",
+          "label": "Description",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "product_key",
+          "label": "SAT product key",
+          "type": "string",
+          "required": true,
+          "placeholder": "81112100"
+        },
+        {
+          "key": "price",
+          "label": "Price (with tax)",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "unit_key",
+          "label": "SAT unit key",
+          "type": "string",
+          "default": "E48"
+        },
+        {
+          "key": "sku",
+          "label": "SKU",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "create_invoice",
+      "name": "Create invoice",
+      "description": "Issue a CFDI invoice.",
+      "method": "POST",
+      "endpoint": "/invoices",
+      "body": {
+        "customer": "{{ inputs.customer_id }}",
+        "items": "{{ inputs.items }}",
+        "payment_form": "{{ inputs.payment_form }}",
+        "use": "{{ inputs.use }}",
+        "series": "{{ inputs.series }}",
+        "folio_number": "{{ inputs.folio_number }}"
+      },
+      "output_fields": {
+        "id": "id",
+        "uuid": "uuid",
+        "total": "total",
+        "status": "status",
+        "verification_url": "verification_url"
+      },
+      "inputs": [
+        {
+          "key": "customer_id",
+          "label": "Customer ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "items",
+          "label": "Items (JSON)",
+          "type": "json",
+          "required": true,
+          "placeholder": "[{\"quantity\":1,\"product\":\"<product id>\"}]"
+        },
+        {
+          "key": "payment_form",
+          "label": "Payment form",
+          "type": "string",
+          "required": true,
+          "default": "03",
+          "help": "SAT code, e.g. 01 cash, 03 transfer, 04 card."
+        },
+        {
+          "key": "use",
+          "label": "CFDI use",
+          "type": "string",
+          "default": "G03"
+        },
+        {
+          "key": "series",
+          "label": "Series",
+          "type": "string"
+        },
+        {
+          "key": "folio_number",
+          "label": "Folio",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "get_invoice",
+      "name": "Get invoice",
+      "description": "Look up an invoice.",
+      "method": "GET",
+      "endpoint": "/invoices/{{ inputs.invoice_id }}",
+      "output_fields": {
+        "status": "status",
+        "uuid": "uuid",
+        "total": "total"
+      },
+      "inputs": [
+        {
+          "key": "invoice_id",
+          "label": "Invoice ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "email_invoice",
+      "name": "Email invoice",
+      "description": "Send the invoice PDF and XML by email.",
+      "method": "POST",
+      "endpoint": "/invoices/{{ inputs.invoice_id }}/email",
+      "body": {
+        "email": "{{ inputs.email }}"
+      },
+      "inputs": [
+        {
+          "key": "invoice_id",
+          "label": "Invoice ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "help": "Leave empty to use the customer's email."
+        }
+      ]
+    },
+    {
+      "key": "cancel_invoice",
+      "name": "Cancel invoice",
+      "description": "Cancel an invoice with the SAT.",
+      "method": "DELETE",
+      "endpoint": "/invoices/{{ inputs.invoice_id }}",
+      "query": {
+        "motive": "{{ inputs.motive }}",
+        "substitution": "{{ inputs.substitution }}"
+      },
+      "output_fields": {
+        "status": "status"
+      },
+      "inputs": [
+        {
+          "key": "invoice_id",
+          "label": "Invoice ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "motive",
+          "label": "Reason",
+          "type": "select",
+          "required": true,
+          "default": "02",
+          "options": [
+            {
+              "value": "01",
+              "label": "01 Issued with errors, with replacement"
+            },
+            {
+              "value": "02",
+              "label": "02 Issued with errors, no replacement"
+            },
+            {
+              "value": "03",
+              "label": "03 Operation not carried out"
+            },
+            {
+              "value": "04",
+              "label": "04 Global invoice operation"
+            }
+          ]
+        },
+        {
+          "key": "substitution",
+          "label": "Replacement invoice ID",
+          "type": "string",
+          "help": "Only for reason 01."
+        }
+      ]
+    },
+    {
+      "key": "list_invoices",
+      "name": "List invoices",
+      "description": "Search invoices.",
+      "method": "GET",
+      "endpoint": "/invoices",
+      "query": {
+        "q": "{{ inputs.q }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "invoices": "data"
+      },
+      "inputs": [
+        {
+          "key": "q",
+          "label": "Search",
+          "type": "string"
+        },
+        {
+          "key": "limit",
+          "label": "How many",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_invoice",
+      "name": "New invoice",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/invoices",
+      "query": {
+        "limit": 50
+      },
+      "items_path": "data",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    },
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Facturapi dashboard → Webhooks → add this URL.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

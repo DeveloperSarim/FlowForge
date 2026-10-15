@@ -1,0 +1,429 @@
+{
+  "key": "stuart",
+  "name": "Stuart",
+  "category": "E-commerce",
+  "description": "Same-day courier delivery in Europe: prices, jobs, tracking and cancellations.",
+  "website": "https://stuart.com",
+  "docs_url": "https://api-docs.stuart.com",
+  "base_url": "https://{{ credentials.host }}",
+  "auth": {
+    "type": "oauth2_client_credentials",
+    "token_url": "https://{{ credentials.host }}/oauth/token",
+    "scopes": [
+      "api"
+    ],
+    "fields": [
+      {
+        "key": "client_id",
+        "label": "Client ID",
+        "type": "string",
+        "required": true,
+        "help": "Stuart dashboard → Settings → API → Client ID."
+      },
+      {
+        "key": "client_secret",
+        "label": "Client secret",
+        "type": "password",
+        "required": true
+      },
+      {
+        "key": "host",
+        "label": "Environment",
+        "type": "select",
+        "required": true,
+        "default": "api.stuart.com",
+        "options": [
+          {
+            "value": "api.stuart.com",
+            "label": "Production"
+          },
+          {
+            "value": "api.sandbox.stuart.com",
+            "label": "Sandbox"
+          }
+        ]
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "get_price",
+      "name": "Get price",
+      "description": "Price of a delivery between two addresses.",
+      "method": "POST",
+      "endpoint": "/v2/jobs/pricing",
+      "body": {
+        "job": {
+          "pickups": [
+            {
+              "address": "{{ inputs.pickup_address }}"
+            }
+          ],
+          "dropoffs": [
+            {
+              "address": "{{ inputs.dropoff_address }}",
+              "package_type": "{{ inputs.package_type }}"
+            }
+          ]
+        }
+      },
+      "output_fields": {
+        "amount": "amount",
+        "currency": "currency"
+      },
+      "inputs": [
+        {
+          "key": "pickup_address",
+          "label": "Pickup address",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "dropoff_address",
+          "label": "Drop-off address",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "package_type",
+          "label": "Package size",
+          "type": "select",
+          "required": true,
+          "default": "small",
+          "options": [
+            {
+              "value": "xsmall",
+              "label": "xsmall"
+            },
+            {
+              "value": "small",
+              "label": "small"
+            },
+            {
+              "value": "medium",
+              "label": "medium"
+            },
+            {
+              "value": "large",
+              "label": "large"
+            },
+            {
+              "value": "xlarge",
+              "label": "xlarge"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "create_job",
+      "name": "Create delivery job",
+      "description": "Book a courier for a delivery.",
+      "method": "POST",
+      "endpoint": "/v2/jobs",
+      "body": {
+        "job": {
+          "pickup_at": "{{ inputs.pickup_at }}",
+          "assignment_code": "{{ inputs.reference }}",
+          "pickups": [
+            {
+              "address": "{{ inputs.pickup_address }}",
+              "comment": "{{ inputs.pickup_comment }}",
+              "contact": {
+                "firstname": "{{ inputs.pickup_name }}",
+                "phone": "{{ inputs.pickup_phone }}",
+                "company_name": "{{ inputs.pickup_company }}"
+              }
+            }
+          ],
+          "dropoffs": [
+            {
+              "address": "{{ inputs.dropoff_address }}",
+              "package_type": "{{ inputs.package_type }}",
+              "package_description": "{{ inputs.description }}",
+              "client_reference": "{{ inputs.reference }}",
+              "comment": "{{ inputs.dropoff_comment }}",
+              "contact": {
+                "firstname": "{{ inputs.dropoff_firstname }}",
+                "lastname": "{{ inputs.dropoff_lastname }}",
+                "phone": "{{ inputs.dropoff_phone }}",
+                "email": "{{ inputs.dropoff_email }}"
+              }
+            }
+          ]
+        }
+      },
+      "output_fields": {
+        "job_id": "id",
+        "status": "status",
+        "price": "pricing.price_tax_included",
+        "tracking_url": "deliveries.0.tracking_url"
+      },
+      "inputs": [
+        {
+          "key": "pickup_address",
+          "label": "Pickup address",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "pickup_name",
+          "label": "Pickup contact",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "pickup_phone",
+          "label": "Pickup phone",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "pickup_company",
+          "label": "Pickup company",
+          "type": "string"
+        },
+        {
+          "key": "pickup_comment",
+          "label": "Pickup note",
+          "type": "string"
+        },
+        {
+          "key": "dropoff_address",
+          "label": "Drop-off address",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "dropoff_firstname",
+          "label": "Customer first name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "dropoff_lastname",
+          "label": "Customer last name",
+          "type": "string"
+        },
+        {
+          "key": "dropoff_phone",
+          "label": "Customer phone",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "dropoff_email",
+          "label": "Customer email",
+          "type": "string"
+        },
+        {
+          "key": "dropoff_comment",
+          "label": "Drop-off note",
+          "type": "string"
+        },
+        {
+          "key": "package_type",
+          "label": "Package size",
+          "type": "select",
+          "required": true,
+          "default": "small",
+          "options": [
+            {
+              "value": "xsmall",
+              "label": "xsmall"
+            },
+            {
+              "value": "small",
+              "label": "small"
+            },
+            {
+              "value": "medium",
+              "label": "medium"
+            },
+            {
+              "value": "large",
+              "label": "large"
+            },
+            {
+              "value": "xlarge",
+              "label": "xlarge"
+            }
+          ]
+        },
+        {
+          "key": "description",
+          "label": "Package description",
+          "type": "string"
+        },
+        {
+          "key": "reference",
+          "label": "Your order reference",
+          "type": "string"
+        },
+        {
+          "key": "pickup_at",
+          "label": "Pickup time",
+          "type": "string",
+          "placeholder": "2026-01-31T14:00:00+01:00",
+          "help": "Leave empty for as soon as possible."
+        }
+      ]
+    },
+    {
+      "key": "get_job",
+      "name": "Get job",
+      "description": "Job status and tracking link.",
+      "method": "GET",
+      "endpoint": "/v2/jobs/{{ inputs.job_id }}",
+      "output_fields": {
+        "status": "status",
+        "tracking_url": "deliveries.0.tracking_url",
+        "eta": "deliveries.0.eta.dropoff"
+      },
+      "inputs": [
+        {
+          "key": "job_id",
+          "label": "Job ID",
+          "type": "number",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "cancel_job",
+      "name": "Cancel job",
+      "description": "Cancel a delivery job.",
+      "method": "POST",
+      "endpoint": "/v2/jobs/{{ inputs.job_id }}/cancel",
+      "inputs": [
+        {
+          "key": "job_id",
+          "label": "Job ID",
+          "type": "number",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "validate_address",
+      "name": "Validate address",
+      "description": "Check that Stuart can deliver to or pick up from an address.",
+      "method": "GET",
+      "endpoint": "/v2/addresses/validate",
+      "query": {
+        "address": "{{ inputs.address }}",
+        "type": "{{ inputs.type }}",
+        "phone": "{{ inputs.phone }}"
+      },
+      "output_fields": {
+        "success": "success"
+      },
+      "inputs": [
+        {
+          "key": "address",
+          "label": "Address",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "type",
+          "label": "Type",
+          "type": "select",
+          "required": true,
+          "default": "delivering",
+          "options": [
+            {
+              "value": "picking",
+              "label": "Pickup"
+            },
+            {
+              "value": "delivering",
+              "label": "Delivery"
+            }
+          ]
+        },
+        {
+          "key": "phone",
+          "label": "Phone",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "list_jobs",
+      "name": "List jobs",
+      "description": "Your delivery jobs, optionally by status.",
+      "method": "GET",
+      "endpoint": "/v2/jobs",
+      "query": {
+        "status": "{{ inputs.status }}",
+        "page": "{{ inputs.page }}",
+        "per_page": "{{ inputs.per_page }}"
+      },
+      "inputs": [
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "options": [
+            {
+              "value": "new",
+              "label": "new"
+            },
+            {
+              "value": "scheduled",
+              "label": "scheduled"
+            },
+            {
+              "value": "searching",
+              "label": "searching"
+            },
+            {
+              "value": "in_progress",
+              "label": "in_progress"
+            },
+            {
+              "value": "finished",
+              "label": "finished"
+            },
+            {
+              "value": "canceled",
+              "label": "canceled"
+            },
+            {
+              "value": "expired",
+              "label": "expired"
+            }
+          ]
+        },
+        {
+          "key": "page",
+          "label": "Page",
+          "type": "number",
+          "default": 1
+        },
+        {
+          "key": "per_page",
+          "label": "How many",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Job update",
+      "type": "webhook",
+      "description": "Stuart dashboard → Settings → Webhooks, paste this URL.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

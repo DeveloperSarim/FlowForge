@@ -1,0 +1,218 @@
+{
+  "key": "knack",
+  "name": "Knack",
+  "category": "Databases",
+  "description": "List, create, update and delete records in your Knack no-code database apps.",
+  "website": "https://www.knack.com",
+  "docs_url": "https://docs.knack.com/docs/object-based-requests",
+  "base_url": "https://api.knack.com/v1",
+  "headers": {
+    "X-Knack-Application-Id": "{{ credentials.app_id }}"
+  },
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "X-Knack-REST-API-KEY",
+    "fields": [
+      {
+        "key": "app_id",
+        "label": "Application ID",
+        "type": "string",
+        "required": true,
+        "help": "Same page: Settings → API & Code → API → Application ID."
+      },
+      {
+        "key": "api_key",
+        "label": "REST API key",
+        "type": "password",
+        "required": true,
+        "help": "In Knack open Settings → API & Code → API and copy the API key."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_records",
+      "name": "List records",
+      "description": "Get records from an object.",
+      "method": "GET",
+      "endpoint": "/objects/{{ inputs.object }}/records",
+      "query": {
+        "rows_per_page": "{{ inputs.rows_per_page }}",
+        "page": "{{ inputs.page }}",
+        "sort_field": "{{ inputs.sort_field }}",
+        "sort_order": "{{ inputs.sort_order }}",
+        "filters": "{{ inputs.filters }}"
+      },
+      "output_fields": {
+        "records": "records",
+        "total": "total_records",
+        "first_id": "records.0.id"
+      },
+      "inputs": [
+        {
+          "key": "object",
+          "label": "Object key",
+          "type": "string",
+          "required": true,
+          "help": "Open the object in the Knack Builder; the key (like object_1) is in the page address.",
+          "placeholder": "object_1"
+        },
+        {
+          "key": "rows_per_page",
+          "label": "Rows per page",
+          "type": "number",
+          "default": 25
+        },
+        {
+          "key": "page",
+          "label": "Page",
+          "type": "number",
+          "default": 1
+        },
+        {
+          "key": "sort_field",
+          "label": "Sort by field key",
+          "type": "string"
+        },
+        {
+          "key": "sort_order",
+          "label": "Sort order",
+          "type": "select",
+          "default": "desc",
+          "options": [
+            {
+              "value": "asc",
+              "label": "Asc"
+            },
+            {
+              "value": "desc",
+              "label": "Desc"
+            }
+          ]
+        },
+        {
+          "key": "filters",
+          "label": "Filters (JSON)",
+          "type": "json",
+          "help": "Knack filter rules, optional."
+        }
+      ]
+    },
+    {
+      "key": "get_record",
+      "name": "Get record",
+      "description": "Fetch one record by ID.",
+      "method": "GET",
+      "endpoint": "/objects/{{ inputs.object }}/records/{{ inputs.record_id }}",
+      "output_fields": {
+        "id": "id"
+      },
+      "inputs": [
+        {
+          "key": "object",
+          "label": "Object key",
+          "type": "string",
+          "required": true,
+          "help": "Open the object in the Knack Builder; the key (like object_1) is in the page address.",
+          "placeholder": "object_1"
+        },
+        {
+          "key": "record_id",
+          "label": "Record ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "create_record",
+      "name": "Create record",
+      "description": "Add a record. Use field keys such as field_1 as names.",
+      "method": "POST",
+      "endpoint": "/objects/{{ inputs.object }}/records",
+      "body": "{{ inputs.fields }}",
+      "output_fields": {
+        "id": "record.id",
+        "record": "record"
+      },
+      "inputs": [
+        {
+          "key": "object",
+          "label": "Object key",
+          "type": "string",
+          "required": true,
+          "help": "Open the object in the Knack Builder; the key (like object_1) is in the page address.",
+          "placeholder": "object_1"
+        },
+        {
+          "key": "fields",
+          "label": "Fields",
+          "type": "json",
+          "required": true,
+          "help": "Example: {\"field_1\": \"Hello\"}"
+        }
+      ]
+    },
+    {
+      "key": "update_record",
+      "name": "Update record",
+      "description": "Change fields on a record.",
+      "method": "PUT",
+      "endpoint": "/objects/{{ inputs.object }}/records/{{ inputs.record_id }}",
+      "body": "{{ inputs.fields }}",
+      "output_fields": {
+        "id": "record.id"
+      },
+      "inputs": [
+        {
+          "key": "object",
+          "label": "Object key",
+          "type": "string",
+          "required": true,
+          "help": "Open the object in the Knack Builder; the key (like object_1) is in the page address.",
+          "placeholder": "object_1"
+        },
+        {
+          "key": "record_id",
+          "label": "Record ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "fields",
+          "label": "Fields",
+          "type": "json",
+          "required": true,
+          "help": "Only the fields to change, e.g. {\"field_1\": \"New\"}"
+        }
+      ]
+    },
+    {
+      "key": "delete_record",
+      "name": "Delete record",
+      "description": "Delete a record permanently.",
+      "method": "DELETE",
+      "endpoint": "/objects/{{ inputs.object }}/records/{{ inputs.record_id }}",
+      "output_fields": {
+        "deleted": "delete"
+      },
+      "inputs": [
+        {
+          "key": "object",
+          "label": "Object key",
+          "type": "string",
+          "required": true,
+          "help": "Open the object in the Knack Builder; the key (like object_1) is in the page address.",
+          "placeholder": "object_1"
+        },
+        {
+          "key": "record_id",
+          "label": "Record ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ]
+}

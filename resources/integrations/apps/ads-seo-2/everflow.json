@@ -1,0 +1,254 @@
+{
+  "key": "everflow",
+  "name": "Everflow",
+  "category": "Ads & SEO",
+  "description": "Partner and affiliate tracking: tracking links, conversions and performance.",
+  "website": "https://www.everflow.io",
+  "docs_url": "https://developers.everflow.io/",
+  "base_url": "https://api.eflow.team/v1",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "X-Eflow-Api-Key",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "Network API key",
+        "type": "password",
+        "required": true,
+        "help": "Everflow → Control Center → Security → API Keys → Create (Network API key)."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "generate_tracking_link",
+      "name": "Generate tracking link",
+      "description": "Create a click tracking link for an offer and partner.",
+      "method": "POST",
+      "endpoint": "/networks/tracking/offers/clicks",
+      "body": {
+        "network_offer_id": "{{ inputs.offer_id }}",
+        "network_affiliate_id": "{{ inputs.affiliate_id }}",
+        "source_id": "{{ inputs.source_id }}",
+        "sub1": "{{ inputs.sub1 }}",
+        "sub2": "{{ inputs.sub2 }}"
+      },
+      "output_fields": {
+        "url": "url"
+      },
+      "inputs": [
+        {
+          "key": "offer_id",
+          "label": "Offer ID",
+          "type": "number",
+          "required": true,
+          "help": "Everflow → Offers: the ID column."
+        },
+        {
+          "key": "affiliate_id",
+          "label": "Partner ID",
+          "type": "number",
+          "required": true,
+          "help": "Everflow → Partners: the ID column."
+        },
+        {
+          "key": "source_id",
+          "label": "Source ID",
+          "type": "string"
+        },
+        {
+          "key": "sub1",
+          "label": "Sub 1",
+          "type": "string"
+        },
+        {
+          "key": "sub2",
+          "label": "Sub 2",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "get_offer",
+      "name": "Get offer",
+      "description": "An offer's settings, status and destination URL.",
+      "method": "GET",
+      "endpoint": "/networks/offers/{{ inputs.offer_id }}",
+      "output_fields": {
+        "id": "network_offer_id",
+        "name": "name",
+        "status": "offer_status",
+        "destination_url": "destination_url",
+        "visibility": "visibility"
+      },
+      "inputs": [
+        {
+          "key": "offer_id",
+          "label": "Offer ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "get_affiliate",
+      "name": "Get partner",
+      "description": "A partner (affiliate) and its account status.",
+      "method": "GET",
+      "endpoint": "/networks/affiliates/{{ inputs.affiliate_id }}",
+      "output_fields": {
+        "id": "network_affiliate_id",
+        "name": "name",
+        "status": "account_status"
+      },
+      "inputs": [
+        {
+          "key": "affiliate_id",
+          "label": "Partner ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "conversion_report",
+      "name": "Conversion report",
+      "description": "Conversions in a date range (max 7 days of detail recommended).",
+      "method": "POST",
+      "endpoint": "/networks/reporting/conversions",
+      "body": {
+        "from": "{{ inputs.from }}",
+        "to": "{{ inputs.to }}",
+        "timezone_id": "{{ inputs.timezone_id }}",
+        "currency_id": "{{ inputs.currency }}",
+        "show_conversions": true,
+        "show_events": "{{ inputs.show_events }}",
+        "query": {
+          "filters": [],
+          "search_terms": []
+        }
+      },
+      "output_fields": {
+        "conversions": "conversions",
+        "conversion_ids": "conversions.*.conversion_id"
+      },
+      "inputs": [
+        {
+          "key": "from",
+          "label": "From date",
+          "type": "string",
+          "required": true,
+          "placeholder": "2026-03-01"
+        },
+        {
+          "key": "to",
+          "label": "To date",
+          "type": "string",
+          "required": true,
+          "placeholder": "2026-03-07"
+        },
+        {
+          "key": "timezone_id",
+          "label": "Time zone ID",
+          "type": "number",
+          "required": true,
+          "default": 67,
+          "help": "67 = UTC, 80 = New York, 85 = Chicago, 90 = Los Angeles, 63 = London, 56 = Berlin, 37 = Dubai, 32 = Karachi, 31 = India, 21 = Singapore, 12 = Sydney."
+        },
+        {
+          "key": "currency",
+          "label": "Currency",
+          "type": "string",
+          "default": "USD"
+        },
+        {
+          "key": "show_events",
+          "label": "Include post-conversion events",
+          "type": "boolean",
+          "default": false
+        }
+      ]
+    },
+    {
+      "key": "get_conversion",
+      "name": "Get conversion",
+      "description": "One conversion by its ID with payout and revenue.",
+      "method": "GET",
+      "endpoint": "/networks/reporting/conversions/{{ inputs.conversion_id }}",
+      "output_fields": {
+        "id": "conversion_id",
+        "status": "status",
+        "payout": "payout",
+        "revenue": "revenue",
+        "sale_amount": "sale_amount"
+      },
+      "inputs": [
+        {
+          "key": "conversion_id",
+          "label": "Conversion ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "performance_summary",
+      "name": "Performance summary",
+      "description": "Clicks, conversions, payout, revenue and profit for a date range.",
+      "method": "POST",
+      "endpoint": "/networks/reporting/entity/summary",
+      "body": {
+        "from": "{{ inputs.from }}",
+        "to": "{{ inputs.to }}",
+        "timezone_id": "{{ inputs.timezone_id }}",
+        "currency_id": "{{ inputs.currency }}",
+        "columns": [
+          {
+            "column": "offer"
+          }
+        ]
+      },
+      "output_fields": {
+        "clicks": "total_click",
+        "conversions": "cv",
+        "conversion_rate": "cvr",
+        "payout": "payout",
+        "revenue": "revenue",
+        "profit": "profit",
+        "epc": "epc"
+      },
+      "inputs": [
+        {
+          "key": "from",
+          "label": "From date",
+          "type": "string",
+          "required": true,
+          "placeholder": "2026-03-01"
+        },
+        {
+          "key": "to",
+          "label": "To date",
+          "type": "string",
+          "required": true,
+          "placeholder": "2026-03-31"
+        },
+        {
+          "key": "timezone_id",
+          "label": "Time zone ID",
+          "type": "number",
+          "required": true,
+          "default": 67,
+          "help": "67 = UTC, 80 = New York, 85 = Chicago, 90 = Los Angeles, 63 = London, 56 = Berlin, 37 = Dubai, 32 = Karachi, 31 = India, 21 = Singapore, 12 = Sydney."
+        },
+        {
+          "key": "currency",
+          "label": "Currency",
+          "type": "string",
+          "default": "USD"
+        }
+      ]
+    }
+  ],
+  "triggers": []
+}

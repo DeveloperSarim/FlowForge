@@ -1,0 +1,191 @@
+{
+  "key": "oh_dear",
+  "name": "Oh Dear",
+  "category": "Security & IT",
+  "description": "Add Oh Dear monitors for uptime, SSL and broken links, and run checks.",
+  "brand": "ohdear",
+  "website": "https://ohdear.app",
+  "docs_url": "https://ohdear.app/docs/api/introduction",
+  "base_url": "https://ohdear.app/api",
+  "auth": {
+    "type": "bearer",
+    "fields": [
+      {
+        "key": "token",
+        "label": "API token",
+        "type": "password",
+        "required": true,
+        "help": "Oh Dear → your avatar → API tokens → Create token."
+      }
+    ],
+    "profile": {
+      "endpoint": "/me",
+      "store": {
+        "team_id": "{{ teams.0.id }}"
+      }
+    }
+  },
+  "actions": [
+    {
+      "key": "list_monitors",
+      "name": "List monitors",
+      "description": "List all monitors and their check results.",
+      "method": "GET",
+      "endpoint": "/monitors",
+      "output_fields": {
+        "monitors": "data"
+      },
+      "inputs": []
+    },
+    {
+      "key": "get_monitor",
+      "name": "Get monitor",
+      "description": "Get a monitor with the result of each check.",
+      "method": "GET",
+      "endpoint": "/monitors/{{ inputs.monitor_id }}",
+      "output_fields": {
+        "url": "url",
+        "result": "summarized_check_result",
+        "checks": "checks"
+      },
+      "inputs": [
+        {
+          "key": "monitor_id",
+          "label": "Monitor ID",
+          "type": "string",
+          "required": true,
+          "help": "Use List monitors."
+        }
+      ]
+    },
+    {
+      "key": "add_monitor",
+      "name": "Add monitor",
+      "description": "Start monitoring a website.",
+      "method": "POST",
+      "endpoint": "/monitors",
+      "body": {
+        "url": "{{ inputs.url }}",
+        "type": "{{ inputs.type }}",
+        "checks": "{{ inputs.checks }}",
+        "team_id": "{{ inputs.team_id }}"
+      },
+      "output_fields": {
+        "monitor_id": "id",
+        "url": "url"
+      },
+      "inputs": [
+        {
+          "key": "url",
+          "label": "URL",
+          "type": "string",
+          "required": true,
+          "placeholder": "https://example.com"
+        },
+        {
+          "key": "type",
+          "label": "Type",
+          "type": "select",
+          "required": true,
+          "default": "http",
+          "options": [
+            {
+              "value": "http",
+              "label": "Website (HTTP)"
+            },
+            {
+              "value": "ping",
+              "label": "Ping"
+            },
+            {
+              "value": "tcp",
+              "label": "TCP port"
+            }
+          ]
+        },
+        {
+          "key": "checks",
+          "label": "Checks",
+          "type": "list",
+          "help": "Optional, e.g. uptime, certificate_health, broken_links, mixed_content, performance, dns, domain. Empty = defaults."
+        },
+        {
+          "key": "team_id",
+          "label": "Team ID",
+          "type": "number",
+          "fallback": "credentials.team_id",
+          "help": "Leave empty to use your first team."
+        }
+      ]
+    },
+    {
+      "key": "delete_monitor",
+      "name": "Delete monitor",
+      "description": "Stop monitoring and delete a monitor.",
+      "method": "DELETE",
+      "endpoint": "/monitors/{{ inputs.monitor_id }}",
+      "inputs": [
+        {
+          "key": "monitor_id",
+          "label": "Monitor ID",
+          "type": "string",
+          "required": true,
+          "help": "Use List monitors."
+        }
+      ]
+    },
+    {
+      "key": "request_check_run",
+      "name": "Run check now",
+      "description": "Run one check of a monitor right away.",
+      "method": "POST",
+      "endpoint": "/checks/{{ inputs.check_id }}/request-run",
+      "output_fields": {
+        "result": "latest_run_result"
+      },
+      "inputs": [
+        {
+          "key": "check_id",
+          "label": "Check ID",
+          "type": "string",
+          "required": true,
+          "help": "From Get monitor → checks (each check has its own id)."
+        }
+      ]
+    },
+    {
+      "key": "list_broken_links",
+      "name": "List broken links",
+      "description": "List broken links found on a monitored site.",
+      "method": "GET",
+      "endpoint": "/broken-links/{{ inputs.monitor_id }}",
+      "output_fields": {
+        "broken_links": "data"
+      },
+      "inputs": [
+        {
+          "key": "monitor_id",
+          "label": "Monitor ID",
+          "type": "string",
+          "required": true,
+          "help": "Use List monitors."
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook (alerts)",
+      "type": "webhook",
+      "description": "Add the webhook URL in Oh Dear → Notifications → Webhooks.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

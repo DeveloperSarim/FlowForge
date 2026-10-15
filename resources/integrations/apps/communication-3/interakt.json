@@ -1,0 +1,256 @@
+{
+  "key": "interakt",
+  "name": "Interakt",
+  "category": "Communication",
+  "description": "Send WhatsApp templates and replies with Interakt, and sync contacts and events.",
+  "website": "https://www.interakt.shop",
+  "docs_url": "https://www.interakt.shop/resource-center/how-to-send-whatsapp-templates-using-apis-webhooks",
+  "base_url": "https://api.interakt.ai/v1/public",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "Authorization",
+    "prefix": "Basic ",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "Secret key",
+        "type": "password",
+        "required": true,
+        "help": "Interakt → Settings → Developer Settings → copy the Secret Key (Growth plan or higher)."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "send_template",
+      "name": "Send WhatsApp template",
+      "method": "POST",
+      "endpoint": "/message/",
+      "body": {
+        "countryCode": "{{ inputs.countryCode }}",
+        "phoneNumber": "{{ inputs.phoneNumber }}",
+        "type": "Template",
+        "callbackData": "{{ inputs.callbackData }}",
+        "template": {
+          "name": "{{ inputs.template_name }}",
+          "languageCode": "{{ inputs.languageCode }}",
+          "bodyValues": "{{ inputs.bodyValues }}",
+          "headerValues": "{{ inputs.headerValues }}"
+        }
+      },
+      "output_fields": {
+        "id": "id",
+        "result": "result",
+        "message": "message"
+      },
+      "inputs": [
+        {
+          "key": "countryCode",
+          "label": "Country code",
+          "type": "string",
+          "required": true,
+          "default": "+91"
+        },
+        {
+          "key": "phoneNumber",
+          "label": "Phone number",
+          "type": "string",
+          "required": true,
+          "placeholder": "9876543210",
+          "help": "Without country code or leading 0."
+        },
+        {
+          "key": "template_name",
+          "label": "Template name",
+          "type": "string",
+          "required": true,
+          "help": "Interakt → Templates; the approved template's code name."
+        },
+        {
+          "key": "languageCode",
+          "label": "Template language",
+          "type": "string",
+          "default": "en"
+        },
+        {
+          "key": "bodyValues",
+          "label": "Body variables",
+          "type": "list",
+          "help": "Values for {{1}}, {{2}}… in order."
+        },
+        {
+          "key": "headerValues",
+          "label": "Header variables",
+          "type": "list",
+          "help": "Header text variable, or the media URL for image/video/document headers."
+        },
+        {
+          "key": "callbackData",
+          "label": "Callback data",
+          "type": "string",
+          "help": "Any text you want back in the delivery webhook."
+        }
+      ]
+    },
+    {
+      "key": "send_text",
+      "name": "Send WhatsApp text reply",
+      "method": "POST",
+      "endpoint": "/message/",
+      "body": {
+        "fullPhoneNumber": "{{ inputs.fullPhoneNumber }}",
+        "type": "Text",
+        "data": {
+          "message": "{{ inputs.message }}"
+        },
+        "callbackData": "{{ inputs.callbackData }}"
+      },
+      "output_fields": {
+        "id": "id",
+        "result": "result",
+        "message": "message"
+      },
+      "inputs": [
+        {
+          "key": "fullPhoneNumber",
+          "label": "Phone number",
+          "type": "string",
+          "required": true,
+          "placeholder": "919876543210",
+          "help": "Country code + number. Only works within 24 hours of the customer's last message."
+        },
+        {
+          "key": "message",
+          "label": "Message",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "callbackData",
+          "label": "Callback data",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "upsert_contact",
+      "name": "Add or update contact",
+      "method": "POST",
+      "endpoint": "/track/users/",
+      "body": {
+        "userId": "{{ inputs.userId }}",
+        "phoneNumber": "{{ inputs.phoneNumber }}",
+        "countryCode": "{{ inputs.countryCode }}",
+        "traits": {
+          "$if": "{{ inputs.traits }}",
+          "...": "{{ inputs.traits }}"
+        },
+        "tags": "{{ inputs.tags }}"
+      },
+      "output_fields": {
+        "result": "result",
+        "message": "message"
+      },
+      "inputs": [
+        {
+          "key": "countryCode",
+          "label": "Country code",
+          "type": "string",
+          "default": "+91"
+        },
+        {
+          "key": "phoneNumber",
+          "label": "Phone number",
+          "type": "string",
+          "placeholder": "9876543210"
+        },
+        {
+          "key": "userId",
+          "label": "Your user ID",
+          "type": "string",
+          "help": "Fill in this or the phone number."
+        },
+        {
+          "key": "traits",
+          "label": "Traits",
+          "type": "keyvalue",
+          "help": "e.g. name, email, city."
+        },
+        {
+          "key": "tags",
+          "label": "Tags",
+          "type": "list"
+        }
+      ]
+    },
+    {
+      "key": "track_event",
+      "name": "Track event",
+      "description": "Can start an Interakt workflow or campaign that listens for this event.",
+      "method": "POST",
+      "endpoint": "/track/events/",
+      "body": {
+        "userId": "{{ inputs.userId }}",
+        "phoneNumber": "{{ inputs.phoneNumber }}",
+        "countryCode": "{{ inputs.countryCode }}",
+        "event": "{{ inputs.event }}",
+        "traits": {
+          "$if": "{{ inputs.traits }}",
+          "...": "{{ inputs.traits }}"
+        }
+      },
+      "output_fields": {
+        "id": "id",
+        "result": "result"
+      },
+      "inputs": [
+        {
+          "key": "countryCode",
+          "label": "Country code",
+          "type": "string",
+          "default": "+91"
+        },
+        {
+          "key": "phoneNumber",
+          "label": "Phone number",
+          "type": "string",
+          "placeholder": "9876543210"
+        },
+        {
+          "key": "userId",
+          "label": "Your user ID",
+          "type": "string",
+          "help": "Fill in this or the phone number."
+        },
+        {
+          "key": "event",
+          "label": "Event name",
+          "type": "string",
+          "required": true,
+          "placeholder": "Order Placed"
+        },
+        {
+          "key": "traits",
+          "label": "Event properties",
+          "type": "keyvalue"
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Message or status event",
+      "type": "webhook",
+      "description": "Set this URL in Interakt → Developer Settings → Webhook URL.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

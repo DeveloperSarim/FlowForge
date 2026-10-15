@@ -1,0 +1,407 @@
+{
+  "key": "personio",
+  "name": "Personio",
+  "category": "HR & Recruiting",
+  "description": "Create employees, book absences and catch new job applications in Personio.",
+  "website": "https://www.personio.com",
+  "docs_url": "https://developer.personio.de",
+  "base_url": "https://api.personio.de/v2",
+  "auth": {
+    "type": "oauth2_client_credentials",
+    "token_url": "https://api.personio.de/v2/auth/token",
+    "fields": [
+      {
+        "key": "client_id",
+        "label": "Client ID",
+        "type": "string",
+        "required": true,
+        "help": "In Personio go to Settings → Integrations → API credentials → Generate new credential, tick the data you need and copy the Client ID."
+      },
+      {
+        "key": "client_secret",
+        "label": "Client secret",
+        "type": "password",
+        "required": true,
+        "help": "Shown once next to the Client ID when you create the API credential."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_persons",
+      "name": "Find employees",
+      "description": "Lists employees, optionally filtered by email, name or status.",
+      "method": "GET",
+      "endpoint": "/persons",
+      "query": {
+        "email": "{{ inputs.email }}",
+        "first_name": "{{ inputs.first_name }}",
+        "last_name": "{{ inputs.last_name }}",
+        "status": "{{ inputs.status }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "persons": "_data",
+        "id": "_data.0.id",
+        "email": "_data.0.email",
+        "first_name": "_data.0.first_name",
+        "last_name": "_data.0.last_name"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string"
+        },
+        {
+          "key": "first_name",
+          "label": "First name",
+          "type": "string"
+        },
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string"
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "options": [
+            {
+              "value": "ACTIVE",
+              "label": "Active"
+            },
+            {
+              "value": "INACTIVE",
+              "label": "Inactive"
+            }
+          ]
+        },
+        {
+          "key": "limit",
+          "label": "Max results",
+          "type": "number",
+          "default": 50,
+          "help": "1 to 50."
+        }
+      ]
+    },
+    {
+      "key": "get_person",
+      "name": "Get employee",
+      "description": "Returns one employee by ID.",
+      "method": "GET",
+      "endpoint": "/persons/{{ inputs.person_id }}",
+      "output_fields": {
+        "id": "id",
+        "email": "email",
+        "first_name": "first_name",
+        "last_name": "last_name",
+        "status": "status"
+      },
+      "inputs": [
+        {
+          "key": "person_id",
+          "label": "Employee ID",
+          "type": "string",
+          "required": true,
+          "help": "Use \"Find employees\" first, or the number at the end of the employee's profile URL."
+        }
+      ]
+    },
+    {
+      "key": "create_person",
+      "name": "Create employee",
+      "description": "Creates a person and their employment in Personio.",
+      "method": "POST",
+      "endpoint": "/persons",
+      "body": {
+        "email": "{{ inputs.email }}",
+        "first_name": "{{ inputs.first_name }}",
+        "last_name": "{{ inputs.last_name }}",
+        "preferred_name": "{{ inputs.preferred_name }}",
+        "gender": "{{ inputs.gender }}",
+        "language_code": "{{ inputs.language_code }}",
+        "employments": [
+          {
+            "status": "{{ inputs.employment_status }}",
+            "employment_start_date": "{{ inputs.start_date }}",
+            "position": {
+              "title": "{{ inputs.position }}"
+            },
+            "weekly_working_hours": "{{ inputs.weekly_hours }}"
+          }
+        ]
+      },
+      "output_fields": {
+        "id": "id",
+        "employment_id": "employments.0.id"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Work email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "first_name",
+          "label": "First name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "preferred_name",
+          "label": "Preferred name",
+          "type": "string"
+        },
+        {
+          "key": "gender",
+          "label": "Gender",
+          "type": "select",
+          "options": [
+            {
+              "value": "MALE",
+              "label": "Male"
+            },
+            {
+              "value": "FEMALE",
+              "label": "Female"
+            },
+            {
+              "value": "DIVERSE",
+              "label": "Diverse"
+            },
+            {
+              "value": "UNKNOWN",
+              "label": "Unknown"
+            }
+          ]
+        },
+        {
+          "key": "language_code",
+          "label": "Language",
+          "type": "select",
+          "options": [
+            {
+              "value": "en",
+              "label": "English"
+            },
+            {
+              "value": "de",
+              "label": "German"
+            },
+            {
+              "value": "es",
+              "label": "Spanish"
+            },
+            {
+              "value": "fr",
+              "label": "French"
+            },
+            {
+              "value": "nl",
+              "label": "Dutch"
+            },
+            {
+              "value": "it",
+              "label": "Italian"
+            },
+            {
+              "value": "sv",
+              "label": "Swedish"
+            },
+            {
+              "value": "fi",
+              "label": "Finnish"
+            }
+          ]
+        },
+        {
+          "key": "employment_status",
+          "label": "Employment status",
+          "type": "select",
+          "default": "ACTIVE",
+          "options": [
+            {
+              "value": "ACTIVE",
+              "label": "Active"
+            },
+            {
+              "value": "ONBOARDING",
+              "label": "Onboarding"
+            },
+            {
+              "value": "INACTIVE",
+              "label": "Inactive"
+            },
+            {
+              "value": "LEAVE",
+              "label": "On leave"
+            }
+          ]
+        },
+        {
+          "key": "start_date",
+          "label": "Start date",
+          "type": "string",
+          "placeholder": "2026-11-01"
+        },
+        {
+          "key": "position",
+          "label": "Position title",
+          "type": "string"
+        },
+        {
+          "key": "weekly_hours",
+          "label": "Weekly working hours",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "key": "create_absence",
+      "name": "Create absence",
+      "description": "Books an absence (vacation, sick leave…) for an employee.",
+      "method": "POST",
+      "endpoint": "/absence-periods",
+      "body": {
+        "person": {
+          "id": "{{ inputs.person_id }}"
+        },
+        "absence_type": {
+          "id": "{{ inputs.absence_type_id }}"
+        },
+        "starts_from": {
+          "date_time": "{{ inputs.start }}"
+        },
+        "ends_at": {
+          "date_time": "{{ inputs.end }}"
+        },
+        "comment": "{{ inputs.comment }}"
+      },
+      "output_fields": {
+        "id": "id"
+      },
+      "inputs": [
+        {
+          "key": "person_id",
+          "label": "Employee ID",
+          "type": "string",
+          "required": true,
+          "help": "From \"Find employees\"."
+        },
+        {
+          "key": "absence_type_id",
+          "label": "Absence type ID",
+          "type": "string",
+          "required": true,
+          "help": "Personio → Settings → Absences: open the absence type; or call GET /absence-types with \"Make an API call\"."
+        },
+        {
+          "key": "start",
+          "label": "Starts at",
+          "type": "string",
+          "required": true,
+          "placeholder": "2026-11-03T00:00:00",
+          "help": "Date and time without a timezone."
+        },
+        {
+          "key": "end",
+          "label": "Ends at",
+          "type": "string",
+          "placeholder": "2026-11-05T00:00:00"
+        },
+        {
+          "key": "comment",
+          "label": "Comment",
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "key": "list_absences",
+      "name": "List absences",
+      "description": "Lists absence periods, optionally for one employee.",
+      "method": "GET",
+      "endpoint": "/absence-periods",
+      "query": {
+        "person.id": "{{ inputs.person_id }}",
+        "starts_from.date_time.gte": "{{ inputs.from }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "absences": "_data"
+      },
+      "inputs": [
+        {
+          "key": "person_id",
+          "label": "Employee ID",
+          "type": "string"
+        },
+        {
+          "key": "from",
+          "label": "Starting from",
+          "type": "string",
+          "placeholder": "2026-11-01T00:00:00"
+        },
+        {
+          "key": "limit",
+          "label": "Max results",
+          "type": "number",
+          "default": 50
+        }
+      ]
+    },
+    {
+      "key": "list_applications",
+      "name": "Find job applications",
+      "description": "Lists recruiting applications, newest updates first.",
+      "method": "GET",
+      "endpoint": "/recruiting/applications",
+      "query": {
+        "candidate.email": "{{ inputs.candidate_email }}"
+      },
+      "output_fields": {
+        "applications": "_data",
+        "id": "_data.0.id",
+        "candidate_email": "_data.0.candidate.email",
+        "job_name": "_data.0.job.name"
+      },
+      "inputs": [
+        {
+          "key": "candidate_email",
+          "label": "Candidate email",
+          "type": "string"
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_application",
+      "name": "New job application",
+      "type": "polling",
+      "description": "Fires for each new application in Personio Recruiting.",
+      "method": "GET",
+      "endpoint": "/recruiting/applications",
+      "items_path": "_data",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,159 @@
+{
+  "key": "signrequest",
+  "name": "SignRequest",
+  "category": "Files & Documents",
+  "description": "E-signatures: send a document for signing, list documents and sign requests.",
+  "website": "https://signrequest.com",
+  "docs_url": "https://signrequest.com/api/v1/docs/",
+  "base_url": "https://signrequest.com/api/v1",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "Authorization",
+    "prefix": "Token ",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "API token",
+        "type": "password",
+        "required": true,
+        "help": "signrequest.com → Team → API → Generate token."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "send_for_signing",
+      "name": "Send document for signing",
+      "description": "Send a document from a URL to one signer.",
+      "method": "POST",
+      "endpoint": "/signrequest-quick-create/",
+      "body": {
+        "from_email": "{{ inputs.from_email }}",
+        "file_from_url": "{{ inputs.file_url }}",
+        "name": "{{ inputs.name }}",
+        "message": "{{ inputs.message }}",
+        "signers": [
+          {
+            "email": "{{ inputs.signer_email }}"
+          }
+        ]
+      },
+      "output_fields": {
+        "uuid": "uuid",
+        "document": "document.uuid",
+        "status": "status"
+      },
+      "inputs": [
+        {
+          "key": "file_url",
+          "label": "Document URL",
+          "type": "string",
+          "required": true,
+          "help": "A public link to a PDF or Word file."
+        },
+        {
+          "key": "from_email",
+          "label": "Your email",
+          "type": "string",
+          "required": true,
+          "help": "Must be a verified sender in SignRequest."
+        },
+        {
+          "key": "signer_email",
+          "label": "Signer email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "message",
+          "label": "Message",
+          "type": "text"
+        },
+        {
+          "key": "name",
+          "label": "Document name",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "list_documents",
+      "name": "List documents",
+      "description": "Your documents.",
+      "method": "GET",
+      "endpoint": "/documents/",
+      "query": {
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "names": "results.*.name",
+        "ids": "results.*.uuid"
+      },
+      "inputs": [
+        {
+          "key": "limit",
+          "label": "Max results",
+          "type": "number",
+          "default": 25
+        }
+      ]
+    },
+    {
+      "key": "get_document",
+      "name": "Get document",
+      "description": "One document and its status.",
+      "method": "GET",
+      "endpoint": "/documents/{{ inputs.uuid }}/",
+      "output_fields": {
+        "name": "name",
+        "status": "status"
+      },
+      "inputs": [
+        {
+          "key": "uuid",
+          "label": "Document ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_sign_requests",
+      "name": "List sign requests",
+      "description": "Sent sign requests.",
+      "method": "GET",
+      "endpoint": "/signrequests/",
+      "query": {
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "ids": "results.*.uuid",
+        "statuses": "results.*.status"
+      },
+      "inputs": [
+        {
+          "key": "limit",
+          "label": "Max results",
+          "type": "number",
+          "default": 25
+        }
+      ]
+    },
+    {
+      "key": "cancel_sign_request",
+      "name": "Cancel sign request",
+      "description": "Cancel a pending sign request.",
+      "method": "POST",
+      "endpoint": "/signrequests/{{ inputs.uuid }}/cancel_signrequest/",
+      "inputs": [
+        {
+          "key": "uuid",
+          "label": "Sign request ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ]
+}

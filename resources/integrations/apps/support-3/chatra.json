@@ -1,0 +1,170 @@
+{
+  "key": "chatra",
+  "name": "Chatra",
+  "category": "Customer Support",
+  "description": "Message website visitors, send automated chat messages and edit visitor details in Chatra.",
+  "website": "https://chatra.com",
+  "docs_url": "https://chatra.com/help/api/",
+  "base_url": "https://app.chatra.io/api",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "Authorization",
+    "prefix": "Chatra.Simple ",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "Public and private key",
+        "type": "password",
+        "required": true,
+        "help": "In Chatra open Settings > Integrations > API keys. Type the public key, a colon, then the private key: PUBLIC:PRIVATE."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "send_message",
+      "name": "Send agent message",
+      "description": "Sends a message to a visitor as an agent.",
+      "method": "POST",
+      "endpoint": "/messages",
+      "body": {
+        "clientId": "{{ inputs.client_id }}",
+        "text": "{{ inputs.text }}",
+        "agentId": "{{ inputs.agent_id }}"
+      },
+      "inputs": [
+        {
+          "key": "client_id",
+          "label": "Visitor ID",
+          "type": "string",
+          "required": true,
+          "help": "The visitor ID Chatra sends in its webhooks or shows in the visitor details."
+        },
+        {
+          "key": "text",
+          "label": "Message",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "agent_id",
+          "label": "Agent ID",
+          "type": "string",
+          "required": true,
+          "help": "The ID of the Chatra agent that sends the message."
+        }
+      ]
+    },
+    {
+      "key": "send_pushed_message",
+      "name": "Send automated message",
+      "description": "Starts a chat with an automated message, e.g. an order update.",
+      "method": "POST",
+      "endpoint": "/pushedMessages",
+      "body": {
+        "clientId": "{{ inputs.client_id }}",
+        "text": "{{ inputs.text }}",
+        "agentId": "{{ inputs.agent_id }}"
+      },
+      "inputs": [
+        {
+          "key": "client_id",
+          "label": "Visitor ID",
+          "type": "string",
+          "required": true,
+          "help": "The visitor ID Chatra sends in its webhooks or shows in the visitor details."
+        },
+        {
+          "key": "text",
+          "label": "Message",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "agent_id",
+          "label": "Agent ID",
+          "type": "string",
+          "help": "Optional. Leave empty to use a random agent."
+        }
+      ]
+    },
+    {
+      "key": "get_client",
+      "name": "Get visitor",
+      "description": "Gets details of a visitor.",
+      "method": "GET",
+      "endpoint": "/clients/{{ inputs.client_id }}",
+      "output_fields": {
+        "chat_link": "chatLink",
+        "chat_id": "chatId",
+        "info": "info"
+      },
+      "inputs": [
+        {
+          "key": "client_id",
+          "label": "Visitor ID",
+          "type": "string",
+          "required": true,
+          "help": "The visitor ID Chatra sends in its webhooks or shows in the visitor details."
+        }
+      ]
+    },
+    {
+      "key": "update_client",
+      "name": "Update visitor",
+      "description": "Sets the name, email, phone or notes of a visitor.",
+      "method": "PUT",
+      "endpoint": "/clients/{{ inputs.client_id }}",
+      "body": {
+        "name": "{{ inputs.name }}",
+        "email": "{{ inputs.email }}",
+        "phone": "{{ inputs.phone }}",
+        "notes": "{{ inputs.notes }}"
+      },
+      "inputs": [
+        {
+          "key": "client_id",
+          "label": "Visitor ID",
+          "type": "string",
+          "required": true,
+          "help": "The visitor ID Chatra sends in its webhooks or shows in the visitor details."
+        },
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "string"
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string"
+        },
+        {
+          "key": "phone",
+          "label": "Phone",
+          "type": "string"
+        },
+        {
+          "key": "notes",
+          "label": "Notes",
+          "type": "text"
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

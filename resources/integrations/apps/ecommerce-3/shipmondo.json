@@ -1,0 +1,364 @@
+{
+  "key": "shipmondo",
+  "name": "Shipmondo",
+  "category": "E-commerce",
+  "description": "Nordic shipping platform: create shipments and labels, sales orders, balance.",
+  "website": "https://shipmondo.com",
+  "docs_url": "https://app.shipmondo.com/api/public/v3/specification",
+  "base_url": "https://app.shipmondo.com/api/public/v3",
+  "auth": {
+    "type": "basic",
+    "fields": [
+      {
+        "key": "username",
+        "label": "API user",
+        "type": "string",
+        "required": true,
+        "help": "Shipmondo → Settings → API → Access → Create API user."
+      },
+      {
+        "key": "password",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "Shown with the API user."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "create_shipment",
+      "name": "Create shipment",
+      "description": "Book a shipment and get the label and tracking number.",
+      "method": "POST",
+      "endpoint": "/shipments",
+      "body": {
+        "own_agreement": "{{ inputs.own_agreement }}",
+        "product_code": "{{ inputs.product_code }}",
+        "service_codes": "{{ inputs.service_codes }}",
+        "reference": "{{ inputs.reference }}",
+        "sender": {
+          "name": "{{ inputs.sender_name }}",
+          "address1": "{{ inputs.sender_street }}",
+          "zipcode": "{{ inputs.sender_postcode }}",
+          "city": "{{ inputs.sender_city }}",
+          "country_code": "{{ inputs.sender_country }}",
+          "email": "{{ inputs.sender_email }}"
+        },
+        "receiver": {
+          "name": "{{ inputs.receiver_name }}",
+          "address1": "{{ inputs.receiver_street }}",
+          "zipcode": "{{ inputs.receiver_postcode }}",
+          "city": "{{ inputs.receiver_city }}",
+          "country_code": "{{ inputs.receiver_country }}",
+          "email": "{{ inputs.receiver_email }}",
+          "mobile": "{{ inputs.receiver_mobile }}"
+        },
+        "parcels": [
+          {
+            "weight": "{{ inputs.weight_grams }}"
+          }
+        ]
+      },
+      "output_fields": {
+        "id": "id",
+        "tracking_number": "pkg_no",
+        "label": "labels.0.base64"
+      },
+      "inputs": [
+        {
+          "key": "product_code",
+          "label": "Product code",
+          "type": "string",
+          "required": true,
+          "placeholder": "GLSDK_SD",
+          "help": "Use List products to see the codes for your carriers."
+        },
+        {
+          "key": "service_codes",
+          "label": "Service codes",
+          "type": "string",
+          "placeholder": "EMAIL_NT,SMS_NT"
+        },
+        {
+          "key": "weight_grams",
+          "label": "Weight (grams)",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "reference",
+          "label": "Your reference",
+          "type": "string"
+        },
+        {
+          "key": "own_agreement",
+          "label": "Use my own carrier agreement",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "key": "sender_name",
+          "label": "Sender name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "sender_street",
+          "label": "Sender street",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "sender_postcode",
+          "label": "Sender postcode",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "sender_city",
+          "label": "Sender city",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "sender_country",
+          "label": "Sender country",
+          "type": "string",
+          "required": true,
+          "default": "DK"
+        },
+        {
+          "key": "sender_email",
+          "label": "Sender email",
+          "type": "string"
+        },
+        {
+          "key": "receiver_name",
+          "label": "Receiver name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "receiver_street",
+          "label": "Receiver street",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "receiver_postcode",
+          "label": "Receiver postcode",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "receiver_city",
+          "label": "Receiver city",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "receiver_country",
+          "label": "Receiver country",
+          "type": "string",
+          "required": true,
+          "default": "DK"
+        },
+        {
+          "key": "receiver_email",
+          "label": "Receiver email",
+          "type": "string"
+        },
+        {
+          "key": "receiver_mobile",
+          "label": "Receiver mobile",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "get_shipment",
+      "name": "Get shipment",
+      "description": "A shipment's carrier and tracking number.",
+      "method": "GET",
+      "endpoint": "/shipments/{{ inputs.id }}",
+      "output_fields": {
+        "tracking_number": "pkg_no",
+        "carrier": "carrier_code",
+        "product": "product_code"
+      },
+      "inputs": [
+        {
+          "key": "id",
+          "label": "Shipment ID",
+          "type": "number",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_shipments",
+      "name": "List shipments",
+      "description": "Your shipments.",
+      "method": "GET",
+      "endpoint": "/shipments",
+      "query": {
+        "per_page": "{{ inputs.per_page }}",
+        "page": "{{ inputs.page }}"
+      },
+      "inputs": [
+        {
+          "key": "per_page",
+          "label": "How many",
+          "type": "number",
+          "default": 50
+        },
+        {
+          "key": "page",
+          "label": "Page",
+          "type": "number",
+          "default": 1
+        }
+      ]
+    },
+    {
+      "key": "list_products",
+      "name": "List products",
+      "description": "Carrier products you can ship with, and their codes.",
+      "method": "GET",
+      "endpoint": "/products",
+      "query": {
+        "country_code": "{{ inputs.country }}",
+        "carrier_code": "{{ inputs.carrier }}"
+      },
+      "inputs": [
+        {
+          "key": "country",
+          "label": "Sender country",
+          "type": "string",
+          "default": "DK"
+        },
+        {
+          "key": "carrier",
+          "label": "Carrier code",
+          "type": "string",
+          "placeholder": "gls"
+        }
+      ]
+    },
+    {
+      "key": "create_sales_order",
+      "name": "Create sales order",
+      "description": "Add an order to Shipmondo's order management.",
+      "method": "POST",
+      "endpoint": "/sales_orders",
+      "body": {
+        "order_id": "{{ inputs.order_id }}",
+        "ship_to": {
+          "name": "{{ inputs.name }}",
+          "address1": "{{ inputs.street }}",
+          "zipcode": "{{ inputs.postcode }}",
+          "city": "{{ inputs.city }}",
+          "country_code": "{{ inputs.country }}",
+          "email": "{{ inputs.email }}"
+        },
+        "order_lines": "{{ inputs.order_lines }}",
+        "payment_details": {
+          "amount_including_vat": "{{ inputs.total }}",
+          "currency_code": "{{ inputs.currency }}"
+        }
+      },
+      "output_fields": {
+        "id": "id"
+      },
+      "inputs": [
+        {
+          "key": "order_id",
+          "label": "Order number",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "name",
+          "label": "Customer name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "street",
+          "label": "Street",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "postcode",
+          "label": "Postcode",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "city",
+          "label": "City",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "country",
+          "label": "Country",
+          "type": "string",
+          "required": true,
+          "default": "DK"
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string"
+        },
+        {
+          "key": "order_lines",
+          "label": "Order lines (JSON)",
+          "type": "json",
+          "placeholder": "[{\"item_name\":\"T-shirt\",\"item_sku\":\"TS-1\",\"quantity\":1,\"unit_price_excluding_vat\":100}]"
+        },
+        {
+          "key": "total",
+          "label": "Total incl. VAT",
+          "type": "number"
+        },
+        {
+          "key": "currency",
+          "label": "Currency",
+          "type": "string",
+          "default": "DKK"
+        }
+      ]
+    },
+    {
+      "key": "get_balance",
+      "name": "Get account balance",
+      "description": "Your prepaid Shipmondo balance.",
+      "method": "GET",
+      "endpoint": "/account/balance",
+      "output_fields": {
+        "amount": "amount",
+        "currency": "currency_code"
+      },
+      "inputs": []
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "description": "Shipmondo → Settings → Webhooks → Create webhook, paste this URL.",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,286 @@
+{
+  "key": "google_ad_manager",
+  "name": "Google Ad Manager",
+  "category": "Ads & SEO",
+  "description": "List networks, orders, line items and ad units; pause or resume orders.",
+  "website": "https://admanager.google.com",
+  "docs_url": "https://developers.google.com/ad-manager/api/beta",
+  "base_url": "https://admanager.googleapis.com/v1",
+  "auth": [
+    {
+      "type": "oauth2",
+      "authorize_url": "https://accounts.google.com/o/oauth2/v2/auth",
+      "token_url": "https://oauth2.googleapis.com/token",
+      "scopes": [
+        "https://www.googleapis.com/auth/admanager"
+      ],
+      "authorize_params": {
+        "access_type": "offline",
+        "prompt": "consent"
+      },
+      "fields": [
+        {
+          "key": "client_id",
+          "label": "Client ID",
+          "type": "string",
+          "required": true,
+          "help": "Google Cloud Console → enable the Google Ad Manager API → Credentials → OAuth client ID (Web application) with FlowForge's redirect URL."
+        },
+        {
+          "key": "client_secret",
+          "label": "Client secret",
+          "type": "password",
+          "required": true
+        }
+      ],
+      "profile": {
+        "endpoint": "/networks",
+        "store": {
+          "network_code": "{{ networks.0.networkCode }}"
+        }
+      }
+    },
+    {
+      "type": "google_service_account",
+      "scopes": [
+        "https://www.googleapis.com/auth/admanager"
+      ],
+      "fields": [
+        {
+          "key": "service_account_json",
+          "label": "Service Account JSON key",
+          "type": "code",
+          "required": true,
+          "help": "In Ad Manager → Admin → Global settings → turn on API access and add the service account email as a service account user."
+        }
+      ],
+      "profile": {
+        "endpoint": "/networks",
+        "store": {
+          "network_code": "{{ networks.0.networkCode }}"
+        }
+      }
+    }
+  ],
+  "actions": [
+    {
+      "key": "list_networks",
+      "name": "List networks",
+      "description": "Ad Manager networks you can access, with their network codes.",
+      "method": "GET",
+      "endpoint": "/networks",
+      "output_fields": {
+        "networks": "networks",
+        "codes": "networks.*.networkCode",
+        "names": "networks.*.displayName"
+      },
+      "inputs": []
+    },
+    {
+      "key": "list_orders",
+      "name": "List orders",
+      "description": "Orders with status and delivered impressions.",
+      "method": "GET",
+      "endpoint": "/networks/{{ inputs.network_code }}/orders",
+      "query": {
+        "filter": "{{ inputs.filter }}",
+        "orderBy": "{{ inputs.order_by }}",
+        "pageSize": "{{ inputs.page_size }}"
+      },
+      "output_fields": {
+        "orders": "orders",
+        "ids": "orders.*.orderId",
+        "names": "orders.*.displayName",
+        "statuses": "orders.*.status",
+        "total": "totalSize"
+      },
+      "inputs": [
+        {
+          "key": "filter",
+          "label": "Filter",
+          "type": "string",
+          "placeholder": "status = \"APPROVED\"",
+          "help": "Optional AIP-160 filter."
+        },
+        {
+          "key": "order_by",
+          "label": "Sort",
+          "type": "string",
+          "placeholder": "updateTime desc"
+        },
+        {
+          "key": "page_size",
+          "label": "How many",
+          "type": "number",
+          "default": 50
+        },
+        {
+          "key": "network_code",
+          "label": "Network code",
+          "type": "string",
+          "fallback": "credentials.network_code",
+          "help": "Leave empty to use your first network."
+        }
+      ]
+    },
+    {
+      "key": "get_order",
+      "name": "Get order",
+      "description": "One order with its dates and delivery totals.",
+      "method": "GET",
+      "endpoint": "/networks/{{ inputs.network_code }}/orders/{{ inputs.order_id }}",
+      "output_fields": {
+        "name": "displayName",
+        "status": "status",
+        "impressions": "impressionsDelivered",
+        "clicks": "totalClicksDelivered",
+        "start_time": "startTime",
+        "end_time": "endTime"
+      },
+      "inputs": [
+        {
+          "key": "order_id",
+          "label": "Order ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "network_code",
+          "label": "Network code",
+          "type": "string",
+          "fallback": "credentials.network_code",
+          "help": "Leave empty to use your first network."
+        }
+      ]
+    },
+    {
+      "key": "pause_order",
+      "name": "Pause order",
+      "description": "Pause delivery of an order.",
+      "method": "POST",
+      "endpoint": "/networks/{{ inputs.network_code }}/orders:batchPause",
+      "body": {
+        "names": [
+          "networks/{{ inputs.network_code }}/orders/{{ inputs.order_id }}"
+        ]
+      },
+      "inputs": [
+        {
+          "key": "order_id",
+          "label": "Order ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "network_code",
+          "label": "Network code",
+          "type": "string",
+          "fallback": "credentials.network_code",
+          "help": "Leave empty to use your first network."
+        }
+      ]
+    },
+    {
+      "key": "resume_order",
+      "name": "Resume order",
+      "description": "Resume a paused order.",
+      "method": "POST",
+      "endpoint": "/networks/{{ inputs.network_code }}/orders:batchResume",
+      "body": {
+        "names": [
+          "networks/{{ inputs.network_code }}/orders/{{ inputs.order_id }}"
+        ]
+      },
+      "inputs": [
+        {
+          "key": "order_id",
+          "label": "Order ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "network_code",
+          "label": "Network code",
+          "type": "string",
+          "fallback": "credentials.network_code",
+          "help": "Leave empty to use your first network."
+        }
+      ]
+    },
+    {
+      "key": "list_line_items",
+      "name": "List line items",
+      "description": "Line items, optionally filtered (e.g. by order).",
+      "method": "GET",
+      "endpoint": "/networks/{{ inputs.network_code }}/lineItems",
+      "query": {
+        "filter": "{{ inputs.filter }}",
+        "pageSize": "{{ inputs.page_size }}"
+      },
+      "output_fields": {
+        "line_items": "lineItems",
+        "names": "lineItems.*.displayName",
+        "total": "totalSize"
+      },
+      "inputs": [
+        {
+          "key": "filter",
+          "label": "Filter",
+          "type": "string",
+          "placeholder": "order = \"networks/123/orders/456\""
+        },
+        {
+          "key": "page_size",
+          "label": "How many",
+          "type": "number",
+          "default": 50
+        },
+        {
+          "key": "network_code",
+          "label": "Network code",
+          "type": "string",
+          "fallback": "credentials.network_code",
+          "help": "Leave empty to use your first network."
+        }
+      ]
+    },
+    {
+      "key": "list_ad_units",
+      "name": "List ad units",
+      "description": "Ad units (inventory) and their codes.",
+      "method": "GET",
+      "endpoint": "/networks/{{ inputs.network_code }}/adUnits",
+      "query": {
+        "filter": "{{ inputs.filter }}",
+        "pageSize": "{{ inputs.page_size }}"
+      },
+      "output_fields": {
+        "ad_units": "adUnits",
+        "ids": "adUnits.*.adUnitId",
+        "names": "adUnits.*.displayName",
+        "codes": "adUnits.*.adUnitCode"
+      },
+      "inputs": [
+        {
+          "key": "filter",
+          "label": "Filter",
+          "type": "string"
+        },
+        {
+          "key": "page_size",
+          "label": "How many",
+          "type": "number",
+          "default": 50
+        },
+        {
+          "key": "network_code",
+          "label": "Network code",
+          "type": "string",
+          "fallback": "credentials.network_code",
+          "help": "Leave empty to use your first network."
+        }
+      ]
+    }
+  ],
+  "triggers": []
+}

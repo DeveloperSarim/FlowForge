@@ -1,0 +1,135 @@
+{
+  "key": "purpleair",
+  "name": "PurpleAir",
+  "category": "IoT & Smart Home",
+  "description": "Air quality sensors: read PurpleAir PM2.5 and readings from any sensor or area.",
+  "website": "https://www.purpleair.com",
+  "docs_url": "https://api.purpleair.com/",
+  "base_url": "https://api.purpleair.com/v1",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "X-API-Key",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "Read API key",
+        "type": "password",
+        "required": true,
+        "help": "develop.purpleair.com > API Keys: create a READ key and copy it."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "get_sensor",
+      "name": "Get a sensor",
+      "description": "Read one sensor.",
+      "method": "GET",
+      "endpoint": "/sensors/{{ inputs.sensor_index }}",
+      "query": {
+        "fields": "{{ inputs.fields }}"
+      },
+      "output_fields": {
+        "name": "sensor.name",
+        "pm25": "sensor.pm2.5",
+        "temperature": "sensor.temperature",
+        "humidity": "sensor.humidity"
+      },
+      "inputs": [
+        {
+          "key": "sensor_index",
+          "label": "Sensor index",
+          "type": "string",
+          "required": true,
+          "help": "The number in the sensor's PurpleAir map address."
+        },
+        {
+          "key": "fields",
+          "label": "Fields",
+          "type": "string",
+          "default": "name,pm2.5,temperature,humidity,pressure",
+          "help": "Comma-separated list of PurpleAir fields."
+        }
+      ]
+    },
+    {
+      "key": "sensors_in_area",
+      "name": "Sensors in an area",
+      "description": "Read sensors inside a map box.",
+      "method": "GET",
+      "endpoint": "/sensors",
+      "query": {
+        "fields": "{{ inputs.fields }}",
+        "nwlng": "{{ inputs.nwlng }}",
+        "nwlat": "{{ inputs.nwlat }}",
+        "selng": "{{ inputs.selng }}",
+        "selat": "{{ inputs.selat }}",
+        "location_type": "{{ inputs.location_type }}"
+      },
+      "output_fields": {
+        "fields": "fields",
+        "data": "data"
+      },
+      "inputs": [
+        {
+          "key": "fields",
+          "label": "Fields",
+          "type": "string",
+          "default": "name,latitude,longitude,pm2.5"
+        },
+        {
+          "key": "nwlng",
+          "label": "North-west longitude",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "nwlat",
+          "label": "North-west latitude",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "selng",
+          "label": "South-east longitude",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "selat",
+          "label": "South-east latitude",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "location_type",
+          "label": "Location",
+          "type": "select",
+          "default": "0",
+          "options": [
+            {
+              "value": "0",
+              "label": "Outdoor"
+            },
+            {
+              "value": "1",
+              "label": "Indoor"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "check_key",
+      "name": "Check API key",
+      "description": "Check the key works and its type.",
+      "method": "GET",
+      "endpoint": "/keys",
+      "output_fields": {
+        "type": "api_key_type"
+      },
+      "inputs": []
+    }
+  ]
+}

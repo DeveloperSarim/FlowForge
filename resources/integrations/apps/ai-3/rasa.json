@@ -1,0 +1,151 @@
+{
+  "key": "rasa",
+  "name": "Rasa",
+  "category": "AI",
+  "description": "Talk to your self-hosted Rasa assistant and use its NLU over the HTTP API.",
+  "website": "https://rasa.com",
+  "docs_url": "https://rasa.com/docs/rasa/pages/http-api",
+  "base_url": "{{ credentials.base_url }}",
+  "auth": {
+    "type": "api_key",
+    "in": "query",
+    "name": "token",
+    "fields": [
+      {
+        "key": "base_url",
+        "label": "Rasa server URL",
+        "type": "string",
+        "required": true,
+        "placeholder": "https://rasa.example.com:5005",
+        "help": "Where your Rasa server runs (started with --enable-api), without a trailing slash."
+      },
+      {
+        "key": "api_key",
+        "label": "Auth token",
+        "type": "password",
+        "required": true,
+        "help": "The value of --auth-token you started Rasa with. If your server has no token, type any text."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "send_message",
+      "name": "Send message to bot",
+      "description": "Send a message through the REST channel and get the bot's replies.",
+      "method": "POST",
+      "endpoint": "/webhooks/rest/webhook",
+      "timeout": 60,
+      "body": {
+        "sender": "{{ inputs.sender }}",
+        "message": "{{ inputs.message }}"
+      },
+      "output_fields": {
+        "text": "*.text"
+      },
+      "inputs": [
+        {
+          "key": "sender",
+          "label": "Sender ID",
+          "type": "string",
+          "required": true,
+          "help": "Any ID for the person chatting; keeps conversations separate."
+        },
+        {
+          "key": "message",
+          "label": "Message",
+          "type": "text",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "parse_message",
+      "name": "Parse message (NLU)",
+      "description": "Get the intent and entities Rasa detects in a text.",
+      "method": "POST",
+      "endpoint": "/model/parse",
+      "body": {
+        "text": "{{ inputs.text }}"
+      },
+      "output_fields": {
+        "intent": "intent.name",
+        "confidence": "intent.confidence",
+        "entities": "entities"
+      },
+      "inputs": [
+        {
+          "key": "text",
+          "label": "Text",
+          "type": "text",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "get_tracker",
+      "name": "Get conversation",
+      "description": "Get a conversation's slots and latest message.",
+      "method": "GET",
+      "endpoint": "/conversations/{{ inputs.conversation_id }}/tracker",
+      "output_fields": {
+        "slots": "slots",
+        "latest_intent": "latest_message.intent.name",
+        "latest_text": "latest_message.text"
+      },
+      "inputs": [
+        {
+          "key": "conversation_id",
+          "label": "Conversation (sender) ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "trigger_intent",
+      "name": "Trigger intent",
+      "description": "Act as if the user expressed an intent (e.g. after a button click).",
+      "method": "POST",
+      "endpoint": "/conversations/{{ inputs.conversation_id }}/trigger_intent",
+      "body": {
+        "name": "{{ inputs.name }}",
+        "entities": "{{ inputs.entities }}"
+      },
+      "output_fields": {
+        "messages": "messages"
+      },
+      "inputs": [
+        {
+          "key": "conversation_id",
+          "label": "Conversation (sender) ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "name",
+          "label": "Intent",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "entities",
+          "label": "Entities",
+          "type": "json"
+        }
+      ]
+    },
+    {
+      "key": "status",
+      "name": "Get server status",
+      "description": "Check which model the server has loaded.",
+      "method": "GET",
+      "endpoint": "/status",
+      "output_fields": {
+        "model_file": "model_file",
+        "model_id": "model_id"
+      },
+      "inputs": []
+    }
+  ]
+}

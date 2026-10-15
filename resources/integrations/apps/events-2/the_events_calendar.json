@@ -1,0 +1,181 @@
+{
+  "key": "the_events_calendar",
+  "name": "The Events Calendar",
+  "category": "Events & Webinars",
+  "description": "WordPress events plugin: list, create and update events, venues and organizers.",
+  "website": "https://theeventscalendar.com",
+  "docs_url": "https://docs.theeventscalendar.com/apis/rest/",
+  "base_url": "{{ credentials.site_url }}/wp-json/tribe/events/v1",
+  "auth": {
+    "type": "basic",
+    "fields": [
+      {
+        "key": "site_url",
+        "label": "Website address",
+        "type": "string",
+        "required": true,
+        "placeholder": "https://example.com",
+        "help": "Your WordPress site, no trailing slash."
+      },
+      {
+        "key": "username",
+        "label": "WordPress username",
+        "type": "string",
+        "required": true,
+        "help": "Your WordPress login."
+      },
+      {
+        "key": "password",
+        "label": "Application password",
+        "type": "password",
+        "required": true,
+        "help": "WordPress > Users > Profile > Application Passwords: create one and paste it here."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_events",
+      "name": "List events",
+      "description": "Get upcoming events.",
+      "method": "GET",
+      "endpoint": "/events",
+      "query": {
+        "search": "{{ inputs.search }}",
+        "start_date": "{{ inputs.start_date }}",
+        "per_page": "{{ inputs.per_page }}"
+      },
+      "output_fields": {
+        "events": "events",
+        "titles": "events.*.title",
+        "ids": "events.*.id",
+        "total": "total"
+      },
+      "inputs": [
+        {
+          "key": "search",
+          "label": "Search",
+          "type": "string"
+        },
+        {
+          "key": "start_date",
+          "label": "Starts after",
+          "type": "string",
+          "help": "YYYY-MM-DD"
+        },
+        {
+          "key": "per_page",
+          "label": "Per page",
+          "type": "number",
+          "default": 20
+        }
+      ]
+    },
+    {
+      "key": "get_event",
+      "name": "Get an event",
+      "description": "Get one event.",
+      "method": "GET",
+      "endpoint": "/events/{{ inputs.event_id }}",
+      "output_fields": {
+        "title": "title",
+        "start_date": "start_date",
+        "url": "url"
+      },
+      "inputs": [
+        {
+          "key": "event_id",
+          "label": "Event ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "create_event",
+      "name": "Create an event",
+      "description": "Add an event to the calendar.",
+      "method": "POST",
+      "endpoint": "/events",
+      "body": {
+        "title": "{{ inputs.title }}",
+        "start_date": "{{ inputs.start_date }}",
+        "end_date": "{{ inputs.end_date }}",
+        "description": "{{ inputs.description }}",
+        "website": "{{ inputs.url }}"
+      },
+      "output_fields": {
+        "id": "id",
+        "url": "url"
+      },
+      "inputs": [
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "start_date",
+          "label": "Start",
+          "type": "string",
+          "required": true,
+          "help": "YYYY-MM-DD HH:MM:SS"
+        },
+        {
+          "key": "end_date",
+          "label": "End",
+          "type": "string",
+          "required": true,
+          "help": "YYYY-MM-DD HH:MM:SS"
+        },
+        {
+          "key": "description",
+          "label": "Description",
+          "type": "text"
+        },
+        {
+          "key": "url",
+          "label": "Event website",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "list_venues",
+      "name": "List venues",
+      "description": "Get venues.",
+      "method": "GET",
+      "endpoint": "/venues",
+      "query": {
+        "per_page": "{{ inputs.per_page }}"
+      },
+      "output_fields": {
+        "venues": "venues"
+      },
+      "inputs": [
+        {
+          "key": "per_page",
+          "label": "Per page",
+          "type": "number",
+          "default": 20
+        }
+      ]
+    },
+    {
+      "key": "delete_event",
+      "name": "Delete an event",
+      "description": "Delete an event.",
+      "method": "DELETE",
+      "endpoint": "/events/{{ inputs.event_id }}",
+      "inputs": [
+        {
+          "key": "event_id",
+          "label": "Event ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ]
+}

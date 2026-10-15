@@ -1,0 +1,156 @@
+{
+  "key": "leaddyno",
+  "name": "LeadDyno",
+  "category": "Marketing & Email",
+  "description": "Affiliate and referral program: add leads and affiliates, track purchases.",
+  "website": "https://www.leaddyno.com",
+  "docs_url": "https://help.leaddyno.com/api/",
+  "base_url": "https://api.leaddyno.com/v1",
+  "auth": {
+    "type": "api_key",
+    "in": "query",
+    "name": "key",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "Private API key",
+        "type": "password",
+        "required": true,
+        "help": "LeadDyno → Settings → Integrations → find the \"Private API key\" on the Integrations page."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "create_lead",
+      "name": "Create lead",
+      "description": "Add a lead (a referred visitor), optionally tied to an affiliate.",
+      "method": "POST",
+      "endpoint": "/leads",
+      "body": {
+        "email": "{{ inputs.email }}",
+        "first_name": "{{ inputs.first_name }}",
+        "last_name": "{{ inputs.last_name }}",
+        "affiliate_code": "{{ inputs.affiliate_code }}"
+      },
+      "output_fields": {
+        "id": "id",
+        "email": "email"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true,
+          "help": "The contact's email address."
+        },
+        {
+          "key": "first_name",
+          "label": "First name",
+          "type": "string"
+        },
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string"
+        },
+        {
+          "key": "affiliate_code",
+          "label": "Affiliate code",
+          "type": "string",
+          "help": "Leave empty if the lead was not referred."
+        }
+      ]
+    },
+    {
+      "key": "list_leads",
+      "name": "List leads",
+      "description": "Recent leads.",
+      "method": "GET",
+      "endpoint": "/leads",
+      "output_fields": {
+        "leads": "$"
+      },
+      "inputs": []
+    },
+    {
+      "key": "create_affiliate",
+      "name": "Create affiliate",
+      "description": "Sign up a new affiliate.",
+      "method": "POST",
+      "endpoint": "/affiliates",
+      "body": {
+        "email": "{{ inputs.email }}",
+        "first_name": "{{ inputs.first_name }}",
+        "last_name": "{{ inputs.last_name }}"
+      },
+      "output_fields": {
+        "id": "id",
+        "affiliate_code": "affiliate_code"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true,
+          "help": "The contact's email address."
+        },
+        {
+          "key": "first_name",
+          "label": "First name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "list_affiliates",
+      "name": "List affiliates",
+      "description": "All affiliates.",
+      "method": "GET",
+      "endpoint": "/affiliates",
+      "output_fields": {
+        "affiliates": "$"
+      },
+      "inputs": []
+    },
+    {
+      "key": "list_purchases",
+      "name": "List purchases",
+      "description": "Purchases attributed to affiliates.",
+      "method": "GET",
+      "endpoint": "/purchases",
+      "output_fields": {
+        "purchases": "$"
+      },
+      "inputs": []
+    }
+  ],
+  "triggers": [
+    {
+      "key": "new_lead",
+      "name": "New lead",
+      "type": "polling",
+      "method": "GET",
+      "endpoint": "/leads",
+      "items_path": "",
+      "id_field": "id",
+      "inputs": [
+        {
+          "key": "poll_interval",
+          "label": "Check every (minutes)",
+          "type": "number",
+          "default": 5
+        }
+      ]
+    }
+  ]
+}

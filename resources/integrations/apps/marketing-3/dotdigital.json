@@ -1,0 +1,204 @@
+{
+  "key": "dotdigital",
+  "name": "Dotdigital",
+  "category": "Marketing & Email",
+  "description": "Email marketing automation: manage contacts, address books and campaigns.",
+  "website": "https://dotdigital.com",
+  "docs_url": "https://developer.dotdigital.com/reference",
+  "base_url": "https://{{ credentials.region }}-api.dotdigital.com/v2",
+  "auth": {
+    "type": "basic",
+    "fields": [
+      {
+        "key": "username",
+        "label": "API user email",
+        "type": "string",
+        "required": true,
+        "help": "Dotdigital → Settings → Access → API users → create a user and copy its email (apiuser-...@apiconnector.com)."
+      },
+      {
+        "key": "password",
+        "label": "API user password",
+        "type": "password",
+        "required": true,
+        "help": "The password you set for that API user."
+      },
+      {
+        "key": "region",
+        "label": "Region",
+        "type": "select",
+        "required": true,
+        "default": "r1",
+        "help": "Shown in your Dotdigital URL (r1, r2 or r3).",
+        "options": [
+          {
+            "value": "r1",
+            "label": "R1"
+          },
+          {
+            "value": "r2",
+            "label": "R2"
+          },
+          {
+            "value": "r3",
+            "label": "R3"
+          }
+        ]
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "create_contact",
+      "name": "Create or update contact",
+      "description": "Add a contact; updates it if the email exists.",
+      "method": "POST",
+      "endpoint": "/contacts",
+      "body": {
+        "email": "{{ inputs.email }}",
+        "optInType": "{{ inputs.opt_in_type }}",
+        "emailType": "Html",
+        "dataFields": [
+          {
+            "key": "FIRSTNAME",
+            "value": "{{ inputs.first_name }}"
+          },
+          {
+            "key": "LASTNAME",
+            "value": "{{ inputs.last_name }}"
+          }
+        ]
+      },
+      "output_fields": {
+        "id": "id",
+        "email": "email",
+        "status": "status"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true,
+          "help": "The contact's email address."
+        },
+        {
+          "key": "opt_in_type",
+          "label": "Opt-in type",
+          "type": "select",
+          "default": "Single",
+          "options": [
+            {
+              "value": "Single",
+              "label": "Single"
+            },
+            {
+              "value": "Double",
+              "label": "Double"
+            },
+            {
+              "value": "VerifiedDouble",
+              "label": "Verified double"
+            }
+          ]
+        },
+        {
+          "key": "first_name",
+          "label": "First name",
+          "type": "string"
+        },
+        {
+          "key": "last_name",
+          "label": "Last name",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "get_contact",
+      "name": "Get contact",
+      "description": "Look up a contact by email address.",
+      "method": "GET",
+      "endpoint": "/contacts/{{ inputs.email }}",
+      "output_fields": {
+        "id": "id",
+        "email": "email",
+        "status": "status",
+        "data_fields": "dataFields"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true,
+          "help": "The contact's email address."
+        }
+      ]
+    },
+    {
+      "key": "list_address_books",
+      "name": "List address books",
+      "description": "Your lists of contacts.",
+      "method": "GET",
+      "endpoint": "/address-books",
+      "output_fields": {
+        "address_books": "$"
+      },
+      "inputs": []
+    },
+    {
+      "key": "add_to_address_book",
+      "name": "Add contact to address book",
+      "description": "Add a contact to a list.",
+      "method": "POST",
+      "endpoint": "/address-books/{{ inputs.address_book_id }}/contacts",
+      "body": {
+        "email": "{{ inputs.email }}",
+        "optInType": "Single",
+        "emailType": "Html"
+      },
+      "output_fields": {
+        "id": "id",
+        "email": "email"
+      },
+      "inputs": [
+        {
+          "key": "address_book_id",
+          "label": "Address book ID",
+          "type": "number",
+          "required": true,
+          "help": "Use \"List address books\" to see the IDs."
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "string",
+          "required": true,
+          "help": "The contact's email address."
+        }
+      ]
+    },
+    {
+      "key": "list_campaigns",
+      "name": "List campaigns",
+      "description": "Your email campaigns.",
+      "method": "GET",
+      "endpoint": "/campaigns",
+      "query": {
+        "select": "{{ inputs.select }}"
+      },
+      "output_fields": {
+        "campaigns": "$"
+      },
+      "inputs": [
+        {
+          "key": "select",
+          "label": "Per page",
+          "type": "number",
+          "default": 20
+        }
+      ]
+    }
+  ]
+}

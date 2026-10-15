@@ -1,0 +1,139 @@
+{
+  "key": "crowdsec_cti",
+  "name": "CrowdSec CTI",
+  "category": "Security & IT",
+  "description": "Check IP reputation and attack behaviour with CrowdSec threat intelligence.",
+  "brand": "crowdsec",
+  "website": "https://www.crowdsec.net",
+  "docs_url": "https://docs.crowdsec.net/u/cti_api/intro",
+  "base_url": "https://cti.api.crowdsec.net/v2",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "x-api-key",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "CTI API key",
+        "type": "password",
+        "required": true,
+        "help": "CrowdSec Console (app.crowdsec.net) → Settings → CTI API keys → Add API key (free tier available)."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "lookup_ip",
+      "name": "Look up IP",
+      "description": "Get an IP's reputation, behaviours and location.",
+      "method": "GET",
+      "endpoint": "/smoke/{{ inputs.ip }}",
+      "output_fields": {
+        "reputation": "reputation",
+        "country": "location.country",
+        "as_name": "as_name",
+        "behaviors": "behaviors.*.label",
+        "classifications": "classifications.classifications.*.label"
+      },
+      "inputs": [
+        {
+          "key": "ip",
+          "label": "IP address",
+          "type": "string",
+          "required": true,
+          "placeholder": "192.0.2.10"
+        }
+      ]
+    },
+    {
+      "key": "lookup_ips",
+      "name": "Look up several IPs",
+      "description": "Look up a batch of IPs at once.",
+      "method": "GET",
+      "endpoint": "/smoke",
+      "query": {
+        "ips": "{{ inputs.ips }}"
+      },
+      "output_fields": {
+        "results": "items",
+        "not_found": "not_found"
+      },
+      "inputs": [
+        {
+          "key": "ips",
+          "label": "IP addresses",
+          "type": "string",
+          "required": true,
+          "placeholder": "192.0.2.10,198.51.100.7",
+          "help": "Comma-separated. Needs a plan with batch lookups."
+        }
+      ]
+    },
+    {
+      "key": "search",
+      "name": "Search",
+      "description": "Search the CTI database with a query.",
+      "method": "GET",
+      "endpoint": "/smoke/search",
+      "query": {
+        "query": "{{ inputs.query }}",
+        "since": "{{ inputs.since }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "results": "items"
+      },
+      "inputs": [
+        {
+          "key": "query",
+          "label": "Query",
+          "type": "string",
+          "required": true,
+          "placeholder": "behaviors.label:\"SSH Bruteforce\"",
+          "help": "Lucene query over CTI fields."
+        },
+        {
+          "key": "since",
+          "label": "Seen in the last",
+          "type": "string",
+          "default": "30d",
+          "help": "E.g. 24h, 7d, 30d."
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 100
+        }
+      ]
+    },
+    {
+      "key": "fire",
+      "name": "Get blocklist IPs",
+      "description": "List malicious IPs from the community blocklist (premium key).",
+      "method": "GET",
+      "endpoint": "/fire",
+      "query": {
+        "since": "{{ inputs.since }}",
+        "limit": "{{ inputs.limit }}"
+      },
+      "output_fields": {
+        "results": "items"
+      },
+      "inputs": [
+        {
+          "key": "since",
+          "label": "Seen in the last",
+          "type": "string",
+          "default": "24h"
+        },
+        {
+          "key": "limit",
+          "label": "Limit",
+          "type": "number",
+          "default": 100
+        }
+      ]
+    }
+  ]
+}

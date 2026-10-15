@@ -1,0 +1,321 @@
+{
+  "key": "crawlbase",
+  "name": "Crawlbase",
+  "category": "Utilities",
+  "description": "Scrape blocked or JavaScript-heavy pages, get Markdown, parsed data or screenshots.",
+  "website": "https://crawlbase.com",
+  "docs_url": "https://crawlbase.com/docs/crawling-api/",
+  "base_url": "https://api.crawlbase.com",
+  "auth": {
+    "type": "api_key",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "Normal token",
+        "type": "password",
+        "required": true,
+        "help": "crawlbase.com → Account → Account Docs / Dashboard → copy the Normal (TCP) token."
+      },
+      {
+        "key": "js_token",
+        "label": "JavaScript token",
+        "type": "password",
+        "help": "Same page; needed for JavaScript rendering and screenshots."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "scrape_page",
+      "name": "Scrape page",
+      "description": "Download a page's HTML through rotating proxies, with status details.",
+      "method": "GET",
+      "endpoint": "/",
+      "query": {
+        "token": "{{ credentials.api_key }}",
+        "url": "{{ inputs.url }}",
+        "format": "json",
+        "country": "{{ inputs.country }}",
+        "device": "{{ inputs.device }}"
+      },
+      "output_fields": {
+        "html": "body",
+        "status": "original_status",
+        "final_url": "url"
+      },
+      "timeout": 120,
+      "inputs": [
+        {
+          "key": "url",
+          "label": "Page URL",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "country",
+          "label": "Crawl from country",
+          "type": "string",
+          "placeholder": "US",
+          "help": "Two-letter country code; empty = automatic."
+        },
+        {
+          "key": "device",
+          "label": "Device",
+          "type": "select",
+          "default": "",
+          "options": [
+            {
+              "value": "",
+              "label": "Any"
+            },
+            {
+              "value": "desktop",
+              "label": "Desktop"
+            },
+            {
+              "value": "mobile",
+              "label": "Mobile"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "scrape_as_markdown",
+      "name": "Scrape page as Markdown",
+      "description": "Get a page as clean Markdown (good input for AI steps).",
+      "method": "GET",
+      "endpoint": "/",
+      "query": {
+        "token": "{{ credentials.api_key }}",
+        "url": "{{ inputs.url }}",
+        "format": "md",
+        "md_readability": "{{ inputs.readability }}",
+        "country": "{{ inputs.country }}",
+        "device": "{{ inputs.device }}"
+      },
+      "timeout": 120,
+      "inputs": [
+        {
+          "key": "url",
+          "label": "Page URL",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "readability",
+          "label": "Strip menus, sidebars and ads",
+          "type": "boolean",
+          "default": true
+        },
+        {
+          "key": "country",
+          "label": "Crawl from country",
+          "type": "string",
+          "placeholder": "US",
+          "help": "Two-letter country code; empty = automatic."
+        },
+        {
+          "key": "device",
+          "label": "Device",
+          "type": "select",
+          "default": "",
+          "options": [
+            {
+              "value": "",
+              "label": "Any"
+            },
+            {
+              "value": "desktop",
+              "label": "Desktop"
+            },
+            {
+              "value": "mobile",
+              "label": "Mobile"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "scrape_with_scraper",
+      "name": "Scrape with a ready-made parser",
+      "description": "Get structured data (prices, titles, reviews…) from supported sites.",
+      "method": "GET",
+      "endpoint": "/",
+      "query": {
+        "token": "{{ credentials.api_key }}",
+        "url": "{{ inputs.url }}",
+        "scraper": "{{ inputs.scraper }}",
+        "format": "json",
+        "country": "{{ inputs.country }}",
+        "device": "{{ inputs.device }}"
+      },
+      "output_fields": {
+        "data": "body",
+        "status": "original_status"
+      },
+      "timeout": 120,
+      "inputs": [
+        {
+          "key": "url",
+          "label": "Page URL",
+          "type": "string",
+          "required": true,
+          "placeholder": "https://www.amazon.com/dp/B0..."
+        },
+        {
+          "key": "scraper",
+          "label": "Parser",
+          "type": "string",
+          "required": true,
+          "placeholder": "amazon-product-details",
+          "help": "A parser name from the Crawlbase Scraper Library, e.g. amazon-product-details, google-serp."
+        },
+        {
+          "key": "country",
+          "label": "Crawl from country",
+          "type": "string",
+          "placeholder": "US",
+          "help": "Two-letter country code; empty = automatic."
+        },
+        {
+          "key": "device",
+          "label": "Device",
+          "type": "select",
+          "default": "",
+          "options": [
+            {
+              "value": "",
+              "label": "Any"
+            },
+            {
+              "value": "desktop",
+              "label": "Desktop"
+            },
+            {
+              "value": "mobile",
+              "label": "Mobile"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "render_page",
+      "name": "Render JavaScript page",
+      "description": "Load the page in a real browser first (uses the JavaScript token).",
+      "method": "GET",
+      "endpoint": "/",
+      "query": {
+        "token": "{{ credentials.js_token }}",
+        "url": "{{ inputs.url }}",
+        "format": "json",
+        "page_wait": "{{ inputs.page_wait }}",
+        "country": "{{ inputs.country }}",
+        "device": "{{ inputs.device }}"
+      },
+      "output_fields": {
+        "html": "body",
+        "status": "original_status"
+      },
+      "timeout": 180,
+      "inputs": [
+        {
+          "key": "url",
+          "label": "Page URL",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "page_wait",
+          "label": "Wait after load (ms)",
+          "type": "number",
+          "default": 2000
+        },
+        {
+          "key": "country",
+          "label": "Crawl from country",
+          "type": "string",
+          "placeholder": "US",
+          "help": "Two-letter country code; empty = automatic."
+        },
+        {
+          "key": "device",
+          "label": "Device",
+          "type": "select",
+          "default": "",
+          "options": [
+            {
+              "value": "",
+              "label": "Any"
+            },
+            {
+              "value": "desktop",
+              "label": "Desktop"
+            },
+            {
+              "value": "mobile",
+              "label": "Mobile"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "take_screenshot",
+      "name": "Take screenshot",
+      "description": "Screenshot a page; the image link expires after one hour (uses the JavaScript token).",
+      "method": "GET",
+      "endpoint": "/",
+      "query": {
+        "token": "{{ credentials.js_token }}",
+        "url": "{{ inputs.url }}",
+        "format": "json",
+        "screenshot": "true",
+        "country": "{{ inputs.country }}",
+        "device": "{{ inputs.device }}"
+      },
+      "output_fields": {
+        "screenshot_url": "screenshot_url",
+        "status": "original_status"
+      },
+      "timeout": 180,
+      "inputs": [
+        {
+          "key": "url",
+          "label": "Page URL",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "country",
+          "label": "Crawl from country",
+          "type": "string",
+          "placeholder": "US",
+          "help": "Two-letter country code; empty = automatic."
+        },
+        {
+          "key": "device",
+          "label": "Device",
+          "type": "select",
+          "default": "",
+          "options": [
+            {
+              "value": "",
+              "label": "Any"
+            },
+            {
+              "value": "desktop",
+              "label": "Desktop"
+            },
+            {
+              "value": "mobile",
+              "label": "Mobile"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

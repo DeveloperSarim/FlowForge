@@ -1,0 +1,161 @@
+{
+  "key": "accredible",
+  "name": "Accredible",
+  "category": "Education",
+  "description": "Issue digital certificates and badges with Accredible and look them up.",
+  "website": "https://www.accredible.com",
+  "docs_url": "https://accrediblecredentialapi.docs.apiary.io/",
+  "base_url": "https://api.accredible.com/v1",
+  "auth": {
+    "type": "api_key",
+    "in": "header",
+    "name": "Authorization",
+    "prefix": "Token token=",
+    "fields": [
+      {
+        "key": "api_key",
+        "label": "API key",
+        "type": "password",
+        "required": true,
+        "help": "Accredible dashboard > Settings > API Keys: copy your key."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "create_credential",
+      "name": "Issue a credential",
+      "description": "Issue a certificate or badge to a recipient.",
+      "method": "POST",
+      "endpoint": "/credentials",
+      "body": {
+        "credential": {
+          "group_id": "{{ inputs.group_id }}",
+          "recipient": {
+            "name": "{{ inputs.name }}",
+            "email": "{{ inputs.email }}"
+          },
+          "issued_on": "{{ inputs.issued_on }}",
+          "expired_on": "{{ inputs.expired_on }}"
+        }
+      },
+      "output_fields": {
+        "id": "credential.id",
+        "url": "credential.url"
+      },
+      "inputs": [
+        {
+          "key": "group_id",
+          "label": "Group ID",
+          "type": "string",
+          "required": true,
+          "help": "Accredible > Groups: open the group; the ID is in the address."
+        },
+        {
+          "key": "name",
+          "label": "Recipient name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "email",
+          "label": "Recipient email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "issued_on",
+          "label": "Issue date",
+          "type": "string",
+          "help": "YYYY-MM-DD. Leave empty for today."
+        },
+        {
+          "key": "expired_on",
+          "label": "Expiry date",
+          "type": "string",
+          "help": "YYYY-MM-DD, optional."
+        }
+      ]
+    },
+    {
+      "key": "get_credential",
+      "name": "Get a credential",
+      "description": "Get a credential by ID.",
+      "method": "GET",
+      "endpoint": "/credentials/{{ inputs.credential_id }}",
+      "output_fields": {
+        "url": "credential.url",
+        "name": "credential.recipient.name"
+      },
+      "inputs": [
+        {
+          "key": "credential_id",
+          "label": "Credential ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "search_credentials",
+      "name": "Search credentials",
+      "description": "Find credentials by recipient email or group.",
+      "method": "POST",
+      "endpoint": "/credentials/search",
+      "body": {
+        "email": "{{ inputs.email }}",
+        "group_id": "{{ inputs.group_id }}",
+        "page_size": "{{ inputs.page_size }}"
+      },
+      "output_fields": {
+        "credentials": "credentials",
+        "ids": "credentials.*.id"
+      },
+      "inputs": [
+        {
+          "key": "email",
+          "label": "Recipient email",
+          "type": "string"
+        },
+        {
+          "key": "group_id",
+          "label": "Group ID",
+          "type": "string"
+        },
+        {
+          "key": "page_size",
+          "label": "Page size",
+          "type": "number",
+          "default": 20
+        }
+      ]
+    },
+    {
+      "key": "list_groups",
+      "name": "List groups",
+      "description": "Get your credential groups.",
+      "method": "GET",
+      "endpoint": "/issuer/all_groups",
+      "output_fields": {
+        "ids": "groups.*.id",
+        "names": "groups.*.name"
+      },
+      "inputs": []
+    },
+    {
+      "key": "delete_credential",
+      "name": "Delete a credential",
+      "description": "Permanently delete a credential.",
+      "method": "DELETE",
+      "endpoint": "/credentials/{{ inputs.credential_id }}",
+      "inputs": [
+        {
+          "key": "credential_id",
+          "label": "Credential ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ]
+}

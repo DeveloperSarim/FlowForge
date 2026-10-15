@@ -1,0 +1,195 @@
+{
+  "key": "bugherd",
+  "name": "BugHerd",
+  "category": "Project Management",
+  "description": "Website feedback and bug tracking: list projects and tasks, create tasks.",
+  "website": "https://bugherd.com",
+  "docs_url": "https://www.bugherd.com/api_v2",
+  "base_url": "https://www.bugherd.com/api_v2",
+  "auth": {
+    "type": "basic",
+    "fields": [
+      {
+        "key": "username",
+        "label": "API key",
+        "type": "string",
+        "required": true,
+        "help": "BugHerd → Settings → General Settings → API Key."
+      },
+      {
+        "key": "password",
+        "label": "Password",
+        "type": "string",
+        "required": true,
+        "default": "x",
+        "help": "Leave as x."
+      }
+    ]
+  },
+  "actions": [
+    {
+      "key": "list_projects",
+      "name": "List projects",
+      "description": "Your projects.",
+      "method": "GET",
+      "endpoint": "/projects.json",
+      "output_fields": {
+        "names": "projects.*.name",
+        "ids": "projects.*.id"
+      },
+      "inputs": []
+    },
+    {
+      "key": "list_tasks",
+      "name": "List tasks",
+      "description": "Tasks of a project.",
+      "method": "GET",
+      "endpoint": "/projects/{{ inputs.project_id }}/tasks.json",
+      "query": {
+        "status": "{{ inputs.status }}"
+      },
+      "output_fields": {
+        "descriptions": "tasks.*.description",
+        "ids": "tasks.*.id"
+      },
+      "inputs": [
+        {
+          "key": "project_id",
+          "label": "Project ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "options": [
+            {
+              "value": "backlog",
+              "label": "Backlog"
+            },
+            {
+              "value": "todo",
+              "label": "To do"
+            },
+            {
+              "value": "doing",
+              "label": "Doing"
+            },
+            {
+              "value": "done",
+              "label": "Done"
+            },
+            {
+              "value": "closed",
+              "label": "Closed"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "create_task",
+      "name": "Create task",
+      "description": "Add a feedback task to a project.",
+      "method": "POST",
+      "endpoint": "/projects/{{ inputs.project_id }}/tasks.json",
+      "body": {
+        "task": {
+          "description": "{{ inputs.description }}",
+          "priority": "{{ inputs.priority }}",
+          "requester_email": "{{ inputs.requester_email }}"
+        }
+      },
+      "output_fields": {
+        "id": "task.id",
+        "local_id": "task.local_task_id"
+      },
+      "inputs": [
+        {
+          "key": "project_id",
+          "label": "Project ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "description",
+          "label": "Description",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "priority",
+          "label": "Priority",
+          "type": "select",
+          "options": [
+            {
+              "value": "not set",
+              "label": "Not set"
+            },
+            {
+              "value": "critical",
+              "label": "Critical"
+            },
+            {
+              "value": "important",
+              "label": "Important"
+            },
+            {
+              "value": "normal",
+              "label": "Normal"
+            },
+            {
+              "value": "minor",
+              "label": "Minor"
+            }
+          ]
+        },
+        {
+          "key": "requester_email",
+          "label": "Requester email",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "key": "get_task",
+      "name": "Get task",
+      "description": "One task.",
+      "method": "GET",
+      "endpoint": "/projects/{{ inputs.project_id }}/tasks/{{ inputs.task_id }}.json",
+      "output_fields": {
+        "description": "task.description",
+        "status": "task.status"
+      },
+      "inputs": [
+        {
+          "key": "project_id",
+          "label": "Project ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "task_id",
+          "label": "Task ID",
+          "type": "string",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "key": "webhook_event",
+      "name": "Webhook event",
+      "type": "webhook",
+      "inputs": [
+        {
+          "key": "sample_payload",
+          "label": "Test payload (JSON)",
+          "type": "json"
+        }
+      ]
+    }
+  ]
+}
