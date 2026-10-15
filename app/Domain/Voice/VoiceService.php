@@ -3,6 +3,7 @@
 namespace App\Domain\Voice;
 
 use App\Domain\Assistant\LlmClient;
+use App\Domain\Assistant\Providers;
 use App\Domain\System\SystemSettings;
 use App\Domain\Voice\Models\VoiceAgent;
 use App\Domain\Voice\Models\VoiceBooking;
@@ -234,7 +235,7 @@ class VoiceService
     private function aiConfig(): array
     {
         $config = (array) $this->settings->get('ai', []);
-        if (empty($config['provider']) || empty($config['api_key'])) {
+        if (! Providers::configured($config)) {
             throw new RuntimeException('Talking in the browser uses the AI model from Settings → AI builder. Add a provider and key there first (Google Gemini and DeepSeek have free or very cheap tiers).');
         }
 

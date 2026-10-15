@@ -25,7 +25,7 @@ class AssistantAgent
     public function config(): array
     {
         $config = (array) $this->settings->get('ai', []);
-        if (empty($config['provider']) || empty($config['api_key'])) {
+        if (! Providers::configured($config)) {
             throw new RuntimeException('The AI assistant is not set up yet. Add a provider and API key under Settings → AI assistant.');
         }
 

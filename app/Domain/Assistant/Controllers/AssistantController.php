@@ -38,12 +38,12 @@ class AssistantController extends Controller
     public static function status(SystemSettings $settings, ManifestLoader $manifests): ?array
     {
         $ai = (array) $settings->get('ai', []);
-        if (empty($ai['provider']) || empty($ai['api_key'])) {
+        if (! Providers::configured($ai)) {
             return null;
         }
         $provider = Providers::get($ai['provider']);
 
-        return ['provider' => $provider['name'], 'model' => $ai['model'], 'icon' => $manifests->catalogMap()[$provider['icon_key']]['icon'] ?? 'plug'];
+        return ['provider' => Providers::label($ai), 'model' => $ai['model'], 'icon' => $manifests->catalogMap()[$provider['icon_key'] ?? '']['icon'] ?? 'plug'];
     }
 
     public function store(Request $request): JsonResponse

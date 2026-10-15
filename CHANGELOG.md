@@ -6,6 +6,8 @@ All notable changes to FlowForge. Versions follow [semantic versioning](https://
 
 - Automatic retries (like Zapier's Autoreplay): a run that fails because an app is down, slow or rate-limited is retried from the failed step after 2 minutes, 10 minutes, 1 hour, 3 hours and 6 hours. Steps that already worked aren't repeated, and the failure email and error workflows wait for the last try. On by default, with an Auto-retry switch for each workflow in the workflows list and at the top of the editor. Under ⋯ → Retries and errors a workflow can also retry every failure, not only temporary ones.
 - Step settings (open a step, "When this step runs"): try again right away up to 5 times on temporary errors, keep going with the next steps when it fails, or turn the step off (also from the canvas toolbar).
+- AI builder: a custom provider for any OpenAI- or Anthropic-compatible API (OpenRouter, Groq, Together, Ollama, LM Studio, LiteLLM…), with your own base URL, optional API key, model and thinking effort (or "Don't send").
+- Fixed: saving AI settings without a base URL failed with a server error.
 - Executions → Retry now resumes from the failed step; "from the start" runs every step again. Runs show which try they are and when the next automatic try is.
 
 ## [1.6.0] - 2026-10-15

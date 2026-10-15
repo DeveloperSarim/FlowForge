@@ -107,6 +107,8 @@ Access is enforced on the server (`can:` route middleware and the assistant's to
 
 Under **AI Builder** in the sidebar (and **Ask AI** in the editor), describe a workflow in plain words — English or Urdu — and the assistant builds it: it searches the app catalog, reads the exact inputs of the actions it needs, saves the workflow, attaches matching credentials, and tells you what's left to fill in. It can also explain and edit existing workflows, test them (only when asked, since tests perform real actions), switch them on or off, and propose deletes (you confirm on a card; nothing is deleted before that).
 
+Providers live in `Providers::ALL`. `custom` is any endpoint the admin sets up: base URL, optional key (an OpenAI-compatible server on the same machine may need none), model, `format` (`openai` chat completions or `anthropic` messages) and an optional label. `Providers::protocol()` picks the wire format and `Providers::configured()` is the single "is AI set up" check. A custom endpoint only gets `reasoning_effort` when the admin picked a level (`effort: none` sends nothing).
+
 While it works, the chat shows each step live ("Searching apps", "Reading LinkedIn actions", "Building…", "Fixing: …"); the progress is streamed as NDJSON and kept on the answer as a collapsible "Worked through N steps" list.
 
 Data between steps is checked when the assistant saves: every `{{ steps.X.field }}` must point at a step that runs earlier and at a field that step returns. `get_app` tells the model each action's outputs (e.g. AI chat actions return `text`), built-in nodes and triggers have closed output lists (hard errors), and for API responses the documented fields plus fields seen in earlier runs are used ("Fix:" warnings the model corrects before replying).

@@ -235,7 +235,7 @@ Step-by-step guides with screenshots: [Hostinger hPanel](https://developersarim.
 
 ## 🤖 AI Builder and MCP
 
-**AI Builder.** Open *AI Builder* in the sidebar and describe what you want. It searches the app catalog, reads each action's settings, saves the workflow, links the data between steps and tells you what's left to fill in. Bring your own key from OpenAI, Anthropic Claude, Google Gemini, DeepSeek or Qwen.
+**AI Builder.** Open *AI Builder* in the sidebar and describe what you want. It searches the app catalog, reads each action's settings, saves the workflow, links the data between steps and tells you what's left to fill in. Bring your own key from OpenAI, Anthropic Claude, Google Gemini, DeepSeek or Qwen, or connect any OpenAI- or Anthropic-compatible API as a custom provider (OpenRouter, Groq, Together, Mistral, Ollama, LM Studio, LiteLLM…).
 
 **Custom apps.** When a service isn't in the catalog, the AI Builder builds it as a custom app from the service's documented API (base URL, sign-in, actions and the fields each returns), checks it, and uses it in your workflow. You can also import any OpenAPI (Swagger) file from *Apps → Add a custom app*. Custom apps get their own credentials, live in `storage/` so updates keep them, and only ever call their own API address.
 

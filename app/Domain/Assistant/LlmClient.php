@@ -28,7 +28,7 @@ class LlmClient
 
     public function protocol(array $config): string
     {
-        return Providers::get($config['provider'])['protocol'];
+        return Providers::protocol($config);
     }
 
     public function ping(array $config): string
@@ -100,7 +100,7 @@ class LlmClient
         if ($tools) {
             $params['tools'] = array_map(fn ($t) => ['name' => $t['name'], 'description' => $t['description'], 'inputSchema' => $t['parameters']], $tools);
         }
-        if (preg_match('/^claude-(opus|sonnet|haiku|fable)-5/', $model)) {
+        if (preg_match('/^claude-(opus|sonnet|haiku|fable)-5/', $model) && ($config['effort'] ?? 'medium') !== 'none') {
             $params['outputConfig'] = ['effort' => $config['effort'] ?? 'medium'];
         }
         if (in_array($model, self::CLAUDE_FALLBACK_MODELS, true)) {
@@ -156,13 +156,20 @@ class LlmClient
             }
         } else {
             $body['max_tokens'] = min($maxTokens, 8192);
+            // A custom endpoint only gets reasoning_effort when the admin chose one (unknown fields upset some servers).
+            if ($config['provider'] === 'custom' && in_array($config['effort'] ?? null, ['low', 'medium', 'high'], true)) {
+                $body['reasoning_effort'] = $config['effort'];
+            }
         }
 
-        $response = Http::withToken($config['api_key'])->acceptJson()->timeout(240)
-            ->post(rtrim($config['base_url'], '/').'/chat/completions', $body);
+        $request = Http::acceptJson()->timeout(240);
+        if (! empty($config['api_key'])) {
+            $request = $request->withToken($config['api_key']); // local servers (Ollama, LM Studio) need none
+        }
+        $response = $request->post(rtrim($config['base_url'], '/').'/chat/completions', $body);
 
         if ($response->failed()) {
-            throw new RuntimeException(Providers::get($config['provider'])['name'].' error: '.($response->json('error.message') ?? mb_strimwidth($response->body(), 0, 300, '…')));
+            throw new RuntimeException(Providers::label($config).' error: '.($response->json('error.message') ?? $response->json('error') ?? mb_strimwidth($response->body(), 0, 300, '…')));
         }
 
         $message = (array) $response->json('choices.0.message');

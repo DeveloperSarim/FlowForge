@@ -5,6 +5,8 @@ namespace App\Domain\Assistant;
 /**
  * The AI providers the assistant can use. DeepSeek, Qwen and OpenAI speak the OpenAI chat-completions
  * protocol; Claude goes through the official Anthropic SDK; Gemini uses its native generateContent API.
+ * "custom" is any endpoint the admin points at (OpenRouter, Groq, Together, Ollama, LM Studio, a LiteLLM
+ * gateway…): its config carries the base URL, model, API format (openai or anthropic) and an optional label.
  */
 class Providers
 {
@@ -44,7 +46,38 @@ class Providers
             ],
             'key_url' => 'https://modelstudio.console.alibabacloud.com/',
         ],
+        'custom' => [
+            'name' => 'Custom provider', 'protocol' => 'openai', 'icon_key' => null,
+            'base_url' => '', 'model' => '', 'models' => [], 'key_url' => null, 'custom' => true,
+        ],
     ];
+
+    /** The protocol a saved config speaks: a custom provider picks OpenAI- or Anthropic-compatible. */
+    public static function protocol(array $config): string
+    {
+        return ($config['provider'] ?? null) === 'custom'
+            ? (($config['format'] ?? 'openai') === 'anthropic' ? 'anthropic' : 'openai')
+            : self::get($config['provider'])['protocol'];
+    }
+
+    /** Whether a saved AI config can be used: a key, or a custom OpenAI-compatible endpoint that needs none. */
+    public static function configured(array $config): bool
+    {
+        if (empty($config['provider']) || ! isset(self::ALL[$config['provider']])) {
+            return false;
+        }
+
+        return ! empty($config['api_key'])
+            || ($config['provider'] === 'custom' && ($config['format'] ?? 'openai') === 'openai' && ! empty($config['base_url']));
+    }
+
+    /** What to call the provider in errors and the AI builder's header. */
+    public static function label(array $config): string
+    {
+        return ($config['provider'] ?? null) === 'custom' && trim((string) ($config['label'] ?? '')) !== ''
+            ? trim($config['label'])
+            : self::get($config['provider'])['name'];
+    }
 
     public static function get(string $provider): array
     {

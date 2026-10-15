@@ -253,12 +253,18 @@ function EmailSettings({ mail, notifications, adminEmail }) {
 
 function AiSettings({ ai, providers }) {
     const initial = providers.find((p) => p.key === (ai?.provider ?? 'deepseek')) ?? providers[0];
-    const form = useForm({ provider: initial.key, api_key: '', model: ai?.model ?? initial.model, base_url: ai?.base_url ?? initial.base_url, effort: ai?.effort ?? 'medium' });
+    const form = useForm({ provider: initial.key, api_key: '', model: ai?.model ?? initial.model, base_url: ai?.base_url ?? initial.base_url, effort: ai?.effort ?? 'medium', format: ai?.format ?? 'openai', label: ai?.label ?? '' });
     const [test, setTest] = useState(null);
     const provider = providers.find((p) => p.key === form.data.provider) ?? providers[0];
     const keyStored = ai?.has_key && ai?.provider === form.data.provider;
 
-    const choose = (p) => form.setData((d) => ({ ...d, provider: p.key, model: p.key === ai?.provider ? ai.model : p.model, base_url: p.key === ai?.provider ? ai.base_url : p.base_url, api_key: '' }));
+    const isCustom = !!provider.custom;
+    const keyOptional = isCustom && form.data.format === 'openai';
+    const choose = (p) => form.setData((d) => {
+        const same = p.key === ai?.provider;
+        const effort = same ? ai.effort : p.custom ? 'none' : (d.effort === 'none' ? 'medium' : d.effort);
+        return { ...d, provider: p.key, model: same ? ai.model : p.model, base_url: same ? ai.base_url : p.base_url, effort, api_key: '' };
+    });
 
     const runTest = async () => {
         setTest({ pending: true });
@@ -275,23 +281,46 @@ function AiSettings({ ai, providers }) {
             <h2 className="text-[16px] font-semibold">AI provider</h2>
             <p className="mt-0.5 text-[13px] text-fg-muted">The assistant builds, edits and tests workflows from plain-language requests. It searches apps on demand instead of sending the whole catalog, and its instructions are cached, so requests stay small.</p>
 
-            <div className="mt-5 grid gap-3 sm:grid-cols-3 lg:grid-cols-5">
+            <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
                 {providers.map((p) => (
                     <button key={p.key} type="button" onClick={() => choose(p)} aria-pressed={form.data.provider === p.key}
                         className={cn('flex flex-col items-center gap-2 rounded-xl border-2 px-3 py-4 text-center transition-colors', form.data.provider === p.key ? 'border-primary bg-primary-soft/40' : 'border-line hover:border-line-strong')}>
                         <IntegrationIcon icon={p.icon} name={p.name} size="lg" />
-                        <span className="text-[13px] font-medium leading-tight">{p.name}</span>
+                        <span className="text-[13px] font-medium leading-tight">{p.custom && ai?.provider === 'custom' && ai?.label ? ai.label : p.name}</span>
+                        {p.custom && ai?.provider !== 'custom' && <span className="text-[11px] text-fg-muted">Any compatible API</span>}
                         {ai?.provider === p.key && <span className="text-[11px] text-ok">In use</span>}
                     </button>
                 ))}
             </div>
 
             <form className="mt-6 grid max-w-2xl gap-4 sm:grid-cols-2" onSubmit={(e) => { e.preventDefault(); form.put('/settings/ai', { preserveScroll: true, onSuccess: () => form.setData('api_key', '') }); }}>
-                <Field label="API key" required={!keyStored} error={form.errors.api_key} className="sm:col-span-2"
-                    aside={<a href={provider.key_url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-[12.5px] font-medium text-primary hover:underline">Get a key<ExternalLink className="size-3" /></a>}>
-                    {(id) => <Input id={id} type="password" autoComplete="off" placeholder={keyStored ? 'Unchanged (stored encrypted)' : 'Paste your API key'} value={form.data.api_key} onChange={(e) => form.setData('api_key', e.target.value)} />}
+                {isCustom && (
+                    <>
+                        <Field label="Name" help="Shown in the AI Builder, for example OpenRouter or My gateway.">
+                            {(id) => <Input id={id} value={form.data.label} maxLength={60} placeholder="Custom provider" onChange={(e) => form.setData('label', e.target.value)} />}
+                        </Field>
+                        <Field label="API format" help="Most providers and local servers use the OpenAI format.">
+                            {(id) => (
+                                <Select id={id} value={form.data.format} onChange={(e) => form.setData('format', e.target.value)}>
+                                    <option value="openai">OpenAI-compatible (chat completions)</option>
+                                    <option value="anthropic">Anthropic-compatible (messages)</option>
+                                </Select>
+                            )}
+                        </Field>
+                        <Field label="API base URL" required error={form.errors.base_url} className="sm:col-span-2"
+                            help={form.data.format === 'openai'
+                                ? 'The part before /chat/completions. OpenRouter: https://openrouter.ai/api/v1, Groq: https://api.groq.com/openai/v1, Ollama: http://localhost:11434/v1'
+                                : 'The part before /v1/messages, for example https://your-gateway.example.com'}>
+                            {(id) => <Input id={id} value={form.data.base_url} placeholder={form.data.format === 'openai' ? 'https://openrouter.ai/api/v1' : 'https://your-gateway.example.com'} onChange={(e) => form.setData('base_url', e.target.value)} />}
+                        </Field>
+                    </>
+                )}
+                <Field label="API key" required={!keyStored && !keyOptional} error={form.errors.api_key} className="sm:col-span-2"
+                    help={keyOptional ? 'Leave empty for servers that need no key, such as Ollama or LM Studio on your own machine.' : null}
+                    aside={provider.key_url && <a href={provider.key_url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-[12.5px] font-medium text-primary hover:underline">Get a key<ExternalLink className="size-3" /></a>}>
+                    {(id) => <Input id={id} type="password" autoComplete="off" placeholder={keyStored ? 'Unchanged (stored encrypted)' : keyOptional ? 'Optional' : 'Paste your API key'} value={form.data.api_key} onChange={(e) => form.setData('api_key', e.target.value)} />}
                 </Field>
-                <Field label="Model" required error={form.errors.model} help="Pick a suggestion or type any model id your account can use.">
+                <Field label="Model" required error={form.errors.model} help={isCustom ? 'The exact model id your provider uses, for example meta-llama/llama-3.3-70b-instruct.' : 'Pick a suggestion or type any model id your account can use.'}>
                     {(id) => (
                         <>
                             <Input id={id} list="ai-models" value={form.data.model} onChange={(e) => form.setData('model', e.target.value)} />
@@ -299,14 +328,15 @@ function AiSettings({ ai, providers }) {
                         </>
                     )}
                 </Field>
-                <Field label="Thinking effort" help="Lower is faster and uses fewer tokens. Applies to Claude and OpenAI reasoning models.">
+                <Field label="Thinking effort" help={isCustom ? 'Sent as reasoning effort only when you pick a level. Use "Don\'t send" if your model or server doesn\'t support it.' : 'Lower is faster and uses fewer tokens. Applies to Claude and OpenAI reasoning models.'}>
                     {(id) => (
                         <Select id={id} value={form.data.effort} onChange={(e) => form.setData('effort', e.target.value)}>
-                            <option value="low">Low (fewest tokens)</option><option value="medium">Medium (default)</option><option value="high">High (hardest workflows)</option>
+                            {isCustom && <option value="none">Don't send</option>}
+                            <option value="low">Low (fewest tokens)</option><option value="medium">Medium{isCustom ? '' : ' (default)'}</option><option value="high">High (hardest workflows)</option>
                         </Select>
                     )}
                 </Field>
-                {provider.base_urls ? (
+                {isCustom ? null : provider.base_urls ? (
                     <Field label="Region" className="sm:col-span-2">{(id) => (
                         <Select id={id} value={form.data.base_url} onChange={(e) => form.setData('base_url', e.target.value)}>
                             {Object.entries(provider.base_urls).map(([url, label]) => <option key={url} value={url}>{label}</option>)}

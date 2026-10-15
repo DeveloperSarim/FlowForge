@@ -2,6 +2,7 @@
 
 namespace App\Domain\Voice\Controllers;
 
+use App\Domain\Assistant\Providers;
 use App\Domain\Integrations\Models\Credential;
 use App\Domain\System\SystemSettings;
 use App\Domain\Voice\Models\VoiceAgent;
@@ -33,7 +34,7 @@ class VoiceController extends Controller
     {
         $ai = (array) $this->settings->get('ai', []);
 
-        return ! empty($ai['provider']) && ! empty($ai['api_key']);
+        return Providers::configured($ai);
     }
 
     public function index(): Response

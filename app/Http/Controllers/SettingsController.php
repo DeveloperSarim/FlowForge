@@ -63,9 +63,9 @@ class SettingsController extends Controller
                 'repo' => config('flowforge.updates.repo'),
             ],
             'ai' => Arr::except($ai, ['api_key']) + ['has_key' => ! empty($ai['api_key'])],
-            'providers' => collect(Providers::ALL)->map(fn ($p, $key) => Arr::only($p, ['name', 'model', 'models', 'base_url', 'base_urls', 'key_url']) + [
+            'providers' => collect(Providers::ALL)->map(fn ($p, $key) => Arr::only($p, ['name', 'model', 'models', 'base_url', 'base_urls', 'key_url', 'custom']) + [
                 'key' => $key,
-                'icon' => $catalog[$p['icon_key']]['icon'] ?? 'plug',
+                'icon' => $catalog[$p['icon_key'] ?? '']['icon'] ?? 'plug',
             ])->values(),
         ]);
     }
@@ -190,20 +190,32 @@ class SettingsController extends Controller
             'provider' => ['required', Rule::in(array_keys(Providers::ALL))],
             'api_key' => ['nullable', 'string', 'max:500'],
             'model' => ['required', 'string', 'max:120'],
-            'base_url' => ['nullable', 'url', 'max:255'],
-            'effort' => ['nullable', 'in:low,medium,high'],
+            'base_url' => ['nullable', 'required_if:provider,custom', 'url', 'max:255'],
+            'effort' => ['nullable', 'in:low,medium,high,none'],
+            'format' => ['nullable', 'in:openai,anthropic'],
+            'label' => ['nullable', 'string', 'max:60'],
         ]);
+        $custom = $data['provider'] === 'custom';
+        if (! $custom) {
+            unset($data['format'], $data['label']);
+        }
         $existing = (array) $this->settings->get('ai', []);
 
         // Keep the stored key when the field is left blank and the provider didn't change.
         if (($data['api_key'] ?? '') === '' && ($existing['provider'] ?? null) === $data['provider']) {
             $data['api_key'] = $existing['api_key'] ?? null;
         }
-        if (empty($data['api_key'])) {
+        // A custom OpenAI-compatible server on your own machine (Ollama, LM Studio) may not need a key.
+        if (empty($data['api_key']) && ! ($custom && ($data['format'] ?? 'openai') === 'openai')) {
             throw ValidationException::withMessages(['api_key' => 'Enter the API key for this provider.']);
         }
-        $data['base_url'] = $data['base_url'] ?: Providers::get($data['provider'])['base_url'];
-        $data['effort'] ??= 'medium';
+        $data['base_url'] = ($data['base_url'] ?? null) ?: Providers::get($data['provider'])['base_url'];
+        if ($custom) {
+            $data['format'] ??= 'openai';
+            $data['effort'] ??= 'none';
+        } else {
+            $data['effort'] = ($data['effort'] ?? null) === 'none' || empty($data['effort']) ? 'medium' : $data['effort'];
+        }
 
         return $data;
     }
