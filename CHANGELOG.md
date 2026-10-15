@@ -4,7 +4,7 @@ All notable changes to FlowForge. Versions follow [semantic versioning](https://
 
 ## [Unreleased]
 
-- Automatic retries (like Zapier's Autoreplay): a run that fails because an app is down, slow or rate-limited is retried from the failed step after 2 minutes, 10 minutes, 1 hour, 3 hours and 6 hours. Steps that already worked aren't repeated, and the failure email and error workflows wait for the last try. On by default; switch it off per workflow under ⋯ → Retries and errors.
+- Automatic retries (like Zapier's Autoreplay): a run that fails because an app is down, slow or rate-limited is retried from the failed step after 2 minutes, 10 minutes, 1 hour, 3 hours and 6 hours. Steps that already worked aren't repeated, and the failure email and error workflows wait for the last try. On by default, with an Auto-retry switch for each workflow in the workflows list and at the top of the editor. Under ⋯ → Retries and errors a workflow can also retry every failure, not only temporary ones.
 - Step settings (open a step, "When this step runs"): try again right away up to 5 times on temporary errors, keep going with the next steps when it fails, or turn the step off (also from the canvas toolbar).
 - Executions → Retry now resumes from the failed step; "from the start" runs every step again. Runs show which try they are and when the next automatic try is.
 

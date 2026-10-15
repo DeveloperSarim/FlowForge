@@ -172,6 +172,20 @@ class RetriesTest extends TestCase
         $this->assertNull(WorkflowExecution::query()->latest('id')->first()->retry_of);
     }
 
+    public function test_a_workflow_can_retry_every_failure_and_be_switched_from_the_list(): void
+    {
+        Queue::fake();
+        Http::fake(['api.test/a' => Http::response(['id' => 1]), 'api.test/b' => Http::response(['error' => 'bad'], 400)]);
+        $workflow = $this->workflow([], ['retry_on' => 'all']);
+        $this->assertNotNull($this->execute($workflow)->retry_at); // a 400 is retried too
+
+        $this->putJson("/workflows/{$workflow->id}", ['settings' => ['retry_on' => 'sometimes']])->assertStatus(422);
+        $this->putJson("/workflows/{$workflow->id}", ['settings' => ['auto_retry' => false]])->assertOk();
+        $this->assertSame(['retry_on' => 'all', 'auto_retry' => false], $workflow->refresh()->settings);
+        $this->get('/workflows')->assertInertia(fn ($page) => $page->where('workflows.0.auto_retry', false));
+        $this->get("/workflows/{$workflow->id}")->assertInertia(fn ($page) => $page->where('workflow.settings', ['auto_retry' => false, 'retry_on' => 'all']));
+    }
+
     public function test_step_settings_are_cleaned_and_the_workflow_setting_is_saved(): void
     {
         $graph = GraphValidator::normalize(['nodes' => [

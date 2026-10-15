@@ -15,7 +15,7 @@ use Throwable;
  * graph = { nodes: [{id, type: trigger|action|branch, position, data: {integration, action|trigger, config, credential_id, label,
  *                     disabled?, retries?, on_error?}}],
  *           edges: [{id, source, target, sourceHandle}] }
- * settings = { auto_retry?: bool (default true) }
+ * settings = { auto_retry?: bool (default true), retry_on?: "temporary" (default) | "all" }
  */
 class Workflow extends Model
 {
@@ -142,6 +142,12 @@ class Workflow extends Model
     public function autoRetries(): bool
     {
         return (bool) ($this->settings['auto_retry'] ?? true);
+    }
+
+    /** Which failed runs are retried automatically: only temporary problems (app down, timeout, rate limit) or every failure. */
+    public function retryOn(): string
+    {
+        return ($this->settings['retry_on'] ?? null) === 'all' ? 'all' : 'temporary';
     }
 
     /** Run a failed execution again from its failed step; the steps that succeeded are reused, not repeated. */

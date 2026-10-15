@@ -44,6 +44,7 @@ class WorkflowController extends Controller
                 'name' => $workflow->name,
                 'description' => $workflow->description,
                 'is_active' => $workflow->is_active,
+                'auto_retry' => $workflow->autoRetries(),
                 'trigger_type' => $workflow->trigger_type,
                 'updated_at' => $workflow->updated_at?->toIso8601String(),
                 'created_at' => $workflow->created_at?->toIso8601String(),
@@ -110,6 +111,7 @@ class WorkflowController extends Controller
             'is_active' => ['sometimes', 'boolean'],
             'settings' => ['sometimes', 'array'],
             'settings.auto_retry' => ['sometimes', 'boolean'],
+            'settings.retry_on' => ['sometimes', 'in:temporary,all'],
             'graph' => ['sometimes', 'array'],
             'graph.nodes' => ['required_with:graph', 'array', 'max:500'],
             'graph.nodes.*.id' => ['required', 'string', 'max:64'],
@@ -127,7 +129,7 @@ class WorkflowController extends Controller
             $data['graph'] = GraphValidator::normalize($data['graph']);
         }
         if (isset($data['settings'])) {
-            $data['settings'] = array_merge($workflow->settings ?? [], array_intersect_key($data['settings'], ['auto_retry' => true]));
+            $data['settings'] = array_merge($workflow->settings ?? [], array_intersect_key($data['settings'], ['auto_retry' => true, 'retry_on' => true]));
         }
 
         $workflow->fill($data);
@@ -238,7 +240,7 @@ class WorkflowController extends Controller
             'is_active' => $workflow->is_active,
             'trigger_type' => $workflow->trigger_type,
             'graph' => $workflow->graph,
-            'settings' => ['auto_retry' => $workflow->autoRetries()],
+            'settings' => ['auto_retry' => $workflow->autoRetries(), 'retry_on' => $workflow->retryOn()],
             'webhook_url' => $workflow->webhookUrl(),
             'trigger_state' => Arr::except($workflow->trigger_state ?? [], ['seen']),
             'updated_at' => $workflow->updated_at?->toIso8601String(),

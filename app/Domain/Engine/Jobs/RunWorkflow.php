@@ -34,8 +34,9 @@ class RunWorkflow implements ShouldQueue
     }
 
     /**
-     * Retry a run that failed on a temporary error (app down, timeout, rate limit) later, from the failed step:
-     * after 2, 10, 60, 180 and 360 minutes. Returns false when it won't be retried.
+     * Retry a failed run later, from the failed step: after 2, 10, 60, 180 and 360 minutes. By default only
+     * failures on temporary errors (app down, timeout, rate limit); a workflow can retry every failure.
+     * Returns false when it won't be retried.
      */
     public static function scheduleRetry(WorkflowExecution $failed): bool
     {
@@ -43,7 +44,7 @@ class RunWorkflow implements ShouldQueue
         $step = collect($failed->steps ?? [])->first(fn ($s) => ($s['status'] ?? null) === 'failed' && empty($s['continued']));
         $attempt = $failed->attempt ?? 1;
         if (! $workflow?->autoRetries() || ! in_array($failed->mode, Workflow::RETRYABLE_MODES, true)
-            || empty($step['temporary']) || $attempt > count(Workflow::RETRY_DELAYS)) {
+            || ! $step || (empty($step['temporary']) && $workflow->retryOn() !== 'all') || $attempt > count(Workflow::RETRY_DELAYS)) {
             return false;
         }
 

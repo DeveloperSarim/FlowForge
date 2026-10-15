@@ -1,6 +1,6 @@
 import { useMemo, useRef, useState } from 'react';
 import { Link, router, useForm } from '@inertiajs/react';
-import { Clock, Copy, Download, FileUp, MoreHorizontal, MousePointerClick, PencilLine, Plus, RefreshCw, Trash2, Upload, Webhook, Workflow as WorkflowIcon, PhoneCall, CalendarCheck, TriangleAlert } from 'lucide-react';
+import { Clock, Copy, Download, FileUp, MoreHorizontal, MousePointerClick, PencilLine, Plus, RefreshCw, RotateCw, Trash2, Upload, Webhook, Workflow as WorkflowIcon, PhoneCall, CalendarCheck, TriangleAlert } from 'lucide-react';
 import AppLayout, { openCreateWorkflow } from '@/Layouts/AppLayout';
 import IntegrationIcon, { AppStack } from '@/Components/IntegrationIcon';
 import { Button, Card, Dialog, EmptyState, Field, Menu, SearchInput, Select, StatusBadge, Switch, Tabs, Textarea } from '@/Components/ui';
@@ -127,6 +127,17 @@ export default function Index({ workflows }) {
 function Row({ workflow, onDelete }) {
     const can = useCan();
     const [active, setActive] = useState(workflow.is_active);
+    const [autoRetry, setAutoRetry] = useState(workflow.auto_retry);
+    const toggleRetry = async (value) => {
+        setAutoRetry(value);
+        try {
+            await window.axios.put(`/workflows/${workflow.id}`, { settings: { auto_retry: value } });
+            toast(value ? `Auto-retry is on for "${workflow.name}".` : `Auto-retry is off for "${workflow.name}".`, 'success');
+        } catch (error) {
+            setAutoRetry(!value);
+            toast(errorMessage(error), 'error');
+        }
+    };
     const trigger = TRIGGERS[workflow.trigger_type] ?? TRIGGERS.manual;
 
     const toggle = async (value) => {
@@ -162,6 +173,10 @@ function Row({ workflow, onDelete }) {
                 ) : <span className="text-[12px] text-fg-subtle">Never run</span>}
                 <p className="mt-0.5 text-[12px] text-fg-subtle">{workflow.runs_24h} run{workflow.runs_24h === 1 ? '' : 's'} in 24h</p>
             </div>
+            <label className="hidden items-center gap-1.5 text-[12.5px] font-medium text-fg-muted lg:flex" title="Retry failed runs automatically" onClick={(e) => e.stopPropagation()}>
+                <RotateCw className="size-3.5" />Auto-retry
+                {can['workflows.edit'] ? <Switch checked={autoRetry} onChange={toggleRetry} label={`Auto-retry for ${workflow.name}`} size="sm" /> : <span>{autoRetry ? 'On' : 'Off'}</span>}
+            </label>
             <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
                 <span className="hidden text-[12.5px] font-medium text-fg-muted sm:inline">{active ? 'Active' : 'Inactive'}</span>
                 {can['workflows.edit'] && <Switch checked={active} onChange={toggle} label={`Activate ${workflow.name}`} size="sm" />}
@@ -171,6 +186,7 @@ function Row({ workflow, onDelete }) {
                 items={[
                     { label: can['workflows.edit'] ? 'Open editor' : 'Open', icon: PencilLine, onClick: () => router.visit(`/workflows/${workflow.id}`) },
                     can['workflows.edit'] && { label: 'Duplicate', icon: Copy, onClick: () => router.post(`/workflows/${workflow.id}/duplicate`) },
+                    can['workflows.edit'] && { label: autoRetry ? 'Turn auto-retry off' : 'Turn auto-retry on', icon: RotateCw, onClick: () => toggleRetry(!autoRetry) },
                     { label: 'Export', icon: Download, onClick: () => { window.location.href = `/workflows/${workflow.id}/export`; } },
                     can['workflows.delete'] && { label: 'Delete', icon: Trash2, danger: true, onClick: onDelete },
                 ]}

@@ -78,13 +78,15 @@ function Editor({ workflow: initial, catalog, operators, lastExecution, ai }) {
     const [save, setSave] = useState({ state: 'saved' });
     const [deleting, setDeleting] = useState(false);
     const [settingsOpen, setSettingsOpen] = useState(false);
-    const [autoRetry, setAutoRetry] = useState(initial.settings?.auto_retry ?? true);
-    const saveAutoRetry = async (value) => {
-        setAutoRetry(value);
+    const [retry, setRetry] = useState({ auto_retry: initial.settings?.auto_retry ?? true, retry_on: initial.settings?.retry_on ?? 'temporary' });
+    const saveRetry = async (patch) => {
+        const before = retry;
+        setRetry({ ...retry, ...patch });
         try {
-            await window.axios.put(`/workflows/${initial.id}`, { settings: { auto_retry: value } });
+            await window.axios.put(`/workflows/${initial.id}`, { settings: patch });
+            if ('auto_retry' in patch) toast(patch.auto_retry ? 'Auto-retry is on for this workflow.' : 'Auto-retry is off for this workflow.', 'success');
         } catch (error) {
-            setAutoRetry(!value);
+            setRetry(before);
             toast(errorMessage(error), 'error');
         }
     };
@@ -298,6 +300,10 @@ function Editor({ workflow: initial, catalog, operators, lastExecution, ai }) {
                     </div>
                     <div className="ml-auto flex items-center gap-2.5 md:ml-0">
                         {can.ai && <Button size="sm" variant={aiOpen ? 'subtle' : 'secondary'} onClick={() => setAiOpen((o) => !o)}><AiIcon className="size-4 text-primary" />Ask AI</Button>}
+                        <label className="hidden items-center gap-2 text-[13px] font-medium text-fg-muted md:flex" title="Retry failed runs automatically">
+                            <RotateCw className="size-3.5" />Auto-retry
+                            <Switch checked={retry.auto_retry} onChange={(v) => saveRetry({ auto_retry: v })} disabled={readOnly} label="Retry failed runs automatically" size="sm" />
+                        </label>
                         <label className="flex items-center gap-2 text-[13px] font-medium text-fg-muted">
                             <span className="hidden sm:inline">{workflow.is_active ? 'Active' : 'Inactive'}</span>
                             {!readOnly && <Switch checked={workflow.is_active} onChange={toggleActive} label="Activate workflow" />}
@@ -425,10 +431,25 @@ function Editor({ workflow: initial, catalog, operators, lastExecution, ai }) {
                     <label className="flex items-start justify-between gap-4">
                         <span>
                             <span className="block font-semibold">Retry failed runs automatically</span>
-                            <span className="mt-0.5 block text-[12.5px] text-fg-muted">If a run fails because an app is down, slow or rate-limited, FlowForge tries again from the step that failed: after 2 minutes, 10 minutes, 1 hour, 3 hours and 6 hours. Steps that already worked aren't repeated, and you only get the failure email if every try fails.</span>
+                            <span className="mt-0.5 block text-[12.5px] text-fg-muted">When a run fails, FlowForge tries again from the step that failed: after 2 minutes, 10 minutes, 1 hour, 3 hours and 6 hours. Steps that already worked aren't repeated, and you only get the failure email if every try fails.</span>
                         </span>
-                        <Switch checked={autoRetry} onChange={saveAutoRetry} disabled={readOnly} label="Retry failed runs automatically" />
+                        <Switch checked={retry.auto_retry} onChange={(v) => saveRetry({ auto_retry: v })} disabled={readOnly} label="Retry failed runs automatically" />
                     </label>
+                    {retry.auto_retry && (
+                        <fieldset disabled={readOnly} className="space-y-1.5">
+                            <legend className="mb-1.5 font-semibold">Which failures</legend>
+                            {[['temporary', 'Only when an app is down, slow or busy', 'Recommended. A wrong key or missing field fails the same way every time, so it is not retried.'],
+                                ['all', 'Every failure', 'Retries whatever went wrong, like Zapier\'s Autoreplay. Useful while you fix a credential or a setting.']].map(([value, label, hint]) => (
+                                <label key={value} className={cn('flex cursor-pointer gap-2.5 rounded-xl border-2 px-3 py-2.5', retry.retry_on === value ? 'border-primary bg-primary-soft/40' : 'border-line hover:border-line-strong')}>
+                                    <input type="radio" name="retry_on" value={value} checked={retry.retry_on === value} onChange={() => saveRetry({ retry_on: value })} className="mt-1 accent-[var(--primary)]" />
+                                    <span>
+                                        <span className="block font-medium">{label}</span>
+                                        <span className="block text-[12.5px] text-fg-muted">{hint}</span>
+                                    </span>
+                                </label>
+                            ))}
+                        </fieldset>
+                    )}
                     <p className="rounded-lg bg-surface-2 px-3 py-2.5 text-[12.5px] text-fg-muted">Each step can also try again right away, keep going when it fails, or be turned off: open the step and look under <strong className="text-fg">When this step runs</strong>.</p>
                 </div>
             </Dialog>

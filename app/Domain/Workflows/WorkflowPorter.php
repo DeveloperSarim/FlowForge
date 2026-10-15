@@ -135,7 +135,10 @@ class WorkflowPorter
             }
             $existing[Str::lower($name)] = true;
 
-            $settings = isset($item['settings']['auto_retry']) ? ['auto_retry' => (bool) $item['settings']['auto_retry']] : null;
+            $settings = array_filter([
+                'auto_retry' => isset($item['settings']['auto_retry']) ? (bool) $item['settings']['auto_retry'] : null,
+                'retry_on' => ($item['settings']['retry_on'] ?? null) === 'all' ? 'all' : null,
+            ], fn ($v) => $v !== null) ?: null;
 
             return Workflow::query()->create(['name' => $name, 'description' => Str::limit((string) ($item['description'] ?? ''), 2000, '') ?: null, 'graph' => $graph, 'settings' => $settings]);
         })->all());
