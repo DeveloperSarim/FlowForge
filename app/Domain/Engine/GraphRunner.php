@@ -6,12 +6,18 @@ use App\Domain\Integrations\ActionException;
 use App\Domain\Integrations\Models\Credential;
 use App\Domain\Integrations\WorkflowActionExecutor;
 use App\Domain\Workflows\Models\WorkflowExecution;
+use Illuminate\Support\Sleep;
 use RuntimeException;
 
 /**
  * Walks a workflow DAG in topological order. A node runs when at least one incoming edge is
  * "live": its source ran and emitted that edge's handle (branches emit "true"/"false", filters
- * that fail emit nothing). Everything else is recorded as skipped. The first failure stops the run.
+ * that fail emit nothing). Everything else is recorded as skipped.
+ *
+ * Per step: "disabled" skips it and the path goes on; "retries" tries it again (with a short wait) when
+ * the failure is temporary; "on_error": "continue" records the failure and goes on. Otherwise the first
+ * failure stops the run. A run that resumes a failed one (retry_of) reuses the steps that already
+ * succeeded instead of running them again, so emails and API writes aren't repeated.
  */
 class GraphRunner
 {
@@ -36,6 +42,7 @@ class GraphRunner
             'now' => now()->toIso8601String(),
         ];
         $secrets = $this->secrets($nodes->all());
+        $reuse = $this->reusable($execution);
         $emitted = [];
         $steps = [];
         $error = null;
@@ -72,35 +79,73 @@ class GraphRunner
                 continue;
             }
 
-            $started = microtime(true);
-            try {
-                $result = $this->executor->execute($data, $context);
-                $context['steps'][$id] = $result->output;
-                if (! $result->halt) {
-                    $emitted[$id] = $result->handle;
+            if (! empty($data['disabled'])) {
+                // Turned off: skipped, and the path continues (an If/Else takes its "true" branch).
+                $emitted[$id] = $step['type'] === 'branch' ? 'true' : null;
+                $steps[] = $step + ['status' => 'skipped', 'disabled' => true];
+
+                continue;
+            }
+
+            if (isset($reuse[$id])) {
+                $context['steps'][$id] = $reuse[$id]['output'] ?? [];
+                if (empty($reuse[$id]['halted'])) {
+                    $emitted[$id] = $reuse[$id]['handle'] ?? null;
                 }
-                $steps[] = $step + [
-                    'status' => 'success',
-                    'input' => $result->input,
-                    'output' => $result->output,
-                    'http_status' => $result->httpStatus,
-                    'request' => $result->request,
-                    'handle' => $result->handle,
-                    'halted' => $result->halt,
-                    'duration_ms' => $this->elapsed($started),
-                ];
-            } catch (ActionException $e) {
-                // ponytail: first failure stops the run; add a per-node "continue on fail" / retry flag if workflows need it.
-                $error = "{$step['label']}: {$e->getMessage()}";
-                $steps[] = $step + [
-                    'status' => 'failed',
-                    'error' => $e->getMessage(),
-                    'input' => $e->input,
-                    'output' => $e->output,
-                    'http_status' => $e->httpStatus,
-                    'request' => $e->request,
-                    'duration_ms' => $this->elapsed($started),
-                ];
+                $steps[] = ['reused' => true] + $reuse[$id];
+
+                continue;
+            }
+
+            $started = microtime(true);
+            $tries = (int) ($data['retries'] ?? 0);
+            for ($attempt = 0; ; $attempt++) {
+                try {
+                    $result = $this->executor->execute($data, $context);
+                    $context['steps'][$id] = $result->output;
+                    if (! $result->halt) {
+                        $emitted[$id] = $result->handle;
+                    }
+                    $steps[] = $step + array_filter([
+                        'status' => 'success',
+                        'input' => $result->input,
+                        'output' => $result->output,
+                        'http_status' => $result->httpStatus,
+                        'request' => $result->request,
+                        'handle' => $result->handle,
+                        'halted' => $result->halt,
+                        'tries' => $attempt ? $attempt + 1 : null,
+                        'duration_ms' => $this->elapsed($started),
+                    ], fn ($v) => $v !== null);
+                    break;
+                } catch (ActionException $e) {
+                    if ($attempt < $tries && $e->isTemporary()) {
+                        Sleep::for(min(30, 2 ** ($attempt + 1)))->seconds(); // 2, 4, 8, 16, 30 s
+
+                        continue;
+                    }
+                    $failed = $step + array_filter([
+                        'status' => 'failed',
+                        'error' => $e->getMessage(),
+                        'input' => $e->input,
+                        'output' => $e->output,
+                        'http_status' => $e->httpStatus,
+                        'request' => $e->request,
+                        'temporary' => $e->isTemporary() ?: null,
+                        'tries' => $attempt ? $attempt + 1 : null,
+                        'duration_ms' => $this->elapsed($started),
+                    ], fn ($v) => $v !== null);
+                    if (($data['on_error'] ?? null) === 'continue') {
+                        // Later steps run and can read what went wrong from {{ steps.<id>.error }}.
+                        $context['steps'][$id] = ['error' => $e->getMessage(), 'http_status' => $e->httpStatus];
+                        $emitted[$id] = $step['type'] === 'branch' ? 'false' : null;
+                        $steps[] = $failed + ['continued' => true];
+                    } else {
+                        $error = "{$step['label']}: {$e->getMessage()}";
+                        $steps[] = $failed;
+                    }
+                    break;
+                }
             }
         }
 
@@ -113,6 +158,21 @@ class GraphRunner
         ])->save();
 
         return $execution;
+    }
+
+    /**
+     * Steps of the failed run this one retries that succeeded there, by node id: they are reused, not run again.
+     * Nothing is reused when an output was too big to keep in full (it couldn't be passed on faithfully).
+     */
+    private function reusable(WorkflowExecution $execution): array
+    {
+        $previous = $execution->retry_of ? WorkflowExecution::query()->find($execution->retry_of) : null;
+        $done = collect($previous?->steps ?? [])->filter(fn ($s) => ($s['status'] ?? null) === 'success' && ($s['type'] ?? null) !== 'trigger');
+        if ($done->contains(fn ($s) => ! empty($s['output']['_truncated']))) {
+            return [];
+        }
+
+        return $done->keyBy('node_id')->all();
     }
 
     /** The node plus everything upstream of it. */

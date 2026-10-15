@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
 import { addEdge, Background, BackgroundVariant, MiniMap, ReactFlow, ReactFlowProvider, useEdgesState, useNodesState, useReactFlow } from '@xyflow/react';
-import { ChevronDown, ChevronUp, Copy, FlaskConical, Loader2, MoreHorizontal, Plus, ScrollText, Trash2, Download, X } from 'lucide-react';
+import { ChevronDown, ChevronUp, Copy, FlaskConical, Loader2, MoreHorizontal, Plus, RotateCw, ScrollText, Trash2, Download, X } from 'lucide-react';
 import AiIcon from '@/Components/AiIcon';
 import ChatPanel from '@/Components/Assistant/ChatPanel';
 import { BuilderContext, edgeTypes, nodeTypes } from '@/Components/Canvas/nodes';
@@ -77,6 +77,17 @@ function Editor({ workflow: initial, catalog, operators, lastExecution, ai }) {
     const [running, setRunning] = useState(null);
     const [save, setSave] = useState({ state: 'saved' });
     const [deleting, setDeleting] = useState(false);
+    const [settingsOpen, setSettingsOpen] = useState(false);
+    const [autoRetry, setAutoRetry] = useState(initial.settings?.auto_retry ?? true);
+    const saveAutoRetry = async (value) => {
+        setAutoRetry(value);
+        try {
+            await window.axios.put(`/workflows/${initial.id}`, { settings: { auto_retry: value } });
+        } catch (error) {
+            setAutoRetry(!value);
+            toast(errorMessage(error), 'error');
+        }
+    };
     const [dark, setDark] = useState(isDark);
     const [aiOpen, setAiOpen] = useState(false);
     const [aiConversation, setAiConversation] = useState(null);
@@ -175,6 +186,10 @@ function Editor({ workflow: initial, catalog, operators, lastExecution, ai }) {
         if (type) setEdges((eds) => eds.filter((e) => e.source !== id)); // output handles changed shape
     }, [setNodes, setEdges]);
 
+    const toggleNode = useCallback((id) => {
+        setNodes((nds) => nds.map((n) => (n.id === id ? { ...n, data: { ...n.data, disabled: n.data.disabled ? undefined : true } } : n)));
+    }, [setNodes]);
+
     const removeNode = useCallback((id) => {
         if (id === 'trigger') return;
         setNodes((nds) => nds.filter((n) => n.id !== id));
@@ -259,8 +274,8 @@ function Editor({ workflow: initial, catalog, operators, lastExecution, ai }) {
     const context = useMemo(() => ({
         catalog: catalogMap, runSteps: execution ? runSteps : {}, running, connected,
         openCreator: (opts) => setCreator({ mode: 'action', ...opts }),
-        openNode: setOpenId, executeStep, removeNode, readOnly,
-    }), [catalogMap, execution, runSteps, running, connected, executeStep, removeNode, readOnly]);
+        openNode: setOpenId, executeStep, removeNode, toggleNode, readOnly,
+    }), [catalogMap, execution, runSteps, running, connected, executeStep, removeNode, toggleNode, readOnly]);
 
     const onDrop = (event) => event.preventDefault();
 
@@ -289,6 +304,7 @@ function Editor({ workflow: initial, catalog, operators, lastExecution, ai }) {
                         </label>
                         <Menu trigger={<Button variant="ghost" size="icon" aria-label="Workflow menu"><MoreHorizontal className="size-4" /></Button>} items={[
                             !readOnly && { label: 'Duplicate', icon: Copy, onClick: async () => { await persist(); router.post(`/workflows/${initial.id}/duplicate`); } },
+                            { label: 'Retries and errors', icon: RotateCw, onClick: () => setSettingsOpen(true) },
                             { label: 'Export', icon: Download, onClick: download },
                             can['workflows.delete'] && { label: 'Delete workflow', icon: Trash2, danger: true, onClick: () => setDeleting(true) },
                         ]} />
@@ -404,6 +420,18 @@ function Editor({ workflow: initial, catalog, operators, lastExecution, ai }) {
                 />
             )}
 
+            <Dialog open={settingsOpen} onClose={() => setSettingsOpen(false)} title="Retries and errors" description="What happens when an app is busy, slow or down while this workflow runs.">
+                <div className="space-y-4 text-[13.5px]">
+                    <label className="flex items-start justify-between gap-4">
+                        <span>
+                            <span className="block font-semibold">Retry failed runs automatically</span>
+                            <span className="mt-0.5 block text-[12.5px] text-fg-muted">If a run fails because an app is down, slow or rate-limited, FlowForge tries again from the step that failed: after 2 minutes, 10 minutes, 1 hour, 3 hours and 6 hours. Steps that already worked aren't repeated, and you only get the failure email if every try fails.</span>
+                        </span>
+                        <Switch checked={autoRetry} onChange={saveAutoRetry} disabled={readOnly} label="Retry failed runs automatically" />
+                    </label>
+                    <p className="rounded-lg bg-surface-2 px-3 py-2.5 text-[12.5px] text-fg-muted">Each step can also try again right away, keep going when it fails, or be turned off: open the step and look under <strong className="text-fg">When this step runs</strong>.</p>
+                </div>
+            </Dialog>
             <Dialog open={deleting} onClose={() => setDeleting(false)} title={`Delete "${name}"?`} description="Its execution history is deleted too. This can't be undone.">
                 <div className="flex justify-end gap-2">
                     <Button onClick={() => setDeleting(false)}>Cancel</Button>

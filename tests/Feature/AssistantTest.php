@@ -243,7 +243,8 @@ class AssistantTest extends TestCase
 
         $this->seed();
         $workflow = Workflow::query()->sole();
-        $workflow->update(['is_active' => true]);
+        // With automatic retries on, the email waits for the last try (see RetriesTest); here every failure is final.
+        $workflow->update(['is_active' => true, 'settings' => ['auto_retry' => false]]);
         $alerts = Workflow::query()->create(['name' => 'Alerts', 'is_active' => true, 'graph' => ['nodes' => [[
             'id' => 'trigger', 'type' => 'trigger', 'position' => ['x' => 0, 'y' => 0],
             'data' => ['integration' => 'error_trigger', 'trigger' => 'workflow_failed', 'config' => []],

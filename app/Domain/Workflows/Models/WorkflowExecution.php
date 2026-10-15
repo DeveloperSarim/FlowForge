@@ -20,7 +20,7 @@ class WorkflowExecution extends Model
 
     public const FAILED = 'failed';
 
-    protected $fillable = ['status', 'mode', 'trigger_payload', 'steps', 'error', 'started_at', 'finished_at', 'duration_ms'];
+    protected $fillable = ['status', 'mode', 'trigger_payload', 'steps', 'error', 'started_at', 'finished_at', 'duration_ms', 'attempt', 'retry_of', 'retry_at'];
 
     protected function casts(): array
     {
@@ -29,6 +29,7 @@ class WorkflowExecution extends Model
             'steps' => 'array',
             'started_at' => 'datetime',
             'finished_at' => 'datetime',
+            'retry_at' => 'datetime',
         ];
     }
 
@@ -52,6 +53,10 @@ class WorkflowExecution extends Model
             'finished_at' => $this->finished_at?->toIso8601String(),
             'duration_ms' => $this->duration_ms,
             'created_at' => $this->created_at?->toIso8601String(),
+            'attempt' => $this->attempt ?? 1,
+            'retry_of' => $this->retry_of,
+            'retry_at' => $this->retry_at?->toIso8601String(),
+            'can_resume' => $this->status === self::FAILED && collect($this->steps ?? [])->contains('status', 'failed'),
         ];
     }
 

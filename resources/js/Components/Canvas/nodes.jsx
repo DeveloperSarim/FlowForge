@@ -1,6 +1,6 @@
 import { createContext, memo, useContext } from 'react';
 import { BaseEdge, EdgeLabelRenderer, getBezierPath, Handle, Position, useReactFlow } from '@xyflow/react';
-import { AlertTriangle, Check, Play, Plus, Settings2, Trash2, X, Zap } from 'lucide-react';
+import { AlertTriangle, Check, Play, Plus, Power, RotateCw, Settings2, Trash2, X, Zap } from 'lucide-react';
 import IntegrationIcon from '@/Components/IntegrationIcon';
 import { cn, duration } from '@/lib/utils';
 
@@ -38,13 +38,17 @@ function AddNext({ id, handle, top }) {
     );
 }
 
-function Toolbar({ id, isTrigger }) {
-    const { executeStep, openNode, removeNode, running, readOnly } = useContext(BuilderContext);
+function Toolbar({ id, isTrigger, disabled }) {
+    const { executeStep, openNode, removeNode, toggleNode, running, readOnly } = useContext(BuilderContext);
     const button = 'flex size-7 items-center justify-center rounded-md text-fg-muted hover:bg-surface-2 hover:text-fg';
     return (
         <div className="nodrag absolute -top-10 left-1/2 hidden -translate-x-1/2 items-center gap-0.5 rounded-lg border border-line bg-surface p-0.5 shadow-pop group-hover:flex">
             {!readOnly && <button type="button" className={button} title="Execute step" aria-label="Execute step" disabled={!!running} onClick={(e) => { e.stopPropagation(); executeStep(id); }}><Play className="size-3.5" /></button>}
             <button type="button" className={button} title="Open" aria-label="Open step" onClick={(e) => { e.stopPropagation(); openNode(id); }}><Settings2 className="size-3.5" /></button>
+            {!isTrigger && !readOnly && toggleNode && (
+                <button type="button" className={cn(button, disabled && 'text-primary')} title={disabled ? 'Turn this step on' : 'Turn this step off (runs skip it)'} aria-label={disabled ? 'Turn step on' : 'Turn step off'}
+                    onClick={(e) => { e.stopPropagation(); toggleNode(id); }}><Power className="size-3.5" /></button>
+            )}
             {!isTrigger && !readOnly && <button type="button" className={cn(button, 'hover:text-fail')} title="Delete" aria-label="Delete step" onClick={(e) => { e.stopPropagation(); removeNode(id); }}><Trash2 className="size-3.5" /></button>}
         </div>
     );
@@ -69,14 +73,15 @@ function NodeFrame({ id, data, selected, shape, isTrigger, outputs, children }) 
 
     return (
         <div className="group relative">
-            <Toolbar id={id} isTrigger={isTrigger} />
+            <Toolbar id={id} isTrigger={isTrigger} disabled={!!data.disabled} />
             <div className={cn(
                 'relative flex size-24 items-center justify-center border-2 bg-surface shadow-card transition-[border-color,box-shadow,opacity]',
                 shape,
                 selected ? 'border-primary shadow-[0_0_0_4px_var(--primary-soft)]' : 'border-line hover:border-line-strong',
                 step?.status === 'failed' && !selected && 'border-fail',
                 step?.status === 'success' && !selected && 'border-ok/60',
-                step?.status === 'skipped' && 'opacity-50',
+                (step?.status === 'skipped' || data.disabled) && 'opacity-50',
+                data.disabled && 'border-dashed',
                 isRunning && 'animate-running',
             )}>
                 {isTrigger && (
@@ -91,12 +96,17 @@ function NodeFrame({ id, data, selected, shape, isTrigger, outputs, children }) 
                     </span>
                 )}
                 <StatusDot step={step} />
+                {!data.disabled && data.retries > 0 && (
+                    <span title={`Tries again up to ${data.retries} time${data.retries > 1 ? 's' : ''} if the app is busy or down`} className="absolute -top-2 -left-2 flex size-6 items-center justify-center rounded-full border-2 border-surface bg-surface-2 text-fg-muted">
+                        <RotateCw className="size-3" strokeWidth={2.5} />
+                    </span>
+                )}
                 {children}
             </div>
             {outputs.map(({ handle, top }) => !connected.has(`${id}:${handle ?? ''}`) && <AddNext key={handle ?? 'out'} id={id} handle={handle} top={top} />)}
             <div className="pointer-events-none absolute top-full left-1/2 mt-2 w-48 -translate-x-1/2 text-center">
                 <p className="truncate text-[13px] leading-tight font-semibold">{data.label || operation?.name || 'Choose a step'}</p>
-                <p className="mt-0.5 truncate text-[11.5px] text-fg-subtle">{integration ? (operation?.name ?? 'Choose an action') : 'Unknown app'}</p>
+                <p className="mt-0.5 truncate text-[11.5px] text-fg-subtle">{data.disabled ? 'Turned off' : integration ? (operation?.name ?? 'Choose an action') : 'Unknown app'}</p>
             </div>
         </div>
     );

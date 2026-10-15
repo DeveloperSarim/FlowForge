@@ -46,7 +46,8 @@ class WorkflowPorter
                 }
                 $nodes[] = ['id' => $node['id'], 'type' => $node['type'], 'position' => $node['position'], 'data' => $data];
             }
-            $items[] = ['name' => $workflow->name, 'description' => $workflow->description, 'graph' => ['nodes' => $nodes, 'edges' => $workflow->graph['edges'] ?? []]];
+            $items[] = array_filter(['name' => $workflow->name, 'description' => $workflow->description, 'settings' => $workflow->settings,
+                'graph' => ['nodes' => $nodes, 'edges' => $workflow->graph['edges'] ?? []]], fn ($v) => $v !== null);
         }
 
         return [
@@ -134,7 +135,9 @@ class WorkflowPorter
             }
             $existing[Str::lower($name)] = true;
 
-            return Workflow::query()->create(['name' => $name, 'description' => Str::limit((string) ($item['description'] ?? ''), 2000, '') ?: null, 'graph' => $graph]);
+            $settings = isset($item['settings']['auto_retry']) ? ['auto_retry' => (bool) $item['settings']['auto_retry']] : null;
+
+            return Workflow::query()->create(['name' => $name, 'description' => Str::limit((string) ($item['description'] ?? ''), 2000, '') ?: null, 'graph' => $graph, 'settings' => $settings]);
         })->all());
 
         if ($missing) {

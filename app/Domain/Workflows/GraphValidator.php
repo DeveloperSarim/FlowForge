@@ -14,7 +14,7 @@ use RuntimeException;
  */
 class GraphValidator
 {
-    public const NODE_DATA_KEYS = ['integration', 'action', 'trigger', 'config', 'credential_id', 'label', 'notes'];
+    public const NODE_DATA_KEYS = ['integration', 'action', 'trigger', 'config', 'credential_id', 'label', 'notes', 'disabled', 'retries', 'on_error'];
 
     /** Keep only what the engine needs; React Flow adds UI state (selected, measured, dragging…). */
     public static function normalize(array $graph): array
@@ -23,7 +23,7 @@ class GraphValidator
             'id' => $node['id'],
             'type' => $node['type'],
             'position' => ['x' => round((float) $node['position']['x'], 1), 'y' => round((float) $node['position']['y'], 1)],
-            'data' => Arr::only($node['data'] ?? [], self::NODE_DATA_KEYS),
+            'data' => self::stepSettings(Arr::only($node['data'] ?? [], self::NODE_DATA_KEYS), $node['type']),
         ], $graph['nodes']);
 
         $edges = array_map(fn (array $edge) => [
@@ -59,6 +59,25 @@ class GraphValidator
         }
 
         return ['nodes' => $nodes, 'edges' => $edges];
+    }
+
+    /**
+     * A step's run settings, kept only when they differ from the default: disabled (skipped, the path goes on),
+     * retries (0-5 quick tries again on temporary errors) and on_error ("continue" keeps the run going).
+     */
+    private static function stepSettings(array $data, string $type): array
+    {
+        $settings = Arr::only($data, ['disabled', 'retries', 'on_error']);
+        $data = Arr::except($data, ['disabled', 'retries', 'on_error']);
+        if ($type === 'trigger') {
+            return $data;
+        }
+
+        return $data + array_filter([
+            'disabled' => filter_var($settings['disabled'] ?? false, FILTER_VALIDATE_BOOLEAN) ?: null,
+            'retries' => max(0, min(5, (int) ($settings['retries'] ?? 0))) ?: null,
+            'on_error' => ($settings['on_error'] ?? null) === 'continue' ? 'continue' : null,
+        ]);
     }
 
     public static function assertActivatable(Workflow $workflow): void

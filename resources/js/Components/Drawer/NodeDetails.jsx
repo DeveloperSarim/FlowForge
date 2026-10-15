@@ -4,7 +4,7 @@ import DataView from '@/Components/DataView';
 import IntegrationIcon from '@/Components/IntegrationIcon';
 import Markdown from '@/Components/Markdown';
 import DynamicForm, { InsertTargetContext } from '@/Components/Drawer/DynamicForm';
-import { Badge, Button, Combobox, ConfirmButton, Field, Select, StatusBadge, Tabs } from '@/Components/ui';
+import { Badge, Button, Combobox, ConfirmButton, Field, Select, StatusBadge, Switch, Tabs } from '@/Components/ui';
 import { useIntegration } from '@/lib/integrations';
 import { copy, duration, timeAgo, toast } from '@/lib/utils';
 
@@ -77,6 +77,45 @@ function TriggerInfo({ spec, workflow }) {
 /**
  * n8n-style node details view: INPUT (upstream data, drag or click fields to map) | PARAMETERS | OUTPUT.
  */
+const RETRIES = [[0, "Don't try again"], [1, 'Try again once'], [3, 'Try again up to 3 times'], [5, 'Try again up to 5 times']];
+
+/** Off switch, quick retries and "keep going" for one step. Defaults: on, no retries, stop the run. */
+function StepSettings({ data, onChange }) {
+    const changed = !!(data.disabled || data.retries || data.on_error);
+    return (
+        <details className="rounded-xl border border-line" open={changed}>
+            <summary className="flex cursor-pointer items-center gap-2 px-3 py-2.5 text-[13px] font-medium">
+                When this step runs
+                {changed && <span className="ml-auto text-[12px] font-normal text-fg-muted">{data.disabled ? 'Turned off' : 'Changed'}</span>}
+            </summary>
+            <div className="space-y-3 border-t border-line px-3 py-3">
+                <label className="flex items-start justify-between gap-3 text-[13px]">
+                    <span>
+                        <span className="block font-medium">Step is on</span>
+                        <span className="block text-[12px] text-fg-muted">Turned off, runs skip it and go on to the next step.</span>
+                    </span>
+                    <Switch checked={!data.disabled} onChange={(on) => onChange({ disabled: on ? undefined : true })} label="Step is on" size="sm" />
+                </label>
+                <Field label="If the app is busy, slow or down" help="Tries again after a few seconds. Mistakes in the data or the key aren't retried.">
+                    {(id) => (
+                        <Select id={id} value={data.retries ?? 0} onChange={(e) => onChange({ retries: Number(e.target.value) || undefined })}>
+                            {RETRIES.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+                        </Select>
+                    )}
+                </Field>
+                <Field label="If it still fails" help={data.on_error === 'continue' ? 'Later steps run anyway and can check what went wrong in this step\'s "error" field.' : null}>
+                    {(id) => (
+                        <Select id={id} value={data.on_error ?? 'stop'} onChange={(e) => onChange({ on_error: e.target.value === 'continue' ? 'continue' : undefined })}>
+                            <option value="stop">Stop the workflow</option>
+                            <option value="continue">Keep going with the next steps</option>
+                        </Select>
+                    )}
+                </Field>
+            </div>
+        </details>
+    );
+}
+
 export default function NodeDetails({ node, catalog, operators, workflow, upstream, runStep, executing, onChange, onExecute, onDelete, onClose, readOnly = false }) {
     const data = node.data;
     const isTrigger = node.type === 'trigger';
@@ -217,6 +256,7 @@ export default function NodeDetails({ node, catalog, operators, workflow, upstre
                                 )}
 
                                 {operation && <DynamicForm inputs={operation.inputs} config={data.config} onChange={setConfig} operators={operators} />}
+                                {operation && !isTrigger && <StepSettings data={data} onChange={onChange} />}
                             </fieldset>
                         </Pane>
 

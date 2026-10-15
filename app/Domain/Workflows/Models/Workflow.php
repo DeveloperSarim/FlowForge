@@ -12,14 +12,22 @@ use Illuminate\Support\Str;
 use Throwable;
 
 /**
- * graph = { nodes: [{id, type: trigger|action|branch, position, data: {integration, action|trigger, config, credential_id, label}}],
+ * graph = { nodes: [{id, type: trigger|action|branch, position, data: {integration, action|trigger, config, credential_id, label,
+ *                     disabled?, retries?, on_error?}}],
  *           edges: [{id, source, target, sourceHandle}] }
+ * settings = { auto_retry?: bool (default true) }
  */
 class Workflow extends Model
 {
     public const TRIGGER_NODE_ID = 'trigger';
 
-    protected $fillable = ['name', 'description', 'is_active', 'graph'];
+    /** Minutes before each automatic retry of a run that failed on a temporary error (like Zapier's Autoreplay). */
+    public const RETRY_DELAYS = [2, 10, 60, 180, 360];
+
+    /** Runs that are retried automatically; editor tests and manual retries are not (someone is watching). */
+    public const RETRYABLE_MODES = ['webhook', 'schedule', 'polling', 'voice', 'error', 'auto_retry'];
+
+    protected $fillable = ['name', 'description', 'is_active', 'graph', 'settings'];
 
     protected $attributes = [
         'graph' => '{"nodes":[],"edges":[]}',
@@ -29,6 +37,7 @@ class Workflow extends Model
     {
         return [
             'graph' => 'array',
+            'settings' => 'array',
             'trigger_state' => 'array',
             'is_active' => 'boolean',
         ];
@@ -128,6 +137,28 @@ class Workflow extends Model
 
         static::query()->active()->where('trigger_type', 'error')->whereKeyNot($this->id)
             ->each(fn (Workflow $handler) => $handler->start('error', $payload));
+    }
+
+    public function autoRetries(): bool
+    {
+        return (bool) ($this->settings['auto_retry'] ?? true);
+    }
+
+    /** Run a failed execution again from its failed step; the steps that succeeded are reused, not repeated. */
+    public function resume(WorkflowExecution $failed, string $mode, bool $sync = false): WorkflowExecution
+    {
+        $execution = $this->executions()->create([
+            'status' => WorkflowExecution::PENDING,
+            'mode' => $mode,
+            'trigger_payload' => $failed->trigger_payload ?? [],
+            'attempt' => ($failed->attempt ?? 1) + 1,
+            'retry_of' => $failed->id,
+        ]);
+        $failed->forceFill(['retry_at' => null])->save(); // a waiting automatic retry is now redundant
+
+        $sync ? RunWorkflow::dispatchSync($execution->id) : RunWorkflow::dispatch($execution->id);
+
+        return $execution->refresh();
     }
 
     /**

@@ -2,6 +2,12 @@
 
 All notable changes to FlowForge. Versions follow [semantic versioning](https://semver.org).
 
+## [Unreleased]
+
+- Automatic retries (like Zapier's Autoreplay): a run that fails because an app is down, slow or rate-limited is retried from the failed step after 2 minutes, 10 minutes, 1 hour, 3 hours and 6 hours. Steps that already worked aren't repeated, and the failure email and error workflows wait for the last try. On by default; switch it off per workflow under ⋯ → Retries and errors.
+- Step settings (open a step, "When this step runs"): try again right away up to 5 times on temporary errors, keep going with the next steps when it fails, or turn the step off (also from the canvas toolbar).
+- Executions → Retry now resumes from the failed step; "from the start" runs every step again. Runs show which try they are and when the next automatic try is.
+
 ## [1.6.0] - 2026-10-15
 
 - About 500 new apps (now 1,690): AI, communication and regional SMS, social media, marketing and email verification, SEO, CRM, helpdesks, developer tools, security, payments (including Middle East, Africa and crypto gateways), shipping and couriers, productivity, project management, files and e-signature, analytics, databases, CMS and hosting panels (cPanel, WHM, Plesk), HR, forms, education, media, events and IoT.

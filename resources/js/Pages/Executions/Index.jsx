@@ -1,11 +1,15 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, router } from '@inertiajs/react';
-import { ListChecks, Loader2, RotateCcw, X } from 'lucide-react';
+import { ChevronDown, ListChecks, Loader2, RotateCcw, RotateCw, X } from 'lucide-react';
 import AppLayout from '@/Layouts/AppLayout';
 import ExecutionDebug from '@/Components/ExecutionDebug';
-import { Button, Card, EmptyState, Select, Sheet, StatusBadge, Tabs } from '@/Components/ui';
+import { Button, Card, EmptyState, Menu, Select, Sheet, StatusBadge, Tabs } from '@/Components/ui';
 import { cn, duration, errorMessage, timeAgo, toast } from '@/lib/utils';
 import { useCan } from '@/lib/can';
+
+const MODES = { auto_retry: 'Automatic retry', retry: 'Retry', webhook: 'Webhook', schedule: 'Schedule', polling: 'App trigger', test: 'Editor test', error: 'Failure trigger', voice: 'Voice agent' };
+const modeLabel = (mode) => MODES[mode] ?? mode;
+const clock = (iso) => new Date(iso).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
 
 const STATUSES = [['', 'All'], ['completed', 'Succeeded'], ['failed', 'Failed'], ['running', 'Running'], ['pending', 'Queued']];
 
@@ -57,8 +61,9 @@ export default function Index({ executions, filters, workflows }) {
                                     <td className="max-w-0 px-4 py-3">
                                         <button type="button" className="block w-full truncate text-left font-medium hover:text-primary">#{execution.id} {execution.workflow.name}</button>
                                         {execution.error && <p className="truncate text-[12.5px] text-fail">{execution.error}</p>}
+                                        {execution.retry_at && <p className="flex items-center gap-1 text-[12px] text-fg-muted"><RotateCw className="size-3" />Tries again at {clock(execution.retry_at)}</p>}
                                     </td>
-                                    <td className="hidden px-4 py-3 text-fg-muted capitalize sm:table-cell">{execution.mode}</td>
+                                    <td className="hidden px-4 py-3 text-fg-muted sm:table-cell">{modeLabel(execution.mode)}{execution.attempt > 1 && <span className="text-fg-subtle">, try {execution.attempt}</span>}</td>
                                     <td className="hidden px-4 py-3 text-fg-muted md:table-cell" title={execution.created_at}>{timeAgo(execution.created_at)}</td>
                                     <td className="hidden px-4 py-3 text-right text-fg-muted tabular-nums sm:table-cell">{duration(execution.duration_ms)}</td>
                                 </tr>
@@ -108,7 +113,7 @@ function DebugSheet({ id, onClose }) {
     }, [id]);
 
     const can = useCan();
-    const retry = () => router.post(`/executions/${id}/retry`, {}, { preserveScroll: true, onSuccess: onClose, onError: () => toast('Retry failed.', 'error') });
+    const retry = (from) => router.post(`/executions/${id}/retry`, { from }, { preserveScroll: true, onSuccess: onClose, onError: () => toast('Retry failed.', 'error') });
 
     return (
         <Sheet open={!!id} onClose={onClose}>
@@ -117,19 +122,27 @@ function DebugSheet({ id, onClose }) {
                     <h2 className="truncate text-[16px] font-semibold">Run #{id}{execution && <> of {execution.workflow.name}</>}</h2>
                     {execution && (
                         <p className="text-[12.5px] text-fg-muted">
-                            Started by {execution.mode}, {timeAgo(execution.created_at)}, took {duration(execution.duration_ms)}
+                            {modeLabel(execution.mode)}{execution.attempt > 1 && ` (try ${execution.attempt})`}, {timeAgo(execution.created_at)}, took {duration(execution.duration_ms)}
                         </p>
                     )}
                 </div>
                 {execution && <StatusBadge status={execution.status} />}
                 {execution && <Link href={`/workflows/${execution.workflow.id}`} className="hidden rounded-md px-2 py-1.5 text-[13px] text-fg-muted hover:bg-surface-2 hover:text-fg sm:inline">Open workflow</Link>}
-                {can['workflows.edit'] && execution && execution.status !== 'pending' && execution.status !== 'running' && (
-                    <Button size="sm" onClick={retry}><RotateCcw className="size-3.5" />Retry</Button>
-                )}
+                {can['workflows.edit'] && execution && execution.status !== 'pending' && execution.status !== 'running' && (execution.can_resume ? (
+                    <Menu trigger={<Button size="sm"><RotateCcw className="size-3.5" />Retry<ChevronDown className="size-3.5" /></Button>} items={[
+                        { label: 'From the step that failed', icon: RotateCcw, onClick: () => retry('failed') },
+                        { label: 'From the start (repeats every step)', icon: RotateCw, onClick: () => retry('start') },
+                    ]} />
+                ) : <Button size="sm" onClick={() => retry('start')}><RotateCcw className="size-3.5" />Run again</Button>)}
                 <Button variant="ghost" size="icon" onClick={onClose} aria-label="Close"><X className="size-4" /></Button>
             </header>
             {error && <p className="p-5 text-[13px] text-fail">{error}</p>}
             {!execution && !error && <p className="flex items-center gap-2 p-5 text-[13px] text-fg-muted"><Loader2 className="size-4 animate-spin" />Loading run…</p>}
+            {execution?.retry_at && (
+                <p className="flex items-center gap-2 border-b border-line bg-surface-2 px-5 py-2.5 text-[13px] text-fg-muted">
+                    <RotateCw className="size-4 shrink-0 text-primary" />FlowForge tries again from the failed step at {clock(execution.retry_at)}. The failure email waits until every try has failed.
+                </p>
+            )}
             {execution && execution.steps.length === 0 && (
                 <p className="p-5 text-[13px] text-fg-muted">{execution.status === 'pending' ? 'Queued: it starts on the next scheduler tick (at most a minute).' : execution.error ?? 'No steps were recorded.'}</p>
             )}

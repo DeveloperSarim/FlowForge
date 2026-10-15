@@ -21,7 +21,7 @@ class ExecutionController extends Controller
         ]);
 
         $executions = WorkflowExecution::query()
-            ->select(['id', 'workflow_id', 'status', 'mode', 'error', 'started_at', 'finished_at', 'duration_ms', 'created_at'])
+            ->select(['id', 'workflow_id', 'status', 'mode', 'error', 'started_at', 'finished_at', 'duration_ms', 'created_at', 'attempt', 'retry_at'])
             ->with('workflow:id,name')
             ->when($filters['workflow'] ?? null, fn ($query, $id) => $query->where('workflow_id', $id))
             ->when($filters['status'] ?? null, fn ($query, $status) => $query->where('status', $status))
@@ -36,6 +36,8 @@ class ExecutionController extends Controller
                 'error' => $execution->error,
                 'duration_ms' => $execution->duration_ms,
                 'created_at' => $execution->created_at?->toIso8601String(),
+                'attempt' => $execution->attempt ?? 1,
+                'retry_at' => $execution->retry_at?->toIso8601String(),
             ]);
 
         return Inertia::render('Executions/Index', [
@@ -50,10 +52,14 @@ class ExecutionController extends Controller
         return response()->json(['execution' => $execution->load('workflow:id,name')->toDebugArray()]);
     }
 
-    public function retry(WorkflowExecution $execution): RedirectResponse
+    /** Retry a run: by default from the step that failed (earlier steps aren't repeated), or from the start. */
+    public function retry(Request $request, WorkflowExecution $execution): RedirectResponse
     {
-        $execution->workflow->start('retry', $execution->trigger_payload ?? []);
+        $fromStart = $request->input('from') === 'start' || $execution->status !== WorkflowExecution::FAILED;
+        $fromStart
+            ? $execution->workflow->start('retry', $execution->trigger_payload ?? [])
+            : $execution->workflow->resume($execution, 'retry');
 
-        return back()->with('success', 'Retry queued — it runs on the next scheduler tick.');
+        return back()->with('success', ($fromStart ? 'Run again from the start' : 'Retrying from the failed step').': it runs on the next scheduler tick, within a minute.');
     }
 }

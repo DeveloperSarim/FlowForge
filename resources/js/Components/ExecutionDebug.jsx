@@ -66,9 +66,12 @@ export default function ExecutionDebug({ execution, compact = false }) {
                             {step.http_status && <Badge tone={httpTone(step.http_status)}>HTTP {step.http_status}</Badge>}
                             {step.handle && <Badge tone="info">Took the {step.handle} branch</Badge>}
                             {step.halted && <Badge tone="warn">Stopped by filter</Badge>}
+                            {step.reused && <Badge tone="info">Done in an earlier try</Badge>}
+                            {step.tries > 1 && <Badge tone="warn">Took {step.tries} tries</Badge>}
+                            {step.continued && <Badge tone="warn">Failed, the run kept going</Badge>}
                         </div>
                         {step.status === 'skipped' && (
-                            <p className="text-[13px] text-fg-muted">This step didn't run: no path reached it{execution.status === 'failed' ? ', or an earlier step failed' : ''}.</p>
+                            <p className="text-[13px] text-fg-muted">{step.disabled ? 'This step is turned off, so the run skipped it and went on.' : `This step didn't run: no path reached it${execution.status === 'failed' ? ', or an earlier step failed' : ''}.`}</p>
                         )}
                         {step.error && <p className="mb-4 flex gap-2 rounded-lg bg-fail-soft px-3 py-2.5 text-[13px] text-fail"><AlertCircle className="mt-px size-4 shrink-0" />{step.error}</p>}
                         {step.status !== 'skipped' && (

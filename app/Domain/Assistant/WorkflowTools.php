@@ -37,6 +37,9 @@ class WorkflowTools
             'label' => ['type' => 'string'],
             'config' => ['type' => 'object', 'description' => 'Input values keyed by input key'],
             'credential_id' => ['type' => 'integer'],
+            'retries' => ['type' => 'integer', 'description' => 'Optional 1-5: try the step again when an app is temporarily down, slow or rate-limited'],
+            'on_error' => ['type' => 'string', 'description' => 'Optional "continue": if the step fails, later steps still run and can read {{ steps.<id>.error }}'],
+            'disabled' => ['type' => 'boolean', 'description' => 'Optional: the step is skipped and the path goes on'],
         ], 'required' => ['id', 'app', 'op']];
         $edge = ['type' => 'object', 'properties' => [
             'from' => ['type' => 'string'], 'to' => ['type' => 'string'],
@@ -292,6 +295,9 @@ class WorkflowTools
                 'label' => $n['data']['label'] ?? null,
                 'config' => $n['data']['config'] ?? null,
                 'credential_id' => $n['data']['credential_id'] ?? null,
+                'retries' => $n['data']['retries'] ?? null,
+                'on_error' => $n['data']['on_error'] ?? null,
+                'disabled' => $n['data']['disabled'] ?? null,
             ], fn ($v) => $v !== null && $v !== []), $workflow->graph['nodes'] ?? []),
             'edges' => array_map(fn ($e) => array_filter(['from' => $e['source'], 'to' => $e['target'], 'branch' => $e['sourceHandle'] ?? null]), $workflow->graph['edges'] ?? []),
         ];
@@ -395,6 +401,9 @@ class WorkflowTools
                     'label' => $node['label'] ?? $operation['name'],
                     'config' => (array) $config,
                     'credential_id' => $credentialId,
+                    'retries' => isset($node['retries']) ? (int) $node['retries'] : null,
+                    'on_error' => $node['on_error'] ?? null,
+                    'disabled' => ! empty($node['disabled']) ? true : null,
                 ], fn ($v) => $v !== null),
             ];
         }

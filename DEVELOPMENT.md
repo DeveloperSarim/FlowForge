@@ -167,7 +167,9 @@ Runs are stored in `workflow_executions`, with each step's resolved input, outpu
 - **Shape:** the workflow is a DAG stored as JSON in `workflows.graph`. Saving rejects loops and edges into the trigger.
 - **Order:** nodes run in topological order.
 - **When a node runs:** when at least one incoming edge is live. If/Else emits `true` or `false`. A failing Filter emits nothing, which stops that path.
-- **Failure:** the first failing step fails the run, and the rest are marked skipped.
+- **Failure:** the first failing step fails the run, and the rest are marked skipped, unless the step says otherwise (below).
+- **Step settings** (node `data`, cleaned by `GraphValidator::normalize`): `disabled` skips the step and the path goes on (an If/Else takes "true"); `retries` (1-5) tries it again after 2, 4, 8, 16, 30 s, only when `ActionException::isTemporary()` (no response, 408/425/429, 5xx, SMTP transport errors); `on_error: "continue"` records the failure, puts `{error, http_status}` in its output and goes on.
+- **Automatic retries** (`workflows.settings.auto_retry`, on unless switched off): a production run (webhook, schedule, polling, voice, error) that failed on a temporary error gets `retry_at`, and `RetryExecution` is queued with a delay of 2, 10, 60, 180 and 360 minutes. It creates a run with `retry_of` and `attempt + 1`; `GraphRunner` reuses the steps that succeeded in the failed run (nothing is reused if an output was truncated), so emails and API writes aren't repeated. The failure email and error workflows wait for the last try. Editor tests and manual retries are never retried automatically; a workflow switched off meanwhile isn't retried. Executions → Retry resumes from the failed step by default (`from: start` runs everything again).
 
 ### Variables
 
@@ -311,7 +313,7 @@ Use the plain PHP server, not `php artisan serve --no-reload`. The latter passes
 - **Webhook handshakes:** the endpoint answers Meta, Microsoft Graph, Slack, monday.com, Asana and Trello. Zoom's signed URL validation is not handled.
 - **OAuth:** supports the authorization-code flow only. Apps that require PKCE (X/Twitter, Etsy, Canva) or client credentials only (Personio, Snov.io) use pasted tokens or were left out.
 - **Request bodies:** multipart file uploads aren't supported. Empty JSON objects (`{}`) are sent as `[]`.
-- Steps don't retry, and there is no "continue on fail". The first failure stops the run.
+- A step that timed out may still have done its work on the app's side; retrying it can then repeat that one action.
 - Polling dedupes on the last 1,000 item ids per workflow.
 
 ## License
