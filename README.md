@@ -12,7 +12,7 @@
 
 <p align="center">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-AGPL--3.0-ee5a24?style=flat-square" alt="License: AGPL-3.0"></a>
-  <a href="https://github.com/DeveloperSarim/FlowForge/releases"><img src="https://img.shields.io/badge/version-1.6.0-15181d?style=flat-square" alt="Version 1.6.0"></a>
+  <a href="https://github.com/DeveloperSarim/FlowForge/releases"><img src="https://img.shields.io/badge/version-1.6.1-15181d?style=flat-square" alt="Version 1.6.1"></a>
   <img src="https://img.shields.io/badge/PHP-8.2%2B-777bb4?style=flat-square&logo=php&logoColor=white" alt="PHP 8.2+">
   <img src="https://img.shields.io/badge/Laravel-12-ff2d20?style=flat-square&logo=laravel&logoColor=white" alt="Laravel 12">
   <img src="https://img.shields.io/badge/React-18-087ea4?style=flat-square&logo=react&logoColor=white" alt="React 18">
@@ -44,6 +44,8 @@ FlowForge is a **self-hosted workflow automation platform** for people who alrea
 - **Build visually or with AI.** Drag steps onto a canvas, or type *"When a Typeform is submitted, add the person to HubSpot and tell #sales on Slack"* and the AI Builder makes it.
 - **Any app, even one that isn't listed.** If a service is missing, the AI Builder adds it as a custom app from its API (or you import its OpenAPI file), then builds the workflow with it.
 - **Answer the phone with AI.** Build an AI receptionist or calling agent in minutes, test it free in your browser, then give it a real phone number. It books appointments and passes every call (recording, transcript, summary) to your workflows.
+- **Runs that recover on their own.** When an app is down or slow, failed runs retry automatically from the step that failed (2 minutes to 6 hours later), so nothing is sent twice. Each workflow has an Auto-retry switch, and each step can retry, keep going or be turned off.
+- **Any AI model.** OpenAI, Claude, Gemini, DeepSeek, Qwen, or any OpenAI- or Anthropic-compatible API (OpenRouter, Groq, Ollama…) as a custom provider.
 - **Own your data.** Workflows, credentials and run history stay in your own MySQL database. Credentials are encrypted and never sent to the browser.
 
 ## 📞 AI voice agents: an AI receptionist and calling agent
