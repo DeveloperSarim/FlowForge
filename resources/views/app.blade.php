@@ -34,12 +34,13 @@
         <meta property="og:image:type" content="image/png">
         <meta property="og:image:width" content="1200">
         <meta property="og:image:height" content="630">
-        <meta property="og:image:alt" content="FlowForge: a workflow connecting a webhook, Slack, OpenAI and HubSpot">
+        <meta property="og:image:alt" content="FlowForge: automate the busywork and answer every call. An AI receptionist connected to Google Calendar, Slack and HubSpot.">
         <meta name="twitter:card" content="summary_large_image">
         <meta name="twitter:title" content="FlowForge: automate the busywork">
         <meta name="twitter:description" content="{{ $description }}">
         <meta name="twitter:image" content="{{ asset('og-image.png') }}">
-        <link rel="icon" href="{{ asset('favicon.ico') }}" sizes="32x32">
+        <link rel="icon" href="{{ asset('favicon.ico') }}" sizes="48x48">
+        <link rel="icon" href="{{ asset('favicon-96.png') }}" type="image/png" sizes="96x96">
         <link rel="icon" href="{{ asset('favicon.svg') }}" type="image/svg+xml">
         <link rel="apple-touch-icon" href="{{ asset('apple-touch-icon.png') }}">
         <link rel="manifest" href="{{ asset('site.webmanifest') }}">
