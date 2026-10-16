@@ -2,7 +2,7 @@
 
 All notable changes to FlowForge. Versions follow [semantic versioning](https://semver.org).
 
-## [Unreleased]
+## [1.6.3] - 2026-10-16
 
 - Settings → Updates shows the release notes ("What's new") formatted: headings, bold text, lists, code and the downloads table, instead of raw Markdown.
 
