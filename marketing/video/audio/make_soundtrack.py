@@ -211,42 +211,69 @@ def drums(b0, b1, claps=True, hats=True, every=1):
         b += 1
 
 
-# Intro + problem (beats 0–12): pads opening up, arpeggio joins
+def beat(scene, frame=0):
+    """A scene's frame as a position in beats (timeline frames are multiples of a beat)."""
+    return (STARTS[scene] + frame) / FPS / BEAT
+
+
+def groove(b0, b1, cutoff=2400, gain=0.27, arp=True, **drum_kw):
+    """The main progression, bar by bar, over [b0, b1) beats, with drums."""
+    b, i = b0, 0
+    while b < b1:
+        n = min(4, b1 - b)
+        chord_bar(prog[i % 4], b, n, cutoff, gain=gain, arp=arp)
+        b, i = b + n, i + 1
+    drums(b0, b1, **drum_kw)
+
+
+prog = [AM, F, C, G]
+B = {sid: round(beat(sid)) for sid in STARTS}
+END = round(TOTAL_FRAMES / FPS / BEAT)
+
+# Intro + problem: pads opening up, the arpeggio joins
 chord_bar(AM, 0, 4, 900, arp=False, bass_on=False)
 chord_bar(F, 4, 4, 1300, bass_on=False)
-chord_bar(C, 8, 4, 1700, bass_on=False)
-place(riser(1.5), b2s(9.5), 0.3)
+chord_bar(C, 8, B['hook'] - 8, 1700, bass_on=False)
+place(riser(1.5), b2s(B['hook'] - 3), 0.3)
 
-# Hook (12–17): impact, then a dark drone and a riser into the drop
-place(impact(), b2s(12), 0.9, send=0.3)
-place(pad([45, 52, 57], b2s(5) + 0.3, 500), b2s(12), 0.4, send=0.3)
-for b in (13, 14, 15, 16):
+# Hook: impact, a dark drone, a riser into the drop
+place(impact(), b2s(B['hook']), 0.9, send=0.3)
+place(pad([45, 52, 57], b2s(B['meet'] - B['hook']) + 0.3, 500), b2s(B['hook']), 0.4, send=0.3)
+for b in range(B['hook'] + 1, B['meet']):
     place(kick(), b2s(b), 0.35)
-place(riser(1.0), b2s(16), 0.35)
+place(riser(1.0), b2s(B['meet'] - 2), 0.35)
 
-# Drop (17–57): full groove, Am F C G
-prog = [AM, F, C, G]
-for i, b in enumerate(range(17, 57, 4)):
-    chord_bar(prog[i % 4], b, 4, 2400)
-drums(17, 57)
+# Drop: dashboard, builder, apps, AI builder
+groove(B['meet'], B['voiceHook'])
 
-# Cron, the dark scene (57–66): filtered, half-time
-chord_bar(AM, 57, 4, 650, gain=0.36, arp=False)
-chord_bar(F, 61, 5, 650, gain=0.36, arp=False)
-drums(57, 66, claps=False, hats=False, every=2)
-place(riser(1.0), b2s(64), 0.3)
+# "Now it answers your phone": the music falls away to a heartbeat
+place(impact(), b2s(B['voiceHook']), 0.85, send=0.35)
+place(pad([45, 52, 57, 64], b2s(B['voice'] - B['voiceHook']) + 0.4, 650), b2s(B['voiceHook']), 0.42, send=0.4)
+for b in (B['voiceHook'] + 1, B['voiceHook'] + 1.5, B['voiceHook'] + 3, B['voiceHook'] + 3.5):
+    place(kick(), b2s(b), 0.4)
+place(riser(1.0), b2s(B['voice'] - 2), 0.3)
 
-# Features + phones (66–82): back to full
-for i, b in enumerate(range(66, 82, 4)):
-    chord_bar(prog[i], b, 4, 2700)
-drums(66, 82)
+# The call: a softer, half-time groove so the call sounds sit on top
+groove(B['voice'], B['templates'], cutoff=1500, gain=0.24, claps=False, every=2)
 
-# Outro (82–end): resolve on C with a bell arpeggio
-place(impact(), b2s(82), 0.8, send=0.35)
-place(pad([48, 55, 60, 64, 67], DUR - b2s(82), 2000), b2s(82), 0.42, send=0.45)
-place(bass(36, 3.0), b2s(82), 0.5)
+# Templates + retries: full groove again
+groove(B['templates'], B['security'])
+
+# Security + cron, the dark scenes: filtered half-time
+for i, b in enumerate(range(B['security'], B['mcp'], 4)):
+    chord_bar([AM, F][i % 2], b, min(4, B['mcp'] - b), 650, gain=0.36, arp=False)
+drums(B['security'], B['mcp'], claps=False, hats=False, every=2)
+place(riser(1.0), b2s(B['mcp'] - 2), 0.3)
+
+# MCP + phones
+groove(B['mcp'], B['outro'])
+
+# Outro: resolve on C with a bell arpeggio
+place(impact(), b2s(B['outro']), 0.8, send=0.35)
+place(pad([48, 55, 60, 64, 67], DUR - b2s(B['outro']), 2000), b2s(B['outro']), 0.42, send=0.45)
+place(bass(36, 3.0), b2s(B['outro']), 0.5)
 for k, nn in enumerate([72, 76, 79, 84, 88]):
-    place(bell(note(nn)), b2s(82.5) + k * 0.28, 0.1, pan=(k - 2) * 0.25, send=0.5)
+    place(bell(note(nn)), b2s(B['outro'] + 0.5) + k * 0.28, 0.1, pan=(k - 2) * 0.25, send=0.5)
 
 # Sidechain: pads and bass duck under each kick, the "pumping" feel
 duck = np.ones(N)
@@ -260,10 +287,36 @@ dry[:] = 0
 verb[:] = 0
 
 # ---------- sound effects, on the frames of the animations ----------
-FX = 1.0
+def ringtone():
+    """A soft marimba-like ring: a rising bell figure, played twice per ring."""
+    out = np.zeros(int(0.9 * SR))
+    for k, nn in enumerate((76, 83, 88, 83, 88)):
+        sig = bell(note(nn), 0.5) * 0.6
+        i = int(k * 0.11 * SR)
+        out[i:i + len(sig)] += sig[:len(out) - i]
+    return out
+
+
+def thud():
+    t = tt(0.5)
+    body = np.sin(2 * np.pi * np.cumsum(70 + 80 * np.exp(-t * 18)) / SR) * np.exp(-t * 8)
+    buzz = filt(sawtooth(2 * np.pi * 116 * t), 'low', 900) * np.exp(-t * 14) * 0.35
+    return body + buzz + filt(noise(0.5), 'low', 700) * np.exp(-t * 30) * 0.3
+
+
+def typing(scene, f0, f1, chars, gain=(0.1, 0.17)):
+    typed = 0
+    for fr in range(f0, f1 + 1):
+        now = int(chars * (fr - f0) / max(1, f1 - f0))
+        if now > typed:
+            for c in range(min(2, now - typed)):
+                place(key(), sec(scene, fr) + c * 0.016 + rng.uniform(0, 0.01), rng.uniform(*gain), pan=rng.uniform(-0.2, 0.2))
+            typed = now
+
+
 # transitions
-for sid in ('problem', 'meet', 'builder', 'apps', 'ai', 'cron', 'features', 'mobile'):
-    place(whoosh(0.6), STARTS[sid] / FPS - 0.18, 0.38 * FX, send=0.25)
+for sid in ('problem', 'meet', 'builder', 'apps', 'ai', 'voice', 'templates', 'reliability', 'security', 'cron', 'mcp', 'mobile'):
+    place(whoosh(0.6), STARTS[sid] / FPS - 0.18, 0.38, send=0.25)
 
 # intro
 place(whoosh(0.9), 0, 0.25, send=0.3)
@@ -272,10 +325,11 @@ place(swish(0.45), sec('intro', 9), 0.18)
 place(pop(1250), sec('intro', 27), 0.3, send=0.3)
 for i in range(9):
     place(tick(2200 + i * 60), sec('intro', 19 + i * 2), 0.05, pan=-0.4 + i * 0.1)
+place(swish(0.4), sec('intro', 54), 0.14, pan=0.3)
 
 # problem: the strike-throughs
-place(swish(0.32), sec('problem', 30), 0.35, pan=-0.2)
-place(swish(0.32), sec('problem', 76), 0.35, pan=0.2)
+for k, fr in enumerate((30, 68, 106)):
+    place(swish(0.32), sec('problem', fr), 0.35, pan=(k - 1) * 0.3)
 
 # meet: the dashboard rises, then the camera zooms in
 place(whoosh(0.8), sec('meet', 6), 0.3, send=0.2)
@@ -293,52 +347,83 @@ place(whoosh(2.0), sec('builder', 96), 0.12)
 for k, (fr, nn) in enumerate(zip((98, 127, 156), (88, 91, 96))):
     place(bell(note(nn)), sec('builder', fr), 0.16, pan=(k - 1) * 0.5, send=0.4)
 
-# apps: the counter ticks (fast, then slowing) and the logos pop in waves
+# apps: the counter ticks (fast, then slowing), the logos pop in waves, the custom-app chip
 last = -1
 for fr in range(6, 63):
-    v = 1190 * (1 - (1 - (fr - 6) / 56) ** 3)
-    if int(v // 40) != last:
-        last = int(v // 40)
-        place(tick(1800 + v * 0.8), sec('apps', fr), 0.07)
+    v = 1690 * (1 - (1 - (fr - 6) / 56) ** 3)
+    if int(v // 56) != last:
+        last = int(v // 56)
+        place(tick(1800 + v * 0.6), sec('apps', fr), 0.07)
 for w in range(8):
     place(pop(600 + w * 70), sec('apps', 10 + w * 4), 0.18, pan=0.3 + w * 0.05, send=0.2)
+place(pop(760, 0.16), sec('apps', 78), 0.3, send=0.3)
 
-# ai builder: typing, send, steps finishing
-prompt_len = 83
-typed = 0
-for fr in range(14, 75):
-    now = int(prompt_len * (fr - 14) / 60)
-    if now > typed:
-        for c in range(min(2, now - typed)):
-            place(key(), sec('ai', fr) + c * 0.016 + rng.uniform(0, 0.01), rng.uniform(0.1, 0.17), pan=rng.uniform(-0.2, 0.2))
-        typed = now
+# ai builder: model logos, typing, send, steps finishing
+for k in range(5):
+    place(tick(2400 + k * 150), sec('ai', 20 + k * 5), 0.08, pan=0.4)
+typing('ai', 14, 74, 83)
 place(tick(1500), sec('ai', 80), 0.35)
 place(pop(500, 0.18), sec('ai', 85), 0.4, send=0.3)
-for k, (fr, nn) in enumerate(zip((112, 128, 144, 160), (84, 88, 91, 96))):
+for fr, nn in zip((112, 128, 144, 160), (84, 88, 91, 96)):
     place(bell(note(nn)), sec('ai', fr), 0.13, send=0.4)
 
+# "now it answers your phone": the orb swells in
+place(pop(220, 0.3), sec('voiceHook', 4), 0.4, send=0.5)
+place(swish(0.8), sec('voiceHook', 26), 0.12, send=0.4)
+
+# the call: it rings, connects, the lines come in, a booking lands
+for fr in (10, 26):
+    place(ringtone(), sec('voice', fr), 0.22, send=0.35)
+place(tick(900), sec('voice', 40), 0.4)
+place(pop(300, 0.15), sec('voice', 40), 0.3)
+for fr, who in ((50, 'agent'), (86, 'caller'), (112, 'agent'), (140, 'caller'), (158, 'agent')):
+    place(pop(620 if who == 'agent' else 900, 0.1), sec('voice', fr), 0.22, pan=(-0.25 if who == 'agent' else 0.25), send=0.3)
+for k, nn in enumerate((79, 84, 88, 91)):
+    place(bell(note(nn), 1.6), sec('voice', 192) + k * 0.07, 0.12, pan=(k - 1.5) * 0.25, send=0.5)
+for fr in (206, 216):
+    place(pop(840, 0.12), sec('voice', fr), 0.25, send=0.25)
+
+# templates: the two windows slide in
+place(whoosh(0.7), sec('templates', 6), 0.22, send=0.2)
+place(whoosh(0.7), sec('templates', 20), 0.22, send=0.2)
+
+# retries: the run fails, waits, resumes and finishes
+for k, fr in enumerate((4, 12, 20)):
+    place(pop(520 + k * 110), sec('reliability', fr), 0.32, pan=(k - 1) * 0.5, send=0.2)
+place(swish(0.5), sec('reliability', 24), 0.12)
+place(thud(), sec('reliability', 40), 0.5, send=0.2)
+for fr in range(56, 98, 8):
+    place(tick(1300), sec('reliability', fr), 0.16)
+place(whoosh(0.9), sec('reliability', 98), 0.2)
+for fr, nn in ((116, 88), (132, 96)):
+    place(bell(note(nn)), sec('reliability', fr), 0.16, send=0.4)
+
+# security: the cards land
+for i in range(6):
+    place(pop(380 + i * 60, 0.16), sec('security', 10 + i * 6), 0.26, pan=(i % 3 - 1) * 0.5, send=0.25)
+
 # cron: mechanical typing, enter, chips
-typed = 0
-for fr in range(18, 59):
-    now = int(34 * (fr - 18) / 40)
-    if now > typed:
-        place(key(), sec('cron', fr), rng.uniform(0.14, 0.2))
-        typed = now
+typing('cron', 18, 58, 34, gain=(0.14, 0.2))
 place(pop(180, 0.2), sec('cron', 60), 0.45)
-for k, fr in enumerate((68, 74, 80, 86)):
+for k, fr in enumerate((66, 72, 78, 84)):
     place(pop(560 + k * 90), sec('cron', fr), 0.25, pan=-0.45 + k * 0.3, send=0.2)
 
-# features: cards land
-for i in range(6):
-    place(pop(480 + i * 70, 0.16), sec('features', 12 + i * 7), 0.28, pan=(i % 3 - 1) * 0.5, send=0.25)
+# mcp: typing the command, the agent's lines, the chips
+typing('mcp', 16, 72, 72)
+place(pop(180, 0.2), sec('mcp', 76), 0.4)
+for fr in (84, 100, 118):
+    place(tick(1900), sec('mcp', fr), 0.14)
+place(bell(note(91)), sec('mcp', 132), 0.15, send=0.4)
+for k, fr in enumerate((140, 144, 148, 154)):
+    place(pop(600 + k * 80), sec('mcp', fr), 0.22, pan=-0.45 + k * 0.3, send=0.2)
 
 # phones
-for k, fr in enumerate((6, 14, 22)):
+for fr in (6, 14, 22):
     place(whoosh(0.5), sec('mobile', fr), 0.18, send=0.2)
 
 # outro: chips and the final shimmer
-for k, fr in enumerate((42, 47, 52, 57)):
-    place(pop(620 + k * 80), sec('outro', fr), 0.22, pan=-0.45 + k * 0.3, send=0.25)
+for k, fr in enumerate((38, 42, 46, 50, 54)):
+    place(pop(620 + k * 70), sec('outro', fr), 0.22, pan=-0.5 + k * 0.25, send=0.25)
 for k, nn in enumerate((84, 88, 91, 96)):
     place(bell(note(nn), 1.8), sec('outro', 64) + k * 0.06, 0.1, pan=(k - 1.5) * 0.3, send=0.6)
 

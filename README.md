@@ -31,9 +31,9 @@
 </p>
 
 <p align="center">
-  <a href="https://developersarim.github.io/FlowForge/#video"><img src=".github/readme/preview.gif" width="880" alt="FlowForge in action: a Typeform, HubSpot and Slack workflow runs on the canvas, then the AI Builder builds the same workflow from one sentence"></a>
+  <a href="https://developersarim.github.io/FlowForge/#video"><img src=".github/readme/preview.gif" width="880" alt="FlowForge AI voice agent in action: Sara, an AI receptionist for a dental clinic, takes a call and books Ali Khan for Monday at 11:00; the booking goes to Google Calendar and Slack"></a>
   <br>
-  <a href="https://developersarim.github.io/FlowForge/#video"><b>▶ Watch the full 47-second video (with sound)</b></a>
+  <a href="https://developersarim.github.io/FlowForge/#video"><b>▶ Watch the full 70-second video (with sound)</b></a>
 </p>
 
 ## ✨ What is FlowForge?

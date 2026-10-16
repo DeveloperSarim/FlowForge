@@ -7,7 +7,7 @@ export const { fontFamily: MONO } = loadMono('normal', { weights: ['400', '500']
 
 export const C = {
     bg: '#f6f7f9', paper: '#ffffff', ink: '#15181d', ink2: '#4b5462', muted: '#8a919c', line: '#e3e6ea',
-    brand: '#ee5a24', brandSoft: '#fdf0ea', dark: '#0d0f13', darkCard: '#15181d', darkLine: '#2a2f38', ok: '#16a34a',
+    brand: '#ee5a24', brandSoft: '#fdf0ea', dark: '#0d0f13', darkCard: '#15181d', darkLine: '#2a2f38', ok: '#16a34a', fail: '#dc2626',
 };
 
 /** 0 → 1 with no bounce (smooth) or a little bounce (pop). */
