@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { ArrowUpCircle, Check, ChevronDown, ExternalLink, FileArchive, Loader2, RefreshCw, Sparkles, TriangleAlert, UploadCloud, X } from 'lucide-react';
 import { Button, Card, buttonClass } from '@/Components/ui';
+import RichText from '@/Components/RichText';
 import { cn, errorMessage, timeAgo } from '@/lib/utils';
 
 const CHUNK = 1.5 * 1024 * 1024; // stays under the smallest common upload_max_filesize (2 MB)
@@ -241,7 +242,7 @@ function GitHubStatus({ check, repo, current, onCheck, onInstall }) {
                         <button type="button" onClick={() => setNotesOpen((o) => !o)} aria-expanded={notesOpen} className="flex items-center gap-1.5 text-[13px] font-medium text-primary hover:underline">
                             <ChevronDown className={cn('size-4 transition-transform', notesOpen && 'rotate-180')} />What's new
                         </button>
-                        {notesOpen && <div className="mt-2 max-h-64 overflow-y-auto whitespace-pre-line break-words rounded-lg bg-surface px-3.5 py-3 text-[12.5px] leading-relaxed text-fg-muted">{latest.notes}</div>}
+                        {notesOpen && <div className="mt-2 max-h-80 overflow-y-auto break-words rounded-lg bg-surface px-3.5 py-3"><RichText text={latest.notes} className="text-[13px] text-fg-muted [&_strong]:text-fg" /></div>}
                     </div>
                 )}
                 <div className="mt-4 flex flex-wrap gap-2">

@@ -2,6 +2,10 @@
 
 All notable changes to FlowForge. Versions follow [semantic versioning](https://semver.org).
 
+## [Unreleased]
+
+- Settings → Updates shows the release notes ("What's new") formatted: headings, bold text, lists, code and the downloads table, instead of raw Markdown.
+
 ## [1.6.2] - 2026-10-16
 
 - AI Builder answers are formatted: code in boxes with the language and a Copy button, tables, headings, quotes and links (also in the editor's Ask AI panel).
