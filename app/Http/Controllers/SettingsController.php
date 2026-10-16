@@ -29,14 +29,23 @@ use Throwable;
 
 class SettingsController extends Controller
 {
+    /** Each section has its own address: /settings/updates, /settings/ai… */
+    public const TABS = ['account', 'general', 'team', 'appearance', 'email', 'ai', 'api', 'demo', 'updates'];
+
     public function __construct(private SystemSettings $settings) {}
 
-    public function show(Request $request, ManifestLoader $manifests): Response
+    public function show(Request $request, ManifestLoader $manifests, ?string $tab = null): Response|RedirectResponse
     {
+        // Old links (/settings?tab=ai) go to the section's own address; /settings itself is the account section.
+        if ($tab === null && in_array($request->query('tab'), self::TABS, true)) {
+            return redirect('/settings/'.$request->query('tab'));
+        }
+        $tab ??= 'account';
+
         // Everyone: their own MCP tokens. Members see nothing else beyond account and appearance.
         $mcp = ['url' => url('/api/mcp'), 'tokens' => $this->tokens($request->user())];
         if (! $request->user()->isAdmin()) {
-            return Inertia::render('Settings', ['mcp' => $mcp]);
+            return Inertia::render('Settings', ['tab' => $tab, 'mcp' => $mcp]);
         }
 
         $mail = $this->settings->mail();
@@ -45,6 +54,7 @@ class SettingsController extends Controller
         $catalog = $manifests->catalogMap();
 
         return Inertia::render('Settings', [
+            'tab' => $tab,
             'mcp' => $mcp,
             // Secrets never leave the server: only whether one is stored.
             // The demo's visitors see the pages, not the author's mail server or addresses.

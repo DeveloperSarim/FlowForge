@@ -61,7 +61,7 @@ Route::middleware('auth')->group(function () {
     Route::post('logout', [AuthController::class, 'logout']);
 
     // Everyone: their own account and look.
-    Route::get('settings', [SettingsController::class, 'show']);
+    Route::get('settings/{tab?}', [SettingsController::class, 'show'])->whereIn('tab', SettingsController::TABS);
     Route::put('settings/account', [SettingsController::class, 'updateAccount']);
     Route::put('settings/appearance', [SettingsController::class, 'updateAppearance']);
     Route::post('settings/tokens', [SettingsController::class, 'createToken'])->middleware('throttle:20,1');

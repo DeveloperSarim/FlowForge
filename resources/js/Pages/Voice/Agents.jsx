@@ -245,7 +245,7 @@ function NewAgentDialog({ open, onClose, templates, hasAi, onPreview }) {
                     </Button>
                 </div>
             ) : (
-                <p className="rounded-lg bg-surface-2 px-4 py-3 text-[13px] text-fg-muted">Writing agents uses the AI model from <Link href="/settings?tab=ai" className="font-medium text-primary hover:underline">Settings → AI builder</Link>. Add one there (Google Gemini and DeepSeek are free or very cheap), or start from a template.</p>
+                <p className="rounded-lg bg-surface-2 px-4 py-3 text-[13px] text-fg-muted">Writing agents uses the AI model from <Link href="/settings/ai" className="font-medium text-primary hover:underline">Settings → AI builder</Link>. Add one there (Google Gemini and DeepSeek are free or very cheap), or start from a template.</p>
             ))}
 
             {mode === 'template' && (

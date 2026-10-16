@@ -87,7 +87,7 @@ export const openCreateWorkflow = () => window.dispatchEvent(new CustomEvent('ff
 function SchedulerStatus({ lastRun }) {
     const healthy = lastRun && (Date.now() - new Date(lastRun).getTime()) / 60000 < 3;
     return (
-        <Link href="/settings?tab=general" className="flex items-start gap-2.5 rounded-xl bg-surface-2 px-3 py-2.5 text-[12.5px] hover:bg-surface-3" title="Scheduler settings">
+        <Link href="/settings/general" className="flex items-start gap-2.5 rounded-xl bg-surface-2 px-3 py-2.5 text-[12.5px] hover:bg-surface-3" title="Scheduler settings">
             <span className={cn('mt-1.5 size-2 shrink-0 rounded-full', healthy ? 'bg-ok shadow-[0_0_0_3px_var(--ok-soft)]' : 'bg-warn shadow-[0_0_0_3px_var(--warn-soft)]')} aria-hidden />
             <div className="min-w-0">
                 <p className="font-medium">{healthy ? 'Scheduler running' : 'Scheduler not running'}</p>
@@ -175,7 +175,7 @@ export default function AppLayout({ title, description, actions, children, wide 
             </nav>
             <div className="space-y-2 p-3">
                 {can.admin && <SchedulerStatus lastRun={scheduler} />}
-                <Link href={updateAvailable ? '/settings?tab=updates' : '/settings'} className={cn('flex items-center gap-3 rounded-lg px-2.5 py-2 text-[13.5px] font-medium',
+                <Link href={updateAvailable ? '/settings/updates' : '/settings'} className={cn('flex items-center gap-3 rounded-lg px-2.5 py-2 text-[13.5px] font-medium',
                     path.startsWith('/settings') ? 'bg-primary-soft text-primary' : 'text-fg-muted hover:bg-surface-2 hover:text-fg')}>
                     <Settings className="size-[18px]" strokeWidth={1.9} />Settings
                     {updateAvailable && <span className="ml-auto rounded-md bg-primary px-1.5 py-px text-[11px] font-semibold text-primary-fg" title={`Version ${updateAvailable} is available`}>Update</span>}

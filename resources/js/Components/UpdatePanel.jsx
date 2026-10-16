@@ -75,7 +75,7 @@ export default function UpdatePanel({ updates }) {
             progress('finish');
             await window.axios.post('/settings/updates/finish');
             setState({ phase: 'done', pkg, source });
-            setTimeout(() => window.location.assign('/settings?tab=updates'), 2000);
+            setTimeout(() => window.location.assign('/settings/updates'), 2000);
         } catch (error) {
             setState({ phase: 'error', message: errorMessage(error), pkg, source });
         }

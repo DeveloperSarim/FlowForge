@@ -46,9 +46,10 @@ Preview.Inner = function Inner({ colors }) {
     );
 };
 
-export default function Settings({ mail, notifications, ai, providers, timezone, cron, updates, team, mcp, demo }) {
+export default function Settings({ tab = 'account', mail, notifications, ai, providers, timezone, cron, updates, team, mcp, demo }) {
     const { auth } = usePage().props;
-    const [tab, setTab] = useState(() => new URLSearchParams(window.location.search).get('tab') ?? 'account');
+    // Each section has its own address (/settings/updates); switching is instant, no request, and Back works.
+    const setTab = (value) => router.push({ url: `/settings/${value}`, props: (current) => ({ ...current, tab: value }), preserveState: true, preserveScroll: true });
     const [theme, setTheme] = useState(auth.user.theme ?? 'light');
 
     const chooseTheme = (value) => {

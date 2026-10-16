@@ -32,6 +32,17 @@ class AppPagesTest extends TestCase
         }
     }
 
+    public function test_each_settings_section_has_its_own_address(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user)->get('/settings/updates')->assertOk()->assertInertia(fn (AssertableInertia $page) => $page
+            ->component('Settings')->where('tab', 'updates')->has('updates.version'));
+        $this->actingAs($user)->get('/settings')->assertInertia(fn (AssertableInertia $page) => $page->where('tab', 'account'));
+        $this->actingAs($user)->get('/settings?tab=ai')->assertRedirect('/settings/ai'); // old links
+        $this->actingAs($user)->get('/settings/nope')->assertNotFound();
+    }
+
     public function test_using_a_template_creates_a_workflow(): void
     {
         $this->actingAs(User::factory()->create())

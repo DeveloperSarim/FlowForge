@@ -2,6 +2,10 @@
 
 All notable changes to FlowForge. Versions follow [semantic versioning](https://semver.org).
 
+## [Unreleased]
+
+- Each Settings section has its own address (`/settings/updates`, `/settings/ai`, `/settings/general`…), so it can be bookmarked, shared and reloaded. Switching sections is instant and the Back button works. Old `/settings?tab=…` links still work.
+
 ## [1.7.0] - 2026-10-16
 
 Security and reliability fixes from a production-readiness review.

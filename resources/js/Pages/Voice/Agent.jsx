@@ -738,7 +738,7 @@ function RewriteDialog({ open, onClose, onDone, hasAi }) {
                     {error && <p className="rounded-lg bg-fail-soft px-3 py-2 text-[13px] text-fail">{error}</p>}
                     <Button variant="primary" onClick={run} disabled={busy || text.trim().length < 10}>{busy ? <Loader2 className="size-4 animate-spin" /> : <Sparkles className="size-4" />}{busy ? 'Writing…' : 'Rewrite'}</Button>
                 </div>
-            ) : <p className="text-[13px] text-fg-muted">Add an AI provider under <Link href="/settings?tab=ai" className="font-medium text-primary hover:underline">Settings → AI builder</Link> first.</p>}
+            ) : <p className="text-[13px] text-fg-muted">Add an AI provider under <Link href="/settings/ai" className="font-medium text-primary hover:underline">Settings → AI builder</Link> first.</p>}
         </Dialog>
     );
 }
@@ -969,7 +969,7 @@ function CallSimulator({ agent, config, variables, dirty, hasAi, onSave }) {
             {blocked ? (
                 <div className="mx-4 mb-5 rounded-2xl bg-white/[0.07] px-4 py-3 text-[13px] text-white/80">
                     {!hasAi
-                        ? <>Test calls use the AI model from <Link href="/settings?tab=ai" className="font-semibold text-white underline-offset-2 hover:underline">Settings → AI builder</Link>. Gemini and DeepSeek are free or very cheap.</>
+                        ? <>Test calls use the AI model from <Link href="/settings/ai" className="font-semibold text-white underline-offset-2 hover:underline">Settings → AI builder</Link>. Gemini and DeepSeek are free or very cheap.</>
                         : <>Save your changes to hear them. <button type="button" onClick={onSave} className="font-semibold text-white underline-offset-2 hover:underline">Save now</button></>}
                 </div>
             ) : (

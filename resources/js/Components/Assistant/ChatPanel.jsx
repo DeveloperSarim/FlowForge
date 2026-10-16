@@ -249,7 +249,7 @@ export default function ChatPanel({ conversationId, workflowId = null, onConvers
                 <AiAvatar size="lg" />
                 <p className="mt-4 text-[16px] font-semibold">Connect an AI provider</p>
                 <p className="mt-1 max-w-sm text-[13px] text-fg-muted">Use DeepSeek, Qwen, OpenAI, Claude or Gemini with your own API key. The key stays encrypted on your server.</p>
-                <Link href="/settings?tab=ai" className="mt-5 inline-flex h-9 items-center rounded-lg bg-primary px-4 text-sm font-medium text-primary-fg hover:bg-primary-hover">Set up the AI builder</Link>
+                <Link href="/settings/ai" className="mt-5 inline-flex h-9 items-center rounded-lg bg-primary px-4 text-sm font-medium text-primary-fg hover:bg-primary-hover">Set up the AI builder</Link>
             </div>
         );
     }
@@ -310,7 +310,7 @@ export default function ChatPanel({ conversationId, workflowId = null, onConvers
                         className="block w-full resize-none bg-transparent px-4 pt-3 pb-1 text-base outline-none sm:text-[14px] placeholder:text-fg-subtle disabled:opacity-60" />
                     <div className="flex items-center gap-2 px-2.5 pb-2.5">
                         {provider && !isCompact ? (
-                            <Link href="/settings?tab=ai" className="inline-flex min-w-0 items-center gap-1.5 rounded-lg px-2 py-1 text-[12px] text-fg-subtle hover:bg-surface-2 hover:text-fg" title="Change the AI model">
+                            <Link href="/settings/ai" className="inline-flex min-w-0 items-center gap-1.5 rounded-lg px-2 py-1 text-[12px] text-fg-subtle hover:bg-surface-2 hover:text-fg" title="Change the AI model">
                                 <IntegrationIcon icon={provider.icon} name={provider.provider} size="xs" />
                                 <span className="truncate">{provider.model}</span>
                             </Link>
