@@ -287,6 +287,13 @@ dry[:] = 0
 verb[:] = 0
 
 # ---------- sound effects, on the frames of the animations ----------
+def thud():
+    t = tt(0.5)
+    body = np.sin(2 * np.pi * np.cumsum(70 + 80 * np.exp(-t * 18)) / SR) * np.exp(-t * 8)
+    buzz = filt(sawtooth(2 * np.pi * 116 * t), 'low', 900) * np.exp(-t * 14) * 0.35
+    return body + buzz + filt(noise(0.5), 'low', 700) * np.exp(-t * 30) * 0.3
+
+
 def ringtone():
     """A soft marimba-like ring: a rising bell figure, played twice per ring."""
     out = np.zeros(int(0.9 * SR))
@@ -295,13 +302,6 @@ def ringtone():
         i = int(k * 0.11 * SR)
         out[i:i + len(sig)] += sig[:len(out) - i]
     return out
-
-
-def thud():
-    t = tt(0.5)
-    body = np.sin(2 * np.pi * np.cumsum(70 + 80 * np.exp(-t * 18)) / SR) * np.exp(-t * 8)
-    buzz = filt(sawtooth(2 * np.pi * 116 * t), 'low', 900) * np.exp(-t * 14) * 0.35
-    return body + buzz + filt(noise(0.5), 'low', 700) * np.exp(-t * 30) * 0.3
 
 
 def typing(scene, f0, f1, chars, gain=(0.1, 0.17)):
@@ -327,9 +327,17 @@ for i in range(9):
     place(tick(2200 + i * 60), sec('intro', 19 + i * 2), 0.05, pan=-0.4 + i * 0.1)
 place(swish(0.4), sec('intro', 54), 0.14, pan=0.3)
 
-# problem: the strike-throughs
-for k, fr in enumerate((30, 68, 106)):
-    place(swish(0.32), sec('problem', fr), 0.35, pan=(k - 1) * 0.3)
+# problem: the receipt prints, each amount is struck through, then the stamp lands
+printer = bands_sweep(38 / FPS, [1800, 2600, 1800], lambda t: 0.35 + 0.15 * np.sin(2 * np.pi * 22 * t))
+place(printer, sec('problem', 8), 0.07, pan=0.45)
+for fr in range(8, 46, 2):
+    place(tick(1100 + rng.uniform(-80, 80)), sec('problem', fr), 0.09, pan=0.45)
+place(pop(700, 0.12), sec('problem', 48), 0.25, pan=0.4, send=0.2)
+for k, fr in enumerate((64, 70, 76)):
+    place(swish(0.22), sec('problem', fr), 0.3, pan=0.35)
+place(thud(), sec('problem', 90), 0.7, send=0.3)
+place(pop(150, 0.3), sec('problem', 90), 0.5)
+place(filt(noise(0.12), 'band', [400, 2500]) * np.exp(-tt(0.12) * 40), sec('problem', 90), 0.35)
 
 # meet: the dashboard rises, then the camera zooms in
 place(whoosh(0.8), sec('meet', 6), 0.3, send=0.2)
