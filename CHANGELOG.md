@@ -2,7 +2,7 @@
 
 All notable changes to FlowForge. Versions follow [semantic versioning](https://semver.org).
 
-## [Unreleased]
+## [1.7.0] - 2026-10-16
 
 Security and reliability fixes from a production-readiness review.
 
