@@ -4,6 +4,7 @@ All notable changes to FlowForge. Versions follow [semantic versioning](https://
 
 ## [Unreleased]
 
+- AI Builder answers are formatted: code in boxes with the language and a Copy button, tables, headings, quotes and links (also in the editor's Ask AI panel).
 - Voice agent webhooks: send every finished call or new booking to your own URLs (Make, Zapier, n8n, your server) as signed JSON, straight from the agent's Webhooks section, with a test button, retries after 1, 5 and 30 minutes, and a log of recent deliveries.
 
 ## [1.6.1] - 2026-10-16
