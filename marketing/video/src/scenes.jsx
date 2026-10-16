@@ -1,5 +1,5 @@
 import { AbsoluteFill, Img, interpolate, staticFile, useCurrentFrame, useVideoConfig, Easing } from 'remotion';
-import { ArrowUp, CalendarCheck, Check, KeyRound, Loader2, Network, Phone, RefreshCw, ShieldCheck, Sparkles, Star, TrendingUp, Users, Webhook, X, Zap } from 'lucide-react';
+import { ArrowUp, CalendarCheck, Check, CreditCard, HardDrive, KeyRound, Loader2, Network, Phone, PhoneMissed, RefreshCw, RefreshCwOff, ServerCrash, ShieldAlert, ShieldCheck, Sparkles, Star, TriangleAlert, Users, Webhook, X, Zap } from 'lucide-react';
 import { Browser, C, Chip, DotBg, LogoMark, MONO, Words, clamp, springAt, useIn } from './ui';
 
 /* 1. Logo reveal */
@@ -27,77 +27,75 @@ export const Intro = () => {
     );
 };
 
-/* 2. The problem: a receipt of monthly bills prints, then gets cancelled */
-const BILLS = [
-    { item: 'Automation platform', note: 'pay for every task', amount: 'per task', strike: 64 },
-    { item: 'Server to self-host it', note: 'VPS, Docker, upkeep', amount: 'per month', strike: 70 },
-    { item: 'AI phone receptionist', note: 'billed for every call', amount: 'per minute', strike: 76 },
+/* 2. The problem: a storm of the notifications automation usually brings, then they're blown away */
+const STORM = [
+    // [frame, x, y, rotate, icon, tint, title, body]
+    [4, 560, 300, -3, Zap, '#ee5a24', 'Task limit reached', "You've used 100% of this month's tasks."],
+    [15, 1330, 250, 2, ServerCrash, '#5b6472', 'Server down', 'Docker container exited at 3:12 AM.'],
+    [25, 980, 560, -1.5, PhoneMissed, '#e5484d', 'Missed call', 'A new customer called. No one answered.'],
+    [33, 430, 730, 2.5, TriangleAlert, '#d97706', 'Workflow paused', 'Upgrade your plan to keep it running.'],
+    [40, 1480, 690, -2, CreditCard, '#3b82f6', 'Invoice: AI receptionist', '1,240 minutes this month.'],
+    [46, 760, 430, 1.5, RefreshCwOff, '#5b6472', 'Update failed', 'Node.js version mismatch on your VPS.'],
+    [51, 1240, 420, -2.5, PhoneMissed, '#e5484d', 'Missed call (2)', "They didn't leave a message."],
+    [55, 640, 880, -1, Zap, '#ee5a24', 'Task usage 92%', "You'll run out in 3 days."],
+    [59, 1560, 470, 2, HardDrive, '#5b6472', 'Disk almost full', 'Your server needs attention.'],
+    [62, 1100, 820, 1, CreditCard, '#3b82f6', 'Your plan renewed', 'Billed again this month.'],
+    [65, 380, 520, -2, PhoneMissed, '#e5484d', 'Missed call (3)', 'Another booking lost.'],
+    [68, 1380, 900, 2.5, TriangleAlert, '#d97706', 'Run failed', 'Rate limit hit. Nothing was retried.'],
+    [71, 860, 230, -1.5, ShieldAlert, '#d97706', 'SSL certificate expired', 'Your webhook URL stopped working.'],
+    [73, 1660, 230, 1.5, Zap, '#ee5a24', 'Price change', 'Your automation plan now costs more.'],
+    [75, 300, 270, 2, CreditCard, '#3b82f6', 'Payment due', 'Server, automation and phone bills.'],
 ];
-const PRINT = [8, 46]; // the receipt feeds out of the printer
-const STAMP_AT = 90; // lands on the beat
+const FREEZE = 82; // the storm stops
+const LINE_AT = 90; // the headline lands on the beat
+const BLAST = 105; // everything is blown away, on the next beat
 
-const Dashed = () => <div style={{ margin: '26px 0', borderTop: `3px dashed ${C.line}` }} />;
+const Notification = ({ at, x, y, rotate, Icon, tint, title, body }) => {
+    const frame = useCurrentFrame();
+    const { fps } = useVideoConfig();
+    const p = springAt(frame, fps, at, true);
+    // The blast throws each card away from the centre of the screen.
+    const blast = interpolate(frame, [BLAST, BLAST + 12], [0, 1], { ...clamp, easing: Easing.out(Easing.cubic) });
+    const dx = x - 960, dy = y - 560, len = Math.hypot(dx, dy) || 1;
+    const fly = blast * (1400 + (at % 7) * 60);
+    const dim = interpolate(frame, [FREEZE, FREEZE + 8], [1, 0.38], clamp);
+    return (
+        <div style={{ position: 'absolute', left: x, top: y, width: 540, transform: `translate(-50%, -50%) translate(${(dx / len) * fly}px, ${(dy / len) * fly + (1 - p) * 40}px) rotate(${rotate + blast * rotate * 8}deg) scale(${0.7 + p * 0.3})`,
+            opacity: Math.min(1, p * 1.6) * dim * (1 - blast), filter: `blur(${interpolate(frame, [FREEZE, FREEZE + 8], [0, 3], clamp) + blast * 10}px)` }}>
+            <div style={{ display: 'flex', gap: 20, alignItems: 'flex-start', background: 'rgba(255,255,255,.96)', border: `1.5px solid ${C.line}`, borderRadius: 26, padding: '20px 24px',
+                boxShadow: '0 22px 50px rgba(16,24,40,.16), 0 4px 12px rgba(16,24,40,.06)' }}>
+                <div style={{ width: 64, height: 64, flexShrink: 0, borderRadius: 18, background: tint, display: 'grid', placeItems: 'center' }}><Icon size={34} color="#fff" strokeWidth={2.2} /></div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+                        <div style={{ fontSize: 27, fontWeight: 650, letterSpacing: '-0.01em' }}>{title}</div>
+                        <div style={{ fontSize: 19, color: C.muted }}>now</div>
+                    </div>
+                    <div style={{ fontSize: 22, color: C.ink2, marginTop: 4, lineHeight: 1.35 }}>{body}</div>
+                </div>
+            </div>
+        </div>
+    );
+};
 
 export const Problem = () => {
     const frame = useCurrentFrame();
-    const printed = interpolate(frame, PRINT, [0, 1], { ...clamp, easing: Easing.out(Easing.cubic) });
-    const feed = Math.floor(printed * 36) / 36; // steps, like a receipt printer
-    const stamp = interpolate(frame, [STAMP_AT, STAMP_AT + 7], [2.6, 1], { ...clamp, easing: Easing.out(Easing.back(1.4)) });
-    const shake = frame >= STAMP_AT && frame < STAMP_AT + 8 ? Math.sin(frame * 9) * (STAMP_AT + 8 - frame) * 1.6 : 0;
-    const total = useIn(48);
+    // The pile gets busier, so the camera creeps in and starts to tremble; it settles when the storm stops.
+    const tremble = interpolate(frame, [40, FREEZE], [0, 1], clamp) * (frame < FREEZE ? 1 : 0);
+    const shakeX = Math.sin(frame * 2.3) * 3 * tremble, shakeY = Math.cos(frame * 1.7) * 2 * tremble;
+    const kick = frame >= BLAST && frame < BLAST + 6 ? (BLAST + 6 - frame) * 2.2 : 0;
     return (
-        <DotBg camera={{ keys: [[0, 1.03], [STAMP_AT, 1], [135, 1.05]], origin: [1400, 560] }}>
-            <AbsoluteFill style={{ transform: `translate(${shake}px, ${shake * 0.6}px)` }}>
-                <div style={{ position: 'absolute', left: 150, top: 370, width: 780 }}>
-                    <Words text="Automation gets expensive." size={100} weight={700} />
-                    <Words text="Per-task fees, a server to look after, and now a phone bill for AI." delay={14} size={36} weight={500} color={C.ink2} style={{ marginTop: 34, lineHeight: 1.4, width: 680 }} />
-                </div>
-                {/* The printer slot, and the receipt feeding out of it */}
-                <div style={{ position: 'absolute', left: 1010, top: 196, width: 780, height: 38, borderRadius: 19, background: C.ink, boxShadow: '0 10px 30px rgba(16,24,40,.25)', zIndex: 2 }} />
-                <div style={{ position: 'absolute', left: 1050, top: 215, width: 700, height: 820, overflow: 'hidden' }}>
-                    <div style={{ transform: `translateY(${(feed - 1) * 820}px)`, filter: 'drop-shadow(0 24px 40px rgba(16,24,40,.14))' }}>
-                        <div style={{ background: C.paper, padding: '66px 52px 38px' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-                                <div style={{ fontSize: 40, fontWeight: 650, letterSpacing: '-0.02em' }}>Your monthly bills</div>
-                                <div style={{ fontFamily: MONO, fontSize: 25, color: C.muted }}>October</div>
-                            </div>
-                            <Dashed />
-                            {BILLS.map((b) => {
-                                const cut = interpolate(frame, [b.strike, b.strike + 7], [0, 1], { ...clamp, easing: Easing.inOut(Easing.cubic) });
-                                return (
-                                    <div key={b.item} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', padding: '18px 0' }}>
-                                        <div>
-                                            <div style={{ fontSize: 35, fontWeight: 600 }}>{b.item}</div>
-                                            <div style={{ fontFamily: MONO, fontSize: 23, color: C.muted, marginTop: 8 }}>{b.note}</div>
-                                        </div>
-                                        <div style={{ position: 'relative', fontFamily: MONO, fontSize: 31, fontWeight: 500, color: cut > 0.5 ? C.muted : C.ink, paddingTop: 3 }}>
-                                            {b.amount}
-                                            <div style={{ position: 'absolute', left: -6, top: '54%', height: 5, borderRadius: 3, background: C.brand, width: `calc(${cut * 100}% + ${cut * 12}px)` }} />
-                                        </div>
-                                    </div>
-                                );
-                            })}
-                            <Dashed />
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', opacity: total }}>
-                                <div style={{ fontSize: 40, fontWeight: 700 }}>Total</div>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontFamily: MONO, fontSize: 31, fontWeight: 600, color: C.fail }}>
-                                    <TrendingUp size={36} strokeWidth={2.5} /> every month
-                                </div>
-                            </div>
-                        </div>
-                        <svg width="700" height="22" viewBox="0 0 700 22" style={{ display: 'block' }}>
-                            <path d={`M0 0 H700 V4 ${Array.from({ length: 35 }, (_, i) => `L${700 - i * 20 - 10} 22 L${700 - (i + 1) * 20} 4`).join(' ')} Z`} fill={C.paper} />
-                        </svg>
-                    </div>
-                </div>
-                {/* The stamp */}
-                {frame >= STAMP_AT && (
-                    <div style={{ position: 'absolute', left: 1400, top: 560, transform: `translate(-50%, -50%) rotate(-11deg) scale(${stamp})`, opacity: interpolate(frame, [STAMP_AT, STAMP_AT + 2], [0, 0.94], clamp),
-                        border: `8px solid ${C.brand}`, borderRadius: 22, padding: '16px 44px', color: C.brand, fontSize: 104, fontWeight: 800, letterSpacing: '0.06em', background: 'rgba(253,240,234,.55)' }}>
-                        CANCELLED
-                    </div>
-                )}
+        <DotBg camera={{ keys: [[0, 1], [FREEZE, 1.1], [BLAST, 1.08], [135, 1.02]] }}>
+            <AbsoluteFill style={{ transform: `translate(${shakeX + kick}px, ${shakeY}px)` }}>
+                {STORM.map(([at, x, y, rotate, Icon, tint, title, body]) => (
+                    <Notification key={title} at={at} x={x} y={y} rotate={rotate} Icon={Icon} tint={tint} title={title} body={body} />
+                ))}
             </AbsoluteFill>
+            {frame >= LINE_AT - 2 && (
+                <AbsoluteFill style={{ alignItems: 'center', justifyContent: 'center', textAlign: 'center' }}>
+                    <Words text="Automation shouldn't" delay={LINE_AT} size={124} weight={750} />
+                    <Words text="feel like this." delay={LINE_AT + 5} size={124} weight={750} color={C.brand} />
+                </AbsoluteFill>
+            )}
         </DotBg>
     );
 };

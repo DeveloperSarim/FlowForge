@@ -327,17 +327,26 @@ for i in range(9):
     place(tick(2200 + i * 60), sec('intro', 19 + i * 2), 0.05, pan=-0.4 + i * 0.1)
 place(swish(0.4), sec('intro', 54), 0.14, pan=0.3)
 
-# problem: the receipt prints, each amount is struck through, then the stamp lands
-printer = bands_sweep(38 / FPS, [1800, 2600, 1800], lambda t: 0.35 + 0.15 * np.sin(2 * np.pi * 22 * t))
-place(printer, sec('problem', 8), 0.07, pan=0.45)
-for fr in range(8, 46, 2):
-    place(tick(1100 + rng.uniform(-80, 80)), sec('problem', fr), 0.09, pan=0.45)
-place(pop(700, 0.12), sec('problem', 48), 0.25, pan=0.4, send=0.2)
-for k, fr in enumerate((64, 70, 76)):
-    place(swish(0.22), sec('problem', fr), 0.3, pan=0.35)
-place(thud(), sec('problem', 90), 0.7, send=0.3)
-place(pop(150, 0.3), sec('problem', 90), 0.5)
-place(filt(noise(0.12), 'band', [400, 2500]) * np.exp(-tt(0.12) * 40), sec('problem', 90), 0.35)
+# problem: notifications pile up (each one pings, faster and higher), the storm stops, the headline lands, everything is blown away
+def ping(fr):
+    t = tt(0.4)
+    one = lambda f: (np.sin(2 * np.pi * f * t) * 0.7 + np.sin(2 * np.pi * f * 2.01 * t) * 0.18) * np.exp(-t * 11) * np.minimum(1, t / 0.002)
+    out = one(fr)
+    second = one(fr * 1.335)
+    k = int(0.075 * SR)
+    out[k:] += second[:len(out) - k] * 0.8
+    return out
+
+
+storm = (4, 15, 25, 33, 40, 46, 51, 55, 59, 62, 65, 68, 71, 73, 75)
+for k, fr in enumerate(storm):
+    place(ping(note(76 + (k % 5) * 2 + k // 5 * 2)), sec('problem', fr), 0.16 + k * 0.006, pan=rng.uniform(-0.6, 0.6), send=0.3)
+place(riser(42 / FPS), sec('problem', 40), 0.22)
+place(filt(noise(42 / FPS), 'low', 180) * np.linspace(0, 1, int(42 / FPS * SR)) ** 2, sec('problem', 40), 0.35)  # the rumble under the pile
+place(pop(120, 0.35), sec('problem', 82), 0.35)  # the storm stops
+place(impact(), sec('problem', 90), 0.55, send=0.3)
+place(whoosh(0.7), sec('problem', 104), 0.55, send=0.3)
+place(swish(0.5), sec('problem', 105), 0.3)
 
 # meet: the dashboard rises, then the camera zooms in
 place(whoosh(0.8), sec('meet', 6), 0.3, send=0.2)
