@@ -73,8 +73,34 @@ class VoiceTest extends TestCase
         Http::assertSent(fn ($r) => $r->url() === 'https://api.vapi.ai/assistant' && $r->hasHeader('Authorization', 'Bearer vapi-key')
             && $r['model']['tools'][0]['function']['name'] === 'book_appointment' && $r['model']['tools'][1] === ['type' => 'endCall']
             && $r['server']['url'] === $agent->eventsUrl()
+            && $r['server']['headers'] === [VoiceService::EVENTS_HEADER => VoiceService::eventsSecret($agent)] && $r['model']['tools'][0]['server'] === $r['server']
             && str_contains($r['model']['messages'][0]['content'], 'Smile Dental') && ! str_contains($r['model']['messages'][0]['content'], '{{business_name}}'));
         Http::assertSent(fn ($r) => $r->method() === 'PATCH' && $r->url() === 'https://api.vapi.ai/phone-number/pn_1' && $r['assistantId'] === 'asst_1');
+        $this->assertTrue((bool) $agent->fresh()->events_secret_sent);
+    }
+
+    public function test_voice_events_need_the_secret_header_once_the_agent_is_published(): void
+    {
+        $credential = Credential::query()->create(['name' => 'ElevenLabs', 'integration' => 'elevenlabs', 'auth_type' => 'api_key', 'data' => ['api_key' => 'xi-key']]);
+        $agent = $this->agent('elevenlabs', ['credential_id' => $credential->id]);
+        $booking = ['name' => 'Sara Khan', 'date_time' => now('Asia/Karachi')->addDays(2)->setTime(11, 0)->format('Y-m-d H:i')];
+
+        // Published before the secret existed: still accepted without it until the next save.
+        $this->postJson("/api/voice/{$agent->token}", $booking)->assertOk()->assertJsonPath('booked', true);
+
+        Http::fake(['api.elevenlabs.io/v1/convai/tools' => Http::response(['id' => 'tool_1']), 'api.elevenlabs.io/v1/convai/agents/create' => Http::response(['agent_id' => 'agent_1'])]);
+        $this->assertNull(app(VoiceService::class)->publish($agent));
+        $secret = VoiceService::eventsSecret($agent);
+        Http::assertSent(fn ($r) => str_ends_with($r->url(), '/convai/tools') && $r['tool_config']['api_schema']['request_headers'] === [VoiceService::EVENTS_HEADER => $secret]);
+        $this->assertTrue((bool) $agent->fresh()->events_secret_sent);
+
+        $this->postJson("/api/voice/{$agent->token}", $booking)->assertStatus(401);
+        $this->postJson("/api/voice/{$agent->token}", $booking, [VoiceService::EVENTS_HEADER => 'guess'])->assertStatus(401);
+        $this->postJson("/api/voice/{$agent->token}", $booking, [VoiceService::EVENTS_HEADER => $secret])->assertOk()->assertJsonPath('booked', true);
+        $this->assertSame(1, VoiceBooking::query()->count()); // the same booking twice is kept once
+
+        // The secret is never sent to the browser.
+        $this->get("/voice/agents/{$agent->id}")->assertOk()->assertDontSee($secret);
     }
 
     public function test_a_booking_during_a_vapi_call_is_saved_and_starts_workflows(): void

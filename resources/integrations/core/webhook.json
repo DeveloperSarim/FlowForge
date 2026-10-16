@@ -14,6 +14,27 @@
           { "value": "ANY", "label": "Any method" }, { "value": "GET", "label": "GET" }, { "value": "POST", "label": "POST" },
           { "value": "PUT", "label": "PUT" }, { "value": "PATCH", "label": "PATCH" }, { "value": "DELETE", "label": "DELETE" }
         ] },
+        { "key": "verify", "label": "Check incoming requests", "type": "select", "default": "none",
+          "help": "Only accept requests that prove they come from your app. Requests that fail get an error and start nothing.", "options": [
+          { "value": "none", "label": "Don't check" },
+          { "value": "header", "label": "Secret header" },
+          { "value": "basic", "label": "Basic auth (username and password)" },
+          { "value": "hmac", "label": "Signature (HMAC-SHA256): GitHub, Shopify, WooCommerce…" },
+          { "value": "stripe", "label": "Stripe signature" },
+          { "value": "slack", "label": "Slack signature" }
+        ] },
+        { "key": "secret_header", "label": "Header name", "type": "string", "default": "X-Webhook-Secret", "show_if": { "verify": "header" },
+          "help": "The app must send the secret below in this header." },
+        { "key": "signature_header", "label": "Signature header", "type": "string", "default": "X-Hub-Signature-256", "show_if": { "verify": "hmac" },
+          "help": "GitHub: X-Hub-Signature-256. Shopify: X-Shopify-Hmac-Sha256. WooCommerce: X-WC-Webhook-Signature." },
+        { "key": "encoding", "label": "Signature format", "type": "select", "default": "hex", "show_if": { "verify": "hmac" }, "options": [
+          { "value": "hex", "label": "Hex (GitHub and most apps)" }, { "value": "base64", "label": "Base64 (Shopify, WooCommerce)" }
+        ] },
+        { "key": "prefix", "label": "Signature prefix", "type": "string", "default": "sha256=", "show_if": { "verify": "hmac" },
+          "help": "Text before the signature, like GitHub's \"sha256=\". It's ignored when the app doesn't send it." },
+        { "key": "username", "label": "Username", "type": "string", "show_if": { "verify": "basic" } },
+        { "key": "signing_secret", "label": "Secret", "type": "password", "show_if": { "verify": ["header", "basic", "hmac", "stripe", "slack"] },
+          "help": "Secret header: make up a long random text and set the same in your app. Basic auth: the password. Signatures: paste the signing secret from the app (Stripe → Developers → Webhooks, starts with whsec_; Slack → your app → Basic Information → Signing Secret; GitHub, Shopify and WooCommerce show it where you add the webhook)." },
         { "key": "sample_payload", "label": "Test payload (JSON)", "type": "json", "help": "Used by \"Test workflow\". Leave empty to use the last request captured while the workflow was inactive." }
       ]
     }

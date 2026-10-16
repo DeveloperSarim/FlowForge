@@ -6,7 +6,7 @@ import Markdown from '@/Components/Markdown';
 import DynamicForm, { InsertTargetContext } from '@/Components/Drawer/DynamicForm';
 import { Badge, Button, Combobox, ConfirmButton, Field, Select, StatusBadge, Switch, Tabs } from '@/Components/ui';
 import { useIntegration } from '@/lib/integrations';
-import { copy, duration, timeAgo, toast } from '@/lib/utils';
+import { copy, duration, errorMessage, timeAgo, toast } from '@/lib/utils';
 
 const CORE_TRIGGERS = ['manual:manual', 'webhook:catch', 'schedule:cron', 'error_trigger:workflow_failed'];
 const POPULAR_TRIGGER_APPS = ['gmail', 'google_sheets', 'slack', 'stripe', 'shopify', 'typeform', 'hubspot', 'github', 'telegram', 'calendly', 'woocommerce', 'google_forms', 'airtable', 'notion', 'jotform', 'trello', 'pipedrive', 'asana', 'zendesk'];
@@ -41,17 +41,22 @@ function Pane({ title, aside, children, className }) {
     );
 }
 
-function TriggerInfo({ spec, workflow }) {
+function TriggerInfo({ spec, workflow, readOnly }) {
     const state = workflow.trigger_state ?? {};
+    const [url, setUrl] = useState(workflow.webhook_url);
+    const newUrl = () => window.axios.post(`/workflows/${workflow.id}/webhook-url`)
+        .then(({ data }) => { setUrl(data.webhook_url); toast('New webhook URL ready. Update it in the app that sends the requests.', 'success'); })
+        .catch((error) => toast(errorMessage(error), 'error'));
     if (spec?.type === 'webhook') {
         return (
             <div className="space-y-3">
                 <Field label="Webhook URL">
                     <div className="flex items-center gap-2 rounded-lg border border-line bg-surface p-2">
-                        <code className="flex-1 truncate font-mono text-[12px]">{workflow.webhook_url}</code>
-                        <Button size="xs" variant="ghost" onClick={() => copy(workflow.webhook_url, 'Webhook URL copied')}><Copy className="size-3.5" /></Button>
+                        <code className="flex-1 truncate font-mono text-[12px]">{url}</code>
+                        <Button size="xs" variant="ghost" onClick={() => copy(url, 'Webhook URL copied')}><Copy className="size-3.5" /></Button>
                     </div>
                 </Field>
+                {!readOnly && <ConfirmButton size="xs" onConfirm={newUrl} confirmLabel="The old URL stops working. Sure?"><RefreshCw className="size-3.5" />Get a new URL</ConfirmButton>}
                 <p className="text-[12.5px] leading-relaxed text-fg-muted">
                     {workflow.is_active
                         ? 'Live: every request queues a run, picked up on the next scheduler tick.'
@@ -180,7 +185,7 @@ export default function NodeDetails({ node, catalog, operators, workflow, upstre
                                 </Select>
                             )}>
                             {isTrigger ? (
-                                <TriggerInfo spec={operation} workflow={workflow} />
+                                <TriggerInfo spec={operation} workflow={workflow} readOnly={readOnly} />
                             ) : !source ? (
                                 <div className="flex flex-col items-center py-10 text-center">
                                     <MousePointerClick className="mb-3 size-6 text-fg-subtle" />

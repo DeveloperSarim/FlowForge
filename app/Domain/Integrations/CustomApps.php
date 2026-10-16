@@ -120,7 +120,7 @@ class CustomApps
         $url = preg_match('#^https?://#i', $source) ? $source : null;
         if ($url) {
             try {
-                $response = Http::timeout(25)->accept('application/json, application/yaml, text/yaml, */*')->get($url);
+                $response = UrlGuard::protect(Http::timeout(25)->accept('application/json, application/yaml, text/yaml, */*'), $url)->get($url);
             } catch (Throwable $e) {
                 throw new InvalidArgumentException("Couldn't download the OpenAPI document: {$e->getMessage()}");
             }
@@ -155,7 +155,8 @@ class CustomApps
     /** Workflows that use the app (it can't be deleted while any do). */
     public function usedBy(string $key): array
     {
-        return Workflow::query()->get(['id', 'name', 'graph'])
+        // The LIKE narrows it down in SQL (keys are [a-z0-9_]), so only workflows that mention the app are decoded.
+        return Workflow::query()->where('graph', 'like', '%"'.$key.'"%')->get(['id', 'name', 'graph'])
             ->filter(fn (Workflow $w) => collect($w->graph['nodes'] ?? [])->contains(fn ($n) => ($n['data']['integration'] ?? null) === $key))
             ->map(fn (Workflow $w) => ['id' => $w->id, 'name' => $w->name])->values()->all();
     }

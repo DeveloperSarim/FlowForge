@@ -25,6 +25,9 @@ use Throwable;
  */
 class VoiceService
 {
+    /** Header Vapi and ElevenLabs send with every call to /api/voice/{token} (set when the agent is published). */
+    public const EVENTS_HEADER = 'X-FlowForge-Secret';
+
     public function __construct(private SystemSettings $settings, private LlmClient $llm) {}
 
     public function provider(VoiceAgent $agent): VoiceProvider
@@ -57,6 +60,15 @@ class VoiceService
         return VoiceAgent::query()->create(['name' => Str::limit(trim($name) ?: ($t['name'] ?? 'Voice agent'), 120, ''), 'provider' => 'browser', 'config' => $config]);
     }
 
+    /**
+     * The secret the provider sends in EVENTS_HEADER. Derived from APP_KEY (never rotated) and the agent's
+     * token, so it isn't stored or shown anywhere and stays the same across saves.
+     */
+    public static function eventsSecret(VoiceAgent $agent): string
+    {
+        return hash_hmac('sha256', 'voice-events:'.$agent->token, (string) config('app.key'));
+    }
+
     /** Pushes the agent to its provider. Returns the problem, or null when it's live there. */
     public function publish(VoiceAgent $agent): ?string
     {
@@ -67,7 +79,8 @@ class VoiceService
             $provider = $this->provider($agent);
             $provider->sync($agent);
             $provider->attachNumber($agent); // inbound calls on the chosen number reach this agent
-            $agent->forceFill(['synced_at' => now(), 'sync_error' => null])->save();
+            // From now on /api/voice/{token} requires EVENTS_HEADER from this agent's provider.
+            $agent->forceFill(['synced_at' => now(), 'sync_error' => null, 'events_secret_sent' => true])->save();
 
             return null;
         } catch (RuntimeException $e) {

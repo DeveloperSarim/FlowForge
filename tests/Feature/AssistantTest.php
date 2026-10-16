@@ -202,6 +202,20 @@ class AssistantTest extends TestCase
         $this->assertSame(0, Workflow::query()->count());
     }
 
+    public function test_the_ai_never_sees_secrets_typed_into_steps_and_saving_back_keeps_them(): void
+    {
+        $tools = app(WorkflowTools::class);
+        $nodes = fn (string $secret) => [['id' => 'trigger', 'app' => 'webhook', 'op' => 'catch', 'config' => ['verify' => 'header', 'secret_header' => 'X-Key', 'signing_secret' => $secret]]];
+        $saved = $tools->call('save_workflow', ['name' => 'Hook', 'nodes' => $nodes('s3cret-value'), 'edges' => []], new AiConversation)[0];
+
+        $seen = $tools->call('get_workflow', ['id' => $saved['id']], new AiConversation)[0];
+        $this->assertStringNotContainsString('s3cret-value', json_encode($seen));
+        $this->assertSame(WorkflowTools::HIDDEN, $seen['nodes'][0]['config']['signing_secret']);
+
+        $tools->call('save_workflow', ['id' => $saved['id'], 'name' => 'Hook v2', 'nodes' => $nodes(WorkflowTools::HIDDEN), 'edges' => []], new AiConversation);
+        $this->assertSame('s3cret-value', Workflow::query()->find($saved['id'])->graph['nodes'][0]['data']['config']['signing_secret']);
+    }
+
     public function test_step_references_are_checked_against_what_each_step_returns(): void
     {
         $tools = app(WorkflowTools::class);

@@ -18,6 +18,10 @@ use RuntimeException;
  * the failure is temporary; "on_error": "continue" records the failure and goes on. Otherwise the first
  * failure stops the run. A run that resumes a failed one (retry_of) reuses the steps that already
  * succeeded instead of running them again, so emails and API writes aren't repeated.
+ *
+ * Progress is saved before each action runs, so if the worker dies mid-request the run still shows which
+ * step was in flight (RunWorkflow::failed marks it "may have gone through"). A request that may have reached
+ * the app (a POST that timed out, a 500) is never repeated automatically: that's how orders get placed twice.
  */
 class GraphRunner
 {
@@ -43,6 +47,7 @@ class GraphRunner
         ];
         $secrets = $this->secrets($nodes->all());
         $reuse = $this->reusable($execution);
+        $original = $this->originalRun($execution);
         $emitted = [];
         $steps = [];
         $error = null;
@@ -99,6 +104,9 @@ class GraphRunner
 
             $started = microtime(true);
             $tries = (int) ($data['retries'] ?? 0);
+            $this->checkpoint($execution, [...$steps, $step + ['status' => 'running']], $secrets);
+            // The same for every try and every retry of this step (per install, so two installs on one account don't clash).
+            $context['idempotency_key'] = hash_hmac('sha256', "{$original}:{$id}", (string) config('app.key'));
             for ($attempt = 0; ; $attempt++) {
                 try {
                     $result = $this->executor->execute($data, $context);
@@ -119,7 +127,8 @@ class GraphRunner
                     ], fn ($v) => $v !== null);
                     break;
                 } catch (ActionException $e) {
-                    if ($attempt < $tries && $e->isTemporary()) {
+                    $uncertain = $e->mayHaveGoneThrough();
+                    if ($attempt < $tries && $e->isTemporary() && ! $uncertain) {
                         Sleep::for(min(30, 2 ** ($attempt + 1)))->seconds(); // 2, 4, 8, 16, 30 s
 
                         continue;
@@ -131,7 +140,8 @@ class GraphRunner
                         'output' => $e->output,
                         'http_status' => $e->httpStatus,
                         'request' => $e->request,
-                        'temporary' => $e->isTemporary() ?: null,
+                        'temporary' => ($e->isTemporary() && ! $uncertain) ?: null,
+                        'uncertain' => $uncertain ?: null,
                         'tries' => $attempt ? $attempt + 1 : null,
                         'duration_ms' => $this->elapsed($started),
                     ], fn ($v) => $v !== null);
@@ -173,6 +183,14 @@ class GraphRunner
         }
 
         return $done->keyBy('node_id')->all();
+    }
+
+    /** The id of the first run in a chain of retries (each retry_of points one run back). */
+    private function originalRun(WorkflowExecution $execution): int
+    {
+        for ($run = $execution; $run->retry_of && ($previous = WorkflowExecution::query()->find($run->retry_of)); $run = $previous);
+
+        return $run->id;
     }
 
     /** The node plus everything upstream of it. */
@@ -226,6 +244,12 @@ class GraphRunner
         }
 
         return $text;
+    }
+
+    /** Save the steps so far (the last one in flight) before a step calls out. */
+    private function checkpoint(WorkflowExecution $execution, array $steps, array $secrets): void
+    {
+        $execution->forceFill(['steps' => array_map(fn (array $step) => $this->forStorage($step, $secrets), $steps)])->save();
     }
 
     /** Mask secrets and cap payload size so one huge response can't bloat the executions table. */

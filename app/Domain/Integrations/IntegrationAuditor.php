@@ -194,6 +194,10 @@ class IntegrationAuditor
         $credential = $spec['type'] === 'none' ? null : $this->fakeCredential($manifest['key'], $spec, $manifest);
         $sent = [];
 
+        // Nothing really goes out: no DNS, and sample hosts like a hub's 192.168.x address are fine.
+        UrlGuard::resolveUsing(fn () => ['93.184.215.14']);
+        $allowPrivate = config('flowforge.allow_private_network');
+        config(['flowforge.allow_private_network' => true]);
         Http::fake(function (ClientRequest $request) use (&$sent) {
             $sent[] = $request;
             if (str_contains($request->url(), 'oauth2.googleapis.com/token')) {
@@ -211,6 +215,8 @@ class IntegrationAuditor
             return;
         } finally {
             Http::swap(new Factory);
+            UrlGuard::resolveUsing(null);
+            config(['flowforge.allow_private_network' => $allowPrivate]);
         }
 
         $tokenUrls = array_filter(array_column($manifest['auth'], 'token_url'));

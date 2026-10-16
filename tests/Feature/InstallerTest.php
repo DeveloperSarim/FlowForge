@@ -50,7 +50,7 @@ class InstallerTest extends TestCase
 
     public function test_finish_waits_for_a_real_cron_run_and_keeps_encrypted_settings(): void
     {
-        $this->app->instance(EnvManager::class, new EnvManager(sys_get_temp_dir().'/ff-env-'.uniqid()));
+        $this->app->instance(EnvManager::class, new EnvManager($env = sys_get_temp_dir().'/ff-env-'.uniqid()));
         $this->post('/install/admin', ['name' => 'Owner', 'email' => 'owner@example.com', 'password' => 'long-enough-1', 'password_confirmation' => 'long-enough-1', 'timezone' => 'Asia/Karachi'])
             ->assertRedirect('/install');
         $this->assertSame('Asia/Karachi', app(SystemSettings::class)->timezone());
@@ -61,8 +61,9 @@ class InstallerTest extends TestCase
 
         Cache::store('database')->forever('flowforge:heartbeat', now()->subSeconds(30)->toIso8601String());
         $this->getJson('/install/heartbeat')->assertJsonPath('verified', true);
-        $this->post('/install/finish')->assertRedirect(url('/login'));
+        $this->withServerVariables(['HTTPS' => 'on'])->post('https://localhost/install/finish')->assertRedirect();
 
+        $this->assertStringContainsString("APP_ENV=production\nAPP_DEBUG=false\nSESSION_SECURE_COOKIE=true", file_get_contents($env));
         $this->assertFileExists(config('flowforge.installed_flag'));
         $this->assertSame('smtp-secret', (new SystemSettings)->mail()['password']); // still decryptable: no key rotation
     }

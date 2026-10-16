@@ -56,6 +56,7 @@ class ExecutionController extends Controller
     public function retry(Request $request, WorkflowExecution $execution): RedirectResponse
     {
         $fromStart = $request->input('from') === 'start' || $execution->status !== WorkflowExecution::FAILED;
+        $execution->forceFill(['retry_at' => null])->save(); // a waiting automatic retry would repeat this one
         $fromStart
             ? $execution->workflow->start('retry', $execution->trigger_payload ?? [])
             : $execution->workflow->resume($execution, 'retry');

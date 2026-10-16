@@ -5,6 +5,7 @@ namespace App\Domain\Voice\Providers;
 use App\Domain\Voice\Models\VoiceAgent;
 use App\Domain\Voice\Models\VoiceCall;
 use App\Domain\Voice\VoicePrompt;
+use App\Domain\Voice\VoiceService;
 use Carbon\Carbon;
 use Carbon\CarbonInterface;
 use Illuminate\Http\Client\PendingRequest;
@@ -49,6 +50,7 @@ class ElevenLabsProvider implements VoiceProvider
             $config = ['tool_config' => ['type' => 'webhook', 'name' => $tool['name'], 'description' => $tool['description'], 'api_schema' => [
                 'url' => $agent->eventsUrl(),
                 'method' => 'POST',
+                'request_headers' => [VoiceService::EVENTS_HEADER => VoiceService::eventsSecret($agent)],
                 'request_body_schema' => ['type' => 'object', 'description' => 'The booking details agreed with the caller'] + $tool['parameters'],
             ]]];
             $response = $agent->remote_tool_id ? $this->http($agent)->patch("/tools/{$agent->remote_tool_id}", $config) : null;

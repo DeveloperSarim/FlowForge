@@ -10,6 +10,7 @@ use App\Domain\Integrations\Models\Credential;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
+use InvalidArgumentException;
 use Throwable;
 
 /**
@@ -66,7 +67,7 @@ class WorkflowActionExecutor
 
             $result = isset($operation['handler'])
                 ? app(self::HANDLERS[$operation['handler']])->handle($operation['handler'], $inputs, $credential)
-                : $this->http($integration, $operation, $inputs, $credential);
+                : $this->http($integration, $operation, $inputs, $credential, $context['idempotency_key'] ?? null);
             $result->input = $inputs;
 
             return $result;
@@ -144,7 +145,7 @@ class WorkflowActionExecutor
             : rtrim($this->resolver->stringify($this->resolver->resolve($integration['base_url'] ?? '', $context)), '/').'/'.ltrim($endpoint, '/');
         $query = [];
         $request = $this->vault->authorize(Http::timeout(20)->withUserAgent('FlowForge/1.0')->acceptJson(), $spec, $credential, $query);
-        $response = $request->get($url, $query);
+        $response = UrlGuard::protect($request, $url)->get($url, $query);
 
         if ($response->failed() || ! is_array($response->json())) {
             throw new ActionException("Could not read your {$integration['name']} account (HTTP {$response->status()}). Reconnect the credential, or fill in \"{$for}\" yourself.", $response->status(), $response->json());
@@ -274,7 +275,7 @@ class WorkflowActionExecutor
         return $credential;
     }
 
-    private function http(array $integration, array $operation, array $inputs, ?Credential $credential): ActionResult
+    private function http(array $integration, array $operation, array $inputs, ?Credential $credential, ?string $idempotencyKey = null): ActionResult
     {
         $context = ['inputs' => $inputs, 'credentials' => $credential?->data ?? []];
         $resolve = fn (mixed $template, ?callable $encode = null) => $this->resolver->resolve($template, $context, $encode);
@@ -307,6 +308,12 @@ class WorkflowActionExecutor
             fn ($value) => $this->resolver->stringify($value),
             $this->compact(array_merge((array) $resolve($integration['headers'] ?? []), (array) $resolve($operation['headers'] ?? [])))
         );
+        // Apps that de-duplicate writes on a request key (manifest "idempotency_header") get the same key on every
+        // try of this step, so a retry after a timeout can't charge or create twice.
+        $idempotent = $idempotencyKey && ($header = $integration['idempotency_header'] ?? null) && ! in_array($method, ['GET', 'HEAD'], true);
+        if ($idempotent) {
+            $headers[$header] ??= $idempotencyKey;
+        }
         $body = isset($operation['body']) ? $resolve($operation['body']) : null;
         $body = is_array($body) ? $this->spread($this->compact($body)) : $body;
 
@@ -335,12 +342,15 @@ class WorkflowActionExecutor
             }
         }
 
-        $log = ['method' => $method, 'url' => $url.($query ? '?'.http_build_query($query) : '')];
+        $log = ['method' => $method, 'url' => $url.($query ? '?'.http_build_query($query) : '')] + ($idempotent ? ['idempotency_key' => true] : []);
 
         try {
-            $response = $request->send($method, $url, $options);
+            $response = UrlGuard::protect($request, $url)->send($method, $url, $options);
         } catch (ConnectionException $e) {
             throw new ActionException('Connection failed: '.$e->getMessage(), request: $log, previous: $e);
+        } catch (InvalidArgumentException $e) {
+            // UrlGuard: a private/internal address, also when a redirect leads there.
+            throw new ActionException($e->getMessage(), request: $log, previous: $e);
         }
 
         $output = $response->json() ?? ($response->body() === '' ? null : $response->body());

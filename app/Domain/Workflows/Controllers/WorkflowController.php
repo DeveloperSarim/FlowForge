@@ -17,6 +17,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
 use RuntimeException;
@@ -156,6 +157,14 @@ class WorkflowController extends Controller
 
         return response()->json(['valid' => true, 'timezone' => $timezone, 'next' => collect(range(0, 2))
             ->map(fn ($i) => $expression->getNextRunDate(now($timezone), $i)->format(DATE_ATOM))]);
+    }
+
+    /** A new webhook address for a URL that leaked; the old one stops working at once. */
+    public function newWebhookUrl(Workflow $workflow): JsonResponse
+    {
+        $workflow->forceFill(['webhook_token' => Str::random(48)])->save();
+
+        return response()->json(['webhook_url' => $workflow->webhookUrl()]);
     }
 
     public function duplicate(Workflow $workflow): RedirectResponse

@@ -5,6 +5,7 @@ namespace App\Domain\Voice\Providers;
 use App\Domain\Voice\Models\VoiceAgent;
 use App\Domain\Voice\Models\VoiceCall;
 use App\Domain\Voice\VoicePrompt;
+use App\Domain\Voice\VoiceService;
 use Carbon\Carbon;
 use Carbon\CarbonInterface;
 use Illuminate\Http\Client\PendingRequest;
@@ -39,6 +40,8 @@ class VapiProvider implements VoiceProvider
     public function sync(VoiceAgent $agent): void
     {
         $voice = (string) $agent->setting('voice', '');
+        // Vapi sends these headers with every tool call and report (Server.headers in its API).
+        $server = ['url' => $agent->eventsUrl(), 'headers' => [VoiceService::EVENTS_HEADER => VoiceService::eventsSecret($agent)]];
         $body = [
             'name' => mb_substr($agent->name, 0, 40),
             'firstMessage' => VoicePrompt::fill($agent, (string) $agent->setting('first_message', '')),
@@ -48,13 +51,13 @@ class VapiProvider implements VoiceProvider
                 'model' => $agent->setting('llm') ?: 'gpt-4o-mini',
                 'messages' => [['role' => 'system', 'content' => VoicePrompt::system($agent)]],
                 'tools' => array_values(array_filter([
-                    $agent->bookingEnabled() ? ['type' => 'function', 'function' => VoicePrompt::bookingTool($agent), 'server' => ['url' => $agent->eventsUrl()]] : null,
+                    $agent->bookingEnabled() ? ['type' => 'function', 'function' => VoicePrompt::bookingTool($agent), 'server' => $server] : null,
                     ['type' => 'endCall'], // lets the assistant hang up after goodbye
                 ])),
             ]),
             // Vapi's own voices are names (Elliot, Kylie…); a long id is an ElevenLabs voice.
             'voice' => strlen($voice) >= 20 ? ['provider' => '11labs', 'voiceId' => $voice] : ['provider' => 'vapi', 'voiceId' => $voice ?: 'Elliot'],
-            'server' => ['url' => $agent->eventsUrl()],
+            'server' => $server,
             'serverMessages' => ['end-of-call-report', 'tool-calls'],
             'artifactPlan' => ['recordingEnabled' => true],
         ];

@@ -8,7 +8,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use RuntimeException;
 
-/** One webhook delivery. A failure is tried again after 1, 5 and 30 minutes. */
+/** One webhook delivery. A failure is tried again after 1, 5 and 30 minutes (a blocked address isn't). */
 class SendVoiceWebhook implements ShouldQueue
 {
     use Queueable;
@@ -25,9 +25,17 @@ class SendVoiceWebhook implements ShouldQueue
         if (! $agent) {
             return;
         }
-        [, $error] = $webhooks->send($agent, $this->url, $this->event, $this->data);
-        if ($error !== null) {
-            throw new RuntimeException("Webhook to {$this->url} failed: {$error}");
+        [, $error, $blocked] = $webhooks->send($agent, $this->url, $this->event, $this->data);
+        if ($error === null) {
+            return;
         }
+        $exception = new RuntimeException("Webhook to {$this->url} failed: {$error}");
+        if ($blocked) {
+            $this->fail($exception); // a private/internal address won't start working on a retry
+
+            return;
+        }
+
+        throw $exception;
     }
 }

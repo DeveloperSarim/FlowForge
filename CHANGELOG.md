@@ -2,6 +2,28 @@
 
 All notable changes to FlowForge. Versions follow [semantic versioning](https://semver.org).
 
+## [Unreleased]
+
+Security and reliability fixes from a production-readiness review.
+
+- **No lost or doubled events:** schedules and polls save what they've seen and start their runs in one database transaction, so a crash part-way loses nothing and the next poll picks the items up. Two overlapping cron ticks can't fire a schedule twice, and a finished poll no longer overwrites newer trigger state.
+- **No repeated orders after a timeout:** each step is saved before it calls out. If the worker dies mid-request, the run shows that step as "may have gone through". A POST/PATCH that timed out or got a 500/502/504 is not retried automatically, even with "retry every failure". GET requests, failed connections and 429/503 are still retried. Stripe, PayPal, Mollie, GoCardless, Adyen and Checkout.com get an idempotency key that stays the same for every try, so their writes retry safely.
+- **Retries run once:** an automatic retry is claimed atomically, and retrying a run by hand cancels the waiting automatic retry.
+- **Webhook security:**
+  - The Webhook trigger can check every request: secret header, basic auth, HMAC signature (GitHub, Shopify, WooCommerce), or Stripe or Slack signatures. Old Stripe and Slack requests are refused, so recorded requests can't be replayed. Stripe, GitHub, Shopify and WooCommerce triggers have a Signing secret field.
+  - "Get a new URL" replaces a leaked webhook URL.
+  - Passwords, tokens and signatures in request headers and query strings are saved as `[redacted]` in run history and test data, including existing runs. Workflows that read `{{ steps.trigger.headers.authorization }}` now get `[redacted]`: use "Check incoming requests" instead.
+  - Bodies over 5 MB are refused (`FLOWFORGE_WEBHOOK_MAX_KB`).
+- **Voice agents:** Vapi and ElevenLabs now send a secret header that FlowForge checks. An agent gets it the next time it is saved.
+- **No requests to internal addresses (SSRF):** HTTP and app steps, custom apps, OpenAPI imports, OAuth token URLs and voice webhooks can't reach private networks, localhost or cloud metadata addresses, also through redirects. VPS installs that call their own services (Ollama, LM Studio) set `FLOWFORGE_ALLOW_PRIVATE_NETWORK=true`.
+- **Signed updates:** one-click updates install only releases whose checksum list is signed with the FlowForge release key and matches the download. A missing or bad signature or checksum stops the update. Uploading a zip by hand works as before. Two uploads at once no longer delete each other's files.
+- **Installation:**
+  - A fresh install runs in production mode with debug off from the first page.
+  - Installing over HTTPS turns on secure cookies.
+- **Secrets stay out of AI chats:** the AI Builder and MCP clients see `[secret is set]` instead of passwords and signing secrets typed into steps, and saving keeps the real value.
+- **Faster run counts:** runs have an index on their date. Deleting a custom app checks only the workflows that mention it.
+- **Continuous integration:** GitHub Actions runs the tests on PHP 8.2 to 8.4 on every push, plus code style, the integration audit, the frontend build and vulnerability checks.
+
 ## [1.6.3] - 2026-10-16
 
 - Settings → Updates shows the release notes ("What's new") formatted: headings, bold text, lists, code and the downloads table, instead of raw Markdown.

@@ -1,0 +1,57 @@
+# Every push and pull request: a clean install from the lock files, the test suite, code style,
+# the integration audit, the frontend build and a check for known-vulnerable packages.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        php: ['8.2', '8.3', '8.4']
+    name: PHP ${{ matrix.php }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: pdo_sqlite, pdo_mysql, curl, mbstring, openssl, fileinfo, gd, zip, intl, bcmath, sodium
+          coverage: none
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install PHP packages
+        run: composer install --no-interaction --no-progress --prefer-dist
+
+      - name: Install frontend packages
+        run: npm ci
+
+      - name: Build the frontend
+        run: npm run build
+
+      - name: Tests
+        run: php artisan test
+
+      - name: Code style
+        run: vendor/bin/pint --test
+
+      - name: Integration manifests and templates
+        run: php artisan flowforge:integrations --refresh --summary && php artisan flowforge:audit
+
+      - name: Known vulnerabilities in PHP packages
+        run: composer audit --locked
+
+      - name: Known vulnerabilities in frontend packages
+        run: npm audit --omit=dev --audit-level=high

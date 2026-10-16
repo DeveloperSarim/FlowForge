@@ -189,7 +189,8 @@ class InstallerController extends Controller
 
         // The APP_KEY is already unique (bootstrap/app.php generates it on first boot). It is not rotated
         // here: SMTP settings saved in the previous step are encrypted with it.
-        $this->env->set(['APP_ENV' => 'production', 'APP_DEBUG' => false]);
+        // Installed over HTTPS: the login cookie is only ever sent over HTTPS.
+        $this->env->set(['APP_ENV' => 'production', 'APP_DEBUG' => false] + (request()->isSecure() ? ['SESSION_SECURE_COOKIE' => true] : []));
 
         if (app(DemoMode::class)->active()) {
             app(DemoMode::class)->ensureUser(); // the live demo's visitor account

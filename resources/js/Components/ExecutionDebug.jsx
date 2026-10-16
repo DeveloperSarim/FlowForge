@@ -13,6 +13,7 @@ function httpTone(status) {
 function StepState({ status }) {
     if (status === 'success') return <span className="flex size-4 items-center justify-center rounded-full bg-ok text-white"><Check className="size-2.5" strokeWidth={3.5} /></span>;
     if (status === 'failed') return <span className="flex size-4 items-center justify-center rounded-full bg-fail text-white"><X className="size-2.5" strokeWidth={3.5} /></span>;
+    if (status === 'running') return <span className="flex size-4 items-center justify-center"><span className="size-2 animate-pulse rounded-full bg-info" /></span>;
     return <span className="flex size-4 items-center justify-center rounded-full bg-surface-3 text-fg-subtle"><Minus className="size-2.5" /></span>;
 }
 
@@ -69,6 +70,7 @@ export default function ExecutionDebug({ execution, compact = false }) {
                             {step.reused && <Badge tone="info">Done in an earlier try</Badge>}
                             {step.tries > 1 && <Badge tone="warn">Took {step.tries} tries</Badge>}
                             {step.continued && <Badge tone="warn">Failed, the run kept going</Badge>}
+                            {step.uncertain && <Badge tone="warn">May have gone through: not retried automatically</Badge>}
                         </div>
                         {step.status === 'skipped' && (
                             <p className="text-[13px] text-fg-muted">{step.disabled ? 'This step is turned off, so the run skipped it and went on.' : `This step didn't run: no path reached it${execution.status === 'failed' ? ', or an earlier step failed' : ''}.`}</p>

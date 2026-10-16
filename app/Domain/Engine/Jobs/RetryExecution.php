@@ -18,14 +18,11 @@ class RetryExecution implements ShouldQueue
     public function handle(): void
     {
         $failed = WorkflowExecution::query()->with('workflow')->find($this->executionId);
-        // Gone, already retried by hand, or no longer waiting.
-        if (! $failed?->retry_at || WorkflowExecution::query()->where('retry_of', $failed->id)->exists()) {
-            return;
-        }
-        if (! $failed->workflow?->is_active) {
-            $failed->forceFill(['retry_at' => null])->save(); // switched off meanwhile: don't run it
-
-            return;
+        // Claim the retry in one UPDATE: of two workers (or a click on Retry at the same moment), one gets it.
+        // Gone, already retried by hand, or no longer waiting: nothing to claim.
+        $claimed = $failed && WorkflowExecution::query()->whereKey($failed->id)->whereNotNull('retry_at')->update(['retry_at' => null]) === 1;
+        if (! $claimed || ! $failed->workflow?->is_active || WorkflowExecution::query()->where('retry_of', $failed->id)->exists()) {
+            return; // switched off meanwhile: don't run it
         }
 
         $failed->workflow->resume($failed, 'auto_retry');

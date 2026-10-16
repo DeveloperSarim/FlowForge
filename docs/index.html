@@ -447,6 +447,12 @@ sudo certbot --nginx -d automation.your-domain.com</code></pre>
     <tr><td>Error trigger</td><td>When another workflow fails. Use it to send failure alerts to Slack, Telegram or anywhere else.</td></tr>
 </table></div>
 <div class="note"><p>Webhook runs start on the next cron tick, so within about a minute.</p></div>
+<h3 id="webhook-security">Keeping a webhook private</h3>
+<ul>
+    <li><strong>Check incoming requests:</strong> in the Webhook trigger, pick how the sender proves itself: a secret header, a username and password, an HMAC signature (GitHub, Shopify, WooCommerce), or a Stripe or Slack signature. Paste the secret from the app. Requests that fail the check get an error and start nothing, and old Stripe and Slack requests (over 5 minutes) are refused too. Stripe, GitHub, Shopify and WooCommerce triggers have a <strong>Signing secret</strong> field for the same check.</li>
+    <li><strong>Get a new URL:</strong> if a webhook URL leaked, click <strong>Get a new URL</strong> under it. The old one stops working at once; paste the new one into the app that sends the requests.</li>
+    <li>Passwords, tokens and signatures sent in request headers or the address (<code>?token=…</code>) are saved as <code>[redacted]</code> in run history and test data. Requests over 5 MB are refused (<code>FLOWFORGE_WEBHOOK_MAX_KB</code> in <code>.env</code> changes the limit).</li>
+</ul>
 
 <h2 id="data-mapping">Passing data between steps</h2>
 <p>Any setting can use values from earlier steps. In the step editor, drag a field from the <strong>Input</strong> panel on the left into a setting, or click into the setting and then click the field. FlowForge inserts a reference like this:</p>
@@ -655,14 +661,14 @@ sudo certbot --nginx -d automation.your-domain.com</code></pre>
 <ol class="steps">
     <li>Sign in as an admin and open <span class="path"><b>Settings</b><i></i><b>Updates</b></span>. Click <strong>Check again</strong> to look right now.</li>
     <li>Read <strong>What's new</strong>, then click <strong>Download and install</strong>.</li>
-    <li>FlowForge downloads the update from GitHub and verifies its checksum. Then it backs up the current code, swaps in the new version and updates the database. If anything fails, it puts the old version back. It takes about a minute; keep the tab open.</li>
+    <li>FlowForge downloads the update from GitHub and checks that it is signed with the FlowForge release key and that its checksum matches; otherwise nothing is installed. Then it backs up the current code, swaps in the new version and updates the database. If anything fails, it puts the old version back. It takes about a minute; keep the tab open.</li>
 </ol>
 <p>Your settings, credentials, workflows and run history stay as they are. You can't install an older version over a newer one.</p>
 <figure><img src="assets/img/updates.png" alt="Settings, Updates tab showing a new version with What's new and a Download and install button" loading="lazy" width="890" height="642"></figure>
 <h3 id="updating-zip">Updating from a zip file (optional)</h3>
 <p>If your server can't reach GitHub, or you want a specific version, download <code>flowforge-update-x.y.z.zip</code> from <a href="https://github.com/DeveloperSarim/FlowForge/releases">GitHub Releases</a>. In <span class="path"><b>Settings</b><i></i><b>Updates</b></span>, open <strong>Install from a zip file instead</strong> and drop the zip there. It uploads in small pieces, so your host's upload limit doesn't matter.</p>
 <div class="note"><p><strong>Can't open Settings?</strong> You can also update by uploading the full <code>flowforge-install-x.y.z.zip</code> with <code>extract-flowforge.php</code> into the same folder and opening <code>extract-flowforge.php</code>. It keeps your <code>.env</code> and <code>storage</code> folder.</p></div>
-<div class="note"><p><strong>Running your own fork?</strong> Set <code>FLOWFORGE_UPDATE_REPO=your-name/your-repo</code> in <code>.env</code>, and FlowForge looks for releases there. Each release needs the <code>flowforge-update-x.y.z.zip</code> and <code>SHA256SUMS.txt</code> files that <code>scripts/make-release.sh</code> builds.</p></div>
+<div class="note"><p><strong>Running your own fork?</strong> Set <code>FLOWFORGE_UPDATE_REPO=your-name/your-repo</code> in <code>.env</code>, and FlowForge looks for releases there. Each release needs the <code>flowforge-update-x.y.z.zip</code>, <code>SHA256SUMS.txt</code> and <code>SHA256SUMS.txt.sig</code> files that <code>scripts/make-release.sh</code> builds, signed with your own key (<code>scripts/make-signing-key.php</code>; put its public key in <code>FLOWFORGE_UPDATE_PUBLIC_KEY</code>).</p></div>
 
 <h2 id="mobile">On your phone</h2>
 <p>FlowForge works on phones like an app, with a bottom tab bar (Home, Workflows, AI, Runs, More). In your phone's browser, choose <strong>Add to Home Screen</strong> to open it full screen with its own icon.</p>
@@ -694,6 +700,9 @@ sudo certbot --nginx -d automation.your-domain.com</code></pre>
 <p>To move to another server, copy all of FlowForge's files (including <code>.env</code>), import the database, update the database details in <code>.env</code>, and add the cron job on the new server.</p>
 
 <h2 id="troubleshooting">Troubleshooting</h2>
+
+<h3 id="ts-private-network">"FlowForge doesn't send requests to private or internal network addresses"</h3>
+<p>To protect your server, steps can't call <code>localhost</code>, <code>127.0.0.1</code>, <code>192.168.x.x</code>, <code>10.x.x.x</code> and other private addresses, or the cloud metadata address <code>169.254.169.254</code>. On a VPS that runs its own services (Ollama, LM Studio, an internal API), add <code>FLOWFORGE_ALLOW_PRIVATE_NETWORK=true</code> to <code>.env</code>. Metadata addresses stay blocked.</p>
 
 <h3 id="ts-404">404 or a blank page right after extracting</h3>
 <p>The extraction didn't finish. Check that <code>public</code>, <code>vendor</code> and <code>artisan</code> are there; if not, use <code>extract-flowforge.php</code> as described in <a href="#hpanel-upload">step 3</a>. If you used the extractor and see a 404 once, reload the page.</p>

@@ -2,11 +2,13 @@
 
 namespace App\Domain\Voice;
 
+use App\Domain\Integrations\UrlGuard;
 use App\Domain\Voice\Jobs\SendVoiceWebhook;
 use App\Domain\Voice\Models\VoiceAgent;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
+use InvalidArgumentException;
 use Throwable;
 
 /**
@@ -33,7 +35,8 @@ class VoiceWebhooks
     }
 
     /**
-     * POST one event to one URL. Returns [HTTP status or null, error or null] and records it in the agent's log.
+     * POST one event to one URL. Returns [HTTP status or null, error or null, whether retrying is pointless
+     * (a blocked private/internal address)] and records it in the agent's log.
      */
     public function send(VoiceAgent $agent, string $url, string $event, array $data, bool $test = false): array
     {
@@ -44,20 +47,23 @@ class VoiceWebhooks
             'agent' => ['id' => $agent->id, 'name' => $agent->name],
         ]) + $data, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
 
+        $blocked = false;
         try {
-            $response = Http::timeout(15)->withHeaders([
+            $response = UrlGuard::protect(Http::timeout(15), $url)->withHeaders([
                 'User-Agent' => 'FlowForge-Webhooks',
                 'X-FlowForge-Event' => $event,
                 'X-FlowForge-Signature' => 'sha256='.hash_hmac('sha256', $json, self::secret($agent)),
             ])->withBody($json, 'application/json')->post($url);
             $result = [$response->status(), $response->successful() ? null : 'HTTP '.$response->status().': '.Str::limit(trim(strip_tags($response->body())), 140)];
+        } catch (InvalidArgumentException $e) {
+            [$result, $blocked] = [[null, $e->getMessage()], true];
         } catch (Throwable $e) {
             $result = [null, Str::limit($e->getMessage(), 200)];
         }
 
         $this->log($agent->id, ['at' => now()->toIso8601String(), 'event' => $event, 'url' => $url, 'status' => $result[0], 'error' => $result[1], 'test' => $test]);
 
-        return $result;
+        return [...$result, $blocked];
     }
 
     /** The last 20 deliveries, newest first (kept in the cache: a log, not data). */

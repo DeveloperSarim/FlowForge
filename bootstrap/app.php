@@ -8,11 +8,12 @@ use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 
 // Fresh upload with no .env yet: create one with a random APP_KEY so the web installer can boot (sessions + CSRF need a key).
+// It starts as production with debug off: error pages during installation must not show paths or the database settings.
 $basePath = dirname(__DIR__);
 if (! is_file($basePath.'/.env') && is_file($basePath.'/.env.example')) {
     @file_put_contents($basePath.'/.env', preg_replace(
-        '/^APP_KEY=.*$/m',
-        'APP_KEY=base64:'.base64_encode(random_bytes(32)),
+        ['/^APP_KEY=.*$/m', '/^APP_ENV=.*$/m', '/^APP_DEBUG=.*$/m'],
+        ['APP_KEY=base64:'.base64_encode(random_bytes(32)), 'APP_ENV=production', 'APP_DEBUG=false'],
         file_get_contents($basePath.'/.env.example'),
     ));
 }

@@ -195,6 +195,10 @@ export function InputControl({ input, value, onChange, id, operators = [] }) {
     }
 }
 
+/** An input with show_if ({other_key: value | [values]}) only shows while that input has one of those values. */
+const isShown = (input, inputs, config) => !input.show_if || Object.entries(input.show_if).every(([key, values]) =>
+    [].concat(values).includes(config?.[key] ?? inputs.find((i) => i.key === key)?.default));
+
 /** Renders a manifest's input list. config is the node's stored values. */
 export default function DynamicForm({ inputs, config, onChange, operators, errors = {} }) {
     if (!inputs?.length) {
@@ -202,7 +206,7 @@ export default function DynamicForm({ inputs, config, onChange, operators, error
     }
     return (
         <div className="space-y-4">
-            {inputs.map((input) => (
+            {inputs.filter((input) => isShown(input, inputs, config)).map((input) => (
                 <Field key={input.key} label={input.label} required={input.required} help={input.help} error={errors[input.key]}>
                     {(id) => <InputControl id={id} input={input} value={config?.[input.key]} operators={operators} onChange={(value) => onChange(input.key, value)} />}
                 </Field>

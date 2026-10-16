@@ -43,8 +43,9 @@ class RunWorkflow implements ShouldQueue
         $workflow = $failed->workflow;
         $step = collect($failed->steps ?? [])->first(fn ($s) => ($s['status'] ?? null) === 'failed' && empty($s['continued']));
         $attempt = $failed->attempt ?? 1;
-        if (! $workflow?->autoRetries() || ! in_array($failed->mode, Workflow::RETRYABLE_MODES, true)
-            || ! $step || (empty($step['temporary']) && $workflow->retryOn() !== 'all') || $attempt > count(Workflow::RETRY_DELAYS)) {
+        // A step that may have gone through is never repeated automatically, not even with "retry every failure".
+        if (! $workflow?->autoRetries() || ! in_array($failed->mode, Workflow::RETRYABLE_MODES, true) || ! $step || ! empty($step['uncertain'])
+            || (empty($step['temporary']) && $workflow->retryOn() !== 'all') || $attempt > count(Workflow::RETRY_DELAYS)) {
             return false;
         }
 
@@ -62,19 +63,28 @@ class RunWorkflow implements ShouldQueue
         rescue(fn () => $execution->workflow?->startErrorWorkflows($execution));
     }
 
+    /**
+     * The job itself died (the worker was killed, a timeout, an engine bug). The step that was in flight
+     * (GraphRunner saves it before calling out) may or may not have reached the app, so it says so.
+     */
     public function failed(?Throwable $e): void
     {
-        WorkflowExecution::query()
-            ->whereKey($this->executionId)
-            ->whereIn('status', [WorkflowExecution::PENDING, WorkflowExecution::RUNNING])
-            ->update([
-                'status' => WorkflowExecution::FAILED,
-                'error' => 'Engine error: '.($e?->getMessage() ?? 'job failed'),
-                'finished_at' => now(),
-            ]);
-
-        if ($execution = WorkflowExecution::query()->find($this->executionId)) {
-            self::afterFailure($execution);
+        $execution = WorkflowExecution::query()->find($this->executionId);
+        if (! $execution || ! in_array($execution->status, [WorkflowExecution::PENDING, WorkflowExecution::RUNNING], true)) {
+            return;
         }
+
+        $error = 'Engine error: '.($e?->getMessage() ?? 'job failed');
+        $steps = $execution->steps;
+        foreach ($steps ?? [] as $i => $step) {
+            if (($step['status'] ?? null) === 'running') {
+                $steps[$i] = array_merge($step, ['status' => 'failed', 'uncertain' => true,
+                    'error' => 'The run stopped while this step was running, so it may or may not have gone through. Check the app before running it again.']);
+                $error = ($step['label'] ?? $step['node_id']).': '.$steps[$i]['error'];
+            }
+        }
+
+        $execution->forceFill(['status' => WorkflowExecution::FAILED, 'error' => $error, 'steps' => $steps, 'finished_at' => now()])->save();
+        self::afterFailure($execution);
     }
 }

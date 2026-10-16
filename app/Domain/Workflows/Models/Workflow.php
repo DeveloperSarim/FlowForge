@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Throwable;
 
@@ -111,11 +112,20 @@ class Workflow extends Model
         return url('/api/webhook/'.$this->webhook_token);
     }
 
+    /**
+     * Merge keys into the trigger state as stored now, not as this (possibly stale) copy last saw it: a poll,
+     * a schedule tick and a webhook sample can write at the same time without undoing each other.
+     */
     public function mergeTriggerState(array $patch): void
     {
-        static::withoutTimestamps(fn () => $this->forceFill([
-            'trigger_state' => array_merge($this->trigger_state ?? [], $patch),
-        ])->saveQuietly());
+        $state = DB::transaction(function () use ($patch) {
+            $state = array_merge(static::query()->lockForUpdate()->whereKey($this->getKey())->value('trigger_state') ?? [], $patch);
+            static::query()->whereKey($this->getKey())->toBase()->update(['trigger_state' => json_encode($state)]);
+
+            return $state;
+        });
+
+        $this->forceFill(['trigger_state' => $state])->syncOriginalAttribute('trigger_state');
     }
 
     /**

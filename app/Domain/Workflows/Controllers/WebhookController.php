@@ -3,18 +3,25 @@
 namespace App\Domain\Workflows\Controllers;
 
 use App\Domain\Workflows\Models\Workflow;
+use App\Domain\Workflows\WebhookGuard;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
  * Inbound webhooks: /api/webhook/{token}. Active workflows get a queued run; inactive ones just
- * capture the request as sample data for the editor's variable picker and test runs.
+ * capture the request as sample data for the editor's variable picker and test runs. Bodies over
+ * flowforge.webhook_max_kb get a 413, credential-looking headers and query keys are stored as "[redacted]",
+ * and a trigger with a sender check (WebhookGuard::verify) refuses unverified requests with a 401.
  */
 class WebhookController extends Controller
 {
     public function __invoke(Request $request, string $token): Response
     {
+        if ($tooLarge = WebhookGuard::tooLarge($request)) {
+            return $tooLarge;
+        }
+
         $workflow = Workflow::query()->where('webhook_token', $token)->first();
 
         if (! $workflow || $workflow->trigger_type !== 'webhook') {
@@ -30,18 +37,24 @@ class WebhookController extends Controller
             return response()->json(['message' => "This webhook only accepts {$method}."], 405);
         }
 
+        // Checked for inactive workflows too, so a stranger can't replace the editor's sample data.
+        $spec = $workflow->triggerSpec();
+        if ($refused = WebhookGuard::verify($request, $spec, $workflow->triggerConfig())) {
+            return response()->json(['message' => $refused], 401);
+        }
+
         $body = $request->isJson() ? $request->json()->all() : $request->request->all();
         if ($body === [] && ($raw = $request->getContent()) !== '') {
             $body = ['raw' => mb_substr($raw, 0, 1_000_000)];
         }
 
-        $dataPath = $workflow->triggerSpec()['data_path'] ?? null;
-        $payload = [
+        $dataPath = $spec['data_path'] ?? null;
+        $payload = WebhookGuard::redact([
             'data' => $dataPath ? data_get($body, $dataPath, $body) : $body,
             'query' => $request->query(),
-            'headers' => collect($request->headers->all())->except(['cookie'])->map(fn ($values) => implode(', ', $values))->all(),
+            'headers' => array_map(fn ($values) => implode(', ', $values), $request->headers->all()),
             'method' => $request->method(),
-        ];
+        ]);
 
         if (! $workflow->is_active) {
             $workflow->mergeTriggerState(['sample' => $payload, 'sample_at' => now()->toIso8601String()]);
@@ -72,6 +85,10 @@ class WebhookController extends Controller
         // Meta (WhatsApp, Messenger, Instagram): GET ?hub.mode=subscribe&hub.challenge=… (PHP turns dots into underscores)
         if ($request->isMethod('GET') && $request->query('hub_mode') === 'subscribe' && $request->filled('hub_challenge')) {
             return response((string) $request->query('hub_challenge'), 200, ['Content-Type' => 'text/plain']);
+        }
+        // WooCommerce pings a new webhook with an unsigned "webhook_id=…" form body.
+        if ($request->isMethod('POST') && preg_match('/^webhook_id=\d+$/', $request->getContent())) {
+            return response('', 200);
         }
         // Microsoft Graph subscriptions: ?validationToken=…
         if ($request->filled('validationToken')) {

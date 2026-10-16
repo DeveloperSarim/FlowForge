@@ -25,6 +25,9 @@ use Throwable;
  */
 class WorkflowTools
 {
+    /** Shown to the AI and MCP clients instead of a filled-in password input; saving it back keeps the real value. */
+    public const HIDDEN = '[secret is set: leave as is]';
+
     public function __construct(private ManifestLoader $manifests) {}
 
     /** @return list<array{name: string, description: string, parameters: array}> */
@@ -293,7 +296,7 @@ class WorkflowTools
                 'app' => $n['data']['integration'] ?? null,
                 'op' => $n['data']['trigger'] ?? $n['data']['action'] ?? null,
                 'label' => $n['data']['label'] ?? null,
-                'config' => $n['data']['config'] ?? null,
+                'config' => $this->hideSecrets($n['data'] ?? []),
                 'credential_id' => $n['data']['credential_id'] ?? null,
                 'retries' => $n['data']['retries'] ?? null,
                 'on_error' => $n['data']['on_error'] ?? null,
@@ -336,6 +339,22 @@ class WorkflowTools
      *
      * @return array{0: array, 1: list<string>}
      */
+    /** A node's config with filled-in password inputs (signing secrets, passwords) replaced by HIDDEN. */
+    private function hideSecrets(array $data): ?array
+    {
+        $config = $data['config'] ?? null;
+        $operation = isset($data['trigger'])
+            ? $this->manifests->trigger($data['integration'] ?? '', $data['trigger'])
+            : collect($this->manifests->get($data['integration'] ?? '')['actions'] ?? [])->firstWhere('key', $data['action'] ?? '');
+        foreach ($operation['inputs'] ?? [] as $input) {
+            if (($input['type'] ?? null) === 'password' && is_array($config) && ($config[$input['key']] ?? '') !== '') {
+                $config[$input['key']] = self::HIDDEN;
+            }
+        }
+
+        return $config;
+    }
+
     public function buildGraph(array $nodes, array $edges, ?Workflow $existing): array
     {
         $previous = collect($existing?->graph['nodes'] ?? [])->keyBy('id');
@@ -364,6 +383,11 @@ class WorkflowTools
             $config = $node['config'] ?? [];
             if (is_string($config)) {
                 $config = json_decode($config, true) ?? []; // Gemini sends objects as JSON strings
+            }
+            foreach ($operation['inputs'] as $inputDef) {
+                if (($inputDef['type'] ?? null) === 'password' && ($config[$inputDef['key']] ?? null) === self::HIDDEN) {
+                    $config[$inputDef['key']] = $previous[$id]['data']['config'][$inputDef['key']] ?? null;
+                }
             }
             $declared = array_column($operation['inputs'], 'key');
             if ($unknown = array_diff(array_keys((array) $config), $declared)) {

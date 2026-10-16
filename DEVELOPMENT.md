@@ -47,12 +47,12 @@ What's included:
 
 Configured `.env` by hand and ran `php artisan migrate --force` yourself? Set `FLOWFORGE_INSTALLED=true` to skip the wizard.
 
-**Updating:** Settings → Updates checks the latest GitHub release (`FLOWFORGE_UPDATE_REPO`, default `DeveloperSarim/FlowForge`). The check uses the API, or the `releases/latest` redirect when a shared host has used up the API's 60 calls an hour. Results are cached 6 hours and refreshed by a daily scheduled check, which feeds the "Update" badge on Settings. On an admin's click, `Updater::download()` streams `flowforge-update-<version>.zip` from the release and verifies it against the release's `SHA256SUMS.txt`. The manual path is the same pipeline: drop the zip under "Install from a zip file instead" and it uploads in 1.5 MB pieces, so `upload_max_filesize` doesn't matter. From there both paths:
+**Updating:** Settings → Updates checks the latest GitHub release (`FLOWFORGE_UPDATE_REPO`, default `DeveloperSarim/FlowForge`). The check uses the API, or the `releases/latest` redirect when a shared host has used up the API's 60 calls an hour. Results are cached 6 hours and refreshed by a daily scheduled check, which feeds the "Update" badge on Settings. On an admin's click, `Updater::download()` first fetches the release's `SHA256SUMS.txt` and `SHA256SUMS.txt.sig` and checks the Ed25519 signature against `config('flowforge.updates.public_key')` (`sodium_crypto_sign_verify_detached`; `paragonie/sodium_compat` covers hosts without ext-sodium). Only then does it stream `flowforge-update-<version>.zip` and compare its SHA-256 with the signed list. A missing or bad signature, a list without the zip, or a mismatch refuses the update and keeps nothing. The manual path is the same pipeline: drop the zip under "Install from a zip file instead" and it uploads in 1.5 MB pieces, so `upload_max_filesize` doesn't matter. From there both paths:
 1. Unpack in batches into `storage/app/updates/staging`.
 2. Swap the new code in with `public/update-runner.php` (no Laravel, one-time token). The old code moves to `storage/app/updates/backup-<old version>-<time>` and is restored if any move fails.
 3. Run migrations on the new code.
 
-`.env`, `storage/` and `bootstrap/cache` are never in an update package, so settings, credentials, workflows and history stay. Older versions won't install over newer ones. Installs older than 1.1.0 (no Updates tab yet) update once with the install zip + `extract-flowforge.php`, which keeps `.env` and `storage/`. **Releases:** run `bash scripts/make-release.sh x.y.z`, then upload both zips, `extract-flowforge.php` and `SHA256SUMS.txt` from `dist/` to a GitHub release tagged `vx.y.z`.
+`.env`, `storage/` and `bootstrap/cache` are never in an update package, so settings, credentials, workflows and history stay. Older versions won't install over newer ones. Installs older than 1.1.0 (no Updates tab yet) update once with the install zip + `extract-flowforge.php`, which keeps `.env` and `storage/`. Uploading a zip by hand skips the signature on purpose: it's the admin's own file, like code uploaded over FTP. **Releases:** run `bash scripts/make-release.sh x.y.z` (it signs `SHA256SUMS.txt` with the key at `${FLOWFORGE_SIGNING_KEY:-~/.flowforge/release-signing.key}` and stops if the key is missing or doesn't match the public key in config), then upload both zips, `extract-flowforge.php`, `SHA256SUMS.txt` and `SHA256SUMS.txt.sig` from `dist/` to a GitHub release tagged `vx.y.z`. Keep an offline backup of the signing key: without it, installs can't take one-click updates any more. `scripts/make-signing-key.php` makes a new pair (forks set `FLOWFORGE_UPDATE_PUBLIC_KEY`).
 
 **Forgot your password?** "Forgot password?" on the sign-in page emails a 6-digit code (valid 15 minutes, 5 tries, single use). Without email configured, run `php artisan flowforge:reset-password you@example.com` from a terminal.
 
@@ -103,6 +103,10 @@ Settings → Team (owner and admins) invites people by email; they open the link
 
 Access is enforced on the server (`can:` route middleware and the assistant's tools); the UI just hides what isn't allowed. AI chats are private to each person. Failure emails go to the owner and admins.
 
+One install is one organization: workflows, credentials and runs are shared by its team and separated by permissions, not by tenant. To serve several independent clients, give each client its own install (its own database and domain); there is no per-client data isolation inside one install.
+
+**Outbound requests** from anything a user can point somewhere (HTTP Request and app steps, custom apps, OpenAPI import, OAuth token URLs, voice agent webhooks) go through `UrlGuard::protect()`: http/https only, the host is resolved and refused if any address is private (loopback, RFC 1918, CGNAT, IPv6 unique-local) or reserved (link-local and cloud metadata such as 169.254.169.254, multicast, 0.0.0.0/8), the checked IP is pinned with `CURLOPT_RESOLVE`, and every redirect is checked again. `FLOWFORGE_ALLOW_PRIVATE_NETWORK=true` allows private addresses for VPS installs that call their own services (Ollama, LM Studio); metadata and link-local addresses stay blocked. The AI provider's base URL (owner-only setting) and the fixed GitHub/Vapi/ElevenLabs hosts aren't guarded.
+
 ## AI builder
 
 Under **AI Builder** in the sidebar (and **Ask AI** in the editor), describe a workflow in plain words — English or Urdu — and the assistant builds it: it searches the app catalog, reads the exact inputs of the actions it needs, saves the workflow, attaches matching credentials, and tells you what's left to fill in. It can also explain and edit existing workflows, test them (only when asked, since tests perform real actions), switch them on or off, and propose deletes (you confirm on a card; nothing is deleted before that).
@@ -132,7 +136,7 @@ Token use is kept low by design: the 1,000+ app catalog is never sent — the mo
 - **Models:** `VoiceAgent` (provider `browser`, `vapi` or `elevenlabs`, credential, phone number, `config` JSON: persona, tone, verbosity, first message, instructions, knowledge, FAQs, booking, collect, voice), `VoiceCall`, `VoiceBooking`.
 - **Prompt:** `VoicePrompt` builds the system prompt (persona, phone manners, knowledge, FAQs, booking rules, hang up after goodbye), the `book_appointment` tool and the schema of details to capture. `{{business_name}}` and per-call `{{variables}}` are filled in.
 - **Providers** implement `VoiceProvider`. Saving an agent publishes it: Vapi gets an assistant with the booking tool and `endCall`; ElevenLabs gets an agent, a webhook tool and the `end_call` system tool. Both attach the chosen phone number.
-- **Events:** providers call `POST /api/voice/{token}` (Vapi tool calls and end-of-call reports, the ElevenLabs webhook tool). `flowforge:voice-poll` runs every minute and imports finished calls the webhook missed.
+- **Events:** providers call `POST /api/voice/{token}` (Vapi tool calls and end-of-call reports, the ElevenLabs webhook tool). Publishing sends an `X-FlowForge-Secret` header (Vapi `server.headers`, ElevenLabs `request_headers`), an HMAC of the agent's token with `APP_KEY` that is never stored or sent to the browser. Once `events_secret_sent` is set, requests without it get 401; agents published before that keep working until their next save. `flowforge:voice-poll` runs every minute and imports finished calls the webhook missed.
 - **Browser test calls:** `VoiceService::talk` runs the conversation with the AI builder's model (`LlmClient`) and the booking and `end_call` tools; the page uses the Web Speech API, or ElevenLabs text-to-speech (`/voice/agents/{agent}/speak`) for ElevenLabs agents.
 - **Voices:** `/voice/agents/{agent}/voices` lists Vapi's voices or the ElevenLabs voice library and account voices; `/voices/add` tests a library voice with three characters of speech before adding it, because the free ElevenLabs plan can't use library voices through the API.
 - **Templates:** `resources/voice-templates/*.json` (persona, sample conversation, booking, knowledge, FAQs, details to capture).
@@ -153,9 +157,11 @@ Editor test runs never send alerts. For alerts in Slack/Telegram/anything else, 
 
 | Trigger | What starts it |
 | --- | --- |
-| Webhook | `POST/GET /api/webhook/{token}`. Active workflows queue a run. Inactive ones save the request as test data for the editor. |
+| Webhook | `POST/GET /api/webhook/{token}`. Active workflows queue a run. Inactive ones save the request as test data for the editor. `WebhookGuard` refuses bodies over `FLOWFORGE_WEBHOOK_MAX_KB` (413), redacts sensitive header and query values to `[redacted]` before anything is stored, and, when the trigger's "Check incoming requests" (`verify`) or a manifest `signature` is set, checks the sender (401 and no run on failure). Handshakes are answered before the check. "Get a new URL" (`POST /workflows/{id}/webhook-url`) rotates the token. |
 | Schedule | A cron expression on the trigger node. It is checked every minute, and a minute guard stops it firing twice. |
 | Polling | A manifest's polling endpoint is called every N minutes. The first poll only records a baseline; after that, each new item id starts one run. |
+
+Schedules and polls write their trigger state, the new runs and those runs' queue jobs in one transaction on the workflow's locked row (`PollerService::locked`; the queue is the database driver on the same connection). A crash part-way writes nothing, so an item is picked up on the next poll instead of being lost, and overlapping `schedule:run` calls can't both fire one minute. `Workflow::mergeTriggerState()` always merges into the stored state under a row lock, never into a stale in-memory copy.
 | Manual / Test | "Test workflow" in the editor runs **synchronously** and opens the step debugger. |
 
 Every scheduler tick:
@@ -163,7 +169,9 @@ Every scheduler tick:
 2. It enqueues due schedules and polls.
 3. It runs `queue:work database --stop-when-empty --max-time=50`.
 
-Runs are stored in `workflow_executions`, with each step's resolved input, output, HTTP request and status. Credential secrets are masked out of these logs, and large payloads are capped. Runs older than `FLOWFORGE_EXECUTION_RETENTION_DAYS` are pruned daily.
+The worker's `--timeout=600` stays below the database queue's `retry_after` (900) and the worker's overlap lock (15 minutes), so a long job is never handed to a second worker (`ReliabilityTest` checks this). `RunWorkflow` has `tries = 1`: a job whose worker died is failed, not run again.
+
+Runs are stored in `workflow_executions`, with each step's resolved input, output, HTTP request and status. `GraphRunner` saves the steps so far, with the next one as `running`, before each action calls out. If the worker dies mid-request, `RunWorkflow::failed()` marks that step `uncertain` ("may or may not have gone through"), and it is never retried automatically. Credential secrets are masked out of these logs, and large payloads are capped. Runs older than `FLOWFORGE_EXECUTION_RETENTION_DAYS` are pruned daily.
 
 ### Graph semantics
 
@@ -171,8 +179,8 @@ Runs are stored in `workflow_executions`, with each step's resolved input, outpu
 - **Order:** nodes run in topological order.
 - **When a node runs:** when at least one incoming edge is live. If/Else emits `true` or `false`. A failing Filter emits nothing, which stops that path.
 - **Failure:** the first failing step fails the run, and the rest are marked skipped, unless the step says otherwise (below).
-- **Step settings** (node `data`, cleaned by `GraphValidator::normalize`): `disabled` skips the step and the path goes on (an If/Else takes "true"); `retries` (1-5) tries it again after 2, 4, 8, 16, 30 s, only when `ActionException::isTemporary()` (no response, 408/425/429, 5xx, SMTP transport errors); `on_error: "continue"` records the failure, puts `{error, http_status}` in its output and goes on.
-- **Automatic retries** (`workflows.settings.auto_retry`, on unless switched off; `retry_on` is `temporary` (default) or `all`): a production run (webhook, schedule, polling, voice, error) that failed on a temporary error (or on any error with `retry_on: all`) gets `retry_at`, and `RetryExecution` is queued with a delay of 2, 10, 60, 180 and 360 minutes. It creates a run with `retry_of` and `attempt + 1`; `GraphRunner` reuses the steps that succeeded in the failed run (nothing is reused if an output was truncated), so emails and API writes aren't repeated. The failure email and error workflows wait for the last try. Editor tests and manual retries are never retried automatically; a workflow switched off meanwhile isn't retried. Executions → Retry resumes from the failed step by default (`from: start` runs everything again).
+- **Step settings** (node `data`, cleaned by `GraphValidator::normalize`): `disabled` skips the step and the path goes on (an If/Else takes "true"); `retries` (1-5) tries it again after 2, 4, 8, 16, 30 s, only when `ActionException::isTemporary()` (no response, 408/425/429, 5xx, SMTP transport errors) and not `mayHaveGoneThrough()`: a POST/PATCH that timed out, lost its connection mid-way or got a 500/502/504 may have done its work already, so it is marked `uncertain` and not repeated (GET/HEAD/PUT/DELETE, connection refused/DNS/TLS failures and 408/425/429/503 are safe). Apps whose manifest has `idempotency_header` (Stripe, PayPal, Mollie, GoCardless, Adyen, Checkout.com) get the same key, an HMAC of the original run id and the node id with `APP_KEY`, on every try and resume of a write, so those writes are retried safely; `on_error: "continue"` records the failure, puts `{error, http_status}` in its output and goes on.
+- **Automatic retries** (`workflows.settings.auto_retry`, on unless switched off; `retry_on` is `temporary` (default) or `all`): a production run (webhook, schedule, polling, voice, error) that failed on a temporary error (or on any error with `retry_on: all`) gets `retry_at`, and `RetryExecution` is queued with a delay of 2, 10, 60, 180 and 360 minutes. It creates a run with `retry_of` and `attempt + 1`; `GraphRunner` reuses the steps that succeeded in the failed run (nothing is reused if an output was truncated), so emails and API writes aren't repeated. The failure email and error workflows wait for the last try. `RetryExecution` claims the retry with one conditional UPDATE on `retry_at`, so two copies of the job (or a click on Retry at the same moment) start it once, and a retry by hand cancels the waiting automatic one. Uncertain steps are never retried automatically, not even with `retry_on: all`. Editor tests and manual retries are never retried automatically; a workflow switched off meanwhile isn't retried. Executions → Retry resumes from the failed step by default (`from: start` runs everything again).
 
 ### Variables
 
@@ -223,7 +231,8 @@ Each integration is one JSON or YAML file under `resources/integrations/` (any s
 
 - **Auth types:** `none`, `oauth2_client_credentials` (machine-to-machine; token fetched and cached automatically), `api_key` (`in: header|query`, or omitted to use `{{ credentials.api_key }}` in the URL), `bearer`, `basic`, `oauth2` (`authorize_url`, `token_url`, `scopes`, `authorize_params`; refresh is automatic), `google_service_account` (signed JWT), `smtp`, `mysql`. A manifest may list several types, e.g. Google Sheets accepts OAuth2 or a service account.
 - **Input types:** `string`, `text`, `password`, `number`, `boolean`, `select`, `json`, `code`, `list`, `keyvalue`, `conditions`, `cron` (friendly schedule picker that stores a cron expression).
-- **Input options:** `fallback: "credentials.<field>"` fills an empty input from the connected account (see `profile`), `escape: "little_text"` applies LinkedIn's reserved-character escaping and turns `#tags` into hashtags.
+- **Input options:** `fallback: "credentials.<field>"` fills an empty input from the connected account (see `profile`), `escape: "little_text"` applies LinkedIn's reserved-character escaping and turns `#tags` into hashtags, `show_if: {"other_input": value | [values]}` shows the field only while another input has one of those values.
+- **Webhook signatures:** a webhook trigger may declare `signature: {type: header|basic|hmac|stripe|slack, header?, encoding?: hex|base64, prefix?}` plus a password input `signing_secret`. Once the user fills in the secret, `WebhookGuard::verify` checks every request (Stripe and Slack refuse timestamps over 5 minutes old). Used by Stripe, GitHub, Shopify and WooCommerce.
 - **Optional action keys:**
   - `query`, `headers`, `body`
   - `body_format` (`json` or `form`)
@@ -236,6 +245,7 @@ Each integration is one JSON or YAML file under `resources/integrations/` (any s
   - `outputs` (makes the node a branch)
   - `handler` (built-ins: `if`, `filter`, `json_parse`, `text_format`, `smtp`, `mysql`)
 - **Connected account:** an auth spec may declare `profile: {endpoint, store: {field: template}}`. After connecting (and lazily before first use) FlowForge reads that endpoint and saves the fields on the credential, e.g. LinkedIn's `/v2/userinfo` → `person_urn: "urn:li:person:{{ sub }}"`, so "Post as" needs no manual URN.
+- **Idempotency:** `idempotency_header` (integration level, e.g. `"Idempotency-Key"`, `"PayPal-Request-Id"`) sends a key that stays the same for every try and resume of a step on POST/PATCH/PUT/DELETE, so the engine can retry those writes after a timeout. Only add it for APIs that de-duplicate on that header.
 - **OAuth extras:** `client_auth: "basic"` for providers that want client credentials in a Basic header (Zoom, QuickBooks, Xero…), `token_type` for non-`Bearer` schemes (`Zoho-oauthtoken`), and `{{ credentials.* }}` inside OAuth URLs and scopes for per-region hosts.
 - **OpenAPI v3:** drop a spec (`.json` or `.yaml`) into the same folder and every operation becomes an action. Add `x-flowforge: {key, name, icon, category}` to override the defaults. See `resources/integrations/openapi/jsonplaceholder.yaml`.
 - **Audit:** `php artisan flowforge:audit [app-or-category] [--warnings] [--live]` dry-runs every action through the real engine against a fake HTTP client (unresolved `{{ }}`, invalid URLs, unused inputs, undefined credential fields, template references) and, with `--live`, calls keyless GET actions for real.
@@ -316,7 +326,7 @@ Use the plain PHP server, not `php artisan serve --no-reload`. The latter passes
 - **Webhook handshakes:** the endpoint answers Meta, Microsoft Graph, Slack, monday.com, Asana and Trello. Zoom's signed URL validation is not handled.
 - **OAuth:** supports the authorization-code flow only. Apps that require PKCE (X/Twitter, Etsy, Canva) or client credentials only (Personio, Snov.io) use pasted tokens or were left out.
 - **Request bodies:** multipart file uploads aren't supported. Empty JSON objects (`{}`) are sent as `[]`.
-- A step that timed out may still have done its work on the app's side; retrying it can then repeat that one action.
+- A write that timed out may still have done its work on the app's side. FlowForge doesn't repeat it on its own (except for apps with an idempotency key); a retry by hand can.
 - Polling dedupes on the last 1,000 item ids per workflow.
 
 ## License

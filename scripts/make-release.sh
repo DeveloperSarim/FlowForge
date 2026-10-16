@@ -2,13 +2,17 @@
 # Builds the two release zips for shared hosting:
 #   dist/flowforge-install-<version>.zip  fresh install: extract on the server, open /install
 #   dist/flowforge-update-<version>.zip   existing install: Settings → Updates (downloaded from the GitHub release, or uploaded)
-# plus dist/extract-flowforge.php for hosts whose File Manager can't extract the install zip, and dist/SHA256SUMS.txt.
+# plus dist/extract-flowforge.php for hosts whose File Manager can't extract the install zip, dist/SHA256SUMS.txt
+# and dist/SHA256SUMS.txt.sig (Ed25519, key from $FLOWFORGE_SIGNING_KEY or ~/.flowforge/release-signing.key).
 # Neither zip contains secrets or local state (.env, install flag, logs, sessions, caches, test credentials).
 #
 # Usage: bash scripts/make-release.sh [version]   (e.g. 1.2.0; writes VERSION. Omit to reuse VERSION.)
 set -euo pipefail
 
 root="$(cd "$(dirname "$0")/.." && pwd)"
+# Checked up front: new installs refuse a one-click update whose SHA256SUMS.txt isn't signed.
+signing_key="${FLOWFORGE_SIGNING_KEY:-$HOME/.flowforge/release-signing.key}"
+[ -f "$signing_key" ] || { echo "✗ No release signing key at $signing_key (set FLOWFORGE_SIGNING_KEY). Releases must be signed." >&2; exit 1; }
 if [ -n "${1:-}" ]; then
     [[ "$1" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "Version must look like 1.2.0" >&2; exit 1; }
     echo "$1" > "$root/VERSION"
@@ -52,9 +56,12 @@ printf '{"product":"flowforge","version":"%s","php":"%s","built_at":"%s"}\n' "$v
 cp "$root/scripts/extract-flowforge.php" "$root/dist/extract-flowforge.php"
 # Settings → Updates verifies the downloaded zip against this file, so upload it with every GitHub release.
 (cd "$root/dist" && shasum -a 256 "flowforge-install-$version.zip" "flowforge-update-$version.zip" extract-flowforge.php > SHA256SUMS.txt)
+rm -f "$root/dist/SHA256SUMS.txt.sig"
+FLOWFORGE_SIGNING_KEY="$signing_key" php "$root/scripts/sign-release.php" "$root/dist/SHA256SUMS.txt"
 
 echo "✓ v$version (PHP $php_min+)"
 echo "  fresh install: $install_zip ($(du -h "$install_zip" | cut -f1))"
 echo "  update:        $update_zip ($(du -h "$update_zip" | cut -f1))"
 echo "  + dist/extract-flowforge.php: upload it next to the install zip if the File Manager can't extract it"
-echo "  + dist/SHA256SUMS.txt: attach it to the GitHub release with both zips (one-click updates verify against it)"
+echo "  + dist/SHA256SUMS.txt and dist/SHA256SUMS.txt.sig: attach BOTH to the GitHub release with both zips"
+echo "    (one-click updates refuse a release without a valid signature)"

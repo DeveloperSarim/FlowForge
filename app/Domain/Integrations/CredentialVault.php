@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
+use InvalidArgumentException;
 use RuntimeException;
 
 /**
@@ -236,10 +237,14 @@ class CredentialVault
         }
         $segments[] = $this->base64Url($signature);
 
-        $response = Http::asForm()->timeout(20)->post($tokenUri, [
-            'grant_type' => 'urn:ietf:params:oauth:grant-type:jwt-bearer',
-            'assertion' => implode('.', $segments),
-        ]);
+        try {
+            $response = UrlGuard::protect(Http::asForm()->timeout(20), $tokenUri)->post($tokenUri, [
+                'grant_type' => 'urn:ietf:params:oauth:grant-type:jwt-bearer',
+                'assertion' => implode('.', $segments),
+            ]);
+        } catch (InvalidArgumentException $e) {
+            throw new RuntimeException('Google token exchange failed: '.$e->getMessage(), previous: $e);
+        }
 
         if ($response->failed() || ! $response->json('access_token')) {
             throw new RuntimeException('Google token exchange failed: '.Str::limit($response->body(), 300));
@@ -263,7 +268,11 @@ class CredentialVault
             $params += ['client_id' => $credential->data['client_id'], 'client_secret' => $credential->data['client_secret']];
         }
 
-        $response = $request->post($authSpec['token_url'], $params);
+        try {
+            $response = UrlGuard::protect($request, $authSpec['token_url'])->post($authSpec['token_url'], $params);
+        } catch (InvalidArgumentException $e) {
+            throw new RuntimeException('OAuth token request failed: '.$e->getMessage(), previous: $e);
+        }
 
         $tokens = $response->json();
         if ($response->failed() || ! is_array($tokens) || empty($tokens['access_token'])) {

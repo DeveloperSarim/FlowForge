@@ -14,8 +14,8 @@ use ZipArchive;
 
 /**
  * In-app updates from flowforge-update-x.y.z.zip, either downloaded from the latest GitHub release or uploaded:
- *   1. download (from GitHub, checksum-verified) or receiveChunk (uploaded in small chunks, under any
- *      upload_max_filesize) puts the zip in place, and it is checked;
+ *   1. download (from GitHub; SHA256SUMS.txt must be signed with the release key and match the zip) or receiveChunk
+ *      (uploaded in small chunks, under any upload_max_filesize) puts the zip in place, and it is checked;
  *   2. extract: unpacked in batches into storage/app/updates/staging;
  *   3. public/update-runner.php (outside Laravel, one-time token) swaps the staged code in and keeps a backup;
  *   4. finish: runs on the new code: migrations, caches, history.
@@ -48,13 +48,18 @@ class Updater
         return $this->root().'/storage/app/updates'.($path !== '' ? '/'.$path : '');
     }
 
-    /** Appends one chunk. Returns the package details after the last chunk, null before that. */
+    /**
+     * Appends one chunk. Returns the package details after the last chunk, null before that.
+     * Uploads skip the release signature on purpose: an admin installing their own zip ("Install from a zip
+     * file instead") is trusted with it, like uploading code over FTP. Only one-click downloads are verified.
+     */
     public function receiveChunk(string $uploadId, int $index, int $total, int $offset, UploadedFile $chunk): ?array
     {
         $part = $this->dir("uploads/{$uploadId}.part");
         File::ensureDirectoryExists(dirname($part));
         if ($index === 0) {
-            File::delete(File::glob($this->dir('uploads/*.part')));
+            // Start this upload afresh; another upload's part stays unless it was abandoned (older than 12 hours).
+            File::delete(array_filter(File::glob($this->dir('uploads/*.part')), fn ($p) => $p === $part || @filemtime($p) < time() - 12 * 3600));
         }
         clearstatcache();
         if ((is_file($part) ? filesize($part) : 0) !== $offset) {
@@ -85,7 +90,7 @@ class Updater
     /**
      * The newest release on GitHub, cached for 6 hours (the settings page and the daily check share it).
      *
-     * @return array{version: string, notes: ?string, published_at: ?string, url: string, zip: ?string, sums: ?string, checked_at: string}
+     * @return array{version: string, notes: ?string, published_at: ?string, url: string, zip: ?string, sums: ?string, sig: ?string, checked_at: string}
      */
     public function latest(bool $fresh = false): array
     {
@@ -101,7 +106,8 @@ class Updater
                 $version = ltrim($api->json('tag_name'), 'v');
                 $assets = collect($api->json('assets', []))->pluck('browser_download_url', 'name');
                 $release = ['version' => $version, 'notes' => Str::limit(trim((string) $api->json('body')), 4000) ?: null, 'published_at' => $api->json('published_at'),
-                    'url' => $api->json('html_url'), 'zip' => $assets["flowforge-update-{$version}.zip"] ?? null, 'sums' => $assets['SHA256SUMS.txt'] ?? null];
+                    'url' => $api->json('html_url'), 'zip' => $assets["flowforge-update-{$version}.zip"] ?? null, 'sums' => $assets['SHA256SUMS.txt'] ?? null,
+                    'sig' => $assets['SHA256SUMS.txt.sig'] ?? null];
             }
         } catch (ConnectionException) {
         }
@@ -117,7 +123,7 @@ class Updater
             }
             $base = "https://github.com/{$repo}/releases/download/{$m[1]}";
             $release = ['version' => $m[2], 'notes' => null, 'published_at' => null, 'url' => "https://github.com/{$repo}/releases/tag/{$m[1]}",
-                'zip' => "{$base}/flowforge-update-{$m[2]}.zip", 'sums' => "{$base}/SHA256SUMS.txt"];
+                'zip' => "{$base}/flowforge-update-{$m[2]}.zip", 'sums' => "{$base}/SHA256SUMS.txt", 'sig' => "{$base}/SHA256SUMS.txt.sig"];
         }
         $release['checked_at'] = now()->toIso8601String();
         Cache::put(self::LATEST, $release, now()->addHours(6));
@@ -133,7 +139,12 @@ class Updater
         return is_array($latest) && ! empty($latest['zip']) && version_compare($latest['version'], $this->current(), '>') ? $latest['version'] : null;
     }
 
-    /** Downloads the latest release's update zip from GitHub, verifies its checksum, and checks it like an upload. */
+    /**
+     * Downloads the latest release's update zip from GitHub and checks it like an upload, but only after proving it is
+     * an official release: SHA256SUMS.txt must carry a valid Ed25519 signature (SHA256SUMS.txt.sig, made by
+     * scripts/sign-release.php) from config('flowforge.updates.public_key') and list the zip with its exact SHA-256.
+     * Anything missing or wrong refuses the update and nothing is kept.
+     */
     public function download(): array
     {
         $release = $this->latest(true);
@@ -151,6 +162,23 @@ class Updater
             File::delete($package);
             throw new RuntimeException($message);
         };
+
+        $version = $release['version'];
+        $fetch = fn (?string $url) => $url ? rescue(fn () => Http::timeout(15)->withHeaders(['User-Agent' => 'FlowForge/'.$this->current()])->get($url), null, false) : null;
+        $sums = $fetch($release['sums'] ?? null);
+        $sig = $fetch($release['sig'] ?? null);
+        if (! $sums?->successful() || ! $sig?->successful()) {
+            $fail("Couldn't get the signature of version {$version} from GitHub, so nothing was installed. Try again in a few minutes.");
+        }
+        $signed = rescue(fn () => sodium_crypto_sign_verify_detached((string) base64_decode(trim($sig->body()), true), $sums->body(),
+            (string) base64_decode((string) config('flowforge.updates.public_key'), true)), false, false);
+        if (! $signed) {
+            $fail("Version {$version} on GitHub isn't signed with the FlowForge release key, so it was not installed. It may have been tampered with.");
+        }
+        if (! preg_match('/^([a-f0-9]{64})\s+\*?'.preg_quote("flowforge-update-{$version}.zip", '/').'\s*$/mi', $sums->body(), $sum)) {
+            $fail("The signed checksum list of version {$version} doesn't include its update package, so it was not installed.");
+        }
+
         try {
             $response = Http::timeout(600)->withHeaders(['User-Agent' => 'FlowForge/'.$this->current()])->sink($package)->get($release['zip']);
         } catch (ConnectionException) {
@@ -163,11 +191,8 @@ class Updater
         if (! is_file($package) || filesize($package) > self::MAX_BYTES) {
             $fail('The downloaded file is not a FlowForge update.');
         }
-
-        // Each release lists the SHA-256 of its files; a mismatch means a broken or altered download.
-        $sums = $release['sums'] ? rescue(fn () => Http::timeout(15)->get($release['sums']), null, false) : null;
-        $name = preg_quote(basename((string) parse_url($release['zip'], PHP_URL_PATH)), '/');
-        if ($sums?->successful() && preg_match('/^([a-f0-9]{64})\s+\*?'.$name.'\s*$/mi', $sums->body(), $m) && ! hash_equals(strtolower($m[1]), hash_file('sha256', $package))) {
+        // A mismatch means a broken or altered download.
+        if (! hash_equals(strtolower($sum[1]), hash_file('sha256', $package))) {
             $fail('The downloaded package failed its checksum check, so it was not installed. Try again.');
         }
 

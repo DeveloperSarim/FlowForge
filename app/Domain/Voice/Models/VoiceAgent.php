@@ -27,7 +27,7 @@ class VoiceAgent extends Model
 
     protected function casts(): array
     {
-        return ['config' => 'array', 'synced_at' => 'datetime', 'polled_at' => 'datetime'];
+        return ['config' => 'array', 'synced_at' => 'datetime', 'polled_at' => 'datetime', 'events_secret_sent' => 'boolean'];
     }
 
     protected static function booted(): void

@@ -2,6 +2,7 @@
 
 namespace App\Domain\Integrations;
 
+use App\Domain\Workflows\WebhookGuard;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 
@@ -14,14 +15,23 @@ use Illuminate\Support\Str;
  *         oauth2 extras: scopes, authorize_params, client_auth (body|basic), token_type, token_query, refresh_url, pkce
  *         profile?: {endpoint, store: {field: "template over the response"}}   // who is connected, saved on the credential
  *   error_hints?: {"403": "what to check"}                                       // appended to HTTP errors (also per action)
+ *   idempotency_header?: "Idempotency-Key"       // the API de-duplicates writes on it: the same key goes out on every try and resume of a step
  *   actions: [{key, name, description?, method, endpoint, query?, headers?, body?, body_format? (json|form),
  *              output_path?, output_fields?, output? (closed list of returned keys, built-ins), error_path?, timeout?,
  *              handler?, outputs?, inputs: [Input]}],
  *   triggers: [{key, name, type (webhook|polling|schedule|manual|error|voice_call|voice_booking), inputs?, data_path?,       // webhook
+ *               signature?: {type (header|basic|hmac|stripe|slack), header?, encoding? (hex|base64), prefix?},         // webhook
  *               method?, endpoint?, query?, headers?, items_path?, id_field?}]                 // polling
  * }
  * Input = {key, label?, type, required?, default?, placeholder?, help?, options? [{value,label}],
- *          fallback? ("credentials.<profile field>" used when empty), escape? ("little_text")}
+ *          fallback? ("credentials.<profile field>" used when empty), escape? ("little_text"),
+ *          show_if? ({"<other input key>": value | [values]}: the field only shows while that input has one of them)}
+ *
+ * A webhook trigger's "signature" checks who sent each request (WebhookGuard::verify) with the secret the user
+ * pastes into the trigger's "signing_secret" password input; until it's filled in, requests aren't checked.
+ * hmac = HMAC-SHA256 of the raw body in `header` (hex or base64, optional `prefix` like "sha256=");
+ * stripe = Stripe-Signature (t=…,v1=…); slack = X-Slack-Signature + X-Slack-Request-Timestamp (both refuse
+ * timestamps over 5 minutes old); header = the secret itself in `header`. A failed check answers 401 and starts nothing.
  *
  * Every HTTP integration (one with a base_url) also gets a generated "Make an API call" action that
  * reuses its credential against any path on that base URL.
@@ -222,6 +232,21 @@ class IntegrationManifestSchema
                     if ($type === 'polling' && ! $str($op['endpoint'] ?? null)) {
                         $e[] = "{$where}.endpoint is required for polling triggers.";
                     }
+                    if (isset($op['signature'])) {
+                        $sig = $op['signature'];
+                        if ($type !== 'webhook' || ! in_array($sig['type'] ?? null, WebhookGuard::TYPES, true)) {
+                            $e[] = "{$where}.signature.type must be one of ".implode('|', WebhookGuard::TYPES).' on a webhook trigger.';
+                        }
+                        if (in_array($sig['type'] ?? null, ['header', 'hmac'], true) && ! $str($sig['header'] ?? null)) {
+                            $e[] = "{$where}.signature.header is required for header and hmac checks.";
+                        }
+                        if (isset($sig['encoding']) && ! in_array($sig['encoding'], ['hex', 'base64'], true)) {
+                            $e[] = "{$where}.signature.encoding must be hex or base64.";
+                        }
+                        if (! collect($op['inputs'] ?? [])->contains(fn ($input) => ($input['key'] ?? null) === 'signing_secret' && ($input['type'] ?? null) === 'password')) {
+                            $e[] = "{$where}.signature needs a password input with key signing_secret.";
+                        }
+                    }
                 }
 
                 if (! is_array($op['inputs'] ?? [])) {
@@ -238,6 +263,9 @@ class IntegrationManifestSchema
                     }
                     if (($input['type'] ?? null) === 'select' && ! is_array($input['options'] ?? null)) {
                         $e[] = "{$where}.inputs.{$j}.options are required for select inputs.";
+                    }
+                    if (isset($input['show_if']) && (! is_array($input['show_if']) || ! Arr::isAssoc($input['show_if']))) {
+                        $e[] = "{$where}.inputs.{$j}.show_if must be an object of input key => value(s).";
                     }
                 }
             }

@@ -128,6 +128,7 @@ Route::middleware('auth')->group(function () {
         Route::put('workflows/{workflow}', [WorkflowController::class, 'update']);
         Route::post('workflows/{workflow}/test', [WorkflowController::class, 'test']);
         Route::post('workflows/{workflow}/duplicate', [WorkflowController::class, 'duplicate']);
+        Route::post('workflows/{workflow}/webhook-url', [WorkflowController::class, 'newWebhookUrl']);
         Route::post('templates/{key}/use', [TemplateController::class, 'use']);
         Route::post('executions/{execution}/retry', [ExecutionController::class, 'retry']);
         Route::get('credentials', [CredentialController::class, 'index']);
