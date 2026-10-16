@@ -12,7 +12,7 @@
 
 <p align="center">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-AGPL--3.0-ee5a24?style=flat-square" alt="License: AGPL-3.0"></a>
-  <a href="https://github.com/DeveloperSarim/FlowForge/releases"><img src="https://img.shields.io/badge/version-1.6.1-15181d?style=flat-square" alt="Version 1.6.1"></a>
+  <a href="https://github.com/DeveloperSarim/FlowForge/releases"><img src="https://img.shields.io/badge/version-1.6.2-15181d?style=flat-square" alt="Version 1.6.2"></a>
   <img src="https://img.shields.io/badge/PHP-8.2%2B-777bb4?style=flat-square&logo=php&logoColor=white" alt="PHP 8.2+">
   <img src="https://img.shields.io/badge/Laravel-12-ff2d20?style=flat-square&logo=laravel&logoColor=white" alt="Laravel 12">
   <img src="https://img.shields.io/badge/React-18-087ea4?style=flat-square&logo=react&logoColor=white" alt="React 18">
@@ -63,6 +63,7 @@ Create AI agents that **answer and make phone calls**: a receptionist that books
 - **More than 11,000 natural voices** in over 30 languages, including Urdu, Hindi and Arabic. Search the ElevenLabs voice library, filter by language and gender, and play samples before you pick.
 - **Behaves like a good receptionist:** short spoken answers, one question at a time, reads the booking back before confirming, and hangs up by itself after goodbye.
 - **Everything in one place:** call history with recordings, transcripts, summaries and outcomes, plus a Bookings page.
+- **Webhooks:** send every finished call or new booking straight to your own app (Make, Zapier, n8n, your server) as signed JSON, with retries.
 - **Connected to your workflows:** "When a voice call ends", "When a caller books" and "Call a phone number". Put bookings in Google Calendar, post call summaries to Slack, or call every new lead automatically.
 
 <table>
