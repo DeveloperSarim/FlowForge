@@ -142,6 +142,7 @@ Route::middleware('auth')->group(function () {
         Route::get('voice/agents/{agent}/voices', [VoiceController::class, 'voices'])->middleware('throttle:60,1');
         Route::post('voice/agents/{agent}/voices/add', [VoiceController::class, 'addVoice'])->middleware('throttle:20,1');
         Route::post('voice/agents/{agent}/speak', [VoiceController::class, 'speak'])->middleware('throttle:60,1');
+        Route::post('voice/agents/{agent}/webhooks/test', [VoiceController::class, 'webhookTest'])->middleware('throttle:20,1');
         Route::post('voice/agents/{agent}/call', [VoiceController::class, 'call'])->middleware('throttle:20,1');
         Route::post('voice/agents/{agent}/talk', [VoiceController::class, 'talk'])->middleware('throttle:60,1');
         Route::post('voice/agents/{agent}/talk/{call}/end', [VoiceController::class, 'endTalk']);

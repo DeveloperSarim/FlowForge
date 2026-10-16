@@ -7,10 +7,12 @@ use App\Domain\Assistant\Providers;
 use App\Domain\Assistant\WorkflowTools;
 use App\Domain\Integrations\Models\Credential;
 use App\Domain\System\SystemSettings;
+use App\Domain\Voice\Jobs\SendVoiceWebhook;
 use App\Domain\Voice\Models\VoiceAgent;
 use App\Domain\Voice\Models\VoiceBooking;
 use App\Domain\Voice\Models\VoiceCall;
 use App\Domain\Voice\VoiceService;
+use App\Domain\Voice\VoiceWebhooks;
 use App\Domain\Workflows\Models\Workflow;
 use App\Domain\Workflows\Models\WorkflowExecution;
 use App\Models\User;
@@ -213,6 +215,59 @@ class VoiceTest extends TestCase
         $this->assertCount(5, $call->transcript);
         $this->assertSame(1, VoiceBooking::query()->count());
         $this->assertSame(1, WorkflowExecution::query()->where('mode', 'voice')->count());
+    }
+
+    public function test_calls_and_bookings_are_sent_to_the_agent_webhooks_signed(): void
+    {
+        $agent = $this->agent();
+        $this->put("/voice/agents/{$agent->id}", ['name' => 'Front desk', 'provider' => 'browser', 'config' => $agent->config + ['webhooks' => [
+            ['url' => 'https://hooks.test/calls', 'events' => ['call_ended', 'nonsense']],
+            ['url' => 'https://hooks.test/bookings', 'events' => ['booking_created']],
+            ['url' => 'not a url', 'events' => ['call_ended']],
+            ['url' => 'https://hooks.test/nothing', 'events' => []],
+        ]]])->assertRedirect();
+        $agent->refresh();
+        $this->assertSame([['url' => 'https://hooks.test/calls', 'events' => ['call_ended']], ['url' => 'https://hooks.test/bookings', 'events' => ['booking_created']]], $agent->setting('webhooks'));
+        $secret = $agent->setting('webhook_secret');
+        $this->assertSame(40, strlen($secret));
+
+        // Saving again keeps the secret.
+        $this->put("/voice/agents/{$agent->id}", ['name' => 'Front desk', 'provider' => 'browser', 'config' => $agent->config])->assertRedirect();
+        $this->assertSame($secret, $agent->refresh()->setting('webhook_secret'));
+
+        Http::fake(['hooks.test/calls' => Http::response('ok'), 'hooks.test/bookings' => Http::response('ok')]);
+        $call = $agent->calls()->create(['direction' => 'inbound', 'status' => 'completed', 'from_number' => '+923001234567', 'summary' => 'Asked about prices.', 'data' => ['reason' => 'Prices'], 'started_at' => now()]);
+        app(VoiceWebhooks::class)->dispatch('voice_call', $agent->id, ['call' => app(VoiceService::class)->callPayload($call)]); // what a finished call triggers
+        Http::assertSent(function ($r) use ($secret) {
+            return $r->url() === 'https://hooks.test/calls' && $r['event'] === 'call_ended' && $r['call']['data']['reason'] === 'Prices'
+                && $r->hasHeader('X-FlowForge-Signature', 'sha256='.hash_hmac('sha256', $r->body(), $secret));
+        });
+        Http::assertNotSent(fn ($r) => $r->url() === 'https://hooks.test/bookings');
+
+        app(VoiceService::class)->book($agent, ['name' => 'Sara Khan', 'date_time' => now('Asia/Karachi')->addDays(2)->setTime(11, 0)->format('Y-m-d H:i')]);
+        Http::assertSent(fn ($r) => $r->url() === 'https://hooks.test/bookings' && $r['event'] === 'booking_created' && $r['booking']['name'] === 'Sara Khan');
+        $this->assertCount(2, app(VoiceWebhooks::class)->recent($agent->id));
+    }
+
+    public function test_a_failing_webhook_is_retried_and_the_test_button_reports_the_result(): void
+    {
+        $agent = $this->agent();
+        Http::fake(['hooks.test/down' => Http::response('Server error', 500), 'hooks.test/up' => Http::response(['received' => true])]);
+
+        $job = new SendVoiceWebhook($agent->id, 'https://hooks.test/down', 'call_ended', ['call' => ['id' => 1]]);
+        try {
+            $job->handle(app(VoiceWebhooks::class));
+            $this->fail('A failed delivery must throw so the queue retries it.');
+        } catch (\RuntimeException $e) {
+            $this->assertStringContainsString('HTTP 500', $e->getMessage());
+        }
+        $this->assertSame([4, [60, 300, 1800]], [$job->tries, $job->backoff]);
+
+        $this->postJson("/voice/agents/{$agent->id}/webhooks/test", ['url' => 'https://hooks.test/up', 'event' => 'booking_created'])
+            ->assertOk()->assertJsonPath('status', 200);
+        Http::assertSent(fn ($r) => $r->url() === 'https://hooks.test/up' && $r['test'] === true && isset($r['booking']['name']));
+        $this->postJson("/voice/agents/{$agent->id}/webhooks/test", ['url' => 'https://hooks.test/down', 'event' => 'call_ended'])->assertStatus(422);
+        $this->get("/voice/agents/{$agent->id}")->assertInertia(fn ($page) => $page->has('webhookLog', 3));
     }
 
     public function test_the_ai_builder_can_create_a_voice_agent(): void

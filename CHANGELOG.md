@@ -2,6 +2,10 @@
 
 All notable changes to FlowForge. Versions follow [semantic versioning](https://semver.org).
 
+## [Unreleased]
+
+- Voice agent webhooks: send every finished call or new booking to your own URLs (Make, Zapier, n8n, your server) as signed JSON, straight from the agent's Webhooks section, with a test button, retries after 1, 5 and 30 minutes, and a log of recent deliveries.
+
 ## [1.6.1] - 2026-10-16
 
 - Automatic retries (like Zapier's Autoreplay): a run that fails because an app is down, slow or rate-limited is retried from the failed step after 2 minutes, 10 minutes, 1 hour, 3 hours and 6 hours. Steps that already worked aren't repeated, and the failure email and error workflows wait for the last try. On by default, with an Auto-retry switch for each workflow in the workflows list and at the top of the editor. Under ⋯ → Retries and errors a workflow can also retry every failure, not only temporary ones.

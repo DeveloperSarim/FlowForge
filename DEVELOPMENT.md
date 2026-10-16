@@ -136,6 +136,7 @@ Token use is kept low by design: the 1,000+ app catalog is never sent — the mo
 - **Browser test calls:** `VoiceService::talk` runs the conversation with the AI builder's model (`LlmClient`) and the booking and `end_call` tools; the page uses the Web Speech API, or ElevenLabs text-to-speech (`/voice/agents/{agent}/speak`) for ElevenLabs agents.
 - **Voices:** `/voice/agents/{agent}/voices` lists Vapi's voices or the ElevenLabs voice library and account voices; `/voices/add` tests a library voice with three characters of speech before adding it, because the free ElevenLabs plan can't use library voices through the API.
 - **Templates:** `resources/voice-templates/*.json` (persona, sample conversation, booking, knowledge, FAQs, details to capture).
+- **Webhooks:** `config.webhooks` ([{url, events: call_ended|booking_created}], max 5) and `config.webhook_secret` (made on first save, kept across saves). `VoiceService::startWorkflows` also calls `VoiceWebhooks::dispatch`, which queues `SendVoiceWebhook` per matching URL (4 tries, backoff 1/5/30 min). Bodies are signed in `X-FlowForge-Signature` (sha256 HMAC of the raw body); the last 20 deliveries are kept in the cache for the studio's log. `POST /voice/agents/{agent}/webhooks/test` sends a sample.
 - **Workflows:** `resources/integrations/core/voice.json` has the `voice_call` / `voice_booking` triggers and the `voice_call` handler action; the AI builder and MCP use `create_voice_agent` and `list_voice_agents`.
 - **Tests:** `tests/Feature/VoiceTest.php` fakes both providers and the AI model.
 

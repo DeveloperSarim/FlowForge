@@ -11,6 +11,7 @@ use App\Domain\Voice\Models\VoiceCall;
 use App\Domain\Voice\Providers\ElevenLabsProvider;
 use App\Domain\Voice\VoicePrompt;
 use App\Domain\Voice\VoiceService;
+use App\Domain\Voice\VoiceWebhooks;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Http\JsonResponse;
@@ -93,7 +94,20 @@ class VoiceController extends Controller
             'recentCalls' => $agent->calls()->latest()->limit(8)->get()->map(fn (VoiceCall $c) => $this->callRow($c)),
             'hasAi' => $this->hasAi(),
             'timezone' => $this->settings->timezone(),
+            'webhookLog' => app(VoiceWebhooks::class)->recent($agent->id),
         ]);
+    }
+
+    /** Send a sample (the latest real call or booking when there is one) to a webhook URL, so it can be set up and checked. */
+    public function webhookTest(Request $request, VoiceAgent $agent, VoiceWebhooks $webhooks): JsonResponse
+    {
+        $data = $request->validate(['url' => ['required', 'url', 'max:500'], 'event' => ['required', Rule::in(array_keys(VoiceWebhooks::EVENTS))]]);
+        $sample = $data['event'] === 'booking_created'
+            ? ['booking' => ($b = $agent->bookings()->latest()->first()) ? $this->voice->bookingPayload($b) : ['id' => 0, 'name' => 'Sara Khan', 'phone' => '+923001234567', 'service' => 'Check-up', 'when' => 'Monday 10:00', 'status' => 'booked']]
+            : ['call' => ($c = $agent->calls()->whereIn('status', VoiceCall::DONE)->latest()->first()) ? $this->voice->callPayload($c) : ['id' => 0, 'direction' => 'inbound', 'status' => 'completed', 'from' => '+923001234567', 'summary' => 'Sample call: the caller asked about opening hours.', 'data' => (object) []]];
+        [$status, $error] = $webhooks->send($agent, $data['url'], $data['event'], $sample, test: true);
+
+        return response()->json(['ok' => $error === null, 'status' => $status, 'message' => $error ?? "Delivered (HTTP {$status})."], $error === null ? 200 : 422);
     }
 
     public function update(Request $request, VoiceAgent $agent): RedirectResponse
@@ -114,7 +128,11 @@ class VoiceController extends Controller
             }
         }
         // validate() keeps only config.instructions from the nested array; the rest is cleaned key by key here.
-        $agent->fill([...$data, 'config' => $this->cleanConfig((array) $request->input('config')) + ['template' => $agent->setting('template')]]);
+        $config = $this->cleanConfig((array) $request->input('config')) + ['template' => $agent->setting('template')];
+        if (! empty($config['webhooks']) || $agent->setting('webhook_secret')) {
+            $config['webhook_secret'] = $agent->setting('webhook_secret') ?: Str::random(40); // signs webhook bodies; kept across saves
+        }
+        $agent->fill([...$data, 'config' => $config]);
         if ($data['provider'] === 'browser') {
             $agent->fill(['credential_id' => null, 'phone_number_id' => null, 'phone_label' => null]);
         }
@@ -155,6 +173,10 @@ class VoiceController extends Controller
                 'services' => mb_substr((string) ($c['booking']['services'] ?? ''), 0, 500)] : null,
             'collect' => isset($c['collect']) ? collect((array) $c['collect'])->filter(fn ($f) => is_array($f) && trim((string) ($f['key'] ?? '')) !== '')
                 ->map(fn ($f) => ['key' => Str::snake(mb_substr(trim((string) $f['key']), 0, 40)), 'description' => mb_substr((string) ($f['description'] ?? ''), 0, 300)])->values()->take(12)->all() : null,
+            'webhooks' => isset($c['webhooks']) ? collect((array) $c['webhooks'])
+                ->filter(fn ($w) => is_array($w) && preg_match('#^https?://\S+$#i', trim((string) ($w['url'] ?? ''))) && filter_var(trim((string) $w['url']), FILTER_VALIDATE_URL))
+                ->map(fn ($w) => ['url' => mb_substr(trim((string) $w['url']), 0, 500), 'events' => array_values(array_intersect(array_keys(VoiceWebhooks::EVENTS), (array) ($w['events'] ?? [])))])
+                ->filter(fn ($w) => $w['events'] !== [])->values()->take(5)->all() : null,
         ], fn ($v) => $v !== null);
     }
 

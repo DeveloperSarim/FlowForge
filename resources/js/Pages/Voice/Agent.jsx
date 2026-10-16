@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Link, router, useForm } from '@inertiajs/react';
 import {
     ArrowLeft, AudioLines, BookOpen, CalendarCheck, Check, CheckCircle2, ExternalLink, Keyboard, Laptop, ListChecks, Loader2, Mic, MessageSquareText, PhoneCall,
-    PhoneOff, Play, Plus, Save, Search, Send, Sparkles, Square, Trash2, TriangleAlert, UserRound, Volume2, VolumeX,
+    PhoneOff, Play, Plus, Save, Search, Send, Sparkles, Square, Trash2, TriangleAlert, UserRound, Volume2, VolumeX, Webhook, Copy,
 } from 'lucide-react';
 import AppLayout from '@/Layouts/AppLayout';
 import { Button, Card, ConfirmButton, Dialog, Field, Input, Select, Switch, Textarea } from '@/Components/ui';
@@ -20,7 +20,7 @@ const DURATIONS = [15, 30, 45, 60, 90, 120];
 
 const SECTIONS = [
     ['persona', 'Persona', UserRound], ['conversation', 'Conversation', MessageSquareText], ['knowledge', 'Knowledge', BookOpen],
-    ['bookings', 'Bookings', CalendarCheck], ['capture', 'Capture', ListChecks], ['phone', 'Voice & phone', PhoneCall],
+    ['bookings', 'Bookings', CalendarCheck], ['capture', 'Capture', ListChecks], ['webhooks', 'Webhooks', Webhook], ['phone', 'Voice & phone', PhoneCall],
 ];
 
 const PROVIDER_INFO = {
@@ -37,14 +37,14 @@ const PROVIDER_INFO = {
     },
 };
 
-export default function Agent({ agent, credentials, variables, questions, recentCalls, hasAi, timezone }) {
+export default function Agent({ agent, credentials, variables, questions, recentCalls, hasAi, timezone, webhookLog = [] }) {
     const can = useCan();
     const editable = can['workflows.edit'];
     const form = useForm({
         name: agent.name, provider: agent.provider, credential_id: agent.credential_id, phone_number_id: agent.phone_number_id, phone_label: agent.phone_label,
         config: {
             business_name: '', persona_name: '', tone: 'warm', verbosity: 'balanced', first_message: '', instructions: '', knowledge: '', faqs: [], language: 'en',
-            voice: '', browser_voice: '', llm: '', collect: [], ...agent.config,
+            voice: '', browser_voice: '', llm: '', collect: [], webhooks: [], ...agent.config,
             booking: { enabled: false, ask_email: false, hours: '', duration: 30, services: '', ...(agent.config?.booking ?? {}) },
         },
     });
@@ -69,6 +69,7 @@ export default function Agent({ agent, credentials, variables, questions, recent
         knowledge: !!(config.knowledge?.trim() || config.faqs?.some((f) => f.q && f.a)),
         bookings: config.booking.enabled ? !!config.booking.hours : true,
         capture: (config.collect ?? []).some((f) => f.key),
+        webhooks: (config.webhooks ?? []).some((w) => w.url),
         phone: form.data.provider === 'browser' || !!(form.data.credential_id && form.data.phone_number_id),
     };
     const status = agent.provider === 'browser' ? ['neutral', 'Browser test agent'] : agent.problem ? ['fail', 'Not live'] : agent.live ? ['ok', `Live on ${agent.provider === 'vapi' ? 'Vapi' : 'ElevenLabs'}`] : ['warn', 'Not published yet'];
@@ -192,6 +193,10 @@ export default function Agent({ agent, credentials, variables, questions, recent
                         <CollectList collect={config.collect ?? []} onChange={(collect) => setConfig({ collect })} />
                     </Section>
 
+                    <Section id="webhooks" title="Webhooks" hint="Send each finished call or new booking to your own app as JSON. Works with Make, Zapier, n8n, Google Apps Script or your own server.">
+                        <WebhookList agent={agent} webhooks={config.webhooks ?? []} secret={agent.config?.webhook_secret} log={webhookLog} timezone={timezone} onChange={(webhooks) => setConfig({ webhooks })} />
+                    </Section>
+
                     <Section id="phone" title="Voice & phone" hint="Start free in the browser; move to a phone provider for real calls.">
                         <PhoneSetup agent={agent} form={form} config={config} setConfig={setConfig} credentials={credentials} />
                     </Section>
@@ -271,6 +276,105 @@ function FaqList({ faqs, questions, onChange }) {
                     <button key={q} type="button" onClick={() => onChange([...faqs, { q, a: '' }])} className="rounded-full border border-dashed border-line px-2.5 py-1 text-[12px] text-fg-muted hover:border-primary hover:text-primary">+ {q}</button>
                 ))}
             </div>
+        </div>
+    );
+}
+
+const WEBHOOK_EVENTS = [['call_ended', 'When a call ends'], ['booking_created', 'When someone books']];
+const WEBHOOK_SAMPLE = `{
+  "event": "call_ended",
+  "sent_at": "2026-10-16T14:05:00+00:00",
+  "agent": { "id": 3, "name": "Smile Dental receptionist" },
+  "call": {
+    "id": 128, "direction": "inbound", "status": "completed",
+    "from": "+923001234567", "duration_seconds": 94,
+    "summary": "Ali booked a check-up for Monday at 11am.",
+    "outcome": "success",
+    "data": { "reason": "Check-up", "urgent": "no" },
+    "transcript": "Agent: Hello, thanks for calling…",
+    "recording_url": "https://your-site.com/voice/calls/128/recording"
+  }
+}
+
+"booking_created" sends "booking": { "name", "phone", "email", "service", "when", "starts_at", "ends_at", "notes" } instead of "call".`;
+
+/** The agent's webhook URLs, with the events each one gets, a test button, the signing secret and recent deliveries. */
+function WebhookList({ agent, webhooks, secret, log, timezone, onChange }) {
+    const [testing, setTesting] = useState(null);
+    const set = (i, patch) => onChange(webhooks.map((w, j) => (j === i ? { ...w, ...patch } : w)));
+    const toggle = (i, event) => {
+        const events = webhooks[i].events ?? [];
+        set(i, { events: events.includes(event) ? events.filter((e) => e !== event) : [...events, event] });
+    };
+    const test = async (i) => {
+        const hook = webhooks[i];
+        setTesting(i);
+        try {
+            const { data } = await window.axios.post(`/voice/agents/${agent.id}/webhooks/test`, { url: hook.url, event: hook.events?.[0] ?? 'call_ended' });
+            toast(`Test sent. ${data.message}`, 'success');
+        } catch (e) {
+            toast(errorMessage(e), 'error');
+        } finally {
+            setTesting(null);
+            router.reload({ only: ['webhookLog'] });
+        }
+    };
+    const copySecret = () => navigator.clipboard?.writeText(secret).then(() => toast('Secret copied.', 'success'), () => {});
+
+    return (
+        <div className="space-y-3">
+            {webhooks.length === 0 && <p className="text-[13px] text-fg-subtle">No webhooks yet. Add one to send calls or bookings to another app the moment they happen.</p>}
+            {webhooks.map((w, i) => (
+                <div key={i} className="space-y-2.5 rounded-xl border border-line p-3">
+                    <div className="flex gap-2">
+                        <Input value={w.url} onChange={(e) => set(i, { url: e.target.value })} placeholder="https://hook.make.com/… or https://your-site.com/webhooks/calls" inputMode="url" aria-label={`Webhook ${i + 1} URL`} />
+                        <Button variant="ghost" size="icon" onClick={() => onChange(webhooks.filter((_, j) => j !== i))} aria-label={`Remove webhook ${i + 1}`}><Trash2 className="size-3.5" /></Button>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+                        {WEBHOOK_EVENTS.map(([event, label]) => (
+                            <label key={event} className="flex items-center gap-2 text-[13px]">
+                                <input type="checkbox" checked={(w.events ?? []).includes(event)} onChange={() => toggle(i, event)} className="size-4 accent-[var(--primary)]" />{label}
+                            </label>
+                        ))}
+                        <Button size="sm" className="ml-auto" onClick={() => test(i)} loading={testing === i} disabled={!/^https?:\/\/\S+/.test(w.url ?? '') || !(w.events ?? []).length}>Send test</Button>
+                    </div>
+                </div>
+            ))}
+            {webhooks.length < 5 && <Button size="sm" variant="ghost" onClick={() => onChange([...webhooks, { url: '', events: ['call_ended', 'booking_created'] }])}><Plus className="size-3.5" />Add a webhook</Button>}
+
+            {secret && (
+                <div className="space-y-1.5 rounded-xl bg-surface-2/70 p-3 text-[12.5px]">
+                    <p className="font-medium text-fg">Signing secret</p>
+                    <div className="flex items-center gap-2">
+                        <code className="min-w-0 flex-1 truncate rounded-md bg-surface px-2 py-1 font-mono text-[12px]">{secret}</code>
+                        <Button size="sm" variant="ghost" onClick={copySecret}><Copy className="size-3.5" />Copy</Button>
+                    </div>
+                    <p className="text-fg-muted">Each request has an <code className="font-mono">X-FlowForge-Signature: sha256=…</code> header: the HMAC-SHA256 of the raw body with this secret. Check it on your server to know the data came from FlowForge.</p>
+                </div>
+            )}
+
+            <details className="text-[13px]">
+                <summary className="cursor-pointer text-fg-muted">What gets sent</summary>
+                <pre className="mt-2 overflow-x-auto rounded-xl bg-surface-2/70 p-3 font-mono text-[12px] leading-relaxed">{WEBHOOK_SAMPLE}</pre>
+                <p className="mt-1.5 text-[12px] text-fg-subtle">Details you capture on this agent (like an order or a budget) are in <code className="font-mono">call.data</code>. A failed delivery is tried again after 1, 5 and 30 minutes.</p>
+            </details>
+
+            {log.length > 0 && (
+                <div>
+                    <p className="mb-1 text-[13px] font-medium">Recent deliveries</p>
+                    <ul className="divide-y divide-line rounded-xl border border-line text-[12.5px]">
+                        {log.slice(0, 8).map((entry, i) => (
+                            <li key={i} className="flex flex-wrap items-center gap-x-3 gap-y-0.5 px-3 py-2">
+                                <span className={cn('font-semibold', entry.error ? 'text-fail' : 'text-ok')}>{entry.error ? 'Failed' : `HTTP ${entry.status}`}</span>
+                                <span className="text-fg-muted">{WEBHOOK_EVENTS.find(([e]) => e === entry.event)?.[1] ?? entry.event}{entry.test ? ' (test)' : ''}</span>
+                                <span className="min-w-0 flex-1 truncate text-fg-subtle">{entry.url}</span>
+                                <span className="text-fg-subtle">{when(entry.at, timezone)}</span>
+                                {entry.error && <span className="w-full text-fail">{entry.error}</span>}
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+            )}
         </div>
     );
 }
