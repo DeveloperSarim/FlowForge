@@ -38,7 +38,7 @@ function Action({ action, onConfirmDelete }) {
         return (
             <div className="mt-3 flex items-center gap-3 rounded-xl border border-fail/30 bg-fail-soft px-3 py-2.5">
                 <Trash2 className="size-4 shrink-0 text-fail" />
-                <p className="flex-1 text-[13px]">Delete <strong>{action.name}</strong> and its run history?</p>
+                <p className="flex-1 text-13">Delete <strong>{action.name}</strong> and its run history?</p>
                 <Button size="sm" variant="danger" loading={busy} onClick={async () => { setBusy(true); await onConfirmDelete(action.workflow_id); setBusy(false); }}>Delete</Button>
             </div>
         );
@@ -46,7 +46,7 @@ function Action({ action, onConfirmDelete }) {
     const meta = ACTION_META[action.type] ?? { icon: Check, label: action.type, tone: 'text-fg-muted' };
     return (
         <Link href={action.type === 'deleted' ? '#' : action.execution_id ? `/executions?open=${action.execution_id}` : `/workflows/${action.workflow_id}`}
-            className="mt-3 mr-2 inline-flex items-center gap-2 rounded-xl border border-line bg-surface px-3 py-2 text-[12.5px] shadow-card transition-colors hover:border-primary">
+            className="mt-3 mr-2 inline-flex items-center gap-2 rounded-xl border border-line bg-surface px-3 py-2 text-12h shadow-card transition-colors hover:border-primary">
             <meta.icon className={cn('size-3.5', meta.tone)} />
             <span className="text-fg-muted">{meta.label}</span>
             <span className="font-medium">{action.name ?? `workflow #${action.workflow_id}`}</span>
@@ -71,8 +71,8 @@ function StepRow({ step }) {
                 {STEP_ICON[step.state]}
             </span>
             <span className="min-w-0 pt-px">
-                <span className={cn('block text-[13px]', step.state === 'running' ? 'text-shimmer font-medium' : 'text-fg-muted')}>{step.label}</span>
-                {step.detail && <span className={cn('block text-[12px]', step.state === 'error' ? 'text-fail' : 'text-fg-subtle')}>{step.detail}</span>}
+                <span className={cn('block text-13', step.state === 'running' ? 'text-shimmer font-medium' : 'text-fg-muted')}>{step.label}</span>
+                {step.detail && <span className={cn('block text-12', step.state === 'error' ? 'text-fail' : 'text-fg-subtle')}>{step.detail}</span>}
             </span>
         </li>
     );
@@ -85,17 +85,17 @@ function LiveProgress({ live, elapsed }) {
         <div className="animate-msg-in flex gap-3" aria-live="polite">
             <AiAvatar working />
             <div className="min-w-0 flex-1 pt-1">
-                {live.note && <p className="mb-2.5 text-[13.5px] text-fg">{live.note}</p>}
+                {live.note && <p className="mb-2.5 text-13h text-fg">{live.note}</p>}
                 <ol className="space-y-2">
                     {live.steps.map((s, i) => <StepRow key={i} step={s} />)}
                     {!running && (
                         <li className="animate-step-in flex items-center gap-2.5">
                             <span className="flex size-5 items-center justify-center"><span className="animate-running size-2 rounded-full bg-primary" /></span>
-                            <span className="text-shimmer text-[13px] font-medium">{live.thinking ?? 'Working'}</span>
+                            <span className="text-shimmer text-13 font-medium">{live.thinking ?? 'Working'}</span>
                         </li>
                     )}
                 </ol>
-                {elapsed > 2 && <p className="mt-2.5 text-[11.5px] text-fg-subtle tabular-nums">{elapsed}s</p>}
+                {elapsed > 2 && <p className="mt-2.5 text-11h text-fg-subtle tabular-nums">{elapsed}s</p>}
             </div>
         </div>
     );
@@ -106,7 +106,7 @@ function StepsSummary({ steps, ms }) {
     const fixes = steps.filter((s) => s.state !== 'done').length;
     return (
         <details className="group mb-2">
-            <summary className="inline-flex cursor-pointer list-none items-center gap-1.5 rounded-md py-0.5 text-[12.5px] text-fg-subtle select-none hover:text-fg-muted">
+            <summary className="inline-flex cursor-pointer list-none items-center gap-1.5 rounded-md py-0.5 text-12h text-fg-subtle select-none hover:text-fg-muted">
                 <ChevronRight className="size-3.5 transition-transform group-open:rotate-90" />
                 Worked through {steps.length} step{steps.length === 1 ? '' : 's'}{ms ? ` in ${Math.max(1, Math.round(ms / 1000))}s` : ''}
                 {fixes > 0 && <span className="inline-flex items-center gap-1 text-warn"><AlertTriangle className="size-3" />fixed {fixes} issue{fixes === 1 ? '' : 's'}</span>}
@@ -247,8 +247,8 @@ export default function ChatPanel({ conversationId, workflowId = null, onConvers
         return (
             <div className="flex flex-1 flex-col items-center justify-center p-8 text-center">
                 <AiAvatar size="lg" />
-                <p className="mt-4 text-[16px] font-semibold">Connect an AI provider</p>
-                <p className="mt-1 max-w-sm text-[13px] text-fg-muted">Use DeepSeek, Qwen, OpenAI, Claude or Gemini with your own API key. The key stays encrypted on your server.</p>
+                <p className="mt-4 text-16 font-semibold">Connect an AI provider</p>
+                <p className="mt-1 max-w-sm text-13 text-fg-muted">Use DeepSeek, Qwen, OpenAI, Claude or Gemini with your own API key. The key stays encrypted on your server.</p>
                 <Link href="/settings/ai" className="mt-5 inline-flex h-9 items-center rounded-lg bg-primary px-4 text-sm font-medium text-primary-fg hover:bg-primary-hover">Set up the AI builder</Link>
             </div>
         );
@@ -262,8 +262,8 @@ export default function ChatPanel({ conversationId, workflowId = null, onConvers
                 {messages.length === 0 && !sending && (
                     <div className={cn('animate-msg-in mx-auto', isCompact ? '' : 'flex min-h-full max-w-2xl flex-col pb-10 [&>:first-child]:mt-auto [&>:last-child]:mb-auto')}>
                         <AiAvatar size={isCompact ? 'md' : 'lg'} />
-                        <p className={cn('mt-4 font-semibold tracking-tight', isCompact ? 'text-[16px]' : 'text-[24px]')}>{workflowId ? 'What should change in this workflow?' : 'What should we automate?'}</p>
-                        <p className="mt-1.5 max-w-xl text-[14px] text-fg-muted">Describe it in your own words, in English or Roman Urdu. I'll pick the apps, connect the steps, check the data between them and tell you what's left to fill in.</p>
+                        <p className={cn('mt-4 font-semibold tracking-tight', isCompact ? 'text-16' : 'text-24')}>{workflowId ? 'What should change in this workflow?' : 'What should we automate?'}</p>
+                        <p className="mt-1.5 max-w-xl text-14 text-fg-muted">Describe it in your own words, in English or Roman Urdu. I'll pick the apps, connect the steps, check the data between them and tell you what's left to fill in.</p>
                         <div className={cn('mt-6 grid gap-2.5', !isCompact && !workflowId && 'sm:grid-cols-2')}>
                             {(workflowId ? workflowSuggestions.map((text) => ({ text, apps: [] })) : SUGGESTIONS).map((s) => (
                                 <button key={s.text} type="button" onClick={() => send(s.text)}
@@ -273,7 +273,7 @@ export default function ChatPanel({ conversationId, workflowId = null, onConvers
                                             {s.apps.filter((a) => apps[a]).map((a) => <IntegrationIcon key={a} icon={apps[a].icon} name={apps[a].name} size="xs" />)}
                                         </span>
                                     )}
-                                    <span className="text-[13px] leading-snug text-fg-muted group-hover:text-fg">{s.text}</span>
+                                    <span className="text-13 leading-snug text-fg-muted group-hover:text-fg">{s.text}</span>
                                 </button>
                             ))}
                         </div>
@@ -282,7 +282,7 @@ export default function ChatPanel({ conversationId, workflowId = null, onConvers
                 <div className={cn('space-y-6', !isCompact && 'mx-auto max-w-3xl')}>
                     {messages.map((m, i) => m.role === 'user' ? (
                         <div key={i} className="animate-msg-in flex justify-end">
-                            <div className="max-w-[85%] rounded-2xl rounded-br-md bg-primary px-4 py-2.5 text-[14px] leading-relaxed whitespace-pre-wrap text-primary-fg shadow-sm">{m.text}</div>
+                            <div className="max-w-[85%] rounded-2xl rounded-br-md bg-primary px-4 py-2.5 text-14 leading-relaxed whitespace-pre-wrap text-primary-fg shadow-sm">{m.text}</div>
                         </div>
                     ) : (
                         <div key={i} className="animate-msg-in flex gap-3">
@@ -292,7 +292,7 @@ export default function ChatPanel({ conversationId, workflowId = null, onConvers
                                 <RichText text={m.text} />
                                 {m.actions?.length > 0 && <div>{m.actions.map((a, j) => <Action key={j} action={a} onConfirmDelete={confirmDelete} />)}</div>}
                                 {m.usage && (
-                                    <p className="mt-2 text-[11px] text-fg-subtle" title="Tokens for this answer: input (of which cached) / output">
+                                    <p className="mt-2 text-11 text-fg-subtle" title="Tokens for this answer: input (of which cached) / output">
                                         {compact(m.usage.input)} in{m.usage.cached ? ` (${compact(m.usage.cached)} cached)` : ''}, {compact(m.usage.output)} out, {m.usage.calls} call{m.usage.calls === 1 ? '' : 's'}
                                     </p>
                                 )}
@@ -307,21 +307,21 @@ export default function ChatPanel({ conversationId, workflowId = null, onConvers
                     <textarea ref={field} value={input} onChange={(e) => setInput(e.target.value)} rows={isCompact ? 1 : 2} disabled={sending}
                         onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } }}
                         placeholder={workflowId ? 'Ask for a change…' : 'Describe a workflow, or ask me to edit, test or delete one…'} aria-label="Message the AI builder"
-                        className="block w-full resize-none bg-transparent px-4 pt-3 pb-1 text-base outline-none sm:text-[14px] placeholder:text-fg-subtle disabled:opacity-60" />
+                        className="block w-full resize-none bg-transparent px-4 pt-3 pb-1 text-base outline-none sm:text-14 placeholder:text-fg-subtle disabled:opacity-60" />
                     <div className="flex items-center gap-2 px-2.5 pb-2.5">
                         {provider && !isCompact ? (
-                            <Link href="/settings/ai" className="inline-flex min-w-0 items-center gap-1.5 rounded-lg px-2 py-1 text-[12px] text-fg-subtle hover:bg-surface-2 hover:text-fg" title="Change the AI model">
+                            <Link href="/settings/ai" className="inline-flex min-w-0 items-center gap-1.5 rounded-lg px-2 py-1 text-12 text-fg-subtle hover:bg-surface-2 hover:text-fg" title="Change the AI model">
                                 <IntegrationIcon icon={provider.icon} name={provider.provider} size="xs" />
                                 <span className="truncate">{provider.model}</span>
                             </Link>
                         ) : <span />}
-                        <span className="ml-auto hidden text-[11.5px] text-fg-subtle sm:inline">{sending ? 'Working…' : 'Enter to send, Shift+Enter for a new line'}</span>
+                        <span className="ml-auto hidden text-11h text-fg-subtle sm:inline">{sending ? 'Working…' : 'Enter to send, Shift+Enter for a new line'}</span>
                         <Button type="submit" variant="primary" size="icon" disabled={!input.trim() || sending} aria-label="Send" className="rounded-xl">
                             {sending ? <Loader2 className="size-4 animate-spin" /> : <ArrowUp className="size-4" />}
                         </Button>
                     </div>
                 </div>
-                {!isCompact && <p className="mx-auto mt-2 max-w-3xl text-center text-[11.5px] text-fg-subtle">It can create, edit and test workflows, and delete them only after you confirm. Check what it builds before switching it on.</p>}
+                {!isCompact && <p className="mx-auto mt-2 max-w-3xl text-center text-11h text-fg-subtle">It can create, edit and test workflows, and delete them only after you confirm. Check what it builds before switching it on.</p>}
             </form>
         </div>
     );

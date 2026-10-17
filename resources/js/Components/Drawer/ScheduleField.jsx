@@ -101,14 +101,14 @@ export default function ScheduleField({ id, value, fallback, onChange }) {
             </Select>
 
             {state.mode === 'minutes' && (
-                <label className="flex items-center gap-2 text-[13px] text-fg-muted">Every
+                <label className="flex items-center gap-2 text-13 text-fg-muted">Every
                     <Select value={state.every} onChange={(e) => update({ every: Number(e.target.value) })} className="w-24">
                         {[1, 2, 5, 10, 15, 20, 30].map((n) => <option key={n} value={n}>{n}</option>)}
                     </Select>minute{state.every > 1 && 's'}
                 </label>
             )}
             {state.mode === 'hours' && (
-                <div className="flex flex-wrap items-center gap-2 text-[13px] text-fg-muted">Every
+                <div className="flex flex-wrap items-center gap-2 text-13 text-fg-muted">Every
                     <Select value={state.every} onChange={(e) => update({ every: Number(e.target.value) })} className="w-20" aria-label="Hours">
                         {[1, 2, 3, 4, 6, 8, 12].map((n) => <option key={n} value={n}>{n}</option>)}
                     </Select>hour{state.every > 1 && 's'}, at minute
@@ -117,7 +117,7 @@ export default function ScheduleField({ id, value, fallback, onChange }) {
                     </Select>
                 </div>
             )}
-            {['daily', 'weekdays'].includes(state.mode) && <label className="flex items-center gap-2 text-[13px] text-fg-muted">At {timeInput}</label>}
+            {['daily', 'weekdays'].includes(state.mode) && <label className="flex items-center gap-2 text-13 text-fg-muted">At {timeInput}</label>}
             {state.mode === 'weekly' && (
                 <div className="space-y-2.5">
                     <div className="flex flex-wrap gap-1.5" role="group" aria-label="Days of the week">
@@ -125,17 +125,17 @@ export default function ScheduleField({ id, value, fallback, onChange }) {
                             const on = state.days?.includes(v);
                             return (
                                 <button key={v} type="button" aria-pressed={on} onClick={() => update({ days: on ? state.days.filter((d) => d !== v) : [...(state.days ?? []), v] })}
-                                    className={cn('h-8 w-11 rounded-lg border text-[12.5px] font-medium transition-colors', on ? 'border-primary bg-primary-soft text-primary' : 'border-line text-fg-muted hover:border-line-strong')}>
+                                    className={cn('h-8 w-11 rounded-lg border text-12h font-medium transition-colors', on ? 'border-primary bg-primary-soft text-primary' : 'border-line text-fg-muted hover:border-line-strong')}>
                                     {l}
                                 </button>
                             );
                         })}
                     </div>
-                    <label className="flex items-center gap-2 text-[13px] text-fg-muted">At {timeInput}</label>
+                    <label className="flex items-center gap-2 text-13 text-fg-muted">At {timeInput}</label>
                 </div>
             )}
             {state.mode === 'monthly' && (
-                <div className="flex flex-wrap items-center gap-2 text-[13px] text-fg-muted">On day
+                <div className="flex flex-wrap items-center gap-2 text-13 text-fg-muted">On day
                     <Select value={state.day} onChange={(e) => update({ day: Number(e.target.value) })} className="w-20" aria-label="Day of month">
                         {Array.from({ length: 28 }, (_, i) => i + 1).map((n) => <option key={n} value={n}>{n}</option>)}
                     </Select>at {timeInput}
@@ -143,12 +143,12 @@ export default function ScheduleField({ id, value, fallback, onChange }) {
             )}
             {state.mode === 'custom' && (
                 <div className="space-y-1.5">
-                    <Input value={state.cron} onChange={(e) => { setState({ ...state, cron: e.target.value }); onChange(e.target.value); }} placeholder="0 9 * * 1-5" className="font-mono text-[13px]" aria-label="Cron expression" />
-                    <p className="text-[12px] text-fg-subtle">minute hour day-of-month month day-of-week, e.g. <code>30 8 * * 1-5</code> = 08:30 on weekdays.</p>
+                    <Input value={state.cron} onChange={(e) => { setState({ ...state, cron: e.target.value }); onChange(e.target.value); }} placeholder="0 9 * * 1-5" className="font-mono text-13" aria-label="Cron expression" />
+                    <p className="text-12 text-fg-subtle">minute hour day-of-month month day-of-week, e.g. <code>30 8 * * 1-5</code> = 08:30 on weekdays.</p>
                 </div>
             )}
 
-            <div className={cn('rounded-lg border px-3 py-2.5 text-[12.5px]', preview && !preview.valid ? 'border-fail/30 bg-fail-soft text-fail' : 'border-line bg-surface-2/60')}>
+            <div className={cn('rounded-lg border px-3 py-2.5 text-12h', preview && !preview.valid ? 'border-fail/30 bg-fail-soft text-fail' : 'border-line bg-surface-2/60')}>
                 <p className="flex items-center gap-2 font-medium text-fg"><CalendarClock className="size-4 text-primary" />{describe(state, cron)}</p>
                 {preview?.valid === false ? <p className="mt-1">That cron expression isn't valid.</p> : preview?.next?.length > 0 && (
                     <p className="mt-1 text-fg-muted">Next: {preview.next.map(fmt).join(', ')}</p>

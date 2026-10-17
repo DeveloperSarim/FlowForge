@@ -14,14 +14,14 @@ export default function AcceptInvite({ token, member }) {
                 <Logo className="size-10" />
                 {!member ? (
                     <>
-                        <h1 className="mt-6 text-[24px] font-semibold tracking-tight">This invite link doesn't work</h1>
-                        <p className="mt-2 flex gap-2 text-[14px] text-fg-muted"><LinkIcon className="mt-0.5 size-4 shrink-0" />It was already used, or it's older than 7 days. Ask whoever invited you for a new link.</p>
-                        <Link href="/login" className="mt-6 inline-block text-[13.5px] font-medium text-primary hover:underline">Go to sign in</Link>
+                        <h1 className="mt-6 text-24 font-semibold tracking-tight">This invite link doesn't work</h1>
+                        <p className="mt-2 flex gap-2 text-14 text-fg-muted"><LinkIcon className="mt-0.5 size-4 shrink-0" />It was already used, or it's older than 7 days. Ask whoever invited you for a new link.</p>
+                        <Link href="/login" className="mt-6 inline-block text-13h font-medium text-primary hover:underline">Go to sign in</Link>
                     </>
                 ) : (
                     <>
-                        <h1 className="mt-6 text-[24px] font-semibold tracking-tight">Join FlowForge</h1>
-                        <p className="mt-1 text-[14px] text-fg-muted">You'll sign in as <strong className="text-fg">{member.email}</strong>. Choose a password to finish.</p>
+                        <h1 className="mt-6 text-24 font-semibold tracking-tight">Join FlowForge</h1>
+                        <p className="mt-1 text-14 text-fg-muted">You'll sign in as <strong className="text-fg">{member.email}</strong>. Choose a password to finish.</p>
                         <form onSubmit={(e) => { e.preventDefault(); form.post(`/invite/${token}`); }} className="mt-7 space-y-4">
                             <Field label="Your name" error={form.errors.name}>
                                 {(id) => <Input id={id} autoComplete="name" required className="h-10" value={form.data.name} onChange={(e) => form.setData('name', e.target.value)} />}

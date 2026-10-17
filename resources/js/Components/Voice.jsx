@@ -13,7 +13,7 @@ export function VoiceNav() {
         <nav className="no-scrollbar -mx-4 mb-5 flex gap-1.5 overflow-x-auto px-4 sm:mx-0 sm:px-0" aria-label="Voice agents sections">
             {items.map(([href, label, Icon]) => (
                 <Link key={href} href={href} aria-current={active(href) ? 'page' : undefined}
-                    className={cn('flex shrink-0 items-center gap-2 rounded-full border px-3.5 py-1.5 text-[13.5px] font-medium',
+                    className={cn('flex shrink-0 items-center gap-2 rounded-full border px-3.5 py-1.5 text-13h font-medium',
                         active(href) ? 'border-primary/30 bg-primary-soft text-primary' : 'border-line bg-surface text-fg-muted hover:bg-surface-2 hover:text-fg')}>
                     <Icon className="size-4" />{label}
                 </Link>
@@ -81,8 +81,8 @@ export function CallSheet({ callId, onClose }) {
         <Sheet open={!!callId} onClose={onClose} className="w-full max-w-xl">
             <div className="flex items-start justify-between gap-3 border-b border-line px-5 py-4">
                 <div className="min-w-0">
-                    <h2 className="truncate text-[15px] font-semibold">{call ? `${call.agent} · call #${call.id}` : 'Call'}</h2>
-                    {call && <p className="mt-0.5 flex flex-wrap items-center gap-2 text-[12.5px] text-fg-muted">
+                    <h2 className="truncate text-15 font-semibold">{call ? `${call.agent} · call #${call.id}` : 'Call'}</h2>
+                    {call && <p className="mt-0.5 flex flex-wrap items-center gap-2 text-12h text-fg-muted">
                         <DirectionIcon direction={call.direction} />
                         {call.direction === 'web' ? 'Browser conversation' : `${call.from ?? 'Unknown'} → ${call.to ?? 'Unknown'}`}
                         <span>{when(call.started_at)}</span><span>{seconds(call.duration)}</span>
@@ -91,27 +91,27 @@ export function CallSheet({ callId, onClose }) {
                 <Button variant="ghost" size="icon" onClick={onClose} aria-label="Close"><X className="size-4" /></Button>
             </div>
             <div className="flex-1 space-y-5 overflow-y-auto px-5 py-5">
-                {error && <p className="rounded-lg bg-fail-soft px-3 py-2 text-[13px] text-fail">{error}</p>}
-                {!call && !error && <div className="flex items-center gap-2 text-[13px] text-fg-muted"><Loader2 className="size-4 animate-spin" />Loading the call…</div>}
+                {error && <p className="rounded-lg bg-fail-soft px-3 py-2 text-13 text-fail">{error}</p>}
+                {!call && !error && <div className="flex items-center gap-2 text-13 text-fg-muted"><Loader2 className="size-4 animate-spin" />Loading the call…</div>}
                 {call && (
                     <>
-                        <div className="flex flex-wrap items-center gap-2"><CallStatus status={call.status} /><OutcomeBadge outcome={call.outcome} />{call.cost != null && <Badge>${call.cost.toFixed(3)}</Badge>}{call.ended_reason && <span className="text-[12px] text-fg-subtle">{call.ended_reason.replaceAll('-', ' ')}</span>}</div>
+                        <div className="flex flex-wrap items-center gap-2"><CallStatus status={call.status} /><OutcomeBadge outcome={call.outcome} />{call.cost != null && <Badge>${call.cost.toFixed(3)}</Badge>}{call.ended_reason && <span className="text-12 text-fg-subtle">{call.ended_reason.replaceAll('-', ' ')}</span>}</div>
                         {call.recording && (
                             <section>
-                                <h3 className="mb-2 text-[13px] font-semibold">Recording</h3>
+                                <h3 className="mb-2 text-13 font-semibold">Recording</h3>
                                 <audio controls preload="none" src={call.recording} className="w-full" />
                             </section>
                         )}
                         {call.summary && (
                             <section>
-                                <h3 className="mb-1.5 text-[13px] font-semibold">Summary</h3>
-                                <p className="text-[13.5px] leading-relaxed text-fg-muted">{call.summary}</p>
+                                <h3 className="mb-1.5 text-13 font-semibold">Summary</h3>
+                                <p className="text-13h leading-relaxed text-fg-muted">{call.summary}</p>
                             </section>
                         )}
                         {details.length > 0 && (
                             <section>
-                                <h3 className="mb-2 text-[13px] font-semibold">Collected details</h3>
-                                <dl className="divide-y divide-line rounded-lg border border-line text-[13px]">
+                                <h3 className="mb-2 text-13 font-semibold">Collected details</h3>
+                                <dl className="divide-y divide-line rounded-lg border border-line text-13">
                                     {details.map(([key, value]) => (
                                         <div key={key} className="grid grid-cols-[minmax(0,2fr)_minmax(0,3fr)] gap-3 px-3 py-2">
                                             <dt className="text-fg-muted">{key.replaceAll('_', ' ')}</dt><dd className="break-words font-medium">{String(value)}</dd>
@@ -122,9 +122,9 @@ export function CallSheet({ callId, onClose }) {
                         )}
                         {call.booking_list?.length > 0 && (
                             <section>
-                                <h3 className="mb-2 text-[13px] font-semibold">Booked on this call</h3>
+                                <h3 className="mb-2 text-13 font-semibold">Booked on this call</h3>
                                 {call.booking_list.map((b) => (
-                                    <Link key={b.id} href="/voice/bookings?show=all" className="flex items-center gap-3 rounded-lg border border-ok/30 bg-ok-soft/50 px-3 py-2 text-[13px]">
+                                    <Link key={b.id} href="/voice/bookings?show=all" className="flex items-center gap-3 rounded-lg border border-ok/30 bg-ok-soft/50 px-3 py-2 text-13">
                                         <CalendarCheck className="size-4 text-ok" />
                                         <span className="font-medium">{b.name}</span>
                                         <span className="text-fg-muted">{b.starts_at ? when(b.starts_at) : b.requested_time}</span>
@@ -134,7 +134,7 @@ export function CallSheet({ callId, onClose }) {
                             </section>
                         )}
                         <section>
-                            <h3 className="mb-2 text-[13px] font-semibold">Transcript</h3>
+                            <h3 className="mb-2 text-13 font-semibold">Transcript</h3>
                             <Transcript turns={call.transcript} />
                         </section>
                     </>
@@ -145,12 +145,12 @@ export function CallSheet({ callId, onClose }) {
 }
 
 export function Transcript({ turns, live }) {
-    if (!turns?.length) return <p className="text-[13px] text-fg-subtle">{live ? 'The conversation will appear here.' : 'No transcript for this call.'}</p>;
+    if (!turns?.length) return <p className="text-13 text-fg-subtle">{live ? 'The conversation will appear here.' : 'No transcript for this call.'}</p>;
     return (
         <ol className="space-y-2.5">
             {turns.map((t, i) => (
                 <li key={i} className={cn('flex', t.role === 'user' ? 'justify-end' : 'justify-start')}>
-                    <div className={cn('max-w-[85%] rounded-2xl px-3.5 py-2 text-[13.5px] leading-relaxed',
+                    <div className={cn('max-w-[85%] rounded-2xl px-3.5 py-2 text-13h leading-relaxed',
                         t.role === 'user' ? 'rounded-br-md bg-primary text-primary-fg' : 'rounded-bl-md bg-surface-2 text-fg')}>
                         <span className="sr-only">{t.role === 'user' ? 'Caller: ' : 'Agent: '}</span>{t.text}
                     </div>
@@ -213,7 +213,7 @@ export function SampleChat({ turns = [], limit = 3, compact }) {
         <ol className={cn('space-y-1.5', compact && 'space-y-1')}>
             {turns.slice(0, limit).map((t, i) => (
                 <li key={i} className={cn('flex', t.role === 'user' ? 'justify-end' : 'justify-start')}>
-                    <span className={cn('max-w-[88%] rounded-2xl px-3 py-1.5 leading-snug', compact ? 'text-[12px]' : 'text-[13px]',
+                    <span className={cn('max-w-[88%] rounded-2xl px-3 py-1.5 leading-snug', compact ? 'text-12' : 'text-13',
                         t.role === 'user' ? 'rounded-br-md bg-surface-2 text-fg' : 'rounded-bl-md bg-primary-soft text-fg')}>{t.text}</span>
                 </li>
             ))}

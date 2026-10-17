@@ -71,7 +71,7 @@ function JsonField({ value, onChange, id, placeholder }) {
     return (
         <div>
             <VarTextarea id={id} mono rows={6} value={text} onChange={onChange} onBlur={check} placeholder={placeholder} spellCheck={false} />
-            {status && <p className={cn('mt-1 text-[12px]', status.ok ? 'text-fg-muted' : 'text-fail')}>{status.message}</p>}
+            {status && <p className={cn('mt-1 text-12', status.ok ? 'text-fg-muted' : 'text-fail')}>{status.message}</p>}
         </div>
     );
 }
@@ -147,7 +147,7 @@ function VoiceAgentSelect({ id, value, onChange, required }) {
         Promise.resolve(voiceAgents).then((list) => { voiceAgents = list; setAgents(list); });
     }, []);
     if (agents && agents.length === 0) {
-        return <p className="rounded-lg border border-dashed border-line px-3 py-2 text-[13px] text-fg-muted">No voice agents yet. <a href="/voice" className="font-medium text-primary hover:underline">Create one under Voice agents</a>.</p>;
+        return <p className="rounded-lg border border-dashed border-line px-3 py-2 text-13 text-fg-muted">No voice agents yet. <a href="/voice" className="font-medium text-primary hover:underline">Create one under Voice agents</a>.</p>;
     }
     return (
         <Select id={id} value={value == null ? '' : String(value)} onChange={(e) => onChange(e.target.value === '' ? null : Number(e.target.value))} disabled={!agents}>
@@ -202,7 +202,7 @@ const isShown = (input, inputs, config) => !input.show_if || Object.entries(inpu
 /** Renders a manifest's input list. config is the node's stored values. */
 export default function DynamicForm({ inputs, config, onChange, operators, errors = {} }) {
     if (!inputs?.length) {
-        return <p className="flex items-center gap-2 text-[13px] text-fg-muted"><Braces className="size-4" />This step has no settings.</p>;
+        return <p className="flex items-center gap-2 text-13 text-fg-muted"><Braces className="size-4" />This step has no settings.</p>;
     }
     return (
         <div className="space-y-4">

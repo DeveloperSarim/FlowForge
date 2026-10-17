@@ -24,27 +24,27 @@ export default function Login({ icons = {}, appCount = 0 }) {
             <div className="flex items-center justify-center px-6 py-12">
                 <div className="w-full max-w-sm">
                     <Logo className="size-10" />
-                    <h1 className="mt-6 text-[26px] font-semibold tracking-tight">Welcome back</h1>
-                    <p className="mt-1 text-[14px] text-fg-muted">Sign in to your FlowForge workspace.</p>
+                    <h1 className="mt-6 text-26 font-semibold tracking-tight">Welcome back</h1>
+                    <p className="mt-1 text-14 text-fg-muted">Sign in to your FlowForge workspace.</p>
                     {demo && (
                         <div className="mt-6 rounded-xl border border-primary/30 bg-primary-soft/50 p-4">
-                            <p className="text-[13.5px] font-semibold">Try the live demo</p>
-                            <dl className="mt-2 grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-[13px]">
+                            <p className="text-13h font-semibold">Try the live demo</p>
+                            <dl className="mt-2 grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-13">
                                 <dt className="text-fg-muted">Email</dt><dd className="font-mono">{demo.email}</dd>
                                 <dt className="text-fg-muted">Password</dt><dd className="font-mono">{demo.password}</dd>
                             </dl>
                             <Button variant="primary" className="mt-3 w-full justify-center" loading={form.processing} onClick={demoLogin}>Sign in to the demo</Button>
                         </div>
                     )}
-                    {flash?.success && <p className="mt-5 flex items-start gap-2 rounded-lg bg-ok-soft px-3 py-2.5 text-[13px] text-ok"><CheckCircle2 className="mt-px size-4 shrink-0" />{flash.success}</p>}
+                    {flash?.success && <p className="mt-5 flex items-start gap-2 rounded-lg bg-ok-soft px-3 py-2.5 text-13 text-ok"><CheckCircle2 className="mt-px size-4 shrink-0" />{flash.success}</p>}
                     <form onSubmit={submit} className="mt-8 space-y-4">
                         <Field label="Email" error={form.errors.email}>
                             {(id) => <Input id={id} type="email" autoComplete="username" autoFocus className="h-10" value={form.data.email} onChange={(e) => form.setData('email', e.target.value)} aria-invalid={!!form.errors.email} />}
                         </Field>
-                        <Field label="Password" error={form.errors.password} aside={<Link href="/forgot-password" className="text-[12.5px] font-medium text-primary hover:underline">Forgot password?</Link>}>
+                        <Field label="Password" error={form.errors.password} aside={<Link href="/forgot-password" className="text-12h font-medium text-primary hover:underline">Forgot password?</Link>}>
                             {(id) => <Input id={id} type="password" autoComplete="current-password" className="h-10" value={form.data.password} onChange={(e) => form.setData('password', e.target.value)} />}
                         </Field>
-                        <label className="flex items-center gap-2 text-[13px] text-fg-muted">
+                        <label className="flex items-center gap-2 text-13 text-fg-muted">
                             <input type="checkbox" className="size-4 rounded accent-[var(--primary)]" checked={form.data.remember} onChange={(e) => form.setData('remember', e.target.checked)} />
                             Keep me signed in
                         </label>
@@ -70,8 +70,8 @@ export default function Login({ icons = {}, appCount = 0 }) {
                     ))}
                 </div>
                 <div className="absolute inset-x-12 bottom-12">
-                    <p className="text-[22px] font-semibold tracking-tight">Automate the busywork.</p>
-                    <p className="mt-1 max-w-md text-[14px] text-fg-muted">Connect {appCount > 100 ? `${Math.floor(appCount / 100) * 100}+` : 'hundreds of'} apps on a visual canvas, and run it all on your own hosting with a single cron job.</p>
+                    <p className="text-22 font-semibold tracking-tight">Automate the busywork.</p>
+                    <p className="mt-1 max-w-md text-14 text-fg-muted">Connect {appCount > 100 ? `${Math.floor(appCount / 100) * 100}+` : 'hundreds of'} apps on a visual canvas, and run it all on your own hosting with a single cron job.</p>
                 </div>
             </div>
         </div>

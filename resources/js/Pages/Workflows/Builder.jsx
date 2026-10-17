@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { cloneElement, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
 import { addEdge, Background, BackgroundVariant, MiniMap, ReactFlow, ReactFlowProvider, useEdgesState, useNodesState, useReactFlow } from '@xyflow/react';
 import { ChevronDown, ChevronUp, Copy, FlaskConical, Loader2, MoreHorizontal, Plus, RotateCw, ScrollText, Trash2, Download, X } from 'lucide-react';
@@ -9,7 +9,7 @@ import NodeCreator from '@/Components/Canvas/NodeCreator';
 import FloatingToolbar from '@/Components/Canvas/FloatingToolbar';
 import NodeDetails from '@/Components/Drawer/NodeDetails';
 import ExecutionDebug from '@/Components/ExecutionDebug';
-import { Button, Dialog, Menu, StatusBadge, Switch, Tabs } from '@/Components/ui';
+import { Button, Dialog, Menu, StatusBadge, Switch, Tabs, usePresence } from '@/Components/ui';
 import { Logo, Toaster } from '@/Layouts/AppLayout';
 import { isDark } from '@/lib/theme';
 import { useCan } from '@/lib/can';
@@ -72,6 +72,10 @@ function Editor({ workflow: initial, catalog, operators, lastExecution, ai }) {
     const [tab, setTab] = useState('editor');
     const [creator, setCreator] = useState(null);
     const [openId, setOpenId] = useState(null);
+    // Where the last press happened: the step editor grows out of the step that was clicked.
+    const lastPointer = useRef(null);
+    const [origin, setOrigin] = useState(null);
+    const openStep = useCallback((id) => { setOrigin(lastPointer.current); setOpenId(id); }, []);
     const [execution, setExecution] = useState(lastExecution);
     const [logsOpen, setLogsOpen] = useState(false);
     const [running, setRunning] = useState(null);
@@ -192,12 +196,25 @@ function Editor({ workflow: initial, catalog, operators, lastExecution, ai }) {
         setNodes((nds) => nds.map((n) => (n.id === id ? { ...n, data: { ...n.data, disabled: n.data.disabled ? undefined : true } } : n)));
     }, [setNodes]);
 
+    // Deleting steps is one click; the toast offers Undo for a few seconds instead of asking first.
+    const offerUndo = useCallback((goneNodes, goneEdges) => {
+        if (!goneNodes.length) return;
+        const what = goneNodes.length === 1 ? `"${goneNodes[0].data?.label || 'Step'}" deleted.` : `${goneNodes.length} steps deleted.`;
+        toast(what, 'info', { action: { label: 'Undo', onClick: () => {
+            setNodes((nds) => [...nds, ...goneNodes.filter((g) => !nds.some((n) => n.id === g.id))]);
+            setEdges((eds) => [...eds, ...goneEdges.filter((g) => !eds.some((e) => e.id === g.id))]);
+        } } });
+    }, [setNodes, setEdges]);
+
     const removeNode = useCallback((id) => {
         if (id === 'trigger') return;
+        const gone = nodes.filter((n) => n.id === id);
+        const goneEdges = edges.filter((e) => e.source === id || e.target === id);
         setNodes((nds) => nds.filter((n) => n.id !== id));
         setEdges((eds) => eds.filter((e) => e.source !== id && e.target !== id));
         setOpenId((current) => (current === id ? null : current));
-    }, [setNodes, setEdges]);
+        offerUndo(gone, goneEdges);
+    }, [nodes, edges, setNodes, setEdges, offerUndo]);
 
     const isValidConnection = useCallback((c) => {
         if (c.source === c.target) return false;
@@ -276,23 +293,47 @@ function Editor({ workflow: initial, catalog, operators, lastExecution, ai }) {
     const context = useMemo(() => ({
         catalog: catalogMap, runSteps: execution ? runSteps : {}, running, connected,
         openCreator: (opts) => setCreator({ mode: 'action', ...opts }),
-        openNode: setOpenId, executeStep, removeNode, toggleNode, readOnly,
-    }), [catalogMap, execution, runSteps, running, connected, executeStep, removeNode, toggleNode, readOnly]);
+        openNode: openStep, executeStep, removeNode, toggleNode, readOnly,
+    }), [catalogMap, execution, runSteps, running, connected, openStep, executeStep, removeNode, toggleNode, readOnly]);
 
     const onDrop = (event) => event.preventDefault();
 
+    // The step editor stays mounted while it plays its way out (frozen as it was), then unmounts.
+    const openEditor = openNode ? (
+        <NodeDetails
+            key={openNode.id}
+            node={openNode}
+            catalog={catalog}
+            operators={operators}
+            workflow={workflow}
+            upstream={upstream}
+            runStep={runSteps[openNode.id]}
+            executing={!!running}
+            onChange={(patch, type) => updateNode(openNode.id, patch, type)}
+            onExecute={executeStep}
+            onDelete={() => removeNode(openNode.id)}
+            onClose={() => setOpenId(null)}
+            readOnly={readOnly}
+            origin={origin}
+        />
+    ) : null;
+    const lastEditor = useRef(null);
+    if (openEditor) lastEditor.current = openEditor;
+    const { mounted: editorMounted, closing: editorClosing } = usePresence(!!openNode, 240);
+    const editor = editorMounted ? (openEditor ?? lastEditor.current) : null;
+
     return (
         <BuilderContext.Provider value={context}>
-            <div className="flex h-dvh flex-col bg-bg">
+            <div className="flex h-dvh flex-col bg-bg" onPointerDownCapture={(e) => { lastPointer.current = [e.clientX, e.clientY]; }}>
                 <header className="flex h-14 shrink-0 items-center gap-3 border-b border-line bg-surface px-3 sm:px-4">
                     <Link href="/" aria-label="FlowForge home"><Logo className="size-7" /></Link>
-                    <nav className="flex min-w-0 items-center gap-1.5 text-[14px]" aria-label="Breadcrumb">
+                    <nav className="flex min-w-0 items-center gap-1.5 text-14" aria-label="Breadcrumb">
                         <Link href="/workflows" className="hidden text-fg-muted hover:text-fg sm:inline">Workflows</Link>
                         <span className="hidden text-fg-subtle sm:inline">/</span>
                         <input value={name} onChange={(e) => setName(e.target.value)} aria-label="Workflow name" readOnly={readOnly}
-                            className="min-w-0 truncate rounded-md bg-transparent px-1.5 py-1 text-base font-semibold sm:text-[14px] outline-none hover:bg-surface-2 focus:bg-surface-2 sm:w-72" />
+                            className="min-w-0 truncate rounded-md bg-transparent px-1.5 py-1 text-base font-semibold sm:text-14 outline-none hover:bg-surface-2 focus:bg-surface-2 sm:w-72" />
                     </nav>
-                    <span className={cn('hidden text-[12.5px] lg:inline', save.state === 'error' ? 'text-fail' : 'text-fg-subtle')} title={save.message} aria-live="polite">
+                    <span className={cn('hidden text-12h lg:inline', save.state === 'error' ? 'text-fail' : 'text-fg-subtle')} title={save.message} aria-live="polite">
                         {readOnly ? 'View only' : save.state === 'saving' ? 'Saving…' : save.state === 'error' ? 'Not saved' : 'Saved'}
                     </span>
                     <div className="mx-auto hidden md:block">
@@ -300,11 +341,11 @@ function Editor({ workflow: initial, catalog, operators, lastExecution, ai }) {
                     </div>
                     <div className="ml-auto flex items-center gap-2.5 md:ml-0">
                         {can.ai && <Button size="sm" variant={aiOpen ? 'subtle' : 'secondary'} onClick={() => setAiOpen((o) => !o)}><AiIcon className="size-4 text-primary" />Ask AI</Button>}
-                        <label className="hidden items-center gap-2 text-[13px] font-medium text-fg-muted md:flex" title="Retry failed runs automatically">
+                        <label className="hidden items-center gap-2 text-13 font-medium text-fg-muted md:flex" title="Retry failed runs automatically">
                             <RotateCw className="size-3.5" />Auto-retry
                             <Switch checked={retry.auto_retry} onChange={(v) => saveRetry({ auto_retry: v })} disabled={readOnly} label="Retry failed runs automatically" size="sm" />
                         </label>
-                        <label className="flex items-center gap-2 text-[13px] font-medium text-fg-muted">
+                        <label className="flex items-center gap-2 text-13 font-medium text-fg-muted">
                             <span className="hidden sm:inline">{workflow.is_active ? 'Active' : 'Inactive'}</span>
                             {!readOnly && <Switch checked={workflow.is_active} onChange={toggleActive} label="Activate workflow" />}
                         </label>
@@ -334,7 +375,8 @@ function Editor({ workflow: initial, catalog, operators, lastExecution, ai }) {
                                 nodesConnectable={!readOnly}
                                 edgesReconnectable={!readOnly}
                                 isValidConnection={isValidConnection}
-                                onNodeClick={(_, node) => setOpenId(node.id)}
+                                onNodeClick={(_, node) => openStep(node.id)}
+                                onDelete={({ nodes: goneNodes, edges: goneEdges }) => offerUndo(goneNodes, goneEdges)}
                                 onPaneClick={() => setCreator(null)}
                                 colorMode={dark ? 'dark' : 'light'}
                                 fitView
@@ -376,8 +418,8 @@ function Editor({ workflow: initial, catalog, operators, lastExecution, ai }) {
                                 <aside className="animate-slide-in absolute inset-y-0 right-0 z-30 flex w-[min(420px,100%)] flex-col border-l border-line bg-surface shadow-pop" aria-label="AI builder">
                                     <div className="flex items-center gap-2 border-b border-line px-4 py-3">
                                         <AiIcon className="size-4 text-primary" />
-                                        <h2 className="flex-1 text-[14px] font-semibold">Ask AI about this workflow</h2>
-                                        {ai && <span className="truncate text-[11.5px] text-fg-subtle">{ai.model}</span>}
+                                        <h2 className="flex-1 text-14 font-semibold">Ask AI about this workflow</h2>
+                                        {ai && <span className="truncate text-11h text-fg-subtle">{ai.model}</span>}
                                         <button type="button" onClick={() => setAiOpen(false)} className="rounded p-1 text-fg-muted hover:bg-surface-2" aria-label="Close"><X className="size-4" /></button>
                                     </div>
                                     <ChatPanel compact configured={!!ai} workflowId={initial.id} conversationId={aiConversation}
@@ -390,17 +432,17 @@ function Editor({ workflow: initial, catalog, operators, lastExecution, ai }) {
                         {execution && logsOpen && (
                             <section className="flex h-[40vh] min-h-64 shrink-0 flex-col border-t border-line bg-surface" aria-label="Logs">
                                 <div className="flex items-center gap-3 border-b border-line px-4 py-2">
-                                    <h2 className="text-[13px] font-semibold">Logs</h2>
+                                    <h2 className="text-13 font-semibold">Logs</h2>
                                     <StatusBadge status={execution.status} />
-                                    <span className="text-[12.5px] text-fg-subtle">Run #{execution.id}, {execution.mode}, {duration(execution.duration_ms)}, {timeAgo(execution.created_at)}</span>
-                                    {execution.error && <span className="hidden truncate text-[12.5px] text-fail xl:inline">{execution.error}</span>}
+                                    <span className="text-12h text-fg-subtle">Run #{execution.id}, {execution.mode}, {duration(execution.duration_ms)}, {timeAgo(execution.created_at)}</span>
+                                    {execution.error && <span className="hidden truncate text-12h text-fail xl:inline">{execution.error}</span>}
                                     <button type="button" onClick={() => setLogsOpen(false)} className="ml-auto rounded-md p-1 text-fg-muted hover:bg-surface-2 hover:text-fg" aria-label="Hide logs"><ChevronDown className="size-4" /></button>
                                 </div>
                                 <ExecutionDebug execution={execution} compact />
                             </section>
                         )}
                         {execution && !logsOpen && (
-                            <button type="button" onClick={() => setLogsOpen(true)} className="flex h-9 shrink-0 items-center gap-2 border-t border-line bg-surface px-4 text-[12.5px] text-fg-muted hover:text-fg">
+                            <button type="button" onClick={() => setLogsOpen(true)} className="flex h-9 shrink-0 items-center gap-2 border-t border-line bg-surface px-4 text-12h text-fg-muted hover:text-fg">
                                 <ChevronUp className="size-4" />Logs<span className="text-fg-subtle">Run #{execution.id} {execution.status === 'completed' ? 'succeeded' : execution.status}, {timeAgo(execution.created_at)}</span>
                             </button>
                         )}
@@ -408,30 +450,14 @@ function Editor({ workflow: initial, catalog, operators, lastExecution, ai }) {
                 )}
             </div>
 
-            {openNode && (
-                <NodeDetails
-                    key={openNode.id}
-                    node={openNode}
-                    catalog={catalog}
-                    operators={operators}
-                    workflow={workflow}
-                    upstream={upstream}
-                    runStep={runSteps[openNode.id]}
-                    executing={!!running}
-                    onChange={(patch, type) => updateNode(openNode.id, patch, type)}
-                    onExecute={executeStep}
-                    onDelete={() => removeNode(openNode.id)}
-                    onClose={() => setOpenId(null)}
-                    readOnly={readOnly}
-                />
-            )}
+            {editor && (editorClosing ? cloneElement(editor, { closing: true }) : editor)}
 
             <Dialog open={settingsOpen} onClose={() => setSettingsOpen(false)} title="Retries and errors" description="What happens when an app is busy, slow or down while this workflow runs.">
-                <div className="space-y-4 text-[13.5px]">
+                <div className="space-y-4 text-13h">
                     <label className="flex items-start justify-between gap-4">
                         <span>
                             <span className="block font-semibold">Retry failed runs automatically</span>
-                            <span className="mt-0.5 block text-[12.5px] text-fg-muted">When a run fails, FlowForge tries again from the step that failed: after 2 minutes, 10 minutes, 1 hour, 3 hours and 6 hours. Steps that already worked aren't repeated, and you only get the failure email if every try fails.</span>
+                            <span className="mt-0.5 block text-12h text-fg-muted">When a run fails, FlowForge tries again from the step that failed: after 2 minutes, 10 minutes, 1 hour, 3 hours and 6 hours. Steps that already worked aren't repeated, and you only get the failure email if every try fails.</span>
                         </span>
                         <Switch checked={retry.auto_retry} onChange={(v) => saveRetry({ auto_retry: v })} disabled={readOnly} label="Retry failed runs automatically" />
                     </label>
@@ -444,13 +470,13 @@ function Editor({ workflow: initial, catalog, operators, lastExecution, ai }) {
                                     <input type="radio" name="retry_on" value={value} checked={retry.retry_on === value} onChange={() => saveRetry({ retry_on: value })} className="mt-1 accent-[var(--primary)]" />
                                     <span>
                                         <span className="block font-medium">{label}</span>
-                                        <span className="block text-[12.5px] text-fg-muted">{hint}</span>
+                                        <span className="block text-12h text-fg-muted">{hint}</span>
                                     </span>
                                 </label>
                             ))}
                         </fieldset>
                     )}
-                    <p className="rounded-lg bg-surface-2 px-3 py-2.5 text-[12.5px] text-fg-muted">Each step can also try again right away, keep going when it fails, or be turned off: open the step and look under <strong className="text-fg">When this step runs</strong>.</p>
+                    <p className="rounded-lg bg-surface-2 px-3 py-2.5 text-12h text-fg-muted">Each step can also try again right away, keep going when it fails, or be turned off: open the step and look under <strong className="text-fg">When this step runs</strong>.</p>
                 </div>
             </Dialog>
             <Dialog open={deleting} onClose={() => setDeleting(false)} title={`Delete "${name}"?`} description="Its execution history is deleted too. This can't be undone.">
@@ -482,8 +508,8 @@ function ExecutionsTab({ workflowId, onOpenInEditor }) {
         window.axios.get(`/executions/${selected}`).then(({ data }) => setDetail(data.execution));
     }, [selected]);
 
-    if (!runs) return <p className="flex flex-1 items-center justify-center gap-2 text-[13px] text-fg-muted"><Loader2 className="size-4 animate-spin" />Loading runs…</p>;
-    if (runs.length === 0) return <p className="flex flex-1 items-center justify-center text-[13px] text-fg-muted">No runs yet. Execute the workflow from the editor, or activate it.</p>;
+    if (!runs) return <p className="flex flex-1 items-center justify-center gap-2 text-13 text-fg-muted"><Loader2 className="size-4 animate-spin" />Loading runs…</p>;
+    if (runs.length === 0) return <p className="flex flex-1 items-center justify-center text-13 text-fg-muted">No runs yet. Execute the workflow from the editor, or activate it.</p>;
 
     return (
         <div className="flex min-h-0 flex-1">
@@ -493,10 +519,10 @@ function ExecutionsTab({ workflowId, onOpenInEditor }) {
                         <button type="button" onClick={() => setSelected(run.id)} aria-current={selected === run.id}
                             className={cn('w-full rounded-lg px-3 py-2.5 text-left', selected === run.id ? 'bg-primary-soft' : 'hover:bg-surface-2')}>
                             <span className="flex items-center justify-between gap-2">
-                                <span className="text-[13px] font-medium">{new Date(run.created_at).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>
+                                <span className="text-13 font-medium">{new Date(run.created_at).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>
                                 <StatusBadge status={run.status} />
                             </span>
-                            <span className="mt-0.5 block text-[12px] text-fg-subtle capitalize">#{run.id}, {run.mode}, {duration(run.duration_ms)}</span>
+                            <span className="mt-0.5 block text-12 text-fg-subtle capitalize">#{run.id}, {run.mode}, {duration(run.duration_ms)}</span>
                         </button>
                     </li>
                 ))}
@@ -505,13 +531,13 @@ function ExecutionsTab({ workflowId, onOpenInEditor }) {
                 {detail ? (
                     <>
                         <div className="flex items-center gap-3 border-b border-line px-5 py-3">
-                            <h2 className="text-[14px] font-semibold">Run #{detail.id}</h2>
+                            <h2 className="text-14 font-semibold">Run #{detail.id}</h2>
                             <StatusBadge status={detail.status} />
                             <Button size="sm" className="ml-auto" onClick={() => onOpenInEditor(detail)}>Show on canvas</Button>
                         </div>
                         <ExecutionDebug execution={detail} />
                     </>
-                ) : <p className="flex flex-1 items-center justify-center gap-2 text-[13px] text-fg-muted"><Loader2 className="size-4 animate-spin" />Loading…</p>}
+                ) : <p className="flex flex-1 items-center justify-center gap-2 text-13 text-fg-muted"><Loader2 className="size-4 animate-spin" />Loading…</p>}
             </div>
         </div>
     );

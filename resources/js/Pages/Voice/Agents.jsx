@@ -27,9 +27,9 @@ export default function Agents({ agents, templates, stats, hasAi }) {
             actions={can['workflows.edit'] && <Button variant="primary" onClick={() => setCreating(true)}><Plus className="size-4" />New agent</Button>}>
             <VoiceNav />
 
-            <dl className="mb-7 flex flex-wrap gap-x-8 gap-y-2 text-[13px] text-fg-muted">
+            <dl className="mb-7 flex flex-wrap gap-x-8 gap-y-2 text-13 text-fg-muted">
                 {[['Calls today', stats.calls_today], ['Minutes this week', stats.minutes_week], ['Upcoming bookings', stats.upcoming]].map(([label, value]) => (
-                    <div key={label} className="flex items-baseline gap-2"><dd className="text-[20px] font-semibold tracking-tight text-fg tabular-nums">{compact(value)}</dd><dt>{label}</dt></div>
+                    <div key={label} className="flex items-baseline gap-2"><dd className="text-20 font-semibold tracking-tight text-fg tabular-nums">{compact(value)}</dd><dt>{label}</dt></div>
                 ))}
             </dl>
 
@@ -42,7 +42,7 @@ export default function Agents({ agents, templates, stats, hasAi }) {
                 </Card>
             ) : (
                 <section className="mb-10">
-                    <h2 className="mb-3 text-[15px] font-semibold">Your agents</h2>
+                    <h2 className="mb-3 text-15 font-semibold">Your agents</h2>
                     <div className="grid grid-cols-[minmax(0,1fr)] gap-3 sm:grid-cols-2 xl:grid-cols-3">
                         {agents.map((agent) => <AgentCard key={agent.id} agent={agent} />)}
                     </div>
@@ -52,13 +52,13 @@ export default function Agents({ agents, templates, stats, hasAi }) {
             <section>
                 <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
                     <div>
-                        <h2 className="text-[15px] font-semibold">Templates</h2>
-                        <p className="mt-0.5 text-[13px] text-fg-muted">Each one comes with a persona, instructions, booking rules and the details to capture.</p>
+                        <h2 className="text-15 font-semibold">Templates</h2>
+                        <p className="mt-0.5 text-13 text-fg-muted">Each one comes with a persona, instructions, booking rules and the details to capture.</p>
                     </div>
                     <div className="no-scrollbar -mx-4 flex max-w-full gap-1.5 overflow-x-auto px-4 sm:mx-0 sm:px-0" role="tablist" aria-label="Template categories">
                         {categories.map((c) => (
                             <button key={c} type="button" role="tab" aria-selected={category === c} onClick={() => setCategory(c)}
-                                className={cn('shrink-0 rounded-full border px-3 py-1 text-[12.5px] font-medium transition-colors',
+                                className={cn('shrink-0 rounded-full border px-3 py-1 text-12h font-medium transition-colors',
                                     category === c ? 'border-fg bg-fg text-surface' : 'border-line text-fg-muted hover:border-line-strong hover:text-fg')}>
                                 {c}
                             </button>
@@ -77,11 +77,11 @@ export default function Agents({ agents, templates, stats, hasAi }) {
 }
 
 function Status({ agent }) {
-    if (agent.problem) return <span className="flex items-center gap-1.5 text-[12px] font-medium text-fail"><TriangleAlert className="size-3.5" />Needs attention</span>;
-    if (agent.provider === 'browser') return <span className="flex items-center gap-1.5 text-[12px] font-medium text-fg-muted"><span className="size-1.5 rounded-full bg-fg-subtle" />Browser test</span>;
+    if (agent.problem) return <span className="flex items-center gap-1.5 text-12 font-medium text-fail"><TriangleAlert className="size-3.5" />Needs attention</span>;
+    if (agent.provider === 'browser') return <span className="flex items-center gap-1.5 text-12 font-medium text-fg-muted"><span className="size-1.5 rounded-full bg-fg-subtle" />Browser test</span>;
     return agent.live
-        ? <span className="flex items-center gap-1.5 text-[12px] font-medium text-ok"><span className="size-1.5 rounded-full bg-ok" />Live on {agent.provider === 'vapi' ? 'Vapi' : 'ElevenLabs'}</span>
-        : <span className="flex items-center gap-1.5 text-[12px] font-medium text-warn"><span className="size-1.5 rounded-full bg-warn" />Not published</span>;
+        ? <span className="flex items-center gap-1.5 text-12 font-medium text-ok"><span className="size-1.5 rounded-full bg-ok" />Live on {agent.provider === 'vapi' ? 'Vapi' : 'ElevenLabs'}</span>
+        : <span className="flex items-center gap-1.5 text-12 font-medium text-warn"><span className="size-1.5 rounded-full bg-warn" />Not published</span>;
 }
 
 function AgentCard({ agent }) {
@@ -90,15 +90,15 @@ function AgentCard({ agent }) {
             <div className="flex items-center gap-3">
                 <AgentAvatar name={agent.persona || agent.name} size={44} />
                 <div className="min-w-0 flex-1">
-                    <p className="truncate text-[15px] font-semibold group-hover:text-primary">{agent.name}</p>
-                    <p className="truncate text-[12.5px] text-fg-muted">{[agent.persona, agent.business].filter(Boolean).join(' at ') || 'No persona yet'}</p>
+                    <p className="truncate text-15 font-semibold group-hover:text-primary">{agent.name}</p>
+                    <p className="truncate text-12h text-fg-muted">{[agent.persona, agent.business].filter(Boolean).join(' at ') || 'No persona yet'}</p>
                 </div>
             </div>
             <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1">
                 <Status agent={agent} />
-                {agent.phone && <span className="text-[12px] text-fg-subtle tabular-nums">{agent.phone}</span>}
+                {agent.phone && <span className="text-12 text-fg-subtle tabular-nums">{agent.phone}</span>}
             </div>
-            <div className="mt-4 flex items-center gap-4 border-t border-line pt-3 text-[12.5px] text-fg-muted">
+            <div className="mt-4 flex items-center gap-4 border-t border-line pt-3 text-12h text-fg-muted">
                 <span className="flex items-center gap-1"><PhoneCall className="size-3.5" /><strong className="font-semibold text-fg tabular-nums">{agent.calls}</strong></span>
                 {agent.booking && <span className="flex items-center gap-1"><CalendarCheck className="size-3.5" /><strong className="font-semibold text-fg tabular-nums">{agent.bookings}</strong></span>}
                 <span className="ml-auto">{agent.last_call ? `Last call ${timeAgo(agent.last_call)}` : 'No calls yet'}</span>
@@ -129,8 +129,8 @@ function TemplateCard({ template, onPreview, onUse }) {
                 <div className="flex items-center gap-3">
                     <TemplateIcon template={template} />
                     <div className="min-w-0">
-                        <h3 className="truncate text-[14.5px] font-semibold">{template.name}</h3>
-                        <p className="flex items-center gap-2 text-[12px] text-fg-subtle">
+                        <h3 className="truncate text-14h font-semibold">{template.name}</h3>
+                        <p className="flex items-center gap-2 text-12 text-fg-subtle">
                             <span style={{ color: hueOf(template.category) }} className="font-medium">{template.category}</span>
                             <Direction direction={template.direction} />
                         </p>
@@ -139,10 +139,10 @@ function TemplateCard({ template, onPreview, onUse }) {
                 <div className="mt-3.5 rounded-xl bg-surface-2/60 p-2.5">
                     <SampleChat turns={template.sample} limit={3} compact />
                 </div>
-                <p className="mt-3 text-[12.5px] leading-snug text-fg-muted">{template.description}</p>
+                <p className="mt-3 text-12h leading-snug text-fg-muted">{template.description}</p>
             </button>
             <div className="flex items-center gap-2 border-t border-line px-4 py-2.5">
-                <span className="mr-auto flex items-center gap-3 text-[12px] text-fg-subtle">
+                <span className="mr-auto flex items-center gap-3 text-12 text-fg-subtle">
                     {template.booking?.enabled && <span className="flex items-center gap-1"><CalendarCheck className="size-3.5" />Books</span>}
                     {template.collect?.length > 0 && <span className="flex items-center gap-1"><ListChecks className="size-3.5" />{template.collect.length} details</span>}
                 </span>
@@ -162,14 +162,14 @@ function TemplatePreview({ template, onClose, onUse }) {
                 <div className="rounded-2xl border border-line p-4">
                     <div className="mb-3 flex items-center gap-2.5 border-b border-line pb-3">
                         <AgentAvatar name={template.persona_name} size={34} />
-                        <div className="text-[13px]">
+                        <div className="text-13">
                             <p className="font-semibold">{template.persona_name}</p>
                             <p className="text-fg-subtle"><Direction direction={template.direction} /></p>
                         </div>
                     </div>
                     <SampleChat turns={template.sample} limit={12} />
                 </div>
-                <div className="space-y-4 text-[13px]">
+                <div className="space-y-4 text-13">
                     <div className="flex items-center gap-2.5"><TemplateIcon template={template} size={32} /><span className="font-medium" style={{ color: hueOf(template.category) }}>{template.category}</span></div>
                     {template.booking?.enabled ? (
                         <div>
@@ -220,7 +220,7 @@ function NewAgentDialog({ open, onClose, templates, hasAi, onPreview }) {
             <div className="mb-5 grid grid-cols-3 gap-2" role="tablist">
                 {[['ai', 'Describe it', Wand2], ['template', 'From a template', PhoneCall], ['blank', 'Blank', Plus]].map(([key, label, Icon]) => (
                     <button key={key} type="button" role="tab" onClick={() => setMode(key)} aria-selected={mode === key}
-                        className={cn('flex flex-col items-center gap-1.5 rounded-xl border-2 px-3 py-3 text-[13px] font-medium transition-colors',
+                        className={cn('flex flex-col items-center gap-1.5 rounded-xl border-2 px-3 py-3 text-13 font-medium transition-colors',
                             mode === key ? 'border-primary bg-primary-soft/60 text-primary' : 'border-line text-fg-muted hover:border-line-strong')}>
                         <Icon className="size-5" />{label}
                     </button>
@@ -234,18 +234,18 @@ function NewAgentDialog({ open, onClose, templates, hasAi, onPreview }) {
                     </Field>
                     <div className="flex flex-wrap gap-1.5">
                         {IDEAS.map((idea) => (
-                            <button key={idea} type="button" onClick={() => setDescription(idea)} className="max-w-full truncate rounded-full border border-line px-3 py-1 text-[12px] text-fg-muted hover:border-line-strong hover:text-fg">
+                            <button key={idea} type="button" onClick={() => setDescription(idea)} className="max-w-full truncate rounded-full border border-line px-3 py-1 text-12 text-fg-muted hover:border-line-strong hover:text-fg">
                                 {idea.split('.')[0]}
                             </button>
                         ))}
                     </div>
-                    {error && <p className="rounded-lg bg-fail-soft px-3 py-2 text-[13px] text-fail">{error}</p>}
+                    {error && <p className="rounded-lg bg-fail-soft px-3 py-2 text-13 text-fail">{error}</p>}
                     <Button variant="primary" onClick={generate} disabled={busy || description.trim().length < 10}>
                         {busy ? <Loader2 className="size-4 animate-spin" /> : <Sparkles className="size-4" />}{busy ? 'Writing your agent…' : 'Write my agent'}
                     </Button>
                 </div>
             ) : (
-                <p className="rounded-lg bg-surface-2 px-4 py-3 text-[13px] text-fg-muted">Writing agents uses the AI model from <Link href="/settings/ai" className="font-medium text-primary hover:underline">Settings → AI builder</Link>. Add one there (Google Gemini and DeepSeek are free or very cheap), or start from a template.</p>
+                <p className="rounded-lg bg-surface-2 px-4 py-3 text-13 text-fg-muted">Writing agents uses the AI model from <Link href="/settings/ai" className="font-medium text-primary hover:underline">Settings → AI builder</Link>. Add one there (Google Gemini and DeepSeek are free or very cheap), or start from a template.</p>
             ))}
 
             {mode === 'template' && (
@@ -255,8 +255,8 @@ function NewAgentDialog({ open, onClose, templates, hasAi, onPreview }) {
                             className="flex items-center gap-3 rounded-xl border border-line p-3 text-left hover:border-line-strong hover:bg-surface-2/50">
                             <TemplateIcon template={t} size={34} />
                             <span className="min-w-0">
-                                <span className="block truncate text-[13.5px] font-semibold">{t.name}</span>
-                                <span className="block truncate text-[12px] text-fg-subtle">{t.description}</span>
+                                <span className="block truncate text-13h font-semibold">{t.name}</span>
+                                <span className="block truncate text-12 text-fg-subtle">{t.description}</span>
                             </span>
                         </button>
                     ))}

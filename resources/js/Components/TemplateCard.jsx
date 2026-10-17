@@ -22,10 +22,10 @@ export default function TemplateCard({ template }) {
                     </span>
                 ))}
             </div>
-            <h3 className="mt-4 text-[14.5px] font-semibold leading-snug">{template.name}</h3>
-            <p className="mt-1 line-clamp-2 flex-1 text-[13px] text-fg-muted">{template.description}</p>
+            <h3 className="mt-4 text-14h font-semibold leading-snug">{template.name}</h3>
+            <p className="mt-1 line-clamp-2 flex-1 text-13 text-fg-muted">{template.description}</p>
             <div className="mt-4 flex items-center justify-between">
-                <span className="text-[12px] text-fg-subtle">{template.category} · {template.steps} steps</span>
+                <span className="text-12 text-fg-subtle">{template.category} · {template.steps} steps</span>
                 {can['workflows.edit'] && <Button size="sm" variant="outline" loading={using} onClick={() => { setUsing(true); router.post(`/templates/${template.key}/use`, {}, { onFinish: () => setUsing(false) }); }}>
                     Use template
                 </Button>}

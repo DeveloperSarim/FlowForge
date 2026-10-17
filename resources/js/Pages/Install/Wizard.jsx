@@ -30,18 +30,18 @@ export default function Wizard({ checks, state, defaults, cron, adminEmail }) {
                 <div>
                     <div className="mb-8 flex items-center gap-2.5">
                         <Logo />
-                        <span className="text-[15px] font-semibold">FlowForge setup</span>
+                        <span className="text-15 font-semibold">FlowForge setup</span>
                     </div>
                     <ol className="space-y-1">
                         {STEPS.map((s, index) => (
                             <li key={s.key} className={cn('flex gap-3 rounded-lg px-2 py-2', index === current && 'bg-surface')}>
-                                <span className={cn('mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full border text-[11px] font-semibold',
+                                <span className={cn('mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full border text-11 font-semibold',
                                     done[s.key] && index !== current ? 'border-ok bg-ok-soft text-ok' : index === current ? 'border-primary text-primary' : 'border-line text-fg-subtle')}>
                                     {done[s.key] && index !== current ? <Check className="size-3" strokeWidth={3} /> : index + 1}
                                 </span>
                                 <span>
-                                    <span className={cn('block text-[13.5px] font-medium', index > current && 'text-fg-muted')}>{s.title}</span>
-                                    <span className="block text-[12px] text-fg-subtle">{s.hint}</span>
+                                    <span className={cn('block text-13h font-medium', index > current && 'text-fg-muted')}>{s.title}</span>
+                                    <span className="block text-12 text-fg-subtle">{s.hint}</span>
                                 </span>
                             </li>
                         ))}
@@ -64,7 +64,7 @@ function Heading({ title, children }) {
     return (
         <div className="mb-6">
             <h1 className="text-xl font-semibold">{title}</h1>
-            {children && <p className="mt-1 max-w-prose text-[13.5px] text-fg-muted">{children}</p>}
+            {children && <p className="mt-1 max-w-prose text-13h text-fg-muted">{children}</p>}
         </div>
     );
 }
@@ -81,12 +81,12 @@ function Requirements({ checks, onNext }) {
             <div className="space-y-5">
                 {Object.entries(groups).map(([group, items]) => (
                     <div key={group}>
-                        <h2 className="mb-2 text-[12.5px] font-medium text-fg-muted">{group}</h2>
+                        <h2 className="mb-2 text-12h font-medium text-fg-muted">{group}</h2>
                         <ul className="divide-y divide-line rounded-lg border border-line">
                             {items.map((item) => (
-                                <li key={item.label} className="flex items-center gap-3 px-3 py-2 text-[13px]">
+                                <li key={item.label} className="flex items-center gap-3 px-3 py-2 text-13">
                                     {item.ok ? <CheckCircle2 className="size-4 shrink-0 text-ok" /> : <XCircle className="size-4 shrink-0 text-fail" />}
-                                    <span className="font-mono text-[12.5px]">{item.label}</span>
+                                    <span className="font-mono text-12h">{item.label}</span>
                                     <span className={cn('ml-auto text-right', item.ok ? 'text-fg-subtle' : 'text-fail')}>{item.detail}</span>
                                 </li>
                             ))}
@@ -135,9 +135,9 @@ function Database({ defaults }) {
                 <Field label="Username" required error={form.errors.username}>{(id) => <Input id={id} autoComplete="off" {...bind('username')} />}</Field>
                 <Field label="Password" error={form.errors.password} className="sm:col-span-2">{(id) => <Input id={id} type="password" autoComplete="new-password" {...bind('password')} />}</Field>
             </div>
-            {form.errors.setup && <p className="mt-4 text-[13px] text-fail">{form.errors.setup}</p>}
+            {form.errors.setup && <p className="mt-4 text-13 text-fail">{form.errors.setup}</p>}
             {test && !test.pending && (
-                <p className={cn('mt-4 flex items-center gap-2 text-[13px]', test.ok ? 'text-ok' : 'text-fail')}>
+                <p className={cn('mt-4 flex items-center gap-2 text-13', test.ok ? 'text-ok' : 'text-fail')}>
                     {test.ok ? <CheckCircle2 className="size-4" /> : <XCircle className="size-4" />} {test.message}
                 </p>
             )}
@@ -209,7 +209,7 @@ function MailStep({ adminEmail }) {
                 <Field label="Send alerts to" error={form.errors.notify_email} className="sm:col-span-3">{(id) => <Input id={id} type="email" {...bind('notify_email')} />}</Field>
             </div>
             {test && !test.pending && (
-                <p className={cn('mt-4 flex items-center gap-2 text-[13px]', test.ok ? 'text-ok' : 'text-fail')}>
+                <p className={cn('mt-4 flex items-center gap-2 text-13', test.ok ? 'text-ok' : 'text-fail')}>
                     {test.ok ? <CheckCircle2 className="size-4" /> : <XCircle className="size-4" />} {test.message}
                 </p>
             )}
@@ -220,7 +220,7 @@ function MailStep({ adminEmail }) {
                     <Button type="submit" variant="primary" loading={form.processing}>Save and continue</Button>
                 </div>
             </div>
-            <p className="mt-3 text-[12px] text-fg-subtle">You can change this later under Settings → Email & alerts.</p>
+            <p className="mt-3 text-12 text-fg-subtle">You can change this later under Settings → Email & alerts.</p>
         </form>
     );
 }
@@ -268,7 +268,7 @@ function guide(panel, cron) {
             command: quiet,
         },
         ssh: {
-            steps: [<>Connect over SSH as the website's user and run <code className="font-mono text-[12.5px]">crontab -e</code>.</>, <>Add this line, then save and exit:</>],
+            steps: [<>Connect over SSH as the website's user and run <code className="font-mono text-12h">crontab -e</code>.</>, <>Add this line, then save and exit:</>],
             command: cron.command,
         },
     }[panel];
@@ -305,23 +305,23 @@ function Cron({ cron }) {
                 FlowForge runs workflows in the background through one cron job. Add it in your hosting panel; setup finishes once it has run.
             </Heading>
 
-            <p className="mb-5 flex gap-2.5 rounded-lg bg-info-soft px-3.5 py-3 text-[13px] text-fg">
+            <p className="mb-5 flex gap-2.5 rounded-lg bg-info-soft px-3.5 py-3 text-13 text-fg">
                 <Info className="mt-px size-4 shrink-0 text-info" />
                 <span>You only ever add this <strong>one</strong> cron job. It runs every workflow: schedules, webhooks and app triggers. You never add a cron per workflow.</span>
             </p>
 
             <CronAutoSetup endpoint="/install/cron/auto" className="mb-5" />
-            <p className="mb-3 text-[13px] font-medium text-fg">Or add it yourself in your hosting panel:</p>
+            <p className="mb-3 text-13 font-medium text-fg">Or add it yourself in your hosting panel:</p>
             <Tabs value={panel} onChange={setPanel} items={PANELS} className="mb-4 flex-wrap" />
             <ol className="space-y-3">
                 {g.steps.map((text, i) => (
-                    <li key={i} className="flex gap-3 text-[13.5px] leading-relaxed text-fg-muted">
-                        <span className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full bg-surface-2 text-[11px] font-semibold text-fg">{i + 1}</span>
+                    <li key={i} className="flex gap-3 text-13h leading-relaxed text-fg-muted">
+                        <span className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full bg-surface-2 text-11 font-semibold text-fg">{i + 1}</span>
                         <div className="min-w-0 flex-1">
                             {text}
                             {i === g.steps.length - (panel === 'ssh' ? 1 : 2) && (
                                 <div className="mt-2 flex items-start gap-2 rounded-lg border border-line bg-surface-2 p-2.5">
-                                    <code className="flex-1 font-mono text-[12.5px] leading-relaxed break-all text-fg">{g.command}</code>
+                                    <code className="flex-1 font-mono text-12h leading-relaxed break-all text-fg">{g.command}</code>
                                     <Button size="sm" variant="outline" onClick={() => copy(g.command, 'Command copied')}><Copy className="size-3.5" />Copy</Button>
                                 </div>
                             )}
@@ -329,9 +329,9 @@ function Cron({ cron }) {
                     </li>
                 ))}
             </ol>
-            {g.note && <p className="mt-3 text-[12.5px] text-fg-subtle">{g.note}</p>}
+            {g.note && <p className="mt-3 text-12h text-fg-subtle">{g.note}</p>}
 
-            <div className={cn('mt-6 flex items-start gap-3 rounded-xl border px-4 py-3.5 text-[13px] transition-colors', status.verified ? 'border-ok/40 bg-ok-soft' : 'border-line')} aria-live="polite">
+            <div className={cn('mt-6 flex items-start gap-3 rounded-xl border px-4 py-3.5 text-13 transition-colors', status.verified ? 'border-ok/40 bg-ok-soft' : 'border-line')} aria-live="polite">
                 {status.verified
                     ? <CheckCircle2 className="mt-px size-5 shrink-0 text-ok" />
                     : <span className="flex size-5 shrink-0 items-center justify-center"><span className="animate-running size-2.5 rounded-full bg-primary" /></span>}
@@ -348,7 +348,7 @@ function Cron({ cron }) {
             </div>
 
             {!status.verified && waited >= 120 && (
-                <details className="mt-3 rounded-xl border border-warn/40 bg-warn-soft px-4 py-3 text-[13px]" open>
+                <details className="mt-3 rounded-xl border border-warn/40 bg-warn-soft px-4 py-3 text-13" open>
                     <summary className="cursor-pointer font-medium text-fg">Still waiting? Common fixes</summary>
                     <ul className="mt-2 list-disc space-y-1.5 pl-5 text-fg-muted">
                         <li>Paste the command exactly as shown, including the full path to <span className="font-mono">artisan</span>.</li>
@@ -360,7 +360,7 @@ function Cron({ cron }) {
             )}
 
             <div className="mt-7 flex flex-wrap items-center justify-between gap-3">
-                <p className="flex items-center gap-1.5 text-[12.5px] text-fg-subtle"><Circle className="size-2 fill-current" />{status.verified ? 'Finishing locks this installer.' : 'Finish unlocks when the cron check turns green.'}</p>
+                <p className="flex items-center gap-1.5 text-12h text-fg-subtle"><Circle className="size-2 fill-current" />{status.verified ? 'Finishing locks this installer.' : 'Finish unlocks when the cron check turns green.'}</p>
                 <Button variant="primary" onClick={finish} loading={finishing} disabled={!status.verified}>Finish and sign in</Button>
             </div>
         </>

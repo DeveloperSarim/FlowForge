@@ -33,7 +33,7 @@ function Pane({ title, aside, children, className }) {
     return (
         <section className={`flex min-h-0 flex-col ${className ?? ''}`}>
             <div className="flex min-h-12 items-center justify-between gap-2 border-b border-line px-4 py-2">
-                <h3 className="text-[12px] font-semibold tracking-wide text-fg-muted">{title}</h3>
+                <h3 className="text-12 font-semibold tracking-wide text-fg-muted">{title}</h3>
                 {aside}
             </div>
             <div className="min-h-0 flex-1 overflow-y-auto p-4">{children}</div>
@@ -52,12 +52,12 @@ function TriggerInfo({ spec, workflow, readOnly }) {
             <div className="space-y-3">
                 <Field label="Webhook URL">
                     <div className="flex items-center gap-2 rounded-lg border border-line bg-surface p-2">
-                        <code className="flex-1 truncate font-mono text-[12px]">{url}</code>
+                        <code className="flex-1 truncate font-mono text-12">{url}</code>
                         <Button size="xs" variant="ghost" onClick={() => copy(url, 'Webhook URL copied')}><Copy className="size-3.5" /></Button>
                     </div>
                 </Field>
                 {!readOnly && <ConfirmButton size="xs" onConfirm={newUrl} confirmLabel="The old URL stops working. Sure?"><RefreshCw className="size-3.5" />Get a new URL</ConfirmButton>}
-                <p className="text-[12.5px] leading-relaxed text-fg-muted">
+                <p className="text-12h leading-relaxed text-fg-muted">
                     {workflow.is_active
                         ? 'Live: every request queues a run, picked up on the next scheduler tick.'
                         : state.sample_at
@@ -69,14 +69,14 @@ function TriggerInfo({ spec, workflow, readOnly }) {
     }
     if (spec?.type === 'polling') {
         return (
-            <div className="space-y-2 text-[12.5px] text-fg-muted">
+            <div className="space-y-2 text-12h text-fg-muted">
                 <p>{state.last_polled_at ? `Last checked ${timeAgo(state.last_polled_at)}.` : 'Not checked yet.'} The first check only records existing items; later checks start one run per new item.</p>
                 {state.last_error && <p className="flex gap-1.5 text-fail"><AlertCircle className="mt-0.5 size-3.5 shrink-0" />{state.last_error}</p>}
             </div>
         );
     }
-    if (spec?.type === 'schedule') return <p className="text-[12.5px] text-fg-muted">Runs while the workflow is active. The scheduler checks it once a minute.</p>;
-    return <p className="text-[12.5px] text-fg-muted">Runs when you click Execute workflow, using the test payload from the settings.</p>;
+    if (spec?.type === 'schedule') return <p className="text-12h text-fg-muted">Runs while the workflow is active. The scheduler checks it once a minute.</p>;
+    return <p className="text-12h text-fg-muted">Runs when you click Execute workflow, using the test payload from the settings.</p>;
 }
 
 /**
@@ -89,15 +89,15 @@ function StepSettings({ data, onChange }) {
     const changed = !!(data.disabled || data.retries || data.on_error);
     return (
         <details className="rounded-xl border border-line" open={changed}>
-            <summary className="flex cursor-pointer items-center gap-2 px-3 py-2.5 text-[13px] font-medium">
+            <summary className="flex cursor-pointer items-center gap-2 px-3 py-2.5 text-13 font-medium">
                 When this step runs
-                {changed && <span className="ml-auto text-[12px] font-normal text-fg-muted">{data.disabled ? 'Turned off' : 'Changed'}</span>}
+                {changed && <span className="ml-auto text-12 font-normal text-fg-muted">{data.disabled ? 'Turned off' : 'Changed'}</span>}
             </summary>
             <div className="space-y-3 border-t border-line px-3 py-3">
-                <label className="flex items-start justify-between gap-3 text-[13px]">
+                <label className="flex items-start justify-between gap-3 text-13">
                     <span>
                         <span className="block font-medium">Step is on</span>
-                        <span className="block text-[12px] text-fg-muted">Turned off, runs skip it and go on to the next step.</span>
+                        <span className="block text-12 text-fg-muted">Turned off, runs skip it and go on to the next step.</span>
                     </span>
                     <Switch checked={!data.disabled} onChange={(on) => onChange({ disabled: on ? undefined : true })} label="Step is on" size="sm" />
                 </label>
@@ -121,7 +121,7 @@ function StepSettings({ data, onChange }) {
     );
 }
 
-export default function NodeDetails({ node, catalog, operators, workflow, upstream, runStep, executing, onChange, onExecute, onDelete, onClose, readOnly = false }) {
+export default function NodeDetails({ node, catalog, operators, workflow, upstream, runStep, executing, onChange, onExecute, onDelete, onClose, readOnly = false, closing = false, origin = null }) {
     const data = node.data;
     const isTrigger = node.type === 'trigger';
     const { integration, loading, error, reload } = useIntegration(data.integration);
@@ -157,19 +157,23 @@ export default function NodeDetails({ node, catalog, operators, workflow, upstre
 
     return (
         <InsertTargetContext.Provider value={{ target, setTarget }}>
-            <div className="fixed inset-0 z-50 flex bg-black/40 backdrop-blur-[2px] sm:p-3 lg:p-6" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
-                <div role="dialog" aria-modal="true" aria-label={`${data.label ?? 'Step'} settings`} className="animate-pop-in flex min-h-0 w-full flex-col overflow-hidden border-line bg-surface shadow-pop sm:rounded-2xl sm:border">
+            <div className="fixed inset-0 z-50 flex sm:p-3 lg:p-6">
+                <div data-closing={closing ? '' : undefined} className="ff-scrim absolute inset-0 bg-black/40 backdrop-blur-[2px]" onMouseDown={() => !closing && onClose()} aria-hidden />
+                {/* Phones: pushed in from the right like a new screen ("Back"); larger screens: it grows out of the step that was clicked. */}
+                <div role="dialog" aria-modal="true" aria-label={`${data.label ?? 'Step'} settings`} data-closing={closing ? '' : undefined}
+                    style={origin ? { transformOrigin: `${origin[0] - (window.innerWidth >= 1024 ? 24 : 12)}px ${origin[1] - (window.innerWidth >= 1024 ? 24 : 12)}px` } : undefined}
+                    className="ff-push ff-zoom relative flex min-h-0 w-full flex-col overflow-hidden border-line bg-surface shadow-pop sm:rounded-2xl sm:border">
                     <header className="flex items-center gap-2 border-b border-line px-2 pt-[max(0.75rem,env(safe-area-inset-top))] pb-3 sm:gap-3 sm:px-4 sm:pt-3">
                         <Button variant="ghost" size="sm" onClick={onClose}><ArrowLeft className="size-4" /><span className="hidden sm:inline">Back to canvas</span></Button>
                         <span className="h-6 w-px bg-line" />
                         <IntegrationIcon icon={integration?.icon} name={integration?.name} size="md" />
                         <div className="min-w-0 flex-1">
                             <input value={data.label ?? ''} onChange={(e) => onChange({ label: e.target.value })} readOnly={readOnly} placeholder={operation?.name ?? 'Untitled step'} aria-label="Step name"
-                                className="w-full max-w-md truncate rounded bg-transparent px-1 text-base font-semibold sm:text-[15px] outline-none placeholder:text-fg-subtle hover:bg-surface-2 focus:bg-surface-2" />
-                            <p className="px-1 text-[12px] text-fg-subtle">{integration?.name ?? data.integration}{operation ? `: ${operation.name}` : ''} <code className="ml-1 font-mono text-[11px]">steps.{node.id}</code></p>
+                                className="w-full max-w-md truncate rounded bg-transparent px-1 text-base font-semibold sm:text-15 outline-none placeholder:text-fg-subtle hover:bg-surface-2 focus:bg-surface-2" />
+                            <p className="px-1 text-12 text-fg-subtle">{integration?.name ?? data.integration}{operation ? `: ${operation.name}` : ''} <code className="ml-1 font-mono text-11">steps.{node.id}</code></p>
                         </div>
-                        {integration?.docs_url && <a href={integration.docs_url} target="_blank" rel="noreferrer" className="hidden items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[13px] text-fg-muted hover:bg-surface-2 hover:text-fg md:inline-flex"><BookOpen className="size-4" />Docs</a>}
-                        {readOnly ? <span className="rounded-lg bg-surface-2 px-3 py-1.5 text-[12.5px] font-medium text-fg-muted">View only</span>
+                        {integration?.docs_url && <a href={integration.docs_url} target="_blank" rel="noreferrer" className="hidden items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-13 text-fg-muted hover:bg-surface-2 hover:text-fg md:inline-flex"><BookOpen className="size-4" />Docs</a>}
+                        {readOnly ? <span className="rounded-lg bg-surface-2 px-3 py-1.5 text-12h font-medium text-fg-muted">View only</span>
                             : <Button variant="primary" onClick={() => onExecute(node.id)} loading={executing}>{!executing && <Play className="size-3.5" fill="currentColor" />}<span className="sm:hidden">Run</span><span className="hidden sm:inline">Execute step</span></Button>}
                     </header>
                     <div className="border-b border-line p-2 lg:hidden">
@@ -180,7 +184,7 @@ export default function NodeDetails({ node, catalog, operators, workflow, upstre
                     <div className="grid min-h-0 flex-1 grid-cols-1 grid-rows-[minmax(0,1fr)] overflow-hidden lg:grid-cols-[minmax(0,1fr)_minmax(400px,1.15fr)_minmax(0,1fr)]">
                         <Pane title={isTrigger ? 'TRIGGER' : 'INPUT'} className={`border-line bg-surface-2/40 lg:border-r ${hide('input')}`}
                             aside={!isTrigger && upstream.length > 1 && (
-                                <Select value={source?.id ?? ''} onChange={(e) => setInputFrom(e.target.value)} className="h-8 w-44 text-[12.5px]" aria-label="Input from step">
+                                <Select value={source?.id ?? ''} onChange={(e) => setInputFrom(e.target.value)} className="h-8 w-44 text-12h" aria-label="Input from step">
                                     {upstream.map((u) => <option key={u.id} value={u.id}>{u.label}</option>)}
                                 </Select>
                             )}>
@@ -189,19 +193,19 @@ export default function NodeDetails({ node, catalog, operators, workflow, upstre
                             ) : !source ? (
                                 <div className="flex flex-col items-center py-10 text-center">
                                     <MousePointerClick className="mb-3 size-6 text-fg-subtle" />
-                                    <p className="text-[13px] font-medium">No input connected</p>
-                                    <p className="mt-1 text-[12.5px] text-fg-muted">Connect an earlier step to this one on the canvas.</p>
+                                    <p className="text-13 font-medium">No input connected</p>
+                                    <p className="mt-1 text-12h text-fg-muted">Connect an earlier step to this one on the canvas.</p>
                                 </div>
                             ) : source.sample === undefined ? (
                                 <div className="flex flex-col items-center py-10 text-center">
                                     <IntegrationIcon icon={source.icon} name={source.integrationName} size="lg" />
-                                    <p className="mt-3 text-[13px] font-medium">No data from "{source.label}" yet</p>
-                                    <p className="mt-1 max-w-60 text-[12.5px] text-fg-muted">Execute it to see its fields here, then drag them into the settings.</p>
+                                    <p className="mt-3 text-13 font-medium">No data from "{source.label}" yet</p>
+                                    <p className="mt-1 max-w-60 text-12h text-fg-muted">Execute it to see its fields here, then drag them into the settings.</p>
                                     <Button size="sm" className="mt-4" onClick={() => onExecute(source.id)} loading={executing}><Play className="size-3.5" />Execute previous step</Button>
                                 </div>
                             ) : (
                                 <>
-                                    <p className="mb-3 flex items-center gap-2 text-[12.5px] text-fg-muted">
+                                    <p className="mb-3 flex items-center gap-2 text-12h text-fg-muted">
                                         <IntegrationIcon icon={source.icon} name={source.integrationName} size="xs" />
                                         Drag a field into a setting, or click a field to insert it at the cursor.
                                     </p>
@@ -210,7 +214,7 @@ export default function NodeDetails({ node, catalog, operators, workflow, upstre
                             )}
                         </Pane>
 
-                        <Pane title="PARAMETERS" className={`border-line lg:border-r ${hide('params')}`} aside={!isTrigger && !readOnly && <ConfirmButton size="xs" onConfirm={onDelete} confirmLabel="Delete?"><Trash2 className="size-3.5" />Delete</ConfirmButton>}>
+                        <Pane title="PARAMETERS" className={`border-line lg:border-r ${hide('params')}`} aside={!isTrigger && !readOnly && <Button variant="ghost" size="xs" onClick={onDelete} className="hover:text-fail"><Trash2 className="size-3.5" />Delete</Button>}>
                             <fieldset disabled={readOnly} className="min-w-0 space-y-5">
                                 {isTrigger ? (
                                     <Field label="Starts when">
@@ -234,16 +238,16 @@ export default function NodeDetails({ node, catalog, operators, workflow, upstre
                                         )}
                                     </Field>
                                 )}
-                                <Markdown text={operation?.description} className="-mt-2 text-[12.5px] text-fg-muted" />
+                                <Markdown text={operation?.description} className="-mt-2 text-12h text-fg-muted" />
 
-                                {loading && <p className="flex items-center gap-2 text-[13px] text-fg-muted"><Loader2 className="size-4 animate-spin" />Loading settings…</p>}
-                                {error && <p className="text-[13px] text-fail">{error}</p>}
+                                {loading && <p className="flex items-center gap-2 text-13 text-fg-muted"><Loader2 className="size-4 animate-spin" />Loading settings…</p>}
+                                {error && <p className="text-13 text-fail">{error}</p>}
 
                                 {authTypes.length > 0 && (
                                     <Field label="Credential" aside={!readOnly && (
                                         <span className="flex items-center gap-1">
                                             <button type="button" onClick={reload} className="rounded p-1 text-fg-subtle hover:text-fg" aria-label="Refresh credentials" title="Refresh"><RefreshCw className="size-3.5" /></button>
-                                            <a href={`/credentials?new=${encodeURIComponent(data.integration)}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-[12.5px] font-medium text-primary hover:underline">
+                                            <a href={`/credentials?new=${encodeURIComponent(data.integration)}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-12h font-medium text-primary hover:underline">
                                                 Create new<ExternalLink className="size-3" />
                                             </a>
                                         </span>
@@ -254,7 +258,7 @@ export default function NodeDetails({ node, catalog, operators, workflow, upstre
                                                     <option value="">{credentialOptional ? 'No authentication' : credentials.length ? 'Select a credential' : 'No credentials yet: create one'}</option>
                                                     {credentials.map((c) => <option key={c.id} value={c.id}>{c.name} ({AUTH_LABELS[c.auth_type] ?? c.auth_type})</option>)}
                                                 </Select>
-                                                {!credentialOptional && !data.credential_id && !readOnly && <p className="mt-1.5 text-[12.5px] text-warn">This step needs a credential to run.</p>}
+                                                {!credentialOptional && !data.credential_id && !readOnly && <p className="mt-1.5 text-12h text-warn">This step needs a credential to run.</p>}
                                             </>
                                         )}
                                     </Field>
@@ -269,21 +273,21 @@ export default function NodeDetails({ node, catalog, operators, workflow, upstre
                             <span className="flex items-center gap-2">
                                 {runStep.http_status && <Badge tone={runStep.http_status < 300 ? 'ok' : 'fail'}>HTTP {runStep.http_status}</Badge>}
                                 <StatusBadge status={runStep.status} />
-                                {runStep.status !== 'skipped' && <span className="text-[12px] text-fg-subtle">{duration(runStep.duration_ms)}</span>}
+                                {runStep.status !== 'skipped' && <span className="text-12 text-fg-subtle">{duration(runStep.duration_ms)}</span>}
                             </span>
                         )}>
                             {executing ? (
-                                <p className="flex items-center justify-center gap-2 py-16 text-[13px] text-fg-muted"><Loader2 className="size-4 animate-spin" />Executing…</p>
+                                <p className="flex items-center justify-center gap-2 py-16 text-13 text-fg-muted"><Loader2 className="size-4 animate-spin" />Executing…</p>
                             ) : !runStep || runStep.status === 'skipped' ? (
                                 <div className="flex flex-col items-center py-10 text-center">
                                     <span className="mb-3 flex size-10 items-center justify-center rounded-xl bg-primary-soft text-primary">{isTrigger ? <Zap className="size-5" /> : <Play className="size-5" />}</span>
-                                    <p className="text-[13px] font-medium">No output yet</p>
-                                    <p className="mt-1 max-w-60 text-[12.5px] text-fg-muted">Execute this step to see what it returns. Earlier steps run too.</p>
+                                    <p className="text-13 font-medium">No output yet</p>
+                                    <p className="mt-1 max-w-60 text-12h text-fg-muted">Execute this step to see what it returns. Earlier steps run too.</p>
                                     <Button size="sm" variant="primary" className="mt-4" onClick={() => onExecute(node.id)}><Play className="size-3.5" />Execute step</Button>
                                 </div>
                             ) : (
                                 <>
-                                    {runStep.error && <p className="mb-3 flex gap-2 rounded-lg bg-fail-soft px-3 py-2.5 text-[13px] text-fail"><AlertCircle className="mt-px size-4 shrink-0" />{runStep.error}</p>}
+                                    {runStep.error && <p className="mb-3 flex gap-2 rounded-lg bg-fail-soft px-3 py-2.5 text-13 text-fail"><AlertCircle className="mt-px size-4 shrink-0" />{runStep.error}</p>}
                                     {runStep.handle && <p className="mb-3"><Badge tone="info">Took the {runStep.handle} branch</Badge></p>}
                                     <DataView value={runStep.output} base={`steps.${node.id}`} empty="This step returned no data." />
                                 </>

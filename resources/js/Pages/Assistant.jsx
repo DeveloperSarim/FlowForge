@@ -23,7 +23,7 @@ function ChatList({ groups, activeId, onOpen, onRemove, empty }) {
         <nav className="flex-1 overflow-y-auto px-2 pb-3" aria-label="Chats">
             {groups.map(([label, list]) => (
                 <div key={label} className="mb-3">
-                    <p className="px-2.5 pb-1 text-[11.5px] font-medium text-fg-subtle">{label}</p>
+                    <p className="px-2.5 pb-1 text-11h font-medium text-fg-subtle">{label}</p>
                     <ul className="space-y-0.5">
                         {list.map((c) => (
                             <li key={c.id} className="group relative">
@@ -31,8 +31,8 @@ function ChatList({ groups, activeId, onOpen, onRemove, empty }) {
                                     className={cn('flex w-full items-start gap-2.5 rounded-lg px-2.5 py-2 text-left transition-colors', activeId === c.id ? 'bg-primary-soft' : 'hover:bg-surface-2')}>
                                     <MessageSquare className={cn('mt-0.5 size-4 shrink-0', activeId === c.id ? 'text-primary' : 'text-fg-subtle')} />
                                     <span className="min-w-0 flex-1 pr-5">
-                                        <span className="block truncate text-[13px] font-medium">{c.title}</span>
-                                        <span className="block truncate text-[11.5px] text-fg-subtle">{c.workflow_name ?? (c.workflow_id ? `Workflow #${c.workflow_id}` : timeAgo(c.updated_at))}</span>
+                                        <span className="block truncate text-13 font-medium">{c.title}</span>
+                                        <span className="block truncate text-11h text-fg-subtle">{c.workflow_name ?? (c.workflow_id ? `Workflow #${c.workflow_id}` : timeAgo(c.updated_at))}</span>
                                     </span>
                                 </button>
                                 <button type="button" onClick={() => onRemove(c.id)} aria-label={`Delete chat ${c.title}`}
@@ -44,7 +44,7 @@ function ChatList({ groups, activeId, onOpen, onRemove, empty }) {
                     </ul>
                 </div>
             ))}
-            {empty && <p className="px-3 py-6 text-center text-[12.5px] text-fg-subtle">Your chats appear here.</p>}
+            {empty && <p className="px-3 py-6 text-center text-12h text-fg-subtle">Your chats appear here.</p>}
         </nav>
     );
 }
@@ -78,9 +78,9 @@ export default function Assistant({ conversations: initial, ai, apps }) {
                     <div className="px-4 pt-5 pb-4">
                         <div className="flex items-center gap-2">
                             <AiIcon className="size-5 text-primary" />
-                            <h1 className="text-[17px] font-semibold tracking-tight">AI Builder</h1>
+                            <h1 className="text-17 font-semibold tracking-tight">AI Builder</h1>
                         </div>
-                        <p className="mt-1 text-[12.5px] text-fg-muted">Build and fix workflows by chatting.</p>
+                        <p className="mt-1 text-12h text-fg-muted">Build and fix workflows by chatting.</p>
                         <Button variant="primary" className="mt-4 w-full justify-center" onClick={() => open(null)}><Plus className="size-4" />New chat</Button>
                     </div>
                     <ChatList groups={groups} activeId={activeId} onOpen={open} onRemove={remove} empty={conversations.length === 0} />
@@ -88,14 +88,14 @@ export default function Assistant({ conversations: initial, ai, apps }) {
                 <section className="flex min-w-0 flex-1 flex-col bg-bg">
                     <header className="flex items-center gap-2 border-b border-line bg-surface px-3 py-2 md:hidden">
                         <Button size="sm" variant="ghost" onClick={() => setListOpen(true)}><MessageSquare className="size-4" />Chats</Button>
-                        <p className="min-w-0 flex-1 truncate text-center text-[13.5px] font-medium">{active?.title ?? 'New chat'}</p>
+                        <p className="min-w-0 flex-1 truncate text-center text-13h font-medium">{active?.title ?? 'New chat'}</p>
                         <Button size="sm" variant="ghost" onClick={() => open(null)}><Plus className="size-4" />New</Button>
                     </header>
                     {active && (
-                        <header className="hidden items-center gap-3 border-b border-line bg-surface/80 px-6 py-3 backdrop-blur md:flex">
-                            <p className="min-w-0 flex-1 truncate text-[14px] font-semibold">{active.title}</p>
+                        <header className="ff-glass hidden items-center gap-3 border-b border-line/70 px-6 py-3 md:flex">
+                            <p className="min-w-0 flex-1 truncate text-14 font-semibold">{active.title}</p>
                             {active.workflow_id && (
-                                <Link href={`/workflows/${active.workflow_id}`} className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-line px-2.5 py-1.5 text-[12.5px] font-medium hover:border-primary hover:text-primary">
+                                <Link href={`/workflows/${active.workflow_id}`} className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-line px-2.5 py-1.5 text-12h font-medium hover:border-primary hover:text-primary">
                                     <Workflow className="size-3.5" />Open workflow<ArrowUpRight className="size-3.5" />
                                 </Link>
                             )}
@@ -107,7 +107,7 @@ export default function Assistant({ conversations: initial, ai, apps }) {
             </div>
             <Sheet open={listOpen} onClose={() => setListOpen(false)} className="max-w-[min(100vw,360px)]">
                 <div className="flex items-center justify-between border-b border-line px-4 py-3">
-                    <p className="text-[15px] font-semibold">Chats</p>
+                    <p className="text-15 font-semibold">Chats</p>
                     <Button size="sm" variant="primary" onClick={() => open(null)}><Plus className="size-4" />New chat</Button>
                 </div>
                 <div className="flex min-h-0 flex-1 flex-col pt-2"><ChatList groups={groups} activeId={activeId} onOpen={open} onRemove={remove} empty={conversations.length === 0} /></div>

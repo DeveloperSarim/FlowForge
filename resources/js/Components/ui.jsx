@@ -14,16 +14,17 @@ const BUTTON_VARIANTS = {
     outline: 'border border-line text-fg hover:border-primary hover:text-primary font-medium',
 };
 const BUTTON_SIZES = {
-    xs: 'h-7 px-2 text-[12.5px] gap-1 rounded-md',
-    sm: 'h-8 px-3 text-[13px] gap-1.5 rounded-lg',
+    xs: 'h-7 px-2 text-12h gap-1 rounded-md',
+    sm: 'h-8 px-3 text-13 gap-1.5 rounded-lg',
     md: 'h-9 px-3.5 text-sm gap-2 rounded-lg',
-    lg: 'h-11 px-5 text-[15px] gap-2 rounded-xl',
+    lg: 'h-11 px-5 text-15 gap-2 rounded-xl',
     icon: 'size-8 rounded-lg justify-center',
 };
 
 /** Button styling for links that should look like a Button. */
 export const buttonClass = (variant = 'secondary', size = 'md', className) =>
-    cn('inline-flex shrink-0 items-center whitespace-nowrap transition-colors disabled:pointer-events-none disabled:opacity-50', BUTTON_VARIANTS[variant], BUTTON_SIZES[size], className);
+    cn('ff-press inline-flex shrink-0 items-center whitespace-nowrap transition-[color,background-color,border-color,box-shadow,scale] duration-150 motion-safe:active:scale-[0.97] active:duration-75 disabled:pointer-events-none disabled:opacity-50',
+        BUTTON_VARIANTS[variant], BUTTON_SIZES[size], className);
 
 export const Button = forwardRef(function Button({ variant = 'secondary', size = 'md', loading = false, className, children, disabled, ...props }, ref) {
     return (
@@ -40,6 +41,75 @@ export const Button = forwardRef(function Button({ variant = 'secondary', size =
     );
 });
 
+/**
+ * Keeps an overlay mounted while it plays its way out: render while `mounted`, and set data-closing while `closing`
+ * (the ff-* classes in app.css then run the exit along the same path the entrance came in on).
+ */
+export function usePresence(open, ms = 240) {
+    const [shown, setShown] = useState(open);
+    useEffect(() => {
+        if (open) {
+            setShown(true);
+            return undefined;
+        }
+        const timer = setTimeout(() => setShown(false), ms);
+        return () => clearTimeout(timer);
+    }, [open, ms]);
+    return { mounted: open || shown, closing: !open && shown };
+}
+
+/** Where a flick would come to rest (Apple's scroll-deceleration projection), px for a velocity in px/s. */
+export const project = (velocity, rate = 0.998) => ((velocity / 1000) * rate) / (1 - rate);
+/** Pulling past an edge follows less and less, like a real material. */
+export const rubberband = (overshoot, size, c = 0.55) => (overshoot * size * c) / (size + c * Math.abs(overshoot));
+
+/**
+ * Drag a phone sheet down by its grabber to dismiss it. It follows the finger 1:1 from where it was grabbed (also
+ * mid-animation: it starts from where it is on screen), resists being pulled up, and on release closes if the
+ * flick's projected resting point is past 40% of its height; otherwise it settles back. Larger screens: no-op.
+ */
+export function useSheetDrag(onClose) {
+    const sheet = useRef(null);
+    const drag = useRef(null);
+    const move = (y) => { sheet.current.style.transform = `translateY(${y}px)`; };
+    const onPointerDown = (e) => {
+        const el = sheet.current;
+        if (!el || window.innerWidth >= 640 || (e.pointerType === 'mouse' && e.button !== 0) || e.target.closest('button, a, input, textarea, select')) return;
+        const now = new DOMMatrixReadOnly(getComputedStyle(el).transform).m42;
+        el.style.animation = 'none';
+        el.style.transition = 'none';
+        move(now);
+        e.currentTarget.setPointerCapture(e.pointerId); // the handle keeps getting the moves wherever the finger goes
+        drag.current = { from: e.clientY - now, height: el.offsetHeight, y: now, samples: [[e.timeStamp, now]] };
+    };
+    const onPointerMove = (e) => {
+        const d = drag.current;
+        if (!d) return;
+        const y = e.clientY - d.from;
+        d.y = y < 0 ? rubberband(y, d.height) : y;
+        d.samples = [...d.samples.slice(-4), [e.timeStamp, d.y]];
+        move(d.y);
+    };
+    const onPointerUp = (e) => {
+        const d = drag.current;
+        if (!d) return;
+        drag.current = null;
+        const [t0, y0] = d.samples[0];
+        const [t1, y1] = d.samples[d.samples.length - 1];
+        // A finger that stopped before letting go has no velocity left.
+        const velocity = t1 > t0 && e.timeStamp - t1 < 60 ? ((y1 - y0) / (t1 - t0)) * 1000 : 0;
+        const el = sheet.current;
+        el.style.animation = '';
+        if (d.y + project(velocity) > d.height * 0.4) {
+            onClose(); // the exit keyframe has no "from", so it continues from where the finger let go
+            return;
+        }
+        el.style.transition = 'transform 420ms var(--ease-sheet)';
+        move(0);
+    };
+    return { sheet, handlers: { onPointerDown, onPointerMove, onPointerUp, onPointerCancel: onPointerUp } };
+}
+
 const fieldBase = 'w-full rounded-lg border border-line bg-surface px-3 text-base sm:text-sm text-fg placeholder:text-fg-subtle transition-[border-color,box-shadow] hover:border-line-strong focus:border-primary focus:outline-none focus:ring-[3px] focus:ring-primary/15 disabled:opacity-60 aria-[invalid=true]:border-fail';
 
 export const Input = forwardRef(function Input({ className, ...props }, ref) {
@@ -47,7 +117,7 @@ export const Input = forwardRef(function Input({ className, ...props }, ref) {
 });
 
 export const Textarea = forwardRef(function Textarea({ className, mono, ...props }, ref) {
-    return <textarea ref={ref} className={cn(fieldBase, 'min-h-20 py-2 leading-relaxed', mono && 'font-mono text-base sm:text-[12.5px]', className)} {...props} />;
+    return <textarea ref={ref} className={cn(fieldBase, 'min-h-20 py-2 leading-relaxed', mono && 'font-mono text-base sm:text-12h', className)} {...props} />;
 });
 
 export const Select = forwardRef(function Select({ className, children, ...props }, ref) {
@@ -66,6 +136,7 @@ export const Select = forwardRef(function Select({ className, children, ...props
  */
 export function Combobox({ id, value, onChange, options, pinned = [], placeholder = 'Select…', searchPlaceholder = 'Search…', emptyText = 'Nothing matches', className, limit = 150 }) {
     const [open, setOpen] = useState(false);
+    const { mounted, closing } = usePresence(open, 120);
     const [query, setQuery] = useState('');
     const [active, setActive] = useState(0);
     const [rect, setRect] = useState(null);
@@ -117,10 +188,12 @@ export function Combobox({ id, value, onChange, options, pinned = [], placeholde
 
     const width = Math.max(rect?.width ?? 0, 300);
     const below = !rect || window.innerHeight - rect.bottom > 360 || rect.top < 360;
+    const left = rect ? Math.max(8, Math.min(rect.left, window.innerWidth - width - 8)) : 0;
     const style = rect && {
-        left: Math.max(8, Math.min(rect.left, window.innerWidth - width - 8)),
+        left,
         width,
         ...(below ? { top: rect.bottom + 6 } : { bottom: window.innerHeight - rect.top + 6 }),
+        transformOrigin: `${rect.left + rect.width / 2 - left}px ${below ? 'top' : 'bottom'}`, // grows out of the field
     };
 
     return (
@@ -130,35 +203,35 @@ export function Combobox({ id, value, onChange, options, pinned = [], placeholde
                 className={cn(fieldBase, 'flex h-9 items-center gap-2 text-left', className)}>
                 {selected?.icon && <span className="shrink-0">{selected.icon}</span>}
                 <span className={cn('min-w-0 flex-1 truncate', !selected && 'text-fg-subtle')}>{selected ? selected.label : placeholder}</span>
-                {selected?.group && <span className="hidden shrink-0 truncate text-[12px] text-fg-subtle sm:inline">{selected.group}</span>}
+                {selected?.group && <span className="hidden shrink-0 truncate text-12 text-fg-subtle sm:inline">{selected.group}</span>}
                 <ChevronDown className="size-4 shrink-0 text-fg-subtle" />
             </button>
-            {open && rect && createPortal(
-                <div ref={panel} style={style} className="animate-pop-in fixed z-[80] flex max-h-[360px] flex-col overflow-hidden rounded-xl border border-line bg-surface shadow-pop">
+            {mounted && rect && createPortal(
+                <div ref={panel} style={style} data-closing={closing ? '' : undefined} className="ff-popover fixed z-[80] flex max-h-[360px] flex-col overflow-hidden rounded-xl border border-line bg-surface shadow-pop">
                     <div className="relative border-b border-line p-2">
                         <Search className="pointer-events-none absolute top-1/2 left-4.5 size-4 -translate-y-1/2 text-fg-subtle" />
                         <input autoFocus value={query} onChange={(e) => setQuery(e.target.value)} onKeyDown={onKeyDown} placeholder={searchPlaceholder}
                             role="combobox" aria-expanded aria-controls={`${id}-list`} aria-activedescendant={shown[active] ? `${id}-opt-${active}` : undefined}
-                            className="h-9 w-full rounded-lg bg-surface-2 pr-3 pl-9 text-base outline-none sm:text-[13.5px] placeholder:text-fg-subtle focus:ring-[3px] focus:ring-primary/15" />
+                            className="h-9 w-full rounded-lg bg-surface-2 pr-3 pl-9 text-base outline-none sm:text-13h placeholder:text-fg-subtle focus:ring-[3px] focus:ring-primary/15" />
                     </div>
                     <div ref={list} id={`${id}-list`} role="listbox" className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-1.5">
-                        {shown.length === 0 && <p className="px-3 py-6 text-center text-[13px] text-fg-muted">{emptyText}</p>}
+                        {shown.length === 0 && <p className="px-3 py-6 text-center text-13 text-fg-muted">{emptyText}</p>}
                         {shown.map((o, i) => (
                             <div key={`${o.group}-${o.value}`}>
                                 {o.group && o.group !== shown[i - 1]?.group && (
-                                    <p className={cn('px-2.5 pt-2 pb-1 text-[11.5px] font-semibold text-fg-subtle', i > 0 && 'mt-1 border-t border-line pt-2.5')}>{o.group}</p>
+                                    <p className={cn('px-2.5 pt-2 pb-1 text-11h font-semibold text-fg-subtle', i > 0 && 'mt-1 border-t border-line pt-2.5')}>{o.group}</p>
                                 )}
                                 <button type="button" role="option" id={`${id}-opt-${i}`} data-index={i} aria-selected={o.value === value}
                                     onMouseEnter={() => setActive(i)} onClick={() => choose(o)}
-                                    className={cn('flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-[13.5px]', i === active ? 'bg-surface-2' : '')}>
+                                    className={cn('flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-13h active:bg-surface-3', i === active ? 'bg-surface-2' : '')}>
                                     {o.icon && <span className="shrink-0">{o.icon}</span>}
                                     <span className="min-w-0 flex-1 truncate">{o.label}</span>
-                                    {o.hint && <span className="shrink-0 truncate text-[12px] text-fg-subtle">{o.hint}</span>}
+                                    {o.hint && <span className="shrink-0 truncate text-12 text-fg-subtle">{o.hint}</span>}
                                     {o.value === value && <Check className="size-4 shrink-0 text-primary" />}
                                 </button>
                             </div>
                         ))}
-                        {items.length > shown.length && <p className="px-3 py-2 text-center text-[12px] text-fg-subtle">{items.length - shown.length} more: keep typing to narrow down.</p>}
+                        {items.length > shown.length && <p className="px-3 py-2 text-center text-12 text-fg-subtle">{items.length - shown.length} more: keep typing to narrow down.</p>}
                     </div>
                 </div>,
                 document.body,
@@ -177,7 +250,7 @@ export function SearchInput({ className, ...props }) {
 }
 
 export function Label({ className, ...props }) {
-    return <label className={cn('text-[13px] font-medium text-fg', className)} {...props} />;
+    return <label className={cn('text-13 font-medium text-fg', className)} {...props} />;
 }
 
 /** Label + control + help/error, wired with ids for accessibility. */
@@ -198,7 +271,7 @@ export function Field({ label, required, help, error, children, className, htmlF
                 </div>
             )}
             {typeof children === 'function' ? children(id) : children}
-            {error ? <p className="text-[12.5px] text-fail">{error}</p> : help ? <p className="text-[12.5px] leading-snug text-fg-subtle">{typeof help === 'string' ? <Markdown text={help} inline /> : help}</p> : null}
+            {error ? <p className="text-12h text-fail">{error}</p> : help ? <p className="text-12h leading-snug text-fg-subtle">{typeof help === 'string' ? <Markdown text={help} inline /> : help}</p> : null}
         </div>
     );
 }
@@ -212,11 +285,13 @@ export function Switch({ checked, onChange, label, disabled, size = 'md' }) {
             aria-label={label}
             disabled={disabled}
             onClick={(e) => { e.stopPropagation(); onChange(!checked); }}
-            className={cn('relative inline-flex shrink-0 items-center rounded-full transition-colors disabled:opacity-50',
+            className={cn('ff-press group relative inline-flex shrink-0 items-center rounded-full transition-colors disabled:opacity-50',
                 size === 'sm' ? 'h-5 w-9' : 'h-6 w-11', checked ? 'bg-ok' : 'bg-surface-3')}
         >
-            <span className={cn('inline-block rounded-full bg-white shadow-sm transition-transform',
-                size === 'sm' ? 'size-4' : 'size-5', checked ? (size === 'sm' ? 'translate-x-[18px]' : 'translate-x-[22px]') : 'translate-x-0.5')} />
+            {/* Pressed, the knob stretches toward where it will go (and stays flush with the edge it's on). */}
+            <span className={cn('inline-block rounded-full bg-white shadow-sm transition-[translate,width] duration-200 ease-out',
+                size === 'sm' ? 'h-4 w-4 group-active:w-5' : 'h-5 w-5 group-active:w-6',
+                checked ? (size === 'sm' ? 'translate-x-[18px] group-active:translate-x-[14px]' : 'translate-x-[22px] group-active:translate-x-[18px]') : 'translate-x-0.5')} />
         </button>
     );
 }
@@ -263,7 +338,7 @@ export function Tabs({ value, onChange, items, className }) {
         <div role="tablist" className={cn('inline-flex rounded-lg bg-surface-2 p-0.5', className)}>
             {items.map((item) => (
                 <button key={item.value} type="button" role="tab" aria-selected={value === item.value} onClick={() => onChange(item.value)}
-                    className={cn('inline-flex items-center gap-1.5 rounded-md px-3 py-1 text-[13px] font-medium transition-colors',
+                    className={cn('ff-press inline-flex items-center gap-1.5 rounded-md px-3 py-1 text-13 font-medium transition-[color,background-color,box-shadow,scale] motion-safe:active:scale-[0.96]',
                         value === item.value ? 'bg-surface text-fg shadow-card' : 'text-fg-muted hover:text-fg')}>
                     {item.icon && <item.icon className="size-3.5" />}
                     {item.label}
@@ -297,6 +372,7 @@ function useEscape(open, onClose) {
 /** Small dropdown menu: trigger is any element; items [{label, icon, onClick, danger}] */
 export function Menu({ trigger, items, align = 'right' }) {
     const [open, setOpen] = useState(false);
+    const { mounted, closing } = usePresence(open, 120);
     const ref = useRef(null);
     useEscape(open, () => setOpen(false));
     useEffect(() => {
@@ -309,11 +385,11 @@ export function Menu({ trigger, items, align = 'right' }) {
     return (
         <div ref={ref} className="relative" onClick={(e) => e.stopPropagation()}>
             <div onClick={() => setOpen((o) => !o)}>{trigger}</div>
-            {open && (
-                <div role="menu" className={cn('animate-pop-in absolute top-full z-50 mt-1 min-w-44 rounded-xl border border-line bg-surface p-1 shadow-pop', align === 'right' ? 'right-0' : 'left-0')}>
+            {mounted && (
+                <div role="menu" data-closing={closing ? '' : undefined} className={cn('ff-popover absolute top-full z-50 mt-1 min-w-44 rounded-xl border border-line bg-surface p-1 shadow-pop', align === 'right' ? 'right-0 origin-top-right' : 'left-0 origin-top-left')}>
                     {items.filter(Boolean).map((item) => (
                         <button key={item.label} type="button" role="menuitem" onClick={() => { setOpen(false); item.onClick(); }}
-                            className={cn('flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-left text-[13px]', item.danger ? 'text-fail hover:bg-fail-soft' : 'text-fg hover:bg-surface-2')}>
+                            className={cn('flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-left text-13', item.danger ? 'text-fail hover:bg-fail-soft active:bg-fail-soft' : 'text-fg hover:bg-surface-2 active:bg-surface-3')}>
                             {item.icon && <item.icon className="size-4 opacity-70" />}
                             {item.label}
                         </button>
@@ -324,22 +400,29 @@ export function Menu({ trigger, items, align = 'right' }) {
     );
 }
 
-/** Centered modal. */
+/** Centered modal; on phones a sheet from the bottom edge you can drag down to dismiss. */
 export function Dialog({ open, onClose, title, description, children, className, wide }) {
     useEscape(open, onClose);
     useScrollLock(open);
-    if (!open) return null;
+    const { mounted, closing } = usePresence(open);
+    const { sheet, handlers } = useSheetDrag(onClose);
+    if (!mounted) return null;
+    const state = closing ? '' : undefined;
     // The overlay never scrolls; a tall dialog scrolls inside its body instead.
     return (
-        // Phones: a sheet rising from the bottom edge; larger screens: a centred card.
-        <div className="fixed inset-0 z-50 flex items-end justify-center overflow-hidden overscroll-none bg-black/40 pt-[8vh] backdrop-blur-[2px] sm:items-start sm:px-4 sm:py-[6vh]" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
-            <div role="dialog" aria-modal="true" aria-label={title} className={cn('animate-sheet-up flex max-h-full w-full flex-col rounded-t-2xl border border-line bg-surface pb-[env(safe-area-inset-bottom)] shadow-pop sm:rounded-2xl sm:pb-0', wide ? 'sm:max-w-3xl' : 'sm:max-w-lg', className)}>
-                <div className="flex shrink-0 items-start justify-between gap-4 px-6 pt-5 pb-3">
-                    <div>
-                        <h2 className="text-[17px] font-semibold tracking-tight">{title}</h2>
-                        {description && <p className="mt-0.5 text-[13px] text-fg-muted">{description}</p>}
+        <div className="fixed inset-0 z-50 flex items-end justify-center overflow-hidden overscroll-none pt-[8vh] sm:items-start sm:px-4 sm:py-[6vh]">
+            <div data-closing={state} className="ff-scrim absolute inset-0 bg-black/40 backdrop-blur-[2px]" onMouseDown={() => !closing && onClose()} aria-hidden />
+            <div ref={sheet} data-closing={state} role="dialog" aria-modal="true" aria-label={title}
+                className={cn('ff-sheet ff-sheet-card relative flex max-h-full w-full flex-col rounded-t-2xl border border-line bg-surface pb-[env(safe-area-inset-bottom)] shadow-pop sm:rounded-2xl sm:pb-0', wide ? 'sm:max-w-3xl' : 'sm:max-w-lg', className)}>
+                <div {...handlers} className="shrink-0 touch-none sm:touch-auto">
+                    <span className="ff-grabber sm:hidden" aria-hidden />
+                    <div className="flex items-start justify-between gap-4 px-6 pt-3 pb-3 sm:pt-5">
+                        <div>
+                            <h2 className="text-17 font-semibold tracking-tight">{title}</h2>
+                            {description && <p className="mt-0.5 text-13 text-fg-muted">{description}</p>}
+                        </div>
+                        <Button variant="ghost" size="icon" onClick={onClose} aria-label="Close"><X className="size-4" /></Button>
                     </div>
-                    <Button variant="ghost" size="icon" onClick={onClose} aria-label="Close"><X className="size-4" /></Button>
                 </div>
                 <div className="min-h-0 overflow-y-auto overscroll-contain px-6 pb-6">{children}</div>
             </div>
@@ -347,15 +430,37 @@ export function Dialog({ open, onClose, title, description, children, className,
     );
 }
 
-/** Right-hand slide-over panel (shadcn "Sheet"). */
+/** A sheet from the bottom edge (phones), with a grabber; drag it down or tap outside to dismiss. */
+export function BottomSheet({ open, onClose, label, children, className }) {
+    useEscape(open, onClose);
+    useScrollLock(open);
+    const { mounted, closing } = usePresence(open);
+    const { sheet, handlers } = useSheetDrag(onClose);
+    if (!mounted) return null;
+    const state = closing ? '' : undefined;
+    return (
+        <div className={cn('fixed inset-0 z-50 flex items-end', className)}>
+            <div data-closing={state} className="ff-scrim absolute inset-0 bg-black/40" onClick={() => !closing && onClose()} aria-hidden />
+            <div ref={sheet} data-closing={state} role="dialog" aria-modal="true" aria-label={label}
+                className="ff-sheet relative flex max-h-[88dvh] w-full flex-col rounded-t-2xl border border-line bg-surface pb-[env(safe-area-inset-bottom)] shadow-pop">
+                <div {...handlers} className="shrink-0 touch-none pb-1"><span className="ff-grabber" aria-hidden /></div>
+                <div className="min-h-0 overflow-y-auto overscroll-contain">{children}</div>
+            </div>
+        </div>
+    );
+}
+
+/** Right-hand slide-over panel (shadcn "Sheet"): in from the right edge, back out to it. */
 export function Sheet({ open, onClose, children, className, overlay = true }) {
     useEscape(open, onClose);
     useScrollLock(open && overlay);
-    if (!open) return null;
+    const { mounted, closing } = usePresence(open);
+    if (!mounted) return null;
+    const state = closing ? '' : undefined;
     return (
         <>
-            {overlay && <div className="fixed inset-0 z-40 bg-black/30" onClick={onClose} aria-hidden />}
-            <aside role="dialog" aria-modal={overlay} className={cn('animate-slide-in fixed inset-y-0 right-0 z-50 flex w-full max-w-[min(100vw,900px)] flex-col border-l border-line bg-surface shadow-pop', className)}>
+            {overlay && <div data-closing={state} className="ff-scrim fixed inset-0 z-40 bg-black/30" onClick={() => !closing && onClose()} aria-hidden />}
+            <aside role="dialog" aria-modal={overlay} data-closing={state} className={cn('ff-push fixed inset-y-0 right-0 z-50 flex w-full max-w-[min(100vw,900px)] flex-col border-l border-line bg-surface shadow-pop', className)}>
                 {children}
             </aside>
         </>
@@ -370,8 +475,8 @@ export function EmptyState({ icon: Icon, title, children, action, className }) {
                     <Icon className="size-6" strokeWidth={1.75} />
                 </span>
             )}
-            <p className="text-[15px] font-semibold">{title}</p>
-            {children && <p className="mt-1 max-w-sm text-[13px] text-fg-muted">{children}</p>}
+            <p className="text-15 font-semibold">{title}</p>
+            {children && <p className="mt-1 max-w-sm text-13 text-fg-muted">{children}</p>}
             {action && <div className="mt-5">{action}</div>}
         </div>
     );
@@ -394,9 +499,9 @@ export function ConfirmButton({ onConfirm, children, confirmLabel = 'Click again
 
 export function Avatar({ name, className }) {
     const initials = (name ?? '?').split(/\s+/).map((p) => p[0]).slice(0, 2).join('').toUpperCase();
-    return <span className={cn('inline-flex size-8 shrink-0 items-center justify-center rounded-full bg-primary-soft text-[12px] font-semibold text-primary', className)}>{initials}</span>;
+    return <span className={cn('inline-flex size-8 shrink-0 items-center justify-center rounded-full bg-primary-soft text-12 font-semibold text-primary', className)}>{initials}</span>;
 }
 
 export function Kbd({ children }) {
-    return <kbd className="rounded border border-line bg-surface-2 px-1.5 py-px font-mono text-[11px] text-fg-muted">{children}</kbd>;
+    return <kbd className="rounded border border-line bg-surface-2 px-1.5 py-px font-mono text-11 text-fg-muted">{children}</kbd>;
 }

@@ -33,18 +33,18 @@ export default function ForgotPassword({ mailConfigured }) {
                 <Logo className="size-10" />
                 {!mailConfigured ? (
                     <>
-                        <h1 className="mt-6 text-[24px] font-semibold tracking-tight">Reset your password</h1>
-                        <div className="mt-5 rounded-xl border border-line bg-surface p-4 text-[13.5px] leading-relaxed text-fg-muted">
+                        <h1 className="mt-6 text-24 font-semibold tracking-tight">Reset your password</h1>
+                        <div className="mt-5 rounded-xl border border-line bg-surface p-4 text-13h leading-relaxed text-fg-muted">
                             <p className="flex items-center gap-2 font-medium text-fg"><MailWarning className="size-4 text-warn" />Email isn't set up on this server</p>
                             <p className="mt-2">Reset codes are sent by email, so an administrator needs to add SMTP details under Settings, Email &amp; alerts first.</p>
                             <p className="mt-2">With terminal access you can also run:</p>
-                            <code className="mt-1.5 block rounded-lg bg-surface-2 px-3 py-2 font-mono text-[12px] text-fg">php artisan flowforge:reset-password you@example.com</code>
+                            <code className="mt-1.5 block rounded-lg bg-surface-2 px-3 py-2 font-mono text-12 text-fg">php artisan flowforge:reset-password you@example.com</code>
                         </div>
                     </>
                 ) : step === 'email' ? (
                     <>
-                        <h1 className="mt-6 text-[24px] font-semibold tracking-tight">Reset your password</h1>
-                        <p className="mt-1 text-[14px] text-fg-muted">Enter your account email. We'll send a 6-digit code to it.</p>
+                        <h1 className="mt-6 text-24 font-semibold tracking-tight">Reset your password</h1>
+                        <p className="mt-1 text-14 text-fg-muted">Enter your account email. We'll send a 6-digit code to it.</p>
                         <form onSubmit={sendCode} className="mt-7 space-y-4">
                             <Field label="Email" error={request.errors.email}>
                                 {(id) => <Input id={id} type="email" autoComplete="username" autoFocus required className="h-10" value={request.data.email} onChange={(e) => request.setData('email', e.target.value)} aria-invalid={!!request.errors.email} />}
@@ -55,14 +55,14 @@ export default function ForgotPassword({ mailConfigured }) {
                 ) : (
                     <>
                         <span className="mt-6 flex size-11 items-center justify-center rounded-2xl bg-primary-soft text-primary"><MailCheck className="size-5" /></span>
-                        <h1 className="mt-4 text-[24px] font-semibold tracking-tight">Check your email</h1>
-                        <p className="mt-1 text-[14px] text-fg-muted">{flash?.success ?? 'A code is on its way.'} It went to <strong className="text-fg">{reset.data.email}</strong> and works for 15 minutes.</p>
+                        <h1 className="mt-4 text-24 font-semibold tracking-tight">Check your email</h1>
+                        <p className="mt-1 text-14 text-fg-muted">{flash?.success ?? 'A code is on its way.'} It went to <strong className="text-fg">{reset.data.email}</strong> and works for 15 minutes.</p>
                         <form onSubmit={(e) => { e.preventDefault(); reset.post('/reset-password'); }} className="mt-7 space-y-4">
                             <Field label="6-digit code" error={reset.errors.code}>
                                 {(id) => (
                                     <Input id={id} inputMode="numeric" autoComplete="one-time-code" autoFocus required maxLength={6} pattern="\d{6}"
                                         value={reset.data.code} onChange={(e) => reset.setData('code', e.target.value.replace(/\D/g, '').slice(0, 6))}
-                                        className="h-12 text-center font-mono text-[22px] tracking-[0.5em]" aria-invalid={!!reset.errors.code} placeholder="••••••" />
+                                        className="h-12 text-center font-mono text-22 tracking-[0.5em]" aria-invalid={!!reset.errors.code} placeholder="••••••" />
                                 )}
                             </Field>
                             <Field label="New password" error={reset.errors.password} help="At least 10 characters.">
@@ -72,17 +72,17 @@ export default function ForgotPassword({ mailConfigured }) {
                                 {(id) => <Input id={id} type="password" autoComplete="new-password" required className="h-10" value={reset.data.password_confirmation} onChange={(e) => reset.setData('password_confirmation', e.target.value)} />}
                             </Field>
                             <Button type="submit" variant="primary" size="lg" className="w-full justify-center" loading={reset.processing} disabled={reset.data.code.length !== 6}>Change password</Button>
-                            <div className="flex items-center justify-between text-[13px]">
+                            <div className="flex items-center justify-between text-13">
                                 <button type="button" className="text-fg-muted hover:text-fg" onClick={() => { setStep('email'); reset.reset(); }}>Use a different email</button>
                                 <button type="button" className="font-medium text-primary hover:underline disabled:text-fg-subtle disabled:no-underline" disabled={cooldown > 0 || request.processing} onClick={sendCode}>
                                     {cooldown > 0 ? `Resend in ${cooldown}s` : 'Resend code'}
                                 </button>
                             </div>
-                            {request.errors.email && <p className="text-[12.5px] text-fail">{request.errors.email}</p>}
+                            {request.errors.email && <p className="text-12h text-fail">{request.errors.email}</p>}
                         </form>
                     </>
                 )}
-                <Link href="/login" className="mt-8 inline-flex items-center gap-1.5 text-[13px] text-fg-muted hover:text-fg"><ArrowLeft className="size-3.5" />Back to sign in</Link>
+                <Link href="/login" className="mt-8 inline-flex items-center gap-1.5 text-13 text-fg-muted hover:text-fg"><ArrowLeft className="size-3.5" />Back to sign in</Link>
             </div>
         </div>
     );

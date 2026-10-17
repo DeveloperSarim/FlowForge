@@ -34,13 +34,13 @@ export default function Index({ credentials, integrations, redirectUri }) {
                         <Card key={credential.id} className="flex items-start gap-3.5 p-4">
                             <IntegrationIcon icon={credential.icon} name={credential.integration_name} size="lg" />
                             <div className="min-w-0 flex-1">
-                                <p className="truncate text-[14px] font-semibold">{credential.name}</p>
-                                <p className="truncate text-[12.5px] text-fg-muted">{credential.integration_name}, {AUTH_LABELS[credential.auth_type] ?? credential.auth_type}</p>
+                                <p className="truncate text-14 font-semibold">{credential.name}</p>
+                                <p className="truncate text-12h text-fg-muted">{credential.integration_name}, {AUTH_LABELS[credential.auth_type] ?? credential.auth_type}</p>
                                 <div className="mt-2 flex items-center gap-2">
                                     {credential.auth_type === 'oauth2' && !credential.connected
-                                        ? <a href={`/credentials/${credential.id}/connect`} className="inline-flex h-7 items-center gap-1.5 rounded-md bg-primary px-2.5 text-[12.5px] font-medium text-primary-fg hover:bg-primary-hover"><CircleDashed className="size-3.5" />Connect</a>
+                                        ? <a href={`/credentials/${credential.id}/connect`} className="inline-flex h-7 items-center gap-1.5 rounded-md bg-primary px-2.5 text-12h font-medium text-primary-fg hover:bg-primary-hover"><CircleDashed className="size-3.5" />Connect</a>
                                         : <Badge tone="ok"><CheckCircle2 className="size-3" />Ready</Badge>}
-                                    <span className="truncate text-[12px] text-fg-subtle">{credential.account ? `As ${credential.account}` : `Updated ${timeAgo(credential.updated_at)}`}</span>
+                                    <span className="truncate text-12 text-fg-subtle">{credential.account ? `As ${credential.account}` : `Updated ${timeAgo(credential.updated_at)}`}</span>
                                 </div>
                             </div>
                             <Menu
@@ -76,12 +76,12 @@ function AppPicker({ integrations, onPick }) {
     return (
         <div>
             <SearchInput autoFocus value={query} onChange={(e) => setQuery(e.target.value)} placeholder={`Search ${integrations.length} apps`} aria-label="Search apps" />
-            <p className="mt-4 mb-2 text-[12.5px] font-medium text-fg-muted">{q ? `${list.length} result${list.length === 1 ? '' : 's'}` : 'Popular apps'}</p>
+            <p className="mt-4 mb-2 text-12h font-medium text-fg-muted">{q ? `${list.length} result${list.length === 1 ? '' : 's'}` : 'Popular apps'}</p>
             <div className="grid max-h-[46vh] grid-cols-2 gap-2 overflow-y-auto overscroll-contain pr-1 sm:grid-cols-3">
                 {list.slice(0, 90).map((i) => (
                     <button key={i.key} type="button" onClick={() => onPick(i.key)} className="flex items-center gap-2.5 rounded-lg border border-line p-2.5 text-left hover:border-primary hover:bg-primary-soft/40">
                         <IntegrationIcon icon={i.icon} name={i.name} size="sm" />
-                        <span className="truncate text-[13px] font-medium">{i.name}</span>
+                        <span className="truncate text-13 font-medium">{i.name}</span>
                     </button>
                 ))}
             </div>
@@ -132,15 +132,15 @@ function CredentialDialog({ dialog, integrations, redirectUri, onClose }) {
             {!appKey ? (
                 <AppPicker integrations={integrations} onPick={setAppKey} />
             ) : !manifest ? (
-                loadError ? <p className="text-[13px] text-fail">{loadError}</p> : <p className="flex items-center gap-2 text-[13px] text-fg-muted"><Loader2 className="size-4 animate-spin" />Loading…</p>
+                loadError ? <p className="text-13 text-fail">{loadError}</p> : <p className="flex items-center gap-2 text-13 text-fg-muted"><Loader2 className="size-4 animate-spin" />Loading…</p>
             ) : (
                 <form onSubmit={submit} className="space-y-4">
                     {!editing && (
                         <div className="flex items-center gap-3 rounded-xl bg-surface-2 p-3">
                             <IntegrationIcon icon={manifest.icon} name={manifest.name} size="md" />
                             <div className="min-w-0 flex-1">
-                                <p className="text-[13.5px] font-semibold">{manifest.name}</p>
-                                {manifest.docs_url && <a href={manifest.docs_url} target="_blank" rel="noreferrer" className="text-[12px] text-fg-muted hover:text-primary">Where do I find these details?</a>}
+                                <p className="text-13h font-semibold">{manifest.name}</p>
+                                {manifest.docs_url && <a href={manifest.docs_url} target="_blank" rel="noreferrer" className="text-12 text-fg-muted hover:text-primary">Where do I find these details?</a>}
                             </div>
                             {!dialog.integration && <Button size="sm" variant="ghost" onClick={() => setAppKey(null)}><ArrowLeft className="size-3.5" />Change app</Button>}
                         </div>
@@ -170,10 +170,10 @@ function CredentialDialog({ dialog, integrations, redirectUri, onClose }) {
                     ))}
 
                     {auth?.type === 'oauth2' && (
-                        <div className="rounded-xl border border-line bg-surface-2 p-3 text-[12.5px] text-fg-muted">
+                        <div className="rounded-xl border border-line bg-surface-2 p-3 text-12h text-fg-muted">
                             <p className="mb-1.5">Add this redirect URL to your OAuth app, save here, then click <strong className="text-fg">Connect</strong>.</p>
                             <div className="flex items-center gap-2">
-                                <code className="flex-1 truncate rounded bg-surface px-2 py-1 font-mono text-[12px] text-fg">{redirectUri}</code>
+                                <code className="flex-1 truncate rounded bg-surface px-2 py-1 font-mono text-12 text-fg">{redirectUri}</code>
                                 <Button size="xs" variant="ghost" onClick={() => copy(redirectUri, 'Redirect URL copied')}><Copy className="size-3.5" /></Button>
                             </div>
                         </div>

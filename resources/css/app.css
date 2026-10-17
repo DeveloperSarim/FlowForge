@@ -83,6 +83,35 @@
     --shadow-pop: 0 16px 40px -8px rgb(0 0 0 / 0.6), 0 2px 6px rgb(0 0 0 / 0.3);
 }
 
+/*
+ * Type scale in rem (text-13 = 13px at the default size, "h" = half: text-12h = 12.5px), so text follows the
+ * browser's text-size setting. Small sizes get a touch of positive tracking for legibility.
+ */
+@theme {
+    --text-10: 0.625rem;
+    --text-10--letter-spacing: 0.01em;
+    --text-10h: 0.65625rem;
+    --text-10h--letter-spacing: 0.01em;
+    --text-11: 0.6875rem;
+    --text-11--letter-spacing: 0.01em;
+    --text-11h: 0.71875rem;
+    --text-11h--letter-spacing: 0.01em;
+    --text-12: 0.75rem;
+    --text-12--letter-spacing: 0.01em;
+    --text-12h: 0.78125rem;
+    --text-13: 0.8125rem;
+    --text-13h: 0.84375rem;
+    --text-14: 0.875rem;
+    --text-14h: 0.90625rem;
+    --text-15: 0.9375rem;
+    --text-16: 1rem;
+    --text-17: 1.0625rem;
+    --text-20: 1.25rem;
+    --text-22: 1.375rem;
+    --text-24: 1.5rem;
+    --text-26: 1.625rem;
+}
+
 @theme inline {
     --color-bg: var(--bg);
     --color-surface: var(--surface);
@@ -117,9 +146,15 @@
 @layer base {
     html { color-scheme: light; }
     html.dark { color-scheme: dark; }
-    body { font-size: 14px; line-height: 1.5; font-feature-settings: 'ss01', 'cv11'; }
+    /* rem, so the browser's text-size setting scales the whole app */
+    body { font-size: 0.875rem; line-height: 1.5; font-feature-settings: 'ss01', 'cv11'; }
     html { -webkit-text-size-adjust: 100%; }
     body { -webkit-tap-highlight-color: transparent; }
+    /* Touch screens: with the browser's tap flash off, every control dims the instant it's pressed.
+       Buttons from ui.jsx (.ff-press) shrink slightly instead. */
+    @media (hover: none) {
+        :where(button, a[href], [role='button'], [role='tab'], summary):where(:active:not(:disabled):not(.ff-press)) { opacity: 0.6; }
+    }
     ::selection { background: color-mix(in srgb, var(--primary) 22%, transparent); }
     :focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
     * { scrollbar-width: thin; scrollbar-color: var(--line-strong) transparent; }
@@ -161,9 +196,69 @@
 .orb-breathe { animation: orb-breathe 3.2s ease-in-out infinite; }
 .orb-think { animation: spin-ring 2.4s linear infinite; }
 
+/*
+ * Overlays enter and leave along the same path (usePresence keeps them mounted while data-closing plays the
+ * way out). Exits use the mirrored curve of the entrance. Phones: dialogs are sheets from the bottom edge and
+ * pushed screens come from the right; larger screens: cards pop from their origin.
+ */
+@keyframes fade-in { from { opacity: 0; } }
+@keyframes fade-out { to { opacity: 0; } }
+@keyframes pop-out { to { transform: translateY(6px) scale(0.98); opacity: 0; } }
+@keyframes rise-in { from { transform: translateY(100%); } }
+@keyframes rise-out { to { transform: translateY(100%); } }
+@keyframes push-in { from { transform: translateX(100%); } }
+@keyframes push-out { to { transform: translateX(100%); } }
+@keyframes zoom-in { from { transform: scale(0.86); opacity: 0; } }
+@keyframes zoom-out { to { transform: scale(0.86); opacity: 0; } }
+@keyframes toast-in { from { transform: translateX(28px); opacity: 0; } }
+@keyframes toast-out { to { transform: translateX(110%); opacity: 0; } }
+:root { --ease-sheet: cubic-bezier(.32, .72, 0, 1); --ease-sheet-out: cubic-bezier(1, 0, .68, .28); }
+
+.ff-scrim { animation: fade-in 220ms ease-out; }
+.ff-scrim[data-closing] { animation: fade-out 200ms ease-in forwards; }
+.ff-popover { animation: pop-in 160ms cubic-bezier(.2,.8,.2,1); }
+.ff-popover[data-closing] { animation: pop-out 120ms ease-in forwards; pointer-events: none; }
+/* A dialog: a sheet rising from the bottom on phones, a card popping in on larger screens. */
+.ff-sheet { animation: rise-in 360ms var(--ease-sheet); }
+.ff-sheet[data-closing] { animation: rise-out 240ms var(--ease-sheet-out) forwards; }
+@media (min-width: 640px) {
+    .ff-sheet.ff-sheet-card { animation: pop-in 180ms cubic-bezier(.2,.8,.2,1); }
+    .ff-sheet.ff-sheet-card[data-closing] { animation: pop-out 140ms ease-in forwards; }
+}
+/* A side panel or a pushed screen: in from the right edge, back out to it. */
+.ff-push { animation: push-in 340ms var(--ease-sheet); }
+.ff-push[data-closing] { animation: push-out 240ms var(--ease-sheet-out) forwards; }
+/* The step editor grows out of the step that was clicked (transform-origin set inline) and shrinks back into it. */
+@media (min-width: 640px) {
+    .ff-zoom { animation: zoom-in 260ms var(--ease-sheet); }
+    .ff-zoom[data-closing] { animation: zoom-out 200ms var(--ease-sheet-out) forwards; }
+}
+.ff-toast { animation: toast-in 240ms var(--ease-sheet); }
+.ff-toast[data-closing] { animation: toast-out 220ms var(--ease-sheet-out) forwards; }
+/* A leaving toast's row collapses, so the others glide into place instead of jumping. */
+.ff-collapse { display: grid; grid-template-rows: 1fr; transition: grid-template-rows 220ms var(--ease-sheet) 120ms; }
+.ff-collapse[data-closing] { grid-template-rows: 0fr; }
+.ff-collapse > * { min-height: 0; }
+
+/* Translucent chrome: content scrolls underneath, the material keeps the bars legible. */
+.ff-glass { background: color-mix(in srgb, var(--surface) 72%, transparent); backdrop-filter: blur(20px) saturate(180%); }
+.ff-grabber { display: block; width: 36px; height: 5px; margin: 8px auto 0; border-radius: 99px; background: var(--line-strong); }
+
 @media (prefers-reduced-motion: reduce) {
-    .animate-slide-in, .animate-pop-in, .animate-sheet-up, .animate-running, .animate-msg-in, .animate-step-in, .ai-ring::before, .orb-wave, .orb-breathe, .orb-think { animation: none; }
+    .animate-slide-in, .animate-pop-in, .animate-sheet-up, .animate-running, .animate-msg-in, .animate-step-in, .animate-pulse, .ai-ring::before, .orb-wave, .orb-breathe, .orb-think { animation: none; }
     .text-shimmer { animation: none; color: var(--fg-muted); background: none; }
+    /* Movement becomes a short cross-fade; nothing slides, zooms or overshoots. */
+    .ff-popover, .ff-sheet, .ff-sheet.ff-sheet-card, .ff-push, .ff-zoom, .ff-toast { animation: fade-in 160ms ease-out; }
+    .ff-popover[data-closing], .ff-sheet[data-closing], .ff-sheet.ff-sheet-card[data-closing], .ff-push[data-closing], .ff-zoom[data-closing], .ff-toast[data-closing] { animation: fade-out 140ms ease-in forwards; }
+    .ff-collapse { transition: none; }
+    .transition-transform { transition-property: none; }
+}
+@media (prefers-reduced-transparency: reduce) {
+    .ff-glass { background: var(--surface); backdrop-filter: none; }
+    .ff-scrim { backdrop-filter: none; }
+}
+@media (prefers-contrast: more) {
+    .ff-glass { background: var(--surface); backdrop-filter: none; border-color: var(--line-strong); }
 }
 
 /* React Flow, themed by the tokens */
@@ -192,3 +287,6 @@
 /* never touch `transform` here: React Flow positions handles with it */
 .react-flow__handle:hover { background: var(--primary); border-color: var(--primary); box-shadow: 0 0 0 4px color-mix(in srgb, var(--primary) 20%, transparent); }
 .react-flow__node:focus-visible { outline: none; }
+
+/* Theme switch (applyTheme with animate): a calm cross-fade instead of a brightness jump. */
+::view-transition-old(root), ::view-transition-new(root) { animation-duration: 280ms; animation-timing-function: ease; }

@@ -54,7 +54,7 @@ export default function Settings({ tab = 'account', mail, notifications, ai, pro
 
     const chooseTheme = (value) => {
         setTheme(value);
-        applyTheme(value);
+        applyTheme(value, { animate: true });
         router.put('/settings/appearance', { theme: value }, { preserveScroll: true, preserveState: true });
     };
 
@@ -65,7 +65,7 @@ export default function Settings({ tab = 'account', mail, notifications, ai, pro
                 <nav className="no-scrollbar -mx-4 flex gap-1.5 overflow-x-auto px-4 sm:mx-0 sm:px-0 md:flex-col md:overflow-visible" aria-label="Settings sections">
                     {[['account', 'Account', UserRound], ['general', 'General', Globe2, true], ['team', 'Team', Users, true], ['appearance', 'Appearance', Palette], ['email', 'Email & alerts', Mail, true], ['ai', 'AI builder', AiIcon, true], ['api', 'API & MCP', Plug], ...(demo ? [['demo', 'Live demo', Presentation, true]] : []), ['updates', 'Updates', ArrowUpCircle, true]].filter(([, , , adminOnly]) => !adminOnly || auth.user.can.admin).map(([value, label, Icon]) => (
                         <button key={value} type="button" onClick={() => setTab(value)} aria-current={tab === value}
-                            className={cn('flex shrink-0 items-center gap-2 rounded-full border px-3.5 py-2 text-left text-[13.5px] font-medium whitespace-nowrap md:gap-2.5 md:rounded-lg md:border-0 md:px-3',
+                            className={cn('flex shrink-0 items-center gap-2 rounded-full border px-3.5 py-2 text-left text-13h font-medium whitespace-nowrap md:gap-2.5 md:rounded-lg md:border-0 md:px-3',
                                 tab === value ? 'border-primary/30 bg-primary-soft text-primary' : 'border-line bg-surface text-fg-muted hover:bg-surface-2 hover:text-fg md:bg-transparent')}>
                             <Icon className="size-4" />{label}
                         </button>
@@ -82,14 +82,14 @@ export default function Settings({ tab = 'account', mail, notifications, ai, pro
                 : tab === 'ai' ? <AiSettings ai={ai} providers={providers} />
                 : tab === 'appearance' ? (
                     <Card className="p-6">
-                        <h2 className="text-[16px] font-semibold">Theme</h2>
-                        <p className="mt-0.5 text-[13px] text-fg-muted">Light is the default. Your choice is saved to your account.</p>
+                        <h2 className="text-16 font-semibold">Theme</h2>
+                        <p className="mt-0.5 text-13 text-fg-muted">Light is the default. Your choice is saved to your account.</p>
                         <div className="mt-5 grid gap-4 sm:grid-cols-3">
                             {THEMES.map((t) => (
                                 <button key={t.value} type="button" onClick={() => chooseTheme(t.value)} aria-pressed={theme === t.value}
                                     className={cn('rounded-xl border-2 p-2.5 text-left transition-colors', theme === t.value ? 'border-primary' : 'border-line hover:border-line-strong')}>
                                     <Preview colors={t.preview} />
-                                    <span className="mt-2.5 flex items-center gap-2 px-0.5 text-[13.5px] font-medium">
+                                    <span className="mt-2.5 flex items-center gap-2 px-0.5 text-13h font-medium">
                                         <t.icon className="size-4 text-fg-muted" />{t.label}
                                         {theme === t.value && <Check className="ml-auto size-4 text-primary" />}
                                     </span>
@@ -111,15 +111,15 @@ function GeneralSettings({ timezone }) {
 
     return (
         <Card className="p-6">
-            <h2 className="text-[16px] font-semibold">Timezone</h2>
-            <p className="mt-0.5 max-w-xl text-[13px] text-fg-muted">Schedules run in this timezone: "every day at 11:00" means 11:00 here. The AI builder uses it too.</p>
+            <h2 className="text-16 font-semibold">Timezone</h2>
+            <p className="mt-0.5 max-w-xl text-13 text-fg-muted">Schedules run in this timezone: "every day at 11:00" means 11:00 here. The AI builder uses it too.</p>
             <form className="mt-5 max-w-md space-y-3" onSubmit={(e) => { e.preventDefault(); form.put('/settings/general', { preserveScroll: true }); }}>
                 <Field label="Timezone" error={form.errors.timezone} help={`It's ${now} there right now.`}>
                     {(id) => <Combobox id={id} value={form.data.timezone} onChange={(v) => form.setData('timezone', v)} options={zones}
                         pinned={[...new Set([detected, 'UTC'])].filter((z) => z && z !== form.data.timezone)} searchPlaceholder="Search city or offset: Karachi, London, GMT+5…" />}
                 </Field>
                 {detected && detected !== form.data.timezone && (
-                    <button type="button" className="text-[12.5px] font-medium text-primary hover:underline" onClick={() => form.setData('timezone', detected)}>Use this browser's timezone ({detected})</button>
+                    <button type="button" className="text-12h font-medium text-primary hover:underline" onClick={() => form.setData('timezone', detected)}>Use this browser's timezone ({detected})</button>
                 )}
                 <div><Button type="submit" variant="primary" loading={form.processing} disabled={!form.isDirty}>Save timezone</Button></div>
             </form>
@@ -133,16 +133,16 @@ function SchedulerSettings({ cron }) {
     const healthy = scheduler && (Date.now() - new Date(scheduler).getTime()) / 60000 < 3;
     return (
         <Card className="p-6">
-            <h2 className="text-[16px] font-semibold">Scheduler (cron job)</h2>
-            <p className="mt-0.5 max-w-xl text-[13px] text-fg-muted">One cron job runs every workflow: schedules, webhooks and app triggers. You never need one per workflow.</p>
-            <p className={cn('mt-4 flex items-center gap-2 text-[13.5px] font-medium', healthy ? 'text-ok' : 'text-warn')}>
+            <h2 className="text-16 font-semibold">Scheduler (cron job)</h2>
+            <p className="mt-0.5 max-w-xl text-13 text-fg-muted">One cron job runs every workflow: schedules, webhooks and app triggers. You never need one per workflow.</p>
+            <p className={cn('mt-4 flex items-center gap-2 text-13h font-medium', healthy ? 'text-ok' : 'text-warn')}>
                 {healthy ? <CheckCircle2 className="size-4" /> : <XCircle className="size-4" />}
                 {healthy ? `Running: last run ${timeAgo(scheduler)}.` : scheduler ? `Not running since ${timeAgo(scheduler)}.` : 'Not set up yet.'}
             </p>
             {!healthy && <CronAutoSetup endpoint="/settings/scheduler/auto" className="mt-4" />}
-            <p className="mt-4 text-[12.5px] text-fg-muted">The line to use in your hosting panel's Cron Jobs (every minute):</p>
+            <p className="mt-4 text-12h text-fg-muted">The line to use in your hosting panel's Cron Jobs (every minute):</p>
             <div className="mt-1.5 flex items-start gap-2 rounded-lg border border-line bg-surface-2 p-2.5">
-                <code className="flex-1 font-mono text-[12px] leading-relaxed break-all">{cron}</code>
+                <code className="flex-1 font-mono text-12 leading-relaxed break-all">{cron}</code>
                 <Button size="sm" variant="outline" onClick={() => copy(cron, 'Cron command copied')}><Copy className="size-3.5" />Copy</Button>
             </div>
         </Card>
@@ -155,8 +155,8 @@ function AccountForm({ user }) {
 
     return (
         <Card className="p-6">
-            <h2 className="text-[16px] font-semibold">Profile and password</h2>
-            <p className="mt-0.5 text-[13px] text-fg-muted">You're the only administrator of this FlowForge install.</p>
+            <h2 className="text-16 font-semibold">Profile and password</h2>
+            <p className="mt-0.5 text-13 text-fg-muted">You're the only administrator of this FlowForge install.</p>
             <form className="mt-5 grid max-w-xl gap-4 sm:grid-cols-2" onSubmit={(e) => {
                 e.preventDefault();
                 form.put('/settings/account', { preserveScroll: true, onSuccess: () => form.reset('current_password', 'password', 'password_confirmation') });
@@ -179,7 +179,7 @@ function AccountForm({ user }) {
 function Result({ result }) {
     if (!result) return null;
     return (
-        <p className={cn('mt-3 flex items-start gap-2 text-[13px]', result.ok ? 'text-ok' : 'text-fail')}>
+        <p className={cn('mt-3 flex items-start gap-2 text-13', result.ok ? 'text-ok' : 'text-fail')}>
             {result.ok ? <CheckCircle2 className="mt-px size-4 shrink-0" /> : <XCircle className="mt-px size-4 shrink-0" />}{result.message}
         </p>
     );
@@ -207,8 +207,8 @@ function EmailSettings({ mail, notifications, adminEmail }) {
     return (
         <div className="space-y-6">
             <Card className="p-6">
-                <h2 className="text-[16px] font-semibold">Outgoing email (SMTP)</h2>
-                <p className="mt-0.5 text-[13px] text-fg-muted">Used for alerts to you. Workflow "Email (SMTP)" steps use their own credentials.</p>
+                <h2 className="text-16 font-semibold">Outgoing email (SMTP)</h2>
+                <p className="mt-0.5 text-13 text-fg-muted">Used for alerts to you. Workflow "Email (SMTP)" steps use their own credentials.</p>
                 <form className="mt-5 grid gap-4 sm:grid-cols-6" onSubmit={(e) => { e.preventDefault(); form.put('/settings/mail', { preserveScroll: true, onSuccess: () => form.setData('password', '') }); }}>
                     <Field label="SMTP host" required error={form.errors.host} className="sm:col-span-3">{(id) => <Input id={id} placeholder="smtp.gmail.com or mail.yourdomain.com" {...bind('host')} />}</Field>
                     <Field label="Port" required error={form.errors.port} className="sm:col-span-1">{(id) => <Input id={id} inputMode="numeric" {...bind('port')} />}</Field>
@@ -229,16 +229,16 @@ function EmailSettings({ mail, notifications, adminEmail }) {
             </Card>
 
             <Card className="p-6">
-                <h2 className="flex items-center gap-2 text-[16px] font-semibold"><BellRing className="size-4 text-primary" />Alerts</h2>
-                <p className="mt-0.5 text-[13px] text-fg-muted">For workflows that run on their own. Test runs from the editor never send alerts.</p>
+                <h2 className="flex items-center gap-2 text-16 font-semibold"><BellRing className="size-4 text-primary" />Alerts</h2>
+                <p className="mt-0.5 text-13 text-fg-muted">For workflows that run on their own. Test runs from the editor never send alerts.</p>
                 <form className="mt-5 space-y-4" onSubmit={(e) => { e.preventDefault(); alerts.put('/settings/notifications', { preserveScroll: true }); }}>
                     <label className="flex items-start gap-3">
                         <Switch checked={!!alerts.data.on_failure} onChange={(v) => alerts.setData('on_failure', v)} label="Email when a workflow fails" />
-                        <span><span className="block text-[13.5px] font-medium">Email me when a workflow fails</span><span className="block text-[12.5px] text-fg-muted">Includes the failing step, its error and a link to the run. Polling triggers that can't reach their app are reported too.</span></span>
+                        <span><span className="block text-13h font-medium">Email me when a workflow fails</span><span className="block text-12h text-fg-muted">Includes the failing step, its error and a link to the run. Polling triggers that can't reach their app are reported too.</span></span>
                     </label>
                     <label className="flex items-start gap-3">
                         <Switch checked={!!alerts.data.on_scheduler_stall} onChange={(v) => alerts.setData('on_scheduler_stall', v)} label="Email when the scheduler stopped" />
-                        <span><span className="block text-[13.5px] font-medium">Email me when the scheduler was down</span><span className="block text-[12.5px] text-fg-muted">If the cron job didn't run for 10+ minutes, you'll hear about it as soon as it runs again.</span></span>
+                        <span><span className="block text-13h font-medium">Email me when the scheduler was down</span><span className="block text-12h text-fg-muted">If the cron job didn't run for 10+ minutes, you'll hear about it as soon as it runs again.</span></span>
                     </label>
                     <Field label="At most one email per workflow every" className="max-w-xs" error={alerts.errors.throttle_minutes}>{(id) => (
                         <Select id={id} value={alerts.data.throttle_minutes} onChange={(e) => alerts.setData('throttle_minutes', Number(e.target.value))}>
@@ -279,17 +279,17 @@ function AiSettings({ ai, providers }) {
 
     return (
         <Card className="p-6">
-            <h2 className="text-[16px] font-semibold">AI provider</h2>
-            <p className="mt-0.5 text-[13px] text-fg-muted">The assistant builds, edits and tests workflows from plain-language requests. It searches apps on demand instead of sending the whole catalog, and its instructions are cached, so requests stay small.</p>
+            <h2 className="text-16 font-semibold">AI provider</h2>
+            <p className="mt-0.5 text-13 text-fg-muted">The assistant builds, edits and tests workflows from plain-language requests. It searches apps on demand instead of sending the whole catalog, and its instructions are cached, so requests stay small.</p>
 
             <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
                 {providers.map((p) => (
                     <button key={p.key} type="button" onClick={() => choose(p)} aria-pressed={form.data.provider === p.key}
                         className={cn('flex flex-col items-center gap-2 rounded-xl border-2 px-3 py-4 text-center transition-colors', form.data.provider === p.key ? 'border-primary bg-primary-soft/40' : 'border-line hover:border-line-strong')}>
                         <IntegrationIcon icon={p.icon} name={p.name} size="lg" />
-                        <span className="text-[13px] font-medium leading-tight">{p.custom && ai?.provider === 'custom' && ai?.label ? ai.label : p.name}</span>
-                        {p.custom && ai?.provider !== 'custom' && <span className="text-[11px] text-fg-muted">Any compatible API</span>}
-                        {ai?.provider === p.key && <span className="text-[11px] text-ok">In use</span>}
+                        <span className="text-13 font-medium leading-tight">{p.custom && ai?.provider === 'custom' && ai?.label ? ai.label : p.name}</span>
+                        {p.custom && ai?.provider !== 'custom' && <span className="text-11 text-fg-muted">Any compatible API</span>}
+                        {ai?.provider === p.key && <span className="text-11 text-ok">In use</span>}
                     </button>
                 ))}
             </div>
@@ -318,7 +318,7 @@ function AiSettings({ ai, providers }) {
                 )}
                 <Field label="API key" required={!keyStored && !keyOptional} error={form.errors.api_key} className="sm:col-span-2"
                     help={keyOptional ? 'Leave empty for servers that need no key, such as Ollama or LM Studio on your own machine.' : null}
-                    aside={provider.key_url && <a href={provider.key_url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-[12.5px] font-medium text-primary hover:underline">Get a key<ExternalLink className="size-3" /></a>}>
+                    aside={provider.key_url && <a href={provider.key_url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-12h font-medium text-primary hover:underline">Get a key<ExternalLink className="size-3" /></a>}>
                     {(id) => <Input id={id} type="password" autoComplete="off" placeholder={keyStored ? 'Unchanged (stored encrypted)' : keyOptional ? 'Optional' : 'Paste your API key'} value={form.data.api_key} onChange={(e) => form.setData('api_key', e.target.value)} />}
                 </Field>
                 <Field label="Model" required error={form.errors.model} help={isCustom ? 'The exact model id your provider uses, for example meta-llama/llama-3.3-70b-instruct.' : 'Pick a suggestion or type any model id your account can use.'}>

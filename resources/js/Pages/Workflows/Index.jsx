@@ -36,16 +36,16 @@ function ImportDialog({ open, onClose }) {
                     onDrop={(e) => { e.preventDefault(); setDragging(false); read(e.dataTransfer.files[0]); }}
                     className={`flex w-full flex-col items-center gap-1.5 rounded-xl border-2 border-dashed px-4 py-7 text-center ${dragging ? 'border-primary bg-primary-soft/40' : 'border-line hover:border-line-strong'}`}>
                     <FileUp className="size-6 text-primary" />
-                    <span className="text-[14px] font-semibold">{file ?? 'Choose a .json file'}</span>
-                    <span className="text-[12.5px] text-fg-muted">{file ? 'Ready to import' : 'or drop it here'}</span>
+                    <span className="text-14 font-semibold">{file ?? 'Choose a .json file'}</span>
+                    <span className="text-12h text-fg-muted">{file ? 'Ready to import' : 'or drop it here'}</span>
                 </button>
                 <input ref={input} type="file" accept=".json,application/json" className="hidden" onChange={(e) => read(e.target.files[0])} />
-                <details className="text-[13px]">
+                <details className="text-13">
                     <summary className="cursor-pointer text-fg-muted">Paste JSON instead</summary>
-                    <Field className="mt-2" label="Workflow JSON">{(id) => <Textarea id={id} rows={5} value={file ? '' : form.data.document} onChange={(e) => { setFile(null); form.setData('document', e.target.value); }} className="font-mono text-[12.5px]" />}</Field>
+                    <Field className="mt-2" label="Workflow JSON">{(id) => <Textarea id={id} rows={5} value={file ? '' : form.data.document} onChange={(e) => { setFile(null); form.setData('document', e.target.value); }} className="font-mono text-12h" />}</Field>
                 </details>
-                {form.errors.document && <p className="rounded-lg bg-fail-soft px-3 py-2 text-[13px] text-fail">{form.errors.document}</p>}
-                <p className="text-[12.5px] text-fg-subtle">Credentials aren't in workflow files: steps use your saved account for the app when you have exactly one. Have an n8n workflow? Import its file and the AI Builder rebuilds it.</p>
+                {form.errors.document && <p className="rounded-lg bg-fail-soft px-3 py-2 text-13 text-fail">{form.errors.document}</p>}
+                <p className="text-12h text-fg-subtle">Credentials aren't in workflow files: steps use your saved account for the app when you have exactly one. Have an n8n workflow? Import its file and the AI Builder rebuilds it.</p>
                 <div className="flex justify-end gap-2">
                     <Button onClick={onClose}>Cancel</Button>
                     <Button type="submit" variant="primary" loading={form.processing} disabled={form.data.document.trim().length < 2}><Upload className="size-4" />Import</Button>
@@ -98,7 +98,7 @@ export default function Index({ workflows }) {
                             { value: 'active', label: 'Active', count: active },
                             { value: 'inactive', label: 'Inactive', count: workflows.length - active },
                         ]} />
-                        <a href="/workflows/export" className="ml-auto inline-flex items-center gap-1.5 text-[13px] font-medium text-fg-muted hover:text-fg"><Download className="size-4" />Export all</a>
+                        <a href="/workflows/export" className="ml-auto inline-flex items-center gap-1.5 text-13 font-medium text-fg-muted hover:text-fg"><Download className="size-4" />Export all</a>
                         <Select value={sort} onChange={(e) => setSort(e.target.value)} className="w-48" aria-label="Sort workflows">
                             <option value="updated">Last updated</option>
                             <option value="created">Last created</option>
@@ -108,7 +108,7 @@ export default function Index({ workflows }) {
 
                     <Card className="divide-y divide-line overflow-visible">
                         {visible.map((w) => <Row key={w.id} workflow={w} onDelete={() => setDeleting(w)} />)}
-                        {visible.length === 0 && <p className="px-5 py-10 text-center text-[13px] text-fg-muted">No workflows match these filters.</p>}
+                        {visible.length === 0 && <p className="px-5 py-10 text-center text-13 text-fg-muted">No workflows match these filters.</p>}
                     </Card>
                 </>
             )}
@@ -157,8 +157,8 @@ function Row({ workflow, onDelete }) {
                 <AppStack apps={workflow.apps} size="md" />
             </div>
             <div className="min-w-0 flex-1">
-                <Link href={`/workflows/${workflow.id}`} className="block truncate text-[14px] font-semibold group-hover:text-primary" onClick={(e) => e.stopPropagation()}>{workflow.name}</Link>
-                <p className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[12.5px] text-fg-subtle">
+                <Link href={`/workflows/${workflow.id}`} className="block truncate text-14 font-semibold group-hover:text-primary" onClick={(e) => e.stopPropagation()}>{workflow.name}</Link>
+                <p className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-12h text-fg-subtle">
                     <span className="inline-flex items-center gap-1"><trigger.icon className="size-3.5" />{trigger.label}</span>
                     <span>Updated {timeAgo(workflow.updated_at)}</span>
                     <span>Created {new Date(workflow.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}</span>
@@ -168,17 +168,17 @@ function Row({ workflow, onDelete }) {
                 {workflow.last_run ? (
                     <div className="flex items-center gap-2">
                         <StatusBadge status={workflow.last_run.status} />
-                        <span className="text-[12px] text-fg-subtle">{timeAgo(workflow.last_run.created_at)}</span>
+                        <span className="text-12 text-fg-subtle">{timeAgo(workflow.last_run.created_at)}</span>
                     </div>
-                ) : <span className="text-[12px] text-fg-subtle">Never run</span>}
-                <p className="mt-0.5 text-[12px] text-fg-subtle">{workflow.runs_24h} run{workflow.runs_24h === 1 ? '' : 's'} in 24h</p>
+                ) : <span className="text-12 text-fg-subtle">Never run</span>}
+                <p className="mt-0.5 text-12 text-fg-subtle">{workflow.runs_24h} run{workflow.runs_24h === 1 ? '' : 's'} in 24h</p>
             </div>
-            <label className="hidden items-center gap-1.5 text-[12.5px] font-medium text-fg-muted lg:flex" title="Retry failed runs automatically" onClick={(e) => e.stopPropagation()}>
+            <label className="hidden items-center gap-1.5 text-12h font-medium text-fg-muted lg:flex" title="Retry failed runs automatically" onClick={(e) => e.stopPropagation()}>
                 <RotateCw className="size-3.5" />Auto-retry
                 {can['workflows.edit'] ? <Switch checked={autoRetry} onChange={toggleRetry} label={`Auto-retry for ${workflow.name}`} size="sm" /> : <span>{autoRetry ? 'On' : 'Off'}</span>}
             </label>
             <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
-                <span className="hidden text-[12.5px] font-medium text-fg-muted sm:inline">{active ? 'Active' : 'Inactive'}</span>
+                <span className="hidden text-12h font-medium text-fg-muted sm:inline">{active ? 'Active' : 'Inactive'}</span>
                 {can['workflows.edit'] && <Switch checked={active} onChange={toggle} label={`Activate ${workflow.name}`} size="sm" />}
             </div>
             <Menu

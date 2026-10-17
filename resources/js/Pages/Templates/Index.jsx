@@ -23,7 +23,7 @@ export default function Index({ templates }) {
                 <div className="flex flex-wrap gap-1.5">
                     {categories.map((c) => (
                         <button key={c} type="button" onClick={() => setCategory(c)} aria-pressed={category === c}
-                            className={cn('rounded-full border px-3 py-1 text-[13px] font-medium transition-colors',
+                            className={cn('rounded-full border px-3 py-1 text-13 font-medium transition-colors',
                                 category === c ? 'border-primary bg-primary-soft text-primary' : 'border-line bg-surface text-fg-muted hover:text-fg')}>
                             {c}
                         </button>

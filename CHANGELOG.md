@@ -2,6 +2,29 @@
 
 All notable changes to FlowForge. Versions follow [semantic versioning](https://semver.org).
 
+## [Unreleased]
+
+The app feels more like a native app, following Apple's interface guidelines:
+- **Press feedback:** every button, tab and menu item reacts the instant it's pressed (a small press-in), and on touch screens every other control dims while pressed.
+- **Things leave the way they came:** dialogs, side panels, menus, toasts and the step editor animate out along the same path they came in on, instead of vanishing.
+- **Phone sheets you can drag:**
+  - Dialogs and the "More" menu rise from the bottom with a grabber.
+  - Drag one down or flick it to dismiss; it follows the finger, resists being pulled up and settles back if you let go early.
+  - "More" now opens from the tab bar where it was tapped.
+- **Step editor:** on phones it slides in from the right like a new screen; on larger screens it grows out of the step you clicked and shrinks back into it.
+- **Undo instead of "are you sure":** deleting a step is one click, and the toast offers Undo (this also works for steps deleted with the keyboard).
+- **Toasts:**
+  - Swipe a toast away. Hovering pauses it, errors stay longer, and every toast has a close button.
+  - The others glide into place when one leaves.
+- **Menus and dropdowns** grow out of the button that opened them.
+- **Switches:** the switch knob stretches while pressed.
+- **Glass bars:** the phone top bar, tab bar and AI Builder header are translucent glass; the top bar's divider appears only once content scrolls under it.
+- **Theme:** switching light and dark cross-fades instead of flashing.
+- **Accessibility:**
+  - Text follows the browser's text-size setting (rem-based type scale), and small text gets a touch more letter spacing.
+  - With "reduce motion", slides and zooms become short fades and the canvas zooms without animating.
+  - With "reduce transparency" or "increase contrast", the bars turn solid.
+
 ## [1.7.1] - 2026-10-16
 
 - Each Settings section has its own address (`/settings/updates`, `/settings/ai`, `/settings/general`…), so it can be bookmarked, shared and reloaded. Switching sections is instant and the Back button works. Old `/settings?tab=…` links still work.

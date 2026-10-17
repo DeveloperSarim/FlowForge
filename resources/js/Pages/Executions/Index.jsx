@@ -35,7 +35,7 @@ export default function Index({ executions, filters, workflows }) {
                 </Select>
                 <Tabs value={filters.status ?? ''} onChange={(value) => filter({ status: value || undefined, page: undefined })}
                     items={STATUSES.map(([value, label]) => ({ value, label }))} />
-                {inFlight && <span className="flex items-center gap-1.5 text-[12.5px] text-fg-muted"><Loader2 className="size-3.5 animate-spin" />Waiting for queued runs</span>}
+                {inFlight && <span className="flex items-center gap-1.5 text-12h text-fg-muted"><Loader2 className="size-3.5 animate-spin" />Waiting for queued runs</span>}
             </div>
 
             {executions.data.length === 0 ? (
@@ -44,8 +44,8 @@ export default function Index({ executions, filters, workflows }) {
                 </Card>
             ) : (
                 <Card className="overflow-hidden">
-                    <table className="w-full text-left text-[13.5px]">
-                        <thead className="border-b border-line bg-surface-2 text-[12.5px] text-fg-muted">
+                    <table className="w-full text-left text-13h">
+                        <thead className="border-b border-line bg-surface-2 text-12h text-fg-muted">
                             <tr>
                                 <th className="w-32 px-4 py-2.5 font-medium">Status</th>
                                 <th className="w-[45%] px-4 py-2.5 font-medium">Workflow</th>
@@ -60,8 +60,8 @@ export default function Index({ executions, filters, workflows }) {
                                     <td className="px-4 py-3"><StatusBadge status={execution.status} /></td>
                                     <td className="max-w-0 px-4 py-3">
                                         <button type="button" className="block w-full truncate text-left font-medium hover:text-primary">#{execution.id} {execution.workflow.name}</button>
-                                        {execution.error && <p className="truncate text-[12.5px] text-fail">{execution.error}</p>}
-                                        {execution.retry_at && <p className="flex items-center gap-1 text-[12px] text-fg-muted"><RotateCw className="size-3" />Tries again at {clock(execution.retry_at)}</p>}
+                                        {execution.error && <p className="truncate text-12h text-fail">{execution.error}</p>}
+                                        {execution.retry_at && <p className="flex items-center gap-1 text-12 text-fg-muted"><RotateCw className="size-3" />Tries again at {clock(execution.retry_at)}</p>}
                                     </td>
                                     <td className="hidden px-4 py-3 text-fg-muted sm:table-cell">{modeLabel(execution.mode)}{execution.attempt > 1 && <span className="text-fg-subtle">, try {execution.attempt}</span>}</td>
                                     <td className="hidden px-4 py-3 text-fg-muted md:table-cell" title={execution.created_at}>{timeAgo(execution.created_at)}</td>
@@ -74,7 +74,7 @@ export default function Index({ executions, filters, workflows }) {
             )}
 
             {executions.last_page > 1 && (
-                <nav className="mt-4 flex items-center justify-between text-[13px] text-fg-muted" aria-label="Pagination">
+                <nav className="mt-4 flex items-center justify-between text-13 text-fg-muted" aria-label="Pagination">
                     <span>Page {executions.current_page} of {executions.last_page}</span>
                     <div className="flex gap-2">
                         {executions.prev_page_url && <Link href={executions.prev_page_url} preserveState className="rounded-md border border-line px-3 py-1.5 hover:text-fg">Newer</Link>}
@@ -119,15 +119,15 @@ function DebugSheet({ id, onClose }) {
         <Sheet open={!!id} onClose={onClose}>
             <header className="flex items-center gap-3 border-b border-line px-5 py-4">
                 <div className="min-w-0 flex-1">
-                    <h2 className="truncate text-[16px] font-semibold">Run #{id}{execution && <> of {execution.workflow.name}</>}</h2>
+                    <h2 className="truncate text-16 font-semibold">Run #{id}{execution && <> of {execution.workflow.name}</>}</h2>
                     {execution && (
-                        <p className="text-[12.5px] text-fg-muted">
+                        <p className="text-12h text-fg-muted">
                             {modeLabel(execution.mode)}{execution.attempt > 1 && ` (try ${execution.attempt})`}, {timeAgo(execution.created_at)}, took {duration(execution.duration_ms)}
                         </p>
                     )}
                 </div>
                 {execution && <StatusBadge status={execution.status} />}
-                {execution && <Link href={`/workflows/${execution.workflow.id}`} className="hidden rounded-md px-2 py-1.5 text-[13px] text-fg-muted hover:bg-surface-2 hover:text-fg sm:inline">Open workflow</Link>}
+                {execution && <Link href={`/workflows/${execution.workflow.id}`} className="hidden rounded-md px-2 py-1.5 text-13 text-fg-muted hover:bg-surface-2 hover:text-fg sm:inline">Open workflow</Link>}
                 {can['workflows.edit'] && execution && execution.status !== 'pending' && execution.status !== 'running' && (execution.can_resume ? (
                     <Menu trigger={<Button size="sm"><RotateCcw className="size-3.5" />Retry<ChevronDown className="size-3.5" /></Button>} items={[
                         { label: 'From the step that failed', icon: RotateCcw, onClick: () => retry('failed') },
@@ -136,15 +136,15 @@ function DebugSheet({ id, onClose }) {
                 ) : <Button size="sm" onClick={() => retry('start')}><RotateCcw className="size-3.5" />Run again</Button>)}
                 <Button variant="ghost" size="icon" onClick={onClose} aria-label="Close"><X className="size-4" /></Button>
             </header>
-            {error && <p className="p-5 text-[13px] text-fail">{error}</p>}
-            {!execution && !error && <p className="flex items-center gap-2 p-5 text-[13px] text-fg-muted"><Loader2 className="size-4 animate-spin" />Loading run…</p>}
+            {error && <p className="p-5 text-13 text-fail">{error}</p>}
+            {!execution && !error && <p className="flex items-center gap-2 p-5 text-13 text-fg-muted"><Loader2 className="size-4 animate-spin" />Loading run…</p>}
             {execution?.retry_at && (
-                <p className="flex items-center gap-2 border-b border-line bg-surface-2 px-5 py-2.5 text-[13px] text-fg-muted">
+                <p className="flex items-center gap-2 border-b border-line bg-surface-2 px-5 py-2.5 text-13 text-fg-muted">
                     <RotateCw className="size-4 shrink-0 text-primary" />FlowForge tries again from the failed step at {clock(execution.retry_at)}. The failure email waits until every try has failed.
                 </p>
             )}
             {execution && execution.steps.length === 0 && (
-                <p className="p-5 text-[13px] text-fg-muted">{execution.status === 'pending' ? 'Queued: it starts on the next scheduler tick (at most a minute).' : execution.error ?? 'No steps were recorded.'}</p>
+                <p className="p-5 text-13 text-fg-muted">{execution.status === 'pending' ? 'Queued: it starts on the next scheduler tick (at most a minute).' : execution.error ?? 'No steps were recorded.'}</p>
             )}
             {execution && execution.steps.length > 0 && <ExecutionDebug execution={execution} />}
         </Sheet>

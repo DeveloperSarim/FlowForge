@@ -27,8 +27,8 @@ function CustomAppDialog({ open, onClose, canAi }) {
                         <button key={value} type="button" onClick={() => setMode(value)} aria-pressed={mode === value}
                             className={cn('rounded-xl border-2 px-3 py-2.5 text-left', mode === value ? 'border-primary bg-primary-soft/50' : 'border-line hover:border-line-strong')}>
                             <Icon className="mb-1 size-4 text-primary" />
-                            <span className="block text-[13.5px] font-semibold">{label}</span>
-                            <span className="block text-[12px] text-fg-muted">{hint}</span>
+                            <span className="block text-13h font-semibold">{label}</span>
+                            <span className="block text-12 text-fg-muted">{hint}</span>
                         </button>
                     )
                 ))}
@@ -42,7 +42,7 @@ function CustomAppDialog({ open, onClose, canAi }) {
             ) : (
                 <form className="space-y-3" onSubmit={(e) => { e.preventDefault(); form.post('/apps/custom'); }}>
                     <Field label="OpenAPI spec link (or the JSON / YAML itself)" error={form.errors.source}>
-                        {(id) => <Textarea id={id} rows={3} value={form.data.source} onChange={(e) => form.setData('source', e.target.value)} placeholder="https://api.example.com/openapi.json" className="font-mono text-[13px]" />}
+                        {(id) => <Textarea id={id} rows={3} value={form.data.source} onChange={(e) => form.setData('source', e.target.value)} placeholder="https://api.example.com/openapi.json" className="font-mono text-13" />}
                     </Field>
                     <Field label="App name" help="Optional. Taken from the spec when empty.">{(id) => <Input id={id} value={form.data.name} onChange={(e) => form.setData('name', e.target.value)} />}</Field>
                     <Button type="submit" variant="primary" loading={form.processing} disabled={form.data.source.trim().length < 8}>Import app</Button>
@@ -58,11 +58,11 @@ function AppCard({ app, connected }) {
             <IntegrationIcon icon={app.icon} name={app.name} size="lg" />
             <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-1.5">
-                    <p className="truncate text-[14px] font-semibold group-hover:text-primary">{app.name}</p>
+                    <p className="truncate text-14 font-semibold group-hover:text-primary">{app.name}</p>
                     {connected && <CheckCircle2 className="size-3.5 shrink-0 text-ok" aria-label="Credential added" />}
                 </div>
-                <p className="mt-0.5 line-clamp-2 text-[12.5px] leading-snug text-fg-muted">{plainText(app.description) || app.category}</p>
-                <p className="mt-2 text-[11.5px] text-fg-subtle">
+                <p className="mt-0.5 line-clamp-2 text-12h leading-snug text-fg-muted">{plainText(app.description) || app.category}</p>
+                <p className="mt-2 text-11h text-fg-subtle">
                     {app.actions.length} action{app.actions.length === 1 ? '' : 's'}{app.triggers.length ? `, ${app.triggers.length} trigger${app.triggers.length === 1 ? '' : 's'}` : ''}
                 </p>
             </div>
@@ -99,11 +99,11 @@ export default function Index({ apps, connected }) {
                             return (
                                 <li key={name}>
                                     <button type="button" onClick={() => setCategory(name)} aria-pressed={category === name}
-                                        className={cn('flex w-full items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-left text-[13px] whitespace-nowrap transition-colors',
+                                        className={cn('flex w-full items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-left text-13 whitespace-nowrap transition-colors',
                                             category === name ? 'bg-primary-soft font-medium text-primary' : 'text-fg-muted hover:bg-surface-2 hover:text-fg')}>
                                         <Icon className="size-4 shrink-0" style={category === name ? undefined : { color: meta.color }} />
                                         <span className="flex-1">{name}</span>
-                                        <span className="text-[11.5px] text-fg-subtle tabular-nums">{count}</span>
+                                        <span className="text-11h text-fg-subtle tabular-nums">{count}</span>
                                     </button>
                                 </li>
                             );
@@ -116,14 +116,14 @@ export default function Index({ apps, connected }) {
 
                     {popular.length > 0 && (
                         <section className="mb-8">
-                            <h2 className="mb-3 text-[15px] font-semibold">Popular</h2>
+                            <h2 className="mb-3 text-15 font-semibold">Popular</h2>
                             <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
                                 {popular.slice(0, 12).map((app) => <AppCard key={app.key} app={app} connected={connectedSet.has(app.key)} />)}
                             </div>
                         </section>
                     )}
 
-                    <h2 className="mb-3 text-[15px] font-semibold">{category === 'All' ? (q ? `Results for "${query}"` : 'All apps') : category} <span className="font-normal text-fg-subtle">{visible.length}</span></h2>
+                    <h2 className="mb-3 text-15 font-semibold">{category === 'All' ? (q ? `Results for "${query}"` : 'All apps') : category} <span className="font-normal text-fg-subtle">{visible.length}</span></h2>
                     {visible.length === 0 ? (
                         <Card>
                             <EmptyState icon={Blocks} title="No apps match">

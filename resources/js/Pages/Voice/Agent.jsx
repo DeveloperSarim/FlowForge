@@ -84,8 +84,8 @@ export default function Agent({ agent, credentials, variables, questions, recent
                 <AgentAvatar name={config.persona_name || form.data.name} size={52} />
                 <div className="min-w-0 flex-1">
                     <input value={form.data.name} onChange={(e) => form.setData('name', e.target.value)} disabled={!editable} aria-label="Agent name"
-                        className="-mx-1 w-full rounded-md bg-transparent px-1 text-[22px] font-semibold tracking-tight outline-none hover:bg-surface-2 focus:bg-surface-2" />
-                    <p className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[13px] text-fg-muted">
+                        className="-mx-1 w-full rounded-md bg-transparent px-1 text-22 font-semibold tracking-tight outline-none hover:bg-surface-2 focus:bg-surface-2" />
+                    <p className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-13 text-fg-muted">
                         <span className={cn('flex items-center gap-1.5 font-medium', { ok: 'text-ok', warn: 'text-warn', fail: 'text-fail', neutral: 'text-fg-muted' }[status[0]])}>
                             <span className="size-1.5 rounded-full bg-current" />{status[1]}
                         </span>
@@ -93,9 +93,9 @@ export default function Agent({ agent, credentials, variables, questions, recent
                         {agent.synced_at && !agent.problem && <span>Published {timeAgo(agent.synced_at)}</span>}
                         {form.isDirty && <span className="font-medium text-warn">Unsaved changes</span>}
                     </p>
-                    {agent.problem && <p className="mt-1 flex items-start gap-1.5 text-[12.5px] text-fail"><TriangleAlert className="mt-px size-3.5 shrink-0" />{agent.problem}</p>}
+                    {agent.problem && <p className="mt-1 flex items-start gap-1.5 text-12h text-fail"><TriangleAlert className="mt-px size-3.5 shrink-0" />{agent.problem}</p>}
                 </div>
-                <a href="#test-call" className="flex items-center gap-1.5 rounded-full bg-ok px-3.5 py-2 text-[13px] font-semibold text-white lg:hidden"><PhoneCall className="size-4" />Test call</a>
+                <a href="#test-call" className="flex items-center gap-1.5 rounded-full bg-ok px-3.5 py-2 text-13 font-semibold text-white lg:hidden"><PhoneCall className="size-4" />Test call</a>
             </header>
 
             <div className="grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-[minmax(0,1fr)_360px] xl:grid-cols-[176px_minmax(0,1fr)_360px]">
@@ -103,7 +103,7 @@ export default function Agent({ agent, credentials, variables, questions, recent
                     <ul className="sticky top-6 space-y-0.5">
                         {SECTIONS.map(([id, label, Icon]) => (
                             <li key={id}>
-                                <a href={`#${id}`} className="flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-[13.5px] font-medium text-fg-muted hover:bg-surface-2 hover:text-fg">
+                                <a href={`#${id}`} className="flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-13h font-medium text-fg-muted hover:bg-surface-2 hover:text-fg">
                                     <Icon className="size-4" /><span className="flex-1">{label}</span>
                                     {done[id] && <Check className="size-3.5 text-ok" strokeWidth={3} aria-label="Done" />}
                                 </a>
@@ -119,24 +119,24 @@ export default function Agent({ agent, credentials, variables, questions, recent
                             <Field label="Business name" help="Fills {{business_name}} in the texts.">{(id) => <Input id={id} value={config.business_name ?? ''} onChange={(e) => setConfig({ business_name: e.target.value })} placeholder="Smile Dental Clinic" />}</Field>
                         </div>
                         <div>
-                            <p className="mb-2 text-[13px] font-medium">Personality</p>
+                            <p className="mb-2 text-13 font-medium">Personality</p>
                             <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                                 {TONES.map(([value, label, hint]) => (
                                     <button key={value} type="button" onClick={() => setConfig({ tone: value })} aria-pressed={config.tone === value}
                                         className={cn('rounded-xl border-2 px-3 py-2.5 text-left transition-colors', config.tone === value ? 'border-primary bg-primary-soft/50' : 'border-line hover:border-line-strong')}>
-                                        <span className="block text-[13.5px] font-semibold">{label}</span>
-                                        <span className="block text-[12px] text-fg-muted">{hint}</span>
+                                        <span className="block text-13h font-semibold">{label}</span>
+                                        <span className="block text-12 text-fg-muted">{hint}</span>
                                     </button>
                                 ))}
                             </div>
                         </div>
                         <div className="flex flex-wrap items-end gap-4">
                             <div>
-                                <p className="mb-2 text-[13px] font-medium">Reply length</p>
+                                <p className="mb-2 text-13 font-medium">Reply length</p>
                                 <div className="inline-flex rounded-lg bg-surface-2 p-0.5" role="radiogroup" aria-label="Reply length">
                                     {LENGTHS.map(([value, label]) => (
                                         <button key={value} type="button" role="radio" aria-checked={config.verbosity === value} onClick={() => setConfig({ verbosity: value })}
-                                            className={cn('rounded-md px-3.5 py-1.5 text-[13px] font-medium', config.verbosity === value ? 'bg-surface text-fg shadow-card' : 'text-fg-muted hover:text-fg')}>{label}</button>
+                                            className={cn('rounded-md px-3.5 py-1.5 text-13 font-medium', config.verbosity === value ? 'bg-surface text-fg shadow-card' : 'text-fg-muted hover:text-fg')}>{label}</button>
                                     ))}
                                 </div>
                             </div>
@@ -152,18 +152,18 @@ export default function Agent({ agent, credentials, variables, questions, recent
                             {(id) => (
                                 <div className="space-y-2">
                                     <Textarea id={id} rows={2} value={config.first_message ?? ''} onChange={(e) => setConfig({ first_message: e.target.value })} />
-                                    <div className="flex flex-wrap items-center gap-1.5 text-[12px] text-fg-subtle">
+                                    <div className="flex flex-wrap items-center gap-1.5 text-12 text-fg-subtle">
                                         Insert:
                                         {['business_name', 'customer_name', ...variables.filter((v) => v !== 'customer_name')].map((v) => (
                                             <button key={v} type="button" onClick={() => setConfig({ first_message: `${config.first_message ?? ''}{{${v}}}` })}
-                                                className="rounded-md border border-line px-1.5 py-0.5 font-mono text-[11.5px] text-fg-muted hover:border-line-strong hover:text-fg">{`{{${v}}}`}</button>
+                                                className="rounded-md border border-line px-1.5 py-0.5 font-mono text-11h text-fg-muted hover:border-line-strong hover:text-fg">{`{{${v}}}`}</button>
                                         ))}
                                     </div>
                                 </div>
                             )}
                         </Field>
                         <Field label="Instructions" error={form.errors['config.instructions']} help="Its job, what it should find out, and what it must never do. Phone manners and booking rules are added for you.">
-                            {(id) => <Textarea id={id} rows={13} value={config.instructions ?? ''} onChange={(e) => setConfig({ instructions: e.target.value })} className="text-[13.5px] leading-relaxed" />}
+                            {(id) => <Textarea id={id} rows={13} value={config.instructions ?? ''} onChange={(e) => setConfig({ instructions: e.target.value })} className="text-13h leading-relaxed" />}
                         </Field>
                     </Section>
 
@@ -184,9 +184,9 @@ export default function Agent({ agent, credentials, variables, questions, recent
                                 <Field label="Each appointment lasts">
                                     {(id) => <Select id={id} value={config.booking.duration ?? 30} onChange={(e) => setBooking({ duration: Number(e.target.value) })}>{DURATIONS.map((d) => <option key={d} value={d}>{d < 60 ? `${d} minutes` : `${d / 60} hour${d > 60 ? 's' : ''}`}</option>)}</Select>}
                                 </Field>
-                                <label className="flex items-center gap-2.5 text-[13.5px] sm:col-span-2"><Switch size="sm" checked={!!config.booking.ask_email} onChange={(v) => setBooking({ ask_email: v })} label="Ask for email" />Also ask for an email address</label>
+                                <label className="flex items-center gap-2.5 text-13h sm:col-span-2"><Switch size="sm" checked={!!config.booking.ask_email} onChange={(v) => setBooking({ ask_email: v })} label="Ask for email" />Also ask for an email address</label>
                             </div>
-                        ) : <p className="text-[13px] text-fg-subtle">Off. The agent won't book anything.</p>}
+                        ) : <p className="text-13 text-fg-subtle">Off. The agent won't book anything.</p>}
                     </Section>
 
                     <Section id="capture" title="Capture" hint="Pulled from every call and shown with it. Workflows get them too.">
@@ -213,14 +213,14 @@ export default function Agent({ agent, credentials, variables, questions, recent
                     {agent.provider !== 'browser' && editable && <CallCard agent={agent} variables={variables} dirty={form.isDirty} />}
                     <Card className="p-4">
                         <div className="mb-2 flex items-center justify-between">
-                            <h2 className="text-[14px] font-semibold">Recent calls</h2>
-                            <Link href={`/voice/calls?agent=${agent.id}`} className="text-[12.5px] font-medium text-primary hover:underline">All calls</Link>
+                            <h2 className="text-14 font-semibold">Recent calls</h2>
+                            <Link href={`/voice/calls?agent=${agent.id}`} className="text-12h font-medium text-primary hover:underline">All calls</Link>
                         </div>
-                        {recentCalls.length === 0 ? <p className="text-[13px] text-fg-subtle">Calls and test calls show up here.</p> : (
+                        {recentCalls.length === 0 ? <p className="text-13 text-fg-subtle">Calls and test calls show up here.</p> : (
                             <ul className="-mx-2">
                                 {recentCalls.map((c) => (
                                     <li key={c.id}>
-                                        <button type="button" onClick={() => setOpenCall(c.id)} className="flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-left text-[13px] hover:bg-surface-2">
+                                        <button type="button" onClick={() => setOpenCall(c.id)} className="flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-left text-13 hover:bg-surface-2">
                                             <DirectionIcon direction={c.direction} />
                                             <span className="min-w-0 flex-1 truncate">{c.direction === 'web' ? 'Test call' : (c.direction === 'inbound' ? c.from : c.to) ?? 'Call'}<span className="ml-2 text-fg-subtle">{when(c.started_at, timezone)}</span></span>
                                             <CallStatus status={c.status} />
@@ -245,8 +245,8 @@ function Section({ id, title, hint, aside, children }) {
         <Card id={id} className="scroll-mt-6 space-y-4 p-5 sm:p-6">
             <div className="flex items-start justify-between gap-4">
                 <div>
-                    <h2 className="text-[16px] font-semibold tracking-tight">{title}</h2>
-                    {hint && <p className="mt-0.5 text-[13px] text-fg-muted">{hint}</p>}
+                    <h2 className="text-16 font-semibold tracking-tight">{title}</h2>
+                    {hint && <p className="mt-0.5 text-13 text-fg-muted">{hint}</p>}
                 </div>
                 {aside}
             </div>
@@ -260,7 +260,7 @@ function FaqList({ faqs, questions, onChange }) {
     const unused = (questions ?? []).filter((q) => !faqs.some((f) => f.q === q));
     return (
         <div className="space-y-3">
-            <p className="text-[13px] font-medium">Questions callers ask</p>
+            <p className="text-13 font-medium">Questions callers ask</p>
             {faqs.map((f, i) => (
                 <div key={i} className="space-y-2 rounded-xl border border-line p-3">
                     <div className="flex gap-2">
@@ -273,7 +273,7 @@ function FaqList({ faqs, questions, onChange }) {
             <div className="flex flex-wrap items-center gap-1.5">
                 <Button size="sm" variant="ghost" onClick={() => onChange([...faqs, { q: '', a: '' }])}><Plus className="size-3.5" />Add a question</Button>
                 {unused.map((q) => (
-                    <button key={q} type="button" onClick={() => onChange([...faqs, { q, a: '' }])} className="rounded-full border border-dashed border-line px-2.5 py-1 text-[12px] text-fg-muted hover:border-primary hover:text-primary">+ {q}</button>
+                    <button key={q} type="button" onClick={() => onChange([...faqs, { q, a: '' }])} className="rounded-full border border-dashed border-line px-2.5 py-1 text-12 text-fg-muted hover:border-primary hover:text-primary">+ {q}</button>
                 ))}
             </div>
         </div>
@@ -323,7 +323,7 @@ function WebhookList({ agent, webhooks, secret, log, timezone, onChange }) {
 
     return (
         <div className="space-y-3">
-            {webhooks.length === 0 && <p className="text-[13px] text-fg-subtle">No webhooks yet. Add one to send calls or bookings to another app the moment they happen.</p>}
+            {webhooks.length === 0 && <p className="text-13 text-fg-subtle">No webhooks yet. Add one to send calls or bookings to another app the moment they happen.</p>}
             {webhooks.map((w, i) => (
                 <div key={i} className="space-y-2.5 rounded-xl border border-line p-3">
                     <div className="flex gap-2">
@@ -332,7 +332,7 @@ function WebhookList({ agent, webhooks, secret, log, timezone, onChange }) {
                     </div>
                     <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
                         {WEBHOOK_EVENTS.map(([event, label]) => (
-                            <label key={event} className="flex items-center gap-2 text-[13px]">
+                            <label key={event} className="flex items-center gap-2 text-13">
                                 <input type="checkbox" checked={(w.events ?? []).includes(event)} onChange={() => toggle(i, event)} className="size-4 accent-[var(--primary)]" />{label}
                             </label>
                         ))}
@@ -343,26 +343,26 @@ function WebhookList({ agent, webhooks, secret, log, timezone, onChange }) {
             {webhooks.length < 5 && <Button size="sm" variant="ghost" onClick={() => onChange([...webhooks, { url: '', events: ['call_ended', 'booking_created'] }])}><Plus className="size-3.5" />Add a webhook</Button>}
 
             {secret && (
-                <div className="space-y-1.5 rounded-xl bg-surface-2/70 p-3 text-[12.5px]">
+                <div className="space-y-1.5 rounded-xl bg-surface-2/70 p-3 text-12h">
                     <p className="font-medium text-fg">Signing secret</p>
                     <div className="flex items-center gap-2">
-                        <code className="min-w-0 flex-1 truncate rounded-md bg-surface px-2 py-1 font-mono text-[12px]">{secret}</code>
+                        <code className="min-w-0 flex-1 truncate rounded-md bg-surface px-2 py-1 font-mono text-12">{secret}</code>
                         <Button size="sm" variant="ghost" onClick={copySecret}><Copy className="size-3.5" />Copy</Button>
                     </div>
                     <p className="text-fg-muted">Each request has an <code className="font-mono">X-FlowForge-Signature: sha256=…</code> header: the HMAC-SHA256 of the raw body with this secret. Check it on your server to know the data came from FlowForge.</p>
                 </div>
             )}
 
-            <details className="text-[13px]">
+            <details className="text-13">
                 <summary className="cursor-pointer text-fg-muted">What gets sent</summary>
-                <pre className="mt-2 overflow-x-auto rounded-xl bg-surface-2/70 p-3 font-mono text-[12px] leading-relaxed">{WEBHOOK_SAMPLE}</pre>
-                <p className="mt-1.5 text-[12px] text-fg-subtle">Details you capture on this agent (like an order or a budget) are in <code className="font-mono">call.data</code>. A failed delivery is tried again after 1, 5 and 30 minutes.</p>
+                <pre className="mt-2 overflow-x-auto rounded-xl bg-surface-2/70 p-3 font-mono text-12 leading-relaxed">{WEBHOOK_SAMPLE}</pre>
+                <p className="mt-1.5 text-12 text-fg-subtle">Details you capture on this agent (like an order or a budget) are in <code className="font-mono">call.data</code>. A failed delivery is tried again after 1, 5 and 30 minutes.</p>
             </details>
 
             {log.length > 0 && (
                 <div>
-                    <p className="mb-1 text-[13px] font-medium">Recent deliveries</p>
-                    <ul className="divide-y divide-line rounded-xl border border-line text-[12.5px]">
+                    <p className="mb-1 text-13 font-medium">Recent deliveries</p>
+                    <ul className="divide-y divide-line rounded-xl border border-line text-12h">
                         {log.slice(0, 8).map((entry, i) => (
                             <li key={i} className="flex flex-wrap items-center gap-x-3 gap-y-0.5 px-3 py-2">
                                 <span className={cn('font-semibold', entry.error ? 'text-fail' : 'text-ok')}>{entry.error ? 'Failed' : `HTTP ${entry.status}`}</span>
@@ -475,19 +475,19 @@ function PhoneSetup({ agent, form, config, setConfig, credentials }) {
                 {Object.entries(PROVIDER_INFO).map(([key, p]) => (
                     <button key={key} type="button" onClick={() => choose(key)} aria-pressed={provider === key}
                         className={cn('rounded-xl border-2 px-3.5 py-3 text-left transition-colors', provider === key ? 'border-primary bg-primary-soft/50' : 'border-line hover:border-line-strong')}>
-                        <span className="flex items-center gap-2 text-[14px] font-semibold">
+                        <span className="flex items-center gap-2 text-14 font-semibold">
                             {key === 'browser' ? <Laptop className="size-4" /> : <PhoneCall className="size-4" />}{p.title}
-                            {p.badge && <span className="ml-auto rounded-md bg-ok-soft px-1.5 py-0.5 text-[11px] font-semibold text-ok">{p.badge}</span>}
+                            {p.badge && <span className="ml-auto rounded-md bg-ok-soft px-1.5 py-0.5 text-11 font-semibold text-ok">{p.badge}</span>}
                         </span>
-                        <span className="mt-1 block text-[12px] leading-snug text-fg-muted">{p.text}</span>
+                        <span className="mt-1 block text-12 leading-snug text-fg-muted">{p.text}</span>
                     </button>
                 ))}
             </div>
 
             {provider === 'browser' ? (
                 <div>
-                    <p className="mb-2 text-[13px] font-medium">Test-call voice</p>
-                    {browserVoices.length === 0 ? <p className="text-[13px] text-fg-subtle">Your browser has no {LANGUAGES.find(([c]) => c === config.language)?.[1] ?? ''} voices, so replies show as text.</p> : (
+                    <p className="mb-2 text-13 font-medium">Test-call voice</p>
+                    {browserVoices.length === 0 ? <p className="text-13 text-fg-subtle">Your browser has no {LANGUAGES.find(([c]) => c === config.language)?.[1] ?? ''} voices, so replies show as text.</p> : (
                         <div className="grid grid-cols-[minmax(0,1fr)] gap-2 sm:grid-cols-2">
                             {browserVoices.slice(0, 8).map((v) => (
                                 <VoiceOption key={v.name} name={v.name.replace(/\s*\(.*\)$/, '')} description={v.lang} selected={(config.browser_voice || browserVoices[0]?.name) === v.name}
@@ -495,12 +495,12 @@ function PhoneSetup({ agent, form, config, setConfig, credentials }) {
                             ))}
                         </div>
                     )}
-                    <p className="mt-2 text-[12px] text-fg-subtle">Only for test calls in this browser. Real calls use the provider's voice.</p>
+                    <p className="mt-2 text-12 text-fg-subtle">Only for test calls in this browser. Real calls use the provider's voice.</p>
                 </div>
             ) : (
                 <>
-                    <ol className="space-y-1.5 rounded-xl bg-surface-2/70 p-4 text-[12.5px] text-fg-muted">
-                        {info.steps.map((s, i) => <li key={s} className="flex gap-2.5"><span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-surface text-[11px] font-semibold text-fg">{i + 1}</span>{s}</li>)}
+                    <ol className="space-y-1.5 rounded-xl bg-surface-2/70 p-4 text-12h text-fg-muted">
+                        {info.steps.map((s, i) => <li key={s} className="flex gap-2.5"><span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-surface text-11 font-semibold text-fg">{i + 1}</span>{s}</li>)}
                         <li className="pl-7"><a href={info.link} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 font-medium text-primary hover:underline">Open {info.title}<ExternalLink className="size-3" /></a></li>
                     </ol>
                     <div className="grid grid-cols-[minmax(0,1fr)] gap-4 sm:grid-cols-2">
@@ -528,23 +528,23 @@ function PhoneSetup({ agent, form, config, setConfig, credentials }) {
                     </div>
                     {provider === 'elevenlabs' ? (
                         <div>
-                            <p className="mb-2 text-[13px] font-medium">Voice</p>
+                            <p className="mb-2 text-13 font-medium">Voice</p>
                             <div className="flex flex-wrap items-center gap-3 rounded-xl border border-line p-3">
                                 <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary-soft text-primary"><AudioLines className="size-5" /></span>
                                 <div className="min-w-0 flex-1">
-                                    <p className="truncate text-[13.5px] font-semibold">{config.voice_name || (config.voice ? 'Your chosen voice' : 'Rachel')}</p>
-                                    <p className="text-[12px] text-fg-muted">{config.voice ? 'ElevenLabs voice. Test calls use it too.' : 'Default ElevenLabs voice'}</p>
+                                    <p className="truncate text-13h font-semibold">{config.voice_name || (config.voice ? 'Your chosen voice' : 'Rachel')}</p>
+                                    <p className="text-12 text-fg-muted">{config.voice ? 'ElevenLabs voice. Test calls use it too.' : 'Default ElevenLabs voice'}</p>
                                 </div>
                                 <Button size="sm" onClick={() => setPicking(true)} disabled={!form.data.credential_id}><Search className="size-3.5" />Choose a voice</Button>
                             </div>
-                            {!form.data.credential_id && <p className="mt-1.5 text-[12px] text-fg-subtle">Choose your ElevenLabs account first.</p>}
+                            {!form.data.credential_id && <p className="mt-1.5 text-12 text-fg-subtle">Choose your ElevenLabs account first.</p>}
                             <VoicePicker open={picking} onClose={() => setPicking(false)} agent={agent} credentialId={form.data.credential_id} language={config.language} current={config.voice}
                                 onPick={(id, name) => { setConfig({ voice: id, voice_name: name }); setPicking(false); }} />
                         </div>
                     ) : (
                     <div>
                         <div className="mb-2 flex items-center justify-between gap-2">
-                            <p className="text-[13px] font-medium">Voice{config.voice && <span className="ml-2 font-normal text-fg-muted">{voices?.find((v) => v.id === config.voice)?.name ?? config.voice}</span>}</p>
+                            <p className="text-13 font-medium">Voice{config.voice && <span className="ml-2 font-normal text-fg-muted">{voices?.find((v) => v.id === config.voice)?.name ?? config.voice}</span>}</p>
                             <Button size="sm" onClick={() => fetchList('voices')} disabled={loading === 'voices'}>
                                 {loading === 'voices' ? <Loader2 className="size-3.5 animate-spin" /> : <Volume2 className="size-3.5" />}Browse voices
                             </Button>
@@ -557,7 +557,7 @@ function PhoneSetup({ agent, form, config, setConfig, credentials }) {
                                 ))}
                             </div>
                         )}
-                        {!voices && <p className="text-[12.5px] text-fg-subtle">{config.voice ? 'Browse to change it.' : 'Default: Elliot.'} Test calls in the browser use your browser's voice.</p>}
+                        {!voices && <p className="text-12h text-fg-subtle">{config.voice ? 'Browse to change it.' : 'Default: Elliot.'} Test calls in the browser use your browser's voice.</p>}
                     </div>
                     )}
                     <Field label="AI model" help={`Optional. Empty uses ${info.model}.`}>{(id) => <Input id={id} value={config.llm ?? ''} onChange={(e) => setConfig({ llm: e.target.value })} placeholder={info.model} className="sm:w-72" />}</Field>
@@ -576,10 +576,10 @@ function VoiceOption({ name, description, selected, playing, busy, badge, onSele
                 </button>
             ) : <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-surface-2 text-fg-subtle"><Volume2 className="size-3.5" /></span>}
             <button type="button" onClick={onSelect} disabled={busy} className="min-w-0 flex-1 text-left">
-                <span className="block truncate text-[13px] font-semibold">{name}</span>
-                {description && <span className="block truncate text-[11.5px] text-fg-muted">{description}</span>}
+                <span className="block truncate text-13 font-semibold">{name}</span>
+                {description && <span className="block truncate text-11h text-fg-muted">{description}</span>}
             </button>
-            {badge && <span className="shrink-0 rounded-md bg-surface-2 px-1.5 py-0.5 text-[10.5px] font-medium text-fg-muted">{badge}</span>}
+            {badge && <span className="shrink-0 rounded-md bg-surface-2 px-1.5 py-0.5 text-10h font-medium text-fg-muted">{badge}</span>}
             {busy ? <Loader2 className="size-4 shrink-0 animate-spin text-primary" /> : selected && <CheckCircle2 className="size-4 shrink-0 text-primary" />}
         </div>
     );
@@ -654,7 +654,7 @@ function VoicePicker({ open, onClose, agent, credentialId, language, current, on
             setAdding(null);
         }
     };
-    const chip = (active) => cn('shrink-0 rounded-full border px-3 py-1 text-[12.5px] font-medium', active ? 'border-fg bg-fg text-bg' : 'border-line text-fg-muted hover:text-fg');
+    const chip = (active) => cn('shrink-0 rounded-full border px-3 py-1 text-12h font-medium', active ? 'border-fg bg-fg text-bg' : 'border-line text-fg-muted hover:text-fg');
 
     return (
         <Dialog open={open} onClose={close} title="Choose a voice" description="Play a sample, then pick the voice your agent speaks with on calls and test calls." wide>
@@ -663,7 +663,7 @@ function VoicePicker({ open, onClose, agent, credentialId, language, current, on
                     <div className="inline-flex rounded-lg bg-surface-2 p-0.5" role="radiogroup" aria-label="Where to look">
                         {[['library', 'Voice library'], ['mine', 'My voices']].map(([value, label]) => (
                             <button key={value} type="button" role="radio" aria-checked={source === value} onClick={() => setSource(value)}
-                                className={cn('rounded-md px-3 py-1.5 text-[13px] font-medium', source === value ? 'bg-surface text-fg shadow-card' : 'text-fg-muted hover:text-fg')}>{label}</button>
+                                className={cn('rounded-md px-3 py-1.5 text-13 font-medium', source === value ? 'bg-surface text-fg shadow-card' : 'text-fg-muted hover:text-fg')}>{label}</button>
                         ))}
                     </div>
                     {source === 'library' && (
@@ -685,12 +685,12 @@ function VoicePicker({ open, onClose, agent, credentialId, language, current, on
                     </div>
                 )}
                 {source === 'library' && (
-                    <p className="rounded-lg bg-surface-2 px-3 py-2 text-[12.5px] text-fg-muted">
+                    <p className="rounded-lg bg-surface-2 px-3 py-2 text-12h text-fg-muted">
                         On ElevenLabs' free plan, library voices don't work in calls. Picking one tests it first. <button type="button" onClick={() => setSource('mine')} className="font-medium text-primary hover:underline">Show the default voices</button>
                     </p>
                 )}
 
-                {error && <p className="rounded-lg bg-fail-soft px-3 py-2 text-[13px] text-fail">{error}</p>}
+                {error && <p className="rounded-lg bg-fail-soft px-3 py-2 text-13 text-fail">{error}</p>}
                 <div className="grid max-h-[52dvh] grid-cols-[minmax(0,1fr)] content-start gap-2 overflow-y-auto pr-1 sm:grid-cols-2">
                     {voices.map((v) => (
                         <VoiceOption key={`${v.owner ?? 'mine'}-${v.id}`} name={v.name} description={v.description || (v.language && languageName(v.language))} selected={current === v.id}
@@ -698,14 +698,14 @@ function VoicePicker({ open, onClose, agent, credentialId, language, current, on
                     ))}
                     {loading && Array.from({ length: voices.length ? 2 : 6 }, (_, i) => <div key={`s${i}`} className="h-[52px] animate-pulse rounded-xl bg-surface-2" />)}
                     {!loading && !error && voices.length === 0 && (
-                        <div className="py-8 text-center text-[13px] text-fg-muted sm:col-span-2">
+                        <div className="py-8 text-center text-13 text-fg-muted sm:col-span-2">
                             <p>{source === 'mine' ? 'No voices in your ElevenLabs account match.' : `No ${lang ? `${languageName(lang)} ` : ''}voices match.`}</p>
                             {source === 'library' && lang && <Button size="sm" className="mt-3" onClick={() => setLang('')}>Search all languages</Button>}
                         </div>
                     )}
                 </div>
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                    <p className="text-[12px] text-fg-subtle">Any voice can speak the agent's language. Voices made for it sound the most natural.</p>
+                    <p className="text-12 text-fg-subtle">Any voice can speak the agent's language. Voices made for it sound the most natural.</p>
                     {more && !loading && <Button size="sm" onClick={() => load(page + 1)}>Show more voices</Button>}
                 </div>
             </div>
@@ -735,10 +735,10 @@ function RewriteDialog({ open, onClose, onDone, hasAi }) {
             {hasAi ? (
                 <div className="space-y-3">
                     <Textarea rows={5} value={text} onChange={(e) => setText(e.target.value)} placeholder="Calls people who filled in our website form, finds out what they need and their budget, then books a call with our sales team." aria-label="Describe the agent" />
-                    {error && <p className="rounded-lg bg-fail-soft px-3 py-2 text-[13px] text-fail">{error}</p>}
+                    {error && <p className="rounded-lg bg-fail-soft px-3 py-2 text-13 text-fail">{error}</p>}
                     <Button variant="primary" onClick={run} disabled={busy || text.trim().length < 10}>{busy ? <Loader2 className="size-4 animate-spin" /> : <Sparkles className="size-4" />}{busy ? 'Writing…' : 'Rewrite'}</Button>
                 </div>
-            ) : <p className="text-[13px] text-fg-muted">Add an AI provider under <Link href="/settings/ai" className="font-medium text-primary hover:underline">Settings → AI builder</Link> first.</p>}
+            ) : <p className="text-13 text-fg-muted">Add an AI provider under <Link href="/settings/ai" className="font-medium text-primary hover:underline">Settings → AI builder</Link> first.</p>}
         </Dialog>
     );
 }
@@ -951,23 +951,23 @@ function CallSimulator({ agent, config, variables, dirty, hasAi, onSave }) {
 
     return (
         <section className="overflow-hidden rounded-[28px] bg-[#16181d] text-white shadow-pop" aria-label="Test call">
-            <div className="flex items-center justify-between px-5 pt-4 text-[12px] text-white/55">
+            <div className="flex items-center justify-between px-5 pt-4 text-12 text-white/55">
                 <span className="flex items-center gap-1.5"><span className={cn('size-1.5 rounded-full', inCall ? 'bg-ok' : 'bg-white/30')} />{inCall ? 'On a test call' : 'Test call'}</span>
                 <span className="tabular-nums">{inCall || state === 'ending' ? clock : cloudVoice ? 'ElevenLabs voice' : 'Free'}</span>
             </div>
 
             <div className="flex flex-col items-center px-5 pt-3 pb-2 text-center">
-                <p className="text-[17px] font-semibold tracking-tight">{config.persona_name || agent.name}</p>
-                <p className="text-[12.5px] text-white/55">{config.business_name || 'Your business'}</p>
+                <p className="text-17 font-semibold tracking-tight">{config.persona_name || agent.name}</p>
+                <p className="text-12h text-white/55">{config.business_name || 'Your business'}</p>
                 <div className="my-2">
                     <VoiceOrb state={state === 'listening' ? 'listening' : state === 'thinking' || state === 'starting' ? 'thinking' : state === 'speaking' ? 'speaking' : 'idle'}
                         level={level} size={170} label={inCall ? null : (config.persona_name || agent.name || '?').charAt(0).toUpperCase()} />
                 </div>
-                <p className="h-5 text-[13px] font-medium text-white/80" aria-live="polite">{statusText}</p>
+                <p className="h-5 text-13 font-medium text-white/80" aria-live="polite">{statusText}</p>
             </div>
 
             {blocked ? (
-                <div className="mx-4 mb-5 rounded-2xl bg-white/[0.07] px-4 py-3 text-[13px] text-white/80">
+                <div className="mx-4 mb-5 rounded-2xl bg-white/[0.07] px-4 py-3 text-13 text-white/80">
                     {!hasAi
                         ? <>Test calls use the AI model from <Link href="/settings/ai" className="font-semibold text-white underline-offset-2 hover:underline">Settings → AI builder</Link>. Gemini and DeepSeek are free or very cheap.</>
                         : <>Save your changes to hear them. <button type="button" onClick={onSave} className="font-semibold text-white underline-offset-2 hover:underline">Save now</button></>}
@@ -978,24 +978,24 @@ function CallSimulator({ agent, config, variables, dirty, hasAi, onSave }) {
                         <div className="mx-4 mb-3 grid grid-cols-[minmax(0,1fr)] gap-2">
                             {variables.map((v) => (
                                 <input key={v} value={values[v] ?? ''} onChange={(e) => setValues({ ...values, [v]: e.target.value })} placeholder={v.replaceAll('_', ' ').replace(/^\w/, (c) => c.toUpperCase())}
-                                    aria-label={v.replaceAll('_', ' ')} className="h-9 rounded-xl bg-white/[0.08] px-3 text-[13px] text-white placeholder:text-white/40 outline-none focus:ring-2 focus:ring-primary" />
+                                    aria-label={v.replaceAll('_', ' ')} className="h-9 rounded-xl bg-white/[0.08] px-3 text-13 text-white placeholder:text-white/40 outline-none focus:ring-2 focus:ring-primary" />
                             ))}
                         </div>
                     )}
 
                     {(turns.length > 0 || inCall) && (
                         <div ref={scroller} className="mx-4 mb-3 max-h-64 space-y-2 overflow-y-auto rounded-2xl bg-white/[0.04] p-3">
-                            {turns.length === 0 && <p className="text-center text-[12.5px] text-white/40">The conversation appears here.</p>}
+                            {turns.length === 0 && <p className="text-center text-12h text-white/40">The conversation appears here.</p>}
                             {turns.map((t, i) => (
                                 <div key={i} className={cn('flex', t.role === 'user' ? 'justify-end' : 'justify-start')}>
-                                    <span className={cn('max-w-[85%] rounded-2xl px-3 py-1.5 text-[13px] leading-snug', t.role === 'user' ? 'rounded-br-md bg-primary text-primary-fg' : 'rounded-bl-md bg-white/10 text-white')}>{t.text}</span>
+                                    <span className={cn('max-w-[85%] rounded-2xl px-3 py-1.5 text-13 leading-snug', t.role === 'user' ? 'rounded-br-md bg-primary text-primary-fg' : 'rounded-bl-md bg-white/10 text-white')}>{t.text}</span>
                                 </div>
                             ))}
                         </div>
                     )}
 
                     {booking && (
-                        <div className="mx-4 mb-3 flex items-start gap-2 rounded-2xl bg-ok/20 px-3 py-2 text-[12.5px] text-white">
+                        <div className="mx-4 mb-3 flex items-start gap-2 rounded-2xl bg-ok/20 px-3 py-2 text-12h text-white">
                             <CalendarCheck className="mt-0.5 size-4 shrink-0 text-ok" /><span><strong>Booked</strong> {booking.name}, {booking.when}</span>
                         </div>
                     )}
@@ -1003,14 +1003,14 @@ function CallSimulator({ agent, config, variables, dirty, hasAi, onSave }) {
                     {inCall && typing && (
                         <form className="mx-4 mb-3 flex gap-2" onSubmit={(e) => { e.preventDefault(); const t = typed; setTyped(''); send(t); }}>
                             <input value={typed} onChange={(e) => setTyped(e.target.value)} autoFocus placeholder="Type what the caller says…" aria-label="Your reply"
-                                className="h-10 min-w-0 flex-1 rounded-xl bg-white/[0.08] px-3 text-[13px] text-white placeholder:text-white/40 outline-none focus:ring-2 focus:ring-primary" />
+                                className="h-10 min-w-0 flex-1 rounded-xl bg-white/[0.08] px-3 text-13 text-white placeholder:text-white/40 outline-none focus:ring-2 focus:ring-primary" />
                             <button type="submit" disabled={!typed.trim()} className="flex size-10 items-center justify-center rounded-xl bg-primary disabled:opacity-40" aria-label="Send"><Send className="size-4" /></button>
                         </form>
                     )}
 
-                    {error && <p className="mx-4 mb-3 rounded-xl bg-fail/25 px-3 py-2 text-[12.5px] text-white">{error}</p>}
+                    {error && <p className="mx-4 mb-3 rounded-xl bg-fail/25 px-3 py-2 text-12h text-white">{error}</p>}
                     {result && !inCall && (
-                        <div className="mx-4 mb-3 rounded-2xl bg-white/[0.06] px-3.5 py-3 text-[12.5px]">
+                        <div className="mx-4 mb-3 rounded-2xl bg-white/[0.06] px-3.5 py-3 text-12h">
                             <p className="font-semibold">Saved to Calls{result.duration != null && `, ${seconds(result.duration)}`}</p>
                             {result.summary && <p className="mt-1 text-white/70">{result.summary}</p>}
                         </div>
@@ -1061,10 +1061,10 @@ function CallCard({ agent, variables, dirty }) {
     return (
         <Card className="space-y-3 p-4">
             <div>
-                <h2 className="text-[14px] font-semibold">Call a real number</h2>
-                <p className="mt-0.5 text-[12.5px] text-fg-muted">The agent calls this number now. For automatic calls, use the "Call a phone number" step in a workflow.</p>
+                <h2 className="text-14 font-semibold">Call a real number</h2>
+                <p className="mt-0.5 text-12h text-fg-muted">The agent calls this number now. For automatic calls, use the "Call a phone number" step in a workflow.</p>
             </div>
-            {!ready && <p className="rounded-lg bg-surface-2 px-3 py-2 text-[12.5px] text-fg-muted">{dirty ? 'Save your changes first.' : 'Pick an account and a phone number under Voice & phone, then save.'}</p>}
+            {!ready && <p className="rounded-lg bg-surface-2 px-3 py-2 text-12h text-fg-muted">{dirty ? 'Save your changes first.' : 'Pick an account and a phone number under Voice & phone, then save.'}</p>}
             <Input value={to} onChange={(e) => setTo(e.target.value)} placeholder="+923001234567" inputMode="tel" disabled={!ready} aria-label="Number to call" />
             {variables.map((v) => <Input key={v} value={values[v] ?? ''} onChange={(e) => setValues({ ...values, [v]: e.target.value })} placeholder={v.replaceAll('_', ' ')} disabled={!ready} aria-label={v.replaceAll('_', ' ')} />)}
             <Button variant="primary" onClick={call} disabled={!ready || busy || to.trim().length < 8} className="w-full justify-center">{busy ? <Loader2 className="size-4 animate-spin" /> : <PhoneCall className="size-4" />}Call now</Button>

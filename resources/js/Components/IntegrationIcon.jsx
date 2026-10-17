@@ -41,7 +41,7 @@ export default function IntegrationIcon({ icon, name, size = 'md', bare = false,
 
 /** Up to two app logos and a "+N" chip, in a fixed width so the text next to it lines up. */
 export function AppStack({ apps, size = 'sm' }) {
-    const box = size === 'md' ? 'size-9 rounded-lg text-[12px]' : 'size-7 rounded-md text-[11px]';
+    const box = size === 'md' ? 'size-9 rounded-lg text-12' : 'size-7 rounded-md text-11';
     return (
         <div className={cn('flex shrink-0 -space-x-2', size === 'md' ? 'w-[92px]' : 'w-[68px]')}>
             {apps.slice(0, 2).map((app) => <IntegrationIcon key={app.key} icon={app.icon} name={app.name} size={size} className="ring-2 ring-surface" />)}

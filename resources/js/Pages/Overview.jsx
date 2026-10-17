@@ -10,15 +10,15 @@ import { cn, compact, duration, timeAgo } from '@/lib/utils';
 import { useCan } from '@/lib/can';
 
 function Delta({ current, previous, upIsGood = true, format = (v) => v }) {
-    if (!previous && !current) return <span className="text-[12px] text-fg-subtle">No runs in either week</span>;
-    if (!previous) return <span className="text-[12px] text-fg-subtle">vs none the week before</span>;
+    if (!previous && !current) return <span className="text-12 text-fg-subtle">No runs in either week</span>;
+    if (!previous) return <span className="text-12 text-fg-subtle">vs none the week before</span>;
     const change = ((current - previous) / previous) * 100;
-    if (Math.abs(change) < 0.5) return <span className="text-[12px] text-fg-subtle">Same as last week</span>;
+    if (Math.abs(change) < 0.5) return <span className="text-12 text-fg-subtle">Same as last week</span>;
     const up = change > 0;
     const good = up === upIsGood;
     const Arrow = up ? ArrowUpRight : ArrowDownRight;
     return (
-        <span className="flex items-center gap-1 text-[12px]">
+        <span className="flex items-center gap-1 text-12">
             <span className={cn('inline-flex items-center gap-0.5 rounded-md px-1 font-medium', good ? 'bg-ok-soft text-ok' : 'bg-fail-soft text-fail')}>
                 <Arrow className="size-3" />{Math.abs(change).toFixed(change > -10 && change < 10 ? 1 : 0)}%
             </span>
@@ -30,8 +30,8 @@ function Delta({ current, previous, upIsGood = true, format = (v) => v }) {
 function Stat({ label, value, children }) {
     return (
         <div className="px-5 py-4">
-            <p className="text-[13px] text-fg-muted">{label}</p>
-            <p className="mt-1 text-[26px] font-semibold tracking-tight tabular-nums">{value}</p>
+            <p className="text-13 text-fg-muted">{label}</p>
+            <p className="mt-1 text-26 font-semibold tracking-tight tabular-nums">{value}</p>
             <div className="mt-1 min-h-5">{children}</div>
         </div>
     );
@@ -60,33 +60,33 @@ export default function Overview({ metrics, series, recent, workflows, templates
                 <Stat label="Failure rate" value={`${current.failure_rate}%`}><Delta current={current.failure_rate} previous={previous.failure_rate} upIsGood={false} format={(v) => `${v}%`} /></Stat>
                 <Stat label="Avg. run time" value={duration(current.avg_ms)}><Delta current={current.avg_ms} previous={previous.avg_ms} upIsGood={false} format={duration} /></Stat>
                 <Stat label="Active workflows" value={metrics.active_workflows}>
-                    <span className="text-[12px] text-fg-subtle">of {metrics.workflows} workflow{metrics.workflows === 1 ? '' : 's'}</span>
+                    <span className="text-12 text-fg-subtle">of {metrics.workflows} workflow{metrics.workflows === 1 ? '' : 's'}</span>
                 </Stat>
             </Card>
 
             <div className="mt-6 grid gap-6 xl:grid-cols-[1.6fr_1fr]">
                 <Card className="min-w-0 p-5">
-                    <h2 className="mb-1 text-[15px] font-semibold">Runs per day</h2>
-                    <p className="mb-4 text-[13px] text-fg-muted">Last 14 days, production runs only.</p>
+                    <h2 className="mb-1 text-15 font-semibold">Runs per day</h2>
+                    <p className="mb-4 text-13 text-fg-muted">Last 14 days, production runs only.</p>
                     <ExecutionsChart series={series} />
                 </Card>
 
                 <Card className="flex min-w-0 flex-col">
                     <div className="flex items-center justify-between px-5 pt-5 pb-3">
-                        <h2 className="text-[15px] font-semibold">Recent runs</h2>
-                        <Link href="/executions" className="flex items-center gap-1 text-[13px] font-medium text-fg-muted hover:text-primary">View all<ArrowRight className="size-3.5" /></Link>
+                        <h2 className="text-15 font-semibold">Recent runs</h2>
+                        <Link href="/executions" className="flex items-center gap-1 text-13 font-medium text-fg-muted hover:text-primary">View all<ArrowRight className="size-3.5" /></Link>
                     </div>
                     {recent.length === 0 ? (
-                        <p className="px-5 pb-6 text-[13px] text-fg-subtle">Runs show up here once a workflow is triggered or tested.</p>
+                        <p className="px-5 pb-6 text-13 text-fg-subtle">Runs show up here once a workflow is triggered or tested.</p>
                     ) : (
                         <ul className="divide-y divide-line border-t border-line">
                             {recent.map((run) => (
                                 <li key={run.id}>
                                     <Link href={`/executions?open=${run.id}`} className="flex items-center gap-3 px-5 py-2.5 hover:bg-surface-2">
                                         <StatusBadge status={run.status} />
-                                        <span className="min-w-0 flex-1 truncate text-[13px] font-medium">{run.workflow?.name ?? 'Deleted workflow'}</span>
-                                        <span className="hidden text-[12px] text-fg-subtle capitalize 2xl:inline">{run.mode}</span>
-                                        <span className="shrink-0 text-right text-[12px] whitespace-nowrap text-fg-subtle">{timeAgo(run.created_at)}</span>
+                                        <span className="min-w-0 flex-1 truncate text-13 font-medium">{run.workflow?.name ?? 'Deleted workflow'}</span>
+                                        <span className="hidden text-12 text-fg-subtle capitalize 2xl:inline">{run.mode}</span>
+                                        <span className="shrink-0 text-right text-12 whitespace-nowrap text-fg-subtle">{timeAgo(run.created_at)}</span>
                                     </Link>
                                 </li>
                             ))}
@@ -98,8 +98,8 @@ export default function Overview({ metrics, series, recent, workflows, templates
             <div className="mt-6 grid gap-6 xl:grid-cols-[1.6fr_1fr]">
                 <Card className="min-w-0">
                     <div className="flex items-center justify-between px-5 pt-5 pb-3">
-                        <h2 className="text-[15px] font-semibold">Recently edited</h2>
-                        <Link href="/workflows" className="flex items-center gap-1 text-[13px] font-medium text-fg-muted hover:text-primary">All workflows<ArrowRight className="size-3.5" /></Link>
+                        <h2 className="text-15 font-semibold">Recently edited</h2>
+                        <Link href="/workflows" className="flex items-center gap-1 text-13 font-medium text-fg-muted hover:text-primary">All workflows<ArrowRight className="size-3.5" /></Link>
                     </div>
                     {workflows.length === 0 ? (
                         <EmptyState icon={WorkflowIcon} title="No workflows yet" action={can['workflows.edit'] && <Button variant="primary" onClick={openCreateWorkflow}><Plus className="size-4" />Create workflow</Button>}>
@@ -112,10 +112,10 @@ export default function Overview({ metrics, series, recent, workflows, templates
                                     <Link href={`/workflows/${w.id}`} className="flex items-center gap-4 px-5 py-3 hover:bg-surface-2">
                                         <AppStack apps={w.apps} />
                                         <div className="min-w-0 flex-1">
-                                            <p className="truncate text-[13.5px] font-medium">{w.name}</p>
-                                            <p className="text-[12px] text-fg-subtle">Edited {timeAgo(w.updated_at)}</p>
+                                            <p className="truncate text-13h font-medium">{w.name}</p>
+                                            <p className="text-12 text-fg-subtle">Edited {timeAgo(w.updated_at)}</p>
                                         </div>
-                                        <span className={cn('flex items-center gap-1.5 text-[12px] font-medium', w.is_active ? 'text-ok' : 'text-fg-subtle')}>
+                                        <span className={cn('flex items-center gap-1.5 text-12 font-medium', w.is_active ? 'text-ok' : 'text-fg-subtle')}>
                                             <span className={cn('size-1.5 rounded-full', w.is_active ? 'bg-ok' : 'bg-fg-subtle')} />{w.is_active ? 'Active' : 'Inactive'}
                                         </span>
                                     </Link>
@@ -129,8 +129,8 @@ export default function Overview({ metrics, series, recent, workflows, templates
                     <div className="flex items-start gap-3">
                         <span className="flex size-10 items-center justify-center rounded-xl bg-primary-soft text-primary"><Blocks className="size-5" /></span>
                         <div>
-                            <h2 className="text-[15px] font-semibold">{metrics.apps} apps ready to connect</h2>
-                            <p className="mt-0.5 text-[13px] text-fg-muted">CRMs, chat, AI, payments, databases and more. Every app also gets an authenticated "Make an API call" action.</p>
+                            <h2 className="text-15 font-semibold">{metrics.apps} apps ready to connect</h2>
+                            <p className="mt-0.5 text-13 text-fg-muted">CRMs, chat, AI, payments, databases and more. Every app also gets an authenticated "Make an API call" action.</p>
                         </div>
                     </div>
                     <Button className="mt-4" onClick={() => router.visit('/apps')}>Browse apps<ArrowRight className="size-3.5" /></Button>
@@ -140,8 +140,8 @@ export default function Overview({ metrics, series, recent, workflows, templates
             {templates.length > 0 && (
                 <section className="mt-8">
                     <div className="mb-3 flex items-center justify-between">
-                        <h2 className="text-[15px] font-semibold">Start from a template</h2>
-                        <Link href="/templates" className="flex items-center gap-1 text-[13px] font-medium text-fg-muted hover:text-primary">All templates<ArrowRight className="size-3.5" /></Link>
+                        <h2 className="text-15 font-semibold">Start from a template</h2>
+                        <Link href="/templates" className="flex items-center gap-1 text-13 font-medium text-fg-muted hover:text-primary">All templates<ArrowRight className="size-3.5" /></Link>
                     </div>
                     <div className="grid gap-4 md:grid-cols-3">
                         {templates.map((t) => <TemplateCard key={t.key} template={t} />)}

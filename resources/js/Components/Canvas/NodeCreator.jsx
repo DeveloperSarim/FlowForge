@@ -10,8 +10,8 @@ function Row({ icon, title, subtitle, onClick, chevron = false, leading }) {
         <button type="button" onClick={onClick} className="group flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left transition-colors hover:bg-surface-2">
             {leading ?? <IntegrationIcon icon={icon} name={title} size="md" />}
             <span className="min-w-0 flex-1">
-                <span className="block truncate text-[13.5px] font-medium">{title}</span>
-                {subtitle && <span className="block truncate text-[12px] text-fg-subtle">{plainText(subtitle)}</span>}
+                <span className="block truncate text-13h font-medium">{title}</span>
+                {subtitle && <span className="block truncate text-12 text-fg-subtle">{plainText(subtitle)}</span>}
             </span>
             {chevron && <ChevronRight className="size-4 text-fg-subtle group-hover:text-fg" />}
         </button>
@@ -58,7 +58,7 @@ export default function NodeCreator({ catalog, mode = 'action', onPick, onClose 
                     {view.type !== 'home' && !q && (
                         <button type="button" onClick={() => setView(view.back ?? { type: 'home' })} className="rounded-md p-1 text-fg-muted hover:bg-surface-2 hover:text-fg" aria-label="Back"><ArrowLeft className="size-4" /></button>
                     )}
-                    <h2 className="flex-1 text-[16px] font-semibold tracking-tight">
+                    <h2 className="flex-1 text-16 font-semibold tracking-tight">
                         {view.type === 'app' && !q ? view.app.name : view.type === 'category' && !q ? view.category : mode === 'trigger' ? 'What starts this workflow?' : 'What happens next?'}
                     </h2>
                     <button type="button" onClick={onClose} className="rounded-md p-1 text-fg-muted hover:bg-surface-2 hover:text-fg" aria-label="Close"><X className="size-4" /></button>
@@ -70,15 +70,15 @@ export default function NodeCreator({ catalog, mode = 'action', onPick, onClose 
             <div className="flex-1 overflow-y-auto p-2">
                 {results ? (
                     <>
-                        {results.apps.length > 0 && <p className="px-3 pt-2 pb-1 text-[12px] font-medium text-fg-subtle">Apps</p>}
+                        {results.apps.length > 0 && <p className="px-3 pt-2 pb-1 text-12 font-medium text-fg-subtle">Apps</p>}
                         {results.apps.map((app) => <Row key={app.key} icon={app.icon} title={app.name} subtitle={app.category} chevron={app[key].length > 1} onClick={() => { setQuery(''); openApp(app); }} />)}
-                        {results.ops.length > 0 && <p className="px-3 pt-3 pb-1 text-[12px] font-medium text-fg-subtle">{mode === 'trigger' ? 'Triggers' : 'Actions'}</p>}
+                        {results.ops.length > 0 && <p className="px-3 pt-3 pb-1 text-12 font-medium text-fg-subtle">{mode === 'trigger' ? 'Triggers' : 'Actions'}</p>}
                         {results.ops.map(({ app, op }) => <Row key={`${app.key}.${op.key}`} icon={app.icon} title={op.name} subtitle={app.name} onClick={() => pick(app, op)} />)}
-                        {results.apps.length + results.ops.length === 0 && <p className="px-3 py-8 text-center text-[13px] text-fg-muted">Nothing matches "{query}". Try the HTTP Request node for any API.</p>}
+                        {results.apps.length + results.ops.length === 0 && <p className="px-3 py-8 text-center text-13 text-fg-muted">Nothing matches "{query}". Try the HTTP Request node for any API.</p>}
                     </>
                 ) : view.type === 'app' ? (
                     <>
-                        <p className="px-3 pt-2 pb-1 text-[12px] font-medium text-fg-subtle">{mode === 'trigger' ? 'Triggers' : 'Actions'}</p>
+                        <p className="px-3 pt-2 pb-1 text-12 font-medium text-fg-subtle">{mode === 'trigger' ? 'Triggers' : 'Actions'}</p>
                         {view.app[key].map((op) => (
                             <Row key={op.key} title={op.name} onClick={() => pick(view.app, op)}
                                 leading={<span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-surface-2">{mode === 'trigger' ? <Zap className="size-4 text-warn" /> : <IntegrationIcon icon={view.app.icon} name={view.app.name} bare className="[&_img]:size-5" />}</span>} />
@@ -90,17 +90,17 @@ export default function NodeCreator({ catalog, mode = 'action', onPick, onClose 
                     <>
                         {coreApps.length > 0 && (
                             <>
-                                <p className="px-3 pt-2 pb-1 text-[12px] font-medium text-fg-subtle">{mode === 'trigger' ? 'Built-in triggers' : 'Built-in nodes'}</p>
+                                <p className="px-3 pt-2 pb-1 text-12 font-medium text-fg-subtle">{mode === 'trigger' ? 'Built-in triggers' : 'Built-in nodes'}</p>
                                 {coreApps.map((app) => <Row key={app.key} icon={app.icon} title={app.name} subtitle={app.description} chevron={app[key].length > 1} onClick={() => openApp(app)} />)}
                             </>
                         )}
-                        <p className="px-3 pt-4 pb-1 text-[12px] font-medium text-fg-subtle">{mode === 'trigger' ? 'App triggers' : 'Action in an app'}</p>
+                        <p className="px-3 pt-4 pb-1 text-12 font-medium text-fg-subtle">{mode === 'trigger' ? 'App triggers' : 'Action in an app'}</p>
                         {appCategories.map((c) => (
                             <Row key={c.name} title={c.name} subtitle={`${byCategory[c.name].length} app${byCategory[c.name].length === 1 ? '' : 's'}`} chevron onClick={() => setView({ type: 'category', category: c.name })}
                                 leading={<span className="flex size-9 shrink-0 items-center justify-center rounded-lg" style={{ background: `${c.color}1f`, color: c.color }}><c.icon className="size-[18px]" /></span>} />
                         ))}
                         {appCategories.length === 0 && (
-                            <p className="flex items-center gap-2 px-3 py-4 text-[13px] text-fg-muted"><Blocks className="size-4" />No app {mode === 'trigger' ? 'triggers' : 'actions'} installed.</p>
+                            <p className="flex items-center gap-2 px-3 py-4 text-13 text-fg-muted"><Blocks className="size-4" />No app {mode === 'trigger' ? 'triggers' : 'actions'} installed.</p>
                         )}
                     </>
                 )}

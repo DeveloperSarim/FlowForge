@@ -48,11 +48,11 @@ export default function ExecutionsChart({ series }) {
     return (
         <div>
             <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
-                <div className="flex items-center gap-4 text-[12.5px] text-fg-muted">
+                <div className="flex items-center gap-4 text-12h text-fg-muted">
                     <span className="flex items-center gap-1.5"><span className="size-2.5 rounded-sm bg-chart-ok" />Succeeded</span>
                     <span className="flex items-center gap-1.5"><span className="size-2.5 rounded-sm bg-chart-fail" />Failed</span>
                 </div>
-                <button type="button" onClick={() => setTable((t) => !t)} className="text-[12.5px] font-medium text-fg-muted hover:text-fg">
+                <button type="button" onClick={() => setTable((t) => !t)} className="text-12h font-medium text-fg-muted hover:text-fg">
                     {table ? 'Show chart' : 'Show as table'}
                 </button>
             </div>
@@ -60,7 +60,7 @@ export default function ExecutionsChart({ series }) {
             <div ref={ref} className="relative min-w-0 overflow-hidden">
                 {table ? (
                     <div className="max-h-[220px] overflow-auto rounded-lg border border-line">
-                        <table className="w-full text-[12.5px]">
+                        <table className="w-full text-12h">
                             <thead className="sticky top-0 bg-surface-2 text-fg-muted"><tr><th className="px-3 py-1.5 text-left font-medium">Day</th><th className="px-3 py-1.5 text-right font-medium">Succeeded</th><th className="px-3 py-1.5 text-right font-medium">Failed</th></tr></thead>
                             <tbody className="divide-y divide-line">
                                 {[...series].reverse().map((d) => (
@@ -74,7 +74,7 @@ export default function ExecutionsChart({ series }) {
                         {ticks.map((t) => (
                             <g key={t}>
                                 <line x1={PAD.left} x2={width - PAD.right} y1={y(t)} y2={y(t)} stroke="var(--line)" strokeWidth="1" />
-                                <text x={PAD.left - 8} y={y(t)} dy="0.32em" textAnchor="end" className="fill-fg-subtle text-[11px] tabular-nums">{Math.round(t)}</text>
+                                <text x={PAD.left - 8} y={y(t)} dy="0.32em" textAnchor="end" className="fill-fg-subtle text-11 tabular-nums">{Math.round(t)}</text>
                             </g>
                         ))}
                         {series.map((d, i) => {
@@ -92,7 +92,7 @@ export default function ExecutionsChart({ series }) {
                                         : <rect x={x} y={baseY - okH} width={barW} height={okH} fill="var(--chart-ok)" />}
                                     {d.failed > 0 && <path d={columnPath(x, baseY - okH - gap - failH, barW, failH, 4)} fill="var(--chart-fail)" />}
                                     {(i % 2 === series.length % 2 || series.length <= 7) && (
-                                        <text x={cx} y={HEIGHT - 6} textAnchor="middle" className="fill-fg-subtle text-[11px]">{dayLabel(d.day, { month: 'short', day: 'numeric' })}</text>
+                                        <text x={cx} y={HEIGHT - 6} textAnchor="middle" className="fill-fg-subtle text-11">{dayLabel(d.day, { month: 'short', day: 'numeric' })}</text>
                                     )}
                                 </g>
                             );
@@ -104,7 +104,7 @@ export default function ExecutionsChart({ series }) {
                     const d = series[hover];
                     const left = Math.min(Math.max(PAD.left + band * hover + band / 2, 80), width - 80);
                     return (
-                        <div className="pointer-events-none absolute top-0 z-10 -translate-x-1/2 rounded-lg border border-line bg-surface px-3 py-2 text-[12px] shadow-pop" style={{ left }}>
+                        <div className="pointer-events-none absolute top-0 z-10 -translate-x-1/2 rounded-lg border border-line bg-surface px-3 py-2 text-12 shadow-pop" style={{ left }}>
                             <p className="mb-1 font-medium">{dayLabel(d.day, { weekday: 'long', month: 'short', day: 'numeric' })}</p>
                             <p className="flex items-center justify-between gap-6 text-fg-muted"><span className="flex items-center gap-1.5"><span className="size-2 rounded-sm bg-chart-ok" />Succeeded</span><span className="font-medium text-fg tabular-nums">{d.succeeded}</span></p>
                             <p className="flex items-center justify-between gap-6 text-fg-muted"><span className="flex items-center gap-1.5"><span className="size-2 rounded-sm bg-chart-fail" />Failed</span><span className="font-medium text-fg tabular-nums">{d.failed}</span></p>
@@ -113,7 +113,7 @@ export default function ExecutionsChart({ series }) {
                 })()}
 
                 {!table && total === 0 && (
-                    <p className={cn('absolute inset-x-0 top-[38%] text-center text-[13px] text-fg-subtle')}>No production runs yet. Activate a workflow to see its runs here.</p>
+                    <p className={cn('absolute inset-x-0 top-[38%] text-center text-13 text-fg-subtle')}>No production runs yet. Activate a workflow to see its runs here.</p>
                 )}
             </div>
         </div>

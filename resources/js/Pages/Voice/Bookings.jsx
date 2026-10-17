@@ -30,17 +30,17 @@ export default function Bookings({ bookings, show, timezone }) {
                         return (
                             <Card key={b.id} className="flex flex-wrap items-center gap-4 px-4 py-3.5">
                                 <div className="w-44 shrink-0">
-                                    <p className="text-[14px] font-semibold">{b.starts_at ? when(b.starts_at, timezone) : b.requested_time}</p>
-                                    {!b.starts_at && <p className="text-[12px] text-warn">Time to confirm</p>}
+                                    <p className="text-14 font-semibold">{b.starts_at ? when(b.starts_at, timezone) : b.requested_time}</p>
+                                    {!b.starts_at && <p className="text-12 text-warn">Time to confirm</p>}
                                 </div>
                                 <div className="min-w-0 flex-1">
-                                    <p className="truncate text-[14px] font-medium">{b.name}{b.service && <span className="font-normal text-fg-muted"> · {b.service}</span>}</p>
-                                    <p className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[12.5px] text-fg-muted">
+                                    <p className="truncate text-14 font-medium">{b.name}{b.service && <span className="font-normal text-fg-muted"> · {b.service}</span>}</p>
+                                    <p className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-12h text-fg-muted">
                                         {b.phone && <a href={`tel:${b.phone}`} className="flex items-center gap-1 hover:text-fg"><Phone className="size-3" />{b.phone}</a>}
                                         {b.email && <a href={`mailto:${b.email}`} className="flex items-center gap-1 hover:text-fg"><Mail className="size-3" />{b.email}</a>}
                                         <span>via {b.agent}</span>
                                     </p>
-                                    {b.notes && <p className="mt-1 text-[12.5px] text-fg-subtle">{b.notes}</p>}
+                                    {b.notes && <p className="mt-1 text-12h text-fg-subtle">{b.notes}</p>}
                                 </div>
                                 <Badge tone={tone}>{label}</Badge>
                                 {b.call_id && <Button size="sm" variant="ghost" onClick={() => setOpenCall(b.call_id)}>Call</Button>}

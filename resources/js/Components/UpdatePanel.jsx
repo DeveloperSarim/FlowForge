@@ -102,16 +102,16 @@ export default function UpdatePanel({ updates }) {
             <Card className="p-6">
                 <div className="flex flex-wrap items-start justify-between gap-4">
                     <div>
-                        <h2 className="text-[16px] font-semibold">Updates</h2>
-                        <p className="mt-0.5 max-w-xl text-[13px] text-fg-muted">FlowForge checks GitHub for new versions and installs one when you click. Your settings, credentials, workflows and run history stay as they are.</p>
+                        <h2 className="text-16 font-semibold">Updates</h2>
+                        <p className="mt-0.5 max-w-xl text-13 text-fg-muted">FlowForge checks GitHub for new versions and installs one when you click. Your settings, credentials, workflows and run history stay as they are.</p>
                     </div>
-                    <span className="rounded-lg bg-surface-2 px-3 py-1.5 text-[13px]">Installed version <strong className="tabular-nums">{updates.version}</strong></span>
+                    <span className="rounded-lg bg-surface-2 px-3 py-1.5 text-13">Installed version <strong className="tabular-nums">{updates.version}</strong></span>
                 </div>
 
                 {!busy && state.phase !== 'ready' && <GitHubStatus check={check} repo={updates.repo} current={updates.version} onCheck={() => runCheck(true)} onInstall={installFromGitHub} />}
 
                 {state.phase === 'error' && (
-                    <div className="mt-4 flex items-start gap-2.5 rounded-lg bg-fail-soft px-3.5 py-3 text-[13px] text-fail">
+                    <div className="mt-4 flex items-start gap-2.5 rounded-lg bg-fail-soft px-3.5 py-3 text-13 text-fail">
                         <TriangleAlert className="mt-px size-4 shrink-0" />
                         <span className="flex-1">{state.message}</span>
                         <button type="button" onClick={reset} className="shrink-0 font-medium underline-offset-2 hover:underline">Start again</button>
@@ -123,8 +123,8 @@ export default function UpdatePanel({ updates }) {
                         <div className="flex items-center gap-3">
                             <FileArchive className="size-5 shrink-0 text-ok" />
                             <div className="min-w-0 flex-1">
-                                <p className="text-[14px] font-medium">Version {state.pkg.version} is ready to install</p>
-                                <p className="text-[12.5px] text-fg-muted">{updates.version} → {state.pkg.version}, {state.pkg.files.toLocaleString()} files. Takes about a minute; keep this tab open.</p>
+                                <p className="text-14 font-medium">Version {state.pkg.version} is ready to install</p>
+                                <p className="text-12h text-fg-muted">{updates.version} → {state.pkg.version}, {state.pkg.files.toLocaleString()} files. Takes about a minute; keep this tab open.</p>
                             </div>
                         </div>
                         <div className="mt-4 flex flex-wrap gap-2">
@@ -140,9 +140,9 @@ export default function UpdatePanel({ updates }) {
                             const done = state.phase === 'done' || i < stepIndex;
                             const active = state.phase === 'installing' && i === stepIndex;
                             return (
-                                <li key={key} className="flex items-center gap-3 text-[13.5px]">
+                                <li key={key} className="flex items-center gap-3 text-13h">
                                     <span className={cn('flex size-6 shrink-0 items-center justify-center rounded-full', done ? 'bg-ok-soft text-ok' : active ? 'bg-primary-soft text-primary' : 'bg-surface-2 text-fg-subtle')}>
-                                        {done ? <Check className="size-3.5" strokeWidth={3} /> : active ? <Loader2 className="size-3.5 animate-spin" /> : <span className="text-[11px] font-semibold">{i + 1}</span>}
+                                        {done ? <Check className="size-3.5" strokeWidth={3} /> : active ? <Loader2 className="size-3.5 animate-spin" /> : <span className="text-11 font-semibold">{i + 1}</span>}
                                     </span>
                                     <span className={cn(active ? 'font-medium' : done ? 'text-fg-muted' : 'text-fg-subtle')}>
                                         {label}{active && key === 'extract' && state.percent !== undefined ? ` (${state.percent}%)` : ''}
@@ -150,8 +150,8 @@ export default function UpdatePanel({ updates }) {
                                 </li>
                             );
                         })}
-                        {state.phase === 'installing' && <li className="pt-1 text-[12.5px] text-fg-subtle">Takes about a minute. Keep this tab open.</li>}
-                        {state.phase === 'done' && <li className="pt-1 text-[13.5px] font-medium text-ok">Updated to {state.pkg.version}. Reloading…</li>}
+                        {state.phase === 'installing' && <li className="pt-1 text-12h text-fg-subtle">Takes about a minute. Keep this tab open.</li>}
+                        {state.phase === 'done' && <li className="pt-1 text-13h font-medium text-ok">Updated to {state.pkg.version}. Reloading…</li>}
                     </ol>
                 )}
 
@@ -159,7 +159,7 @@ export default function UpdatePanel({ updates }) {
                 {['idle', 'uploading', 'error'].includes(state.phase) && !(state.phase === 'error' && state.pkg) && (
                     <div className="mt-5 border-t border-line pt-4">
                         <button type="button" onClick={() => setManualOpen((o) => !o)} aria-expanded={manualOpen || state.phase === 'uploading'}
-                            className="flex w-full items-center gap-2 text-left text-[13.5px] font-medium text-fg-muted hover:text-fg">
+                            className="flex w-full items-center gap-2 text-left text-13h font-medium text-fg-muted hover:text-fg">
                             <ChevronDown className={cn('size-4 transition-transform', (manualOpen || state.phase === 'uploading') && 'rotate-180')} />
                             Install from a zip file instead
                             <span className="font-normal text-fg-subtle">(optional)</span>
@@ -175,15 +175,15 @@ export default function UpdatePanel({ updates }) {
                                 {state.phase === 'uploading' ? (
                                     <>
                                         <Loader2 className="size-7 animate-spin text-primary" />
-                                        <p className="mt-3 text-[14px] font-medium">Uploading {state.name}…</p>
+                                        <p className="mt-3 text-14 font-medium">Uploading {state.name}…</p>
                                         <div className="mt-3 h-2 w-64 max-w-full overflow-hidden rounded-full bg-surface-2"><div className="h-full rounded-full bg-primary transition-[width]" style={{ width: `${state.percent}%` }} /></div>
-                                        <p className="mt-1.5 text-[12px] text-fg-subtle tabular-nums">{state.percent}%</p>
+                                        <p className="mt-1.5 text-12 text-fg-subtle tabular-nums">{state.percent}%</p>
                                     </>
                                 ) : (
                                     <>
                                         <UploadCloud className="size-8 text-fg-subtle" />
-                                        <p className="mt-3 text-[14px] font-medium">Drop flowforge-update-x.y.z.zip here, or click to choose it</p>
-                                        <p className="mt-1 text-[12.5px] text-fg-muted">Uploaded in small pieces, so your hosting's upload limit doesn't matter.</p>
+                                        <p className="mt-3 text-14 font-medium">Drop flowforge-update-x.y.z.zip here, or click to choose it</p>
+                                        <p className="mt-1 text-12h text-fg-muted">Uploaded in small pieces, so your hosting's upload limit doesn't matter.</p>
                                     </>
                                 )}
                             </label>
@@ -194,8 +194,8 @@ export default function UpdatePanel({ updates }) {
 
             {updates.history.length > 0 && (
                 <Card className="p-6">
-                    <h3 className="text-[14px] font-semibold">Update history</h3>
-                    <ul className="mt-3 divide-y divide-line text-[13px]">
+                    <h3 className="text-14 font-semibold">Update history</h3>
+                    <ul className="mt-3 divide-y divide-line text-13">
                         {updates.history.map((h) => (
                             <li key={h.at} className="flex items-center justify-between py-2">
                                 <span>{h.from ?? '?'} → <strong>{h.to}</strong></span>
@@ -231,18 +231,18 @@ function GitHubStatus({ check, repo, current, onCheck, onInstall }) {
                 <div className="flex items-start gap-3">
                     <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-fg"><Sparkles className="size-[18px]" /></span>
                     <div className="min-w-0 flex-1">
-                        <p className="text-[14.5px] font-semibold">Version {latest.version} is available</p>
-                        <p className="text-[12.5px] text-fg-muted">
+                        <p className="text-14h font-semibold">Version {latest.version} is available</p>
+                        <p className="text-12h text-fg-muted">
                             You have {current}.{latest.published_at && ` Released ${timeAgo(latest.published_at)}.`} FlowForge downloads it from GitHub, checks it and installs it in about a minute.
                         </p>
                     </div>
                 </div>
                 {latest.notes && (
                     <div className="mt-3">
-                        <button type="button" onClick={() => setNotesOpen((o) => !o)} aria-expanded={notesOpen} className="flex items-center gap-1.5 text-[13px] font-medium text-primary hover:underline">
+                        <button type="button" onClick={() => setNotesOpen((o) => !o)} aria-expanded={notesOpen} className="flex items-center gap-1.5 text-13 font-medium text-primary hover:underline">
                             <ChevronDown className={cn('size-4 transition-transform', notesOpen && 'rotate-180')} />What's new
                         </button>
-                        {notesOpen && <div className="mt-2 max-h-80 overflow-y-auto break-words rounded-lg bg-surface px-3.5 py-3"><RichText text={latest.notes} className="text-[13px] text-fg-muted [&_strong]:text-fg" /></div>}
+                        {notesOpen && <div className="mt-2 max-h-80 overflow-y-auto break-words rounded-lg bg-surface px-3.5 py-3"><RichText text={latest.notes} className="text-13 text-fg-muted [&_strong]:text-fg" /></div>}
                     </div>
                 )}
                 <div className="mt-4 flex flex-wrap gap-2">
@@ -258,7 +258,7 @@ function GitHubStatus({ check, repo, current, onCheck, onInstall }) {
             {check.status === 'checking' ? <Loader2 className="size-5 shrink-0 animate-spin text-fg-subtle" />
                 : check.status === 'error' ? <TriangleAlert className="size-5 shrink-0 text-warn" />
                 : <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-ok-soft text-ok"><Check className="size-3.5" strokeWidth={3} /></span>}
-            <div className="min-w-0 flex-1 text-[13px]">
+            <div className="min-w-0 flex-1 text-13">
                 {check.status === 'checking' && <p className="font-medium">Checking GitHub for a new version…</p>}
                 {check.status === 'latest' && <><p className="font-medium">You're on the latest version.</p><p className="text-fg-subtle">{checked}{checked && ' from '}<a href={`https://github.com/${repo}/releases`} target="_blank" rel="noreferrer" className="hover:underline">{repo}</a></p></>}
                 {check.status === 'no-package' && <><p className="font-medium">Version {latest.version} is out, but its update package isn't on GitHub yet.</p><p className="text-fg-subtle">Check again later, or upload the zip below.</p></>}

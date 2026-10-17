@@ -32,8 +32,8 @@ function AccessForm({ value, onChange }) {
                     {[['member', 'Member', 'Only what you choose below'], ['admin', 'Admin', 'Everything, including settings and the team']].map(([role, label, hint]) => (
                         <button key={role} type="button" onClick={() => set({ role })} aria-pressed={value.role === role}
                             className={cn('rounded-xl border-2 p-3 text-left transition-colors', value.role === role ? 'border-primary bg-primary-soft/40' : 'border-line hover:border-line-strong')}>
-                            <span className="block text-[13.5px] font-medium">{label}</span>
-                            <span className="block text-[12px] text-fg-muted">{hint}</span>
+                            <span className="block text-13h font-medium">{label}</span>
+                            <span className="block text-12 text-fg-muted">{hint}</span>
                         </button>
                     ))}
                 </div>
@@ -45,7 +45,7 @@ function AccessForm({ value, onChange }) {
                         <div className="grid grid-cols-4 gap-1.5 rounded-xl bg-surface-2 p-1" role="radiogroup" aria-label="Workflow access">
                             {[[null, 'No access'], ['workflows.view', 'View'], ['workflows.edit', 'View + edit'], ['workflows.delete', 'Edit + delete']].map(([key, label]) => (
                                 <button key={label} type="button" role="radio" aria-checked={level === key} onClick={() => (key ? setLevel(key) : set({ permissions: value.permissions.filter((p) => !WORKFLOW_LEVELS.includes(p)) }))}
-                                    className={cn('rounded-lg px-2 py-2 text-[12.5px] font-medium transition-colors', level === key ? 'bg-surface text-fg shadow-card' : 'text-fg-muted hover:text-fg')}>
+                                    className={cn('rounded-lg px-2 py-2 text-12h font-medium transition-colors', level === key ? 'bg-surface text-fg shadow-card' : 'text-fg-muted hover:text-fg')}>
                                     {label}
                                 </button>
                             ))}
@@ -54,8 +54,8 @@ function AccessForm({ value, onChange }) {
                     <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-line p-3">
                         <input type="checkbox" className="mt-0.5 size-4 accent-[var(--primary)]" checked={value.permissions.includes('ai')} onChange={toggleAi} />
                         <span>
-                            <span className="block text-[13.5px] font-medium">AI builder</span>
-                            <span className="block text-[12px] text-fg-muted">Chat to build and fix workflows. The AI can only do what this person's workflow access allows.</span>
+                            <span className="block text-13h font-medium">AI builder</span>
+                            <span className="block text-12 text-fg-muted">Chat to build and fix workflows. The AI can only do what this person's workflow access allows.</span>
                         </span>
                     </label>
                 </>
@@ -106,7 +106,7 @@ function MemberDialog({ member, onClose, onSaved }) {
                     </div>
                 )}
                 <AccessForm value={value} onChange={setValue} />
-                {error && <p className="text-[13px] text-fail">{error}</p>}
+                {error && <p className="text-13 text-fail">{error}</p>}
                 <div className="flex justify-end gap-2 pt-1">
                     <Button onClick={onClose}>Cancel</Button>
                     <Button type="submit" variant="primary" loading={busy}>{member ? 'Save access' : 'Send invite'}</Button>
@@ -120,7 +120,7 @@ function InviteLink({ url }) {
     return (
         <div className="flex items-center gap-2 rounded-lg border border-line bg-surface-2 p-2">
             <Link2 className="size-4 shrink-0 text-fg-subtle" />
-            <code className="min-w-0 flex-1 truncate font-mono text-[12px]">{url}</code>
+            <code className="min-w-0 flex-1 truncate font-mono text-12">{url}</code>
             <Button size="sm" variant="outline" onClick={() => copy(url, 'Invite link copied')}><Copy className="size-3.5" />Copy</Button>
         </div>
     );
@@ -142,13 +142,13 @@ export default function TeamPanel({ team }) {
         <Card className="p-6">
             <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
-                    <h2 className="text-[16px] font-semibold">Team</h2>
-                    <p className="mt-0.5 max-w-xl text-[13px] text-fg-muted">Invite people and choose what they can do. Everyone shares the same workflows and credentials; AI chats are private to each person.</p>
+                    <h2 className="text-16 font-semibold">Team</h2>
+                    <p className="mt-0.5 max-w-xl text-13 text-fg-muted">Invite people and choose what they can do. Everyone shares the same workflows and credentials; AI chats are private to each person.</p>
                 </div>
                 <Button variant="primary" onClick={() => setDialog({})}><UserPlus className="size-4" />Invite member</Button>
             </div>
 
-            {link && <div className="mt-4"><p className="mb-1.5 text-[12.5px] text-fg-muted">New invite link for {link.email}{link.emailed ? ' (also emailed)' : ''}:</p><InviteLink url={link.url} /></div>}
+            {link && <div className="mt-4"><p className="mb-1.5 text-12h text-fg-muted">New invite link for {link.email}{link.emailed ? ' (also emailed)' : ''}:</p><InviteLink url={link.url} /></div>}
 
             <ul className="mt-5 divide-y divide-line border-t border-line">
                 {members.map((m) => {
@@ -157,19 +157,19 @@ export default function TeamPanel({ team }) {
                         <li key={m.id} className="flex items-center gap-3 py-3">
                             <Avatar name={m.name} />
                             <div className="min-w-0 flex-1">
-                                <p className="flex items-center gap-2 truncate text-[13.5px] font-medium">
+                                <p className="flex items-center gap-2 truncate text-13h font-medium">
                                     {m.name}{self && <span className="text-fg-subtle">(you)</span>}
                                     {m.invited && <Badge tone={m.invite_expired ? 'fail' : 'warn'}>{m.invite_expired ? 'Invite expired' : 'Invited'}</Badge>}
                                 </p>
-                                <p className="truncate text-[12.5px] text-fg-muted">{m.email}</p>
-                                <p className="truncate text-[12px] text-fg-subtle sm:hidden">{ROLE_LABEL[m.role]}: {summary(m, team.permissions)}</p>
+                                <p className="truncate text-12h text-fg-muted">{m.email}</p>
+                                <p className="truncate text-12 text-fg-subtle sm:hidden">{ROLE_LABEL[m.role]}: {summary(m, team.permissions)}</p>
                             </div>
                             <div className="hidden min-w-0 text-right sm:block">
-                                <p className="flex items-center justify-end gap-1.5 text-[13px] font-medium">
+                                <p className="flex items-center justify-end gap-1.5 text-13 font-medium">
                                     {m.role === 'owner' ? <Crown className="size-3.5 text-primary" /> : m.role === 'admin' ? <ShieldCheck className="size-3.5 text-info" /> : null}
                                     {ROLE_LABEL[m.role]}
                                 </p>
-                                <p className="max-w-64 truncate text-[12px] text-fg-subtle">{summary(m, team.permissions)}</p>
+                                <p className="max-w-64 truncate text-12 text-fg-subtle">{summary(m, team.permissions)}</p>
                             </div>
                             {m.role !== 'owner' && !self ? (
                                 <Menu trigger={<Button variant="ghost" size="icon" aria-label={`Actions for ${m.name}`}><MoreHorizontal className="size-4" /></Button>}

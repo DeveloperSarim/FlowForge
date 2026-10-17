@@ -1,11 +1,14 @@
 import { clsx } from 'clsx';
-import { twMerge } from 'tailwind-merge';
+import { extendTailwindMerge } from 'tailwind-merge';
+
+// The app's type scale (text-13, text-12h… in app.css) must count as font sizes, not colours, or merging would drop text colours.
+const twMerge = extendTailwindMerge({ extend: { theme: { text: ['10', '10h', '11', '11h', '12', '12h', '13', '13h', '14', '14h', '15', '16', '17', '20', '22', '24', '26'] } } });
 
 export const cn = (...inputs) => twMerge(clsx(inputs));
 
-/** Fire a toast from anywhere; AppLayout renders it. tone: 'success' | 'error' | 'info' */
-export const toast = (message, tone = 'info') =>
-    window.dispatchEvent(new CustomEvent('ff:toast', { detail: { message, tone } }));
+/** Fire a toast from anywhere; AppLayout renders it. tone: 'success' | 'error' | 'info'; action: {label, onClick}, e.g. Undo. */
+export const toast = (message, tone = 'info', { action } = {}) =>
+    window.dispatchEvent(new CustomEvent('ff:toast', { detail: { message, tone, action } }));
 
 /** Best human-readable message from an axios error (Laravel validation, abort(), or network). */
 export function errorMessage(error) {
@@ -43,3 +46,6 @@ export const copy = async (text, label = 'Copied') => {
 };
 
 export const compact = (n) => new Intl.NumberFormat(undefined, { notation: 'compact', maximumFractionDigits: 1 }).format(n ?? 0);
+
+/** True when the person asked the system for less motion. */
+export const reducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;

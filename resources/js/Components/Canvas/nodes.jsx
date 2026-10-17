@@ -105,8 +105,8 @@ function NodeFrame({ id, data, selected, shape, isTrigger, outputs, children }) 
             </div>
             {outputs.map(({ handle, top }) => !connected.has(`${id}:${handle ?? ''}`) && <AddNext key={handle ?? 'out'} id={id} handle={handle} top={top} />)}
             <div className="pointer-events-none absolute top-full left-1/2 mt-2 w-48 -translate-x-1/2 text-center">
-                <p className="truncate text-[13px] leading-tight font-semibold">{data.label || operation?.name || 'Choose a step'}</p>
-                <p className="mt-0.5 truncate text-[11.5px] text-fg-subtle">{data.disabled ? 'Turned off' : integration ? (operation?.name ?? 'Choose an action') : 'Unknown app'}</p>
+                <p className="truncate text-13 leading-tight font-semibold">{data.label || operation?.name || 'Choose a step'}</p>
+                <p className="mt-0.5 truncate text-11h text-fg-subtle">{data.disabled ? 'Turned off' : integration ? (operation?.name ?? 'Choose an action') : 'Unknown app'}</p>
             </div>
         </div>
     );
@@ -138,7 +138,7 @@ export const BranchNode = memo(function BranchNode({ id, data, selected }) {
             {['true', 'false'].map((handle, i) => (
                 <div key={handle}>
                     <Handle id={handle} type="source" position={Position.Right} style={{ top: i === 0 ? '30%' : '70%' }} />
-                    <span className={cn('pointer-events-none absolute right-2.5 -translate-y-1/2 text-[10.5px] font-semibold', handle === 'true' ? 'text-ok' : 'text-fail', taken && taken !== handle && 'opacity-30')}
+                    <span className={cn('pointer-events-none absolute right-2.5 -translate-y-1/2 text-10h font-semibold', handle === 'true' ? 'text-ok' : 'text-fail', taken && taken !== handle && 'opacity-30')}
                         style={{ top: i === 0 ? '30%' : '70%' }}>{handle}</span>
                 </div>
             ))}
