@@ -88,7 +88,7 @@ class WorkflowPortTest extends TestCase
         $twoTriggers = ['format' => 'flowforge.workflows', 'workflows' => [['name' => 'Bad', 'graph' => ['nodes' => [
             $this->node('trigger', 'trigger', ['integration' => 'manual', 'trigger' => 'manual']), $this->node('t2', 'trigger', ['integration' => 'manual', 'trigger' => 'manual']),
         ], 'edges' => []]]]];
-        $this->post('/workflows/import', ['document' => json_encode($twoTriggers)])->assertSessionHasErrors(['document' => '"Bad": A workflow needs exactly one trigger.']);
+        $this->post('/workflows/import', ['document' => json_encode($twoTriggers)])->assertSessionHasErrors(['document' => '"Bad": Triggers are named "trigger", "trigger_2", "trigger_3"…']);
         $this->assertSame(0, Workflow::query()->count());
 
         $n8n = ['name' => 'Leads', 'connections' => [], 'nodes' => [

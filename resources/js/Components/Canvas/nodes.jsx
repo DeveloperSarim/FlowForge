@@ -43,13 +43,13 @@ function Toolbar({ id, isTrigger, disabled }) {
     const button = 'flex size-7 items-center justify-center rounded-md text-fg-muted hover:bg-surface-2 hover:text-fg';
     return (
         <div className="nodrag absolute -top-10 left-1/2 hidden -translate-x-1/2 items-center gap-0.5 rounded-lg border border-line bg-surface p-0.5 shadow-pop group-hover:flex">
-            {!readOnly && <button type="button" className={button} title="Execute step" aria-label="Execute step" disabled={!!running} onClick={(e) => { e.stopPropagation(); executeStep(id); }}><Play className="size-3.5" /></button>}
+            {!readOnly && <button type="button" className={button} title={isTrigger ? 'Execute this flow' : 'Execute step'} aria-label={isTrigger ? 'Execute this flow' : 'Execute step'} disabled={!!running} onClick={(e) => { e.stopPropagation(); executeStep(id); }}><Play className="size-3.5" /></button>}
             <button type="button" className={button} title="Open" aria-label="Open step" onClick={(e) => { e.stopPropagation(); openNode(id); }}><Settings2 className="size-3.5" /></button>
             {!isTrigger && !readOnly && toggleNode && (
                 <button type="button" className={cn(button, disabled && 'text-primary')} title={disabled ? 'Turn this step on' : 'Turn this step off (runs skip it)'} aria-label={disabled ? 'Turn step on' : 'Turn step off'}
                     onClick={(e) => { e.stopPropagation(); toggleNode(id); }}><Power className="size-3.5" /></button>
             )}
-            {!isTrigger && !readOnly && <button type="button" className={cn(button, 'hover:text-fail')} title="Delete" aria-label="Delete step" onClick={(e) => { e.stopPropagation(); removeNode(id); }}><Trash2 className="size-3.5" /></button>}
+            {id !== 'trigger' && !readOnly && <button type="button" className={cn(button, 'hover:text-fail')} title="Delete" aria-label="Delete step" onClick={(e) => { e.stopPropagation(); removeNode(id); }}><Trash2 className="size-3.5" /></button>}
         </div>
     );
 }

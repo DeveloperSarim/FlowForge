@@ -73,7 +73,7 @@ export default function ExecutionDebug({ execution, compact = false }) {
                             {step.uncertain && <Badge tone="warn">May have gone through: not retried automatically</Badge>}
                         </div>
                         {step.status === 'skipped' && (
-                            <p className="text-13 text-fg-muted">{step.disabled ? 'This step is turned off, so the run skipped it and went on.' : `This step didn't run: no path reached it${execution.status === 'failed' ? ', or an earlier step failed' : ''}.`}</p>
+                            <p className="text-13 text-fg-muted">{step.disabled ? 'This step is turned off, so the run skipped it and went on.' : step.type === 'trigger' ? 'Another trigger of this workflow started this run, so this flow didn\'t run.' : `This step didn't run: no path reached it${execution.status === 'failed' ? ', or an earlier step failed' : ''}.`}</p>
                         )}
                         {step.error && <p className="mb-4 flex gap-2 rounded-lg bg-fail-soft px-3 py-2.5 text-13 text-fail"><AlertCircle className="mt-px size-4 shrink-0" />{step.error}</p>}
                         {step.status !== 'skipped' && (

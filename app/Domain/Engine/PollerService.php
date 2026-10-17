@@ -44,23 +44,25 @@ class PollerService
         $minute = $local->format('Y-m-d H:i');
         $count = 0;
 
-        Workflow::query()->active()->where('trigger_type', 'schedule')->each(function (Workflow $workflow) use ($local, $minute, &$count) {
-            $cron = trim((string) ($workflow->triggerConfig()['cron'] ?? ''));
+        Workflow::query()->active()->withTrigger('schedule')->each(function (Workflow $workflow) use ($local, $minute, &$count) {
+            foreach ($workflow->triggerIds('schedule') as $trigger) {
+                $cron = trim((string) ($workflow->triggerConfig($trigger)['cron'] ?? ''));
 
-            if (! CronExpression::isValidExpression($cron) || ! (new CronExpression($cron))->isDue($local)) {
-                return;
-            }
-
-            $count += $this->locked($workflow, function (Workflow $workflow) use ($local, $minute, $cron) {
-                // A second schedule:run in the same minute must not fire the workflow twice.
-                if (($workflow->trigger_state['last_scheduled_minute'] ?? null) === $minute) {
-                    return 0;
+                if (! CronExpression::isValidExpression($cron) || ! (new CronExpression($cron))->isDue($local)) {
+                    continue;
                 }
-                $workflow->mergeTriggerState(['last_scheduled_minute' => $minute]);
-                $workflow->start('schedule', ['data' => ['timestamp' => $local->toIso8601String(), 'cron' => $cron]]);
 
-                return 1;
-            });
+                $count += $this->locked($workflow, function (Workflow $workflow) use ($local, $minute, $cron, $trigger) {
+                    // A second schedule:run in the same minute must not fire the trigger twice.
+                    if (($workflow->triggerState($trigger)['last_scheduled_minute'] ?? null) === $minute) {
+                        return 0;
+                    }
+                    $workflow->mergeTriggerState(['last_scheduled_minute' => $minute], $trigger);
+                    $workflow->start('schedule', ['data' => ['timestamp' => $local->toIso8601String(), 'cron' => $cron]], trigger: $trigger);
+
+                    return 1;
+                });
+            }
         });
 
         return $count;
@@ -70,20 +72,22 @@ class PollerService
     {
         $count = 0;
 
-        Workflow::query()->active()->where('trigger_type', 'polling')->each(function (Workflow $workflow) use ($now, &$count) {
-            $count += $this->locked($workflow, function (Workflow $workflow) use ($now) {
-                $interval = max(1, (int) ($workflow->triggerConfig()['poll_interval'] ?? 5));
-                $last = $workflow->trigger_state['last_polled_at'] ?? null;
+        Workflow::query()->active()->withTrigger('polling')->each(function (Workflow $workflow) use ($now, &$count) {
+            foreach ($workflow->triggerIds('polling') as $trigger) {
+                $count += $this->locked($workflow, function (Workflow $workflow) use ($now, $trigger) {
+                    $interval = max(1, (int) ($workflow->triggerConfig($trigger)['poll_interval'] ?? 5));
+                    $last = $workflow->triggerState($trigger)['last_polled_at'] ?? null;
 
-                // 10s of slack so cron jitter doesn't push every poll a full minute late.
-                if ($last && Carbon::parse($last)->addMinutes($interval)->subSeconds(10)->isAfter($now)) {
-                    return 0;
-                }
-                $workflow->mergeTriggerState(['last_polled_at' => $now->toIso8601String()]);
-                PollWorkflow::dispatch($workflow->id);
+                    // 10s of slack so cron jitter doesn't push every poll a full minute late.
+                    if ($last && Carbon::parse($last)->addMinutes($interval)->subSeconds(10)->isAfter($now)) {
+                        return 0;
+                    }
+                    $workflow->mergeTriggerState(['last_polled_at' => $now->toIso8601String()], $trigger);
+                    PollWorkflow::dispatch($workflow->id, $workflow->isMainTrigger($trigger) ? null : $trigger);
 
-                return 1;
-            });
+                    return 1;
+                });
+            }
         });
 
         return $count;
@@ -93,15 +97,15 @@ class PollerService
      * Run one poll: fetch, diff against the remembered item ids, start a run per new item (oldest first).
      * The very first poll only records a baseline so enabling a workflow doesn't replay history.
      */
-    public function poll(Workflow $workflow): int
+    public function poll(Workflow $workflow, ?string $trigger = null): int
     {
-        $idField = $workflow->triggerSpec()['id_field'] ?? 'id';
-        $items = $this->fetch($workflow);
+        $idField = $workflow->triggerSpec($trigger)['id_field'] ?? 'id';
+        $items = $this->fetch($workflow, $trigger);
         $ids = array_map(fn ($item) => (string) (data_get($item, $idField) ?? md5(json_encode($item))), $items);
 
         // Remembering the items and starting their runs is one transaction: all of it happens, or none.
-        return $this->locked($workflow, function (Workflow $workflow) use ($items, $ids) {
-            $seen = $workflow->trigger_state['seen'] ?? null;
+        return $this->locked($workflow, function (Workflow $workflow) use ($items, $ids, $trigger) {
+            $seen = $workflow->triggerState($trigger)['seen'] ?? null;
             $fresh = [];
             if (is_array($seen)) {
                 $known = array_flip($seen);
@@ -114,9 +118,9 @@ class PollerService
 
             $workflow->mergeTriggerState([
                 'seen' => array_slice(array_values(array_unique(array_merge($ids, $seen ?? []))), 0, self::SEEN_LIMIT),
-            ]);
+            ], $trigger);
             foreach (array_reverse($fresh) as $item) {
-                $workflow->start('polling', ['data' => $item]);
+                $workflow->start('polling', ['data' => $item], trigger: $trigger);
             }
 
             return count($fresh);
@@ -133,10 +137,10 @@ class PollerService
         });
     }
 
-    /** Call the trigger's polling endpoint and return the list of items it yields. */
-    public function fetch(Workflow $workflow): array
+    /** Call a polling trigger's endpoint (the main trigger by default) and return the list of items it yields. */
+    public function fetch(Workflow $workflow, ?string $trigger = null): array
     {
-        $data = $workflow->triggerNode()['data'] ?? [];
+        $data = $workflow->triggerNode($trigger)['data'] ?? [];
         $integration = $this->executor->integration($data['integration'] ?? '');
         $trigger = collect($integration['triggers'])->firstWhere('key', $data['trigger'] ?? '');
 

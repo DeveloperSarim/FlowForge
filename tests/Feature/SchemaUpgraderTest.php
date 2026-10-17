@@ -18,8 +18,8 @@ class SchemaUpgraderTest extends TestCase
         config(['flowforge.schema_marker' => $marker]);
 
         // The state an interrupted update leaves: new code, the last migrations (team roles, API tokens, voice agents, retries,
-        // execution index, webhook hardening) not run.
-        Artisan::call('migrate:rollback', ['--step' => 6, '--force' => true]);
+        // execution index, webhook hardening, multiple triggers) not run.
+        Artisan::call('migrate:rollback', ['--step' => 7, '--force' => true]);
         $this->assertFalse(Schema::hasColumn('users', 'role'));
         $this->assertFalse(Schema::hasTable('api_tokens'));
         $this->assertFalse(Schema::hasTable('voice_agents'));
@@ -33,6 +33,7 @@ class SchemaUpgraderTest extends TestCase
         $this->assertTrue(Schema::hasTable('voice_calls'));
         $this->assertTrue(Schema::hasColumn('workflows', 'settings'));
         $this->assertTrue(Schema::hasColumn('voice_agents', 'events_secret_sent'));
+        $this->assertTrue(Schema::hasColumn('workflow_executions', 'trigger_node'));
         $this->assertSame(trim(file_get_contents(base_path('VERSION'))), file_get_contents($marker));
 
         Schema::drop('api_tokens'); // up to date now: a second call must not touch the database

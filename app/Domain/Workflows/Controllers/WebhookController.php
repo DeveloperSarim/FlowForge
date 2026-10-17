@@ -16,7 +16,8 @@ use Symfony\Component\HttpFoundation\Response;
  */
 class WebhookController extends Controller
 {
-    public function __invoke(Request $request, string $token): Response
+    /** @param  string|null  $trigger  which webhook trigger of the workflow (/api/webhook/{token}/{trigger}); none: the main one */
+    public function __invoke(Request $request, string $token, ?string $trigger = null): Response
     {
         if ($tooLarge = WebhookGuard::tooLarge($request)) {
             return $tooLarge;
@@ -24,7 +25,7 @@ class WebhookController extends Controller
 
         $workflow = Workflow::query()->where('webhook_token', $token)->first();
 
-        if (! $workflow || $workflow->trigger_type !== 'webhook') {
+        if (! $workflow || ($workflow->triggerSpec($trigger)['type'] ?? null) !== 'webhook') {
             return response()->json(['message' => 'No webhook workflow at this URL.'], 404);
         }
 
@@ -32,14 +33,14 @@ class WebhookController extends Controller
             return $handshake;
         }
 
-        $method = strtoupper($workflow->triggerConfig()['method'] ?? 'ANY');
+        $method = strtoupper($workflow->triggerConfig($trigger)['method'] ?? 'ANY');
         if ($method !== 'ANY' && $request->method() !== $method) {
             return response()->json(['message' => "This webhook only accepts {$method}."], 405);
         }
 
         // Checked for inactive workflows too, so a stranger can't replace the editor's sample data.
-        $spec = $workflow->triggerSpec();
-        if ($refused = WebhookGuard::verify($request, $spec, $workflow->triggerConfig())) {
+        $spec = $workflow->triggerSpec($trigger);
+        if ($refused = WebhookGuard::verify($request, $spec, $workflow->triggerConfig($trigger))) {
             return response()->json(['message' => $refused], 401);
         }
 
@@ -57,13 +58,13 @@ class WebhookController extends Controller
         ]);
 
         if (! $workflow->is_active) {
-            $workflow->mergeTriggerState(['sample' => $payload, 'sample_at' => now()->toIso8601String()]);
+            $workflow->mergeTriggerState(['sample' => $payload, 'sample_at' => now()->toIso8601String()], $trigger);
 
             return response()->json(['status' => 'captured', 'message' => 'Workflow is inactive; request saved as test data.']);
         }
 
         // ponytail: runs are queued, so they start on the next cron tick (<= 1 min); add an afterResponse/sync mode if instant webhooks matter.
-        $execution = $workflow->start('webhook', $payload);
+        $execution = $workflow->start('webhook', $payload, trigger: $trigger);
 
         // 200, not 202: several providers (LINE, some "verify URL" buttons) only accept exactly 200.
         return response()->json(['status' => 'queued', 'execution_id' => $execution->id]);

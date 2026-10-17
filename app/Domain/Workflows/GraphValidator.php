@@ -39,16 +39,22 @@ class GraphValidator
         if (count($ids) !== count(array_unique($ids))) {
             $fail('Node ids must be unique.');
         }
-        if (count(array_filter($nodes, fn ($node) => $node['type'] === 'trigger')) !== 1) {
-            $fail('A workflow needs exactly one trigger.');
+        // Several triggers may each start their own flow; the main one ("trigger") is always there.
+        $triggers = array_column(array_filter($nodes, fn ($node) => $node['type'] === 'trigger'), 'id');
+        if (! in_array(Workflow::TRIGGER_NODE_ID, $triggers, true)) {
+            $fail($triggers === [] ? 'A workflow needs a trigger.' : 'The main trigger is missing.');
         }
-        $triggerId = collect($nodes)->firstWhere('type', 'trigger')['id'];
+        foreach ($triggers as $id) {
+            if (! preg_match('/^'.Workflow::TRIGGER_NODE_ID.'(_\d+)?$/', $id)) {
+                $fail('Triggers are named "trigger", "trigger_2", "trigger_3"…'); // the webhook URL of a trigger ends with its id
+            }
+        }
         foreach ($edges as $edge) {
             if (! in_array($edge['source'], $ids, true) || ! in_array($edge['target'], $ids, true)) {
                 $fail('A connection points to a node that no longer exists.');
             }
-            if ($edge['target'] === $triggerId) {
-                $fail('Nothing can connect into the trigger.');
+            if (in_array($edge['target'], $triggers, true)) {
+                $fail('Nothing can connect into a trigger.');
             }
         }
 
@@ -82,13 +88,16 @@ class GraphValidator
 
     public static function assertActivatable(Workflow $workflow): void
     {
-        $spec = $workflow->triggerSpec();
+        foreach ($workflow->triggerNodes() as $node) {
+            $spec = $workflow->triggerSpec($node['id']);
+            $name = count($workflow->triggerNodes()) > 1 ? ' "'.($node['data']['label'] ?? $node['id']).'"' : '';
 
-        if (! $spec) {
-            throw ValidationException::withMessages(['is_active' => 'Choose a trigger before activating.']);
-        }
-        if ($spec['type'] === 'schedule' && ! CronExpression::isValidExpression(trim((string) ($workflow->triggerConfig()['cron'] ?? '')))) {
-            throw ValidationException::withMessages(['is_active' => 'The schedule needs a valid cron expression.']);
+            if (! $spec) {
+                throw ValidationException::withMessages(['is_active' => "Choose a trigger{$name} before activating."]);
+            }
+            if ($spec['type'] === 'schedule' && ! CronExpression::isValidExpression(trim((string) ($workflow->triggerConfig($node['id'])['cron'] ?? '')))) {
+                throw ValidationException::withMessages(['is_active' => "The schedule{$name} needs a valid cron expression."]);
+            }
         }
     }
 }

@@ -80,7 +80,7 @@ Create AI agents that **answer and make phone calls**: a receptionist that books
     <td width="33%" valign="top">
       <img src=".github/readme/icons/workflow.svg" width="28" height="28" alt=""><br>
       <b>Visual workflow builder</b><br>
-      <sub>Triggers, actions, If/Else branches and filters on a drag-and-drop canvas, with a step editor that maps data by dragging fields.</sub>
+      <sub>Triggers, actions, If/Else branches and filters on a drag-and-drop canvas, several flows per workflow, right-click menus and copy/paste, with a step editor that maps data by dragging fields.</sub>
     </td>
     <td width="33%" valign="top">
       <img src=".github/readme/icons/apps.svg" width="28" height="28" alt=""><br>

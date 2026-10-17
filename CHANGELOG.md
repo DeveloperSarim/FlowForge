@@ -4,6 +4,20 @@ All notable changes to FlowForge. Versions follow [semantic versioning](https://
 
 ## [Unreleased]
 
+**Canvas and several flows per workflow:**
+- **Several triggers in one workflow** (like n8n):
+  - Add another trigger anywhere and give it its own steps. A run follows only the flow of the trigger that fired.
+  - Each webhook trigger has its own URL (`…/trigger_2`), and each schedule or app trigger keeps its own timing.
+  - **Execute this flow** on a trigger tests just that flow.
+  - The AI Builder and MCP agents can build workflows with several triggers too.
+- **Right-click menus:**
+  - On the canvas: add a step or a new trigger at that spot, paste, select all, fit to screen, execute.
+  - On a step: open, execute, add the next step, change the trigger, copy, duplicate, turn off, delete.
+  - On a selection: copy, duplicate or delete them all.
+  - On a connection: insert a step into it, or delete it.
+- **Double-click** an empty spot on the canvas to add a step there.
+- **Copy, paste and duplicate** steps (Ctrl/⌘ C, V, D, A), also into other workflows. Pasted steps get new ids and their references to each other follow.
+
 The app feels more like a native app, following Apple's interface guidelines:
 - **Press feedback:** every button, tab and menu item reacts the instant it's pressed (a small press-in), and on touch screens every other control dims while pressed.
 - **Things leave the way they came:** dialogs, side panels, menus, toasts and the step editor animate out along the same path they came in on, instead of vanishing.

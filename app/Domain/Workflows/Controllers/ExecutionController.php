@@ -58,7 +58,7 @@ class ExecutionController extends Controller
         $fromStart = $request->input('from') === 'start' || $execution->status !== WorkflowExecution::FAILED;
         $execution->forceFill(['retry_at' => null])->save(); // a waiting automatic retry would repeat this one
         $fromStart
-            ? $execution->workflow->start('retry', $execution->trigger_payload ?? [])
+            ? $execution->workflow->start('retry', $execution->trigger_payload ?? [], trigger: $execution->trigger_node)
             : $execution->workflow->resume($execution, 'retry');
 
         return back()->with('success', ($fromStart ? 'Run again from the start' : 'Retrying from the failed step').': it runs on the next scheduler tick, within a minute.');

@@ -6,7 +6,8 @@ use App\Domain\Workflows\Controllers\WebhookController;
 use App\Http\Middleware\AuthenticateApiToken;
 use Illuminate\Support\Facades\Route;
 
-Route::any('webhook/{token}', WebhookController::class)->middleware('throttle:120,1');
+// A workflow's main webhook trigger, or another of its webhook triggers by id (/api/webhook/{token}/trigger_2).
+Route::any('webhook/{token}/{trigger?}', WebhookController::class)->where('trigger', 'trigger(_\d+)?')->middleware('throttle:120,1');
 
 // Voice providers (Vapi, ElevenLabs) send booking tool calls and call reports here.
 Route::post('voice/{token}', VoiceEventController::class)->middleware('throttle:240,1');

@@ -1,11 +1,15 @@
 import { cloneElement, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
 import { addEdge, Background, BackgroundVariant, MiniMap, ReactFlow, ReactFlowProvider, useEdgesState, useNodesState, useReactFlow } from '@xyflow/react';
-import { ChevronDown, ChevronUp, Copy, FlaskConical, Loader2, MoreHorizontal, Plus, RotateCw, ScrollText, Trash2, Download, X } from 'lucide-react';
+import {
+    BetweenHorizontalStart, ChevronDown, ChevronUp, ClipboardPaste, Copy, CopyPlus, FlaskConical, Loader2, Maximize, MoreHorizontal, Play, Plus, Power, RotateCw,
+    ScrollText, Settings2, SquareDashedMousePointer, Trash2, Download, Unplug, X, Zap,
+} from 'lucide-react';
 import AiIcon from '@/Components/AiIcon';
 import ChatPanel from '@/Components/Assistant/ChatPanel';
 import { BuilderContext, edgeTypes, nodeTypes } from '@/Components/Canvas/nodes';
 import NodeCreator from '@/Components/Canvas/NodeCreator';
+import CanvasMenu, { MOD } from '@/Components/Canvas/CanvasMenu';
 import FloatingToolbar from '@/Components/Canvas/FloatingToolbar';
 import NodeDetails from '@/Components/Drawer/NodeDetails';
 import ExecutionDebug from '@/Components/ExecutionDebug';
@@ -15,7 +19,9 @@ import { isDark } from '@/lib/theme';
 import { useCan } from '@/lib/can';
 import { cn, duration, errorMessage, timeAgo, toast } from '@/lib/utils';
 
-const toFlowNode = (node) => ({ ...node, deletable: node.type !== 'trigger' });
+const MAIN_TRIGGER = 'trigger';
+// Extra triggers (trigger_2, trigger_3…) each start their own flow and can be deleted; the main one can't.
+const toFlowNode = (node) => ({ ...node, deletable: node.id !== MAIN_TRIGGER });
 const toFlowEdge = (edge) => ({ ...edge, type: 'deletable' });
 
 /** Only what the engine stores; React Flow adds selection/measurement state we don't want to save. */
@@ -36,6 +42,34 @@ function reaches(edges, from, to) {
     }
     return false;
 }
+
+const descendants = (edges, id) => {
+    const result = [id];
+    for (let i = 0; i < result.length; i++) {
+        edges.forEach((e) => e.source === result[i] && !result.includes(e.target) && result.push(e.target));
+    }
+    return result;
+};
+
+/*
+ * Copy and paste of steps, between workflows too (kept in this browser). Pasted steps get fresh ids, and their
+ * {{ steps.<id> }} references to each other follow the new ids. A copied trigger becomes a new flow's trigger.
+ */
+const CLIPBOARD = 'ff:canvas-clipboard';
+const readClipboard = () => {
+    try { return JSON.parse(localStorage.getItem(CLIPBOARD)) ?? null; } catch { return null; }
+};
+const writeClipboard = (clip) => {
+    try { localStorage.setItem(CLIPBOARD, JSON.stringify(clip)); } catch { /* private mode: copy still works within this tab via duplicate */ }
+};
+const clipOf = (picked, edges) => {
+    const ids = new Set(picked.map((n) => n.id));
+    return {
+        nodes: picked.map(({ id, type, position, data }) => ({ id, type, position, data })),
+        edges: edges.filter((e) => ids.has(e.source) && ids.has(e.target)).map(({ source, target, sourceHandle }) => ({ source, target, sourceHandle: sourceHandle ?? null })),
+    };
+};
+const numberOf = (id, prefix) => (id === prefix ? 1 : Number(id.match(new RegExp(`^${prefix}_(\\d+)$`))?.[1] ?? 0));
 
 const ancestors = (edges, id) => {
     const result = [id];
@@ -60,7 +94,7 @@ export default function Builder(props) {
 }
 
 function Editor({ workflow: initial, catalog, operators, lastExecution, ai }) {
-    const { screenToFlowPosition, fitView } = useReactFlow();
+    const { screenToFlowPosition, fitView, deleteElements } = useReactFlow();
     const can = useCan();
     const readOnly = !can['workflows.edit']; // view-only team members: look, never change or run
     const catalogMap = useMemo(() => Object.fromEntries(catalog.map((i) => [i.key, i])), [catalog]);
@@ -71,6 +105,8 @@ function Editor({ workflow: initial, catalog, operators, lastExecution, ai }) {
     const [workflow, setWorkflow] = useState(initial);
     const [tab, setTab] = useState('editor');
     const [creator, setCreator] = useState(null);
+    const [menu, setMenu] = useState(null); // the right-click menu
+    const closeMenu = useCallback(() => setMenu(null), []);
     const [openId, setOpenId] = useState(null);
     // Where the last press happened: the step editor grows out of the step that was clicked.
     const lastPointer = useRef(null);
@@ -152,7 +188,8 @@ function Editor({ workflow: initial, catalog, operators, lastExecution, ai }) {
     };
 
     // ---- graph editing ----------------------------------------------------------------------
-    const nextId = () => `step_${Math.max(0, ...nodes.map((n) => Number(n.id.replace('step_', '')) || 0)) + 1}`;
+    const nextId = () => `step_${Math.max(0, ...nodes.map((n) => numberOf(n.id, 'step'))) + 1}`;
+    const nextTriggerId = () => `trigger_${Math.max(1, ...nodes.map((n) => numberOf(n.id, MAIN_TRIGGER))) + 1}`;
 
     const freeSpot = (x, y) => {
         let yy = y;
@@ -163,9 +200,38 @@ function Editor({ workflow: initial, catalog, operators, lastExecution, ai }) {
     const pickFromCreator = (payload) => {
         if (creator?.mode === 'trigger') {
             const entry = catalogMap[payload.integration];
-            updateNode('trigger', { integration: payload.integration, trigger: payload.trigger, config: {}, credential_id: null, label: entry?.triggers.find((t) => t.key === payload.trigger)?.name });
+            const data = { integration: payload.integration, trigger: payload.trigger, config: {}, credential_id: null, label: entry?.triggers.find((t) => t.key === payload.trigger)?.name };
+            if (creator.newFlow) {
+                // Another trigger: the start of a new, separate flow in this workflow.
+                const id = nextTriggerId();
+                const lowest = nodes.reduce((y, n) => Math.max(y, n.position.y), 0);
+                setNodes((nds) => [...nds.map((n) => ({ ...n, selected: false })), { id, type: 'trigger', deletable: true, selected: true, data, position: creator.position ?? { x: 80, y: lowest + 260 } }]);
+                setCreator(null);
+                openStep(id);
+                return;
+            }
+            updateNode(creator.target ?? MAIN_TRIGGER, data);
             setCreator(null);
-            setOpenId('trigger');
+            setOpenId(creator.target ?? MAIN_TRIGGER);
+            return;
+        }
+
+        if (creator?.insert) {
+            // Into an existing connection: source → new step → target.
+            const edge = creator.insert;
+            const [a, b] = [nodes.find((n) => n.id === edge.source), nodes.find((n) => n.id === edge.target)];
+            const id = nextId();
+            const actionName = catalogMap[payload.integration]?.actions.find((x) => x.key === payload.action)?.name;
+            const position = a && b ? { x: (a.position.x + b.position.x) / 2, y: (a.position.y + b.position.y) / 2 + 60 } : creator.position;
+            setNodes((nds) => [...nds.map((n) => ({ ...n, selected: false })), { id, type: payload.branch ? 'branch' : 'action', position, selected: true,
+                data: { integration: payload.integration, action: payload.action, config: {}, label: actionName } }]);
+            setEdges((eds) => [
+                ...eds.filter((e) => e.id !== edge.id),
+                { id: `e-${edge.source}-${id}-${edge.sourceHandle ?? 'out'}`, source: edge.source, target: id, sourceHandle: edge.sourceHandle ?? null, type: 'deletable' },
+                { id: `e-${id}-${edge.target}-${payload.branch ? 'true' : 'out'}`, source: id, target: edge.target, sourceHandle: payload.branch ? 'true' : null, type: 'deletable' },
+            ]);
+            setCreator(null);
+            setOpenId(id);
             return;
         }
 
@@ -216,6 +282,125 @@ function Editor({ workflow: initial, catalog, operators, lastExecution, ai }) {
         offerUndo(gone, goneEdges);
     }, [nodes, edges, setNodes, setEdges, offerUndo]);
 
+    // ---- copy, paste, duplicate, select ---------------------------------------------------------
+    const selectedNodes = () => nodes.filter((n) => n.selected);
+
+    /** Adds copies of clipped steps with fresh ids, at `at` (flow position) or offset from the originals. */
+    const pasteClip = (clip, at = null) => {
+        if (!clip?.nodes?.length) return;
+        let stepN = Math.max(0, ...nodes.map((n) => numberOf(n.id, 'step')));
+        let triggerN = Math.max(1, ...nodes.map((n) => numberOf(n.id, MAIN_TRIGGER)));
+        const ids = Object.fromEntries(clip.nodes.map((n) => [n.id, n.type === 'trigger' ? `trigger_${++triggerN}` : `step_${++stepN}`]));
+        const left = Math.min(...clip.nodes.map((n) => n.position.x));
+        const top = Math.min(...clip.nodes.map((n) => n.position.y));
+        const shift = at ? { x: at.x - left, y: at.y - top } : { x: 60, y: 60 };
+        // {{ steps.step_1.x }} inside the copies points at the copy of step_1 (\b keeps step_1 from matching step_10).
+        const rewire = (data) => JSON.parse(Object.entries(ids).reduce(
+            (json, [from, to]) => json.replace(new RegExp(`steps\\.${from}\\b`, 'g'), `steps.${to}`), JSON.stringify(data)));
+        setNodes((nds) => [...nds.map((n) => ({ ...n, selected: false })), ...clip.nodes.map((n) => toFlowNode({
+            id: ids[n.id], type: n.type, selected: true, data: rewire(n.data), position: { x: n.position.x + shift.x, y: n.position.y + shift.y },
+        }))]);
+        setEdges((eds) => [...eds, ...clip.edges.map((e) => ({
+            id: `e-${ids[e.source]}-${ids[e.target]}-${e.sourceHandle ?? 'out'}`, source: ids[e.source], target: ids[e.target], sourceHandle: e.sourceHandle, type: 'deletable',
+        }))]);
+        toast(clip.nodes.length === 1 ? 'Pasted 1 step.' : `Pasted ${clip.nodes.length} steps.`, 'success');
+    };
+    const copySteps = (picked) => {
+        if (!picked.length) return;
+        writeClipboard(clipOf(picked, edges));
+        toast(picked.length === 1 ? `Copied "${picked[0].data?.label || picked[0].id}".` : `Copied ${picked.length} steps.`, 'success');
+    };
+    const duplicateSteps = (picked) => picked.length && pasteClip(clipOf(picked, edges));
+    const selectAll = () => setNodes((nds) => nds.map((n) => ({ ...n, selected: true })));
+    const deleteSteps = (picked) => deleteElements({ nodes: picked.filter((n) => n.id !== MAIN_TRIGGER) }); // onDelete offers Undo
+
+    // ---- right-click menus and double-click ----------------------------------------------------
+    const flowAt = (event) => {
+        const p = screenToFlowPosition({ x: event.clientX, y: event.clientY });
+        return { x: p.x - 48, y: p.y - 48 }; // a step is 96px square: centre it on the pointer
+    };
+    const openMenu = (event, items) => {
+        event.preventDefault();
+        setCreator(null);
+        setMenu({ x: event.clientX, y: event.clientY, items });
+    };
+    const addStepAt = (position) => setCreator({ mode: 'action', position });
+    const addFlowAt = (position) => setCreator({ mode: 'trigger', newFlow: true, position });
+
+    const onPaneContextMenu = (event) => {
+        const at = flowAt(event);
+        const clip = readClipboard();
+        openMenu(event, [
+            !readOnly && { label: 'Add step here', icon: Plus, shortcut: 'Double-click', onClick: () => addStepAt(at) },
+            !readOnly && { label: 'Add trigger here (new flow)', icon: Zap, onClick: () => addFlowAt(at) },
+            !readOnly && { label: clip?.nodes?.length > 1 ? `Paste ${clip.nodes.length} steps` : 'Paste', icon: ClipboardPaste, shortcut: `${MOD}V`, disabled: !clip?.nodes?.length, onClick: () => pasteClip(clip, at) },
+            'divider',
+            { label: 'Select all', icon: SquareDashedMousePointer, shortcut: `${MOD}A`, onClick: selectAll },
+            { label: 'Fit to screen', icon: Maximize, onClick: () => fitView({ duration: 250, padding: 0.3, maxZoom: 1.1 }) },
+            !readOnly && 'divider',
+            !readOnly && { label: 'Execute workflow', icon: FlaskConical, disabled: !!running, onClick: () => executeStep(null) },
+        ]);
+    };
+
+    const onNodeContextMenu = (event, node) => {
+        const picked = node.selected && selectedNodes().length > 1 ? selectedNodes() : [node];
+        if (picked.length > 1) {
+            return openMenu(event, [
+                { label: `Copy ${picked.length} steps`, icon: Copy, shortcut: `${MOD}C`, onClick: () => copySteps(picked) },
+                !readOnly && { label: `Duplicate ${picked.length} steps`, icon: CopyPlus, shortcut: `${MOD}D`, onClick: () => duplicateSteps(picked) },
+                !readOnly && 'divider',
+                !readOnly && { label: `Delete ${picked.filter((n) => n.id !== MAIN_TRIGGER).length} steps`, icon: Trash2, shortcut: 'Del', danger: true, onClick: () => deleteSteps(picked) },
+            ]);
+        }
+        const isTrigger = node.type === 'trigger';
+        const disabled = !!node.data?.disabled;
+        openMenu(event, [
+            { label: 'Open', icon: Settings2, onClick: () => openStep(node.id) },
+            !readOnly && { label: isTrigger ? 'Execute this flow' : 'Execute step', icon: Play, disabled: !!running, onClick: () => executeStep(node.id) },
+            !readOnly && 'divider',
+            !readOnly && (node.type === 'branch'
+                ? { label: 'Add step on "true"', icon: Plus, onClick: () => setCreator({ mode: 'action', from: node.id, handle: 'true' }) }
+                : { label: 'Add step after', icon: Plus, onClick: () => setCreator({ mode: 'action', from: node.id, handle: null }) }),
+            !readOnly && node.type === 'branch' && { label: 'Add step on "false"', icon: Plus, onClick: () => setCreator({ mode: 'action', from: node.id, handle: 'false' }) },
+            !readOnly && isTrigger && { label: 'Change trigger', icon: Zap, onClick: () => setCreator({ mode: 'trigger', target: node.id }) },
+            'divider',
+            { label: 'Copy', icon: Copy, shortcut: `${MOD}C`, onClick: () => copySteps([node]) },
+            !readOnly && { label: 'Duplicate', icon: CopyPlus, shortcut: `${MOD}D`, onClick: () => duplicateSteps([node]) },
+            !readOnly && !isTrigger && { label: disabled ? 'Turn on' : 'Turn off (runs skip it)', icon: Power, onClick: () => toggleNode(node.id) },
+            !readOnly && node.id !== MAIN_TRIGGER && 'divider',
+            !readOnly && node.id !== MAIN_TRIGGER && { label: isTrigger ? 'Delete trigger' : 'Delete', icon: Trash2, shortcut: 'Del', danger: true, onClick: () => removeNode(node.id) },
+        ]);
+    };
+
+    const onEdgeContextMenu = (event, edge) => openMenu(event, readOnly ? [{ label: 'Fit to screen', icon: Maximize, onClick: () => fitView({ duration: 250, padding: 0.3, maxZoom: 1.1 }) }] : [
+        { label: 'Insert a step here', icon: BetweenHorizontalStart, onClick: () => setCreator({ mode: 'action', insert: edge }) },
+        { label: 'Delete connection', icon: Unplug, danger: true, onClick: () => setEdges((eds) => eds.filter((e) => e.id !== edge.id)) },
+    ]);
+
+    const onSelectionContextMenu = (event, picked) => onNodeContextMenu(event, { ...picked[0], selected: true });
+
+    // Double-click on empty canvas: add a step right there.
+    const onCanvasDoubleClick = (event) => {
+        if (readOnly || !event.target.classList?.contains('react-flow__pane')) return;
+        addStepAt(flowAt(event));
+    };
+
+    // Keyboard: copy, paste, duplicate and select all (not while typing or with a panel open).
+    useEffect(() => {
+        const onKey = (e) => {
+            if (!(e.metaKey || e.ctrlKey) || e.altKey || e.target.closest?.('input, textarea, select, [contenteditable="true"]') || openId || creator || menu) return;
+            const key = e.key.toLowerCase();
+            const picked = nodes.filter((n) => n.selected);
+            if (key === 'c' && picked.length && !window.getSelection()?.toString()) copySteps(picked);
+            else if (key === 'a') { e.preventDefault(); selectAll(); }
+            else if (readOnly) return;
+            else if (key === 'v' && readClipboard()?.nodes?.length) { e.preventDefault(); pasteClip(readClipboard()); }
+            else if (key === 'd' && picked.length) { e.preventDefault(); duplicateSteps(picked); }
+        };
+        window.addEventListener('keydown', onKey);
+        return () => window.removeEventListener('keydown', onKey);
+    });
+
     const isValidConnection = useCallback((c) => {
         if (c.source === c.target) return false;
         if (nodes.find((n) => n.id === c.target)?.type === 'trigger') return false;
@@ -229,9 +414,11 @@ function Editor({ workflow: initial, catalog, operators, lastExecution, ai }) {
 
     const executeStep = useCallback(async (nodeId = null) => {
         if (!(await persist())) return toast('Fix the save error before running.', 'error');
-        setRunning(nodeId ? ancestors(edges, nodeId) : 'all');
+        // A trigger runs its whole flow; any other step runs with what feeds into it.
+        const flow = nodeId && nodes.find((n) => n.id === nodeId)?.type === 'trigger';
+        setRunning(!nodeId ? 'all' : flow ? descendants(edges, nodeId) : ancestors(edges, nodeId));
         try {
-            const { data } = await window.axios.post(`/workflows/${initial.id}/test`, nodeId ? { node: nodeId } : {});
+            const { data } = await window.axios.post(`/workflows/${initial.id}/test`, !nodeId ? {} : flow ? { trigger: nodeId } : { node: nodeId });
             setExecution(data.execution);
             if (!nodeId) setLogsOpen(true);
             const ok = data.execution.status === 'completed';
@@ -241,7 +428,7 @@ function Editor({ workflow: initial, catalog, operators, lastExecution, ai }) {
         } finally {
             setRunning(null);
         }
-    }, [persist, edges, initial.id]);
+    }, [persist, edges, nodes, initial.id]);
 
     const toggleActive = async (value) => {
         if (!(await persist())) return toast('Fix the save error first.', 'error');
@@ -284,7 +471,7 @@ function Editor({ workflow: initial, catalog, operators, lastExecution, ai }) {
             let sample = runSteps[id]?.status === 'success' ? runSteps[id].output : undefined;
             if (sample === undefined && node.type === 'trigger') {
                 const configured = parseJson(node.data.config?.sample_payload);
-                sample = configured !== undefined ? { data: configured } : workflow.trigger_state?.sample;
+                sample = configured !== undefined ? { data: configured } : (id === MAIN_TRIGGER ? workflow.trigger_state : workflow.trigger_state?.nodes?.[id])?.sample;
             }
             return { id, label: node.data.label || id, icon: integration?.icon, integrationName: integration?.name, sample };
         }).filter(Boolean);
@@ -376,8 +563,14 @@ function Editor({ workflow: initial, catalog, operators, lastExecution, ai }) {
                                 edgesReconnectable={!readOnly}
                                 isValidConnection={isValidConnection}
                                 onNodeClick={(_, node) => openStep(node.id)}
+                                onPaneContextMenu={onPaneContextMenu}
+                                onNodeContextMenu={onNodeContextMenu}
+                                onEdgeContextMenu={onEdgeContextMenu}
+                                onSelectionContextMenu={onSelectionContextMenu}
+                                onDoubleClick={onCanvasDoubleClick}
+                                zoomOnDoubleClick={false}
                                 onDelete={({ nodes: goneNodes, edges: goneEdges }) => offerUndo(goneNodes, goneEdges)}
-                                onPaneClick={() => setCreator(null)}
+                                onPaneClick={() => { setCreator(null); setMenu(null); }}
                                 colorMode={dark ? 'dark' : 'light'}
                                 fitView
                                 fitViewOptions={{ padding: 0.35, maxZoom: 1.1 }}
@@ -393,11 +586,21 @@ function Editor({ workflow: initial, catalog, operators, lastExecution, ai }) {
                             </ReactFlow>
 
                             {!readOnly && <div className="absolute top-4 right-4 z-10 flex flex-col gap-2">
-                                <button type="button" onClick={() => setCreator({ mode: 'action' })} title="Add step" aria-label="Add step"
-                                    className="flex size-10 items-center justify-center rounded-xl border border-line bg-surface text-fg shadow-card hover:border-primary hover:text-primary">
-                                    <Plus className="size-5" />
-                                </button>
+                                <Menu align="right" items={[
+                                    { label: 'Add a step', icon: Plus, onClick: () => setCreator({ mode: 'action' }) },
+                                    { label: 'Add a trigger (new flow)', icon: Zap, onClick: () => setCreator({ mode: 'trigger', newFlow: true }) },
+                                ]} trigger={(
+                                    <button type="button" title="Add a step or a new flow" aria-label="Add"
+                                        className="ff-press flex size-10 items-center justify-center rounded-xl border border-line bg-surface text-fg shadow-card transition-[scale,border-color,color] hover:border-primary hover:text-primary motion-safe:active:scale-95">
+                                        <Plus className="size-5" />
+                                    </button>
+                                )} />
                             </div>}
+                            {!readOnly && nodes.length <= 2 && (
+                                <p className="pointer-events-none absolute top-4 left-1/2 z-10 hidden -translate-x-1/2 rounded-full bg-surface/90 px-3 py-1 text-12 text-fg-subtle shadow-card md:block">
+                                    Double-click to add a step. Right-click for more.
+                                </p>
+                            )}
 
                             <div className="absolute bottom-5 left-1/2 z-10 flex -translate-x-1/2 items-center gap-2">
                                 {!readOnly && (
@@ -414,6 +617,7 @@ function Editor({ workflow: initial, catalog, operators, lastExecution, ai }) {
                             </div>
 
                             {creator && <NodeCreator catalog={catalog} mode={creator.mode} onPick={pickFromCreator} onClose={() => setCreator(null)} />}
+                            <CanvasMenu menu={menu} onClose={closeMenu} />
                             {aiOpen && (
                                 <aside className="animate-slide-in absolute inset-y-0 right-0 z-30 flex w-[min(420px,100%)] flex-col border-l border-line bg-surface shadow-pop" aria-label="AI builder">
                                     <div className="flex items-center gap-2 border-b border-line px-4 py-3">

@@ -391,14 +391,16 @@ PROMPT, [], $history, 3000)->text;
 
     // ---------- Workflows ----------
 
-    /** Starts active workflows with this trigger type whose "Voice agent" is empty or this agent. */
+    /** Starts every active trigger of this kind (in any workflow) whose "Voice agent" is empty or this agent. */
     private function startWorkflows(string $type, int $agentId, array $data): void
     {
         app(VoiceWebhooks::class)->dispatch($type, $agentId, $data); // the agent's own webhooks, no workflow needed
-        Workflow::query()->active()->where('trigger_type', $type)->each(function (Workflow $workflow) use ($agentId, $data) {
-            $only = $workflow->triggerConfig()['agent_id'] ?? null;
-            if ($only === null || $only === '' || (int) $only === $agentId) {
-                rescue(fn () => $workflow->start('voice', ['data' => $data]));
+        Workflow::query()->active()->withTrigger($type)->each(function (Workflow $workflow) use ($type, $agentId, $data) {
+            foreach ($workflow->triggerIds($type) as $trigger) {
+                $only = $workflow->triggerConfig($trigger)['agent_id'] ?? null;
+                if ($only === null || $only === '' || (int) $only === $agentId) {
+                    rescue(fn () => $workflow->start('voice', ['data' => $data], trigger: $trigger));
+                }
             }
         });
     }

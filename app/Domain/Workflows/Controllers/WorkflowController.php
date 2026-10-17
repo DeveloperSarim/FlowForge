@@ -204,28 +204,33 @@ class WorkflowController extends Controller
     {
         @set_time_limit(300);
 
-        // "Execute step": run only the chosen node and what feeds into it.
+        // "Execute step": run only the chosen node and what feeds into it, started by the trigger of its flow.
+        // "trigger": run that trigger's whole flow. Neither: the main trigger's flow.
         $node = $request->input('node');
         $only = is_string($node) && $node !== '' ? GraphRunner::ancestorsOf($node, $workflow->graph['edges'] ?? []) : null;
+        $triggerIds = array_column($workflow->triggerNodes(), 'id');
+        $trigger = $only !== null
+            ? collect($only)->first(fn ($id) => in_array($id, $triggerIds, true))
+            : (in_array($request->input('trigger'), $triggerIds, true) ? $request->input('trigger') : null);
 
         try {
-            $payload = match ($workflow->triggerSpec()['type'] ?? 'manual') {
-                'polling' => ['data' => $poller->fetch($workflow)[0] ?? null],
-                'schedule' => ['data' => ['timestamp' => now()->toIso8601String(), 'cron' => $workflow->triggerConfig()['cron'] ?? null]],
-                default => $this->samplePayload($workflow),
+            $payload = match ($workflow->triggerSpec($trigger)['type'] ?? 'manual') {
+                'polling' => ['data' => $poller->fetch($workflow, $trigger)[0] ?? null],
+                'schedule' => ['data' => ['timestamp' => now()->toIso8601String(), 'cron' => $workflow->triggerConfig($trigger)['cron'] ?? null]],
+                default => $this->samplePayload($workflow, $trigger),
             };
         } catch (Throwable $e) {
             return response()->json(['message' => 'Trigger failed: '.$e->getMessage()], 422);
         }
 
-        $execution = $workflow->start('test', $payload, sync: true, only: $only);
+        $execution = $workflow->start('test', $payload, sync: true, only: $only, trigger: $trigger);
 
         return response()->json(['execution' => $execution->load('workflow')->toDebugArray()]);
     }
 
-    private function samplePayload(Workflow $workflow): array
+    private function samplePayload(Workflow $workflow, ?string $trigger = null): array
     {
-        $sample = $workflow->triggerConfig()['sample_payload'] ?? null;
+        $sample = $workflow->triggerConfig($trigger)['sample_payload'] ?? null;
 
         if (is_string($sample) && trim($sample) !== '') {
             $data = json_decode($sample, true);
@@ -237,7 +242,18 @@ class WorkflowController extends Controller
         }
 
         // Last request captured at the webhook URL while the workflow was inactive.
-        return $workflow->trigger_state['sample'] ?? ['data' => (object) [], 'headers' => [], 'query' => [], 'method' => 'POST'];
+        return $workflow->triggerState($trigger)['sample'] ?? ['data' => (object) [], 'headers' => [], 'query' => [], 'method' => 'POST'];
+    }
+
+    /** Trigger state without the remembered item ids (they can be long), for the main and the other triggers. */
+    private function triggerStateForEditor(array $state): array
+    {
+        $state = Arr::except($state, ['seen']);
+        if (isset($state['nodes'])) {
+            $state['nodes'] = array_map(fn ($node) => Arr::except((array) $node, ['seen']), $state['nodes']);
+        }
+
+        return $state;
     }
 
     private function builderPayload(Workflow $workflow): array
@@ -251,7 +267,7 @@ class WorkflowController extends Controller
             'graph' => $workflow->graph,
             'settings' => ['auto_retry' => $workflow->autoRetries(), 'retry_on' => $workflow->retryOn()],
             'webhook_url' => $workflow->webhookUrl(),
-            'trigger_state' => Arr::except($workflow->trigger_state ?? [], ['seen']),
+            'trigger_state' => $this->triggerStateForEditor($workflow->trigger_state ?? []),
             'updated_at' => $workflow->updated_at?->toIso8601String(),
         ];
     }

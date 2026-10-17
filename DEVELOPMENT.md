@@ -175,7 +175,14 @@ Runs are stored in `workflow_executions`, with each step's resolved input, outpu
 
 ### Graph semantics
 
-- **Shape:** the workflow is a DAG stored as JSON in `workflows.graph`. Saving rejects loops and edges into the trigger.
+- **Shape:** the workflow is a DAG stored as JSON in `workflows.graph`. Saving rejects loops and edges into a trigger.
+- **Several triggers:**
+  - The main trigger is always `trigger`. More triggers are `trigger_2`, `trigger_3`…, and each starts its own flow.
+  - A run records which one fired in `workflow_executions.trigger_node` (null means the main one). `GraphRunner` fires only that trigger and marks the others skipped, so only its flow runs.
+  - `trigger_type` is the main trigger's kind; `trigger_types` (`,webhook,schedule,`) lists every kind, for `Workflow::scopeWithTrigger()`.
+  - Each trigger has its own state: the main one at the top level of `trigger_state` (as before), the others under `trigger_state.nodes.<id>`. Use `triggerState()` and `mergeTriggerState($patch, $id)`.
+  - Webhook triggers answer at `/api/webhook/{token}/{trigger_N}`. `PollerService`, `PollWorkflow`, voice triggers and error triggers work per trigger, and retries keep the trigger.
+  - Editor test runs take `node` (run up to it, started by its flow's trigger) or `trigger` (run that whole flow).
 - **Order:** nodes run in topological order.
 - **When a node runs:** when at least one incoming edge is live. If/Else emits `true` or `false`. A failing Filter emits nothing, which stops that path.
 - **Failure:** the first failing step fails the run, and the rest are marked skipped, unless the step says otherwise (below).

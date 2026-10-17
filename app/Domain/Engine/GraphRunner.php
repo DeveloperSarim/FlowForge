@@ -5,6 +5,7 @@ namespace App\Domain\Engine;
 use App\Domain\Integrations\ActionException;
 use App\Domain\Integrations\Models\Credential;
 use App\Domain\Integrations\WorkflowActionExecutor;
+use App\Domain\Workflows\Models\Workflow;
 use App\Domain\Workflows\Models\WorkflowExecution;
 use Illuminate\Support\Sleep;
 use RuntimeException;
@@ -18,6 +19,9 @@ use RuntimeException;
  * the failure is temporary; "on_error": "continue" records the failure and goes on. Otherwise the first
  * failure stops the run. A run that resumes a failed one (retry_of) reuses the steps that already
  * succeeded instead of running them again, so emails and API writes aren't repeated.
+ *
+ * A workflow may have several triggers; only the one that started the run (execution trigger_node) fires, so only
+ * its flow runs and the others are recorded as skipped.
  *
  * Progress is saved before each action runs, so if the worker dies mid-request the run still shows which
  * step was in flight (RunWorkflow::failed marks it "may have gone through"). A request that may have reached
@@ -45,6 +49,7 @@ class GraphRunner
             'execution' => ['id' => $execution->id, 'mode' => $execution->mode],
             'now' => now()->toIso8601String(),
         ];
+        $fired = $execution->trigger_node ?? ($workflow->triggerNode()['id'] ?? Workflow::TRIGGER_NODE_ID);
         $secrets = $this->secrets($nodes->all());
         $reuse = $this->reusable($execution);
         $original = $this->originalRun($execution);
@@ -71,6 +76,12 @@ class GraphRunner
             ];
 
             if ($step['type'] === 'trigger') {
+                // Only the trigger that started this run fires; the other triggers' flows don't run.
+                if ($id !== $fired) {
+                    $steps[] = $step + ['status' => 'skipped'];
+
+                    continue;
+                }
                 $context['steps'][$id] = $execution->trigger_payload ?? [];
                 $emitted[$id] = null;
                 $steps[] = $step + ['status' => 'success', 'output' => $context['steps'][$id], 'duration_ms' => 0];

@@ -41,11 +41,14 @@ function Pane({ title, aside, children, className }) {
     );
 }
 
-function TriggerInfo({ spec, workflow, readOnly }) {
-    const state = workflow.trigger_state ?? {};
-    const [url, setUrl] = useState(workflow.webhook_url);
+function TriggerInfo({ spec, workflow, readOnly, nodeId }) {
+    // The main trigger keeps its state and URL as before; other triggers have their own (…/webhook/{token}/trigger_2).
+    const main = nodeId === 'trigger';
+    const state = (main ? workflow.trigger_state : workflow.trigger_state?.nodes?.[nodeId]) ?? {};
+    const [base, setBase] = useState(workflow.webhook_url);
+    const url = main ? base : `${base}/${nodeId}`;
     const newUrl = () => window.axios.post(`/workflows/${workflow.id}/webhook-url`)
-        .then(({ data }) => { setUrl(data.webhook_url); toast('New webhook URL ready. Update it in the app that sends the requests.', 'success'); })
+        .then(({ data }) => { setBase(data.webhook_url); toast(main ? 'New webhook URL ready. Update it in the app that sends the requests.' : 'New webhook URLs ready for every trigger of this workflow. Update them in the apps that send the requests.', 'success'); })
         .catch((error) => toast(errorMessage(error), 'error'));
     if (spec?.type === 'webhook') {
         return (
@@ -189,7 +192,7 @@ export default function NodeDetails({ node, catalog, operators, workflow, upstre
                                 </Select>
                             )}>
                             {isTrigger ? (
-                                <TriggerInfo spec={operation} workflow={workflow} readOnly={readOnly} />
+                                <TriggerInfo spec={operation} workflow={workflow} readOnly={readOnly} nodeId={node.id} />
                             ) : !source ? (
                                 <div className="flex flex-col items-center py-10 text-center">
                                     <MousePointerClick className="mb-3 size-6 text-fg-subtle" />

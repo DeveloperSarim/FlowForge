@@ -17,6 +17,11 @@ use Throwable;
  *                     disabled?, retries?, on_error?}}],
  *           edges: [{id, source, target, sourceHandle}] }
  * settings = { auto_retry?: bool (default true), retry_on?: "temporary" (default) | "all" }
+ *
+ * A workflow can have several triggers, each starting its own flow: the main one has id "trigger", the others
+ * "trigger_2", "trigger_3"… A run records which one started it (trigger_node, null for the main one) and only that
+ * trigger's flow runs. trigger_type is the main trigger's kind; trigger_types lists every kind (",webhook,schedule,").
+ * trigger_state keeps the main trigger's state at the top level and the others' under nodes.<id>.
  */
 class Workflow extends Model
 {
@@ -52,6 +57,8 @@ class Workflow extends Model
 
         static::saving(function (Workflow $workflow) {
             $workflow->trigger_type = $workflow->triggerSpec()['type'] ?? 'manual';
+            $types = collect($workflow->triggerNodes())->map(fn ($node) => $workflow->triggerSpec($node['id'])['type'] ?? 'manual')->unique();
+            $workflow->trigger_types = ','.$types->implode(',').',';
         });
     }
 
@@ -83,43 +90,84 @@ class Workflow extends Model
         $query->where('is_active', true);
     }
 
-    public function triggerNode(): ?array
+    /** Workflows with at least one trigger of this kind (schedule, polling, webhook, error, voice_call…). */
+    public function scopeWithTrigger(Builder $query, string $type): void
     {
-        return collect($this->graph['nodes'] ?? [])->firstWhere('type', 'trigger');
+        $query->where(fn (Builder $q) => $q->where('trigger_type', $type)->orWhere('trigger_types', 'like', "%,{$type},%"));
     }
 
-    /** The trigger's settings, with the manifest defaults the editor shows for anything never edited. */
-    public function triggerConfig(): array
+    /** Every trigger node, the main one first. */
+    public function triggerNodes(): array
     {
-        $defaults = collect($this->triggerSpec()['inputs'] ?? [])
+        $nodes = array_values(array_filter($this->graph['nodes'] ?? [], fn ($node) => ($node['type'] ?? null) === 'trigger'));
+        usort($nodes, fn ($a, $b) => ($b['id'] === self::TRIGGER_NODE_ID) <=> ($a['id'] === self::TRIGGER_NODE_ID));
+
+        return $nodes;
+    }
+
+    /** A trigger node by id; without one, the main trigger. */
+    public function triggerNode(?string $id = null): ?array
+    {
+        return $id === null ? ($this->triggerNodes()[0] ?? null) : collect($this->triggerNodes())->firstWhere('id', $id);
+    }
+
+    /** The ids of this workflow's triggers of one kind. */
+    public function triggerIds(string $type): array
+    {
+        return collect($this->triggerNodes())->pluck('id')->filter(fn ($id) => ($this->triggerSpec($id)['type'] ?? null) === $type)->values()->all();
+    }
+
+    /** Whether this id is the main trigger (null means the main one). */
+    public function isMainTrigger(?string $id): bool
+    {
+        return $id === null || $id === ($this->triggerNode()['id'] ?? self::TRIGGER_NODE_ID);
+    }
+
+    /** A trigger's settings, with the manifest defaults the editor shows for anything never edited. */
+    public function triggerConfig(?string $id = null): array
+    {
+        $defaults = collect($this->triggerSpec($id)['inputs'] ?? [])
             ->filter(fn ($input) => array_key_exists('default', $input))
             ->mapWithKeys(fn ($input) => [$input['key'] => $input['default']])
             ->all();
 
-        return array_merge($defaults, array_filter($this->triggerNode()['data']['config'] ?? [], fn ($value) => $value !== null));
+        return array_merge($defaults, array_filter($this->triggerNode($id)['data']['config'] ?? [], fn ($value) => $value !== null));
     }
 
-    /** The manifest trigger definition the trigger node points at. */
-    public function triggerSpec(): ?array
+    /** The manifest trigger definition a trigger node points at. */
+    public function triggerSpec(?string $id = null): ?array
     {
-        $data = $this->triggerNode()['data'] ?? [];
+        $data = $this->triggerNode($id)['data'] ?? [];
 
         return app(ManifestLoader::class)->trigger($data['integration'] ?? '', $data['trigger'] ?? '');
     }
 
-    public function webhookUrl(): string
+    /** One trigger's state (last poll, seen items, captured sample…). */
+    public function triggerState(?string $id = null): array
     {
-        return url('/api/webhook/'.$this->webhook_token);
+        return $this->isMainTrigger($id) ? ($this->trigger_state ?? []) : ($this->trigger_state['nodes'][$id] ?? []);
+    }
+
+    /** The URL of a webhook trigger: the main one at /api/webhook/{token}, the others at /api/webhook/{token}/{id}. */
+    public function webhookUrl(?string $id = null): string
+    {
+        return url('/api/webhook/'.$this->webhook_token.($this->isMainTrigger($id) ? '' : '/'.$id));
     }
 
     /**
-     * Merge keys into the trigger state as stored now, not as this (possibly stale) copy last saw it: a poll,
+     * Merge keys into a trigger's state as stored now, not as this (possibly stale) copy last saw it: a poll,
      * a schedule tick and a webhook sample can write at the same time without undoing each other.
      */
-    public function mergeTriggerState(array $patch): void
+    public function mergeTriggerState(array $patch, ?string $trigger = null): void
     {
-        $state = DB::transaction(function () use ($patch) {
-            $state = array_merge(static::query()->lockForUpdate()->whereKey($this->getKey())->value('trigger_state') ?? [], $patch);
+        $main = $this->isMainTrigger($trigger);
+        $state = DB::transaction(function () use ($patch, $main, $trigger) {
+            $state = static::query()->lockForUpdate()->whereKey($this->getKey())->value('trigger_state') ?? [];
+            if ($main) {
+                $state = array_merge($state, $patch);
+            } else {
+                $state['nodes'][$trigger] = array_merge($state['nodes'][$trigger] ?? [], $patch);
+            }
             static::query()->whereKey($this->getKey())->toBase()->update(['trigger_state' => json_encode($state)]);
 
             return $state;
@@ -134,8 +182,8 @@ class Workflow extends Model
      */
     public function startErrorWorkflows(WorkflowExecution $failed): void
     {
-        if ($this->trigger_type === 'error' || $failed->mode === 'test') {
-            return;
+        if (in_array($failed->mode, ['error', 'test'], true)) {
+            return; // a failed alert run doesn't start alerts, so a broken alert workflow can't loop
         }
 
         $step = collect($failed->steps ?? [])->firstWhere('status', 'failed');
@@ -145,8 +193,8 @@ class Workflow extends Model
             'failed_step' => $step ? array_intersect_key($step, array_flip(['node_id', 'label', 'error', 'http_status'])) : null,
         ]];
 
-        static::query()->active()->where('trigger_type', 'error')->whereKeyNot($this->id)
-            ->each(fn (Workflow $handler) => $handler->start('error', $payload));
+        static::query()->active()->withTrigger('error')->whereKeyNot($this->id)
+            ->each(fn (Workflow $handler) => collect($handler->triggerIds('error'))->each(fn ($id) => $handler->start('error', $payload, trigger: $id)));
     }
 
     public function autoRetries(): bool
@@ -169,6 +217,7 @@ class Workflow extends Model
             'trigger_payload' => $failed->trigger_payload ?? [],
             'attempt' => ($failed->attempt ?? 1) + 1,
             'retry_of' => $failed->id,
+            'trigger_node' => $failed->trigger_node,
         ]);
         $failed->forceFill(['retry_at' => null])->save(); // a waiting automatic retry is now redundant
 
@@ -180,15 +229,17 @@ class Workflow extends Model
     /**
      * Record a run and hand it to the database queue (or run it inline for editor test runs).
      *
-     * @param  array  $triggerOutput  becomes {{ steps.trigger.* }}
+     * @param  array  $triggerOutput  becomes {{ steps.<trigger id>.* }}
      * @param  list<string>|null  $only  limit a test run to these node ids
+     * @param  string|null  $trigger  the trigger that fired (null: the main one); only its flow runs
      */
-    public function start(string $mode, array $triggerOutput, bool $sync = false, ?array $only = null): WorkflowExecution
+    public function start(string $mode, array $triggerOutput, bool $sync = false, ?array $only = null, ?string $trigger = null): WorkflowExecution
     {
         $execution = $this->executions()->create([
             'status' => WorkflowExecution::PENDING,
             'mode' => $mode,
             'trigger_payload' => $triggerOutput,
+            'trigger_node' => $this->isMainTrigger($trigger) ? null : $trigger,
         ]);
 
         if (! $sync) {

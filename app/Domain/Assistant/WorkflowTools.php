@@ -34,9 +34,9 @@ class WorkflowTools
     public function definitions(): array
     {
         $node = ['type' => 'object', 'properties' => [
-            'id' => ['type' => 'string', 'description' => '"trigger" for the trigger node, otherwise step_1, step_2…'],
+            'id' => ['type' => 'string', 'description' => '"trigger" for the main trigger; "trigger_2", "trigger_3"… for more triggers (each starts its own flow); otherwise step_1, step_2…'],
             'app' => ['type' => 'string', 'description' => 'Integration key from search_apps'],
-            'op' => ['type' => 'string', 'description' => 'Trigger key (for id "trigger") or action key'],
+            'op' => ['type' => 'string', 'description' => 'Trigger key (for trigger ids) or action key'],
             'label' => ['type' => 'string'],
             'config' => ['type' => 'object', 'description' => 'Input values keyed by input key'],
             'credential_id' => ['type' => 'integer'],
@@ -371,7 +371,7 @@ class WorkflowTools
                 continue;
             }
 
-            $isTrigger = $id === Workflow::TRIGGER_NODE_ID;
+            $isTrigger = (bool) preg_match('/^'.Workflow::TRIGGER_NODE_ID.'(_\d+)?$/', $id);
             $operation = collect($manifest[$isTrigger ? 'triggers' : 'actions'])->firstWhere('key', $node['op'] ?? '');
             if (! $operation) {
                 $valid = implode(', ', array_column($manifest[$isTrigger ? 'triggers' : 'actions'], 'key'));
@@ -433,7 +433,7 @@ class WorkflowTools
         }
 
         if (! collect($graphNodes)->contains('id', Workflow::TRIGGER_NODE_ID)) {
-            $errors[] = 'Exactly one node must have id "trigger" (e.g. app "manual" op "manual", app "webhook" op "catch", app "schedule" op "cron").';
+            $errors[] = 'One node must have id "trigger", the main trigger (e.g. app "manual" op "manual", app "webhook" op "catch", app "schedule" op "cron"). More triggers are "trigger_2", "trigger_3"….';
         }
         $graphEdges = array_map(fn ($e) => [
             'id' => "e-{$e['from']}-{$e['to']}-".($e['branch'] ?? 'out'),
@@ -515,14 +515,17 @@ class WorkflowTools
         return $fields ? implode(',', $fields).' +raw API response' : null;
     }
 
-    /** Left-to-right layering for nodes that don't already have a position. */
+    /** Left-to-right layering for nodes that don't already have a position; each trigger's flow gets its own band. */
     private function layout(array $nodes, array $edges): array
     {
-        $depth = [Workflow::TRIGGER_NODE_ID => 0];
+        $triggers = array_values(array_filter(array_column($nodes, 'id'), fn ($id) => preg_match('/^'.Workflow::TRIGGER_NODE_ID.'(_\d+)?$/', $id)));
+        $depth = array_fill_keys($triggers, 0);
+        $flow = array_flip($triggers); // which trigger's band a node sits in: the first flow that reaches it
         for ($pass = 0; $pass < count($nodes); $pass++) {
             foreach ($edges as $edge) {
                 if (isset($depth[$edge['source']])) {
                     $depth[$edge['target']] = max($depth[$edge['target']] ?? 0, $depth[$edge['source']] + 1);
+                    $flow[$edge['target']] ??= $flow[$edge['source']] ?? 0;
                 }
             }
         }
@@ -531,8 +534,9 @@ class WorkflowTools
         foreach ($nodes as &$node) {
             if ($node['position'] === null) {
                 $layer = $depth[$node['id']] ?? 1;
-                $row = $rows[$layer] = ($rows[$layer] ?? -1) + 1;
-                $node['position'] = ['x' => $layer * 260, 'y' => 200 + ($row % 2 ? 1 : -1) * (int) ceil($row / 2) * 170];
+                $band = $flow[$node['id']] ?? 0;
+                $row = $rows[$band][$layer] = ($rows[$band][$layer] ?? -1) + 1;
+                $node['position'] = ['x' => $layer * 260, 'y' => 200 + $band * 520 + ($row % 2 ? 1 : -1) * (int) ceil($row / 2) * 170];
             }
         }
 

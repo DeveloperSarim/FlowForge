@@ -20,7 +20,7 @@ class WorkflowExecution extends Model
 
     public const FAILED = 'failed';
 
-    protected $fillable = ['status', 'mode', 'trigger_payload', 'steps', 'error', 'started_at', 'finished_at', 'duration_ms', 'attempt', 'retry_of', 'retry_at'];
+    protected $fillable = ['status', 'mode', 'trigger_payload', 'steps', 'error', 'started_at', 'finished_at', 'duration_ms', 'attempt', 'retry_of', 'retry_at', 'trigger_node'];
 
     protected function casts(): array
     {
