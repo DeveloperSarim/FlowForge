@@ -2,7 +2,7 @@
 
 All notable changes to FlowForge. Versions follow [semantic versioning](https://semver.org).
 
-## [Unreleased]
+## [1.8.0] - 2026-10-18
 
 **Canvas and several flows per workflow:**
 - **Several triggers in one workflow** (like n8n):
