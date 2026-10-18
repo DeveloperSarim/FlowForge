@@ -188,6 +188,23 @@ class AssistantTest extends TestCase
         Http::assertSent(fn ($r) => isset($r['max_completion_tokens']) && $r['reasoning_effort'] === 'medium');
     }
 
+    public function test_the_ai_builder_opens_a_new_chat_and_each_chat_has_its_own_address(): void
+    {
+        $this->actingAs($owner = User::factory()->owner()->create());
+        $chat = $this->postJson('/assistant/conversations')->assertOk()->json('conversation');
+
+        $this->get('/assistant')->assertOk()->assertInertia(fn ($page) => $page->component('Assistant')->where('active', null)->has('conversations', 1));
+        $this->get("/assistant/c/{$chat['id']}")->assertInertia(fn ($page) => $page->where('active', $chat['id']));
+        $this->get("/assistant?c={$chat['id']}")->assertRedirect("/assistant/c/{$chat['id']}"); // old links
+
+        $this->patchJson("/assistant/conversations/{$chat['id']}", ['title' => '  VPS report  '])->assertOk()->assertJsonPath('conversation.title', 'VPS report');
+        $this->patchJson("/assistant/conversations/{$chat['id']}", ['title' => ''])->assertStatus(422);
+
+        $this->actingAs(User::factory()->owner()->create());
+        $this->get("/assistant/c/{$chat['id']}")->assertNotFound(); // chats are private to each person
+        $this->patchJson("/assistant/conversations/{$chat['id']}", ['title' => 'Mine now'])->assertNotFound();
+    }
+
     public function test_invalid_graph_from_the_model_is_reported_back_not_saved(): void
     {
         $tools = app(WorkflowTools::class);

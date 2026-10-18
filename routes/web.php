@@ -93,8 +93,11 @@ Route::middleware('auth')->group(function () {
     });
 
     Route::middleware('can:ai')->group(function () {
+        // /assistant is always a new chat (like ChatGPT); each chat has its own address.
         Route::get('assistant', [AssistantController::class, 'index']);
+        Route::get('assistant/c/{conversation}', [AssistantController::class, 'index']);
         Route::post('assistant/conversations', [AssistantController::class, 'store']);
+        Route::patch('assistant/conversations/{conversation}', [AssistantController::class, 'update']);
         Route::get('assistant/conversations/{conversation}', [AssistantController::class, 'show']);
         Route::post('assistant/conversations/{conversation}/messages', [AssistantController::class, 'message'])->middleware('throttle:30,1');
         Route::post('assistant/conversations/{conversation}/confirm-delete', [AssistantController::class, 'confirmDelete'])->middleware('can:workflows.delete');

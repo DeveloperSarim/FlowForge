@@ -17,7 +17,7 @@ class DemoRestrictions
     private const ALLOWED = [
         ['POST', 'logout'], ['PUT', 'settings/appearance'],
         ['POST', 'workflows'], ['PUT', 'workflows/*'], ['POST', 'workflows/*/duplicate'], ['POST', 'templates/*/use'],
-        ['POST', 'assistant/conversations'], ['POST', 'assistant/conversations/*/messages'], ['DELETE', 'assistant/conversations/*'],
+        ['POST', 'assistant/conversations'], ['POST', 'assistant/conversations/*/messages'], ['DELETE', 'assistant/conversations/*'], ['PATCH', 'assistant/conversations/*'],
     ];
 
     /** Reads that start something outside the app. */

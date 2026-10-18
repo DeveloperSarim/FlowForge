@@ -2,6 +2,16 @@
 
 All notable changes to FlowForge. Versions follow [semantic versioning](https://semver.org).
 
+## [Unreleased]
+
+- **AI Builder chats like ChatGPT:**
+  - Opening the AI Builder always starts a new chat, and each chat has its own address (`/assistant/c/12`).
+  - The chat list is grouped by date (Today, Yesterday, Previous 7 and 30 days), searchable and collapsible. Rename a chat in place or delete it from its ⋯ menu.
+  - New chats open with the message box in the middle.
+  - Answers have a copy button, and token use moves into a tooltip. A button jumps back to the latest message.
+  - Ctrl/⌘ Shift O starts a new chat.
+- On desktop, dialogs no longer show the phone sheet's grabber.
+
 ## [1.8.0] - 2026-10-18
 
 **Canvas and several flows per workflow:**

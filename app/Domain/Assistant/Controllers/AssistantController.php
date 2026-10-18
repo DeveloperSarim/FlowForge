@@ -10,6 +10,7 @@ use App\Domain\System\SystemSettings;
 use App\Domain\Workflows\Models\Workflow;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -18,14 +19,19 @@ use Throwable;
 
 class AssistantController extends Controller
 {
-    public function index(SystemSettings $settings, ManifestLoader $manifests): Response
+    /** /assistant opens a new chat; /assistant/c/{id} one of this person's chats. */
+    public function index(Request $request, SystemSettings $settings, ManifestLoader $manifests, ?AiConversation $conversation = null): Response|RedirectResponse
     {
+        if (! $conversation && ($old = (int) $request->query('c'))) {
+            return redirect("/assistant/c/{$old}"); // links from before chats had their own address
+        }
         $catalog = $manifests->catalogMap();
         $conversations = AiConversation::query()->where('user_id', auth()->id())->latest('updated_at')->limit(50)->get(['id', 'title', 'workflow_id', 'updated_at']);
         $workflows = Workflow::query()->whereIn('id', $conversations->pluck('workflow_id')->filter())->pluck('name', 'id');
 
         return Inertia::render('Assistant', [
             'conversations' => $conversations->map(fn ($c) => [...$c->toArray(), 'workflow_name' => $workflows[$c->workflow_id] ?? null]),
+            'active' => $conversation?->id,
             'ai' => self::status($settings, $manifests),
             // Logos for the starter suggestions.
             'apps' => collect(['typeform', 'google_sheets', 'slack', 'deepseek', 'linkedin', 'shopify', 'whatsapp_business'])
@@ -113,6 +119,14 @@ class AssistantController extends Controller
             return $entry;
         }, $conversation->display ?? []);
         $conversation->save();
+
+        return response()->json(['conversation' => $this->payload($conversation)]);
+    }
+
+    /** Rename a chat. */
+    public function update(Request $request, AiConversation $conversation): JsonResponse
+    {
+        $conversation->update(['title' => trim($request->validate(['title' => ['required', 'string', 'max:120']])['title'])]);
 
         return response()->json(['conversation' => $this->payload($conversation)]);
     }
