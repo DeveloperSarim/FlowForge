@@ -70,7 +70,7 @@ function ChatItem({ chat, active, onOpen, onRename, onDelete }) {
                 <span className="min-w-0 flex-1 truncate">{chat.title}</span>
                 {chat.workflow_id && <Workflow className="size-3.5 shrink-0 text-fg-subtle" aria-label="Linked to a workflow" />}
             </button>
-            <div className={cn('absolute top-1/2 right-1 -translate-y-1/2', active ? 'opacity-100' : 'opacity-0 group-hover:opacity-100 focus-within:opacity-100 pointer-coarse:opacity-100')}>
+            <div className={cn('absolute top-1/2 right-1 -translate-y-1/2', active ? 'opacity-100' : 'opacity-0 group-hover:opacity-100 focus-within:opacity-100 has-[[data-open]]:opacity-100 pointer-coarse:opacity-100')}>
                 <Menu align="right" items={[
                     { label: 'Rename', icon: Pencil, onClick: () => setEditing(true) },
                     { label: 'Delete', icon: Trash2, danger: true, onClick: () => onDelete(chat) },

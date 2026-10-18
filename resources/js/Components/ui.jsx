@@ -1,5 +1,5 @@
 // shadcn/ui-style primitives (variant/size props, forwardRef, cn merging) on the FlowForge tokens.
-import { forwardRef, useEffect, useId, useMemo, useRef, useState } from 'react';
+import { forwardRef, useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Check, ChevronDown, Loader2, Search, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -369,24 +369,51 @@ function useEscape(open, onClose) {
     }, [open, onClose]);
 }
 
-/** Small dropdown menu: trigger is any element; items [{label, icon, onClick, danger}] */
+/**
+ * Small dropdown menu: trigger is any element; items [{label, icon, onClick, danger}]. The panel is rendered on <body>
+ * next to its trigger (opening upward when there's no room below), so scrolling lists can't clip it and nothing
+ * stacks above it. The wrapper carries data-open while it's open, e.g. to keep a hover-only trigger visible.
+ */
 export function Menu({ trigger, items, align = 'right' }) {
     const [open, setOpen] = useState(false);
     const { mounted, closing } = usePresence(open, 120);
+    const [place, setPlace] = useState(null);
     const ref = useRef(null);
+    const panel = useRef(null);
     useEscape(open, () => setOpen(false));
     useEffect(() => {
-        if (!open) return;
-        const close = (e) => ref.current && !ref.current.contains(e.target) && setOpen(false);
+        if (!open) return undefined;
+        const close = (e) => !ref.current?.contains(e.target) && !panel.current?.contains(e.target) && setOpen(false);
+        const away = () => setOpen(false); // the trigger moved: a scroll or a resize closes the menu
         document.addEventListener('mousedown', close);
-        return () => document.removeEventListener('mousedown', close);
+        window.addEventListener('scroll', away, true);
+        window.addEventListener('resize', away);
+        return () => {
+            document.removeEventListener('mousedown', close);
+            window.removeEventListener('scroll', away, true);
+            window.removeEventListener('resize', away);
+        };
     }, [open]);
+    useLayoutEffect(() => {
+        if (!open || !ref.current || !panel.current) return;
+        const t = ref.current.getBoundingClientRect();
+        const { width, height } = panel.current.getBoundingClientRect();
+        const up = t.bottom + 4 + height > window.innerHeight - 8 && t.top - 4 - height > 8;
+        const left = align === 'right' ? t.right - width : t.left;
+        setPlace({
+            top: up ? t.top - 4 - height : t.bottom + 4,
+            left: Math.max(8, Math.min(left, window.innerWidth - width - 8)),
+            transformOrigin: `${align === 'right' ? 'right' : 'left'} ${up ? 'bottom' : 'top'}`,
+        });
+    }, [open, align]);
 
     return (
-        <div ref={ref} className="relative" onClick={(e) => e.stopPropagation()}>
+        <div ref={ref} className="relative" data-open={open ? '' : undefined} onClick={(e) => e.stopPropagation()}>
             <div onClick={() => setOpen((o) => !o)}>{trigger}</div>
-            {mounted && (
-                <div role="menu" data-closing={closing ? '' : undefined} className={cn('ff-popover absolute top-full z-50 mt-1 min-w-44 rounded-xl border border-line bg-surface p-1 shadow-pop', align === 'right' ? 'right-0 origin-top-right' : 'left-0 origin-top-left')}>
+            {mounted && createPortal(
+                <div ref={panel} role="menu" data-closing={closing ? '' : undefined} onClick={(e) => e.stopPropagation()}
+                    style={place ?? { top: 0, left: 0, visibility: 'hidden' }}
+                    className="ff-popover fixed z-[85] min-w-44 rounded-xl border border-line bg-surface p-1 shadow-pop">
                     {items.filter(Boolean).map((item) => (
                         <button key={item.label} type="button" role="menuitem" onClick={() => { setOpen(false); item.onClick(); }}
                             className={cn('flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-left text-13', item.danger ? 'text-fail hover:bg-fail-soft active:bg-fail-soft' : 'text-fg hover:bg-surface-2 active:bg-surface-3')}>
@@ -394,7 +421,8 @@ export function Menu({ trigger, items, align = 'right' }) {
                             {item.label}
                         </button>
                     ))}
-                </div>
+                </div>,
+                document.body,
             )}
         </div>
     );

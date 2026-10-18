@@ -11,6 +11,7 @@ All notable changes to FlowForge. Versions follow [semantic versioning](https://
   - Answers have a copy button, and token use moves into a tooltip. A button jumps back to the latest message.
   - Ctrl/⌘ Shift O starts a new chat.
 - On desktop, dialogs no longer show the phone sheet's grabber.
+- Dropdown menus (like a chat's ⋯ menu) open on top of everything next to their button, so they are never hidden behind the next row or cut off by a scrolling list.
 
 ## [1.8.0] - 2026-10-18
 
