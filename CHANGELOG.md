@@ -2,7 +2,7 @@
 
 All notable changes to FlowForge. Versions follow [semantic versioning](https://semver.org).
 
-## [Unreleased]
+## [1.8.1] - 2026-10-18
 
 - **AI Builder chats like ChatGPT:**
   - Opening the AI Builder always starts a new chat, and each chat has its own address (`/assistant/c/12`).
